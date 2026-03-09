@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StegVerse Receipt",
+  "type": "object",
+  "required": [
+    "receipt_id",
+    "decision",
+    "timestamp"
+  ],
+  "properties": {
+    "receipt_id": {
+      "type": "string"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "allow",
+        "deny",
+        "defer"
+      ]
+    },
+    "reason_code": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}
