@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StegVerse Intent",
+  "type": "object",
+  "required": [
+    "action",
+    "target"
+  ],
+  "properties": {
+    "action": {
+      "type": "string"
+    },
+    "target": {
+      "type": "string"
+    },
+    "parameters": {
+      "type": "object"
+    },
+    "requested_at": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}
