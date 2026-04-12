@@ -3,20 +3,27 @@
 SDK for interacting with the **StegVerse Trust Kernel**.
 
 StegVerse introduces runtime governance for autonomous systems by verifying
-whether actions are legitimately allowed to execute before they occur.
+whether actions are legitimately allowed to execute **before they occur**.
 
-Instead of assuming autonomy is always permitted, StegVerse enforces decision
-validation at the **execution boundary**.
+This SDK is the **submission and observation boundary** for governed execution.
 
-system proposes action
-        ↓
-   Trust Kernel
-        ↓
-allow | deny | defer
-        ↓
-execution
-        ↓
-receipt
+---
+
+## The Model
+
+system proposes action  
+↓  
+Trust Kernel (CGE admission)  
+↓  
+allow | deny | defer  
+↓  
+execution (Gemstone / pipeline)  
+↓  
+receipt  
+
+Execution is not assumed.
+
+Execution is **admitted**.
 
 ---
 
@@ -33,11 +40,11 @@ Most systems still operate like this:
 
 model decides → system executes → humans audit afterward
 
-This assumes every action should execute unless blocked.
+This assumes execution is always allowed unless blocked.
 
-StegVerse reverses this assumption.
+StegVerse reverses that:
 
-Execution becomes a **privilege granted by governance**, not a default capability.
+> **execution is a privilege granted at runtime, not a default capability**
 
 ---
 
@@ -45,10 +52,9 @@ Execution becomes a **privilege granted by governance**, not a default capabilit
 
 ### Intent
 
-An intent is a structured request describing an action a system wants to perform.
+An intent is a structured request describing a proposed action.
 
-Example:
-
+```python
 intent = {
     "action": "deploy.compute",
     "target": "render.cluster",
@@ -57,50 +63,81 @@ intent = {
         "count": 4
     }
 }
+```
+
+---
 
 ### Decision
 
-The Trust Kernel evaluates the intent and returns:
+The Trust Kernel evaluates the intent through **CGE admission** and returns:
 
 allow | deny | defer
+
+---
 
 ### Execution Receipt
 
 If execution occurs, a receipt proves:
 
-• the action was authorized  
-• the decision was verified  
-• execution occurred within policy constraints  
+• the action was admitted  
+• the decision boundary was satisfied  
+• execution occurred under governed conditions  
 
-Receipts create a verifiable history of system state transitions.
+Receipts are not logs.
+
+They are **evidence of admissible state transition**.
 
 ---
 
 ## Minimal SDK Interface
 
+```python
 submit_intent(intent)
 
 get_decision(intent_id)
 
 verify_receipt(receipt)
+```
 
 ---
 
 ## Architecture
 
-Agent / Automation System
-        ↓
-StegVerse SDK
-        ↓
-Trust Kernel
-        ↓
-GCAT Evaluation
-        ↓
-Decision
-        ↓
-Execution
-        ↓
-Receipt Ledger
+Agent / Scenario / User Input  
+↓  
+StegVerse SDK  
+↓  
+Ingestion (validation + routing)  
+↓  
+Trust Kernel (CGE admission boundary)  
+↓  
+Execution Pipeline (e.g., Gemstone)  
+↓  
+Receipts + Artifacts  
+↓  
+Ingestion  
+↓  
+SDK → user
+
+---
+
+## How This Connects to Execution
+
+The SDK does not execute actions.
+
+It:
+
+• accepts intent or scenario artifacts  
+• validates and classifies them  
+• routes them to the correct pipeline  
+• returns governed results  
+
+Execution occurs in a pipeline such as **Gemstone**, where:
+
+• events are processed  
+• transitions are evaluated  
+• admissibility is enforced via CGE  
+• receipts are emitted  
 
 ---
 
@@ -111,10 +148,21 @@ StegVerse runtime governance follows the GCAT framework:
 G — Governance  
 C — Constraints  
 A — Artifact execution pressure  
-T — Trust continuity
+T — Trust continuity  
 
-The Trust Kernel enforces admissibility conditions ensuring system actions
-never exceed governance capacity.
+The Trust Kernel ensures:
+
+> **no transition occurs outside the admissible region of the system**
+
+---
+
+## What This Enables
+
+• submission of controlled experiment scenarios  
+• admissible vs inadmissible transition evaluation  
+• real-time decision visibility  
+• deterministic replay of execution  
+• reconstruction of prior state transitions from receipts  
 
 ---
 
@@ -125,7 +173,16 @@ StegVerse governance infrastructure.
 
 Current focus:
 
-• intent submission  
+• intent and scenario submission  
+• ingestion routing  
 • Trust Kernel decision queries  
 • receipt verification  
-• integration examples
+• Gemstone pipeline integration  
+
+---
+
+## Direction
+
+The SDK is evolving toward:
+
+> **a unified interface for submitting, governing, executing, and verifying state transitions across autonomous systems**
