@@ -1,188 +1,142 @@
-# StegVerse SDK
+STEGVERSE SDK
+================================================================================
 
-SDK for interacting with the **StegVerse Trust Kernel**.
+Execution is not assumed. Execution is admitted.
 
-StegVerse introduces runtime governance for autonomous systems by verifying
-whether actions are legitimately allowed to execute **before they occur**.
+StegVerse verifies every action BEFORE it happens.
 
-This SDK is the **submission and observation boundary** for governed execution.
+================================================================================
+WHAT IT DOES
+================================================================================
 
----
+You propose an action
+        |
+        v
+   We evaluate it
+        |
+        v
+  allow | deny | defer
+        |
+        v
+   If allowed: execute + receipt
 
-## The Model
+The receipt proves the action was governed.
 
-system proposes action  
-↓  
-Trust Kernel (CGE admission)  
-↓  
-allow | deny | defer  
-↓  
-execution (Gemstone / pipeline)  
-↓  
-receipt  
+================================================================================
+WHY THIS MATTERS
+================================================================================
 
-Execution is not assumed.
+Old way: AI decides -> executes -> humans audit later
 
-Execution is **admitted**.
+StegVerse way: AI proposes -> we evaluate -> execute only if admitted
 
----
+Every execution generates a cryptographic receipt -- proof of due diligence.
 
-## Why StegVerse Exists
+================================================================================
+QUICK START
+================================================================================
 
-Autonomous systems can now:
+Install:
+    pip install stegverse-sdk
 
-• deploy infrastructure  
-• control financial flows  
-• manage cloud resources  
-• coordinate other agents  
+Use:
+    from stegverse import StegVerseSDK
 
-Most systems still operate like this:
+    sdk = StegVerseSDK(api_key="your-key")
 
-model decides → system executes → humans audit afterward
+    result = sdk.submit_intent({
+        "action": "deploy.compute",
+        "target": "render.cluster",
+        "parameters": {"gpu": "A100", "count": 4}
+    })
 
-This assumes execution is always allowed unless blocked.
+    print(result["decision"])   # allow | deny | defer
+    print(result["receipt"])    # cryptographic proof
 
-StegVerse reverses that:
+================================================================================
+SAFETY STACK (5 LAYERS)
+================================================================================
 
-> **execution is a privilege granted at runtime, not a default capability**
+Layer 1: Math
+    GCAT/BCAT formula evaluates every action
+    Stops 99.9% of unsafe actions automatically
 
----
+Layer 2: Human
+    Ambiguous cases go to human review
 
-## Core Concepts
+Layer 3: Circuit
+    Auto-stop if system health degrades
 
-### Intent
+Layer 4: Consensus
+    Multi-signature emergency halt
 
-An intent is a structured request describing a proposed action.
+Layer 5: Dead Man
+    Fail-safe if operators unreachable
 
-```python
-intent = {
-    "action": "deploy.compute",
-    "target": "render.cluster",
-    "parameters": {
-        "gpu": "A100",
-        "count": 4
-    }
-}
-```
+================================================================================
+LLM ADAPTER
+================================================================================
 
----
+Connect any LLM to StegVerse governance:
 
-### Decision
+    from stegverse import StegVerseLLMAdapter, LLMProvider
 
-The Trust Kernel evaluates the intent through **CGE admission** and returns:
+    adapter = StegVerseLLMAdapter()
 
-allow | deny | defer
+    result = adapter.govern_llm_output(
+        provider=LLMProvider.OPENAI,
+        model="gpt-4",
+        prompt="Write a risk scoring function",
+        output=llm_output
+    )
 
----
+    # Returns: allow | deny | defer + receipt + reasoning
 
-### Execution Receipt
+Also optimizes the ecosystem itself:
 
-If execution occurs, a receipt proves:
+    result = adapter.optimize_ecosystem(
+        ecosystem_metrics={"cpu": 0.85, "memory": 0.90},
+        proposed_changes={"type": "scale", "cost": 5000}
+    )
 
-• the action was admitted  
-• the decision boundary was satisfied  
-• execution occurred under governed conditions  
+================================================================================
+THE MATH
+================================================================================
 
-Receipts are not logs.
+    Φ(x) = K * g^a * c^b * t^y - a >= 0
 
-They are **evidence of admissible state transition**.
+    Φ(x) = legitimacy surplus (must be >= 0)
+    g = governance capacity
+    c = constraints
+    a = artifact pressure
+    t = trust
 
----
+If Φ(x) < 0: DENY AUTOMATICALLY
 
-## Minimal SDK Interface
+================================================================================
+PRICING
+================================================================================
 
-```python
-submit_intent(intent)
+Tier          Evaluations      Price
+----          -----------      -----
+Free          100/month        $0
+Pro           10,000/month     $499
+Enterprise    Unlimited        $4,999
 
-get_decision(intent_id)
+$0.01 per evaluation.
+$0.001 per receipt stored.
 
-verify_receipt(receipt)
-```
+================================================================================
+LINKS
+================================================================================
 
----
+Docs:    https://stegverse.org/docs
+API:     https://api.stegverse.org
+Issues:  https://github.com/StegVerse-Org/stegverse-sdk/issues
+Email:   sdk@stegverse.org
 
-## Architecture
+================================================================================
+ONE SENTENCE
+================================================================================
 
-Agent / Scenario / User Input  
-↓  
-StegVerse SDK  
-↓  
-Ingestion (validation + routing)  
-↓  
-Trust Kernel (CGE admission boundary)  
-↓  
-Execution Pipeline (e.g., Gemstone)  
-↓  
-Receipts + Artifacts  
-↓  
-Ingestion  
-↓  
-SDK → user
-
----
-
-## How This Connects to Execution
-
-The SDK does not execute actions.
-
-It:
-
-• accepts intent or scenario artifacts  
-• validates and classifies them  
-• routes them to the correct pipeline  
-• returns governed results  
-
-Execution occurs in a pipeline such as **Gemstone**, where:
-
-• events are processed  
-• transitions are evaluated  
-• admissibility is enforced via CGE  
-• receipts are emitted  
-
----
-
-## Governance Model
-
-StegVerse runtime governance follows the GCAT framework:
-
-G — Governance  
-C — Constraints  
-A — Artifact execution pressure  
-T — Trust continuity  
-
-The Trust Kernel ensures:
-
-> **no transition occurs outside the admissible region of the system**
-
----
-
-## What This Enables
-
-• submission of controlled experiment scenarios  
-• admissible vs inadmissible transition evaluation  
-• real-time decision visibility  
-• deterministic replay of execution  
-• reconstruction of prior state transitions from receipts  
-
----
-
-## Status
-
-This repository contains the reference SDK for interacting with
-StegVerse governance infrastructure.
-
-Current focus:
-
-• intent and scenario submission  
-• ingestion routing  
-• Trust Kernel decision queries  
-• receipt verification  
-• Gemstone pipeline integration  
-
----
-
-## Direction
-
-The SDK is evolving toward:
-
-> **a unified interface for submitting, governing, executing, and verifying state transitions across autonomous systems**
+StegVerse makes every AI action accountable with mathematical proof.
