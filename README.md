@@ -1,142 +1,153 @@
-STEGVERSE SDK
-================================================================================
-
+# STEGVERSE SDK
 Execution is not assumed. Execution is admitted.
 
-StegVerse verifies every action BEFORE it happens.
+StegVerse verifies every action **before** it happens and produces cryptographic proof of that decision.
 
-================================================================================
-WHAT IT DOES
-================================================================================
+---
 
-You propose an action
-        |
-        v
-   We evaluate it
-        |
-        v
-  allow | deny | defer
-        |
-        v
-   If allowed: execute + receipt
+## WHAT IT DOES
 
-The receipt proves the action was governed.
+You propose an action  
+→ StegVerse evaluates it  
+→ Decision: **ALLOW | DENY | DEFER**  
+→ If allowed: execution + receipt  
 
-================================================================================
-WHY THIS MATTERS
-================================================================================
+Every executed action produces a verifiable receipt.
 
-Old way: AI decides -> executes -> humans audit later
+---
 
-StegVerse way: AI proposes -> we evaluate -> execute only if admitted
+## WHY THIS MATTERS
 
-Every execution generates a cryptographic receipt -- proof of due diligence.
+**Traditional flow**
+AI decides → executes → humans audit later
 
-================================================================================
-QUICK START
-================================================================================
+**StegVerse flow**
+AI proposes → evaluated at commit → executes only if admitted
 
-Install:
-    pip install stegverse-sdk
+This eliminates ungoverned execution at the point of irreversibility.
 
-Use:
-    from stegverse import StegVerseSDK
+---
 
-    sdk = StegVerseSDK(api_key="your-key")
+## QUICK START
 
-    result = sdk.submit_intent({
-        "action": "deploy.compute",
-        "target": "render.cluster",
-        "parameters": {"gpu": "A100", "count": 4}
-    })
+### Install
+```bash
+pip install stegverse-sdk
+```
 
-    print(result["decision"])   # allow | deny | defer
-    print(result["receipt"])    # cryptographic proof
+### Example
+```python
+from stegverse import StegVerseSDK
 
-================================================================================
-SAFETY STACK (5 LAYERS)
-================================================================================
+sdk = StegVerseSDK(api_key="your-key")
 
-Layer 1: Math
-    GCAT/BCAT formula evaluates every action
-    Stops 99.9% of unsafe actions automatically
+result = sdk.submit_intent({
+    "action": "deploy.compute",
+    "target": "render.cluster",
+    "parameters": {"gpu": "A100", "count": 4}
+})
 
-Layer 2: Human
-    Ambiguous cases go to human review
+print(result["decision"])   # allow | deny | defer
+print(result["receipt"])    # cryptographic proof
+```
 
-Layer 3: Circuit
-    Auto-stop if system health degrades
+---
 
-Layer 4: Consensus
-    Multi-signature emergency halt
+## SAFETY STACK
 
-Layer 5: Dead Man
-    Fail-safe if operators unreachable
+1. **Mathematical Gate (GCAT/BCAT)**
+   - Evaluates admissibility at commit-time
+   - Denies unsafe transitions by default
 
-================================================================================
-LLM ADAPTER
-================================================================================
+2. **Human Review**
+   - Handles ambiguous edge cases
 
-Connect any LLM to StegVerse governance:
+3. **Circuit Breakers**
+   - Stops execution on system instability
 
-    from stegverse import StegVerseLLMAdapter, LLMProvider
+4. **Consensus Controls**
+   - Multi-party emergency halt
 
-    adapter = StegVerseLLMAdapter()
+5. **Fail-Safe**
+   - Defaults to denial if control is lost
 
-    result = adapter.govern_llm_output(
-        provider=LLMProvider.OPENAI,
-        model="gpt-4",
-        prompt="Write a risk scoring function",
-        output=llm_output
-    )
+---
 
-    # Returns: allow | deny | defer + receipt + reasoning
+## LLM ADAPTER
 
-Also optimizes the ecosystem itself:
+Govern any LLM output before execution:
 
-    result = adapter.optimize_ecosystem(
-        ecosystem_metrics={"cpu": 0.85, "memory": 0.90},
-        proposed_changes={"type": "scale", "cost": 5000}
-    )
+```python
+from stegverse import StegVerseLLMAdapter, LLMProvider
 
-================================================================================
-THE MATH
-================================================================================
+adapter = StegVerseLLMAdapter()
 
-    Φ(x) = K * g^a * c^b * t^y - a >= 0
+result = adapter.govern_llm_output(
+    provider=LLMProvider.OPENAI,
+    model="gpt-4",
+    prompt="Write a risk scoring function",
+    output=llm_output
+)
+```
 
-    Φ(x) = legitimacy surplus (must be >= 0)
-    g = governance capacity
-    c = constraints
-    a = artifact pressure
-    t = trust
+Returns:
+- decision (allow | deny | defer)
+- receipt
+- reasoning
 
-If Φ(x) < 0: DENY AUTOMATICALLY
+### Ecosystem Optimization
+```python
+result = adapter.optimize_ecosystem(
+    ecosystem_metrics={"cpu": 0.85, "memory": 0.90},
+    proposed_changes={"type": "scale", "cost": 5000}
+)
+```
 
-================================================================================
-PRICING
-================================================================================
+---
 
-Tier          Evaluations      Price
-----          -----------      -----
-Free          100/month        $0
-Pro           10,000/month     $499
-Enterprise    Unlimited        $4,999
+## THE MODEL
 
-$0.01 per evaluation.
-$0.001 per receipt stored.
+Legitimacy constraint:
 
-================================================================================
-LINKS
-================================================================================
+```
+Φ(x) = K · g^α · c^β · t^γ − a
+```
 
-Docs:    https://stegverse.org/docs
-API:     https://api.stegverse.org
-Issues:  https://github.com/StegVerse-Org/stegverse-sdk/issues
-Email:   sdk@stegverse.org
+Where:
+- g = governance capacity
+- c = constraints
+- a = action pressure
+- t = trust
 
-================================================================================
-ONE SENTENCE
-================================================================================
+Decision rule:
+- Φ(x) ≥ 0 → ALLOW
+- Φ(x) < 0 → DENY
 
-StegVerse makes every AI action accountable with mathematical proof.
+---
+
+## PRICING
+
+| Tier        | Evaluations | Price  |
+|-------------|------------|--------|
+| Free        | 100/mo     | $0     |
+| Pro         | 10,000/mo  | $499   |
+| Enterprise  | Unlimited  | $4,999 |
+
+Usage:
+- $0.01 per evaluation  
+- $0.001 per stored receipt  
+
+---
+
+## LINKS
+
+- Docs: https://stegverse.org/docs  
+- API: https://api.stegverse.org  
+- Issues: https://github.com/StegVerse-Org/stegverse-sdk/issues  
+- Email: sdk@stegverse.org  
+
+---
+
+## ONE LINE
+
+StegVerse enforces commit-time governance with verifiable execution receipts.
