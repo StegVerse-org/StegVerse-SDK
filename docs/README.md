@@ -1,46 +1,63 @@
-# SDK Wrapper Reference — AaCT-E Integration
+# SDK Demo Pipeline Test
 
-> **Reference implementation of the SDK read-only contract.**
+Headless validation that the StegVerse SDK -> demo-suite -> runner pipeline works end-to-end.
 
-## Contract Summary
+## What This Tests
 
-The SDK may:
-- Clone the demo at a specific tag
-- Run `verify_demo.py` or `python -m access.cli`
-- Parse JSON traces
-- Display results through SDK UI/API
-- Archive traces with provenance
+| Test | Validates |
+|------|-----------|
+| SDK Installation | `pip install stegverse-sdk` works |
+| Core Imports | `submit_intent`, `StegVerseLLMAdapter`, `govern_llm_output` importable |
+| Demo Submission | SDK can submit intents to demo-suite |
+| LLM Governance | Adapter correctly classifies LLM output as ALLOW/DENY/FAIL_CLOSED |
+| Confidence Visibility | SDK can retrieve confidence scores and reconstruction data |
+| Full Pipeline | All 5 modes run successfully with >=95% confidence |
+| Mobile Trigger | Workflow can be started from GitHub Mobile app |
 
-The SDK must NOT:
-- Modify scenario files or engine code
-- Change thresholds
-- Suppress verification failures
-- Reference `main` branch for evidence
+## How to Run
 
-## Usage
+### From GitHub Mobile (While with kids)
 
-```python
-from demo_runner import DemoRunner
+1. Open GitHub app
+2. Go to `StegVerse-org/StegVerse-SDK` -> Actions
+3. Select "SDK Demo Pipeline Test"
+4. Tap "Run workflow"
+5. Choose test level: `quick`, `standard`, or `full`
+6. Tap "Run workflow"
+7. Wait for notification (2-5 minutes)
 
-with DemoRunner(repo="AaCT-E/demo", tag="v0.2.0") as runner:
-    result = runner.verify()
+### From Desktop
 
-    if result.passed:
-        print("All assertions passed")
-    else:
-        print("Verification failed — see result.stderr")
-
-    # Provenance is preserved
-    print(result.provenance)
-    # {'repo': 'AaCT-E/demo', 'tag': 'v0.2.0', 'commit_sha': 'abc123...'}
+```bash
+gh workflow run sdk-demo-test.yml --repo StegVerse-org/StegVerse-SDK -f test_level=full
 ```
 
-## Isolation
+## Test Levels
 
-- Process: Demo runs in subprocess, not imported
-- Filesystem: Cloned to temp directory, cleaned up on exit
-- Network: Demo requires no network; SDK must not inject dependencies
+| Level | Duration | What It Checks |
+|-------|----------|---------------|
+| `quick` | 30 seconds | Install + import |
+| `standard` | 2 minutes | Install + demo call + confidence |
+| `full` | 5 minutes | All modes + reconstruction + replay |
 
-## Full Contract
+## Success Criteria
 
-See [AaCT-E/docs/SDK_INTEGRATION.md](https://github.com/AaCT-E/demo/blob/main/docs/SDK_INTEGRATION.md)
+- [ ] SDK installs without errors
+- [ ] All core imports succeed
+- [ ] Demo intent submits successfully
+- [ ] LLM governance returns valid decision
+- [ ] Confidence score >= 95% for full mode
+- [ ] Reconstruction data present
+- [ ] All 5 modes pass
+
+## Failure Handling
+
+If any test fails:
+1. Check `test_report.json` artifact
+2. Review logs for specific failure
+3. File issue with `sdk-demo-failure` label
+4. StegVerse-Healer auto-attempts repair (if configured)
+
+## Schedule
+
+Runs automatically every 6 hours. Results posted to StegDB.
