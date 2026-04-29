@@ -66,19 +66,3 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: twine upload dist/*
 
-      - uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ inputs.version }}
-          files: dist/*
-          generate_release_notes: true
-
-      - name: Update version hint
-        if: ${{ !inputs.dry_run }}
-        run: |
-          RELEASED="${{ inputs.version }}"
-          sed -i "s/__LAST_VERSION__/$RELEASED/" .github/workflows/headless-release.yml
-          git config user.name "bot"
-          git config user.email "bot@stegverse.org"
-          git add .github/workflows/headless-release.yml
-          git commit -m "Update version hint to $RELEASED [auto]"
-          git push origin HEAD:main
