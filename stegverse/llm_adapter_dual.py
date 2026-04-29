@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime, timezone
 
-from stegverse_safety_stack import StegVerseSafetyStack, GCATState, SafetyDecision
+from .safety_stack import StegVerseSafetyStack, GCATState, SafetyDecision
 
 
 class LLMProvider(Enum):
@@ -75,10 +75,10 @@ class StegVerseLLMAdapterDual:
     Dual-purpose LLM adapter for StegVerse ecosystem.
 
     Purpose 1: Governance Ingress
-        LLM generates content → adapter translates → pipeline evaluates
+    LLM generates content → adapter translates → pipeline evaluates
 
     Purpose 2: Ecosystem Optimization
-        Ecosystem metrics → LLM analyzes → adapter translates → pipeline evaluates
+    Ecosystem metrics → LLM analyzes → adapter translates → pipeline evaluates
     """
 
     def __init__(
@@ -340,12 +340,12 @@ if __name__ == "__main__":
     print("\n--- Purpose 1: Governance Ingress ---")
 
     safe_code = '''
-    def hello():
-        """Say hello."""
-        return "hello"
-    
-    def test_hello():
-        assert hello() == "hello"
+def hello():
+    """Say hello."""
+    return "hello"
+
+def test_hello():
+    assert hello() == "hello"
     '''
 
     result = adapter.govern_llm_output(
@@ -357,10 +357,10 @@ if __name__ == "__main__":
     print(f"Safe code: {result['decision']} (Layer: {result['safety_layer']})")
 
     risky_code = """
-    import os
-    def run(cmd):
-        os.system(cmd)
-    """
+import os
+def run(cmd):
+    os.system(cmd)
+"""
 
     result = adapter.govern_llm_output(
         provider=LLMProvider.OPENAI,
