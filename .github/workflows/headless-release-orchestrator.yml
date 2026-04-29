@@ -30,8 +30,8 @@ jobs:
 
       - name: Bump version
         run: |
-          OLD=$(grep '^version' pyproject.toml | sed 's/.*= "\(.*\)".*//')
-          sed -i "s/version = "$OLD"/version = "${{ inputs.version }}"/" pyproject.toml
+          OLD=$(grep '^version' pyproject.toml | sed 's/.*= "\(.*\)".*/\1/')
+          sed -i 's/version = "'"$OLD"'"/version = "${{ inputs.version }}"/' pyproject.toml
           git config user.name "bot"
           git config user.email "bot@stegverse.org"
           git add -A
