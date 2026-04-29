@@ -8,7 +8,7 @@ StegVerse LLM Adapter v2.0 — Dual Purpose
 import json
 import hashlib
 import re
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime, timezone
@@ -74,38 +74,34 @@ class CanonicalIntent:
 class StegVerseLLMAdapterDual:
     """
     Dual-purpose LLM adapter for StegVerse ecosystem.
-
-    Purpose 1: Governance Ingress
-    LLM generates content → adapter translates → pipeline evaluates
-
-    Purpose 2: Ecosystem Optimization
-    Ecosystem metrics → LLM analyzes → adapter translates → pipeline evaluates
     """
 
-    # Dangerous patterns that should trigger automatic DENY
-    DANGEROUS_PATTERNS = [
-        r"os\.system\s*\(",
-        r"subprocess\.call\s*\(",
-        r"subprocess\.run\s*\(",
-        r"subprocess\.Popen\s*\(",
-        r"eval\s*\(",
-        r"exec\s*\(",
-        r"compile\s*\(",
-        r"__import__\s*\(",
-        r"importlib\.import_module",
-        r"pickle\.loads?\s*\(",
-        r"yaml\.load\s*\(",
-        r"input\s*\(",
-        r"raw_input\s*\(",
-        r"open\s*\([^)]*['"]\s*['"]\s*w",
-        r"shutil\.rmtree",
-        r"os\.remove\s*\(",
-        r"os\.unlink\s*\(",
-        r"socket\.socket",
-        r"urllib\.request",
-        r"requests\.get\s*\(",
-        r"requests\.post\s*\(",
-    ]
+    # Dangerous patterns: list of (regex, description) tuples
+    # Defined as a class method to avoid raw-string quote issues
+    @classmethod
+    def _get_dangerous_patterns(cls) -> List[Tuple[str, str]]:
+        return [
+            (r"os\.system\s*\(", "os.system call"),
+            (r"subprocess\.call\s*\(", "subprocess.call"),
+            (r"subprocess\.run\s*\(", "subprocess.run"),
+            (r"subprocess\.Popen\s*\(", "subprocess.Popen"),
+            (r"eval\s*\(", "eval()"),
+            (r"exec\s*\(", "exec()"),
+            (r"compile\s*\(", "compile()"),
+            (r"__import__\s*\(", "__import__()"),
+            (r"importlib\.import_module", "importlib.import_module"),
+            (r"pickle\.loads?\s*\(", "pickle deserialization"),
+            (r"yaml\.load\s*\(", "yaml.load unsafe"),
+            (r"input\s*\(", "input()"),
+            (r"raw_input\s*\(", "raw_input()"),
+            (r"shutil\.rmtree", "shutil.rmtree"),
+            (r"os\.remove\s*\(", "os.remove"),
+            (r"os\.unlink\s*\(", "os.unlink"),
+            (r"socket\.socket", "socket creation"),
+            (r"urllib\.request", "urllib request"),
+            (r"requests\.get\s*\(", "requests.get"),
+            (r"requests\.post\s*\(", "requests.post"),
+        ]
 
     def __init__(
         self,
@@ -116,8 +112,6 @@ class StegVerseLLMAdapterDual:
         self.pipeline_url = pipeline_url
         self._session_counter = 0
 
-    # Purpose 1: Governance Ingress
-
     def govern_llm_output(
         self,
         provider: LLMProvider,
@@ -126,22 +120,24 @@ class StegVerseLLMAdapterDual:
         output: str,
         user_context: Optional[Dict] = None,
     ) -> Dict[str, Any]:
-        """
-        Purpose 1: LLM output → canonical intent → safety stack → decision
-        """
         self._session_counter += 1
-        session_id = f"ingress-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{self._session_counter}"
+        session_id = (
+            "ingress-"
+            + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+            + f"-{self._session_counter}"
+        )
 
-        # Parse LLM output
         parsed = self._parse_llm_output(output)
 
-        # Security scan — immediate DENY if dangerous patterns found
         if parsed.get("has_dangerous_patterns"):
+            patterns = parsed.get("dangerous_patterns_found", [])
             return {
                 "decision": "DENY",
                 "safety_layer": "SECURITY_SCAN",
-                "reason": f"Dangerous patterns detected: {parsed['dangerous_patterns_found']}",
-                "receipt": self.safety._generate_receipt("SECURITY", "DENY", "llm-adapter"),
+                "reason": f"Dangerous patterns detected: {patterns}",
+                "receipt": self.safety._generate_receipt(
+                    "SECURITY", "DENY", "llm-adapter"
+                ),
                 "suggestions": [
                     "Remove dangerous system calls",
                     "Use safe alternatives for file/network operations",
@@ -149,10 +145,8 @@ class StegVerseLLMAdapterDual:
                 ],
             }
 
-        # Compute GCAT state from output characteristics
         gcat_state = self._compute_gcat_state(parsed)
 
-        # Build canonical intent
         intent = CanonicalIntent(
             ingress_source="llm",
             provider=provider.value,
@@ -165,7 +159,6 @@ class StegVerseLLMAdapterDual:
             metadata={"prompt": prompt, "user_context": user_context or {}},
         )
 
-        # Evaluate through safety stack (Layer 1: Mathematical)
         gcat_obj = GCATState(**gcat_state)
         bcat_score = self._compute_bcat_score(parsed)
 
@@ -179,7 +172,9 @@ class StegVerseLLMAdapterDual:
                 "safety_layer": safety_decision.layer_triggered.name,
                 "reason": safety_decision.reason,
                 "receipt": safety_decision.receipt_hash,
-                "suggestions": self._generate_suggestions(gcat_obj, bcat_score, parsed),
+                "suggestions": self._generate_suggestions(
+                    gcat_obj, bcat_score, parsed
+                ),
             }
 
         if safety_decision.action == "DEFER":
@@ -191,7 +186,6 @@ class StegVerseLLMAdapterDual:
                 "intent": intent.to_dict(),
             }
 
-        # ADMITTED — return with receipt
         return {
             "decision": "ADMIT",
             "safety_layer": safety_decision.layer_triggered.name,
@@ -201,24 +195,21 @@ class StegVerseLLMAdapterDual:
             "bcat_score": bcat_score,
         }
 
-    # Purpose 2: Ecosystem Optimization
-
     def optimize_ecosystem(
         self,
         ecosystem_metrics: Dict[str, Any],
         llm_analysis: str,
         proposed_changes: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """
-        Purpose 2: Ecosystem state → LLM optimization → safety stack → decision
-        """
         self._session_counter += 1
-        session_id = f"optimization-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{self._session_counter}"
+        session_id = (
+            "optimization-"
+            + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+            + f"-{self._session_counter}"
+        )
 
-        # Compute ecosystem GCAT state
         gcat_state = self._compute_ecosystem_gcat_state(ecosystem_metrics)
 
-        # Build canonical intent for optimization
         intent = CanonicalIntent(
             ingress_source="ecosystem",
             provider="stegverse-internal",
@@ -232,10 +223,11 @@ class StegVerseLLMAdapterDual:
                 "proposed_changes": proposed_changes,
             },
             gcat_state=gcat_state,
-            metadata={"optimization_type": proposed_changes.get("type", "unknown")},
+            metadata={
+                "optimization_type": proposed_changes.get("type", "unknown")
+            },
         )
 
-        # Evaluate through safety stack
         gcat_obj = GCATState(**gcat_state)
         bcat_score = self._compute_ecosystem_bcat_score(proposed_changes)
 
@@ -265,7 +257,6 @@ class StegVerseLLMAdapterDual:
                 "intent": intent.to_dict(),
             }
 
-        # ADMITTED — return with receipt and execution plan
         return {
             "decision": "ADMIT",
             "safety_layer": safety_decision.layer_triggered.name,
@@ -276,72 +267,86 @@ class StegVerseLLMAdapterDual:
             "execution_plan": proposed_changes,
         }
 
-    # Private methods
-
     def _parse_llm_output(self, output: str) -> Dict[str, Any]:
-        """Extract structured data from LLM output."""
-        code_blocks = re.findall(r"```(?:\w+)?\n(.*?)\n```", output, re.DOTALL)
-        files = re.findall(r'["\']([\w/]+\.(py|js|ts|java|go|rs))["\']', output)
+        code_blocks = re.findall(
+            r"```(?:\w+)?\n(.*?)\n```", output, re.DOTALL
+        )
+        files = re.findall(
+            r'["\']([\w/]+\.(py|js|ts|java|go|rs))["\']', output
+        )
 
-        # Security pattern detection
         dangerous_found = []
-        for pattern in self.DANGEROUS_PATTERNS:
+        for pattern, desc in self._get_dangerous_patterns():
             if re.search(pattern, output, re.IGNORECASE):
-                dangerous_found.append(pattern)
+                dangerous_found.append(desc)
 
         return {
             "code_blocks": code_blocks,
             "files_modified": [f[0] for f in files],
-            "lines_added": sum(len(block.split("\n")) for block in code_blocks),
-            "has_tests": "test" in output.lower() or "assert" in output.lower(),
-            "has_docs": '"""' in output or "docstring" in output.lower(),
+            "lines_added": sum(
+                len(block.split("\n")) for block in code_blocks
+            ),
+            "has_tests": "test" in output.lower()
+            or "assert" in output.lower(),
+            "has_docs": '"""' in output
+            or "docstring" in output.lower(),
             "complexity": self._estimate_complexity(code_blocks),
             "has_dangerous_patterns": len(dangerous_found) > 0,
             "dangerous_patterns_found": dangerous_found,
         }
 
     def _compute_gcat_state(self, parsed: Dict) -> Dict[str, float]:
-        """Compute GCAT state from parsed LLM output."""
         g = (
             0.3
             + (0.15 if parsed.get("has_docs") else 0)
             + (0.1 if parsed.get("has_tests") else 0)
         )
         c = 0.2 + (0.25 if parsed.get("has_tests") else 0)
-        a = 0.15 + (0.25 * min(1.0, parsed.get("lines_added", 0) / 100))
+        a = 0.15 + (
+            0.25 * min(1.0, parsed.get("lines_added", 0) / 100)
+        )
         t = 0.25
 
         total = g + c + a + t
-        return {"g": g / total, "c": c / total, "a": a / total, "t": t / total}
+        return {
+            "g": g / total,
+            "c": c / total,
+            "a": a / total,
+            "t": t / total,
+        }
 
     def _compute_bcat_score(self, parsed: Dict) -> float:
-        """Compute BCAT score from parsed output."""
-        observability = 0.3 + (0.4 if parsed.get("has_tests") else 0)
+        observability = 0.3 + (
+            0.4 if parsed.get("has_tests") else 0
+        )
         risk = 1.0 - min(1.0, parsed.get("complexity", 0.5))
-        boundary = 1.0 - min(1.0, parsed.get("lines_added", 0) / 500)
+        boundary = 1.0 - min(
+            1.0, parsed.get("lines_added", 0) / 500
+        )
         return observability * 0.4 + risk * 0.3 + boundary * 0.3
 
-    def _compute_ecosystem_gcat_state(self, metrics: Dict) -> Dict[str, float]:
-        """Compute GCAT state from ecosystem metrics."""
+    def _compute_ecosystem_gcat_state(
+        self, metrics: Dict
+    ) -> Dict[str, float]:
         cpu = metrics.get("cpu", 0.5)
         memory = metrics.get("memory", 0.5)
         cost = metrics.get("cost_ratio", 0.5)
         trust = metrics.get("system_trust", 0.5)
 
-        # Governance capacity: inverse of resource pressure
         g = 1.0 - max(cpu, memory)
-        # Constraint integrity: based on system health
         c = 1.0 - metrics.get("error_rate", 0)
-        # Artifact pressure: cost + load
         a = (cost + cpu) / 2
-        # Trust continuity: system stability
         t = trust
 
         total = g + c + a + t
-        return {"g": g / total, "c": c / total, "a": a / total, "t": t / total}
+        return {
+            "g": g / total,
+            "c": c / total,
+            "a": a / total,
+            "t": t / total,
+        }
 
     def _compute_ecosystem_bcat_score(self, changes: Dict) -> float:
-        """Compute BCAT score for ecosystem changes."""
         cost = changes.get("cost_increase", 0)
         risk = changes.get("risk_score", 0.5)
         observability = changes.get("observability", 0.5)
@@ -353,19 +358,21 @@ class StegVerseLLMAdapterDual:
         )
 
     def _estimate_complexity(self, code_blocks: List[str]) -> float:
-        """Estimate code complexity."""
         if not code_blocks:
             return 0.0
-        total_lines = sum(len(block.split("\n")) for block in code_blocks)
+        total_lines = sum(
+            len(block.split("\n")) for block in code_blocks
+        )
         return min(1.0, total_lines / 200)
 
     def _generate_suggestions(
         self, gcat: GCATState, bcat: float, parsed: Dict
     ) -> List[str]:
-        """Generate improvement suggestions."""
         suggestions = []
         if gcat.legitimacy_surplus() < 0:
-            suggestions.append("Reduce artifact pressure: smaller changes")
+            suggestions.append(
+                "Reduce artifact pressure: smaller changes"
+            )
         if bcat < 0.6:
             suggestions.append("Improve observability: add tests, docs")
         if not parsed.get("has_tests"):
@@ -373,19 +380,15 @@ class StegVerseLLMAdapterDual:
         if not parsed.get("has_docs"):
             suggestions.append("Add documentation")
         if parsed.get("has_dangerous_patterns"):
-            suggestions.append("Remove dangerous system calls and use safe alternatives")
+            suggestions.append(
+                "Remove dangerous system calls and use safe alternatives"
+            )
         return suggestions
 
 
-# CLI for testing
 if __name__ == "__main__":
-    print("StegVerse LLM Adapter v2.0 — Dual Purpose")
-    print("=" * 60)
-
+    print("StegVerse LLM Adapter v2.0")
     adapter = StegVerseLLMAdapterDual()
-
-    # Test Purpose 1: Governance Ingress
-    print("\n--- Purpose 1: Governance Ingress ---")
 
     safe_code = '''
 def hello():
@@ -402,50 +405,13 @@ def test_hello():
         prompt="Write a hello function",
         output=safe_code,
     )
-    print(f"Safe code: {result['decision']} (Layer: {result['safety_layer']})")
+    print(f"Safe: {result['decision']} (Layer: {result['safety_layer']})")
 
-    risky_code = """
-import os
-def run(cmd):
-    os.system(cmd)
-"""
-
+    risky_code = "import os\ndef run(cmd):\n    os.system(cmd)"
     result = adapter.govern_llm_output(
         provider=LLMProvider.OPENAI,
         model="gpt-4",
         prompt="Run a command",
         output=risky_code,
     )
-    print(f"Risky code: {result['decision']} (Layer: {result['safety_layer']})")
-    print(f"Reason: {result['reason'][:60]}")
-
-    # Test Purpose 2: Ecosystem Optimization
-    print("\n--- Purpose 2: Ecosystem Optimization ---")
-
-    metrics = {
-        "cpu": 0.85,
-        "memory": 0.90,
-        "cost_ratio": 0.8,
-        "system_trust": 0.7,
-        "error_rate": 0.02,
-    }
-
-    analysis = "System approaching resource limits. Recommend scaling."
-    changes = {
-        "type": "resource_scaling",
-        "cost_increase": 5000,
-        "risk_score": 0.3,
-        "observability": 0.8,
-    }
-
-    result = adapter.optimize_ecosystem(metrics, analysis, changes)
-    print(f"Scale proposal: {result['decision']} (Layer: {result['safety_layer']})")
-    print(f"GCAT Score: {result.get('gcat_score', 'N/A')}")
-
-    # Test with low-cost optimization
-    changes["cost_increase"] = 0
-    changes["type"] = "resource_optimization"
-
-    result = adapter.optimize_ecosystem(metrics, analysis, changes)
-    print(f"Optimize proposal: {result['decision']} (Layer: {result['safety_layer']})")
-    print(f"GCAT Score: {result.get('gcat_score', 'N/A')}")
+    print(f"Risky: {result['decision']} (Layer: {result['safety_layer']})")
