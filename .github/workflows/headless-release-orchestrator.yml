@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., 1.0.4) — do NOT include v prefix'
+        description: 'Version to release (e.g., 1.0.5) — do NOT include v prefix'
         required: true
         type: string
       dry_run:
@@ -25,14 +25,52 @@ on:
           - pypi
           - testpypi
         default: pypi
+      use_tvc:
+        description: 'Use TVC for ephemeral secrets (recommended)'
+        required: false
+        type: boolean
+        default: true
 
 env:
   PYTHON_VERSION: '3.11'
 
 jobs:
+  # ── PHASE 0: TVC Bootstrap ────────────────────────────────────────────────
+  tvc_bootstrap:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.use_tvc }}
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      pypi_token: ${{ steps.tvc_pypi.outputs.secret_value }}
+      github_token: ${{ steps.tvc_github.outputs.secret_value }}
+      pypi_expiry: ${{ steps.tvc_pypi.outputs.expiry }}
+      github_expiry: ${{ steps.tvc_github.outputs.expiry }}
+    steps:
+      - name: Request ephemeral PyPI token from TVC
+        id: tvc_pypi
+        uses: StegVerse-org/StegVerse-SDK/.github/workflows/tvc-ephemeral.yml@main
+        with:
+          secret_type: pypi
+          ttl_seconds: 600
+          repo_context: ${{ github.repository }}
+
+      - name: Request ephemeral GitHub token from TVC
+        id: tvc_github
+        uses: StegVerse-org/StegVerse-SDK/.github/workflows/tvc-ephemeral.yml@main
+        with:
+          secret_type: github
+          ttl_seconds: 600
+          repo_context: ${{ github.repository }}
+
   # ── PHASE 1: Validate & Bump ──────────────────────────────────────────────
   validate-and-bump:
     runs-on: ubuntu-latest
+    needs: tvc_bootstrap
+    if: |
+      always() &&
+      (needs.tvc_bootstrap.result == 'success' || !inputs.use_tvc)
     permissions:
       contents: write
     outputs:
@@ -44,14 +82,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ inputs.use_tvc && needs.tvc_bootstrap.outputs.github_token || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: Validate version format
         run: |
           VERSION="${{ inputs.version }}"
           if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "ERROR: Version must be semver (e.g., 1.0.4)"
+            echo "ERROR: Version must be semver (e.g., 1.0.5)"
             exit 1
           fi
           echo "Version format OK: $VERSION"
@@ -82,9 +120,9 @@ jobs:
         run: |
           TOML="${{ steps.detect_toml.outputs.toml_path }}"
           if [ "$TOML" = "pyproject.toml" ]; then
-            OLD=$(grep -m1 '^version' pyproject.toml | sed 's/.*= *"\(.*\)".*//')
+            OLD=$(grep -m1 '^version' pyproject.toml | sed 's/.*= *"\(.*\)".*/\1/')
           else
-            OLD=$(grep -m1 'version=' setup.py | sed "s/.*version=['"]\([^'"]*\).*//")
+            OLD=$(grep -m1 'version=' setup.py | sed "s/.*version=['"]\([^'"]*\).*/\1/")
           fi
           echo "old_version=$OLD" >> $GITHUB_OUTPUT
           echo "Current version: $OLD"
@@ -109,7 +147,6 @@ jobs:
           # Update version in pyproject.toml
           if [ "$TOML" = "pyproject.toml" ]; then
             sed -i "s/^version = "$OLD"/version = "$VERSION"/" pyproject.toml
-            # Also update __init__.py if it exists
             INIT=$(find . -name "__init__.py" -path "*/stegverse/*" | head -1)
             if [ -n "$INIT" ] && grep -q "__version__" "$INIT"; then
               sed -i "s/__version__ = ".*"/__version__ = "$VERSION"/" "$INIT"
@@ -294,7 +331,7 @@ jobs:
           echo "Downstream ingestion via [demo_ingest_engine](https://github.com/StegVerse-org/demo_ingest_engine)" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "---" >> RELEASE_NOTES.md
-          echo "*Released via Headless Release Orchestrator*" >> RELEASE_NOTES.md
+          echo "*Released via Headless Release Orchestrator with TVC ephemeral secrets*" >> RELEASE_NOTES.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -305,11 +342,16 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
 
-  # ── PHASE 5: PyPI Publish ─────────────────────────────────────────────────
+  # ── PHASE 5: PyPI Publish (with TVC ephemeral token) ──────────────────────
   pypi:
     runs-on: ubuntu-latest
-    needs: [validate-and-bump, build, release]
-    if: always() && needs.validate-and-bump.result == 'success' && needs.build.result == 'success' && needs.release.result == 'success' && !inputs.dry_run
+    needs: [validate-and-bump, build, release, tvc_bootstrap]
+    if: |
+      always() && 
+      needs.validate-and-bump.result == 'success' && 
+      needs.build.result == 'success' && 
+      needs.release.result == 'success' && 
+      !inputs.dry_run
     environment:
       name: ${{ inputs.pypi_target }}
       url: https://pypi.org/p/stegverse-sdk
@@ -322,7 +364,17 @@ jobs:
           name: dist
           path: dist
 
-      - name: Publish to PyPI
+      - name: Publish to PyPI (TVC ephemeral)
+        if: ${{ inputs.use_tvc }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ needs.tvc_bootstrap.outputs.pypi_token }}
+        run: |
+          python -m pip install --upgrade twine
+          twine upload dist/* ${{ inputs.pypi_target == 'testpypi' && '--repository-url https://test.pypi.org/legacy/' || '' }}
+
+      - name: Publish to PyPI (trusted publishing fallback)
+        if: ${{ !inputs.use_tvc }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
@@ -352,7 +404,7 @@ jobs:
 
       - name: Trigger demo-ingestion
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ inputs.use_tvc && needs.tvc_bootstrap.outputs.github_token || secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ needs.validate-and-bump.outputs.tag_name }}"
           ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
@@ -373,5 +425,6 @@ jobs:
           echo "Version: $TAG"
           echo "PyPI: https://pypi.org/project/stegverse-sdk/$TAG"
           echo "Release: https://github.com/${{ github.repository }}/releases/tag/$TAG"
+          echo "Secret mode: ${{ inputs.use_tvc && 'TVC ephemeral' || 'GitHub stored' }}"
           echo ""
           echo "To complete: manually trigger demo_ingest_engine with mode=orchestrate"

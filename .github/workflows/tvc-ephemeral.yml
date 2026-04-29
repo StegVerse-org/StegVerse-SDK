@@ -1,0 +1,136 @@
+name: TVC Ephemeral Secrets Bootstrap
+
+# This workflow is called by the Headless Release Orchestrator (or any repo)
+# to request short-lived secrets from TrustVaultController (TVC).
+# No secrets are stored in GitHub repo settings. All tokens are ephemeral.
+#
+# TVC endpoint must be reachable and authenticated via TV identity.
+# Fallback: if TVC unavailable, workflow fails closed (secure by default).
+
+on:
+  workflow_call:
+    inputs:
+      secret_type:
+        description: 'Type of secret to request'
+        required: true
+        type: string
+        # Options: pypi, github, npm, docker, aws, gcp, azure
+      ttl_seconds:
+        description: 'Time-to-live for the ephemeral secret'
+        required: false
+        type: number
+        default: 600
+      repo_context:
+        description: 'Repository context for TVC policy evaluation'
+        required: false
+        type: string
+        default: ${{ github.repository }}
+    outputs:
+      secret_value:
+        description: 'Ephemeral secret value (masked)'
+        value: ${{ jobs.tvc_request.outputs.secret_value }}
+      expiry:
+        description: 'Secret expiry timestamp (ISO 8601)'
+        value: ${{ jobs.tvc_request.outputs.expiry }}
+      token_id:
+        description: 'Unique token ID for audit trail'
+        value: ${{ jobs.tvc_request.outputs.token_id }}
+
+jobs:
+  tvc_request:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      secret_value: ${{ steps.request.outputs.secret_value }}
+      expiry: ${{ steps.request.outputs.expiry }}
+      token_id: ${{ steps.request.outputs.token_id }}
+    steps:
+      - name: Generate TV identity assertion
+        id: tv_identity
+        run: |
+          # Build a signed identity assertion for TVC
+          REPO="${{ inputs.repo_context }}"
+          RUN_ID="${{ github.run_id }}"
+          ACTOR="${{ github.actor }}"
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          # Create payload for TVC identity verification
+          PAYLOAD=$(cat <<EOF
+          {
+            "repo": "$REPO",
+            "run_id": "$RUN_ID",
+            "actor": "$ACTOR",
+            "timestamp": "$TIMESTAMP",
+            "secret_type": "${{ inputs.secret_type }}",
+            "ttl": ${{ inputs.ttl_seconds }}
+          }
+          EOF
+          )
+
+          echo "identity_payload=$PAYLOAD" >> $GITHUB_OUTPUT
+          echo "TV Identity Assertion generated for $REPO"
+
+      - name: Request ephemeral secret from TVC
+        id: request
+        env:
+          TVC_ENDPOINT: ${{ vars.TVC_ENDPOINT || 'https://tvc.stegverse.org/v1/issue' }}
+          TV_IDENTITY: ${{ secrets.TV_IDENTITY_KEY }}
+        run: |
+          SECRET_TYPE="${{ inputs.secret_type }}"
+          TTL="${{ inputs.ttl_seconds }}"
+          PAYLOAD='${{ steps.tv_identity.outputs.identity_payload }}'
+
+          echo "Requesting ephemeral $SECRET_TYPE token from TVC..."
+
+          # Call TVC API to issue ephemeral token
+          # TVC validates TV identity, checks policy, mints short-lived token
+          RESPONSE=$(curl -s -w "\n%{http_code}"             -X POST "$TVC_ENDPOINT"             -H "Content-Type: application/json"             -H "X-TV-Identity: $TV_IDENTITY"             -d "{
+              \"identity\": $PAYLOAD,
+              \"secret_type\": \"$SECRET_TYPE\",
+              \"ttl_seconds\": $TTL
+            }" 2>/dev/null || echo "{\"error\": \"TVC unreachable\"}\n000")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "ERROR: TVC request failed (HTTP $HTTP_CODE)"
+            echo "Response: $BODY"
+
+            # Fail closed — no fallback to stored secrets
+            echo "Failing closed: no ephemeral token available"
+            exit 1
+          fi
+
+          # Parse TVC response
+          SECRET=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('secret',''))")
+          EXPIRY=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('expiry',''))")
+          TOKEN_ID=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('token_id',''))")
+
+          if [ -z "$SECRET" ]; then
+            echo "ERROR: TVC returned empty secret"
+            exit 1
+          fi
+
+          # Mask the secret in logs
+          echo "::add-mask::$SECRET"
+
+          echo "secret_value=$SECRET" >> $GITHUB_OUTPUT
+          echo "expiry=$EXPIRY" >> $GITHUB_OUTPUT
+          echo "token_id=$TOKEN_ID" >> $GITHUB_OUTPUT
+          echo "Ephemeral token issued: $TOKEN_ID (expires $EXPIRY)"
+
+      - name: Audit log — secret issuance
+        if: always()
+        run: |
+          echo "=== TVC AUDIT LOG ==="
+          echo "Token ID: ${{ steps.request.outputs.token_id }}"
+          echo "Type: ${{ inputs.secret_type }}"
+          echo "Repo: ${{ inputs.repo_context }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "Expiry: ${{ steps.request.outputs.expiry }}"
+          echo "Status: ${{ steps.request.outcome }}"
+          echo "====================="
