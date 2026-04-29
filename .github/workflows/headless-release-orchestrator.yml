@@ -1,4 +1,4 @@
-name: Headless Release Orchestrator
+name: Headless CMD Orchestrator
 
 on:
   workflow_dispatch:
