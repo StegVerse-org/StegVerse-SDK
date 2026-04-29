@@ -1,5 +1,11 @@
 # STEGVERSE SDK
-Execution is not assumed. Execution is admitted.
+
+![PyPI](https://img.shields.io/pypi/v/stegverse-sdk)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![Build](https://github.com/StegVerse-org/StegVerse-SDK/actions/workflows/sdk_demo_test.yml/badge.svg)
+![License](https://img.shields.io/github/license/StegVerse-org/StegVerse-SDK)
+
+> Execution is not assumed. Execution is admitted.
 
 StegVerse verifies every action **before** it happens and produces cryptographic proof of that decision.
 
@@ -18,10 +24,10 @@ Every executed action produces a verifiable receipt.
 
 ## WHY THIS MATTERS
 
-**Traditional flow**
+**Traditional flow**  
 AI decides → executes → humans audit later
 
-**StegVerse flow**
+**StegVerse flow**  
 AI proposes → evaluated at commit → executes only if admitted
 
 This eliminates ungoverned execution at the point of irreversibility.
@@ -31,24 +37,26 @@ This eliminates ungoverned execution at the point of irreversibility.
 ## QUICK START
 
 ### Install
+
 ```bash
 pip install stegverse-sdk
 ```
 
 ### Example
+
 ```python
 from stegverse import StegVerseSDK
 
-sdk = StegVerseSDK(api_key="your-key")
+sdk = StegVerseSDK()
 
-result = sdk.submit_intent({
-    "action": "deploy.compute",
-    "target": "render.cluster",
-    "parameters": {"gpu": "A100", "count": 4}
-})
+result = sdk.submit_intent(
+    action="deploy.compute",
+    target="render.cluster",
+    parameters={"gpu": "A100", "count": 4}
+)
 
 print(result["decision"])   # allow | deny | defer
-print(result["receipt"])    # cryptographic proof
+print(result["receipt_id"])  # verifiable receipt
 ```
 
 ---
@@ -96,6 +104,7 @@ Returns:
 - reasoning
 
 ### Ecosystem Optimization
+
 ```python
 result = adapter.optimize_ecosystem(
     ecosystem_metrics={"cpu": 0.85, "memory": 0.90},
@@ -125,26 +134,25 @@ Decision rule:
 
 ---
 
-## PRICING
+## INTEGRATION
 
-| Tier        | Evaluations | Price  |
-|-------------|------------|--------|
-| Free        | 100/mo     | $0     |
-| Pro         | 10,000/mo  | $499   |
-| Enterprise  | Unlimited  | $4,999 |
-
-Usage:
-- $0.01 per evaluation  
-- $0.001 per stored receipt  
+| Downstream | Consumes |
+|------------|----------|
+| TV/TVC | Ephemeral secrets via TrustVault |
+| GCAT-BCAT-Engine | Deployment verification |
+| demo_ingest_engine | Orchestrated ingestion |
+| AaCT-E | Audit trail |
+| StegDB | State monitoring |
 
 ---
 
 ## LINKS
 
-- Docs: https://stegverse.org/docs  
-- API: https://api.stegverse.org  
-- Issues: https://github.com/StegVerse-Org/stegverse-sdk/issues  
-- Email: sdk@stegverse.org  
+- Docs: https://stegverse.org/docs
+- API: https://api.stegverse.org
+- Issues: https://github.com/StegVerse-org/StegVerse-SDK/issues
+- Ingestion: https://github.com/StegVerse-org/demo_ingest_engine
+- Email: sdk@stegverse.org
 
 ---
 
