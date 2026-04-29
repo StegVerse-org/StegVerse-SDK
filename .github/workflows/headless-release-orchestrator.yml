@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version (e.g. 1.0.5)'
+        description: 'Version to release (last: __LAST_VERSION__)'
         required: true
         type: string
       dry_run:
@@ -25,21 +25,34 @@ jobs:
           fetch-tags: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Show current version
+        run: |
+          CURRENT=$(grep '^version' pyproject.toml | sed 's/.*= "\(.*\)".*/\1/')
+          echo "::notice::Current version in pyproject.toml: $CURRENT"
+
       - name: Validate version
         run: |
           echo "${{ inputs.version }}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "Bad version"; exit 1; }
 
       - name: Bump version
         run: |
-          OLD=$(grep '^version' pyproject.toml | sed "s/.*= *['\"]\(.*\)['\"].*/\1/")
-          sed -i "s/version = ['\"]$OLD['\"]/version = '${{ inputs.version }}'/" pyproject.toml
-          git config user.name "bot"
-          git config user.email "bot@stegverse.org"
-          git add -A
-          git commit -m "Bump to ${{ inputs.version }}"
-          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
-          git push origin HEAD:main
-          git push origin "v${{ inputs.version }}"
+          OLD=$(grep '^version' pyproject.toml | sed 's/.*= "\(.*\)".*/\1/')
+          if [ "$OLD" = "${{ inputs.version }}" ]; then
+            echo "Version already at ${{ inputs.version }}"
+          else
+            sed -i 's/version = "'"$OLD"'"/version = "${{ inputs.version }}"/' pyproject.toml
+            git config user.name "bot"
+            git config user.email "bot@stegverse.org"
+            git add -A
+            git commit -m "Bump to ${{ inputs.version }}"
+            git push origin HEAD:main
+          fi
+          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "Tag v${{ inputs.version }} already exists"
+          else
+            git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+            git push origin "v${{ inputs.version }}"
+          fi
 
       - uses: actions/setup-python@v5
         with:
@@ -58,3 +71,14 @@ jobs:
           tag_name: v${{ inputs.version }}
           files: dist/*
           generate_release_notes: true
+
+      - name: Update version hint
+        if: ${{ !inputs.dry_run }}
+        run: |
+          RELEASED="${{ inputs.version }}"
+          sed -i "s/__LAST_VERSION__/$RELEASED/" .github/workflows/headless-release.yml
+          git config user.name "bot"
+          git config user.email "bot@stegverse.org"
+          git add .github/workflows/headless-release.yml
+          git commit -m "Update version hint to $RELEASED [auto]"
+          git push origin HEAD:main
