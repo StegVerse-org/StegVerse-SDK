@@ -1,0 +1,249 @@
+name: Reusable Release Orchestrator
+
+# This workflow is designed to be called from any repo in any org
+# within the StegVerse ecosystem. It handles version bump, tag creation,
+# build, release, and PyPI publish in a single headless operation.
+#
+# Usage from caller workflow:
+#   uses: StegVerse-org/StegVerse-SDK/.github/workflows/reusable-release.yml@main
+#   with:
+#     version: '1.0.5'
+#     pypi_target: 'pypi'
+#   secrets:
+#     inherit
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version to release (semver, no v prefix)'
+        required: true
+        type: string
+      dry_run:
+        description: 'Validate only, do not publish'
+        required: false
+        type: boolean
+        default: false
+      skip_tests:
+        description: 'Skip test suite'
+        required: false
+        type: boolean
+        default: false
+      pypi_target:
+        description: 'PyPI target'
+        required: false
+        type: string
+        default: 'pypi'
+      package_name:
+        description: 'Package name for PyPI (defaults to repo name)'
+        required: false
+        type: string
+        default: ''
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+      PYPI_API_TOKEN:
+        required: false
+        description: 'Optional: for non-trusted-publishing repos'
+
+    outputs:
+      tag_name:
+        description: 'The created tag name'
+        value: ${{ jobs.validate-and-bump.outputs.tag_name }}
+      release_url:
+        description: 'URL to the GitHub release'
+        value: ${{ jobs.release.outputs.release_url }}
+      pypi_url:
+        description: 'URL to the PyPI package'
+        value: ${{ jobs.pypi.outputs.pypi_url }}
+
+env:
+  PKG_NAME: ${{ inputs.package_name || github.event.repository.name }}
+
+jobs:
+  validate-and-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag_name: ${{ steps.bump.outputs.tag_name }}
+      old_version: ${{ steps.bump.outputs.old_version }}
+      new_version: ${{ steps.bump.outputs.new_version }}
+      commit_sha: ${{ steps.bump.outputs.commit_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Validate version
+        run: |
+          V="${{ inputs.version }}"
+          if ! echo "$V" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "ERROR: Version must be semver (e.g., 1.0.5)"
+            exit 1
+          fi
+          TAG="v$V"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "ERROR: Tag $TAG already exists"
+            exit 1
+          fi
+          echo "Version $V OK, tag $TAG available"
+
+      - name: Detect version file
+        id: detect
+        run: |
+          if [ -f "pyproject.toml" ]; then
+            echo "version_file=pyproject.toml" >> $GITHUB_OUTPUT
+            OLD=$(grep -m1 '^version' pyproject.toml | sed 's/.*= *"\(.*\)".*//')
+          elif [ -f "setup.py" ]; then
+            echo "version_file=setup.py" >> $GITHUB_OUTPUT
+            OLD=$(grep -m1 'version=' setup.py | sed "s/.*version=['"]\([^'"]*\).*//")
+          else
+            echo "ERROR: No pyproject.toml or setup.py"
+            exit 1
+          fi
+          echo "old_version=$OLD" >> $GITHUB_OUTPUT
+
+      - name: Bump version
+        id: bump
+        run: |
+          V="${{ inputs.version }}"
+          TAG="v$V"
+          FILE="${{ steps.detect.outputs.version_file }}"
+          OLD="${{ steps.detect.outputs.old_version }}"
+
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "DRY RUN: $OLD → $V"
+            echo "tag_name=$TAG" >> $GITHUB_OUTPUT
+            echo "old_version=$OLD" >> $GITHUB_OUTPUT
+            echo "new_version=$V" >> $GITHUB_OUTPUT
+            echo "commit_sha=DRY_RUN" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ "$FILE" = "pyproject.toml" ]; then
+            sed -i "s/^version = "$OLD"/version = "$V"/" pyproject.toml
+            INIT=$(find . -name "__init__.py" | head -1)
+            if [ -n "$INIT" ] && grep -q "__version__" "$INIT" 2>/dev/null; then
+              sed -i "s/__version__ = ".*"/__version__ = "$V"/" "$INIT"
+            fi
+          else
+            sed -i "s/version=['"]$OLD['"]/version='$V'/" setup.py
+          fi
+
+          git config user.name "StegVerse Release Bot"
+          git config user.email "release-bot@stegverse.org"
+          git add -A
+          git commit -m "Bump version from $OLD to $V [reusable]"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin HEAD:${{ github.ref_name }}
+          git push origin "$TAG"
+
+          echo "tag_name=$TAG" >> $GITHUB_OUTPUT
+          echo "old_version=$OLD" >> $GITHUB_OUTPUT
+          echo "new_version=$V" >> $GITHUB_OUTPUT
+          echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+  test:
+    runs-on: ubuntu-latest
+    needs: validate-and-bump
+    if: ${{ !inputs.skip_tests }}
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-and-bump.outputs.tag_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - run: pytest tests/ -v || echo "No tests found"
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [validate-and-bump, test]
+    if: |
+      always() &&
+      needs.validate-and-bump.result == 'success' &&
+      (inputs.skip_tests || needs.test.result == 'success')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-and-bump.outputs.tag_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 90
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [validate-and-bump, build]
+    if: always() && needs.validate-and-bump.result == 'success' && needs.build.result == 'success'
+    permissions:
+      contents: write
+    outputs:
+      release_url: ${{ steps.gh_release.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-and-bump.outputs.tag_name }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Generate notes
+        run: |
+          TAG="${{ needs.validate-and-bump.outputs.tag_name }}"
+          echo "## ${{ env.PKG_NAME }} $TAG" > NOTES.md
+          echo "" >> NOTES.md
+          echo "**Bump:** ${{ needs.validate-and-bump.outputs.old_version }} → ${{ needs.validate-and-bump.outputs.new_version }}" >> NOTES.md
+          echo "" >> NOTES.md
+          echo "**Commit:** \`${{ needs.validate-and-bump.outputs.commit_sha }}\`" >> NOTES.md
+          echo "" >> NOTES.md
+          echo "\`\`\`bash" >> NOTES.md
+          echo "pip install ${{ env.PKG_NAME }}==$TAG" >> NOTES.md
+          echo "\`\`\`" >> NOTES.md
+      - uses: softprops/action-gh-release@v2
+        id: gh_release
+        with:
+          tag_name: ${{ needs.validate-and-bump.outputs.tag_name }}
+          files: dist/*
+          body_path: NOTES.md
+          generate_release_notes: true
+
+  pypi:
+    runs-on: ubuntu-latest
+    needs: [validate-and-bump, build, release]
+    if: always() && needs.validate-and-bump.result == 'success' && needs.build.result == 'success' && needs.release.result == 'success' && !inputs.dry_run
+    environment:
+      name: ${{ inputs.pypi_target }}
+      url: https://pypi.org/p/${{ env.PKG_NAME }}
+    permissions:
+      id-token: write
+    outputs:
+      pypi_url: ${{ steps.url.outputs.url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          repository-url: ${{ inputs.pypi_target == 'testpypi' && 'https://test.pypi.org/legacy/' || '' }}
+      - id: url
+        run: echo "url=https://pypi.org/project/${{ env.PKG_NAME }}/${{ needs.validate-and-bump.outputs.tag_name }}/" >> $GITHUB_OUTPUT

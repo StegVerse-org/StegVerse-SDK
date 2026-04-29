@@ -1,0 +1,17 @@
+name: Call Reusable Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release'
+        required: true
+        type: string
+
+jobs:
+  release:
+    uses: StegVerse-org/StegVerse-SDK/.github/workflows/reusable-release.yml@main
+    with:
+      version: ${{ inputs.version }}
+      pypi_target: 'pypi'
+    secrets: inherit
