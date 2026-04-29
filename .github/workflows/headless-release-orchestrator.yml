@@ -1,4 +1,4 @@
-name: Headless CMD Orchestrator
+name: Headless Release Orchestrator
 
 on:
   workflow_dispatch:
@@ -35,10 +35,9 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  # ── PHASE 0: TVC Bootstrap ────────────────────────────────────────────────
   tvc_bootstrap:
     runs-on: ubuntu-latest
-    if: ${{ inputs.use_tvc }}
+    if: ${{ inputs.use_tVC }}
     permissions:
       contents: read
       id-token: write
@@ -64,7 +63,6 @@ jobs:
           ttl_seconds: 600
           repo_context: ${{ github.repository }}
 
-  # ── PHASE 1: Validate & Bump ──────────────────────────────────────────────
   validate-and-bump:
     runs-on: ubuntu-latest
     needs: tvc_bootstrap
@@ -120,9 +118,9 @@ jobs:
         run: |
           TOML="${{ steps.detect_toml.outputs.toml_path }}"
           if [ "$TOML" = "pyproject.toml" ]; then
-            OLD=$(grep -m1 '^version' pyproject.toml | sed 's/.*= *"\(.*\)".*/\1/')
+            OLD=$(grep -m1 '^version' pyproject.toml | sed 's/.*= *"\(.*\)".*//')
           else
-            OLD=$(grep -m1 'version=' setup.py | sed "s/.*version=['"]\([^'"]*\).*/\1/")
+            OLD=$(grep -m1 'version=' setup.py | sed "s/.*version=['"]\([^'"]*\).*//")
           fi
           echo "old_version=$OLD" >> "$GITHUB_OUTPUT"
           echo "Current version: $OLD"
@@ -144,7 +142,6 @@ jobs:
             exit 0
           fi
 
-          # Update version in pyproject.toml
           if [ "$TOML" = "pyproject.toml" ]; then
             sed -i "s/^version = "$OLD"/version = "$VERSION"/" pyproject.toml
             INIT=$(find . -name "__init__.py" -path "*/stegverse/*" | head -1)
@@ -156,15 +153,12 @@ jobs:
             sed -i "s/version=['"]$OLD['"]/version='$VERSION'/" setup.py
           fi
 
-          # Configure git
           git config user.name "StegVerse Release Bot"
           git config user.email "release-bot@stegverse.org"
 
-          # Commit version bump
           git add -A
           git commit -m "Bump version from $OLD to $VERSION [headless]"
 
-          # Create and push tag
           git tag -a "$TAG" -m "Release $TAG"
           git push origin HEAD:main
           git push origin "$TAG"
@@ -176,7 +170,6 @@ jobs:
           echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
           echo "Released $TAG at $COMMIT_SHA"
 
-  # ── PHASE 2: Test Suite (conditional) ─────────────────────────────────────
   test:
     runs-on: ubuntu-latest
     needs: validate-and-bump
@@ -245,7 +238,6 @@ jobs:
           pip install -e ".[dev]"
       - run: python tests/test_llm_adapter_quick.py
 
-  # ── PHASE 3: Build ────────────────────────────────────────────────────────
   build:
     runs-on: ubuntu-latest
     needs: [validate-and-bump, test, safety-stack, llm-adapter]
@@ -288,7 +280,6 @@ jobs:
           path: dist/
           retention-days: 90
 
-  # ── PHASE 4: GitHub Release ───────────────────────────────────────────────
   release:
     runs-on: ubuntu-latest
     needs: [validate-and-bump, build]
@@ -344,7 +335,6 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
 
-  # ── PHASE 5: PyPI Publish ─────────────────────────────────────────────────
   pypi:
     runs-on: ubuntu-latest
     needs: [validate-and-bump, build, release, tvc_bootstrap]
@@ -386,7 +376,6 @@ jobs:
           packages-dir: dist/
           repository-url: ${{ inputs.pypi_target == 'testpypi' && 'https://test.pypi.org/legacy/' || '' }}
 
-  # ── PHASE 6: Demo Ingestion Trigger ───────────────────────────────────────
   demo-ingestion:
     runs-on: ubuntu-latest
     needs: [validate-and-bump, build, release, pypi]
@@ -406,6 +395,34 @@ jobs:
         with:
           name: sdk-bundle
           path: dist/*.whl
+          retention-days: 90
+
+      - name: Trigger demo-ingestion
+        env:
+          GH_TOKEN: ${{ inputs.use_tvc && needs.tvc_bootstrap.outputs.github_token || secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ needs.validate-and-bump.outputs.tag_name }}"
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+
+          echo "SDK Build Complete"
+          echo "Version: $TAG"
+          echo "Artifact URL: $ARTIFACT_URL"
+          echo "PyPI: https://pypi.org/project/stegverse-sdk/$TAG"
+          echo ""
+
+          gh workflow run run-ingest.yml --repo StegVerse-org/demo_ingest_engine -f mode="plan" -f source_path="$ARTIFACT_URL" -f conflict_mode="archive" || echo "Could not trigger demo_ingest_engine"
+
+      - name: Log downstream chain
+        run: |
+          TAG="${{ needs.validate-and-bump.outputs.tag_name }}"
+          echo ""
+          echo "=== HEADLESS RELEASE ORCHESTRATION COMPLETE ==="
+          echo "Version: $TAG"
+          echo "PyPI: https://pypi.org/project/stegverse-sdk/$TAG"
+          echo "Release: https://github.com/${{ github.repository }}/releases/tag/$TAG"
+          echo "Secret mode: ${{ inputs.use_tvc && 'TVC ephemeral' || 'GitHub native' }}"
+          echo ""
+          echo "To complete: manually trigger demo_ingest_engine with mode=orchestrate"
           retention-days: 90
 
       - name: Trigger demo-ingestion
