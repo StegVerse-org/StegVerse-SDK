@@ -14,17 +14,17 @@ from datetime import datetime, timezone
 
 
 class StopLayer(Enum):
-    MATHEMATICAL = 1      # GCAT/BCAT evaluation
-    HUMAN = 2             # DEFER queue, multi-sig override
-    CIRCUIT_BREAKER = 3   # Automatic health-based stop
-    CONSENSUS_HALT = 4    # Distributed multi-signature halt
-    DEAD_MAN = 5          # Existential fail-safe
+    MATHEMATICAL = 1  # GCAT/BCAT evaluation
+    HUMAN = 2  # DEFER queue, multi-sig override
+    CIRCUIT_BREAKER = 3  # Automatic health-based stop
+    CONSENSUS_HALT = 4  # Distributed multi-signature halt
+    DEAD_MAN = 5  # Existential fail-safe
 
 
 @dataclass
 class SafetyDecision:
     layer_triggered: StopLayer
-    action: str           # CONTINUE, DEFER, HALT, EMERGENCY_SHUTDOWN
+    action: str  # CONTINUE, DEFER, HALT, EMERGENCY_SHUTDOWN
     reason: str
     timestamp: str
     actor_id: str

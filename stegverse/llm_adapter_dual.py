@@ -172,9 +172,7 @@ class StegVerseLLMAdapterDual:
                 "safety_layer": safety_decision.layer_triggered.name,
                 "reason": safety_decision.reason,
                 "receipt": safety_decision.receipt_hash,
-                "suggestions": self._generate_suggestions(
-                    gcat_obj, bcat_score, parsed
-                ),
+                "suggestions": self._generate_suggestions(gcat_obj, bcat_score, parsed),
             }
 
         if safety_decision.action == "DEFER":
@@ -223,9 +221,7 @@ class StegVerseLLMAdapterDual:
                 "proposed_changes": proposed_changes,
             },
             gcat_state=gcat_state,
-            metadata={
-                "optimization_type": proposed_changes.get("type", "unknown")
-            },
+            metadata={"optimization_type": proposed_changes.get("type", "unknown")},
         )
 
         gcat_obj = GCATState(**gcat_state)
@@ -268,12 +264,8 @@ class StegVerseLLMAdapterDual:
         }
 
     def _parse_llm_output(self, output: str) -> Dict[str, Any]:
-        code_blocks = re.findall(
-            r"```(?:\w+)?\n(.*?)\n```", output, re.DOTALL
-        )
-        files = re.findall(
-            r'["\']([\w/]+\.(py|js|ts|java|go|rs))["\']', output
-        )
+        code_blocks = re.findall(r"```(?:\w+)?\n(.*?)\n```", output, re.DOTALL)
+        files = re.findall(r'["\']([\w/]+\.(py|js|ts|java|go|rs))["\']', output)
 
         dangerous_found = []
         for pattern, desc in self._get_dangerous_patterns():
@@ -283,13 +275,9 @@ class StegVerseLLMAdapterDual:
         return {
             "code_blocks": code_blocks,
             "files_modified": [f[0] for f in files],
-            "lines_added": sum(
-                len(block.split("\n")) for block in code_blocks
-            ),
-            "has_tests": "test" in output.lower()
-            or "assert" in output.lower(),
-            "has_docs": '"""' in output
-            or "docstring" in output.lower(),
+            "lines_added": sum(len(block.split("\n")) for block in code_blocks),
+            "has_tests": "test" in output.lower() or "assert" in output.lower(),
+            "has_docs": '"""' in output or "docstring" in output.lower(),
             "complexity": self._estimate_complexity(code_blocks),
             "has_dangerous_patterns": len(dangerous_found) > 0,
             "dangerous_patterns_found": dangerous_found,
@@ -302,9 +290,7 @@ class StegVerseLLMAdapterDual:
             + (0.1 if parsed.get("has_tests") else 0)
         )
         c = 0.2 + (0.25 if parsed.get("has_tests") else 0)
-        a = 0.15 + (
-            0.25 * min(1.0, parsed.get("lines_added", 0) / 100)
-        )
+        a = 0.15 + (0.25 * min(1.0, parsed.get("lines_added", 0) / 100))
         t = 0.25
 
         total = g + c + a + t
@@ -316,18 +302,12 @@ class StegVerseLLMAdapterDual:
         }
 
     def _compute_bcat_score(self, parsed: Dict) -> float:
-        observability = 0.3 + (
-            0.4 if parsed.get("has_tests") else 0
-        )
+        observability = 0.3 + (0.4 if parsed.get("has_tests") else 0)
         risk = 1.0 - min(1.0, parsed.get("complexity", 0.5))
-        boundary = 1.0 - min(
-            1.0, parsed.get("lines_added", 0) / 500
-        )
+        boundary = 1.0 - min(1.0, parsed.get("lines_added", 0) / 500)
         return observability * 0.4 + risk * 0.3 + boundary * 0.3
 
-    def _compute_ecosystem_gcat_state(
-        self, metrics: Dict
-    ) -> Dict[str, float]:
+    def _compute_ecosystem_gcat_state(self, metrics: Dict) -> Dict[str, float]:
         cpu = metrics.get("cpu", 0.5)
         memory = metrics.get("memory", 0.5)
         cost = metrics.get("cost_ratio", 0.5)
@@ -360,9 +340,7 @@ class StegVerseLLMAdapterDual:
     def _estimate_complexity(self, code_blocks: List[str]) -> float:
         if not code_blocks:
             return 0.0
-        total_lines = sum(
-            len(block.split("\n")) for block in code_blocks
-        )
+        total_lines = sum(len(block.split("\n")) for block in code_blocks)
         return min(1.0, total_lines / 200)
 
     def _generate_suggestions(
@@ -370,9 +348,7 @@ class StegVerseLLMAdapterDual:
     ) -> List[str]:
         suggestions = []
         if gcat.legitimacy_surplus() < 0:
-            suggestions.append(
-                "Reduce artifact pressure: smaller changes"
-            )
+            suggestions.append("Reduce artifact pressure: smaller changes")
         if bcat < 0.6:
             suggestions.append("Improve observability: add tests, docs")
         if not parsed.get("has_tests"):
