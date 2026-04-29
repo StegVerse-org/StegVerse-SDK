@@ -1,4 +1,4 @@
-name: StegVerse SDK CI
+name: StegVerse SDK Demo Test
 
 on:
   push:
