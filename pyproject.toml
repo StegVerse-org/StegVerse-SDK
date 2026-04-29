@@ -37,4 +37,4 @@ Issues = "https://github.com/StegVerse-org/StegVerse-SDK/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["stegverse_sdk*"]
+include = ["stegverse*"]
