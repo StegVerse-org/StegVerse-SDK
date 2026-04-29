@@ -1,453 +1,55 @@
-name: Headless Release Orchestrator
+name: Headless Release
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., 1.0.5) — do NOT include v prefix'
+        description: 'Version (e.g. 1.0.5)'
         required: true
         type: string
       dry_run:
-        description: 'Dry run — validate only, do not push tag or commit'
+        description: 'Dry run'
         required: false
         type: boolean
         default: false
-      skip_tests:
-        description: 'Skip test suite and go straight to build/release'
-        required: false
-        type: boolean
-        default: false
-      pypi_target:
-        description: 'PyPI target environment'
-        required: false
-        type: choice
-        options:
-          - pypi
-          - testpypi
-        default: pypi
-      use_tvc:
-        description: 'Use TVC for ephemeral secrets (recommended)'
-        required: false
-        type: boolean
-        default: true
-
-env:
-  PYTHON_VERSION: '3.11'
 
 jobs:
-  tvc_bootstrap:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.use_tVC }}
-    permissions:
-      contents: read
-      id-token: write
-    outputs:
-      pypi_token: ${{ steps.tvc_pypi.outputs.secret_value }}
-      github_token: ${{ steps.tvc_github.outputs.secret_value }}
-      pypi_expiry: ${{ steps.tvc_pypi.outputs.expiry }}
-      github_expiry: ${{ steps.tvc_github.outputs.expiry }}
-    steps:
-      - name: Request ephemeral PyPI token from TVC
-        id: tvc_pypi
-        uses: StegVerse-org/StegVerse-SDK/.github/workflows/tvc-ephemeral.yml@main
-        with:
-          secret_type: pypi
-          ttl_seconds: 600
-          repo_context: ${{ github.repository }}
-
-      - name: Request ephemeral GitHub token from TVC
-        id: tvc_github
-        uses: StegVerse-org/StegVerse-SDK/.github/workflows/tvc-ephemeral.yml@main
-        with:
-          secret_type: github
-          ttl_seconds: 600
-          repo_context: ${{ github.repository }}
-
-  validate-and-bump:
-    runs-on: ubuntu-latest
-    needs: tvc_bootstrap
-    if: |
-      always() &&
-      (needs.tvc_bootstrap.result == 'success' || !inputs.use_tvc)
-    permissions:
-      contents: write
-    outputs:
-      tag_name: ${{ steps.bump.outputs.tag_name }}
-      old_version: ${{ steps.bump.outputs.old_version }}
-      new_version: ${{ steps.bump.outputs.new_version }}
-      commit_sha: ${{ steps.bump.outputs.commit_sha }}
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          token: ${{ inputs.use_tvc && needs.tvc_bootstrap.outputs.github_token || secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      - name: Validate version format
-        run: |
-          VERSION="${{ inputs.version }}"
-          if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "ERROR: Version must be semver (e.g., 1.0.5)"
-            exit 1
-          fi
-          echo "Version format OK: $VERSION"
-
-      - name: Check tag does not already exist
-        run: |
-          TAG="v${{ inputs.version }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "ERROR: Tag $TAG already exists. Delete it first or pick a new version."
-            exit 1
-          fi
-          echo "Tag $TAG is available"
-
-      - name: Detect pyproject.toml location
-        id: detect_toml
-        run: |
-          if [ -f "pyproject.toml" ]; then
-            echo "toml_path=pyproject.toml" >> "$GITHUB_OUTPUT"
-          elif [ -f "setup.py" ]; then
-            echo "toml_path=setup.py" >> "$GITHUB_OUTPUT"
-          else
-            echo "ERROR: No pyproject.toml or setup.py found"
-            exit 1
-          fi
-
-      - name: Read current version
-        id: read_version
-        run: |
-          TOML="${{ steps.detect_toml.outputs.toml_path }}"
-          if [ "$TOML" = "pyproject.toml" ]; then
-            OLD=$(grep -m1 '^version' pyproject.toml | sed 's/.*= *"\(.*\)".*//')
-          else
-            OLD=$(grep -m1 'version=' setup.py | sed "s/.*version=['"]\([^'"]*\).*//")
-          fi
-          echo "old_version=$OLD" >> "$GITHUB_OUTPUT"
-          echo "Current version: $OLD"
-
-      - name: Bump version in pyproject.toml
-        id: bump
-        run: |
-          VERSION="${{ inputs.version }}"
-          TAG="v$VERSION"
-          TOML="${{ steps.detect_toml.outputs.toml_path }}"
-          OLD="${{ steps.read_version.outputs.old_version }}"
-
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
-            echo "DRY RUN: Would bump $OLD → $VERSION in $TOML"
-            echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
-            echo "old_version=$OLD" >> "$GITHUB_OUTPUT"
-            echo "new_version=$VERSION" >> "$GITHUB_OUTPUT"
-            echo "commit_sha=DRY_RUN" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          if [ "$TOML" = "pyproject.toml" ]; then
-            sed -i "s/^version = "$OLD"/version = "$VERSION"/" pyproject.toml
-            INIT=$(find . -name "__init__.py" -path "*/stegverse/*" | head -1)
-            if [ -n "$INIT" ] && grep -q "__version__" "$INIT"; then
-              sed -i "s/__version__ = ".*"/__version__ = "$VERSION"/" "$INIT"
-              echo "Updated $INIT"
-            fi
-          else
-            sed -i "s/version=['"]$OLD['"]/version='$VERSION'/" setup.py
-          fi
-
-          git config user.name "StegVerse Release Bot"
-          git config user.email "release-bot@stegverse.org"
-
-          git add -A
-          git commit -m "Bump version from $OLD to $VERSION [headless]"
-
-          git tag -a "$TAG" -m "Release $TAG"
-          git push origin HEAD:main
-          git push origin "$TAG"
-
-          COMMIT_SHA=$(git rev-parse HEAD)
-          echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
-          echo "old_version=$OLD" >> "$GITHUB_OUTPUT"
-          echo "new_version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
-          echo "Released $TAG at $COMMIT_SHA"
-
-  test:
-    runs-on: ubuntu-latest
-    needs: validate-and-bump
-    if: ${{ !inputs.skip_tests }}
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.validate-and-bump.outputs.tag_name }}
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Verify SDK imports
-        run: |
-          python -c "import stegverse; print(f'SDK version: {stegverse.__version__}')"
-          python -c "from stegverse import submit_intent, StegVerseLLMAdapter, govern_llm_output, StegVerseSDK; print('Core imports: OK')"
-
-      - name: Run tests with pytest
-        run: pytest tests/ -v --cov=stegverse --cov-report=xml
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: false
-
-  safety-stack:
-    runs-on: ubuntu-latest
-    needs: test
-    if: ${{ !inputs.skip_tests }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.validate-and-bump.outputs.tag_name }}
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-      - run: python tests/test_safety_stack_quick.py
-
-  llm-adapter:
-    runs-on: ubuntu-latest
-    needs: test
-    if: ${{ !inputs.skip_tests }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.validate-and-bump.outputs.tag_name }}
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-      - run: python tests/test_llm_adapter_quick.py
-
-  build:
-    runs-on: ubuntu-latest
-    needs: [validate-and-bump, test, safety-stack, llm-adapter]
-    if: |
-      always() && 
-      needs.validate-and-bump.result == 'success' &&
-      (inputs.skip_tests || (
-        needs.test.result == 'success' &&
-        needs.safety-stack.result == 'success' &&
-        needs.llm-adapter.result == 'success'
-      ))
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.validate-and-bump.outputs.tag_name }}
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - run: |
-          python -m pip install --upgrade pip
-          pip install build twine
-
-      - name: Build package
-        run: python -m build
-
-      - name: Check package
-        run: twine check dist/*
-
-      - name: Verify wheel imports
-        run: |
-          pip install dist/*.whl
-          python -c "import stegverse; print(f'Wheel OK: {stegverse.__version__}')"
-
-      - name: Upload dist artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-          retention-days: 90
-
   release:
     runs-on: ubuntu-latest
-    needs: [validate-and-bump, build]
-    if: always() && needs.validate-and-bump.result == 'success' && needs.build.result == 'success'
     permissions:
       contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.validate-and-bump.outputs.tag_name }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download dist artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-
-      - name: Generate release notes
+      - name: Validate version
         run: |
-          TAG="${{ needs.validate-and-bump.outputs.tag_name }}"
-          OLD="${{ needs.validate-and-bump.outputs.old_version }}"
-          NEW="${{ needs.validate-and-bump.outputs.new_version }}"
-          COMMIT="${{ needs.validate-and-bump.outputs.commit_sha }}"
+          echo "${{ inputs.version }}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "Bad version"; exit 1; }
 
-          cat > RELEASE_NOTES.md << 'EOF'
-          ## StegVerse SDK ${{ needs.validate-and-bump.outputs.tag_name }}
+      - name: Bump version
+        run: |
+          OLD=$(grep '^version' pyproject.toml | sed 's/.*= "\(.*\)".*/\1/')
+          sed -i "s/version = \"$OLD\"/version = \"${{ inputs.version }}\"/" pyproject.toml
+          git config user.name "bot"
+          git config user.email "bot@stegverse.org"
+          git add -A
+          git commit -m "Bump to ${{ inputs.version }}"
+          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+          git push origin HEAD:main
+          git push origin "v${{ inputs.version }}"
 
-          **Version bump:** ${{ needs.validate-and-bump.outputs.old_version }} → ${{ needs.validate-and-bump.outputs.new_version }}
-
-          **Commit:** `${{ needs.validate-and-bump.outputs.commit_sha }}`
-
-          ### Install
-          ```bash
-          pip install stegverse-sdk==${{ needs.validate-and-bump.outputs.tag_name }}
-          ```
-
-          ### Artifacts
-          - Wheel and source distribution attached below
-
-          ### Post-Release
-          Downstream ingestion via [demo_ingest_engine](https://github.com/StegVerse-org/demo_ingest_engine)
-
-          ---
-          *Released via Headless Release Orchestrator*
-          EOF
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - uses: actions/setup-python@v5
         with:
-          tag_name: ${{ needs.validate-and-bump.outputs.tag_name }}
+          python-version: '3.11'
+      - run: pip install build
+      - run: python -m build
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+      - uses: softprops/action-gh-release@v2
+        with:
           files: dist/*
-          body_path: RELEASE_NOTES.md
           generate_release_notes: true
-          fail_on_unmatched_files: true
-
-  pypi:
-    runs-on: ubuntu-latest
-    needs: [validate-and-bump, build, release, tvc_bootstrap]
-    if: |
-      always() && 
-      needs.validate-and-bump.result == 'success' && 
-      needs.build.result == 'success' && 
-      needs.release.result == 'success' && 
-      !inputs.dry_run
-    environment:
-      name: ${{ inputs.pypi_target }}
-      url: https://pypi.org/p/stegverse-sdk
-    permissions:
-      id-token: write
-    steps:
-      - name: Download dist artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-
-      - name: Publish to PyPI (TVC ephemeral)
-        if: ${{ inputs.use_tvc }}
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ needs.tvc_bootstrap.outputs.pypi_token }}
-        run: |
-          python -m pip install --upgrade twine
-          if [ "${{ inputs.pypi_target }}" = "testpypi" ]; then
-            twine upload dist/* --repository-url https://test.pypi.org/legacy/
-          else
-            twine upload dist/*
-          fi
-
-      - name: Publish to PyPI (trusted publishing fallback)
-        if: ${{ !inputs.use_tvc }}
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist/
-          repository-url: ${{ inputs.pypi_target == 'testpypi' && 'https://test.pypi.org/legacy/' || '' }}
-
-  demo-ingestion:
-    runs-on: ubuntu-latest
-    needs: [validate-and-bump, build, release, pypi]
-    if: always() && needs.build.result == 'success' && !inputs.dry_run
-    permissions:
-      contents: read
-      actions: write
-    steps:
-      - name: Download dist artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-
-      - name: Upload SDK bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdk-bundle
-          path: dist/*.whl
-          retention-days: 90
-
-      - name: Trigger demo-ingestion
-        env:
-          GH_TOKEN: ${{ inputs.use_tvc && needs.tvc_bootstrap.outputs.github_token || secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${{ needs.validate-and-bump.outputs.tag_name }}"
-          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
-
-          echo "SDK Build Complete"
-          echo "Version: $TAG"
-          echo "Artifact URL: $ARTIFACT_URL"
-          echo "PyPI: https://pypi.org/project/stegverse-sdk/$TAG"
-          echo ""
-
-          gh workflow run run-ingest.yml --repo StegVerse-org/demo_ingest_engine -f mode="plan" -f source_path="$ARTIFACT_URL" -f conflict_mode="archive" || echo "Could not trigger demo_ingest_engine"
-
-      - name: Log downstream chain
-        run: |
-          TAG="${{ needs.validate-and-bump.outputs.tag_name }}"
-          echo ""
-          echo "=== HEADLESS RELEASE ORCHESTRATION COMPLETE ==="
-          echo "Version: $TAG"
-          echo "PyPI: https://pypi.org/project/stegverse-sdk/$TAG"
-          echo "Release: https://github.com/${{ github.repository }}/releases/tag/$TAG"
-          echo "Secret mode: ${{ inputs.use_tvc && 'TVC ephemeral' || 'GitHub native' }}"
-          echo ""
-          echo "To complete: manually trigger demo_ingest_engine with mode=orchestrate"
-          retention-days: 90
-
-      - name: Trigger demo-ingestion
-        env:
-          GH_TOKEN: ${{ inputs.use_tvc && needs.tvc_bootstrap.outputs.github_token || secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${{ needs.validate-and-bump.outputs.tag_name }}"
-          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
-
-          echo "SDK Build Complete"
-          echo "Version: $TAG"
-          echo "Artifact URL: $ARTIFACT_URL"
-          echo "PyPI: https://pypi.org/project/stegverse-sdk/$TAG"
-          echo ""
-
-          gh workflow run run-ingest.yml --repo StegVerse-org/demo_ingest_engine -f mode="plan" -f source_path="$ARTIFACT_URL" -f conflict_mode="archive" || echo "Could not trigger demo_ingest_engine"
-
-      - name: Log downstream chain
-        run: |
-          TAG="${{ needs.validate-and-bump.outputs.tag_name }}"
-          echo ""
-          echo "=== HEADLESS RELEASE ORCHESTRATION COMPLETE ==="
-          echo "Version: $TAG"
-          echo "PyPI: https://pypi.org/project/stegverse-sdk/$TAG"
-          echo "Release: https://github.com/${{ github.repository }}/releases/tag/$TAG"
-          echo "Secret mode: ${{ inputs.use_tvc && 'TVC ephemeral' || 'GitHub native' }}"
-          echo ""
-          echo "To complete: manually trigger demo_ingest_engine with mode=orchestrate"
