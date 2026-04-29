@@ -107,9 +107,9 @@ jobs:
         id: detect_toml
         run: |
           if [ -f "pyproject.toml" ]; then
-            echo "toml_path=pyproject.toml" >> $GITHUB_OUTPUT
+            echo "toml_path=pyproject.toml" >> "$GITHUB_OUTPUT"
           elif [ -f "setup.py" ]; then
-            echo "toml_path=setup.py" >> $GITHUB_OUTPUT
+            echo "toml_path=setup.py" >> "$GITHUB_OUTPUT"
           else
             echo "ERROR: No pyproject.toml or setup.py found"
             exit 1
@@ -124,7 +124,7 @@ jobs:
           else
             OLD=$(grep -m1 'version=' setup.py | sed "s/.*version=['"]\([^'"]*\).*/\1/")
           fi
-          echo "old_version=$OLD" >> $GITHUB_OUTPUT
+          echo "old_version=$OLD" >> "$GITHUB_OUTPUT"
           echo "Current version: $OLD"
 
       - name: Bump version in pyproject.toml
@@ -137,10 +137,10 @@ jobs:
 
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             echo "DRY RUN: Would bump $OLD → $VERSION in $TOML"
-            echo "tag_name=$TAG" >> $GITHUB_OUTPUT
-            echo "old_version=$OLD" >> $GITHUB_OUTPUT
-            echo "new_version=$VERSION" >> $GITHUB_OUTPUT
-            echo "commit_sha=DRY_RUN" >> $GITHUB_OUTPUT
+            echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
+            echo "old_version=$OLD" >> "$GITHUB_OUTPUT"
+            echo "new_version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "commit_sha=DRY_RUN" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -170,10 +170,10 @@ jobs:
           git push origin "$TAG"
 
           COMMIT_SHA=$(git rev-parse HEAD)
-          echo "tag_name=$TAG" >> $GITHUB_OUTPUT
-          echo "old_version=$OLD" >> $GITHUB_OUTPUT
-          echo "new_version=$VERSION" >> $GITHUB_OUTPUT
-          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
+          echo "old_version=$OLD" >> "$GITHUB_OUTPUT"
+          echo "new_version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
           echo "Released $TAG at $COMMIT_SHA"
 
   # ── PHASE 2: Test Suite (conditional) ─────────────────────────────────────
@@ -313,25 +313,27 @@ jobs:
           NEW="${{ needs.validate-and-bump.outputs.new_version }}"
           COMMIT="${{ needs.validate-and-bump.outputs.commit_sha }}"
 
-          echo "## StegVerse SDK $TAG" > RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "**Version bump:** $OLD → $NEW" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "**Commit:** \`$COMMIT\`" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "### Install" >> RELEASE_NOTES.md
-          echo "\`\`\`bash" >> RELEASE_NOTES.md
-          echo "pip install stegverse-sdk==$TAG" >> RELEASE_NOTES.md
-          echo "\`\`\`" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "### Artifacts" >> RELEASE_NOTES.md
-          echo "- Wheel and source distribution attached below" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "### Post-Release" >> RELEASE_NOTES.md
-          echo "Downstream ingestion via [demo_ingest_engine](https://github.com/StegVerse-org/demo_ingest_engine)" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "---" >> RELEASE_NOTES.md
-          echo "*Released via Headless Release Orchestrator with TVC ephemeral secrets*" >> RELEASE_NOTES.md
+          cat > RELEASE_NOTES.md << 'EOF'
+          ## StegVerse SDK ${{ needs.validate-and-bump.outputs.tag_name }}
+
+          **Version bump:** ${{ needs.validate-and-bump.outputs.old_version }} → ${{ needs.validate-and-bump.outputs.new_version }}
+
+          **Commit:** `${{ needs.validate-and-bump.outputs.commit_sha }}`
+
+          ### Install
+          ```bash
+          pip install stegverse-sdk==${{ needs.validate-and-bump.outputs.tag_name }}
+          ```
+
+          ### Artifacts
+          - Wheel and source distribution attached below
+
+          ### Post-Release
+          Downstream ingestion via [demo_ingest_engine](https://github.com/StegVerse-org/demo_ingest_engine)
+
+          ---
+          *Released via Headless Release Orchestrator*
+          EOF
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -342,7 +344,7 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
 
-  # ── PHASE 5: PyPI Publish (with TVC ephemeral token) ──────────────────────
+  # ── PHASE 5: PyPI Publish ─────────────────────────────────────────────────
   pypi:
     runs-on: ubuntu-latest
     needs: [validate-and-bump, build, release, tvc_bootstrap]
@@ -371,7 +373,11 @@ jobs:
           TWINE_PASSWORD: ${{ needs.tvc_bootstrap.outputs.pypi_token }}
         run: |
           python -m pip install --upgrade twine
-          twine upload dist/* ${{ inputs.pypi_target == 'testpypi' && '--repository-url https://test.pypi.org/legacy/' || '' }}
+          if [ "${{ inputs.pypi_target }}" = "testpypi" ]; then
+            twine upload dist/* --repository-url https://test.pypi.org/legacy/
+          else
+            twine upload dist/*
+          fi
 
       - name: Publish to PyPI (trusted publishing fallback)
         if: ${{ !inputs.use_tvc }}
@@ -425,6 +431,6 @@ jobs:
           echo "Version: $TAG"
           echo "PyPI: https://pypi.org/project/stegverse-sdk/$TAG"
           echo "Release: https://github.com/${{ github.repository }}/releases/tag/$TAG"
-          echo "Secret mode: ${{ inputs.use_tvc && 'TVC ephemeral' || 'GitHub stored' }}"
+          echo "Secret mode: ${{ inputs.use_tvc && 'TVC ephemeral' || 'GitHub native' }}"
           echo ""
           echo "To complete: manually trigger demo_ingest_engine with mode=orchestrate"
