@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Quick test for safety stack — runs in CI."""
 
-from stegverse_safety_stack import StegVerseSafetyStack, GCATState
+from stegverse.safety_stack import StegVerseSafetyStack, GCATState
 
 
 def test_layer1_mathematical():

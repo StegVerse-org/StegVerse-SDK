@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Quick test for LLM adapter — runs in CI."""
 
-from stegverse_llm_adapter_dual import StegVerseLLMAdapterDual, LLMProvider
+from stegverse.llm_adapter_dual import StegVerseLLMAdapterDual, LLMProvider
 
 
 def test_safe_code():
