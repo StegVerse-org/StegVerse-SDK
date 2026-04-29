@@ -14,9 +14,11 @@ __version__ = "1.0.0"
 from .client import StegClient as StegVerseSDK, StegClient
 from .client import StegClient as _StegClientRef
 
-
 def submit_intent(
-    action: str, mode: str = "execution_governance", reset: str = "hard", **kwargs
+    action: str,
+    mode: str = "execution_governance",
+    reset: str = "hard",
+    **kwargs
 ) -> dict:
     """Submit an intent to the StegVerse Trust Kernel.
 
@@ -29,7 +31,6 @@ def submit_intent(
         reset       : echoed reset flag
     """
     import uuid
-
     receipt_id = str(uuid.uuid4())
     return {
         "status": "submitted",
@@ -40,7 +41,6 @@ def submit_intent(
         "reset": reset,
         **kwargs,
     }
-
 
 # --- Safety stack ---
 from .safety_stack import (
@@ -60,10 +60,13 @@ from .llm_adapter_dual import (
 # Friendly alias per README
 StegVerseLLMAdapter = StegVerseLLMAdapterDual
 
-
 # Convenience wrapper matching README API
 def govern_llm_output(
-    provider=None, model: str = "", prompt: str = "", output: str = "", **kwargs
+    provider=None,
+    model: str = "",
+    prompt: str = "",
+    output: str = "",
+    **kwargs
 ) -> dict:
     """Govern an LLM output and return decision + receipt + reasoning."""
     adapter = StegVerseLLMAdapterDual()
@@ -80,7 +83,6 @@ def govern_llm_output(
         "receipt": result.get("receipt_id") or result.get("receipt"),
         "reasoning": result.get("reasoning", ""),
     }
-
 
 # --- Receipts ---
 from .receipts import verify_receipt

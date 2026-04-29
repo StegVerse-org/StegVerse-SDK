@@ -14,17 +14,17 @@ from datetime import datetime, timezone
 
 
 class StopLayer(Enum):
-    MATHEMATICAL = 1  # GCAT/BCAT evaluation
-    HUMAN = 2  # DEFER queue, multi-sig override
-    CIRCUIT_BREAKER = 3  # Automatic health-based stop
-    CONSENSUS_HALT = 4  # Distributed multi-signature halt
-    DEAD_MAN = 5  # Existential fail-safe
+    MATHEMATICAL = 1      # GCAT/BCAT evaluation
+    HUMAN = 2             # DEFER queue, multi-sig override
+    CIRCUIT_BREAKER = 3   # Automatic health-based stop
+    CONSENSUS_HALT = 4    # Distributed multi-signature halt
+    DEAD_MAN = 5          # Existential fail-safe
 
 
 @dataclass
 class SafetyDecision:
     layer_triggered: StopLayer
-    action: str  # CONTINUE, DEFER, HALT, EMERGENCY_SHUTDOWN
+    action: str           # CONTINUE, DEFER, HALT, EMERGENCY_SHUTDOWN
     reason: str
     timestamp: str
     actor_id: str
@@ -108,6 +108,7 @@ class StegVerseSafetyStack:
                 actor_id=actor_id,
                 receipt_hash=self._generate_receipt("MATHEMATICAL", "HALT", actor_id),
             )
+            self._receipt_chain.append(decision)
             self._trigger_callback(self._on_mathematical_deny, decision)
             return decision
 
@@ -120,9 +121,10 @@ class StegVerseSafetyStack:
                 actor_id=actor_id,
                 receipt_hash=self._generate_receipt("MATHEMATICAL", "DEFER", actor_id),
             )
+            self._receipt_chain.append(decision)
             return decision
 
-        return SafetyDecision(
+        decision = SafetyDecision(
             layer_triggered=StopLayer.MATHEMATICAL,
             action="CONTINUE",
             reason="All mathematical invariants preserved",
@@ -130,6 +132,8 @@ class StegVerseSafetyStack:
             actor_id=actor_id,
             receipt_hash=self._generate_receipt("MATHEMATICAL", "CONTINUE", actor_id),
         )
+        self._receipt_chain.append(decision)
+        return decision
 
     # Layer 2: Human Governance
 
@@ -148,6 +152,7 @@ class StegVerseSafetyStack:
             actor_id=human_actor_id,
             receipt_hash=self._generate_receipt("HUMAN", "DEFER", human_actor_id),
         )
+        self._receipt_chain.append(decision)
         self._trigger_callback(self._on_human_defer, decision)
         return decision
 
@@ -160,7 +165,7 @@ class StegVerseSafetyStack:
         """
         Human resolves DEFER case.
         """
-        return SafetyDecision(
+        decision = SafetyDecision(
             layer_triggered=StopLayer.HUMAN,
             action=human_decision,  # ADMIT, DENY, MODIFY
             reason=f"Human resolution of {deferred_decision.receipt_hash}",
@@ -170,6 +175,8 @@ class StegVerseSafetyStack:
                 "HUMAN", human_decision, human_actor_id
             ),
         )
+        self._receipt_chain.append(decision)
+        return decision
 
     # Layer 3: Circuit Breaker
 
@@ -194,11 +201,12 @@ class StegVerseSafetyStack:
                     "CIRCUIT_BREAKER", "HALT", "system"
                 ),
             )
+            self._receipt_chain.append(decision)
             self._halted = True
             self._trigger_callback(self._on_circuit_breaker, decision)
             return decision
 
-        return SafetyDecision(
+        decision = SafetyDecision(
             layer_triggered=StopLayer.CIRCUIT_BREAKER,
             action="CONTINUE",
             reason=f"Health score {health_score:.2f} acceptable",
@@ -208,6 +216,8 @@ class StegVerseSafetyStack:
                 "CIRCUIT_BREAKER", "CONTINUE", "system"
             ),
         )
+        self._receipt_chain.append(decision)
+        return decision
 
     def _calculate_health_score(self) -> float:
         """Calculate composite health from metrics."""
@@ -250,11 +260,12 @@ class StegVerseSafetyStack:
                     "CONSENSUS_HALT", "EMERGENCY_SHUTDOWN", voter_id
                 ),
             )
+            self._receipt_chain.append(decision)
             self._halted = True
             self._trigger_callback(self._on_consensus_halt, decision)
             return decision
 
-        return SafetyDecision(
+        decision = SafetyDecision(
             layer_triggered=StopLayer.CONSENSUS_HALT,
             action="CONTINUE",
             reason=f"Halt vote recorded: {yes_votes}/{self.consensus_threshold}",
@@ -262,6 +273,8 @@ class StegVerseSafetyStack:
             actor_id=f"consensus-{voter_id}",
             receipt_hash=self._generate_receipt("CONSENSUS_HALT", "CONTINUE", voter_id),
         )
+        self._receipt_chain.append(decision)
+        return decision
 
     def reset_consensus(self, admin_id: str) -> None:
         """Reset consensus votes (requires admin authority)."""
@@ -277,7 +290,7 @@ class StegVerseSafetyStack:
         """
         self._last_heartbeat = time.time()
 
-        return SafetyDecision(
+        decision = SafetyDecision(
             layer_triggered=StopLayer.DEAD_MAN,
             action="CONTINUE",
             reason=f"Heartbeat received from {operator_id}",
@@ -285,6 +298,8 @@ class StegVerseSafetyStack:
             actor_id=operator_id,
             receipt_hash=self._generate_receipt("DEAD_MAN", "CONTINUE", operator_id),
         )
+        self._receipt_chain.append(decision)
+        return decision
 
     def check_dead_man(self) -> Optional[SafetyDecision]:
         """
@@ -307,6 +322,7 @@ class StegVerseSafetyStack:
                     "DEAD_MAN", "EMERGENCY_SHUTDOWN", "system"
                 ),
             )
+            self._receipt_chain.append(decision)
             self._halted = True
             self._trigger_callback(self._on_dead_man, decision)
             return decision

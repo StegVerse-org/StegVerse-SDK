@@ -7,6 +7,7 @@ StegVerse LLM Adapter v2.0 — Dual Purpose
 
 import json
 import hashlib
+import re
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from enum import Enum
@@ -81,6 +82,31 @@ class StegVerseLLMAdapterDual:
     Ecosystem metrics → LLM analyzes → adapter translates → pipeline evaluates
     """
 
+    # Dangerous patterns that should trigger automatic DENY
+    DANGEROUS_PATTERNS = [
+        r"os\.system\s*\(",
+        r"subprocess\.call\s*\(",
+        r"subprocess\.run\s*\(",
+        r"subprocess\.Popen\s*\(",
+        r"eval\s*\(",
+        r"exec\s*\(",
+        r"compile\s*\(",
+        r"__import__\s*\(",
+        r"importlib\.import_module",
+        r"pickle\.loads?\s*\(",
+        r"yaml\.load\s*\(",
+        r"input\s*\(",
+        r"raw_input\s*\(",
+        r"open\s*\([^)]*['"]\s*['"]\s*w",
+        r"shutil\.rmtree",
+        r"os\.remove\s*\(",
+        r"os\.unlink\s*\(",
+        r"socket\.socket",
+        r"urllib\.request",
+        r"requests\.get\s*\(",
+        r"requests\.post\s*\(",
+    ]
+
     def __init__(
         self,
         safety_stack: Optional[StegVerseSafetyStack] = None,
@@ -108,6 +134,20 @@ class StegVerseLLMAdapterDual:
 
         # Parse LLM output
         parsed = self._parse_llm_output(output)
+
+        # Security scan — immediate DENY if dangerous patterns found
+        if parsed.get("has_dangerous_patterns"):
+            return {
+                "decision": "DENY",
+                "safety_layer": "SECURITY_SCAN",
+                "reason": f"Dangerous patterns detected: {parsed['dangerous_patterns_found']}",
+                "receipt": self.safety._generate_receipt("SECURITY", "DENY", "llm-adapter"),
+                "suggestions": [
+                    "Remove dangerous system calls",
+                    "Use safe alternatives for file/network operations",
+                    "Add input validation",
+                ],
+            }
 
         # Compute GCAT state from output characteristics
         gcat_state = self._compute_gcat_state(parsed)
@@ -240,10 +280,14 @@ class StegVerseLLMAdapterDual:
 
     def _parse_llm_output(self, output: str) -> Dict[str, Any]:
         """Extract structured data from LLM output."""
-        import re
-
         code_blocks = re.findall(r"```(?:\w+)?\n(.*?)\n```", output, re.DOTALL)
         files = re.findall(r'["\']([\w/]+\.(py|js|ts|java|go|rs))["\']', output)
+
+        # Security pattern detection
+        dangerous_found = []
+        for pattern in self.DANGEROUS_PATTERNS:
+            if re.search(pattern, output, re.IGNORECASE):
+                dangerous_found.append(pattern)
 
         return {
             "code_blocks": code_blocks,
@@ -252,6 +296,8 @@ class StegVerseLLMAdapterDual:
             "has_tests": "test" in output.lower() or "assert" in output.lower(),
             "has_docs": '"""' in output or "docstring" in output.lower(),
             "complexity": self._estimate_complexity(code_blocks),
+            "has_dangerous_patterns": len(dangerous_found) > 0,
+            "dangerous_patterns_found": dangerous_found,
         }
 
     def _compute_gcat_state(self, parsed: Dict) -> Dict[str, float]:
@@ -326,6 +372,8 @@ class StegVerseLLMAdapterDual:
             suggestions.append("Add tests for verification")
         if not parsed.get("has_docs"):
             suggestions.append("Add documentation")
+        if parsed.get("has_dangerous_patterns"):
+            suggestions.append("Remove dangerous system calls and use safe alternatives")
         return suggestions
 
 
