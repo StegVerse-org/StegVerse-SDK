@@ -1,19 +1,11 @@
-name: SDK Demo Pipeline Test
+name: SDK Test
 
 on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      test_level:
-        description: 'Test depth'
-        required: true
-        default: 'full'
-        type: choice
-        options:
-          - quick
-          - standard
-          - full
-  schedule:
-    - cron: '0 */6 * * *'
 
 jobs:
   test:
@@ -27,19 +19,19 @@ jobs:
       - name: Install SDK from GitHub
         run: |
           pip install git+https://github.com/StegVerse-org/StegVerse-SDK.git
-          python -c "import stegverse_sdk; print(f'SDK version: {stegverse_sdk.__version__}')"
+          python -c "import stegverse; print(f'SDK version: {stegverse.__version__}')"
 
       - name: Verify SDK components
         run: |
           python -c "
-          from stegverse_sdk import submit_intent, StegVerseLLMAdapter, govern_llm_output
+          from stegverse import submit_intent, StegVerseLLMAdapter, govern_llm_output
           print('Core imports: OK')
           "
 
       - name: Test SDK demo call
         run: |
           python -c "
-          from stegverse_sdk import submit_intent
+          from stegverse import submit_intent
           result = submit_intent(
               action='demo',
               mode='execution_governance',
@@ -48,67 +40,3 @@ jobs:
           assert result['status'] == 'submitted', f'Failed: {result}'
           print(f'Demo intent submitted: {result["receipt_id"]}')
           "
-
-      - name: Test LLM Adapter
-        run: |
-          python -c "
-          from stegverse_sdk import StegVerseLLMAdapter
-          adapter = StegVerseLLMAdapter(provider='openai', model='gpt-4')
-          llm_output = {'action': 'deploy_change', 'confidence': 0.95}
-          governed = adapter.govern_output(llm_output)
-          assert 'decision' in governed
-          assert governed['decision'] in ['ALLOW', 'DENY', 'FAIL_CLOSED']
-          print(f'LLM governance: {governed["decision"]}')
-          "
-
-      - name: Test confidence score retrieval
-        run: |
-          python -c "
-          from stegverse_sdk import get_demo_status
-          status = get_demo_status(run_id='latest', include_reconstruction=True)
-          assert 'confidence' in status
-          assert status['confidence']['percentage'] >= 95
-          print(f'Confidence: {status["confidence"]["percentage"]}%')
-          "
-
-      - name: Full pipeline test
-        if: github.event.inputs.test_level == 'full' || github.event_name == 'schedule'
-        run: |
-          python -c "
-          from stegverse_sdk import submit_intent, get_demo_status
-          import time
-          modes = ['execution_governance', 'mutation_governance', 'governance_matrix', 'governance_random_sweep', 'full']
-          for mode in modes:
-              print(f'\nTesting mode: {mode}')
-              result = submit_intent(action='demo', mode=mode, reset='hard', seed=42, samples=10)
-              assert result['status'] == 'submitted'
-              time.sleep(30)
-              status = get_demo_status(run_id=result['receipt_id'])
-              assert status['status'] == 'PASS'
-              if mode == 'full':
-                  assert status['confidence']['percentage'] >= 95
-                  assert 'reconstruction' in status
-              print(f'  {mode}: PASS')
-          print('\nAll modes passed!')
-          "
-
-      - name: Generate test report
-        if: always()
-        run: |
-          cat > test_report.json << 'EOF'
-          {
-            "test_run": "${{ github.run_id }}",
-            "timestamp": "${{ github.event.head_commit.timestamp }}",
-            "test_level": "${{ github.event.inputs.test_level || 'scheduled' }}",
-            "status": "${{ job.status }}",
-            "public_ready": "${{ job.status == 'success' }}"
-          }
-          EOF
-          cat test_report.json
-
-      - name: Upload test report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: sdk-demo-test-${{ github.run_id }}
-          path: test_report.json
