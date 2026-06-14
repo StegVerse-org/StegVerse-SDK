@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/admissibility/tester-output.schema.json",
+  "title": "StegVerse Governed Admissibility Tester Output",
+  "type": "object",
+  "required": [
+    "schema",
+    "generated",
+    "tester",
+    "test_object",
+    "route",
+    "classification",
+    "boundary"
+  ],
+  "properties": {
+    "schema": {
+      "const": "stegverse.governed_admissibility.tester_output.v1"
+    },
+    "generated": {
+      "type": "string",
+      "description": "ISO-8601 timestamp for packet creation."
+    },
+    "tester": {
+      "type": "object",
+      "required": ["name_or_role", "discipline_id", "domain_review_required"],
+      "properties": {
+        "name_or_role": {"type": "string"},
+        "discipline_id": {"type": "string"},
+        "domain_review_required": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "test_object": {
+      "type": "object",
+      "required": ["object_id", "object_type", "summary"],
+      "properties": {
+        "object_id": {"type": "string"},
+        "object_type": {"type": "string"},
+        "summary": {"type": "string"},
+        "source_or_reference": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "route": {
+      "type": "object",
+      "required": ["recommended_route", "tests_run"],
+      "properties": {
+        "recommended_route": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "tests_run": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "route_deviation_reason": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "classification": {
+      "type": "object",
+      "required": [
+        "declared_intent",
+        "evidence_posture",
+        "replay_posture",
+        "consequence_level",
+        "claim_limit",
+        "decision",
+        "allowed_next_state"
+      ],
+      "properties": {
+        "declared_intent": {"type": "string"},
+        "authority_source": {"type": ["string", "null"]},
+        "evidence_posture": {
+          "type": "string",
+          "enum": ["none", "draft", "research_note", "source_backed", "receipt_backed"]
+        },
+        "replay_posture": {
+          "type": "string",
+          "enum": ["not_replayable", "partially_replayable", "replayable", "receipt_backed"]
+        },
+        "consequence_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "claim_limit": {"type": "string"},
+        "decision": {
+          "type": "string",
+          "enum": [
+            "ALLOW",
+            "ALLOW_AS_NOTE",
+            "ALLOW_WITH_POSTURE",
+            "REQUIRE_REVIEW",
+            "REQUIRE_TEST",
+            "REQUIRE_RECEIPT",
+            "REQUIRE_REPLAY",
+            "HOLD",
+            "FAIL_CLOSED",
+            "NOT_ADMISSIBLE"
+          ]
+        },
+        "allowed_next_state": {"type": "string"},
+        "required_follow_up": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "does_not_certify_domain_correctness",
+        "does_not_replace_domain_review",
+        "does_not_create_proof_authority"
+      ],
+      "properties": {
+        "does_not_certify_domain_correctness": {"type": "boolean"},
+        "does_not_replace_domain_review": {"type": "boolean"},
+        "does_not_create_proof_authority": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "notes": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}
