@@ -63,6 +63,37 @@ print(result["classification"]["decision"])
 print(result["classification"]["allowed_next_state"])
 ```
 
+## LLM bridge module
+
+```text
+stegverse/llm_admissibility.py
+```
+
+Current bridge functions:
+
+```python
+build_llm_tester_packet(...)
+evaluate_llm_output_admissibility(...)
+summarize_llm_admissibility(result)
+```
+
+Example:
+
+```python
+from stegverse.llm_admissibility import evaluate_llm_output_admissibility
+
+bridge = evaluate_llm_output_admissibility(
+    provider="openai",
+    model="gpt-test",
+    prompt="Draft a governance note.",
+    output="This is a draft governance note.",
+    declared_intent="research_note",
+)
+
+print(bridge["decision"])
+print(bridge["allowed_next_state"])
+```
+
 ## Tester packet role
 
 A tester packet is a structured admissibility classification. It records:
@@ -128,13 +159,14 @@ python examples/dynamic_admissibility_packet.py
 ## Run tests
 
 ```bash
-pytest tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py
+pytest tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py
 ```
 
-The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, and top-level package import stability.
+The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, and the LLM bridge packet path.
 
 ## Next integration steps
 
-1. Attach real SDK receipts when a dynamic packet is admitted into an executable action.
-2. Keep browser-demo local hashes separate from SDK receipts.
-3. Connect dynamic admissibility packets to the LLM adapter and math-solver adapter paths.
+1. Expose the LLM bridge through the top-level package API after the existing package surface can be updated cleanly.
+2. Attach real SDK receipts when a dynamic packet is admitted into an executable action.
+3. Keep browser-demo local hashes separate from SDK receipts.
+4. Connect the math-solver adapter path to the same dynamic admissibility packet family.
