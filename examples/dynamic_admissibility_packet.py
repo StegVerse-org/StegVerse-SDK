@@ -1,8 +1,8 @@
 """Example dynamic admissibility packet for StegVerse SDK.
 
 This example mirrors the packet shape used by the StegVerse Site demo.
-It does not call a remote API by default. It shows the SDK-facing
-payload family that later validation and adapter helpers should consume.
+It builds a tester packet, evaluates it locally through the SDK helper,
+and prints both the input packet and result packet.
 """
 
 from __future__ import annotations
@@ -10,6 +10,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import json
 from typing import Any, Dict
+
+from stegverse.admissibility import evaluate_admissibility_packet, result_to_decision
 
 
 def build_packet() -> Dict[str, Any]:
@@ -64,5 +66,18 @@ def build_packet() -> Dict[str, Any]:
     }
 
 
+def main() -> None:
+    packet = build_packet()
+    result = evaluate_admissibility_packet(packet)
+    compact = result_to_decision(result)
+
+    print("# tester packet")
+    print(json.dumps(packet, indent=2, sort_keys=True))
+    print("\n# dynamic admissibility result")
+    print(json.dumps(result, indent=2, sort_keys=True))
+    print("\n# compact decision")
+    print(json.dumps(compact.__dict__, indent=2, sort_keys=True))
+
+
 if __name__ == "__main__":
-    print(json.dumps(build_packet(), indent=2, sort_keys=True))
+    main()
