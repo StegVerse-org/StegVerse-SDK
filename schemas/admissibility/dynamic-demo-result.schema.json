@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/admissibility/dynamic-demo-result.schema.json",
+  "title": "StegVerse Dynamic Admissibility Result",
+  "type": "object",
+  "required": [
+    "schema",
+    "evaluated_at",
+    "mode",
+    "discipline_id",
+    "recommended_route",
+    "classification",
+    "boundary",
+    "receipt_posture"
+  ],
+  "properties": {
+    "schema": {
+      "const": "stegverse.governed_admissibility.dynamic_demo_result.v1"
+    },
+    "evaluated_at": {"type": "string"},
+    "mode": {"type": "string"},
+    "input_object_id": {"type": ["string", "null"]},
+    "discipline_id": {"type": "string"},
+    "recommended_route": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "classification": {
+      "type": "object",
+      "required": [
+        "declared_intent",
+        "authority_source",
+        "evidence_posture",
+        "replay_posture",
+        "consequence_level",
+        "claim_limit",
+        "decision",
+        "allowed_next_state",
+        "required_follow_up"
+      ],
+      "properties": {
+        "declared_intent": {"type": "string"},
+        "authority_source": {"type": ["string", "null"]},
+        "evidence_posture": {"type": "string"},
+        "replay_posture": {"type": "string"},
+        "consequence_level": {"type": "string"},
+        "claim_limit": {"type": "string"},
+        "decision": {"type": "string"},
+        "allowed_next_state": {"type": "string"},
+        "required_follow_up": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "does_not_certify_domain_correctness",
+        "does_not_replace_domain_review",
+        "does_not_create_proof_authority"
+      ],
+      "properties": {
+        "does_not_certify_domain_correctness": {"type": "boolean"},
+        "does_not_replace_domain_review": {"type": "boolean"},
+        "does_not_create_proof_authority": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "receipt_posture": {
+      "type": "string",
+      "description": "Receipt status for the demo or SDK result. Browser demo may be local-only; production SDK paths should attach real receipts where available."
+    },
+    "local_receipt_hash": {"type": ["string", "null"]},
+    "receipt_id": {"type": ["string", "null"]},
+    "receipt_hash": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}
