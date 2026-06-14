@@ -83,7 +83,7 @@ print(result["receipt_id"])  # verifiable receipt
 
 ## DYNAMIC ADMISSIBILITY PACKETS
 
-The SDK is now schema-aware of the dynamic admissibility packet family used by the StegVerse Site demo.
+The SDK is now schema-aware of the dynamic admissibility packet family used by the StegVerse Site demo and includes a local evaluator helper.
 
 Dynamic admissibility asks:
 
@@ -107,6 +107,16 @@ SDK-visible schemas:
 ```text
 schemas/admissibility/tester-output.schema.json
 schemas/admissibility/dynamic-demo-result.schema.json
+```
+
+SDK helper:
+
+```python
+from stegverse.admissibility import evaluate_admissibility_packet
+
+result = evaluate_admissibility_packet(packet)
+print(result["classification"]["decision"])
+print(result["classification"]["allowed_next_state"])
 ```
 
 SDK example:
