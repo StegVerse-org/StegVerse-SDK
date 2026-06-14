@@ -81,6 +81,50 @@ print(result["receipt_id"])  # verifiable receipt
 
 ---
 
+## DYNAMIC ADMISSIBILITY PACKETS
+
+The SDK is now schema-aware of the dynamic admissibility packet family used by the StegVerse Site demo.
+
+Dynamic admissibility asks:
+
+```text
+What is this output, artifact, instruction, transition, or claim allowed to become?
+```
+
+Packet path:
+
+```text
+tester packet
+→ discipline route
+→ authority / evidence / replay / consequence checks
+→ admissibility decision
+→ result packet
+→ receipt posture
+```
+
+SDK-visible schemas:
+
+```text
+schemas/admissibility/tester-output.schema.json
+schemas/admissibility/dynamic-demo-result.schema.json
+```
+
+SDK example:
+
+```bash
+python examples/dynamic_admissibility_packet.py
+```
+
+Reference docs:
+
+```text
+docs/DYNAMIC_ADMISSIBILITY.md
+```
+
+These packets align the SDK with the Site demo, applicability map, discipline test matrix, tester-output template, and future LLM/math-solver adapters.
+
+---
+
 ## LLM ADAPTER
 
 Govern any LLM output before execution:
@@ -143,6 +187,8 @@ Decision rule:
 | demo_ingest_engine | Orchestrated ingestion |
 | AaCT-E | Audit trail |
 | StegDB | State monitoring |
+| Site demo | Dynamic admissibility tester packets |
+| Applicability map | Discipline routes and tester-output templates |
 
 ---
 
