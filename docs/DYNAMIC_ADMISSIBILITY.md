@@ -6,7 +6,7 @@ Generated: `2026-06-14`
 
 This document records SDK awareness of the dynamic admissibility packet shape now used by the StegVerse Site demo.
 
-The Site demo accepts live tester packets. The SDK should be able to recognize the same packet family so Site, SDK, LLM adapter, and future runtime services share a common vocabulary.
+The Site demo accepts live tester packets. The SDK now includes a dependency-free helper module that recognizes the same packet family so Site, SDK, LLM adapter, and future runtime services share a common vocabulary.
 
 ## Core question
 
@@ -30,6 +30,31 @@ tester packet
 ```text
 schemas/admissibility/tester-output.schema.json
 schemas/admissibility/dynamic-demo-result.schema.json
+```
+
+## SDK helper module
+
+```text
+stegverse/admissibility.py
+```
+
+Current helper functions:
+
+```python
+validate_tester_packet(packet)
+evaluate_admissibility_packet(packet, strict=False)
+result_to_decision(result)
+stable_hash(payload)
+```
+
+Example:
+
+```python
+from stegverse.admissibility import evaluate_admissibility_packet
+
+result = evaluate_admissibility_packet(packet)
+print(result["classification"]["decision"])
+print(result["classification"]["allowed_next_state"])
 ```
 
 ## Tester packet role
@@ -80,20 +105,23 @@ discipline-aware tester packet
 → receipt posture
 ```
 
+The current helper is local and side-effect free. It can be used before receipt-backed execution or integrated into future adapters.
+
 ## Site relationship
 
 The Site demo is a browser-local public mirror for dynamic packet evaluation.
 
 The SDK is the appropriate layer to add typed models, validation helpers, adapters, and receipt integration.
 
-## Next integration steps
+## Run example
 
-1. Add SDK model classes for tester-output and dynamic result packets.
-2. Add validation helpers for `schemas/admissibility/*.schema.json`.
-3. Add adapter method:
-
-```python
-sdk.evaluate_admissibility_packet(packet)
+```bash
+python examples/dynamic_admissibility_packet.py
 ```
 
+## Next integration steps
+
+1. Expose `evaluate_admissibility_packet` through the top-level package init once package layout is confirmed.
+2. Add formal unit tests for valid, missing-authority, high-consequence, and receipt-backed cases.
+3. Attach real SDK receipts when a dynamic packet is admitted into an executable action.
 4. Keep browser-demo local hashes separate from SDK receipts.
