@@ -119,9 +119,16 @@ The SDK is the appropriate layer to add typed models, validation helpers, adapte
 python examples/dynamic_admissibility_packet.py
 ```
 
+## Run tests
+
+```bash
+pytest tests/test_dynamic_admissibility.py
+```
+
+The test file covers valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, and deterministic local hashing.
+
 ## Next integration steps
 
 1. Expose `evaluate_admissibility_packet` through the top-level package init once package layout is confirmed.
-2. Add formal unit tests for valid, missing-authority, high-consequence, and receipt-backed cases.
-3. Attach real SDK receipts when a dynamic packet is admitted into an executable action.
-4. Keep browser-demo local hashes separate from SDK receipts.
+2. Attach real SDK receipts when a dynamic packet is admitted into an executable action.
+3. Keep browser-demo local hashes separate from SDK receipts.
