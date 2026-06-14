@@ -6,6 +6,7 @@ Public API surface:
     StegVerseSafetyStack  — 5-layer safety governance
     submit_intent         — convenience function
     govern_llm_output     — convenience function
+    evaluate_admissibility_packet — evaluate dynamic admissibility tester packets
 """
 
 __version__ = "1.0.0"
@@ -82,6 +83,19 @@ def govern_llm_output(
     }
 
 
+# --- Dynamic admissibility packets ---
+from .admissibility import (
+    AdmissibilityDecision,
+    DEFAULT_ROUTES,
+    DYNAMIC_RESULT_SCHEMA,
+    TESTER_OUTPUT_SCHEMA,
+    evaluate_admissibility_packet,
+    result_to_decision,
+    stable_hash,
+    to_dict,
+    validate_tester_packet,
+)
+
 # --- Receipts ---
 from .receipts import verify_receipt
 
@@ -103,6 +117,16 @@ __all__ = [
     "LLMProvider",
     "CanonicalIntent",
     "govern_llm_output",
+    # Dynamic admissibility
+    "AdmissibilityDecision",
+    "DEFAULT_ROUTES",
+    "DYNAMIC_RESULT_SCHEMA",
+    "TESTER_OUTPUT_SCHEMA",
+    "evaluate_admissibility_packet",
+    "result_to_decision",
+    "stable_hash",
+    "to_dict",
+    "validate_tester_packet",
     # Receipts
     "verify_receipt",
 ]
