@@ -47,6 +47,12 @@ result_to_decision(result)
 stable_hash(payload)
 ```
 
+Top-level package import:
+
+```python
+from stegverse import evaluate_admissibility_packet
+```
+
 Example:
 
 ```python
@@ -122,13 +128,13 @@ python examples/dynamic_admissibility_packet.py
 ## Run tests
 
 ```bash
-pytest tests/test_dynamic_admissibility.py
+pytest tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py
 ```
 
-The test file covers valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, and deterministic local hashing.
+The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, and top-level package import stability.
 
 ## Next integration steps
 
-1. Expose `evaluate_admissibility_packet` through the top-level package init once package layout is confirmed.
-2. Attach real SDK receipts when a dynamic packet is admitted into an executable action.
-3. Keep browser-demo local hashes separate from SDK receipts.
+1. Attach real SDK receipts when a dynamic packet is admitted into an executable action.
+2. Keep browser-demo local hashes separate from SDK receipts.
+3. Connect dynamic admissibility packets to the LLM adapter and math-solver adapter paths.
