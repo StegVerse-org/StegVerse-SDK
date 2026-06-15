@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/admissibility/math-bridge-result.schema.json",
+  "title": "StegVerse Math Admissibility Bridge Result",
+  "type": "object",
+  "required": [
+    "schema",
+    "evaluated_at",
+    "tester_packet",
+    "admissibility_result",
+    "decision",
+    "allowed_next_state",
+    "receipt_posture"
+  ],
+  "properties": {
+    "schema": {
+      "const": "stegverse.math_admissibility.bridge_result.v1"
+    },
+    "evaluated_at": {"type": "string"},
+    "tester_packet": {"type": "object"},
+    "admissibility_result": {"type": "object"},
+    "decision": {"type": "string"},
+    "allowed_next_state": {"type": "string"},
+    "receipt_posture": {"type": "string"}
+  },
+  "additionalProperties": true
+}
