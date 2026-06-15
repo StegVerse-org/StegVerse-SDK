@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/admissibility/gax-exchange.schema.json",
+  "title": "StegVerse Governed Admissibility Exchange",
+  "type": "object",
+  "required": [
+    "schema",
+    "exchange_type",
+    "created_at",
+    "producer",
+    "bundle",
+    "attachments",
+    "boundary"
+  ],
+  "properties": {
+    "schema": {"const": "stegverse.admissibility.gax_exchange.v1"},
+    "exchange_type": {"type": "string"},
+    "created_at": {"type": "string"},
+    "producer": {
+      "type": "object",
+      "required": ["component", "version"],
+      "properties": {
+        "component": {"type": "string"},
+        "version": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "bundle": {"type": "object"},
+    "attachments": {
+      "type": "object",
+      "required": ["execution_receipt", "notes", "related_formalisms"],
+      "properties": {
+        "execution_receipt": {"type": ["object", "null"]},
+        "notes": {"type": "array", "items": {"type": "string"}},
+        "related_formalisms": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "does_not_certify_domain_correctness",
+        "does_not_replace_domain_review",
+        "does_not_create_execution_proof"
+      ],
+      "properties": {
+        "does_not_certify_domain_correctness": {"type": "boolean"},
+        "does_not_replace_domain_review": {"type": "boolean"},
+        "does_not_create_execution_proof": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
