@@ -32,6 +32,7 @@ schemas/admissibility/tester-output.schema.json
 schemas/admissibility/dynamic-demo-result.schema.json
 schemas/admissibility/llm-bridge-result.schema.json
 schemas/admissibility/math-bridge-result.schema.json
+schemas/admissibility/bridge-registry.schema.json
 ```
 
 ## SDK helper module
@@ -69,6 +70,7 @@ print(result["classification"]["allowed_next_state"])
 
 ```text
 stegverse/bridge_registry.py
+schemas/admissibility/bridge-registry.schema.json
 ```
 
 Current registry functions:
@@ -87,6 +89,12 @@ Registered bridge ids:
 generic_tester_packet
 llm_output
 math_artifact
+```
+
+Run the bridge registry example:
+
+```bash
+python examples/list_dynamic_bridges.py
 ```
 
 ## LLM bridge module
@@ -222,6 +230,7 @@ The SDK is the appropriate layer to add typed models, validation helpers, adapte
 
 ```bash
 python examples/dynamic_admissibility_packet.py
+python examples/list_dynamic_bridges.py
 python examples/llm_dynamic_admissibility.py
 python examples/math_dynamic_admissibility.py
 ```
