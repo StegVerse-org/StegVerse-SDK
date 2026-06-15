@@ -76,3 +76,21 @@ def test_evaluate_llm_output_admissibility_receipt_backed_low_consequence_allows
     assert bridge["decision"] == "ALLOW_WITH_POSTURE"
     assert bridge["allowed_next_state"] == "receipt_backed_claim"
     assert bridge["receipt_posture"] == "receipt_backed"
+
+
+def test_evaluate_llm_output_admissibility_can_include_receipt_reference():
+    bridge = evaluate_llm_output_admissibility(
+        provider="openai",
+        model="gpt-test",
+        prompt="Draft a governance note.",
+        output="This is a draft governance note.",
+        declared_intent="research_note",
+        include_receipt_reference=True,
+    )
+    summary = summarize_llm_admissibility(bridge)
+    reference = bridge["admissibility_receipt_reference"]
+
+    assert reference["reference_id"].startswith("admref-")
+    assert reference["result_hash"].startswith("sha256:")
+    assert reference["boundary"]["does_not_create_execution_proof"] is True
+    assert summary["admissibility_reference_id"] == reference["reference_id"]
