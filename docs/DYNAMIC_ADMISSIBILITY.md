@@ -238,10 +238,10 @@ python examples/math_dynamic_admissibility.py
 ## Run tests
 
 ```bash
-pytest tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py
+pytest tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py
 ```
 
-The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, and dynamic bridge discovery.
+The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, and bridge registry payload shape.
 
 ## Next integration steps
 
