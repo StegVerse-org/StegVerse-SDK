@@ -1,7 +1,8 @@
 """Example math-solver dynamic admissibility bridge usage.
 
 This example converts a formalism artifact summary into a dynamic tester
-packet and evaluates what that artifact is allowed to become.
+packet, evaluates what that artifact is allowed to become, and includes a
+local admissibility receipt reference for later review or receipt attachment.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ def main() -> None:
         artifact_type="solver_artifact",
         artifact_summary="Placeholder derivation attempt for RTG/STCM observer-window relationship.",
         declared_intent="formalism_support_claim",
+        include_receipt_reference=True,
     )
     summary = summarize_math_admissibility(bridge)
 
