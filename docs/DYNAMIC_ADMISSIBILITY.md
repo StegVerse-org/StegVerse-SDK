@@ -128,7 +128,7 @@ Current bridge functions:
 
 ```python
 build_llm_tester_packet(...)
-evaluate_llm_output_admissibility(...)
+evaluate_llm_output_admissibility(..., include_receipt_reference=False)
 summarize_llm_admissibility(result)
 ```
 
@@ -143,10 +143,12 @@ bridge = evaluate_llm_output_admissibility(
     prompt="Draft a governance note.",
     output="This is a draft governance note.",
     declared_intent="research_note",
+    include_receipt_reference=True,
 )
 
 print(bridge["decision"])
 print(bridge["allowed_next_state"])
+print(bridge["admissibility_receipt_reference"]["reference_id"])
 ```
 
 Run the LLM bridge example:
@@ -165,7 +167,7 @@ Current bridge functions:
 
 ```python
 build_math_tester_packet(...)
-evaluate_math_artifact_admissibility(...)
+evaluate_math_artifact_admissibility(..., include_receipt_reference=False)
 summarize_math_admissibility(result)
 ```
 
@@ -179,10 +181,12 @@ bridge = evaluate_math_artifact_admissibility(
     artifact_type="solver_artifact",
     artifact_summary="Placeholder derivation attempt for RTG/STCM observer-window relationship.",
     declared_intent="formalism_support_claim",
+    include_receipt_reference=True,
 )
 
 print(bridge["decision"])
 print(bridge["allowed_next_state"])
+print(bridge["admissibility_receipt_reference"]["reference_id"])
 ```
 
 Run the math bridge example:
