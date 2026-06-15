@@ -66,6 +66,27 @@ print(result["classification"]["decision"])
 print(result["classification"]["allowed_next_state"])
 ```
 
+## Admissibility receipt references
+
+```text
+stegverse/admissibility_receipts.py
+```
+
+Current helper functions:
+
+```python
+build_admissibility_receipt_reference(result_packet)
+verify_admissibility_receipt_reference(reference)
+```
+
+Receipt references are stable local references for dynamic admissibility result packets. They identify the result packet and posture so it can later be attached to an execution receipt or review record. They do not replace execution receipts.
+
+Run the receipt-reference example:
+
+```bash
+python examples/admissibility_receipt_reference.py
+```
+
 ## Bridge registry
 
 ```text
@@ -230,6 +251,7 @@ The SDK is the appropriate layer to add typed models, validation helpers, adapte
 
 ```bash
 python examples/dynamic_admissibility_packet.py
+python examples/admissibility_receipt_reference.py
 python examples/list_dynamic_bridges.py
 python examples/llm_dynamic_admissibility.py
 python examples/math_dynamic_admissibility.py
@@ -238,10 +260,10 @@ python examples/math_dynamic_admissibility.py
 ## Run tests
 
 ```bash
-pytest tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py
+pytest tests/test_admissibility_receipts.py tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py
 ```
 
-The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, and bridge registry payload shape.
+The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, bridge registry payload shape, and local admissibility receipt references.
 
 ## CI workflow
 
@@ -253,7 +275,6 @@ The workflow runs the dynamic admissibility tests and examples on Python 3.9, 3.
 
 ## Next integration steps
 
-1. Expose the LLM and math bridges through the top-level package API after the existing package surface can be updated cleanly.
-2. Attach real SDK receipts when a dynamic packet is admitted into an executable action.
-3. Keep browser-demo local hashes separate from SDK receipts.
-4. Connect bridge packets to downstream adapter execution paths.
+1. Attach local admissibility receipt references to downstream execution receipt records.
+2. Keep browser-demo local hashes separate from SDK receipts.
+3. Connect bridge packets to downstream adapter execution paths.
