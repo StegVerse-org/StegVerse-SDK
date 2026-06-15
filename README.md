@@ -83,7 +83,7 @@ print(result["receipt_id"])  # verifiable receipt
 
 ## DYNAMIC ADMISSIBILITY PACKETS
 
-The SDK is schema-aware of the dynamic admissibility packet family used by the StegVerse Site demo and includes local evaluator, bridge, receipt-reference, and verifier helpers.
+The SDK is schema-aware of the dynamic admissibility packet family used by the StegVerse Site demo and includes local evaluator, bridge, bundle, receipt-reference, verifier, and bundle-check helpers.
 
 Dynamic admissibility asks:
 
@@ -100,6 +100,8 @@ tester packet
 → admissibility decision
 → result packet
 → local admissibility reference
+→ governed admissibility bundle
+→ bundle check
 → optional execution receipt attachment
 ```
 
@@ -111,6 +113,8 @@ schemas/admissibility/dynamic-demo-result.schema.json
 schemas/admissibility/llm-bridge-result.schema.json
 schemas/admissibility/math-bridge-result.schema.json
 schemas/admissibility/bridge-registry.schema.json
+schemas/admissibility/admissibility-bundle.schema.json
+schemas/admissibility/replay-result.schema.json
 ```
 
 SDK helper:
@@ -123,13 +127,25 @@ print(result["classification"]["decision"])
 print(result["classification"]["allowed_next_state"])
 ```
 
-Bridge examples:
+Bundle helpers:
+
+```python
+from stegverse.admissibility_bundle import build_bundle_from_bridge_result
+from stegverse.admissibility_replay import replay_admissibility_bundle
+
+bundle = build_bundle_from_bridge_result(bridge)
+check = replay_admissibility_bundle(bundle)
+```
+
+Bridge and bundle examples:
 
 ```bash
 python examples/dynamic_admissibility_packet.py
 python examples/list_dynamic_bridges.py
 python examples/llm_dynamic_admissibility.py
 python examples/math_dynamic_admissibility.py
+python examples/admissibility_bundle_demo.py
+python examples/admissibility_bundle_check.py
 ```
 
 Receipt-reference examples:
@@ -147,7 +163,7 @@ Reference docs:
 docs/DYNAMIC_ADMISSIBILITY.md
 ```
 
-These packets align the SDK with the Site demo, applicability map, discipline test matrix, tester-output template, LLM bridge, and math-solver bridge.
+These packets align the SDK with the Site demo, applicability map, discipline test matrix, tester-output template, LLM bridge, math-solver bridge, and Governed Admissibility Bundle exchange format.
 
 ---
 
@@ -217,6 +233,8 @@ Decision rule:
 | Applicability map | Discipline routes and tester-output templates |
 | LLM bridge | LLM output to dynamic admissibility packet |
 | Math bridge | Formalism artifact to dynamic admissibility packet |
+| GAB | Portable governed admissibility bundle exchange |
+| Bundle check | Local bundle re-evaluation and posture comparison |
 | Receipts | Optional admissibility receipt references |
 
 ---
