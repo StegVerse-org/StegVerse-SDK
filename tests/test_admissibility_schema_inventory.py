@@ -12,6 +12,7 @@ EXPECTED_SCHEMA_FILES = {
     "bridge-registry.schema.json": None,
     "admissibility-bundle.schema.json": "stegverse.admissibility.bundle.v1",
     "replay-result.schema.json": "stegverse.admissibility.replay_result.v1",
+    "gax-exchange.schema.json": "stegverse.admissibility.gax_exchange.v1",
 }
 
 
