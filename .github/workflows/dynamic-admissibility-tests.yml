@@ -8,6 +8,7 @@ on:
       - "stegverse/admissibility_exchange.py"
       - "stegverse/admissibility_replay.py"
       - "stegverse/admissibility_receipts.py"
+      - "stegverse/governance_tightness.py"
       - "stegverse/llm_admissibility.py"
       - "stegverse/math_admissibility.py"
       - "stegverse/bridge_registry.py"
@@ -18,6 +19,7 @@ on:
       - "examples/admissibility_bundle_demo.py"
       - "examples/admissibility_exchange_check.py"
       - "examples/admissibility_receipt_reference.py"
+      - "examples/governance_tightness_profile.py"
       - "examples/list_dynamic_bridges.py"
       - "examples/verify_receipt_with_admissibility_reference.py"
       - "tests/test_admissibility_bundle.py"
@@ -25,6 +27,7 @@ on:
       - "tests/test_admissibility_replay.py"
       - "tests/test_admissibility_receipts.py"
       - "tests/test_admissibility_schema_inventory.py"
+      - "tests/test_governance_tightness.py"
       - "tests/test_dynamic_admissibility*.py"
       - "tests/test_llm_admissibility.py"
       - "tests/test_math_admissibility.py"
@@ -38,6 +41,7 @@ on:
       - "stegverse/admissibility_exchange.py"
       - "stegverse/admissibility_replay.py"
       - "stegverse/admissibility_receipts.py"
+      - "stegverse/governance_tightness.py"
       - "stegverse/llm_admissibility.py"
       - "stegverse/math_admissibility.py"
       - "stegverse/bridge_registry.py"
@@ -48,6 +52,7 @@ on:
       - "examples/admissibility_bundle_demo.py"
       - "examples/admissibility_exchange_check.py"
       - "examples/admissibility_receipt_reference.py"
+      - "examples/governance_tightness_profile.py"
       - "examples/list_dynamic_bridges.py"
       - "examples/verify_receipt_with_admissibility_reference.py"
       - "tests/test_admissibility_bundle.py"
@@ -55,6 +60,7 @@ on:
       - "tests/test_admissibility_replay.py"
       - "tests/test_admissibility_receipts.py"
       - "tests/test_admissibility_schema_inventory.py"
+      - "tests/test_governance_tightness.py"
       - "tests/test_dynamic_admissibility*.py"
       - "tests/test_llm_admissibility.py"
       - "tests/test_math_admissibility.py"
@@ -92,6 +98,7 @@ jobs:
             tests/test_admissibility_replay.py \
             tests/test_admissibility_receipts.py \
             tests/test_admissibility_schema_inventory.py \
+            tests/test_governance_tightness.py \
             tests/test_dynamic_admissibility.py \
             tests/test_dynamic_admissibility_public_api.py \
             tests/test_llm_admissibility.py \
@@ -107,6 +114,7 @@ jobs:
           python examples/admissibility_bundle_demo.py
           python examples/admissibility_exchange_check.py
           python examples/admissibility_receipt_reference.py
+          python examples/governance_tightness_profile.py
           python examples/list_dynamic_bridges.py
           python examples/llm_dynamic_admissibility.py
           python examples/math_dynamic_admissibility.py
