@@ -12,7 +12,10 @@ import hashlib
 import json
 from typing import Any, Dict, Mapping, Optional
 
-from .admissibility_receipts import verify_admissibility_receipt_reference
+from .admissibility_receipts import (
+    build_admissibility_receipt_reference,
+    verify_admissibility_receipt_reference,
+)
 
 ADMISSIBILITY_BUNDLE_SCHEMA = "stegverse.admissibility.bundle.v1"
 
@@ -60,6 +63,45 @@ def build_admissibility_bundle(
     }
     bundle["bundle_hash"] = bundle_hash(bundle)
     return bundle
+
+
+def build_bundle_from_bridge_result(
+    bridge_result: Mapping[str, Any],
+    *,
+    bridge_type: Optional[str] = None,
+    execution_receipt: Optional[Mapping[str, Any]] = None,
+    source: str = "sdk_bridge_result_bundle",
+) -> Dict[str, Any]:
+    """Build a governed admissibility bundle from an LLM or math bridge result."""
+    tester_packet = bridge_result.get("tester_packet")
+    result_packet = bridge_result.get("admissibility_result")
+    if not isinstance(tester_packet, Mapping):
+        raise ValueError("bridge result missing tester_packet")
+    if not isinstance(result_packet, Mapping):
+        raise ValueError("bridge result missing admissibility_result")
+
+    receipt_reference = bridge_result.get("admissibility_receipt_reference")
+    if not isinstance(receipt_reference, Mapping):
+        receipt_reference = build_admissibility_receipt_reference(result_packet, source=source)
+
+    resolved_bridge_type = bridge_type
+    if resolved_bridge_type is None:
+        schema = str(bridge_result.get("schema", ""))
+        if "llm_admissibility" in schema:
+            resolved_bridge_type = "llm_output"
+        elif "math_admissibility" in schema:
+            resolved_bridge_type = "math_artifact"
+        else:
+            resolved_bridge_type = "generic_tester_packet"
+
+    return build_admissibility_bundle(
+        tester_packet=tester_packet,
+        result_packet=result_packet,
+        receipt_reference=receipt_reference,
+        bridge_type=resolved_bridge_type,
+        execution_receipt=execution_receipt,
+        source=source,
+    )
 
 
 def verify_admissibility_bundle(bundle: Mapping[str, Any]) -> bool:
