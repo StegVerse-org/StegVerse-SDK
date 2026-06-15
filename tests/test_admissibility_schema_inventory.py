@@ -13,6 +13,7 @@ EXPECTED_SCHEMA_FILES = {
     "admissibility-bundle.schema.json": "stegverse.admissibility.bundle.v1",
     "replay-result.schema.json": "stegverse.admissibility.replay_result.v1",
     "gax-exchange.schema.json": "stegverse.admissibility.gax_exchange.v1",
+    "governance-tightness.schema.json": "stegverse.governance.tightness_profile.v1",
 }
 
 
