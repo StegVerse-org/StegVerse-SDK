@@ -83,7 +83,7 @@ print(result["receipt_id"])  # verifiable receipt
 
 ## DYNAMIC ADMISSIBILITY PACKETS
 
-The SDK is now schema-aware of the dynamic admissibility packet family used by the StegVerse Site demo and includes a local evaluator helper.
+The SDK is schema-aware of the dynamic admissibility packet family used by the StegVerse Site demo and includes local evaluator, bridge, receipt-reference, and verifier helpers.
 
 Dynamic admissibility asks:
 
@@ -99,7 +99,8 @@ tester packet
 → authority / evidence / replay / consequence checks
 → admissibility decision
 → result packet
-→ receipt posture
+→ local admissibility reference
+→ optional execution receipt attachment
 ```
 
 SDK-visible schemas:
@@ -107,6 +108,9 @@ SDK-visible schemas:
 ```text
 schemas/admissibility/tester-output.schema.json
 schemas/admissibility/dynamic-demo-result.schema.json
+schemas/admissibility/llm-bridge-result.schema.json
+schemas/admissibility/math-bridge-result.schema.json
+schemas/admissibility/bridge-registry.schema.json
 ```
 
 SDK helper:
@@ -119,11 +123,23 @@ print(result["classification"]["decision"])
 print(result["classification"]["allowed_next_state"])
 ```
 
-SDK example:
+Bridge examples:
 
 ```bash
 python examples/dynamic_admissibility_packet.py
+python examples/list_dynamic_bridges.py
+python examples/llm_dynamic_admissibility.py
+python examples/math_dynamic_admissibility.py
 ```
+
+Receipt-reference examples:
+
+```bash
+python examples/admissibility_receipt_reference.py
+python examples/verify_receipt_with_admissibility_reference.py
+```
+
+Execution receipts remain backward-compatible with `receipt_id`, `decision`, and `timestamp`. They may also carry `admissibility_receipt_reference`; when present, `verify_receipt(...)` validates that reference before accepting the receipt.
 
 Reference docs:
 
@@ -131,7 +147,7 @@ Reference docs:
 docs/DYNAMIC_ADMISSIBILITY.md
 ```
 
-These packets align the SDK with the Site demo, applicability map, discipline test matrix, tester-output template, and future LLM/math-solver adapters.
+These packets align the SDK with the Site demo, applicability map, discipline test matrix, tester-output template, LLM bridge, and math-solver bridge.
 
 ---
 
@@ -199,6 +215,9 @@ Decision rule:
 | StegDB | State monitoring |
 | Site demo | Dynamic admissibility tester packets |
 | Applicability map | Discipline routes and tester-output templates |
+| LLM bridge | LLM output to dynamic admissibility packet |
+| Math bridge | Formalism artifact to dynamic admissibility packet |
+| Receipts | Optional admissibility receipt references |
 
 ---
 
