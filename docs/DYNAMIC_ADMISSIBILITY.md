@@ -243,6 +243,14 @@ pytest tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_publ
 
 The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, and bridge registry payload shape.
 
+## CI workflow
+
+```text
+.github/workflows/dynamic-admissibility-tests.yml
+```
+
+The workflow runs the dynamic admissibility tests and examples on Python 3.9, 3.10, and 3.11 when dynamic admissibility SDK files, schemas, examples, tests, or the workflow itself change. It also supports manual `workflow_dispatch` runs.
+
 ## Next integration steps
 
 1. Expose the LLM and math bridges through the top-level package API after the existing package surface can be updated cleanly.
