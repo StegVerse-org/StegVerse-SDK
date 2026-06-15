@@ -7,6 +7,7 @@ import hashlib
 from typing import Any, Dict, Mapping, Optional
 
 from .admissibility import TESTER_OUTPUT_SCHEMA, evaluate_admissibility_packet
+from .admissibility_receipts import build_admissibility_receipt_reference
 
 
 def _utc_now() -> str:
@@ -91,6 +92,7 @@ def evaluate_llm_output_admissibility(
     consequence_level: str = "medium",
     claim_limit: str = "Research-note only until authority and evidence are declared.",
     source_or_reference: Optional[str] = None,
+    include_receipt_reference: bool = False,
 ) -> Dict[str, Any]:
     """Build and evaluate a dynamic admissibility packet for LLM text."""
     packet = build_llm_tester_packet(
@@ -107,7 +109,7 @@ def evaluate_llm_output_admissibility(
         source_or_reference=source_or_reference,
     )
     result = evaluate_admissibility_packet(packet)
-    return {
+    bridge = {
         "schema": "stegverse.llm_admissibility.bridge_result.v1",
         "evaluated_at": result["evaluated_at"],
         "tester_packet": packet,
@@ -116,15 +118,25 @@ def evaluate_llm_output_admissibility(
         "allowed_next_state": result["classification"]["allowed_next_state"],
         "receipt_posture": result["receipt_posture"],
     }
+    if include_receipt_reference:
+        bridge["admissibility_receipt_reference"] = build_admissibility_receipt_reference(
+            result,
+            source="sdk_llm_admissibility_bridge",
+        )
+    return bridge
 
 
 def summarize_llm_admissibility(bridge_result: Mapping[str, Any]) -> Dict[str, Any]:
     """Return a compact summary from an LLM admissibility bridge result."""
     result = bridge_result.get("admissibility_result", {})
     classification = result.get("classification", {}) if isinstance(result, Mapping) else {}
-    return {
+    summary = {
         "decision": classification.get("decision", bridge_result.get("decision", "REQUIRE_REVIEW")),
         "allowed_next_state": classification.get("allowed_next_state", bridge_result.get("allowed_next_state", "hold")),
         "receipt_posture": bridge_result.get("receipt_posture", "sdk_local_not_receipt_backed"),
         "required_follow_up": classification.get("required_follow_up", []),
     }
+    reference = bridge_result.get("admissibility_receipt_reference")
+    if isinstance(reference, Mapping):
+        summary["admissibility_reference_id"] = reference.get("reference_id")
+    return summary
