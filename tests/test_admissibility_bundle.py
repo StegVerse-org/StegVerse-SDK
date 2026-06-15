@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+import pytest
+
 from stegverse.admissibility import evaluate_admissibility_packet
 from stegverse.admissibility_bundle import (
     ADMISSIBILITY_BUNDLE_SCHEMA,
     build_admissibility_bundle,
+    build_bundle_from_bridge_result,
     bundle_hash,
     verify_admissibility_bundle,
 )
 from stegverse.admissibility_receipts import build_admissibility_receipt_reference
+from stegverse.llm_admissibility import evaluate_llm_output_admissibility
+from stegverse.math_admissibility import evaluate_math_artifact_admissibility
 
 
 def _packet():
@@ -100,3 +105,49 @@ def test_build_admissibility_bundle_with_execution_receipt():
     assert bundle["execution_receipt"] == execution_receipt
     assert bundle["hashes"]["execution_receipt_hash"] == bundle_hash(execution_receipt)
     assert verify_admissibility_bundle(bundle) is True
+
+
+def test_build_bundle_from_llm_bridge_result():
+    bridge = evaluate_llm_output_admissibility(
+        provider="openai",
+        model="gpt-test",
+        prompt="Draft note.",
+        output="Draft governance note.",
+        include_receipt_reference=True,
+    )
+    bundle = build_bundle_from_bridge_result(bridge)
+
+    assert bundle["bridge_type"] == "llm_output"
+    assert verify_admissibility_bundle(bundle) is True
+
+
+def test_build_bundle_from_math_bridge_result():
+    bridge = evaluate_math_artifact_admissibility(
+        formalism_id="RTG-STCM",
+        artifact_type="solver_artifact",
+        artifact_summary="Placeholder derivation attempt.",
+        include_receipt_reference=True,
+    )
+    bundle = build_bundle_from_bridge_result(bridge)
+
+    assert bundle["bridge_type"] == "math_artifact"
+    assert verify_admissibility_bundle(bundle) is True
+
+
+def test_build_bundle_from_bridge_result_creates_missing_reference():
+    bridge = evaluate_llm_output_admissibility(
+        provider="openai",
+        model="gpt-test",
+        prompt="Draft note.",
+        output="Draft governance note.",
+        include_receipt_reference=False,
+    )
+    bundle = build_bundle_from_bridge_result(bridge)
+
+    assert bundle["admissibility_receipt_reference"]["reference_id"].startswith("admref-")
+    assert verify_admissibility_bundle(bundle) is True
+
+
+def test_build_bundle_from_bridge_result_requires_packet_and_result():
+    with pytest.raises(ValueError):
+        build_bundle_from_bridge_result({"schema": "broken"})
