@@ -23,6 +23,7 @@ tester packet
 → admissibility decision
 → result packet
 → receipt posture
+→ governed admissibility bundle
 ```
 
 ## Schemas
@@ -33,6 +34,7 @@ schemas/admissibility/dynamic-demo-result.schema.json
 schemas/admissibility/llm-bridge-result.schema.json
 schemas/admissibility/math-bridge-result.schema.json
 schemas/admissibility/bridge-registry.schema.json
+schemas/admissibility/admissibility-bundle.schema.json
 ```
 
 ## SDK helper module
@@ -85,6 +87,29 @@ Run the receipt-reference example:
 
 ```bash
 python examples/admissibility_receipt_reference.py
+```
+
+## Governed Admissibility Bundle
+
+```text
+stegverse/admissibility_bundle.py
+schemas/admissibility/admissibility-bundle.schema.json
+```
+
+Current helper functions:
+
+```python
+build_admissibility_bundle(...)
+verify_admissibility_bundle(bundle)
+bundle_hash(bundle)
+```
+
+A Governed Admissibility Bundle packages the original tester packet, admissibility result, local admissibility receipt reference, optional execution receipt, bridge type, boundary declarations, and deterministic hashes into one portable object.
+
+Run the bundle example:
+
+```bash
+python examples/admissibility_bundle_demo.py
 ```
 
 ## Execution receipt verification
@@ -269,6 +294,7 @@ discipline-aware tester packet
 → admissibility evaluation
 → allowed next state
 → receipt posture
+→ governed admissibility bundle
 ```
 
 The current helper is local and side-effect free. It can be used before receipt-backed execution or integrated into future adapters.
@@ -277,12 +303,13 @@ The current helper is local and side-effect free. It can be used before receipt-
 
 The Site demo is a browser-local public mirror for dynamic packet evaluation.
 
-The SDK is the appropriate layer to add typed models, validation helpers, adapters, and receipt integration.
+The SDK is the appropriate layer to add typed models, validation helpers, adapters, bundles, and receipt integration.
 
 ## Run examples
 
 ```bash
 python examples/dynamic_admissibility_packet.py
+python examples/admissibility_bundle_demo.py
 python examples/admissibility_receipt_reference.py
 python examples/list_dynamic_bridges.py
 python examples/llm_dynamic_admissibility.py
@@ -293,10 +320,10 @@ python examples/verify_receipt_with_admissibility_reference.py
 ## Run tests
 
 ```bash
-pytest tests/test_admissibility_receipts.py tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py tests/test_receipts.py
+pytest tests/test_admissibility_bundle.py tests/test_admissibility_receipts.py tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py tests/test_receipts.py
 ```
 
-The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, bridge registry payload shape, local admissibility receipt references, and execution receipt verification with optional admissibility references.
+The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, bridge registry payload shape, local admissibility receipt references, governed admissibility bundles, and execution receipt verification with optional admissibility references.
 
 ## CI workflow
 
@@ -308,6 +335,6 @@ The workflow runs the dynamic admissibility tests and examples on Python 3.9, 3.
 
 ## Next integration steps
 
-1. Attach local admissibility receipt references to downstream execution receipt records.
-2. Keep browser-demo local hashes separate from SDK receipts.
+1. Export governed admissibility bundles from the Site dynamic demo.
+2. Add bundle import/replay support to the Site dynamic demo.
 3. Connect bridge packets to downstream adapter execution paths.
