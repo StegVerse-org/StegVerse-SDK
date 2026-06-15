@@ -100,11 +100,20 @@ Current helper functions:
 
 ```python
 build_admissibility_bundle(...)
+build_bundle_from_bridge_result(bridge_result)
 verify_admissibility_bundle(bundle)
 bundle_hash(bundle)
 ```
 
 A Governed Admissibility Bundle packages the original tester packet, admissibility result, local admissibility receipt reference, optional execution receipt, bridge type, boundary declarations, and deterministic hashes into one portable object.
+
+Bridge results from LLM or math adapters can be exported directly:
+
+```python
+from stegverse.admissibility_bundle import build_bundle_from_bridge_result
+
+bundle = build_bundle_from_bridge_result(bridge)
+```
 
 Run the bundle example:
 
@@ -189,6 +198,7 @@ Example:
 
 ```python
 from stegverse.llm_admissibility import evaluate_llm_output_admissibility
+from stegverse.admissibility_bundle import build_bundle_from_bridge_result
 
 bridge = evaluate_llm_output_admissibility(
     provider="openai",
@@ -198,10 +208,11 @@ bridge = evaluate_llm_output_admissibility(
     declared_intent="research_note",
     include_receipt_reference=True,
 )
+bundle = build_bundle_from_bridge_result(bridge)
 
 print(bridge["decision"])
 print(bridge["allowed_next_state"])
-print(bridge["admissibility_receipt_reference"]["reference_id"])
+print(bundle["bundle_hash"])
 ```
 
 Run the LLM bridge example:
@@ -228,6 +239,7 @@ Example:
 
 ```python
 from stegverse.math_admissibility import evaluate_math_artifact_admissibility
+from stegverse.admissibility_bundle import build_bundle_from_bridge_result
 
 bridge = evaluate_math_artifact_admissibility(
     formalism_id="RTG-STCM",
@@ -236,10 +248,11 @@ bridge = evaluate_math_artifact_admissibility(
     declared_intent="formalism_support_claim",
     include_receipt_reference=True,
 )
+bundle = build_bundle_from_bridge_result(bridge)
 
 print(bridge["decision"])
 print(bridge["allowed_next_state"])
-print(bridge["admissibility_receipt_reference"]["reference_id"])
+print(bundle["bundle_hash"])
 ```
 
 Run the math bridge example:
@@ -323,7 +336,7 @@ python examples/verify_receipt_with_admissibility_reference.py
 pytest tests/test_admissibility_bundle.py tests/test_admissibility_receipts.py tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py tests/test_receipts.py
 ```
 
-The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, bridge registry payload shape, local admissibility receipt references, governed admissibility bundles, and execution receipt verification with optional admissibility references.
+The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, bridge registry payload shape, local admissibility receipt references, governed admissibility bundles, bridge-result bundle export, and execution receipt verification with optional admissibility references.
 
 ## CI workflow
 
