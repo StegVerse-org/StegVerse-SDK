@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/admissibility/replay-result.schema.json",
+  "title": "StegVerse Admissibility Replay Result",
+  "type": "object",
+  "required": [
+    "schema",
+    "bundle_valid",
+    "replay_success"
+  ],
+  "properties": {
+    "schema": {
+      "const": "stegverse.admissibility.replay_result.v1"
+    },
+    "bundle_valid": {"type": "boolean"},
+    "replay_success": {"type": "boolean"},
+    "reason": {"type": "string"},
+    "classification_match": {
+      "type": "object",
+      "properties": {
+        "decision": {"type": "boolean"},
+        "allowed_next_state": {"type": "boolean"},
+        "receipt_posture": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "hash_match": {
+      "type": "object",
+      "properties": {
+        "tester_packet_hash": {"type": "boolean"},
+        "original_reference_hash_present": {"type": "boolean"},
+        "replayed_reference_hash_present": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "original": {"type": "object"},
+    "replayed": {"type": "object"}
+  },
+  "additionalProperties": true
+}
