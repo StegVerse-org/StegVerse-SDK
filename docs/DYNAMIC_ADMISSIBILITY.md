@@ -24,6 +24,7 @@ tester packet
 → result packet
 → receipt posture
 → governed admissibility bundle
+→ bundle check
 ```
 
 ## Schemas
@@ -115,11 +116,26 @@ from stegverse.admissibility_bundle import build_bundle_from_bridge_result
 bundle = build_bundle_from_bridge_result(bridge)
 ```
 
-Run the bundle example:
+Run the bundle examples:
 
 ```bash
 python examples/admissibility_bundle_demo.py
+python examples/admissibility_bundle_check.py
 ```
+
+## Bundle check
+
+```text
+stegverse/admissibility_replay.py
+```
+
+Current helper function:
+
+```python
+replay_admissibility_bundle(bundle)
+```
+
+The bundle check re-evaluates the bundled tester packet and compares stable posture fields and hashes. It intentionally does not require timestamp equality because a fresh local evaluation creates a fresh timestamp.
 
 ## Execution receipt verification
 
@@ -308,6 +324,7 @@ discipline-aware tester packet
 → allowed next state
 → receipt posture
 → governed admissibility bundle
+→ bundle check
 ```
 
 The current helper is local and side-effect free. It can be used before receipt-backed execution or integrated into future adapters.
@@ -322,6 +339,7 @@ The SDK is the appropriate layer to add typed models, validation helpers, adapte
 
 ```bash
 python examples/dynamic_admissibility_packet.py
+python examples/admissibility_bundle_check.py
 python examples/admissibility_bundle_demo.py
 python examples/admissibility_receipt_reference.py
 python examples/list_dynamic_bridges.py
@@ -333,10 +351,10 @@ python examples/verify_receipt_with_admissibility_reference.py
 ## Run tests
 
 ```bash
-pytest tests/test_admissibility_bundle.py tests/test_admissibility_receipts.py tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py tests/test_receipts.py
+pytest tests/test_admissibility_bundle.py tests/test_admissibility_replay.py tests/test_admissibility_receipts.py tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py tests/test_receipts.py
 ```
 
-The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, bridge registry payload shape, local admissibility receipt references, governed admissibility bundles, bridge-result bundle export, and execution receipt verification with optional admissibility references.
+The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, bridge registry payload shape, local admissibility receipt references, governed admissibility bundles, bundle checks, bridge-result bundle export, and execution receipt verification with optional admissibility references.
 
 ## CI workflow
 
@@ -349,5 +367,5 @@ The workflow runs the dynamic admissibility tests and examples on Python 3.9, 3.
 ## Next integration steps
 
 1. Export governed admissibility bundles from the Site dynamic demo.
-2. Add bundle import/replay support to the Site dynamic demo.
+2. Add bundle import/check support to the Site dynamic demo.
 3. Connect bridge packets to downstream adapter execution paths.
