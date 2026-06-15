@@ -71,3 +71,20 @@ def test_evaluate_math_artifact_receipt_backed_low_consequence_allows_with_postu
     assert bridge["decision"] == "ALLOW_WITH_POSTURE"
     assert bridge["allowed_next_state"] == "receipt_backed_claim"
     assert bridge["receipt_posture"] == "receipt_backed"
+
+
+def test_evaluate_math_artifact_can_include_receipt_reference():
+    bridge = evaluate_math_artifact_admissibility(
+        formalism_id="RTG-STCM",
+        artifact_type="solver_artifact",
+        artifact_summary="Placeholder derivation attempt.",
+        declared_intent="formalism_support_claim",
+        include_receipt_reference=True,
+    )
+    summary = summarize_math_admissibility(bridge)
+    reference = bridge["admissibility_receipt_reference"]
+
+    assert reference["reference_id"].startswith("admref-")
+    assert reference["result_hash"].startswith("sha256:")
+    assert reference["boundary"]["does_not_create_execution_proof"] is True
+    assert summary["admissibility_reference_id"] == reference["reference_id"]
