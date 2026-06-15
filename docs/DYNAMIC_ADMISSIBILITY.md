@@ -87,6 +87,34 @@ Run the receipt-reference example:
 python examples/admissibility_receipt_reference.py
 ```
 
+## Execution receipt verification
+
+```text
+stegverse/receipts.py
+```
+
+Existing receipts remain valid when they contain:
+
+```text
+receipt_id
+decision
+timestamp
+```
+
+Execution receipts may also include:
+
+```text
+admissibility_receipt_reference
+```
+
+When the optional field is present, `verify_receipt(...)` validates it with `verify_admissibility_receipt_reference(...)`. This keeps legacy receipts backward-compatible while allowing execution receipts to carry the admissibility decision that preceded the action.
+
+Run the execution receipt verification example:
+
+```bash
+python examples/verify_receipt_with_admissibility_reference.py
+```
+
 ## Bridge registry
 
 ```text
@@ -259,15 +287,16 @@ python examples/admissibility_receipt_reference.py
 python examples/list_dynamic_bridges.py
 python examples/llm_dynamic_admissibility.py
 python examples/math_dynamic_admissibility.py
+python examples/verify_receipt_with_admissibility_reference.py
 ```
 
 ## Run tests
 
 ```bash
-pytest tests/test_admissibility_receipts.py tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py
+pytest tests/test_admissibility_receipts.py tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py tests/test_receipts.py
 ```
 
-The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, bridge registry payload shape, and local admissibility receipt references.
+The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, bridge registry payload shape, local admissibility receipt references, and execution receipt verification with optional admissibility references.
 
 ## CI workflow
 
