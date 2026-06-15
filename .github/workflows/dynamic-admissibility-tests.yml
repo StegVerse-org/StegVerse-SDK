@@ -21,6 +21,7 @@ on:
       - "tests/test_admissibility_bundle.py"
       - "tests/test_admissibility_replay.py"
       - "tests/test_admissibility_receipts.py"
+      - "tests/test_admissibility_schema_inventory.py"
       - "tests/test_dynamic_admissibility*.py"
       - "tests/test_llm_admissibility.py"
       - "tests/test_math_admissibility.py"
@@ -47,6 +48,7 @@ on:
       - "tests/test_admissibility_bundle.py"
       - "tests/test_admissibility_replay.py"
       - "tests/test_admissibility_receipts.py"
+      - "tests/test_admissibility_schema_inventory.py"
       - "tests/test_dynamic_admissibility*.py"
       - "tests/test_llm_admissibility.py"
       - "tests/test_math_admissibility.py"
@@ -82,6 +84,7 @@ jobs:
             tests/test_admissibility_bundle.py \
             tests/test_admissibility_replay.py \
             tests/test_admissibility_receipts.py \
+            tests/test_admissibility_schema_inventory.py \
             tests/test_dynamic_admissibility.py \
             tests/test_dynamic_admissibility_public_api.py \
             tests/test_llm_admissibility.py \
