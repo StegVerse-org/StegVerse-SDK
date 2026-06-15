@@ -13,6 +13,7 @@ on:
       - "examples/*dynamic_admissibility*.py"
       - "examples/admissibility_receipt_reference.py"
       - "examples/list_dynamic_bridges.py"
+      - "examples/verify_receipt_with_admissibility_reference.py"
       - "tests/test_admissibility_receipts.py"
       - "tests/test_dynamic_admissibility*.py"
       - "tests/test_llm_admissibility.py"
@@ -32,6 +33,7 @@ on:
       - "examples/*dynamic_admissibility*.py"
       - "examples/admissibility_receipt_reference.py"
       - "examples/list_dynamic_bridges.py"
+      - "examples/verify_receipt_with_admissibility_reference.py"
       - "tests/test_admissibility_receipts.py"
       - "tests/test_dynamic_admissibility*.py"
       - "tests/test_llm_admissibility.py"
@@ -81,3 +83,4 @@ jobs:
           python examples/list_dynamic_bridges.py
           python examples/llm_dynamic_admissibility.py
           python examples/math_dynamic_admissibility.py
+          python examples/verify_receipt_with_admissibility_reference.py
