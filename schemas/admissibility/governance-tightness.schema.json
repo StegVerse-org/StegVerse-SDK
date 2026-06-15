@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/admissibility/governance-tightness.schema.json",
+  "title": "StegVerse Governance Tightness Profile",
+  "type": "object",
+  "required": [
+    "schema",
+    "label",
+    "scale",
+    "allow_threshold",
+    "review_threshold",
+    "fail_closed_threshold",
+    "require_receipt",
+    "require_replay",
+    "require_human_review",
+    "allow_cross_repo_write",
+    "allow_cross_org_write",
+    "default_route"
+  ],
+  "properties": {
+    "schema": {"const": "stegverse.governance.tightness_profile.v1"},
+    "label": {"type": "string"},
+    "scale": {"type": "integer", "minimum": 0, "maximum": 100},
+    "allow_threshold": {"type": "integer"},
+    "review_threshold": {"type": "integer"},
+    "fail_closed_threshold": {"type": "integer"},
+    "require_receipt": {"type": "boolean"},
+    "require_replay": {"type": "boolean"},
+    "require_human_review": {"type": "boolean"},
+    "allow_cross_repo_write": {"type": "boolean"},
+    "allow_cross_org_write": {"type": "boolean"},
+    "default_route": {"type": "string"}
+  },
+  "additionalProperties": true
+}
