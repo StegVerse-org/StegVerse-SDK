@@ -5,6 +5,7 @@ on:
     paths:
       - "stegverse/admissibility.py"
       - "stegverse/admissibility_bundle.py"
+      - "stegverse/admissibility_replay.py"
       - "stegverse/admissibility_receipts.py"
       - "stegverse/llm_admissibility.py"
       - "stegverse/math_admissibility.py"
@@ -12,11 +13,13 @@ on:
       - "stegverse/receipts.py"
       - "schemas/admissibility/**"
       - "examples/*dynamic_admissibility*.py"
+      - "examples/admissibility_bundle_check.py"
       - "examples/admissibility_bundle_demo.py"
       - "examples/admissibility_receipt_reference.py"
       - "examples/list_dynamic_bridges.py"
       - "examples/verify_receipt_with_admissibility_reference.py"
       - "tests/test_admissibility_bundle.py"
+      - "tests/test_admissibility_replay.py"
       - "tests/test_admissibility_receipts.py"
       - "tests/test_dynamic_admissibility*.py"
       - "tests/test_llm_admissibility.py"
@@ -28,6 +31,7 @@ on:
     paths:
       - "stegverse/admissibility.py"
       - "stegverse/admissibility_bundle.py"
+      - "stegverse/admissibility_replay.py"
       - "stegverse/admissibility_receipts.py"
       - "stegverse/llm_admissibility.py"
       - "stegverse/math_admissibility.py"
@@ -35,11 +39,13 @@ on:
       - "stegverse/receipts.py"
       - "schemas/admissibility/**"
       - "examples/*dynamic_admissibility*.py"
+      - "examples/admissibility_bundle_check.py"
       - "examples/admissibility_bundle_demo.py"
       - "examples/admissibility_receipt_reference.py"
       - "examples/list_dynamic_bridges.py"
       - "examples/verify_receipt_with_admissibility_reference.py"
       - "tests/test_admissibility_bundle.py"
+      - "tests/test_admissibility_replay.py"
       - "tests/test_admissibility_receipts.py"
       - "tests/test_dynamic_admissibility*.py"
       - "tests/test_llm_admissibility.py"
@@ -74,6 +80,7 @@ jobs:
         run: |
           python -m pytest \
             tests/test_admissibility_bundle.py \
+            tests/test_admissibility_replay.py \
             tests/test_admissibility_receipts.py \
             tests/test_dynamic_admissibility.py \
             tests/test_dynamic_admissibility_public_api.py \
@@ -86,6 +93,7 @@ jobs:
       - name: Run dynamic admissibility examples
         run: |
           python examples/dynamic_admissibility_packet.py
+          python examples/admissibility_bundle_check.py
           python examples/admissibility_bundle_demo.py
           python examples/admissibility_receipt_reference.py
           python examples/list_dynamic_bridges.py
