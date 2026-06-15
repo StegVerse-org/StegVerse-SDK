@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/admissibility/bridge-registry.schema.json",
+  "title": "StegVerse Dynamic Admissibility Bridge Registry",
+  "type": "object",
+  "required": ["bridges"],
+  "properties": {
+    "bridges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "module",
+          "evaluator",
+          "summary",
+          "input_schema",
+          "result_schema",
+          "discipline_id",
+          "recommended_route"
+        ],
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "module": {"type": "string"},
+          "builder": {"type": ["string", "null"]},
+          "evaluator": {"type": "string"},
+          "summary": {"type": "string"},
+          "input_schema": {"type": "string"},
+          "result_schema": {"type": "string"},
+          "discipline_id": {"type": "string"},
+          "recommended_route": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
