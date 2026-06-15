@@ -30,6 +30,7 @@ tester packet
 ```text
 schemas/admissibility/tester-output.schema.json
 schemas/admissibility/dynamic-demo-result.schema.json
+schemas/admissibility/llm-bridge-result.schema.json
 ```
 
 ## SDK helper module
@@ -94,6 +95,12 @@ print(bridge["decision"])
 print(bridge["allowed_next_state"])
 ```
 
+Run the LLM bridge example:
+
+```bash
+python examples/llm_dynamic_admissibility.py
+```
+
 ## Tester packet role
 
 A tester packet is a structured admissibility classification. It records:
@@ -154,6 +161,7 @@ The SDK is the appropriate layer to add typed models, validation helpers, adapte
 
 ```bash
 python examples/dynamic_admissibility_packet.py
+python examples/llm_dynamic_admissibility.py
 ```
 
 ## Run tests
