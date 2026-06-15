@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/admissibility/admissibility-bundle.schema.json",
+  "title": "StegVerse Governed Admissibility Bundle",
+  "type": "object",
+  "required": [
+    "schema",
+    "created_at",
+    "source",
+    "bridge_type",
+    "tester_packet",
+    "admissibility_result",
+    "admissibility_receipt_reference",
+    "execution_receipt",
+    "boundary",
+    "hashes",
+    "bundle_hash"
+  ],
+  "properties": {
+    "schema": {"const": "stegverse.admissibility.bundle.v1"},
+    "created_at": {"type": "string"},
+    "source": {"type": "string"},
+    "bridge_type": {"type": "string"},
+    "tester_packet": {"type": "object"},
+    "admissibility_result": {"type": "object"},
+    "admissibility_receipt_reference": {"type": "object"},
+    "execution_receipt": {"type": ["object", "null"]},
+    "boundary": {
+      "type": "object",
+      "required": [
+        "does_not_certify_domain_correctness",
+        "does_not_replace_domain_review",
+        "does_not_create_execution_proof"
+      ],
+      "properties": {
+        "does_not_certify_domain_correctness": {"type": "boolean"},
+        "does_not_replace_domain_review": {"type": "boolean"},
+        "does_not_create_execution_proof": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "hashes": {
+      "type": "object",
+      "required": [
+        "tester_packet_hash",
+        "admissibility_result_hash",
+        "admissibility_reference_hash",
+        "execution_receipt_hash"
+      ],
+      "properties": {
+        "tester_packet_hash": {"type": "string"},
+        "admissibility_result_hash": {"type": "string"},
+        "admissibility_reference_hash": {"type": "string"},
+        "execution_receipt_hash": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "bundle_hash": {"type": "string"}
+  },
+  "additionalProperties": true
+}
