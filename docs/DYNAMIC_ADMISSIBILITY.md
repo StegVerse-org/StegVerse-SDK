@@ -24,6 +24,7 @@ tester packet
 → result packet
 → receipt posture
 → governed admissibility bundle
+→ governed admissibility exchange
 → bundle check
 ```
 
@@ -37,6 +38,7 @@ schemas/admissibility/math-bridge-result.schema.json
 schemas/admissibility/bridge-registry.schema.json
 schemas/admissibility/admissibility-bundle.schema.json
 schemas/admissibility/replay-result.schema.json
+schemas/admissibility/gax-exchange.schema.json
 ```
 
 ## SDK helper module
@@ -122,6 +124,30 @@ Run the bundle examples:
 ```bash
 python examples/admissibility_bundle_demo.py
 python examples/admissibility_bundle_check.py
+```
+
+## Governed Admissibility Exchange
+
+```text
+stegverse/admissibility_exchange.py
+schemas/admissibility/gax-exchange.schema.json
+```
+
+Current helper functions:
+
+```python
+build_gax_exchange(bundle)
+verify_gax_exchange(exchange)
+export_gax_json(exchange)
+load_gax_json(payload)
+```
+
+A Governed Admissibility Exchange wraps a valid bundle with producer metadata and optional attachments. It is the intended Site/SDK import-export payload.
+
+Run the exchange example:
+
+```bash
+python examples/admissibility_exchange_check.py
 ```
 
 ## Bundle check
@@ -326,6 +352,7 @@ discipline-aware tester packet
 → allowed next state
 → receipt posture
 → governed admissibility bundle
+→ governed admissibility exchange
 → bundle check
 ```
 
@@ -335,7 +362,7 @@ The current helper is local and side-effect free. It can be used before receipt-
 
 The Site demo is a browser-local public mirror for dynamic packet evaluation.
 
-The SDK is the appropriate layer to add typed models, validation helpers, adapters, bundles, and receipt integration.
+The SDK is the appropriate layer to add typed models, validation helpers, adapters, bundles, exchange payloads, and receipt integration.
 
 ## Run examples
 
@@ -343,6 +370,7 @@ The SDK is the appropriate layer to add typed models, validation helpers, adapte
 python examples/dynamic_admissibility_packet.py
 python examples/admissibility_bundle_check.py
 python examples/admissibility_bundle_demo.py
+python examples/admissibility_exchange_check.py
 python examples/admissibility_receipt_reference.py
 python examples/list_dynamic_bridges.py
 python examples/llm_dynamic_admissibility.py
@@ -353,10 +381,10 @@ python examples/verify_receipt_with_admissibility_reference.py
 ## Run tests
 
 ```bash
-pytest tests/test_admissibility_bundle.py tests/test_admissibility_replay.py tests/test_admissibility_receipts.py tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py tests/test_receipts.py
+pytest tests/test_admissibility_bundle.py tests/test_admissibility_exchange.py tests/test_admissibility_replay.py tests/test_admissibility_receipts.py tests/test_dynamic_admissibility.py tests/test_dynamic_admissibility_public_api.py tests/test_llm_admissibility.py tests/test_math_admissibility.py tests/test_bridge_registry.py tests/test_bridge_registry_payload.py tests/test_receipts.py
 ```
 
-The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, bridge registry payload shape, local admissibility receipt references, governed admissibility bundles, bundle checks, bridge-result bundle export, replay-result schema, and execution receipt verification with optional admissibility references.
+The tests cover valid research-note posture, missing-authority review, high-consequence fail-closed behavior, receipt-backed allow-with-posture behavior, strict validation failure, deterministic local hashing, top-level package import stability, the LLM bridge packet path, the math bridge packet path, dynamic bridge discovery, bridge registry payload shape, local admissibility receipt references, governed admissibility bundles, governed admissibility exchanges, bundle checks, bridge-result bundle export, replay-result schema, and execution receipt verification with optional admissibility references.
 
 ## CI workflow
 
@@ -368,6 +396,6 @@ The workflow runs the dynamic admissibility tests and examples on Python 3.9, 3.
 
 ## Next integration steps
 
-1. Export governed admissibility bundles from the Site dynamic demo.
-2. Add bundle import/check support to the Site dynamic demo.
+1. Export governed admissibility exchanges from the Site dynamic demo.
+2. Add exchange import/check support to the Site dynamic demo.
 3. Connect bridge packets to downstream adapter execution paths.
