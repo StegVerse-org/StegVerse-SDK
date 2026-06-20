@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "ingestion_point": "StegVerse-org/StegVerse-SDK",
+  "dataset_manifest_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "intake_receipt_id": "example-intake-receipt-001",
+  "intake_receipt_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "declared_routes": [
+    {
+      "route_id": "public_demo_validation",
+      "repository": "StegVerse-org/stegverse-demo-suite",
+      "purpose": "Reproducible public validation and explainable demo scenarios.",
+      "route_receipt_required": true
+    },
+    {
+      "route_id": "formal_demo_runner",
+      "repository": "StegVerse-org/demo-suite-runner",
+      "purpose": "GCAT/BCAT formalism probes and deterministic runner scenarios.",
+      "route_receipt_required": true
+    },
+    {
+      "route_id": "rigorous_sandbox_testing",
+      "repository": "StegGhost/entity-sandbox-runner",
+      "purpose": "Adversarial, entity, and bounded sandbox testing without outside-sandbox authority.",
+      "route_receipt_required": true
+    },
+    {
+      "route_id": "standing_proof",
+      "repository": "StegVerse-Labs/Standing-Proof-Engine",
+      "purpose": "Commit-time standing, stale-state replay, authority rebinding, and consequence-binding proof.",
+      "route_receipt_required": true
+    },
+    {
+      "route_id": "boundary_glm_case",
+      "repository": "StegVerse-Labs/Boundary-Test",
+      "purpose": "Boundary declaration, non-claim preservation, and manifest composability validation.",
+      "route_receipt_required": true
+    }
+  ],
+  "non_claims": [
+    "No downstream route may consume an unbound dataset.",
+    "The GLM boundary case does not imply external adoption, endorsement, compatibility, conformance, delegated authority, shared execution authority, or authority inheritance."
+  ]
+}
