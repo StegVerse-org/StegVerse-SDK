@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "source": "human_requester",
+  "intake_boundary": "SDK",
+  "dataset_manifest_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "intake_receipt_id": "example-intake-receipt-001",
+  "intake_receipt_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "master_records_required": true,
+  "loop_steps": [
+    {
+      "step_id": "human_input",
+      "actor": "human requester",
+      "action": "submit testing data",
+      "receipt_type": "human intake receipt",
+      "master_records_receipt_required": true
+    },
+    {
+      "step_id": "sdk_or_llm_adapter_intake",
+      "actor": "StegVerse-org/StegVerse-SDK",
+      "action": "bind dataset manifest and intake receipt",
+      "receipt_type": "SDK intake receipt",
+      "master_records_receipt_required": true
+    },
+    {
+      "step_id": "stegverse_org_ingestion_outbound",
+      "actor": "StegVerse-org ingestion",
+      "action": "route bound test data to StegGhost",
+      "receipt_type": "org outbound ingestion receipt",
+      "master_records_receipt_required": true
+    },
+    {
+      "step_id": "stegghost_ingestion_cge_admission",
+      "actor": "StegGhost/entity-sandbox-runner ingestion/CGE",
+      "action": "admit or fail-close sandbox task packet",
+      "receipt_type": "sandbox intake CGE receipt",
+      "master_records_receipt_required": true
+    },
+    {
+      "step_id": "ephemeral_sandbox_batch",
+      "actor": "StegGhost/entity-sandbox-runner ephemeral sandbox batch",
+      "action": "execute bounded test without durable authority transfer",
+      "receipt_type": "ephemeral sandbox execution receipt",
+      "master_records_receipt_required": true
+    },
+    {
+      "step_id": "stegghost_ingestion_cge_return_validation",
+      "actor": "StegGhost/entity-sandbox-runner ingestion/CGE",
+      "action": "validate bounded result before return",
+      "receipt_type": "sandbox return CGE receipt",
+      "master_records_receipt_required": true
+    },
+    {
+      "step_id": "stegverse_org_ingestion_return",
+      "actor": "StegVerse-org ingestion",
+      "action": "accept bounded result for delivery",
+      "receipt_type": "org return ingestion receipt",
+      "master_records_receipt_required": true
+    },
+    {
+      "step_id": "human_delivery",
+      "actor": "StegVerse-org/StegVerse-SDK",
+      "action": "return bounded result to human requester",
+      "receipt_type": "delivery receipt",
+      "master_records_receipt_required": true
+    }
+  ]
+}
