@@ -37,6 +37,9 @@ LOOP_STEPS = [
     "stegverse_org_ingestion_return",
     "human_delivery",
 ]
+STATUS_VALUES = {"visible", "partial", "incomplete", "unknown"}
+IMPLEMENTATION_VALUES = {"operationally_wired", "partially_wired", "pending"}
+REPO_STATUS_VALUES = {"implemented", "pending", "not_applicable"}
 
 
 def fail(message: str) -> None:
@@ -168,14 +171,12 @@ def validate_handoff(handoff: dict[str, Any]) -> None:
     if LOOP_STEPS.index(next_step) != LOOP_STEPS.index(current_step) + 1:
         fail("next_step must immediately follow current_step")
     validate_sha(handoff.get("dataset_manifest_hash"), "dataset_manifest_hash")
-
     prior_receipts = handoff.get("prior_receipts")
     mr_receipts = handoff.get("master_records_receipts")
     if not isinstance(prior_receipts, list) or not prior_receipts:
         fail("prior_receipts must be a non-empty array")
     if not isinstance(mr_receipts, list) or not mr_receipts:
         fail("master_records_receipts must be a non-empty array")
-
     required_steps = set(LOOP_STEPS[: LOOP_STEPS.index(current_step) + 1])
     prior_steps: set[str] = set()
     for index, value in enumerate(prior_receipts):
@@ -185,7 +186,6 @@ def validate_handoff(handoff: dict[str, Any]) -> None:
         if "receipt_hash" in receipt:
             validate_sha(receipt.get("receipt_hash"), f"prior_receipts[{index}].receipt_hash")
         prior_steps.add(step_id)
-
     mr_steps: set[str] = set()
     for index, value in enumerate(mr_receipts):
         receipt = require_object(value, f"master_records_receipts[{index}]")
@@ -194,31 +194,58 @@ def validate_handoff(handoff: dict[str, Any]) -> None:
         if "master_records_receipt_hash" in receipt:
             validate_sha(receipt.get("master_records_receipt_hash"), f"master_records_receipts[{index}].master_records_receipt_hash")
         mr_steps.add(step_id)
-
     if not required_steps.issubset(prior_steps):
         fail("prior_receipts must include every completed step through current_step")
     if not required_steps.issubset(mr_steps):
         fail("master_records_receipts must include every completed step through current_step")
 
 
+def validate_status(status: dict[str, Any]) -> None:
+    if status.get("schema_version") != SCHEMA_VERSION:
+        fail(f"schema_version must be {SCHEMA_VERSION}")
+    require_string(status.get("loop_id"), "loop_id")
+    implementation_posture = require_string(status.get("implementation_posture"), "implementation_posture")
+    if implementation_posture not in IMPLEMENTATION_VALUES:
+        fail(f"implementation_posture must be one of {sorted(IMPLEMENTATION_VALUES)}")
+    visibility = require_string(status.get("ci_status_visibility"), "ci_status_visibility")
+    if visibility not in STATUS_VALUES:
+        fail(f"ci_status_visibility must be one of {sorted(STATUS_VALUES)}")
+    repositories = status.get("repositories")
+    if not isinstance(repositories, list) or not repositories:
+        fail("repositories must be a non-empty array")
+    seen: set[str] = set()
+    for index, value in enumerate(repositories):
+        repo = require_object(value, f"repositories[{index}]")
+        name = require_string(repo.get("repository"), f"repositories[{index}].repository")
+        contract_status = require_string(repo.get("contract_status"), f"repositories[{index}].contract_status")
+        ci_guard_status = require_string(repo.get("ci_guard_status"), f"repositories[{index}].ci_guard_status")
+        if contract_status not in REPO_STATUS_VALUES:
+            fail(f"repositories[{index}].contract_status is invalid")
+        if ci_guard_status not in REPO_STATUS_VALUES:
+            fail(f"repositories[{index}].ci_guard_status is invalid")
+        if "combined_status_visible" in repo and not isinstance(repo.get("combined_status_visible"), bool):
+            fail(f"repositories[{index}].combined_status_visible must be boolean")
+        if name in seen:
+            fail(f"duplicate repository: {name}")
+        seen.add(name)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("artifact", type=Path, help="Path to route, result, loop, or handoff JSON")
+    parser.add_argument("artifact", type=Path, help="Path to route, result, loop, handoff, or status JSON")
     parser.add_argument(
         "--kind",
-        choices=("manifest", "result", "loop", "handoff"),
+        choices=("manifest", "result", "loop", "handoff", "status"),
         default="manifest",
         help="Artifact kind to validate. Defaults to manifest.",
     )
     args = parser.parse_args()
-
     try:
         artifact = json.loads(args.artifact.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         fail(f"invalid JSON: {exc}")
     except OSError as exc:
         fail(f"unable to read artifact: {exc}")
-
     artifact_obj = require_object(artifact, "artifact")
     if args.kind == "manifest":
         validate_manifest(artifact_obj)
@@ -229,9 +256,12 @@ def main() -> int:
     elif args.kind == "loop":
         validate_testing_loop(artifact_obj)
         print("PASS: testing data loop is valid")
-    else:
+    elif args.kind == "handoff":
         validate_handoff(artifact_obj)
         print("PASS: testing data loop handoff is valid")
+    else:
+        validate_status(artifact_obj)
+        print("PASS: testing data loop status is valid")
     return 0
 
 
