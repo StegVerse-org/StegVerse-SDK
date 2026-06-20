@@ -14,12 +14,15 @@ on:
       - 'examples/testing_data_loop.json'
       - 'examples/testing_data_loop_handoff.json'
       - 'examples/testing_data_loop_status.json'
+      - 'examples/testing_data_loop_workflow_observations.json'
       - 'examples/formal_testing_route_manifest.json'
       - 'examples/formal_testing_route_result_receipt.json'
       - 'scripts/validate_formal_testing_route.py'
+      - 'scripts/ingest_testing_data_loop_status.py'
       - 'tests/test_testing_data_loop.py'
       - 'tests/test_testing_data_loop_handoff.py'
       - 'tests/test_testing_data_loop_status.py'
+      - 'tests/test_ingest_testing_data_loop_status.py'
       - 'tests/test_formal_testing_route_manifest.py'
       - 'tests/test_formal_testing_route_result_receipt.py'
       - '.github/workflows/formal-testing-route-validate.yml'
@@ -36,12 +39,15 @@ on:
       - 'examples/testing_data_loop.json'
       - 'examples/testing_data_loop_handoff.json'
       - 'examples/testing_data_loop_status.json'
+      - 'examples/testing_data_loop_workflow_observations.json'
       - 'examples/formal_testing_route_manifest.json'
       - 'examples/formal_testing_route_result_receipt.json'
       - 'scripts/validate_formal_testing_route.py'
+      - 'scripts/ingest_testing_data_loop_status.py'
       - 'tests/test_testing_data_loop.py'
       - 'tests/test_testing_data_loop_handoff.py'
       - 'tests/test_testing_data_loop_status.py'
+      - 'tests/test_ingest_testing_data_loop_status.py'
       - 'tests/test_formal_testing_route_manifest.py'
       - 'tests/test_formal_testing_route_result_receipt.py'
       - '.github/workflows/formal-testing-route-validate.yml'
@@ -68,6 +74,14 @@ jobs:
       - name: Validate testing loop status
         run: python scripts/validate_formal_testing_route.py --kind status examples/testing_data_loop_status.json
 
+      - name: Ingest workflow observations
+        run: |
+          python scripts/ingest_testing_data_loop_status.py \
+            --status examples/testing_data_loop_status.json \
+            --observations examples/testing_data_loop_workflow_observations.json \
+            --output /tmp/testing_data_loop_status.json
+          python scripts/validate_formal_testing_route.py --kind status /tmp/testing_data_loop_status.json
+
       - name: Validate formal route manifest
         run: python scripts/validate_formal_testing_route.py examples/formal_testing_route_manifest.json
 
@@ -82,4 +96,4 @@ jobs:
           grep -q 'Non-Bypass Rule' docs/TESTING_DATA_LOOP_CONTRACT.md
 
       - name: Run route tests
-        run: python -m pytest tests/test_testing_data_loop.py tests/test_testing_data_loop_handoff.py tests/test_testing_data_loop_status.py tests/test_formal_testing_route_manifest.py tests/test_formal_testing_route_result_receipt.py
+        run: python -m pytest tests/test_testing_data_loop.py tests/test_testing_data_loop_handoff.py tests/test_testing_data_loop_status.py tests/test_ingest_testing_data_loop_status.py tests/test_formal_testing_route_manifest.py tests/test_formal_testing_route_result_receipt.py
