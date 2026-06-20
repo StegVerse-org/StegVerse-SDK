@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/formal-testing-route-result.schema.json",
+  "title": "StegVerse Formal Testing Route Result Receipt",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "route_id",
+    "repository",
+    "sdk_intake",
+    "result",
+    "route_receipt_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "route_id": {
+      "type": "string",
+      "enum": [
+        "public_demo_validation",
+        "formal_demo_runner",
+        "rigorous_sandbox_testing",
+        "standing_proof",
+        "boundary_glm_case"
+      ]
+    },
+    "repository": {
+      "type": "string",
+      "enum": [
+        "StegVerse-org/stegverse-demo-suite",
+        "StegVerse-org/demo-suite-runner",
+        "StegGhost/entity-sandbox-runner",
+        "StegVerse-Labs/Standing-Proof-Engine",
+        "StegVerse-Labs/Boundary-Test"
+      ]
+    },
+    "sdk_intake": {
+      "type": "object",
+      "required": [
+        "ingestion_point",
+        "dataset_manifest_hash",
+        "intake_receipt_id"
+      ],
+      "properties": {
+        "ingestion_point": {
+          "type": "string",
+          "const": "StegVerse-org/StegVerse-SDK"
+        },
+        "dataset_manifest_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "intake_receipt_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intake_receipt_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "result": {
+      "type": "string",
+      "enum": ["PASS", "PARTIAL", "FAIL", "ALLOW", "DENY", "DEFER", "ERROR"]
+    },
+    "route_receipt_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "route_receipt_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "hash"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hash": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
