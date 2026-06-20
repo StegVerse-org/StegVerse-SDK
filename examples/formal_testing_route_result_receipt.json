@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "route_id": "standing_proof",
+  "repository": "StegVerse-Labs/Standing-Proof-Engine",
+  "sdk_intake": {
+    "ingestion_point": "StegVerse-org/StegVerse-SDK",
+    "dataset_manifest_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "intake_receipt_id": "example-intake-receipt-001",
+    "intake_receipt_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "result": "PASS",
+  "route_receipt_id": "example-standing-result-receipt-001",
+  "route_receipt_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "evidence": [
+    {
+      "name": "stale_state_review_commit_001",
+      "hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    }
+  ]
+}
