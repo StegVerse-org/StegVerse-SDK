@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/testing-data-loop-handoff.schema.json",
+  "title": "StegVerse Testing Data Loop Handoff",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "loop_id",
+    "current_step",
+    "next_step",
+    "dataset_manifest_hash",
+    "prior_receipts",
+    "master_records_receipts"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "loop_id": {"type": "string", "minLength": 1},
+    "current_step": {"type": "string", "minLength": 1},
+    "next_step": {"type": "string", "minLength": 1},
+    "dataset_manifest_hash": {"type": "string"},
+    "prior_receipts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["step_id", "receipt_id"],
+        "properties": {
+          "step_id": {"type": "string", "minLength": 1},
+          "receipt_id": {"type": "string", "minLength": 1},
+          "receipt_hash": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "master_records_receipts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["step_id", "master_records_receipt_id"],
+        "properties": {
+          "step_id": {"type": "string", "minLength": 1},
+          "master_records_receipt_id": {"type": "string", "minLength": 1},
+          "master_records_receipt_hash": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
