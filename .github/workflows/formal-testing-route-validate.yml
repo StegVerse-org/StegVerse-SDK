@@ -5,17 +5,21 @@ on:
     paths:
       - 'docs/FORMAL_TESTING_ROUTE.md'
       - 'docs/TESTING_DATA_LOOP_CONTRACT.md'
+      - 'docs/TESTING_DATA_LOOP_STATUS.md'
       - 'schemas/testing-data-loop.schema.json'
       - 'schemas/testing-data-loop-handoff.schema.json'
+      - 'schemas/testing-data-loop-status.schema.json'
       - 'schemas/formal-testing-route.schema.json'
       - 'schemas/formal-testing-route-result.schema.json'
       - 'examples/testing_data_loop.json'
       - 'examples/testing_data_loop_handoff.json'
+      - 'examples/testing_data_loop_status.json'
       - 'examples/formal_testing_route_manifest.json'
       - 'examples/formal_testing_route_result_receipt.json'
       - 'scripts/validate_formal_testing_route.py'
       - 'tests/test_testing_data_loop.py'
       - 'tests/test_testing_data_loop_handoff.py'
+      - 'tests/test_testing_data_loop_status.py'
       - 'tests/test_formal_testing_route_manifest.py'
       - 'tests/test_formal_testing_route_result_receipt.py'
       - '.github/workflows/formal-testing-route-validate.yml'
@@ -23,17 +27,21 @@ on:
     paths:
       - 'docs/FORMAL_TESTING_ROUTE.md'
       - 'docs/TESTING_DATA_LOOP_CONTRACT.md'
+      - 'docs/TESTING_DATA_LOOP_STATUS.md'
       - 'schemas/testing-data-loop.schema.json'
       - 'schemas/testing-data-loop-handoff.schema.json'
+      - 'schemas/testing-data-loop-status.schema.json'
       - 'schemas/formal-testing-route.schema.json'
       - 'schemas/formal-testing-route-result.schema.json'
       - 'examples/testing_data_loop.json'
       - 'examples/testing_data_loop_handoff.json'
+      - 'examples/testing_data_loop_status.json'
       - 'examples/formal_testing_route_manifest.json'
       - 'examples/formal_testing_route_result_receipt.json'
       - 'scripts/validate_formal_testing_route.py'
       - 'tests/test_testing_data_loop.py'
       - 'tests/test_testing_data_loop_handoff.py'
+      - 'tests/test_testing_data_loop_status.py'
       - 'tests/test_formal_testing_route_manifest.py'
       - 'tests/test_formal_testing_route_result_receipt.py'
       - '.github/workflows/formal-testing-route-validate.yml'
@@ -57,6 +65,9 @@ jobs:
       - name: Validate loop handoff
         run: python scripts/validate_formal_testing_route.py --kind handoff examples/testing_data_loop_handoff.json
 
+      - name: Validate testing loop status
+        run: python scripts/validate_formal_testing_route.py --kind status examples/testing_data_loop_status.json
+
       - name: Validate formal route manifest
         run: python scripts/validate_formal_testing_route.py examples/formal_testing_route_manifest.json
 
@@ -71,4 +82,4 @@ jobs:
           grep -q 'Non-Bypass Rule' docs/TESTING_DATA_LOOP_CONTRACT.md
 
       - name: Run route tests
-        run: python -m pytest tests/test_testing_data_loop.py tests/test_testing_data_loop_handoff.py tests/test_formal_testing_route_manifest.py tests/test_formal_testing_route_result_receipt.py
+        run: python -m pytest tests/test_testing_data_loop.py tests/test_testing_data_loop_handoff.py tests/test_testing_data_loop_status.py tests/test_formal_testing_route_manifest.py tests/test_formal_testing_route_result_receipt.py
