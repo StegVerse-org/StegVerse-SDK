@@ -58,21 +58,25 @@ Route artifacts:
 ```text
 docs/FORMAL_TESTING_ROUTE.md
 schemas/testing-data-loop.schema.json
+schemas/testing-data-loop-handoff.schema.json
 examples/testing_data_loop.json
+examples/testing_data_loop_handoff.json
 schemas/formal-testing-route.schema.json
 schemas/formal-testing-route-result.schema.json
 examples/formal_testing_route_manifest.json
 examples/formal_testing_route_result_receipt.json
 scripts/validate_formal_testing_route.py
 tests/test_testing_data_loop.py
+tests/test_testing_data_loop_handoff.py
 tests/test_formal_testing_route_manifest.py
 tests/test_formal_testing_route_result_receipt.py
 ```
 
-Validate the corrected loop:
+Validate the corrected loop and handoff:
 
 ```bash
 python scripts/validate_formal_testing_route.py --kind loop examples/testing_data_loop.json
+python scripts/validate_formal_testing_route.py --kind handoff examples/testing_data_loop_handoff.json
 ```
 
 Validate the legacy route manifest and route result receipt:
@@ -166,6 +170,7 @@ schemas/admissibility/bridge-registry.schema.json
 schemas/admissibility/admissibility-bundle.schema.json
 schemas/admissibility/replay-result.schema.json
 schemas/testing-data-loop.schema.json
+schemas/testing-data-loop-handoff.schema.json
 schemas/formal-testing-route.schema.json
 schemas/formal-testing-route-result.schema.json
 ```
@@ -291,9 +296,10 @@ Decision rule:
 | Bundle check | Local bundle re-evaluation and posture comparison |
 | Receipts | Optional admissibility receipt references |
 | testing-data-loop schema | Correct user-to-sandbox-to-user route declaration |
+| testing-data-loop-handoff schema | Step-to-step receipt-gated handoff shape |
 | formal-testing-route schema | Legacy manifest-bound formal testing route declaration |
 | formal-testing-route-result schema | Route result receipt shape |
-| route validator | Local validation for loop, manifest, and route result artifacts |
+| route validator | Local validation for loop, handoff, manifest, and result artifacts |
 | entity-sandbox-runner | SDK-bound sandbox task packets and bounded result return |
 | master-records | Action receipts from every ingestion point |
 | stegverse-demo-suite | Receipt-bound public validation outputs |
