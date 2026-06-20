@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'docs/FORMAL_TESTING_ROUTE.md'
+      - 'docs/TESTING_DATA_LOOP_CONTRACT.md'
       - 'schemas/testing-data-loop.schema.json'
       - 'schemas/testing-data-loop-handoff.schema.json'
       - 'schemas/formal-testing-route.schema.json'
@@ -21,6 +22,7 @@ on:
   pull_request:
     paths:
       - 'docs/FORMAL_TESTING_ROUTE.md'
+      - 'docs/TESTING_DATA_LOOP_CONTRACT.md'
       - 'schemas/testing-data-loop.schema.json'
       - 'schemas/testing-data-loop-handoff.schema.json'
       - 'schemas/formal-testing-route.schema.json'
@@ -60,6 +62,13 @@ jobs:
 
       - name: Validate route result receipt
         run: python scripts/validate_formal_testing_route.py --kind result examples/formal_testing_route_result_receipt.json
+
+      - name: Check loop contract terms
+        run: |
+          grep -q 'StegVerse-org/demo_ingest_engine' docs/TESTING_DATA_LOOP_CONTRACT.md
+          grep -q 'StegGhost/entity-sandbox-runner' docs/TESTING_DATA_LOOP_CONTRACT.md
+          grep -q 'End-to-end loop receipt chain validates' docs/TESTING_DATA_LOOP_CONTRACT.md
+          grep -q 'Non-Bypass Rule' docs/TESTING_DATA_LOOP_CONTRACT.md
 
       - name: Run route tests
         run: python -m pytest tests/test_testing_data_loop.py tests/test_testing_data_loop_handoff.py tests/test_formal_testing_route_manifest.py tests/test_formal_testing_route_result_receipt.py
