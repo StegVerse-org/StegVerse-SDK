@@ -1,0 +1,17 @@
+[
+  {
+    "repository": "StegVerse-org/StegVerse-SDK",
+    "commit": "aed30679bc3f8ff426e7c13ff3ba77c1d5d94843",
+    "workflow_visible": false
+  },
+  {
+    "repository": "StegVerse-org/demo_ingest_engine",
+    "commit": "6b4e055e2271bc94e48130c8ca208a1ff799ef70",
+    "workflow_visible": false
+  },
+  {
+    "repository": "StegGhost/entity-sandbox-runner",
+    "commit": "3d6cbceaf88037eeae010459d46f86da111cbdd4",
+    "workflow_visible": false
+  }
+]
