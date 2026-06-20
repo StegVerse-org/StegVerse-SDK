@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/testing-data-loop-status.schema.json",
+  "title": "StegVerse Testing Data Loop Status",
+  "type": "object",
+  "required": ["schema_version", "loop_id", "implementation_posture", "ci_status_visibility", "repositories"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "loop_id": {"type": "string", "minLength": 1},
+    "implementation_posture": {"type": "string", "minLength": 1},
+    "ci_status_visibility": {"type": "string", "enum": ["visible", "partial", "incomplete", "unknown"]},
+    "repositories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["repository", "contract_status", "ci_guard_status"],
+        "properties": {
+          "repository": {"type": "string", "minLength": 1},
+          "contract_status": {"type": "string", "enum": ["implemented", "pending", "not_applicable"]},
+          "ci_guard_status": {"type": "string", "enum": ["implemented", "pending", "not_applicable"]},
+          "last_observed_commit": {"type": "string"},
+          "combined_status_visible": {"type": "boolean"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "remaining_gap": {"type": "string"}
+  },
+  "additionalProperties": false
+}
