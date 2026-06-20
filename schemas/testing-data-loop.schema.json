@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/testing-data-loop.schema.json",
+  "title": "StegVerse Testing Data Loop",
+  "type": "object",
+  "required": ["schema_version", "source", "intake_boundary", "dataset_manifest_hash", "intake_receipt_id", "loop_steps", "master_records_required"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "source": {"type": "string", "const": "human_requester"},
+    "intake_boundary": {"type": "string", "enum": ["SDK", "LLM Adapter"]},
+    "dataset_manifest_hash": {"type": "string"},
+    "intake_receipt_id": {"type": "string", "minLength": 1},
+    "intake_receipt_hash": {"type": "string"},
+    "loop_steps": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["step_id", "actor", "action", "master_records_receipt_required"],
+        "properties": {
+          "step_id": {"type": "string"},
+          "actor": {"type": "string", "minLength": 1},
+          "action": {"type": "string", "minLength": 1},
+          "receipt_type": {"type": "string"},
+          "master_records_receipt_required": {"type": "boolean", "const": true}
+        },
+        "additionalProperties": false
+      }
+    },
+    "master_records_required": {"type": "boolean", "const": true}
+  },
+  "additionalProperties": false
+}
