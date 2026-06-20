@@ -16,7 +16,7 @@ StegVerse verifies every action **before** it happens and produces cryptographic
 You propose an action  
 → StegVerse evaluates it  
 → Decision: **ALLOW | DENY | DEFER**  
-→ If allowed: execution + receipt  
+→ If allowed: execution + receipt
 
 Every executed action produces a verifiable receipt.
 
@@ -31,6 +31,44 @@ AI decides → executes → humans audit later
 AI proposes → evaluated at commit → executes only if admitted
 
 This eliminates ungoverned execution at the point of irreversibility.
+
+---
+
+## FORMAL TESTING INGESTION ROUTE
+
+The SDK is the ingestion point for formal testing datasets.
+
+All datasets, fixtures, GLM-style boundary declarations, admissibility packets, sandbox tasks, and standing-proof artifacts should be manifest-bound and receipt-bound at SDK intake before any downstream test route consumes them.
+
+```text
+Dataset / fixture / governance artifact
+→ StegVerse-org/StegVerse-SDK ingestion
+→ manifest binding
+→ receipt binding
+→ declared formal testing route
+→ route-specific result receipt
+```
+
+Formal testing routes:
+
+| Route | Repository | Purpose |
+|------|------------|---------|
+| Public demo validation | `StegVerse-org/stegverse-demo-suite` | Reproducible public validation and explainable demo scenarios. |
+| Formal demo runner | `StegVerse-org/demo-suite-runner` | GCAT/BCAT formalism probes and deterministic runner scenarios. |
+| Rigorous sandbox testing | `StegGhost/entity-sandbox-runner` | Adversarial, entity, and bounded sandbox testing without outside-sandbox authority. |
+| Standing proof | `StegVerse-Labs/Standing-Proof-Engine` | Commit-time standing, stale-state replay, authority rebinding, and consequence-binding proof. |
+| Boundary / GLM case | `StegVerse-Labs/Boundary-Test` | Boundary declaration, non-claim preservation, and manifest composability validation. |
+
+Route rule:
+
+```text
+SDK ingests.
+GLM declares boundaries.
+Demo-suite demonstrates.
+Sandbox stresses.
+SPE proves standing.
+Receipts bind every transition.
+```
 
 ---
 
@@ -163,7 +201,7 @@ Reference docs:
 docs/DYNAMIC_ADMISSIBILITY.md
 ```
 
-These packets align the SDK with the Site demo, applicability map, discipline test matrix, tester-output template, LLM bridge, math-solver bridge, and Governed Admissibility Bundle exchange format.
+These packets align the SDK with the Site demo, applicability map, discipline test matrix, tester-output template, LLM bridge, math-solver bridge, Governed Admissibility Bundle exchange format, and the revised formal testing route map.
 
 ---
 
@@ -236,6 +274,11 @@ Decision rule:
 | GAB | Portable governed admissibility bundle exchange |
 | Bundle check | Local bundle re-evaluation and posture comparison |
 | Receipts | Optional admissibility receipt references |
+| stegverse-demo-suite | SDK-bound public validation datasets |
+| demo-suite-runner | SDK-bound formal runner datasets |
+| entity-sandbox-runner | SDK-bound sandbox task packets |
+| Standing-Proof-Engine | SDK-bound standing-proof artifacts |
+| Boundary-Test | SDK-bound GLM and boundary declaration fixtures |
 
 ---
 
