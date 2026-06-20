@@ -65,9 +65,26 @@ Route rule:
 SDK ingests.
 GLM declares boundaries.
 Demo-suite demonstrates.
+Demo-suite-runner probes formalism behavior.
 Sandbox stresses.
 SPE proves standing.
 Receipts bind every transition.
+```
+
+Route artifacts:
+
+```text
+docs/FORMAL_TESTING_ROUTE.md
+schemas/formal-testing-route.schema.json
+examples/formal_testing_route_manifest.json
+scripts/validate_formal_testing_route.py
+tests/test_formal_testing_route_manifest.py
+```
+
+Validate the example route manifest:
+
+```bash
+python scripts/validate_formal_testing_route.py examples/formal_testing_route_manifest.json
 ```
 
 ---
@@ -153,6 +170,7 @@ schemas/admissibility/math-bridge-result.schema.json
 schemas/admissibility/bridge-registry.schema.json
 schemas/admissibility/admissibility-bundle.schema.json
 schemas/admissibility/replay-result.schema.json
+schemas/formal-testing-route.schema.json
 ```
 
 SDK helper:
@@ -199,6 +217,7 @@ Reference docs:
 
 ```text
 docs/DYNAMIC_ADMISSIBILITY.md
+docs/FORMAL_TESTING_ROUTE.md
 ```
 
 These packets align the SDK with the Site demo, applicability map, discipline test matrix, tester-output template, LLM bridge, math-solver bridge, Governed Admissibility Bundle exchange format, and the revised formal testing route map.
@@ -274,6 +293,8 @@ Decision rule:
 | GAB | Portable governed admissibility bundle exchange |
 | Bundle check | Local bundle re-evaluation and posture comparison |
 | Receipts | Optional admissibility receipt references |
+| formal-testing-route schema | Manifest-bound formal testing route declaration |
+| formal-testing-route validator | Local validation for SDK-bound route manifests |
 | stegverse-demo-suite | SDK-bound public validation datasets |
 | demo-suite-runner | SDK-bound formal runner datasets |
 | entity-sandbox-runner | SDK-bound sandbox task packets |
