@@ -36,55 +36,50 @@ This eliminates ungoverned execution at the point of irreversibility.
 
 ## FORMAL TESTING INGESTION ROUTE
 
-The SDK is the ingestion point for formal testing datasets.
+The SDK and LLM Adapter are the user-facing intake boundary for formal testing datasets.
 
-All datasets, fixtures, GLM-style boundary declarations, admissibility packets, sandbox tasks, and standing-proof artifacts should be manifest-bound and receipt-bound at SDK intake before any downstream test route consumes them.
-
-```text
-Dataset / fixture / governance artifact
-→ StegVerse-org/StegVerse-SDK ingestion
-→ manifest binding
-→ receipt binding
-→ declared formal testing route
-→ route-specific result receipt
-```
-
-Formal testing routes:
-
-| Route | Repository | Purpose |
-|------|------------|---------|
-| Public demo validation | `StegVerse-org/stegverse-demo-suite` | Reproducible public validation and explainable demo scenarios. |
-| Formal demo runner | `StegVerse-org/demo-suite-runner` | GCAT/BCAT formalism probes and deterministic runner scenarios. |
-| Rigorous sandbox testing | `StegGhost/entity-sandbox-runner` | Adversarial, entity, and bounded sandbox testing without outside-sandbox authority. |
-| Standing proof | `StegVerse-Labs/Standing-Proof-Engine` | Commit-time standing, stale-state replay, authority rebinding, and consequence-binding proof. |
-| Boundary / GLM case | `StegVerse-Labs/Boundary-Test` | Boundary declaration, non-claim preservation, and manifest composability validation. |
-
-Route rule:
+Correct testing data loop:
 
 ```text
-SDK ingests.
-GLM declares boundaries.
-Demo-suite demonstrates.
-Demo-suite-runner probes formalism behavior.
-Sandbox stresses.
-SPE proves standing.
-Receipts bind every transition.
+User
+→ StegVerse-org/StegVerse-SDK or LLM Adapter
+→ StegVerse-org ingestion
+→ StegGhost/entity-sandbox-runner ingestion/CGE
+→ ephemeral sandbox batch
+→ StegGhost/entity-sandbox-runner ingestion/CGE return validation
+→ StegVerse-org ingestion
+→ User
 ```
+
+Every ingestion point sends an action receipt to `master-records`.
 
 Route artifacts:
 
 ```text
 docs/FORMAL_TESTING_ROUTE.md
+schemas/testing-data-loop.schema.json
+examples/testing_data_loop.json
 schemas/formal-testing-route.schema.json
+schemas/formal-testing-route-result.schema.json
 examples/formal_testing_route_manifest.json
+examples/formal_testing_route_result_receipt.json
 scripts/validate_formal_testing_route.py
+tests/test_testing_data_loop.py
 tests/test_formal_testing_route_manifest.py
+tests/test_formal_testing_route_result_receipt.py
 ```
 
-Validate the example route manifest:
+Validate the corrected loop:
+
+```bash
+python scripts/validate_formal_testing_route.py --kind loop examples/testing_data_loop.json
+```
+
+Validate the legacy route manifest and route result receipt:
 
 ```bash
 python scripts/validate_formal_testing_route.py examples/formal_testing_route_manifest.json
+python scripts/validate_formal_testing_route.py --kind result examples/formal_testing_route_result_receipt.json
 ```
 
 ---
@@ -170,7 +165,9 @@ schemas/admissibility/math-bridge-result.schema.json
 schemas/admissibility/bridge-registry.schema.json
 schemas/admissibility/admissibility-bundle.schema.json
 schemas/admissibility/replay-result.schema.json
+schemas/testing-data-loop.schema.json
 schemas/formal-testing-route.schema.json
+schemas/formal-testing-route-result.schema.json
 ```
 
 SDK helper:
@@ -220,7 +217,7 @@ docs/DYNAMIC_ADMISSIBILITY.md
 docs/FORMAL_TESTING_ROUTE.md
 ```
 
-These packets align the SDK with the Site demo, applicability map, discipline test matrix, tester-output template, LLM bridge, math-solver bridge, Governed Admissibility Bundle exchange format, and the revised formal testing route map.
+These packets align the SDK with the Site demo, applicability map, discipline test matrix, tester-output template, LLM bridge, math-solver bridge, Governed Admissibility Bundle exchange format, and the corrected formal testing data loop.
 
 ---
 
@@ -293,13 +290,16 @@ Decision rule:
 | GAB | Portable governed admissibility bundle exchange |
 | Bundle check | Local bundle re-evaluation and posture comparison |
 | Receipts | Optional admissibility receipt references |
-| formal-testing-route schema | Manifest-bound formal testing route declaration |
-| formal-testing-route validator | Local validation for SDK-bound route manifests |
-| stegverse-demo-suite | SDK-bound public validation datasets |
-| demo-suite-runner | SDK-bound formal runner datasets |
-| entity-sandbox-runner | SDK-bound sandbox task packets |
-| Standing-Proof-Engine | SDK-bound standing-proof artifacts |
-| Boundary-Test | SDK-bound GLM and boundary declaration fixtures |
+| testing-data-loop schema | Correct user-to-sandbox-to-user route declaration |
+| formal-testing-route schema | Legacy manifest-bound formal testing route declaration |
+| formal-testing-route-result schema | Route result receipt shape |
+| route validator | Local validation for loop, manifest, and route result artifacts |
+| entity-sandbox-runner | SDK-bound sandbox task packets and bounded result return |
+| master-records | Action receipts from every ingestion point |
+| stegverse-demo-suite | Receipt-bound public validation outputs |
+| demo-suite-runner | Receipt-bound formal runner outputs |
+| Standing-Proof-Engine | Receipt-bound standing-proof artifacts |
+| Boundary-Test | Receipt-bound GLM and boundary declaration fixtures |
 
 ---
 
