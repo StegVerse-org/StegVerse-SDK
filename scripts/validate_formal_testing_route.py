@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate a StegVerse formal testing route manifest.
+"""Validate StegVerse formal testing route manifests and result receipts.
 
 This validator intentionally avoids third-party dependencies so it can run in
 minimal SDK and GitHub Actions environments.
@@ -26,6 +26,8 @@ ROUTE_REPOSITORIES = {
     "boundary_glm_case": "StegVerse-Labs/Boundary-Test",
 }
 
+RESULT_VALUES = {"PASS", "PARTIAL", "FAIL", "ALLOW", "DENY", "DEFER", "ERROR"}
+
 
 def fail(message: str) -> None:
     print(f"FAIL: {message}", file=sys.stderr)
@@ -48,6 +50,15 @@ def validate_sha(value: Any, name: str) -> None:
     text = require_string(value, name)
     if not SHA256_RE.match(text):
         fail(f"{name} must match sha256:<64 lowercase hex chars>")
+
+
+def validate_sdk_intake(intake: dict[str, Any], prefix: str = "sdk_intake") -> None:
+    if intake.get("ingestion_point") != INGESTION_POINT:
+        fail(f"{prefix}.ingestion_point must be {INGESTION_POINT}")
+    validate_sha(intake.get("dataset_manifest_hash"), f"{prefix}.dataset_manifest_hash")
+    require_string(intake.get("intake_receipt_id"), f"{prefix}.intake_receipt_id")
+    if "intake_receipt_hash" in intake:
+        validate_sha(intake.get("intake_receipt_hash"), f"{prefix}.intake_receipt_hash")
 
 
 def validate_manifest(manifest: dict[str, Any]) -> None:
@@ -89,20 +100,63 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         seen.add(route_id)
 
 
+def validate_result_receipt(receipt: dict[str, Any]) -> None:
+    if receipt.get("schema_version") != SCHEMA_VERSION:
+        fail(f"schema_version must be {SCHEMA_VERSION}")
+
+    route_id = require_string(receipt.get("route_id"), "route_id")
+    repository = require_string(receipt.get("repository"), "repository")
+    expected_repository = ROUTE_REPOSITORIES.get(route_id)
+    if expected_repository is None:
+        fail("route_id is not recognized")
+    if repository != expected_repository:
+        fail(f"repository must be {expected_repository} for route_id {route_id}")
+
+    validate_sdk_intake(require_object(receipt.get("sdk_intake"), "sdk_intake"))
+
+    result = require_string(receipt.get("result"), "result")
+    if result not in RESULT_VALUES:
+        fail(f"result must be one of {sorted(RESULT_VALUES)}")
+
+    require_string(receipt.get("route_receipt_id"), "route_receipt_id")
+    if "route_receipt_hash" in receipt:
+        validate_sha(receipt.get("route_receipt_hash"), "route_receipt_hash")
+
+    evidence = receipt.get("evidence", [])
+    if evidence is not None:
+        if not isinstance(evidence, list):
+            fail("evidence must be an array when present")
+        for index, item_value in enumerate(evidence):
+            item = require_object(item_value, f"evidence[{index}]")
+            require_string(item.get("name"), f"evidence[{index}].name")
+            validate_sha(item.get("hash"), f"evidence[{index}].hash")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("manifest", type=Path, help="Path to formal testing route manifest JSON")
+    parser.add_argument("artifact", type=Path, help="Path to route manifest or route result receipt JSON")
+    parser.add_argument(
+        "--kind",
+        choices=("manifest", "result"),
+        default="manifest",
+        help="Artifact kind to validate. Defaults to manifest.",
+    )
     args = parser.parse_args()
 
     try:
-        manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+        artifact = json.loads(args.artifact.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         fail(f"invalid JSON: {exc}")
     except OSError as exc:
-        fail(f"unable to read manifest: {exc}")
+        fail(f"unable to read artifact: {exc}")
 
-    validate_manifest(require_object(manifest, "manifest"))
-    print("PASS: formal testing route manifest is valid")
+    artifact_obj = require_object(artifact, "artifact")
+    if args.kind == "manifest":
+        validate_manifest(artifact_obj)
+        print("PASS: formal testing route manifest is valid")
+    else:
+        validate_result_receipt(artifact_obj)
+        print("PASS: formal testing route result receipt is valid")
     return 0
 
 
