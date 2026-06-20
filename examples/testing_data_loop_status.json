@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "loop_id": "corrected-testing-data-loop",
+  "implementation_posture": "operationally_wired",
+  "ci_status_visibility": "incomplete",
+  "repositories": [
+    {
+      "repository": "StegVerse-org/StegVerse-SDK",
+      "contract_status": "implemented",
+      "ci_guard_status": "implemented",
+      "last_observed_commit": "28787e368da9339f9de408e405b18c4b0d9c2492",
+      "combined_status_visible": false
+    },
+    {
+      "repository": "StegVerse-org/demo_ingest_engine",
+      "contract_status": "implemented",
+      "ci_guard_status": "implemented",
+      "last_observed_commit": "6b4e055e2271bc94e48130c8ca208a1ff799ef70",
+      "combined_status_visible": false
+    },
+    {
+      "repository": "StegGhost/entity-sandbox-runner",
+      "contract_status": "implemented",
+      "ci_guard_status": "implemented",
+      "last_observed_commit": "3d6cbceaf88037eeae010459d46f86da111cbdd4",
+      "combined_status_visible": false
+    },
+    {
+      "repository": "StegVerse-org/stegverse-demo-suite",
+      "contract_status": "implemented",
+      "ci_guard_status": "implemented",
+      "last_observed_commit": "b2988759110cbb72341d784026d1c438b8025d82",
+      "combined_status_visible": false
+    },
+    {
+      "repository": "StegVerse-org/demo-suite-runner",
+      "contract_status": "implemented",
+      "ci_guard_status": "implemented",
+      "last_observed_commit": "2da8e88dd5149f41998f499d406c0d2bf7a9b37b",
+      "combined_status_visible": false
+    },
+    {
+      "repository": "StegVerse-Labs/Standing-Proof-Engine",
+      "contract_status": "implemented",
+      "ci_guard_status": "implemented",
+      "last_observed_commit": "04ec183899ad2cf3d0cc349834d905f92e18b288",
+      "combined_status_visible": false
+    },
+    {
+      "repository": "StegVerse-Labs/Boundary-Test",
+      "contract_status": "implemented",
+      "ci_guard_status": "implemented",
+      "last_observed_commit": "e21efbf64f4c480c4de3cd412dbfe3970ea37949",
+      "combined_status_visible": false
+    }
+  ],
+  "remaining_gap": "Observe workflow results or ingest GitHub Actions run metadata when available."
+}
