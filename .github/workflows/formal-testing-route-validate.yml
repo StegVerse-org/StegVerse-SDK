@@ -1,0 +1,65 @@
+name: Formal Testing Route Validation
+
+on:
+  push:
+    paths:
+      - 'docs/FORMAL_TESTING_ROUTE.md'
+      - 'schemas/testing-data-loop.schema.json'
+      - 'schemas/testing-data-loop-handoff.schema.json'
+      - 'schemas/formal-testing-route.schema.json'
+      - 'schemas/formal-testing-route-result.schema.json'
+      - 'examples/testing_data_loop.json'
+      - 'examples/testing_data_loop_handoff.json'
+      - 'examples/formal_testing_route_manifest.json'
+      - 'examples/formal_testing_route_result_receipt.json'
+      - 'scripts/validate_formal_testing_route.py'
+      - 'tests/test_testing_data_loop.py'
+      - 'tests/test_testing_data_loop_handoff.py'
+      - 'tests/test_formal_testing_route_manifest.py'
+      - 'tests/test_formal_testing_route_result_receipt.py'
+      - '.github/workflows/formal-testing-route-validate.yml'
+  pull_request:
+    paths:
+      - 'docs/FORMAL_TESTING_ROUTE.md'
+      - 'schemas/testing-data-loop.schema.json'
+      - 'schemas/testing-data-loop-handoff.schema.json'
+      - 'schemas/formal-testing-route.schema.json'
+      - 'schemas/formal-testing-route-result.schema.json'
+      - 'examples/testing_data_loop.json'
+      - 'examples/testing_data_loop_handoff.json'
+      - 'examples/formal_testing_route_manifest.json'
+      - 'examples/formal_testing_route_result_receipt.json'
+      - 'scripts/validate_formal_testing_route.py'
+      - 'tests/test_testing_data_loop.py'
+      - 'tests/test_testing_data_loop_handoff.py'
+      - 'tests/test_formal_testing_route_manifest.py'
+      - 'tests/test_formal_testing_route_result_receipt.py'
+      - '.github/workflows/formal-testing-route-validate.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-route-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate corrected testing loop
+        run: python scripts/validate_formal_testing_route.py --kind loop examples/testing_data_loop.json
+
+      - name: Validate loop handoff
+        run: python scripts/validate_formal_testing_route.py --kind handoff examples/testing_data_loop_handoff.json
+
+      - name: Validate formal route manifest
+        run: python scripts/validate_formal_testing_route.py examples/formal_testing_route_manifest.json
+
+      - name: Validate route result receipt
+        run: python scripts/validate_formal_testing_route.py --kind result examples/formal_testing_route_result_receipt.json
+
+      - name: Run route tests
+        run: python -m pytest tests/test_testing_data_loop.py tests/test_testing_data_loop_handoff.py tests/test_formal_testing_route_manifest.py tests/test_formal_testing_route_result_receipt.py
