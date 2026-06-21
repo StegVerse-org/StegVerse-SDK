@@ -8,9 +8,11 @@ def test_pipeline_http_post_returns_full_pipeline():
     status, result = handle_ecosystem_chat_pipeline_http("POST", "/api/ecosystem-chat", json.dumps(payload()))
 
     assert status == 202
-    assert set(result) == {"intake", "receipt_decision", "record_export"}
+    assert set(result) == {"intake", "receipt_decision", "issuer_result", "record_export"}
     assert result["intake"]["accepted"] is True
     assert result["receipt_decision"]["receipt_id"] is None
+    assert result["issuer_result"]["issued"] is False
+    assert result["issuer_result"]["receipt_id"] is None
     assert result["record_export"]["external_write_complete"] is False
 
 
@@ -20,6 +22,7 @@ def test_pipeline_http_rejects_wrong_method():
     assert status == 405
     assert result["intake"]["accepted"] is False
     assert result["receipt_decision"]["decision"] == "ISSUANCE_BLOCKED"
+    assert result["issuer_result"]["issued"] is False
     assert result["record_export"]["export_status"] == "EXPORT_BLOCKED"
 
 
@@ -28,4 +31,5 @@ def test_pipeline_http_rejects_invalid_json():
 
     assert status == 400
     assert result["intake"]["receipt_id"] is None
+    assert result["issuer_result"]["receipt_id"] is None
     assert result["record_export"]["external_write_complete"] is False
