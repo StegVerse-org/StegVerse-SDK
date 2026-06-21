@@ -12,6 +12,7 @@ def test_local_issuer_generates_deterministic_receipt_id_when_injected():
     assert first["issuer_result"]["issued"] is True
     assert first["issuer_result"]["receipt_id"] == second["issuer_result"]["receipt_id"]
     assert first["issuer_result"]["receipt_id"].startswith("ecr-local-")
+    assert first["record_export"]["receipt_id"] == first["issuer_result"]["receipt_id"]
     assert first["record_export"]["external_write_complete"] is False
 
 
@@ -20,6 +21,7 @@ def test_default_pipeline_still_does_not_issue():
 
     assert result["issuer_result"]["issued"] is False
     assert result["issuer_result"]["receipt_id"] is None
+    assert result["record_export"]["receipt_id"] is None
 
 
 def test_local_issuer_blocks_invalid_decision():
@@ -29,4 +31,5 @@ def test_local_issuer_blocks_invalid_decision():
 
     assert result["issuer_result"]["issued"] is False
     assert result["issuer_result"]["receipt_id"] is None
+    assert result["record_export"]["receipt_id"] is None
     assert result["issuer_result"]["errors"]
