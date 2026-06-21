@@ -27,6 +27,7 @@ POST /api/ecosystem-chat
 ```text
 intake
 receipt_decision
+issuer_result
 record_export
 ```
 
@@ -39,6 +40,7 @@ SDK backend handler: installed
 SDK HTTP adapter: installed
 SDK pipeline: installed
 SDK pipeline HTTP adapter: installed
+Governed issuer interface: installed fail-closed
 Local runner: installed
 WSGI callable: installed
 ```
@@ -47,7 +49,7 @@ WSGI callable: installed
 
 ```text
 Hosted service target: not selected
-Receipt issuer: not installed
+Receipt issuer implementation: not installed
 External record persistence: not installed
 ```
 
@@ -57,4 +59,4 @@ The local runner may be used to verify request and response shape.
 
 The WSGI callable may be mounted by a selected hosted service target.
 
-Production activation requires a hosted service target and governed receipt issuer.
+Production activation requires a hosted service target and governed issuer implementation.
