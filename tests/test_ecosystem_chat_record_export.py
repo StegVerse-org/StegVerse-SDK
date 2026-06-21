@@ -17,6 +17,20 @@ def test_record_export_candidate_is_pending_without_external_write():
     assert candidate["errors"] == []
 
 
+def test_record_export_candidate_accepts_issued_receipt_id():
+    issuer_result = {
+        "issued": True,
+        "receipt_id": "ecr-local-abc123",
+        "issuer_name": "TEST",
+        "errors": [],
+    }
+    candidate = build_record_export_candidate(payload(), issuer_result).to_dict()
+
+    assert candidate["export_status"] == EXPORT_PENDING
+    assert candidate["receipt_id"] == "ecr-local-abc123"
+    assert candidate["external_write_complete"] is False
+
+
 def test_record_export_candidate_is_deterministic():
     first = build_record_export_candidate(payload()).to_dict()
     second = build_record_export_candidate(payload()).to_dict()
