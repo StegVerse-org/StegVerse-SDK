@@ -46,6 +46,12 @@ def _error_result(message: str) -> dict[str, Any]:
             "reason": message,
             "errors": [message],
         },
+        "issuer_result": {
+            "issued": False,
+            "receipt_id": None,
+            "issuer_name": "DISABLED_ECOSYSTEM_CHAT_ISSUER",
+            "errors": [message],
+        },
         "record_export": {
             "export_status": "EXPORT_BLOCKED",
             "export_hash": None,
