@@ -1,0 +1,35 @@
+{
+  "repo": "StegVerse-org/StegVerse-SDK",
+  "goal": "SDK intake to Core-Node parallel fanout with unified comparison receipt",
+  "status": "pre-activation",
+  "built_artifacts": [
+    "docs/SDK_CORE_NODE_PARALLEL_FANOUT_GOAL.json",
+    "schemas/sdk_core_node_fanout_request.schema.json",
+    "examples/sdk_core_node_fanout_request.sample.json",
+    "scripts/validate_sdk_core_node_fanout_goal.py",
+    "scripts/validate_sdk_core_node_fanout_request.py",
+    "tests/test_sdk_core_node_fanout_goal.py",
+    "tests/test_sdk_core_node_fanout_request.py",
+    "schemas/sdk_core_node_unified_comparison_receipt.schema.json",
+    "examples/sdk_core_node_unified_comparison_receipt.sample.json",
+    "scripts/validate_sdk_core_node_unified_comparison_receipt.py",
+    "tests/test_sdk_core_node_unified_comparison_receipt.py",
+    "examples/sdk_core_node_unified_comparison_result.sample.md",
+    "scripts/generate_sdk_core_node_unified_comparison_result.py",
+    "scripts/validate_sdk_core_node_unified_comparison_result.py",
+    "tests/test_sdk_core_node_result.py"
+  ],
+  "required_activation_evidence": [
+    "python -m pytest exits 0",
+    "fanout request validator passes",
+    "unified comparison receipt validator passes",
+    "human-readable comparison result validator passes",
+    "generated human-readable comparison result is stable",
+    "CI validates route artifacts and SDK core-node fanout artifacts"
+  ],
+  "remaining": [
+    "add activation status validator",
+    "confirm CI green after fanout artifacts are included",
+    "update status to activated after evidence is available"
+  ]
+}
