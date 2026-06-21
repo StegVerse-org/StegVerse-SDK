@@ -17,9 +17,10 @@ receipt_window
 ```text
 Validator: installed
 Backend handler: installed
+HTTP adapter: installed
 Minimal tests: installed
 Receipt issuance: not installed
-HTTP service endpoint: not installed
+Hosted service endpoint: not installed
 ```
 
 ## Validator
@@ -36,6 +37,18 @@ result = validate_ecosystem_chat_payload(payload).to_dict()
 from stegverse.ecosystem_chat_backend import handle_ecosystem_chat_submission
 
 response = handle_ecosystem_chat_submission(payload)
+```
+
+## HTTP adapter
+
+```python
+from stegverse.ecosystem_chat_http import handle_ecosystem_chat_http
+
+status, response = handle_ecosystem_chat_http(
+    "POST",
+    "/api/ecosystem-chat",
+    request_body,
+)
 ```
 
 The response shape is:
@@ -64,4 +77,4 @@ The SDK accepts only payloads where:
 
 ## Next step
 
-Wrap `handle_ecosystem_chat_submission(payload)` in an HTTP endpoint and connect receipt issuance only after the governed SDK-side receipt authority is installed.
+Mount `handle_ecosystem_chat_http(method, path, body)` in a hosted service and connect receipt issuance only after the governed SDK-side receipt authority is installed.
