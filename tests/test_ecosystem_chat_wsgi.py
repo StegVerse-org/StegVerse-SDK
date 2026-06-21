@@ -31,8 +31,9 @@ def test_wsgi_post_returns_pipeline_result():
 
     assert status == "202 Accepted"
     assert headers["Content-Type"] == "application/json"
-    assert set(result) == {"intake", "receipt_decision", "record_export"}
+    assert set(result) == {"intake", "receipt_decision", "issuer_result", "record_export"}
     assert result["intake"]["accepted"] is True
+    assert result["issuer_result"]["issued"] is False
 
 
 def test_wsgi_get_is_rejected():
@@ -40,3 +41,4 @@ def test_wsgi_get_is_rejected():
 
     assert status == "405 Method Not Allowed"
     assert result["intake"]["accepted"] is False
+    assert result["issuer_result"]["issued"] is False
