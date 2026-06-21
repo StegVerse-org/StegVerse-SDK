@@ -68,6 +68,13 @@ def _error_result(message: str) -> dict[str, Any]:
             "external_write_complete": False,
             "errors": [message],
         },
+        "destination_binding": {
+            "binding_status": "DESTINATION_DISABLED",
+            "binding_hash": None,
+            "destination_name": None,
+            "destination_type": None,
+            "errors": [message],
+        },
         "write_result": {
             "write_complete": False,
             "write_id": None,
