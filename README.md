@@ -3,7 +3,7 @@
 ![PyPI](https://img.shields.io/pypi/v/stegverse-sdk)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![Build](https://github.com/StegVerse-org/StegVerse-SDK/actions/workflows/sdk_demo_test.yml/badge.svg)
-![License](https://github.com/StegVerse-org/StegVerse-SDK)
+![License](https://img.shields.io/github/license/StegVerse-org/StegVerse-SDK)
 
 > Execution is not assumed. Execution is admitted.
 
