@@ -1,0 +1,68 @@
+{
+  "repo": "StegVerse-org/StegVerse-SDK",
+  "goal": "SDK intake to Core-Node parallel fanout with unified comparison receipt",
+  "status": "started",
+  "assumptions": [
+    "SDK remains the user-facing intake boundary.",
+    "Core-Node owns execution-path selection and parallel fanout comparison.",
+    "master-records remains an independent witness loop and is not part of the user return loop.",
+    "All paths must return the same human-readable result shape with compute cost included."
+  ],
+  "user_loop": [
+    "user_submit_package",
+    "sdk_intake_validate",
+    "core_node_fanout_request",
+    "parallel_path_execution",
+    "unified_comparison_receipt",
+    "sdk_return_human_result"
+  ],
+  "witness_loop": [
+    "package_hash_observed",
+    "fanout_receipts_observed",
+    "comparison_receipt_observed",
+    "return_receipt_observed"
+  ],
+  "fanout_paths": [
+    {
+      "path_id": "PATH-1",
+      "name": "cross-org ingestion baseline",
+      "role": "legacy baseline comparison path"
+    },
+    {
+      "path_id": "PATH-2",
+      "name": "fixed-capacity core-node path",
+      "role": "bounded node assembly comparison path"
+    },
+    {
+      "path_id": "PATH-3",
+      "name": "minimal delegated micro-node path",
+      "role": "least-resource delegated execution comparison path"
+    },
+    {
+      "path_id": "PATH-4",
+      "name": "return-path memory micro-node path",
+      "role": "known return path with memory retention comparison path"
+    },
+    {
+      "path_id": "PATH-5",
+      "name": "adaptive cell assembly path",
+      "role": "measured incoming task assembles transition cells on demand"
+    }
+  ],
+  "activation_criteria": [
+    "SDK produces a fanout request artifact for the same sample package.",
+    "Core-Node fanout request references PATH-1 through PATH-5.",
+    "Unified comparison receipt includes result status, path id, elapsed time, memory, estimated cost, receipt count, and warning state for every path.",
+    "Human-readable result uses the same shape for every path.",
+    "Witness loop is represented as independent hashes or receipt references, not as part of the user return loop.",
+    "CI validates the goal document and sample fanout request artifacts."
+  ],
+  "next_artifacts": [
+    "schemas/sdk_core_node_fanout_request.schema.json",
+    "examples/sdk_core_node_fanout_request.sample.json",
+    "scripts/validate_sdk_core_node_fanout_goal.py",
+    "scripts/validate_sdk_core_node_fanout_request.py",
+    "tests/test_sdk_core_node_fanout_goal.py",
+    "tests/test_sdk_core_node_fanout_request.py"
+  ]
+}
