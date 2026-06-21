@@ -27,6 +27,32 @@ def test_pipeline_http_post_returns_full_pipeline():
     assert result["write_result"]["write_complete"] is False
 
 
+def test_pipeline_http_accepts_binding_aware_envelope():
+    body = {
+        "payload": payload(),
+        "destination_config": {
+            "destination_name": "master-records/ecosystem-chat",
+            "destination_type": "master-records",
+        },
+    }
+    status, result = handle_ecosystem_chat_pipeline_http("POST", "/api/ecosystem-chat", json.dumps(body))
+
+    assert status == 202
+    assert result["intake"]["accepted"] is True
+    assert result["destination_binding"]["binding_status"] == "DESTINATION_READY"
+    assert result["destination_binding"]["binding_hash"].startswith("sha256:")
+    assert result["write_result"]["write_complete"] is False
+
+
+def test_pipeline_http_rejects_invalid_envelope():
+    body = {"payload": payload(), "destination_config": [], "extra": True}
+    status, result = handle_ecosystem_chat_pipeline_http("POST", "/api/ecosystem-chat", json.dumps(body))
+
+    assert status == 400
+    assert result["intake"]["accepted"] is False
+    assert result["destination_binding"]["binding_status"] == "DESTINATION_DISABLED"
+
+
 def test_pipeline_http_rejects_wrong_method():
     status, result = handle_ecosystem_chat_pipeline_http("GET", "/api/ecosystem-chat", "{}")
 
