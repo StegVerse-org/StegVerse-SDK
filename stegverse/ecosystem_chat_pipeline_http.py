@@ -19,14 +19,39 @@ def handle_ecosystem_chat_pipeline_http(method: str, path: str, body: str | byte
 
     try:
         raw_body = body.decode("utf-8") if isinstance(body, bytes) else body
-        payload = json.loads(raw_body)
+        request_body = json.loads(raw_body)
     except (UnicodeDecodeError, json.JSONDecodeError):
         return 400, _error_result("body must be valid JSON")
 
-    result = run_ecosystem_chat_pipeline(payload)
+    try:
+        payload, destination_config = _extract_request_parts(request_body)
+    except ValueError as error:
+        return 400, _error_result(str(error))
+
+    result = run_ecosystem_chat_pipeline(payload, destination_config=destination_config)
     accepted = result["intake"].get("accepted") is True
     status = 202 if accepted else 422
     return status, result
+
+
+def _extract_request_parts(request_body: Any) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    if not isinstance(request_body, dict):
+        raise ValueError("body must be a JSON object")
+
+    if "payload" not in request_body:
+        return request_body, None
+
+    allowed_keys = {"payload", "destination_config"}
+    if set(request_body) - allowed_keys:
+        raise ValueError("request envelope contains unsupported keys")
+
+    payload = request_body.get("payload")
+    destination_config = request_body.get("destination_config")
+    if not isinstance(payload, dict):
+        raise ValueError("request envelope payload must be an object")
+    if destination_config is not None and not isinstance(destination_config, dict):
+        raise ValueError("request envelope destination_config must be an object")
+    return payload, destination_config
 
 
 def _error_result(message: str) -> dict[str, Any]:
