@@ -1,0 +1,76 @@
+{
+  "receipt_id": "sdk-core-node-comparison-receipt-sample-001",
+  "request_id": "sdk-core-node-fanout-sample-001",
+  "package_id": "sample-package-001",
+  "sdk_intake_receipt_id": "sdk-intake-receipt-sample-001",
+  "core_node_runtime": "StegVerse-org/core-node-runtime-demo",
+  "baseline_path": "PATH-1",
+  "path_results": [
+    {
+      "path_id": "PATH-1",
+      "result_status": "PASS",
+      "elapsed_time_ms": 18.9,
+      "memory_peak_mb": 24.0,
+      "estimated_cost_usd": 0.0001,
+      "receipt_count": 3,
+      "failure_or_warning_state": "none",
+      "human_readable_summary": "Cross-org ingestion baseline completed successfully."
+    },
+    {
+      "path_id": "PATH-2",
+      "result_status": "PASS",
+      "elapsed_time_ms": 11.4,
+      "memory_peak_mb": 18.0,
+      "estimated_cost_usd": 0.00008,
+      "receipt_count": 6,
+      "failure_or_warning_state": "none",
+      "human_readable_summary": "Fixed-capacity core-node path completed successfully."
+    },
+    {
+      "path_id": "PATH-3",
+      "result_status": "PASS",
+      "elapsed_time_ms": 9.7,
+      "memory_peak_mb": 14.5,
+      "estimated_cost_usd": 0.00007,
+      "receipt_count": 7,
+      "failure_or_warning_state": "none",
+      "human_readable_summary": "Minimal delegated micro-node path completed successfully."
+    },
+    {
+      "path_id": "PATH-4",
+      "result_status": "PASS",
+      "elapsed_time_ms": 10.8,
+      "memory_peak_mb": 16.0,
+      "estimated_cost_usd": 0.00009,
+      "receipt_count": 8,
+      "failure_or_warning_state": "none",
+      "human_readable_summary": "Return-path memory micro-node path completed successfully."
+    },
+    {
+      "path_id": "PATH-5",
+      "result_status": "PASS",
+      "elapsed_time_ms": 10.1,
+      "memory_peak_mb": 15.2,
+      "estimated_cost_usd": 0.00007,
+      "receipt_count": 7,
+      "failure_or_warning_state": "none",
+      "human_readable_summary": "Adaptive transition-cell assembly path completed successfully."
+    }
+  ],
+  "witness_receipts": [
+    "master-records-package-observed-sample-001",
+    "master-records-fanout-observed-sample-001",
+    "master-records-comparison-observed-sample-001",
+    "master-records-return-observed-sample-001"
+  ],
+  "human_result_shape": [
+    "path_id",
+    "result_status",
+    "elapsed_time_ms",
+    "memory_peak_mb",
+    "estimated_cost_usd",
+    "receipt_count",
+    "failure_or_warning_state",
+    "human_readable_summary"
+  ]
+}
