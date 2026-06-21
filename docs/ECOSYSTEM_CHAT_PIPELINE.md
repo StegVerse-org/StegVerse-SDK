@@ -20,6 +20,7 @@ receipt_decision
 issuer_result
 record_export
 persistence_plan
+destination_binding
 write_result
 ```
 
@@ -30,12 +31,14 @@ The pipeline returns current stage outputs only.
 It does not bypass intake validation.
 It does not create a non-null receipt identifier by default.
 It does not perform an external write by default.
+Destination binding is disabled unless `destination_config` is provided.
 
 ## Optional injection points
 
 ```text
 issuer
 write_adapter
+destination_config
 ```
 
 ## Next integration target
