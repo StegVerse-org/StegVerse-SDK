@@ -17,6 +17,7 @@ result = run_ecosystem_chat_pipeline(payload)
 ```text
 intake
 receipt_decision
+issuer_result
 record_export
 ```
 
@@ -25,9 +26,9 @@ record_export
 The pipeline returns current stage outputs only.
 
 It does not bypass intake validation.
-It does not create a non-null receipt identifier.
+It does not create a non-null receipt identifier by default.
 It does not perform an external write.
 
 ## Next integration target
 
-Use this pipeline as the hosted service entrypoint after the transport wrapper is selected.
+Inject a governed issuer implementation, then connect persistence only after issuer behavior is proven by tests.
