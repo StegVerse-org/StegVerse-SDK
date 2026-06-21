@@ -14,6 +14,7 @@ def test_pipeline_http_post_returns_full_pipeline():
         "issuer_result",
         "record_export",
         "persistence_plan",
+        "destination_binding",
         "write_result",
     }
     assert result["intake"]["accepted"] is True
@@ -22,6 +23,7 @@ def test_pipeline_http_post_returns_full_pipeline():
     assert result["issuer_result"]["receipt_id"] is None
     assert result["record_export"]["external_write_complete"] is False
     assert result["persistence_plan"]["external_write_complete"] is False
+    assert result["destination_binding"]["binding_status"] == "DESTINATION_DISABLED"
     assert result["write_result"]["write_complete"] is False
 
 
@@ -34,6 +36,7 @@ def test_pipeline_http_rejects_wrong_method():
     assert result["issuer_result"]["issued"] is False
     assert result["record_export"]["export_status"] == "EXPORT_BLOCKED"
     assert result["persistence_plan"]["persistence_status"] == "PERSISTENCE_BLOCKED"
+    assert result["destination_binding"]["binding_status"] == "DESTINATION_DISABLED"
     assert result["write_result"]["write_complete"] is False
 
 
@@ -45,4 +48,5 @@ def test_pipeline_http_rejects_invalid_json():
     assert result["issuer_result"]["receipt_id"] is None
     assert result["record_export"]["external_write_complete"] is False
     assert result["persistence_plan"]["external_write_complete"] is False
+    assert result["destination_binding"]["binding_status"] == "DESTINATION_DISABLED"
     assert result["write_result"]["write_complete"] is False
