@@ -37,10 +37,12 @@ def test_wsgi_post_returns_pipeline_result():
         "issuer_result",
         "record_export",
         "persistence_plan",
+        "destination_binding",
         "write_result",
     }
     assert result["intake"]["accepted"] is True
     assert result["issuer_result"]["issued"] is False
+    assert result["destination_binding"]["binding_status"] == "DESTINATION_DISABLED"
     assert result["write_result"]["write_complete"] is False
 
 
@@ -50,4 +52,5 @@ def test_wsgi_get_is_rejected():
     assert status == "405 Method Not Allowed"
     assert result["intake"]["accepted"] is False
     assert result["issuer_result"]["issued"] is False
+    assert result["destination_binding"]["binding_status"] == "DESTINATION_DISABLED"
     assert result["write_result"]["write_complete"] is False
