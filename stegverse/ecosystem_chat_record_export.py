@@ -22,7 +22,7 @@ class RecordExportCandidate:
     export_status: str
     export_hash: str
     request_hash: str
-    receipt_id: None
+    receipt_id: str | None
     external_write_complete: bool
     errors: list[str]
 
@@ -37,23 +37,36 @@ class RecordExportCandidate:
         }
 
 
-def build_record_export_candidate(payload: dict[str, Any]) -> RecordExportCandidate:
+def build_record_export_candidate(
+    payload: dict[str, Any],
+    issuer_result: dict[str, Any] | None = None,
+) -> RecordExportCandidate:
     decision = evaluate_ecosystem_chat_payload_for_receipt(payload)
-    status = EXPORT_PENDING if not decision["errors"] else EXPORT_BLOCKED
+    issuer_errors = [] if issuer_result is None else list(issuer_result.get("errors", []))
+    errors = [*decision["errors"], *issuer_errors]
+    status = EXPORT_PENDING if not errors else EXPORT_BLOCKED
+    receipt_id = _issued_receipt_id(issuer_result)
     export_base = {
         "decision": decision["decision"],
         "request_hash": decision["request_hash"],
-        "receipt_id": decision["receipt_id"],
+        "receipt_id": receipt_id,
         "export_status": status,
     }
     return RecordExportCandidate(
         export_status=status,
         export_hash=_stable_hash(export_base),
         request_hash=decision["request_hash"],
-        receipt_id=None,
+        receipt_id=receipt_id,
         external_write_complete=False,
-        errors=decision["errors"],
+        errors=errors,
     )
+
+
+def _issued_receipt_id(issuer_result: dict[str, Any] | None) -> str | None:
+    if not issuer_result or issuer_result.get("issued") is not True:
+        return None
+    receipt_id = issuer_result.get("receipt_id")
+    return receipt_id if isinstance(receipt_id, str) and receipt_id else None
 
 
 def _stable_hash(value: dict[str, Any]) -> str:
