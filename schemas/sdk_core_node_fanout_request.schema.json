@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/sdk_core_node_fanout_request.schema.json",
+  "title": "SDKCoreNodeFanoutRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request_id",
+    "package_id",
+    "sdk_intake",
+    "core_node_target",
+    "fanout_paths",
+    "result_shape_required",
+    "witness_loop"
+  ],
+  "properties": {
+    "request_id": { "type": "string", "minLength": 1 },
+    "package_id": { "type": "string", "minLength": 1 },
+    "sdk_intake": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repo", "intake_receipt_id", "package_hash"],
+      "properties": {
+        "repo": { "type": "string", "const": "StegVerse-org/StegVerse-SDK" },
+        "intake_receipt_id": { "type": "string", "minLength": 1 },
+        "package_hash": { "type": "string", "pattern": "^sha256:" }
+      }
+    },
+    "core_node_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repo", "runtime"],
+      "properties": {
+        "repo": { "type": "string", "const": "StegVerse-org/core-node-runtime-demo" },
+        "runtime": { "type": "string", "const": "core-node" }
+      }
+    },
+    "fanout_paths": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path_id", "enabled", "purpose"],
+        "properties": {
+          "path_id": { "type": "string", "enum": ["PATH-1", "PATH-2", "PATH-3", "PATH-4", "PATH-5"] },
+          "enabled": { "type": "boolean" },
+          "purpose": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "result_shape_required": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "witness_loop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["independent", "target", "receipt_references_only"],
+      "properties": {
+        "independent": { "type": "boolean", "const": true },
+        "target": { "type": "string", "const": "master-records" },
+        "receipt_references_only": { "type": "boolean", "const": true }
+      }
+    }
+  }
+}
