@@ -3,7 +3,7 @@
 ![PyPI](https://img.shields.io/pypi/v/stegverse-sdk)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![Build](https://github.com/StegVerse-org/StegVerse-SDK/actions/workflows/sdk_demo_test.yml/badge.svg)
-![License](https://img.shields.io/github/license/StegVerse-org/StegVerse-SDK)
+![License](https://github.com/StegVerse-org/StegVerse-SDK)
 
 > Execution is not assumed. Execution is admitted.
 
@@ -24,24 +24,30 @@ Every executed action produces a verifiable receipt.
 
 ## ECOSYSTEM CHAT SDK INTAKE
 
-The SDK now includes a pre-backend intake validator and transport-free backend handler for the completed Site Ecosystem Chat form gateway.
+The SDK now includes a pre-backend intake validator, transport-free backend handler, and HTTP adapter for the completed Site Ecosystem Chat form gateway.
 
 ```python
-from stegverse.ecosystem_chat_backend import handle_ecosystem_chat_submission
+from stegverse.ecosystem_chat_http import handle_ecosystem_chat_http
 
-response = handle_ecosystem_chat_submission(payload)
+status, response = handle_ecosystem_chat_http(
+    "POST",
+    "/api/ecosystem-chat",
+    request_body,
+)
 ```
 
-The handler accepts the Site three-layer payload only when `fields`, `manifest`, and `receipt_window` remain distinct and internally consistent. In this stage, `receipt_id` remains `None`; receipt issuance is not installed in the Site-facing intake path.
+The adapter accepts the Site three-layer payload only when `fields`, `manifest`, and `receipt_window` remain distinct and internally consistent. In this stage, `receipt_id` remains `None`; receipt issuance is not installed in the Site-facing intake path.
 
 Artifacts:
 
 ```text
 stegverse/ecosystem_chat_intake.py
 stegverse/ecosystem_chat_backend.py
+stegverse/ecosystem_chat_http.py
 docs/ECOSYSTEM_CHAT_SDK_INTAKE.md
 tests/test_ecosystem_chat_intake_minimal.py
 tests/test_ecosystem_chat_backend.py
+tests/test_ecosystem_chat_http_minimal.py
 ```
 
 ---
