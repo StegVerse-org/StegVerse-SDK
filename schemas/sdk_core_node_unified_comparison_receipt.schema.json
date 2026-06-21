@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/sdk_core_node_unified_comparison_receipt.schema.json",
+  "title": "SDKCoreNodeUnifiedComparisonReceipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receipt_id",
+    "request_id",
+    "package_id",
+    "sdk_intake_receipt_id",
+    "core_node_runtime",
+    "baseline_path",
+    "path_results",
+    "witness_receipts",
+    "human_result_shape"
+  ],
+  "properties": {
+    "receipt_id": { "type": "string", "minLength": 1 },
+    "request_id": { "type": "string", "minLength": 1 },
+    "package_id": { "type": "string", "minLength": 1 },
+    "sdk_intake_receipt_id": { "type": "string", "minLength": 1 },
+    "core_node_runtime": { "type": "string", "const": "StegVerse-org/core-node-runtime-demo" },
+    "baseline_path": { "type": "string", "const": "PATH-1" },
+    "path_results": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path_id",
+          "result_status",
+          "elapsed_time_ms",
+          "memory_peak_mb",
+          "estimated_cost_usd",
+          "receipt_count",
+          "failure_or_warning_state",
+          "human_readable_summary"
+        ],
+        "properties": {
+          "path_id": { "type": "string", "enum": ["PATH-1", "PATH-2", "PATH-3", "PATH-4", "PATH-5"] },
+          "result_status": { "type": "string", "enum": ["PASS", "FAIL", "WARN"] },
+          "elapsed_time_ms": { "type": "number", "minimum": 0 },
+          "memory_peak_mb": { "type": "number", "minimum": 0 },
+          "estimated_cost_usd": { "type": "number", "minimum": 0 },
+          "receipt_count": { "type": "integer", "minimum": 0 },
+          "failure_or_warning_state": { "type": "string" },
+          "human_readable_summary": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "witness_receipts": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "human_result_shape": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}
