@@ -1,0 +1,55 @@
+{
+  "request_id": "sdk-core-node-fanout-sample-001",
+  "package_id": "sample-package-001",
+  "sdk_intake": {
+    "repo": "StegVerse-org/StegVerse-SDK",
+    "intake_receipt_id": "sdk-intake-receipt-sample-001",
+    "package_hash": "sha256:sample-package-001"
+  },
+  "core_node_target": {
+    "repo": "StegVerse-org/core-node-runtime-demo",
+    "runtime": "core-node"
+  },
+  "fanout_paths": [
+    {
+      "path_id": "PATH-1",
+      "enabled": true,
+      "purpose": "cross-org ingestion baseline"
+    },
+    {
+      "path_id": "PATH-2",
+      "enabled": true,
+      "purpose": "fixed-capacity core-node comparison"
+    },
+    {
+      "path_id": "PATH-3",
+      "enabled": true,
+      "purpose": "minimal delegated micro-node comparison"
+    },
+    {
+      "path_id": "PATH-4",
+      "enabled": true,
+      "purpose": "return-path memory micro-node comparison"
+    },
+    {
+      "path_id": "PATH-5",
+      "enabled": true,
+      "purpose": "adaptive transition-cell assembly comparison"
+    }
+  ],
+  "result_shape_required": [
+    "path_id",
+    "result_status",
+    "elapsed_time_ms",
+    "memory_peak_mb",
+    "estimated_cost_usd",
+    "receipt_count",
+    "failure_or_warning_state",
+    "human_readable_summary"
+  ],
+  "witness_loop": {
+    "independent": true,
+    "target": "master-records",
+    "receipt_references_only": true
+  }
+}
