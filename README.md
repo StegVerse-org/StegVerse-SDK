@@ -22,6 +22,28 @@ Every executed action produces a verifiable receipt.
 
 ---
 
+## ECOSYSTEM CHAT SDK INTAKE
+
+The SDK now includes a pre-backend intake validator for the completed Site Ecosystem Chat form gateway.
+
+```python
+from stegverse.ecosystem_chat_intake import validate_ecosystem_chat_payload
+
+result = validate_ecosystem_chat_payload(payload).to_dict()
+```
+
+The validator accepts the Site three-layer payload only when `fields`, `manifest`, and `receipt_window` remain distinct and internally consistent. In this stage, `receipt_id` remains `None`; receipt issuance is not installed in the Site-facing intake path.
+
+Artifacts:
+
+```text
+stegverse/ecosystem_chat_intake.py
+docs/ECOSYSTEM_CHAT_SDK_INTAKE.md
+tests/test_ecosystem_chat_intake_minimal.py
+```
+
+---
+
 ## WHY THIS MATTERS
 
 **Traditional flow**  
@@ -289,6 +311,7 @@ Decision rule:
 | AaCT-E | Audit trail |
 | StegDB | State monitoring |
 | Site demo | Dynamic admissibility tester packets |
+| Ecosystem Chat | Three-layer Site form payloads through SDK intake validator |
 | Applicability map | Discipline routes and tester-output templates |
 | LLM bridge | LLM output to dynamic admissibility packet |
 | Math bridge | Formalism artifact to dynamic admissibility packet |
