@@ -60,4 +60,19 @@ def _error_result(message: str) -> dict[str, Any]:
             "external_write_complete": False,
             "errors": [message],
         },
+        "persistence_plan": {
+            "persistence_status": "PERSISTENCE_BLOCKED",
+            "persistence_hash": None,
+            "receipt_id": None,
+            "export_hash": None,
+            "external_write_complete": False,
+            "errors": [message],
+        },
+        "write_result": {
+            "write_complete": False,
+            "write_id": None,
+            "adapter_name": "DISABLED_ECOSYSTEM_CHAT_WRITE_ADAPTER",
+            "receipt_id": None,
+            "errors": [message],
+        },
     }
