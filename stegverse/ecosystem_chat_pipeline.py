@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from .ecosystem_chat_backend import handle_ecosystem_chat_submission
+from .ecosystem_chat_destination_binding import build_destination_binding
 from .ecosystem_chat_issuer import EcosystemChatIssuer, issue_with_governed_issuer
 from .ecosystem_chat_persistence_plan import build_persistence_plan
 from .ecosystem_chat_receipt_engine import evaluate_ecosystem_chat_payload_for_receipt
@@ -16,6 +17,7 @@ def run_ecosystem_chat_pipeline(
     payload: dict[str, Any],
     issuer: EcosystemChatIssuer | None = None,
     write_adapter: EcosystemChatWriteAdapter | None = None,
+    destination_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Compose the current SDK stage outputs for one Site payload."""
     intake = handle_ecosystem_chat_submission(payload)
@@ -23,11 +25,13 @@ def run_ecosystem_chat_pipeline(
     issuer_result = issue_with_governed_issuer(receipt_decision, issuer)
     record_export = build_record_export_candidate(payload, issuer_result).to_dict()
     persistence_plan = build_persistence_plan(record_export).to_dict()
+    destination_binding = build_destination_binding(destination_config).to_dict()
     return {
         "intake": intake,
         "receipt_decision": receipt_decision,
         "issuer_result": issuer_result,
         "record_export": record_export,
         "persistence_plan": persistence_plan,
+        "destination_binding": destination_binding,
         "write_result": write_with_adapter(persistence_plan, write_adapter),
     }
