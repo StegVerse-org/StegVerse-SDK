@@ -17,9 +17,10 @@ def run_ecosystem_chat_pipeline(
     """Compose the current SDK stage outputs for one Site payload."""
     intake = handle_ecosystem_chat_submission(payload)
     receipt_decision = evaluate_ecosystem_chat_payload_for_receipt(payload)
+    issuer_result = issue_with_governed_issuer(receipt_decision, issuer)
     return {
         "intake": intake,
         "receipt_decision": receipt_decision,
-        "issuer_result": issue_with_governed_issuer(receipt_decision, issuer),
-        "record_export": build_record_export_candidate(payload).to_dict(),
+        "issuer_result": issuer_result,
+        "record_export": build_record_export_candidate(payload, issuer_result).to_dict(),
     }
