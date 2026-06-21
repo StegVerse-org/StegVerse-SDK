@@ -1,0 +1,57 @@
+"""HTTP adapter for the Ecosystem Chat SDK pipeline."""
+
+from __future__ import annotations
+
+import json
+from typing import Any
+
+from .ecosystem_chat_http import ECOSYSTEM_CHAT_PATH
+from .ecosystem_chat_pipeline import run_ecosystem_chat_pipeline
+
+
+def handle_ecosystem_chat_pipeline_http(method: str, path: str, body: str | bytes) -> tuple[int, dict[str, Any]]:
+    """Return an HTTP-style status and the full current pipeline result."""
+    if method.upper() != "POST":
+        return 405, _error_result("method must be POST")
+
+    if path != ECOSYSTEM_CHAT_PATH:
+        return 404, _error_result("path not found")
+
+    try:
+        raw_body = body.decode("utf-8") if isinstance(body, bytes) else body
+        payload = json.loads(raw_body)
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return 400, _error_result("body must be valid JSON")
+
+    result = run_ecosystem_chat_pipeline(payload)
+    accepted = result["intake"].get("accepted") is True
+    status = 202 if accepted else 422
+    return status, result
+
+
+def _error_result(message: str) -> dict[str, Any]:
+    return {
+        "intake": {
+            "accepted": False,
+            "routed_module": "StegVerse-org/SDK",
+            "receipt_id": None,
+            "next_action": "Correct the request and resubmit.",
+            "errors": [message],
+        },
+        "receipt_decision": {
+            "decision": "ISSUANCE_BLOCKED",
+            "request_hash": None,
+            "routed_module": "StegVerse-org/SDK",
+            "receipt_id": None,
+            "reason": message,
+            "errors": [message],
+        },
+        "record_export": {
+            "export_status": "EXPORT_BLOCKED",
+            "export_hash": None,
+            "request_hash": None,
+            "receipt_id": None,
+            "external_write_complete": False,
+            "errors": [message],
+        },
+    }
