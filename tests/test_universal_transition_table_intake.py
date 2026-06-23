@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -10,6 +12,8 @@ from stegverse.universal_transition_table_intake import (
     UniversalTransitionTableIntakeError,
     handle_universal_transition_table_package,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -37,7 +41,7 @@ def make_fixture(tmp_path: Path) -> tuple[Path, Path, Path]:
 
     package_path = tmp_path / "transition_test_package.json"
     expected_path = tmp_path / "expected_result.json"
-    replay_path = tmp_path / "machine_replay_packet.json"
+    replay_path = tmp_path / "replay_packet.json"
     write_json(package_path, package)
     write_json(expected_path, expected)
     write_json(replay_path, replay)
@@ -53,8 +57,8 @@ def make_commitment_candidate(tmp_path: Path) -> Path:
         "implies_standing": False,
         "requires_fresh_standing_determination": True,
         "bounded_scope": "sdk-intake-proof-path-only",
-        "actor": "agent_alice",
-        "target": "runtime_boundary",
+        "actor": "review_subject",
+        "target": "sdk_boundary",
         "action": "present_reviewed_transition_for_standing_check",
         "review_ref": "review-artifact-001",
         "evidence_refs": ["evidence-packet-001"],
@@ -144,3 +148,16 @@ def test_universal_transition_table_cli_writes_output(tmp_path: Path) -> None:
     assert result["manifest"]["route_eligible"] is True
     assert result["intake_receipt"]["accepted_for_intake"] is True
     assert result["commitment_candidate_receipt"]["accepted_as_non_authorizing"] is True
+
+
+def test_universal_transition_table_repo_fixture_verifier_passes() -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "verify_universal_transition_table_intake_fixture.py")],
+        cwd=str(ROOT),
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "PASS universal transition-table intake fixture verified" in result.stdout
+    assert "PASS wrote SDK intake result" in result.stdout
