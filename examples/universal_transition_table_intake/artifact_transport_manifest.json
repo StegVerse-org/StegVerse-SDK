@@ -1,0 +1,22 @@
+{
+  "schema": "stegverse.sdk.artifact_transport_manifest.v1",
+  "transport_id": "uttp-sdk-transport-canonical-only-package-001",
+  "source_repo": "StegVerse-org/universal-transition-table-test-path",
+  "destination_repo": "StegVerse-org/StegVerse-SDK",
+  "package_id": "canonical-only-package-001",
+  "transport_mode": "local_fixture_until_cross_repo_transport_is_installed",
+  "runtime_execution_enabled": false,
+  "required_artifacts": [
+    "transition_test_package.json",
+    "expected_result.json",
+    "replay_packet.json",
+    "commitment_candidate.json"
+  ],
+  "required_invariants": {
+    "candidate_type": "COMMITMENT_CANDIDATE",
+    "authorizing": false,
+    "inherits_review_authority": false,
+    "implies_standing": false,
+    "requires_fresh_standing_determination": true
+  }
+}
