@@ -1,0 +1,24 @@
+{
+  "package_id": "canonical-only-package-001",
+  "candidate_type": "COMMITMENT_CANDIDATE",
+  "authorizing": false,
+  "inherits_review_authority": false,
+  "implies_standing": false,
+  "requires_fresh_standing_determination": true,
+  "bounded_scope": "sdk-intake-proof-path-only",
+  "actor": "review_subject",
+  "target": "sdk_boundary",
+  "action": "present_reviewed_transition_for_standing_check",
+  "review_ref": "review-artifact-001",
+  "evidence_refs": [
+    "evidence-packet-001"
+  ],
+  "policy_context": "policy-context-current",
+  "delegation_context": "delegation-context-current",
+  "validity_window": {
+    "not_before": "2026-01-01T00:00:00Z",
+    "not_after": "2026-01-02T00:00:00Z"
+  },
+  "execution_context": "sdk-intake-boundary",
+  "recoverability_profile": "recoverable-no-runtime-execution"
+}
