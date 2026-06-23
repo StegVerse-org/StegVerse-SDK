@@ -49,7 +49,7 @@ WSGI callable: installed
 
 ```text
 Hosted service target: not selected
-Receipt issuer implementation: not installed
+Receipt issuer: not installed
 External record persistence: not installed
 ```
 
