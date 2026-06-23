@@ -1,0 +1,17 @@
+{
+  "schema": "stegverse.sdk.artifact_transport_receipt.v1",
+  "receipt_id": "artifact-transport-receipt-canonical-only-package-001",
+  "transport_id": "uttp-sdk-transport-canonical-only-package-001",
+  "package_id": "canonical-only-package-001",
+  "source_repo": "StegVerse-org/universal-transition-table-test-path",
+  "destination_repo": "StegVerse-org/StegVerse-SDK",
+  "runtime_execution_enabled": false,
+  "transport_manifest_hash": "generated-by-tools-generate-artifact-transport-receipt",
+  "artifact_hashes": {
+    "transition_test_package.json": "generated-by-tools-generate-artifact-transport-receipt",
+    "expected_result.json": "generated-by-tools-generate-artifact-transport-receipt",
+    "replay_packet.json": "generated-by-tools-generate-artifact-transport-receipt",
+    "commitment_candidate.json": "generated-by-tools-generate-artifact-transport-receipt"
+  },
+  "non_authorizing_boundary_preserved": true
+}
