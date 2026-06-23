@@ -32,6 +32,7 @@ jobs:
         run: |
           python -c "import stegverse; print(f'SDK version: {stegverse.__version__}')"
           python -c "from stegverse import submit_intent, StegVerseLLMAdapter, govern_llm_output, StegVerseSDK; print('Core imports: OK')"
+          python -c "from stegverse import handle_universal_transition_table_package; print('Universal transition-table intake import: OK')"
 
       - name: Run tests with pytest
         run: |
@@ -110,6 +111,7 @@ jobs:
         run: |
           pip install dist/*.whl
           python -c "import stegverse; print(f'Wheel OK: {stegverse.__version__}')"
+          python -c "from stegverse import handle_universal_transition_table_package; print('Wheel universal transition-table intake import: OK')"
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
@@ -201,7 +203,7 @@ jobs:
           path: dist/*.whl
           retention-days: 90
 
-      - name: Trigger demo-ingestion (plan mode)
+      - name: Trigger demo-ingestion plan mode
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
