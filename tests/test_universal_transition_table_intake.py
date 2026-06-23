@@ -73,6 +73,17 @@ def make_commitment_candidate(tmp_path: Path) -> Path:
     return candidate_path
 
 
+def run_tool(tool_name: str) -> str:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / tool_name)],
+        cwd=str(ROOT),
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout
+
+
 def test_universal_transition_table_intake_accepts_constructed_package(tmp_path: Path) -> None:
     package_path, expected_path, replay_path = make_fixture(tmp_path)
 
@@ -151,13 +162,15 @@ def test_universal_transition_table_cli_writes_output(tmp_path: Path) -> None:
 
 
 def test_universal_transition_table_repo_fixture_verifier_passes() -> None:
-    result = subprocess.run(
-        [sys.executable, str(ROOT / "tools" / "verify_universal_transition_table_intake_fixture.py")],
-        cwd=str(ROOT),
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    stdout = run_tool("verify_universal_transition_table_intake_fixture.py")
 
-    assert "PASS universal transition-table intake fixture verified" in result.stdout
-    assert "PASS wrote SDK intake result" in result.stdout
+    assert "PASS universal transition-table intake fixture verified" in stdout
+    assert "PASS wrote SDK intake result" in stdout
+
+
+def test_sdk_goal2_activation_verifier_passes() -> None:
+    stdout = run_tool("verify_goal2_activation.py")
+
+    assert "PASS SDK Goal 2 fixture files present" in stdout
+    assert "PASS SDK Goal 2 commitment candidate invariant holds" in stdout
+    assert "PASS SDK Goal 2 activation verified" in stdout
