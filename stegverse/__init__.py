@@ -7,6 +7,7 @@ Public API surface:
     submit_intent         — convenience function
     govern_llm_output     — convenience function
     evaluate_admissibility_packet — evaluate dynamic admissibility tester packets
+    handle_universal_transition_table_package — validate universal transition-table intake
 """
 
 __version__ = "1.0.0"
@@ -96,6 +97,12 @@ from .admissibility import (
     validate_tester_packet,
 )
 
+# --- Universal transition-table intake ---
+from .universal_transition_table_intake import (
+    UniversalTransitionTableIntakeError,
+    handle_universal_transition_table_package,
+)
+
 # --- Receipts ---
 from .receipts import verify_receipt
 
@@ -127,6 +134,9 @@ __all__ = [
     "stable_hash",
     "to_dict",
     "validate_tester_packet",
+    # Universal transition-table intake
+    "UniversalTransitionTableIntakeError",
+    "handle_universal_transition_table_package",
     # Receipts
     "verify_receipt",
 ]
