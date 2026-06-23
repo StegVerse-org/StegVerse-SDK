@@ -1,0 +1,13 @@
+{
+  "package_id": "canonical-only-package-001",
+  "canonical_cells": [
+    "BOUNDARY_REVIEW",
+    "RECEIPT_REQUIREMENT"
+  ],
+  "receipt_requirements": [
+    "term_resolution_receipt",
+    "package_construction_receipt"
+  ],
+  "human_readable_result_required": true,
+  "machine_replay_required": true
+}
