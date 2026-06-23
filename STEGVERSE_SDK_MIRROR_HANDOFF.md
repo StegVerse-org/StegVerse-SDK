@@ -6,21 +6,22 @@ This file is the handoff source of truth for `StegVerse-org/StegVerse-SDK` until
 
 ## Active goal
 
-Goal 2: Universal transition-table SDK intake adapter with non-authorizing Commitment Candidate support.
+Goal 2: Universal transition-table SDK intake path.
 
-The repository should prove:
+The repository now proves:
 
 ```text
-verified universal transition-table package
-→ optional non-authorizing Commitment Candidate
+universal transition-table package fixture
+→ non-authorizing Commitment Candidate fixture
 → SDK intake adapter
-→ commitment candidate receipt
+→ Commitment Candidate receipt
 → manifest
 → intake receipt
 → route eligibility receipt
+→ Goal 2 activation verifier
 ```
 
-No live ingestion, sandbox, runtime, commit-time standing determination, execution approval, or production trust-kernel execution is added by this adapter.
+No live ingestion, sandbox, runtime, commit-time standing determination, execution approval, or production trust-kernel execution is added by this path.
 
 ## Installed files
 
@@ -28,14 +29,19 @@ No live ingestion, sandbox, runtime, commit-time standing determination, executi
 stegverse/universal_transition_table_intake.py
 stegverse/universal_transition_table_cli.py
 tests/test_universal_transition_table_intake.py
+tools/verify_universal_transition_table_intake_fixture.py
+tools/verify_goal2_activation.py
 docs/UNIVERSAL_TRANSITION_TABLE_INTAKE.md
+examples/universal_transition_table_intake/README.md
+examples/universal_transition_table_intake/transition_test_package.json
+examples/universal_transition_table_intake/expected_result.json
+examples/universal_transition_table_intake/replay_packet.json
+examples/universal_transition_table_intake/commitment_candidate.json
 stegverse/__init__.py exports handle_universal_transition_table_package and validate_commitment_candidate
 github/workflows/sdk-demo-test.yml shown without leading period; actual path is dot-github workflows sdk-demo-test.yml
 ```
 
-## Non-authorizing invariant
-
-The Commitment Candidate must satisfy:
+## Required invariant
 
 ```text
 candidate_type == COMMITMENT_CANDIDATE
@@ -45,11 +51,11 @@ implies_standing == false
 requires_fresh_standing_determination == true
 ```
 
-It presents a reviewed transition for a fresh standing determination. It does not approve execution, inherit review authority, or create standing.
-
 ## Verification commands
 
 ```bash
+python tools/verify_goal2_activation.py
+python tools/verify_universal_transition_table_intake_fixture.py
 pytest tests/test_universal_transition_table_intake.py -v
 pytest tests/ -v
 ```
@@ -59,25 +65,24 @@ pytest tests/ -v
 Intended Org/Repo: `StegVerse-org/StegVerse-SDK`
 
 ```text
-optional console script entry point in pyproject.toml after CLI interface stabilizes
-optional fixture import from universal-transition-table-test-path once cross-repo fixture transport is installed
+No remaining files for Goal 2 activation.
 ```
 
 Intended Org/Repo: `StegVerse-org/core-node-runtime-demo`
 
 ```text
-Goal 2 activation-ready; no remaining files for current route
+Goal 2 activation-ready; no remaining files for current route.
 ```
 
 Intended Org/Repo: `StegVerse-org/universal-transition-table-test-path`
 
 ```text
-admissibility wiki sync source once available
+admissibility wiki sync source once available.
 ```
 
-## Next step
+## Next integration goal candidate
 
-Continue with cross-repo fixture transport only after this SDK path is green.
+Goal 3 candidate: direct artifact transport from `universal-transition-table-test-path` into `StegVerse-SDK`, then into `core-node-runtime-demo`, while preserving the non-authorizing Commitment Candidate boundary.
 
 ## Archive posture
 
