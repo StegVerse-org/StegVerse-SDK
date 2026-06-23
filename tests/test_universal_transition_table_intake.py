@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from stegverse.universal_transition_table_cli import main as intake_cli_main
 from stegverse.universal_transition_table_intake import (
     UniversalTransitionTableIntakeError,
     handle_universal_transition_table_package,
@@ -62,3 +63,26 @@ def test_universal_transition_table_intake_rejects_blocked_package(tmp_path: Pat
 
     with pytest.raises(UniversalTransitionTableIntakeError):
         handle_universal_transition_table_package(package_path, expected_path, replay_path)
+
+
+def test_universal_transition_table_cli_writes_output(tmp_path: Path) -> None:
+    package_path, expected_path, replay_path = make_fixture(tmp_path)
+    out_path = tmp_path / "sdk_intake_result.json"
+
+    status = intake_cli_main(
+        [
+            "--package",
+            str(package_path),
+            "--expected",
+            str(expected_path),
+            "--replay",
+            str(replay_path),
+            "--out",
+            str(out_path),
+        ]
+    )
+
+    result = json.loads(out_path.read_text(encoding="utf-8"))
+    assert status == 0
+    assert result["manifest"]["route_eligible"] is True
+    assert result["intake_receipt"]["accepted_for_intake"] is True
