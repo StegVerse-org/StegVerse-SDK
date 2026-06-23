@@ -1,0 +1,5 @@
+{
+  "package_id": "canonical-only-package-001",
+  "expected_construction_status": "CONSTRUCTED",
+  "expected_route_eligibility": true
+}
