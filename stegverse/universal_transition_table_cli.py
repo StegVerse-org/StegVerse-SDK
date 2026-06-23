@@ -17,6 +17,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--package", required=True, help="Path to transition_test_package.json")
     parser.add_argument("--expected", required=True, help="Path to expected_result.json")
     parser.add_argument("--replay", required=True, help="Path to machine_replay_packet.json")
+    parser.add_argument(
+        "--commitment-candidate",
+        required=False,
+        help="Optional path to non-authorizing commitment_candidate.json",
+    )
     parser.add_argument("--out", required=False, help="Optional output JSON path")
     return parser
 
@@ -27,6 +32,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.package,
         args.expected,
         args.replay,
+        args.commitment_candidate,
     )
     payload = json.dumps(result, indent=2) + "\n"
     if args.out:
