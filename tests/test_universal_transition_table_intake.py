@@ -174,3 +174,11 @@ def test_sdk_goal2_activation_verifier_passes() -> None:
     assert "PASS SDK Goal 2 fixture files present" in stdout
     assert "PASS SDK Goal 2 commitment candidate invariant holds" in stdout
     assert "PASS SDK Goal 2 activation verified" in stdout
+
+
+def test_artifact_transport_manifest_verifier_passes() -> None:
+    stdout = run_tool("verify_artifact_transport_manifest.py")
+
+    assert "PASS artifact transport manifest required files present" in stdout
+    assert "PASS artifact transport preserves non-authorizing invariant" in stdout
+    assert "PASS SDK artifact transport manifest verified" in stdout
