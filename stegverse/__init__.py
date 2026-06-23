@@ -8,6 +8,7 @@ Public API surface:
     govern_llm_output     — convenience function
     evaluate_admissibility_packet — evaluate dynamic admissibility tester packets
     handle_universal_transition_table_package — validate universal transition-table intake
+    validate_commitment_candidate — validate non-authorizing commitment candidates
 """
 
 __version__ = "1.0.0"
@@ -101,6 +102,7 @@ from .admissibility import (
 from .universal_transition_table_intake import (
     UniversalTransitionTableIntakeError,
     handle_universal_transition_table_package,
+    validate_commitment_candidate,
 )
 
 # --- Receipts ---
@@ -137,6 +139,7 @@ __all__ = [
     # Universal transition-table intake
     "UniversalTransitionTableIntakeError",
     "handle_universal_transition_table_package",
+    "validate_commitment_candidate",
     # Receipts
     "verify_receipt",
 ]
