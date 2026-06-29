@@ -1,0 +1,23 @@
+{
+  "schema": "stegverse.sdk.artifact_bundle_export.v1",
+  "bundle_id": "uttp-sdk-export-canonical-only-package-001",
+  "package_id": "canonical-only-package-001",
+  "source_repo": "StegVerse-org/StegVerse-SDK",
+  "intended_consumer_repo": "StegVerse-org/core-node-runtime-demo",
+  "export_mode": "declared_local_fixture",
+  "execution_enabled": false,
+  "artifacts": [
+    "artifact_transport_manifest.json",
+    "artifact_transport_receipt.json",
+    "transition_test_package.json",
+    "expected_result.json",
+    "replay_packet.json",
+    "commitment_candidate.json"
+  ],
+  "required_invariant": {
+    "commitment_candidate_authorizing": false,
+    "inherits_review_authority": false,
+    "implies_standing": false,
+    "requires_fresh_standing_determination": true
+  }
+}
