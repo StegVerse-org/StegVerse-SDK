@@ -30,10 +30,54 @@ The SDK supports:
 - raw JSON package submission;
 - governed-data package submission;
 - LLM Adapter submission;
+- governed LLM session packet validation, intake routing, manifest binding, and receipt handoff;
 - Ecosystem Chat intake validation;
 - formal testing route artifacts;
 - dynamic admissibility tests;
 - private boundary-review test packets.
+
+---
+
+## Governed LLM SDK activation
+
+The governed LLM SDK contract layer is documented in:
+
+```text
+docs/GOVERNED_LLM_SDK_ACTIVATION.md
+```
+
+The session packet contract is documented in:
+
+```text
+docs/GOVERNED_LLM_SESSION_PACKETS.md
+```
+
+The machine-readable capability manifest is:
+
+```text
+sdk.capabilities.json
+```
+
+Current SDK chain:
+
+```text
+adapter session packet
+  -> SDK validation
+  -> SDK intake routing
+  -> SDK manifest binding
+  -> SDK receipt handoff
+```
+
+Local verification:
+
+```bash
+pytest tests/test_governed_llm.py
+pytest tests/test_governed_llm_session.py
+pytest tests/test_governed_llm_session_intake.py
+pytest tests/test_governed_llm_manifest.py
+pytest tests/test_governed_llm_receipt.py
+python scripts/smoke_governed_llm_sdk.py
+```
 
 ---
 
@@ -117,11 +161,3 @@ cd StegVerse-SDK
 pip install -e ".[dev]"
 pytest tests/
 ```
-
----
-
-## Boundary rule
-
-Private review, artifact inspection, repository review, or technical comments do not become public attribution, endorsement, compatibility recognition, collaboration, provenance recognition, validation, semantic attribution, conceptual attribution, or publication authorization.
-
-The SDK prepares bounded test artifacts. It does not convert review into authority.
