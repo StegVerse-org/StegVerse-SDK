@@ -13,7 +13,7 @@ import hashlib
 import json
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Optional, Sequence
 
 
 SCHEMA_VERSION = "stegverse.governed_llm.v0.1"
@@ -124,7 +124,7 @@ class GovernedResponseReceipt:
         return stable_hash(self.to_dict())
 
 
-def classify_query_purpose(query: str, requested_purpose: str | None = None) -> str:
+def classify_query_purpose(query: str, requested_purpose: Optional[str] = None) -> str:
     """Classify query purpose with simple deterministic rules.
 
     Provider-specific semantic classification can replace this later.  The SDK
@@ -161,11 +161,11 @@ def build_query_packet(
     query: str,
     *,
     allowed_sources: Sequence[str] = ("model_knowledge",),
-    purpose: str | None = None,
+    purpose: Optional[str] = None,
     transition_class: str = "candidate_response",
     evidence: Sequence[EvidencePointer] = (),
-    policy: Mapping[str, Any] | None = None,
-    delegation: Mapping[str, Any] | None = None,
+    policy: Optional[Mapping[str, Any]] = None,
+    delegation: Optional[Mapping[str, Any]] = None,
 ) -> GovernedQueryPacket:
     """Build a receipt-ready query packet for governed retrieval."""
 
