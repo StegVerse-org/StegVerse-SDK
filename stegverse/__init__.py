@@ -9,6 +9,8 @@ Public API surface:
     evaluate_admissibility_packet — evaluate dynamic admissibility tester packets
     handle_universal_transition_table_package — validate universal transition-table intake
     validate_commitment_candidate — validate non-authorizing commitment candidates
+    build_query_packet    — build governed LLM retrieval/evidence packet
+    build_response_receipt — build reconstructable governed LLM response receipt
 """
 
 __version__ = "1.0.0"
@@ -85,6 +87,23 @@ def govern_llm_output(
     }
 
 
+# --- Governed LLM reconstruction contracts ---
+from .governed_llm import (
+    CRITICAL_RISK,
+    HIGH_RISK,
+    LOW_RISK,
+    MEDIUM_RISK,
+    SCHEMA_VERSION as GOVERNED_LLM_SCHEMA_VERSION,
+    EvidencePointer,
+    GovernedQueryPacket,
+    GovernedResponseReceipt,
+    build_query_packet,
+    build_response_receipt,
+    classify_query_purpose,
+    classify_risk_tier,
+    reconstruction_summary,
+)
+
 # --- Dynamic admissibility packets ---
 from .admissibility import (
     AdmissibilityDecision,
@@ -126,6 +145,20 @@ __all__ = [
     "LLMProvider",
     "CanonicalIntent",
     "govern_llm_output",
+    # Governed LLM reconstruction contracts
+    "GOVERNED_LLM_SCHEMA_VERSION",
+    "LOW_RISK",
+    "MEDIUM_RISK",
+    "HIGH_RISK",
+    "CRITICAL_RISK",
+    "EvidencePointer",
+    "GovernedQueryPacket",
+    "GovernedResponseReceipt",
+    "build_query_packet",
+    "build_response_receipt",
+    "classify_query_purpose",
+    "classify_risk_tier",
+    "reconstruction_summary",
     # Dynamic admissibility
     "AdmissibilityDecision",
     "DEFAULT_ROUTES",
