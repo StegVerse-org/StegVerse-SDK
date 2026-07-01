@@ -12,6 +12,7 @@ Public API surface:
     build_query_packet    — build governed LLM retrieval/evidence packet
     build_response_receipt — build reconstructable governed LLM response receipt
     validate_governed_llm_session_packet — validate complete adapter session packets
+    intake_governed_llm_session_packet — produce route-ready SDK intake result
 """
 
 __version__ = "1.0.0"
@@ -112,6 +113,11 @@ from .governed_llm_session import (
     SESSION_PACKET_SCHEMA_VERSION,
     validate_governed_llm_session_packet,
 )
+from .governed_llm_session_intake import (
+    GovernedLLMSessionIntakeResult,
+    SESSION_INTAKE_SCHEMA_VERSION,
+    intake_governed_llm_session_packet,
+)
 
 # --- Dynamic admissibility packets ---
 from .admissibility import (
@@ -170,9 +176,12 @@ __all__ = [
     "reconstruction_summary",
     # Governed LLM full session packets
     "SESSION_PACKET_SCHEMA_VERSION",
+    "SESSION_INTAKE_SCHEMA_VERSION",
     "GovernedLLMSessionDecision",
+    "GovernedLLMSessionIntakeResult",
     "GovernedLLMSessionValidationError",
     "validate_governed_llm_session_packet",
+    "intake_governed_llm_session_packet",
     # Dynamic admissibility
     "AdmissibilityDecision",
     "DEFAULT_ROUTES",
