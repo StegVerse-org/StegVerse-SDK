@@ -10,9 +10,11 @@ The SDK intake wrapper turns the validation decision into route-ready guidance: 
 
 The SDK manifest binder turns the packet and intake result into a receipt-ready manifest object.
 
+The SDK receipt handoff binder links the manifest to a retained receipt-ready handoff object.
+
 ## Done State
 
-SDK intake is aligned when it can validate, route, and bind a packet containing:
+SDK intake is aligned when it can validate, route, bind, and prepare receipt handoff for a packet containing:
 
 ```text
 provider_request
@@ -51,6 +53,15 @@ from stegverse import build_governed_llm_manifest
 
 manifest = build_governed_llm_manifest(session_packet)
 print(manifest["manifest_hash"])
+```
+
+## Receipt Handoff Function
+
+```python
+from stegverse import build_governed_llm_receipt_handoff
+
+handoff = build_governed_llm_receipt_handoff(session_packet)
+print(handoff["receipt_handoff_hash"])
 ```
 
 ## Validation Rules
@@ -94,6 +105,23 @@ intake
 
 The manifest is receipt-ready. It is not execution, authority, or downstream installation.
 
+## Receipt Handoff Fields
+
+```text
+schema_version
+created_at
+receipt_status
+manifest_hash
+session_hash
+intake_decision
+route
+retain_record
+receipt_handoff_hash
+manifest
+```
+
+The receipt handoff is retention-ready. It is not execution, authority, downstream installation, or master-record persistence by itself.
+
 ## Boundary
 
 ```text
@@ -104,13 +132,15 @@ Adapter packet intake is not authority.
 Adapter packet intake is route guidance only.
 Manifest binding is not execution.
 Manifest binding is receipt preparation only.
+Receipt handoff binding is not execution.
+Receipt handoff binding is not persistence by itself.
 ```
 
 ## Relationship to LLM-adapter
 
 `LLM-adapter` emits the governed session packet.
 
-`StegVerse-SDK` validates, routes, and binds the packet before the ecosystem decides whether to retain, route, quarantine, reject, or hand off the manifest.
+`StegVerse-SDK` validates, routes, binds, and prepares a receipt handoff before the ecosystem decides whether to retain, route, quarantine, reject, or persist the record.
 
 ## Local Verification
 
@@ -120,4 +150,5 @@ Run:
 pytest tests/test_governed_llm_session.py
 pytest tests/test_governed_llm_session_intake.py
 pytest tests/test_governed_llm_manifest.py
+pytest tests/test_governed_llm_receipt.py
 ```
