@@ -11,6 +11,7 @@ Public API surface:
     validate_commitment_candidate — validate non-authorizing commitment candidates
     build_query_packet    — build governed LLM retrieval/evidence packet
     build_response_receipt — build reconstructable governed LLM response receipt
+    validate_governed_llm_session_packet — validate complete adapter session packets
 """
 
 __version__ = "1.0.0"
@@ -104,6 +105,14 @@ from .governed_llm import (
     reconstruction_summary,
 )
 
+# --- Governed LLM full session packets ---
+from .governed_llm_session import (
+    GovernedLLMSessionDecision,
+    GovernedLLMSessionValidationError,
+    SESSION_PACKET_SCHEMA_VERSION,
+    validate_governed_llm_session_packet,
+)
+
 # --- Dynamic admissibility packets ---
 from .admissibility import (
     AdmissibilityDecision,
@@ -159,6 +168,11 @@ __all__ = [
     "classify_query_purpose",
     "classify_risk_tier",
     "reconstruction_summary",
+    # Governed LLM full session packets
+    "SESSION_PACKET_SCHEMA_VERSION",
+    "GovernedLLMSessionDecision",
+    "GovernedLLMSessionValidationError",
+    "validate_governed_llm_session_packet",
     # Dynamic admissibility
     "AdmissibilityDecision",
     "DEFAULT_ROUTES",
