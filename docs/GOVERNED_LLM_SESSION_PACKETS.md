@@ -8,9 +8,11 @@ The SDK validator does not execute actions and does not grant authority. It veri
 
 The SDK intake wrapper turns the validation decision into route-ready guidance: route, quarantine, reject, or fail closed.
 
+The SDK manifest binder turns the packet and intake result into a receipt-ready manifest object.
+
 ## Done State
 
-SDK intake is aligned when it can validate and route a packet containing:
+SDK intake is aligned when it can validate, route, and bind a packet containing:
 
 ```text
 provider_request
@@ -42,6 +44,15 @@ intake = intake_governed_llm_session_packet(session_packet)
 print(intake.to_dict())
 ```
 
+## Manifest Binding Function
+
+```python
+from stegverse import build_governed_llm_manifest
+
+manifest = build_governed_llm_manifest(session_packet)
+print(manifest["manifest_hash"])
+```
+
 ## Validation Rules
 
 | Rule | Result |
@@ -66,6 +77,23 @@ print(intake.to_dict())
 | malformed packet | `REJECT` | `reject_malformed_packet` |
 | unresolved / fail closed | `FAIL_CLOSED` | `fail_closed_unresolved_session` |
 
+## Manifest Fields
+
+```text
+schema_version
+created_at
+manifest_type
+source_repo
+session_hash
+intake_decision
+route
+retain_record
+manifest_hash
+intake
+```
+
+The manifest is receipt-ready. It is not execution, authority, or downstream installation.
+
 ## Boundary
 
 ```text
@@ -74,13 +102,15 @@ Adapter packet validation is not authority.
 Adapter packet intake is not execution.
 Adapter packet intake is not authority.
 Adapter packet intake is route guidance only.
+Manifest binding is not execution.
+Manifest binding is receipt preparation only.
 ```
 
 ## Relationship to LLM-adapter
 
 `LLM-adapter` emits the governed session packet.
 
-`StegVerse-SDK` validates the packet before the ecosystem decides whether to retain, route, quarantine, or reject it.
+`StegVerse-SDK` validates, routes, and binds the packet before the ecosystem decides whether to retain, route, quarantine, reject, or hand off the manifest.
 
 ## Local Verification
 
@@ -89,4 +119,5 @@ Run:
 ```bash
 pytest tests/test_governed_llm_session.py
 pytest tests/test_governed_llm_session_intake.py
+pytest tests/test_governed_llm_manifest.py
 ```
