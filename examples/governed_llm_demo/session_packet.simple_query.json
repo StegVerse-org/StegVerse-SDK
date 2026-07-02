@@ -1,0 +1,17 @@
+{
+  "query": "What is the capital of France?",
+  "request_hash": "115049a298532be2f181edb03f766770c0db84c22aff39003fec340deaec7545",
+  "provider_response": "Informational answer: the capital of France is Paris.",
+  "evidence": {
+    "sources": [
+      "fixtures/basic_source"
+    ],
+    "stale": false
+  },
+  "action": "NONE",
+  "authority_decision": "ALLOW",
+  "receipt_id": "demo-receipt-id",
+  "action_route": null,
+  "commitment_request": null,
+  "execution_handoff": null
+}
