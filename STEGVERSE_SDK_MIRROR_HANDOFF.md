@@ -6,84 +6,80 @@ This file is the handoff source of truth for `StegVerse-org/StegVerse-SDK` until
 
 ## Active goal
 
-Goal 2: Universal transition-table SDK intake path.
+Goal 3: Governed LLM end-to-end demonstrator SDK intake sync.
 
-The repository now proves:
+The repository should prove:
 
 ```text
-universal transition-table package fixture
-→ non-authorizing Commitment Candidate fixture
-→ SDK intake adapter
-→ Commitment Candidate receipt
-→ manifest
-→ intake receipt
-→ route eligibility receipt
-→ Goal 2 activation verifier
+LLM-adapter governed session packet
+-> SDK session validation
+-> SDK intake routing
+-> SDK manifest binding
+-> SDK receipt handoff
+-> demo packet verification
 ```
 
-No live ingestion, sandbox, runtime, commit-time standing determination, execution approval, or production trust-kernel execution is added by this path.
+No live ingestion, sandbox execution, runtime execution, commit-time standing determination, execution approval, or production trust-kernel execution is added by this path.
 
-## Installed files
+## Installed baseline already present
 
 ```text
-stegverse/universal_transition_table_intake.py
-stegverse/universal_transition_table_cli.py
-tests/test_universal_transition_table_intake.py
-tools/verify_universal_transition_table_intake_fixture.py
-tools/verify_goal2_activation.py
-docs/UNIVERSAL_TRANSITION_TABLE_INTAKE.md
-examples/universal_transition_table_intake/README.md
-examples/universal_transition_table_intake/transition_test_package.json
-examples/universal_transition_table_intake/expected_result.json
-examples/universal_transition_table_intake/replay_packet.json
-examples/universal_transition_table_intake/commitment_candidate.json
-stegverse/__init__.py exports handle_universal_transition_table_package and validate_commitment_candidate
-github/workflows/sdk-demo-test.yml shown without leading period; actual path is dot-github workflows sdk-demo-test.yml
+sdk.capabilities.json
+docs/GOVERNED_LLM_SDK_ACTIVATION.md
+docs/GOVERNED_LLM_SESSION_PACKETS.md
+scripts/smoke_governed_llm_sdk.py
+stegverse/governed_llm_session.py
+stegverse/governed_llm_session_intake.py
+stegverse/governed_llm_manifest.py
+stegverse/governed_llm_receipt.py
+tests/test_governed_llm_session.py
+tests/test_governed_llm_session_intake.py
+tests/test_governed_llm_manifest.py
+tests/test_governed_llm_receipt.py
+```
+
+## Files to install for Goal 3
+
+```text
+examples/governed_llm_demo/session_packet.simple_query.json
+examples/governed_llm_demo/README.md
+scripts/verify_governed_llm_demo_packet.py
+tests/test_governed_llm_demo_packet.py
 ```
 
 ## Required invariant
 
 ```text
-candidate_type == COMMITMENT_CANDIDATE
-authorizing == false
-inherits_review_authority == false
-implies_standing == false
-requires_fresh_standing_determination == true
+sdk_validation_is_execution == false
+sdk_intake_is_authority == false
+manifest_binding_is_persistence == false
+receipt_handoff_is_master_record_installation == false
+demo_packet_source == LLM-adapter
 ```
 
 ## Verification commands
 
 ```bash
-python tools/verify_goal2_activation.py
-python tools/verify_universal_transition_table_intake_fixture.py
-pytest tests/test_universal_transition_table_intake.py -v
-pytest tests/ -v
+python scripts/smoke_governed_llm_sdk.py
+python scripts/verify_governed_llm_demo_packet.py
+pytest tests/test_governed_llm_demo_packet.py -v
+pytest tests/test_governed_llm_session.py tests/test_governed_llm_session_intake.py tests/test_governed_llm_manifest.py tests/test_governed_llm_receipt.py -v
 ```
 
-## Remaining files or modules to install
-
-Intended Org/Repo: `StegVerse-org/StegVerse-SDK`
+## Upstream sync target
 
 ```text
-No remaining files for Goal 2 activation.
+StegVerse-org/LLM-adapter
+  -> emits the governed session demo packet
 ```
 
-Intended Org/Repo: `StegVerse-org/core-node-runtime-demo`
+## Downstream sync target
 
 ```text
-Goal 2 activation-ready; no remaining files for current route.
+StegVerse-Labs/admissibility-wiki
+  -> documents the public demo overview and verification path
 ```
-
-Intended Org/Repo: `StegVerse-org/universal-transition-table-test-path`
-
-```text
-admissibility wiki sync source once available.
-```
-
-## Next integration goal candidate
-
-Goal 3 candidate: direct artifact transport from `universal-transition-table-test-path` into `StegVerse-SDK`, then into `core-node-runtime-demo`, while preserving the non-authorizing Commitment Candidate boundary.
 
 ## Archive posture
 
-This handoff preserves the current build state so the complete thread can be archived without needing additional context to continue.
+Not archive-ready until demo packet verification is installed and the wiki handoff reflects the demonstrator.
