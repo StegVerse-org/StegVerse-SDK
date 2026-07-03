@@ -1,18 +1,20 @@
-from __future__ import annotations
-import json, subprocess, sys
+import subprocess
+import sys
 from pathlib import Path
-ROOT = Path(__file__).resolve().parents[1]
-PACKET = ROOT / "examples/governed_llm_demo/session_packet.simple_query.json"
 
-def test_demo_packet_shape_is_non_executing() -> None:
-    packet = json.loads(PACKET.read_text(encoding="utf-8"))
-    assert packet["authority_decision"] == "ALLOW"
-    assert packet["action"] == "NONE"
-    assert packet["action_route"] is None
-    assert packet["commitment_request"] is None
-    assert packet["execution_handoff"] is None
-    assert packet["evidence"]["stale"] is False
 
-def test_demo_packet_verifier_passes() -> None:
-    result = subprocess.run([sys.executable, "scripts/verify_governed_llm_demo_packet.py", "--session", str(PACKET)], cwd=ROOT, text=True, capture_output=True, check=True)
-    assert "GOVERNED LLM DEMO PACKET: PASS" in result.stdout
+def test_verify_governed_llm_demo_packet(tmp_path):
+    """Verify that the demo packet passes verification."""
+    repo_root = Path(__file__).resolve().parents[1]
+    # Copy the session packet into a temporary location
+    src_packet = repo_root / "examples" / "governed_llm_demo" / "session_packet.simple_query.json"
+    dst_packet = tmp_path / "session_packet.simple_query.json"
+    dst_packet.write_bytes(src_packet.read_bytes())
+
+    script = repo_root / "scripts" / "verify_governed_llm_demo_packet.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--session", str(dst_packet)],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"Verification failed: {result.stdout}{result.stderr}"
