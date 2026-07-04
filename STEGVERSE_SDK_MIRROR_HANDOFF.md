@@ -49,6 +49,7 @@ docs/MICRO_NODE_RETURN_PATH_SDK.md
 examples/micro_node_return_path/request.json
 examples/micro_node_return_path/governed_return.json
 scripts/verify_micro_node_return_path.py
+scripts/verify_goal4.py
 stegverse/micro_node_return_path.py
 tests/test_micro_node_return_path.py
 ```
@@ -68,15 +69,20 @@ commitment_request_is_authority == false
 returned_to_origin == true
 ```
 
-## Verification commands
+## Canonical verification command
+
+```bash
+python scripts/verify_goal4.py
+```
+
+The aggregate verifier runs:
 
 ```bash
 python scripts/smoke_governed_llm_sdk.py
 python scripts/verify_governed_llm_demo_packet.py
-pytest tests/test_governed_llm_demo_packet.py -v
-pytest tests/test_governed_llm_session.py tests/test_governed_llm_session_intake.py tests/test_governed_llm_manifest.py tests/test_governed_llm_receipt.py -v
+python -m pytest tests/test_governed_llm_demo_packet.py -v
 python scripts/verify_micro_node_return_path.py
-pytest tests/test_micro_node_return_path.py -v
+python -m pytest tests/test_micro_node_return_path.py -v
 ```
 
 ## Upstream sync targets
@@ -92,17 +98,15 @@ StegVerse-org/LLM-adapter
 ```text
 StegVerse-Labs/admissibility-wiki
   -> documents the public demo overview and verification path
-  -> should publish the Goal 4 portable governed return-path proof after adapter and SDK checks are green
+  -> publishes the Goal 4 portable governed return-path proof
 ```
 
 ## Remaining files or modules to install
 
-Intended Org/Repo: `StegVerse-Labs/admissibility-wiki`
-
 ```text
-Public documentation update after adapter and SDK Goal 4 proof paths are green.
+None for SDK Goal 4 fixture-bound proof.
 ```
 
 ## Archive posture
 
-Not archive-ready until the adapter and SDK Goal 4 verification commands pass and the wiki handoff reflects the portable governed return-path proof.
+Not archive-ready until the aggregate Goal 4 verification command passes in a live clone/Codespaces environment and the wiki handoff reflects the portable governed return-path proof.
