@@ -26,6 +26,7 @@ StegVerse-org/LLM-adapter
 StegVerse-Labs/Site
   -> ecosystem-chat.html display-only Bounded free-tier trust display installed
   -> scripts/check_site_llm_free_tier_trust.py installed
+  -> site-public-mirror-status-guard.yml runs the LLM free-tier checker
 ```
 
 ## Goal 4 SDK validation surface
@@ -48,6 +49,7 @@ LLM-adapter free_tier_trust metadata
 -> deterministic validation result
 -> non-authorizing SDK status
 -> downstream Site / adapter compatibility signal
+-> SDK demo workflow verification
 ```
 
 ## Installed for Goal 4
@@ -65,10 +67,12 @@ tests/test_micro_node_adapter_fixture.py
 ```text
 docs/FREE_TIER_METADATA_INGESTION.md
 stegverse/free_tier_metadata.py
+stegverse/__init__.py exports validate_free_tier_metadata and FreeTierMetadataResult
 tests/test_free_tier_metadata.py
 scripts/verify_free_tier_metadata_ingestion.py
 sdk.capabilities.json updated with free-tier metadata ingestion fields
 README.md updated with free-tier metadata ingestion section
+.github/workflows/sdk-demo-test.yml verifies free-tier metadata ingestion and wheel import
 SDK_MIRROR_HANDOFF.md updated
 ```
 
@@ -89,6 +93,7 @@ replay_grants_commit_time_standing == false
 reconstruction_grants_commit_time_standing == false
 upgrade_changes_admissibility_requirements == false
 sdk_ingestion_performs_side_effects == false
+manual_demo_ingestion_trigger_required == false
 ```
 
 ## Verification commands
@@ -101,6 +106,13 @@ pytest tests/test_free_tier_metadata.py -v
 pytest tests/ -v
 ```
 
+The SDK demo workflow now runs:
+
+```text
+python scripts/verify_free_tier_metadata_ingestion.py
+python -c "from stegverse import validate_free_tier_metadata; print('Free-tier metadata ingestion import: OK')"
+```
+
 ## Downstream sync targets
 
 ```text
@@ -111,14 +123,23 @@ StegVerse-org/LLM-adapter
   -> remains source for free_tier_trust schema and capability manifest
 
 StegVerse-Labs/admissibility-wiki
-  -> document portable governed return-path proof once SDK validation is green
+  -> document portable governed return-path proof and LLM free-tier trust chain once SDK validation is green
+
+GCAT-BCAT-Engine/Publisher
+  -> publication/import awareness after Site and SDK validation
+
+stegguardian-wiki
+  -> downstream summary after Site and SDK validation
 ```
 
 ## Remaining files or modules to install
 
 ```text
 StegVerse-org/StegVerse-SDK:
-  - optional aggregate verifier/workflow wiring for scripts/verify_free_tier_metadata_ingestion.py if an appropriate SDK guard exists
+  - no known Goal 8 SDK-side files remain at this handoff
+
+StegVerse-Labs/admissibility-wiki:
+  - optional public documentation of the Site + LLM-adapter + SDK bounded free-tier trust chain
 ```
 
 ## Archive posture
