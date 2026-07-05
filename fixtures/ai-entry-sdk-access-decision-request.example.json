@@ -1,0 +1,21 @@
+{
+  "schema_version": "stegverse.sdk.ai_entry.access_decision_request.v0.1",
+  "request_id": "sdk-access-preview-0001",
+  "activation_request_id": "backend-activation-preview-0001",
+  "authority_decision": "DENY",
+  "actor_identity_context": {
+    "actor_known": false,
+    "actor_authorized": false
+  },
+  "requested_sdk_scope": {
+    "scope_known": true,
+    "scope": "ai-entry-preview",
+    "live_access_requested": false
+  },
+  "requested_access": {
+    "grant_sdk_access": false,
+    "enable_credentials": false,
+    "allow_live_sdk_calls": false,
+    "allow_execution": false
+  }
+}
