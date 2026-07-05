@@ -1,0 +1,13 @@
+{
+  "schema_version": "stegverse.sdk.ai_entry.receipt_preview_request.v0.1",
+  "request_id": "receipt-preview-0001",
+  "activation_request_id": "backend-activation-preview-0001",
+  "authority_decision": "DENY",
+  "input_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "route_id": "activation_request_preview",
+  "requested_receipt": {
+    "issue_real_receipt": false,
+    "persist_receipt": false,
+    "enable_reconstruction": false
+  }
+}
