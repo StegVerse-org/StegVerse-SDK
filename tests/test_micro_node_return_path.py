@@ -7,8 +7,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-import pytest
-
 from stegverse.micro_node_return_path import (
     MicroNodeReturnPathValidationError,
     validate_micro_node_return_path,
@@ -47,5 +45,8 @@ def test_micro_node_return_path_rejects_malformed_request() -> None:
     governed_return = read_fixture("governed_return.json")
     del request["return_path"]
 
-    with pytest.raises(MicroNodeReturnPathValidationError):
+    try:
         validate_micro_node_return_path(request, governed_return)
+    except MicroNodeReturnPathValidationError:
+        return
+    raise AssertionError("malformed request should raise MicroNodeReturnPathValidationError")
