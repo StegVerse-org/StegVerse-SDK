@@ -32,26 +32,42 @@ def run_command(command: Sequence[str]) -> dict[str, object]:
         stderr=subprocess.STDOUT,
         check=False,
     )
+    output = completed.stdout
+    print("$ " + " ".join(command))
+    print(output.rstrip())
     return {
         "command": " ".join(command),
         "returncode": completed.returncode,
         "passed": completed.returncode == 0,
-        "output": completed.stdout,
+        "output": output,
     }
 
 
 def main() -> int:
-    results = [run_command(command) for command in COMMANDS]
-    passed = all(bool(result["passed"]) for result in results)
+    results: list[dict[str, object]] = []
+    for command in COMMANDS:
+        result = run_command(command)
+        results.append(result)
+        if not result["passed"]:
+            report = {
+                "goal": "SDK AI Entry checks",
+                "repository": "StegVerse-org/StegVerse-SDK",
+                "complete": False,
+                "failed_command": result["command"],
+                "returncode": result["returncode"],
+                "next_step": "repair failed_command output",
+            }
+            print(json.dumps(report, indent=2, sort_keys=True))
+            return 1
     report = {
         "goal": "SDK AI Entry checks",
         "repository": "StegVerse-org/StegVerse-SDK",
-        "complete": passed,
+        "complete": True,
         "results": results,
-        "next_step": "review command output" if passed else "repair failing command output",
+        "next_step": "review command output",
     }
     print(json.dumps(report, indent=2, sort_keys=True))
-    return 0 if passed else 1
+    return 0
 
 
 if __name__ == "__main__":
