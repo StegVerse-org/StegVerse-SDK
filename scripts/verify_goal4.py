@@ -22,6 +22,7 @@ COMMANDS: tuple[tuple[str, ...], ...] = (
     (sys.executable, "scripts/check_ai_entry_receipt_issuer_boundary.py"),
     (sys.executable, "scripts/check_ai_entry_receipt_preview_fixtures.py"),
     (sys.executable, "scripts/check_ai_entry_sdk_access_decision_boundary.py"),
+    (sys.executable, "scripts/check_ai_entry_sdk_access_decision_fixtures.py"),
     (sys.executable, "scripts/check_ai_entry_no_manual_tasks.py"),
     (sys.executable, "-m", "pytest", "tests/test_micro_node_return_path.py", "-v"),
     (sys.executable, "-m", "pytest", "tests/test_ai_entry_receipt_capture.py", "-v"),
