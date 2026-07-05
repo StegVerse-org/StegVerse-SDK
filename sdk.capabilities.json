@@ -1,7 +1,7 @@
 {
-  "schema_version": "stegverse.sdk.capabilities.v0.1",
+  "schema_version": "stegverse.sdk.capabilities.v0.2",
   "repo": "StegVerse-org/StegVerse-SDK",
-  "status": "governed-llm-contract-layer-active",
+  "status": "governed-llm-contract-layer-active-with-free-tier-metadata-ingestion",
   "governed_llm_surfaces": {
     "evidence_pointer_contracts": "built",
     "query_packet_contracts": "built",
@@ -9,13 +9,39 @@
     "session_packet_validation": "built",
     "session_packet_intake_routing": "built",
     "manifest_binding": "built",
-    "receipt_handoff_binding": "built"
+    "receipt_handoff_binding": "built",
+    "free_tier_metadata_ingestion": "built_non_authorizing",
+    "free_tier_metadata_shape_validation": "built_side_effect_free",
+    "free_tier_non_claim_validation": "built_side_effect_free"
+  },
+  "free_tier_metadata_ingestion": {
+    "source_repo": "StegVerse-org/LLM-adapter",
+    "source_response_field": "free_tier_trust",
+    "source_capability_manifest": "adapter.capabilities.json",
+    "sdk_doc": "docs/FREE_TIER_METADATA_INGESTION.md",
+    "sdk_module": "stegverse/free_tier_metadata.py",
+    "sdk_verifier": "scripts/verify_free_tier_metadata_ingestion.py",
+    "sdk_tests": "tests/test_free_tier_metadata.py",
+    "required_non_claims": {
+      "quota_allow_is_admissibility": false,
+      "quota_allow_is_execution_authority": false,
+      "limit_allow_is_execution_authority": false,
+      "free_tier_response_is_authority": false,
+      "replay_grants_commit_time_standing": false,
+      "reconstruction_grants_commit_time_standing": false,
+      "receipt_export_is_permanent_retention": false,
+      "upgrade_changes_admissibility_requirements": false
+    }
   },
   "explicit_non_claims": [
     "SDK validation is not execution.",
     "SDK intake routing is not authority.",
     "Manifest binding is not persistence by itself.",
     "Receipt handoff is not master-record installation by itself.",
+    "Free-tier metadata ingestion is not admissibility.",
+    "Free-tier metadata ingestion is not execution authority.",
+    "Free-tier metadata ingestion is not persistence.",
+    "Free-tier metadata ingestion does not grant commit-time standing.",
     "External executor integration remains outside this SDK contract layer."
   ],
   "local_verification": {
@@ -24,9 +50,11 @@
       "pytest tests/test_governed_llm_session.py",
       "pytest tests/test_governed_llm_session_intake.py",
       "pytest tests/test_governed_llm_manifest.py",
-      "pytest tests/test_governed_llm_receipt.py"
+      "pytest tests/test_governed_llm_receipt.py",
+      "pytest tests/test_free_tier_metadata.py"
     ],
-    "smoke_script": "python scripts/smoke_governed_llm_sdk.py"
+    "smoke_script": "python scripts/smoke_governed_llm_sdk.py",
+    "free_tier_metadata_verifier": "python scripts/verify_free_tier_metadata_ingestion.py"
   },
-  "activation_definition": "A governed LLM adapter session packet can be validated, routed, manifest-bound, and receipt-handoff-bound without execution, authority grant, or persistence side effect."
+  "activation_definition": "A governed LLM adapter session packet can be validated, routed, manifest-bound, receipt-handoff-bound, and paired with non-authorizing free-tier metadata ingestion without execution, authority grant, persistence side effect, or commit-time standing claim."
 }
