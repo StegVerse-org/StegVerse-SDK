@@ -1,0 +1,21 @@
+{
+  "schema_version": "stegverse.sdk.ai_entry.access_decision_response.v0.1",
+  "request_id": "sdk-access-preview-0001",
+  "activation_request_id": "backend-activation-preview-0001",
+  "sdk_access_decision": "DENY",
+  "decision_reason": "Preview-only SDK access boundary denies access because authority and credential-surface prerequisites are incomplete.",
+  "decision_outputs": {
+    "sdk_access_granted": false,
+    "credential_surface_enabled": false,
+    "live_sdk_calls_allowed": false,
+    "authority_issued": false,
+    "execution_allowed": false,
+    "real_receipt_issued": false
+  },
+  "missing_preconditions": [
+    "authority decision ALLOW",
+    "actor authorization",
+    "credential surface policy",
+    "operator recoverability boundary"
+  ]
+}
