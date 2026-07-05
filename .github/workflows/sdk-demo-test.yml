@@ -33,6 +33,10 @@ jobs:
           python -c "import stegverse; print(f'SDK version: {stegverse.__version__}')"
           python -c "from stegverse import submit_intent, StegVerseLLMAdapter, govern_llm_output, StegVerseSDK; print('Core imports: OK')"
           python -c "from stegverse import handle_universal_transition_table_package; print('Universal transition-table intake import: OK')"
+          python -c "from stegverse import validate_free_tier_metadata; print('Free-tier metadata ingestion import: OK')"
+
+      - name: Verify free-tier metadata ingestion
+        run: python scripts/verify_free_tier_metadata_ingestion.py
 
       - name: Run tests with pytest
         run: |
@@ -112,6 +116,7 @@ jobs:
           pip install dist/*.whl
           python -c "import stegverse; print(f'Wheel OK: {stegverse.__version__}')"
           python -c "from stegverse import handle_universal_transition_table_package; print('Wheel universal transition-table intake import: OK')"
+          python -c "from stegverse import validate_free_tier_metadata; print('Wheel free-tier metadata ingestion import: OK')"
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
@@ -224,4 +229,4 @@ jobs:
           echo "PyPI: https://pypi.org/project/stegverse-sdk/${{ github.ref_name }}"
           echo "Release: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
           echo ""
-          echo "To complete: manually trigger demo_ingest_engine with mode=orchestrate"
+          echo "To complete: demo_ingest_engine plan-mode artifact is available for governed orchestration"
