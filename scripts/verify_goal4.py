@@ -11,6 +11,7 @@ from typing import Sequence
 ROOT = Path(__file__).resolve().parents[1]
 
 COMMANDS: tuple[tuple[str, ...], ...] = (
+    (sys.executable, "scripts/check_workflow_parity.py"),
     (sys.executable, "scripts/check_sdk_local_import_path.py"),
     (sys.executable, "scripts/smoke_governed_llm_sdk.py"),
     (sys.executable, "scripts/verify_governed_llm_demo_packet.py"),
