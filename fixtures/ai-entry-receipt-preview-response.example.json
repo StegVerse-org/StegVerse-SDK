@@ -1,0 +1,20 @@
+{
+  "schema_version": "stegverse.sdk.ai_entry.receipt_preview_response.v0.1",
+  "request_id": "receipt-preview-0001",
+  "activation_request_id": "backend-activation-preview-0001",
+  "receipt_id": "preview-not-issued",
+  "status": "NOT_ISSUED",
+  "receipt_preview": {
+    "issued": false,
+    "persisted": false,
+    "reconstruction_available": false,
+    "authority_decision": "DENY",
+    "route_id": "activation_request_preview"
+  },
+  "missing_preconditions": [
+    "authority decision ALLOW",
+    "provider capture boundary",
+    "reconstruction metadata boundary",
+    "persistence target boundary"
+  ]
+}
