@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run Goal 4 SDK micro-node return-path verification without network access."""
+"""Run SDK governed return-path and AI Entry receipt-capture verification without network access."""
 from __future__ import annotations
 
 import json
@@ -15,7 +15,9 @@ COMMANDS: tuple[tuple[str, ...], ...] = (
     (sys.executable, "scripts/verify_governed_llm_demo_packet.py"),
     (sys.executable, "-m", "pytest", "tests/test_governed_llm_demo_packet.py", "-v"),
     (sys.executable, "scripts/verify_micro_node_return_path.py"),
+    (sys.executable, "scripts/verify_ai_entry_receipt_capture.py"),
     (sys.executable, "-m", "pytest", "tests/test_micro_node_return_path.py", "-v"),
+    (sys.executable, "-m", "pytest", "tests/test_ai_entry_receipt_capture.py", "-v"),
 )
 
 
@@ -40,11 +42,11 @@ def main() -> int:
     results = [run_command(command) for command in COMMANDS]
     passed = all(bool(result["passed"]) for result in results)
     report = {
-        "goal": "Goal 4 SDK micro-node governed return-path validation",
+        "goal": "Goal 6 SDK AI Entry receipt-capture boundary over Goal 4 return-path validation",
         "repository": "StegVerse-org/StegVerse-SDK",
         "complete": passed,
         "results": results,
-        "next_step": "sync public Site proof state" if passed else "repair failing command output",
+        "next_step": "select governed backend service repo" if passed else "repair failing command output",
     }
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0 if passed else 1
