@@ -32,6 +32,7 @@ The SDK supports:
 - LLM Adapter submission;
 - governed LLM session packet validation, intake routing, manifest binding, and receipt handoff;
 - Ecosystem Chat intake validation;
+- LLM Adapter free-tier trust metadata ingestion;
 - formal testing route artifacts;
 - dynamic admissibility tests;
 - private boundary-review test packets.
@@ -52,6 +53,12 @@ The session packet contract is documented in:
 docs/GOVERNED_LLM_SESSION_PACKETS.md
 ```
 
+The free-tier metadata ingestion contract is documented in:
+
+```text
+docs/FREE_TIER_METADATA_INGESTION.md
+```
+
 The machine-readable capability manifest is:
 
 ```text
@@ -66,6 +73,7 @@ adapter session packet
   -> SDK intake routing
   -> SDK manifest binding
   -> SDK receipt handoff
+  -> optional free_tier_trust metadata validation
 ```
 
 Local verification:
@@ -76,8 +84,28 @@ pytest tests/test_governed_llm_session.py
 pytest tests/test_governed_llm_session_intake.py
 pytest tests/test_governed_llm_manifest.py
 pytest tests/test_governed_llm_receipt.py
+pytest tests/test_free_tier_metadata.py
 python scripts/smoke_governed_llm_sdk.py
+python scripts/verify_free_tier_metadata_ingestion.py
 ```
+
+---
+
+## LLM free-tier metadata ingestion
+
+The SDK can validate the `free_tier_trust` response field emitted by `StegVerse-org/LLM-adapter` and displayed by `StegVerse-Labs/Site`.
+
+```text
+LLM-adapter free_tier_trust metadata
+-> SDK metadata ingestion contract
+-> deterministic validation result
+-> non-authorizing SDK status
+-> downstream compatibility signal
+```
+
+This contract validates shape, quota metadata, receipt/replay/reconstruction metadata, upgrade reasons, and explicit non-claims.
+
+It does not call a provider, persist records, issue receipts, export audit packets, replay sessions, reconstruct sessions, grant execution authority, or convert quota availability into admissibility.
 
 ---
 
@@ -89,6 +117,7 @@ python scripts/smoke_governed_llm_sdk.py
 | Formal Testing Route | Receipt-bound testing-data loop and route result validation | `.github/workflows/formal-testing-route-validate.yml`, `docs/FORMAL_TESTING_ROUTE.md` |
 | Dynamic Admissibility | Boundary and admissibility fixture checks | `.github/workflows/dynamic-admissibility-tests.yml` |
 | Ecosystem Chat Intake | Site-facing three-layer intake validation | `stegverse/ecosystem_chat_http.py` |
+| Free-Tier Metadata Ingestion | LLM-adapter `free_tier_trust` metadata validation | `stegverse/free_tier_metadata.py` |
 
 ---
 
