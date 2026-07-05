@@ -1,0 +1,33 @@
+{
+  "schema_version": "stegverse.sdk.ai_entry.access_decision_boundary.v0.1",
+  "goal": "SDK access decision boundary",
+  "state": "boundary_defined_preview_only",
+  "access_decision": {
+    "name": "sdk-ai-entry-access-decision-preview",
+    "purpose": "Define the SDK-side decision boundary required before AI Entry can request SDK-backed access.",
+    "mode": "preview_only",
+    "default_decision": "DENY"
+  },
+  "required_before_allow": [
+    "authority decision ALLOW",
+    "actor identity context",
+    "requested SDK scope",
+    "credential surface policy",
+    "receipt issuer boundary",
+    "operator recoverability boundary"
+  ],
+  "non_granting_contract": {
+    "sdk_access_granted": false,
+    "credential_surface_enabled": false,
+    "live_sdk_calls_allowed": false,
+    "authority_issued": false,
+    "execution_allowed": false,
+    "real_receipt_issued": false
+  },
+  "next_build_targets": [
+    "SDK access decision request fixture",
+    "SDK access decision response fixture",
+    "SDK access decision verifier",
+    "SDK access completion index"
+  ]
+}
