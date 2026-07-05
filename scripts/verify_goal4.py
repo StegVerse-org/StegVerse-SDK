@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 COMMANDS: tuple[tuple[str, ...], ...] = (
     (sys.executable, "scripts/smoke_governed_llm_sdk.py"),
     (sys.executable, "scripts/verify_governed_llm_demo_packet.py"),
+    (sys.executable, "scripts/check_pytest_compatibility_surface.py"),
     (sys.executable, "-m", "pytest", "tests/test_governed_llm_demo_packet.py", "-v"),
     (sys.executable, "scripts/verify_micro_node_return_path.py"),
     (sys.executable, "scripts/verify_ai_entry_receipt_capture.py"),
