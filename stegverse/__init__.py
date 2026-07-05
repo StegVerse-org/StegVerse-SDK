@@ -15,6 +15,7 @@ Public API surface:
     intake_governed_llm_session_packet — produce route-ready SDK intake result
     build_governed_llm_manifest — bind governed LLM session packet into receipt-ready manifest
     build_governed_llm_receipt_handoff — bind governed LLM manifest into receipt handoff
+    validate_free_tier_metadata — validate LLM-adapter free_tier_trust metadata
 """
 
 __version__ = "1.0.0"
@@ -131,6 +132,12 @@ from .governed_llm_receipt import (
     build_governed_llm_receipt_handoff,
 )
 
+# --- LLM-adapter free-tier trust metadata ingestion ---
+from .free_tier_metadata import (
+    FreeTierMetadataResult,
+    validate_free_tier_metadata,
+)
+
 # --- Dynamic admissibility packets ---
 from .admissibility import (
     AdmissibilityDecision,
@@ -200,6 +207,9 @@ __all__ = [
     "intake_governed_llm_session_packet",
     "build_governed_llm_manifest",
     "build_governed_llm_receipt_handoff",
+    # LLM-adapter free-tier trust metadata ingestion
+    "FreeTierMetadataResult",
+    "validate_free_tier_metadata",
     # Dynamic admissibility
     "AdmissibilityDecision",
     "DEFAULT_ROUTES",
