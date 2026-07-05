@@ -1,0 +1,36 @@
+{
+  "schema_version": "stegverse.sdk.ai_entry.receipt_issuer_boundary.v0.1",
+  "goal": "AI Entry receipt issuer boundary",
+  "state": "boundary_defined_preview_only",
+  "receipt_issuer": {
+    "name": "sdk-ai-entry-receipt-issuer-preview",
+    "purpose": "Define the SDK-side receipt issuer boundary required before governed-live activation can issue real receipts.",
+    "mode": "preview_only",
+    "default_status": "NOT_ISSUED"
+  },
+  "required_before_real_receipt": [
+    "authority decision ALLOW",
+    "canonical input hash",
+    "governed route id",
+    "provider capture boundary",
+    "reconstruction metadata boundary",
+    "persistence target boundary"
+  ],
+  "preview_receipt_fields": [
+    "receipt_id",
+    "input_hash",
+    "route_id",
+    "authority_decision",
+    "issued",
+    "persisted",
+    "reconstruction_available"
+  ],
+  "non_issuing_contract": {
+    "real_receipt_issued": false,
+    "receipt_persisted": false,
+    "authority_issued": false,
+    "execution_allowed": false,
+    "credential_access_allowed": false,
+    "live_calls_allowed": false
+  }
+}
