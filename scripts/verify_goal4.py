@@ -19,6 +19,7 @@ COMMANDS: tuple[tuple[str, ...], ...] = (
     (sys.executable, "-m", "pytest", "tests/test_governed_llm_demo_packet.py", "-v"),
     (sys.executable, "scripts/verify_micro_node_return_path.py"),
     (sys.executable, "scripts/verify_ai_entry_receipt_capture.py"),
+    (sys.executable, "scripts/check_ai_entry_receipt_issuer_boundary.py"),
     (sys.executable, "scripts/check_ai_entry_no_manual_tasks.py"),
     (sys.executable, "-m", "pytest", "tests/test_micro_node_return_path.py", "-v"),
     (sys.executable, "-m", "pytest", "tests/test_ai_entry_receipt_capture.py", "-v"),
