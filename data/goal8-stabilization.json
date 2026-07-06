@@ -1,0 +1,16 @@
+{
+  "schema_version": "stegverse.sdk.goal8_stabilization.v0.1",
+  "goal": "Goal 8 stabilization verifier",
+  "state": "installed_surface_stabilized",
+  "handoff_source": "SDK_MIRROR_HANDOFF.md",
+  "active_goal": "SDK metadata ingestion contract",
+  "continuation_checkpoint": "data/goal8-continuation-checkpoint.json",
+  "required_validation": {
+    "ingestion_script": "scripts/verify_free_tier_metadata_ingestion.py",
+    "tests": "tests/test_free_tier_metadata.py",
+    "manifest": "sdk.capabilities.json",
+    "docs": "docs/FREE_TIER_METADATA_INGESTION.md"
+  },
+  "manual_tasks_remaining": [],
+  "next_goal_candidate": "Goal 8 completion checkpoint"
+}
