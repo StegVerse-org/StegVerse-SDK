@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECKPOINT = ROOT / "data" / "goal8-completion-checkpoint.json"
+CONFIRMATION = ROOT / "data" / "sdk-validation-visibility-confirmation.json"
 
 
 def stop(message: str) -> None:
@@ -28,6 +29,13 @@ def main() -> int:
             stop(f"{label} path missing")
         if not (ROOT / rel_path).exists():
             stop(f"repository missing {rel_path}")
+    confirmation = json.loads(CONFIRMATION.read_text(encoding="utf-8"))
+    if confirmation.get("schema_version") != "stegverse.sdk.validation_visibility_confirmation.v0.1":
+        stop("bad validation visibility confirmation schema")
+    if confirmation.get("goal8_completion_checkpoint") != "data/goal8-completion-checkpoint.json":
+        stop("validation confirmation pointer mismatch")
+    if confirmation.get("manual_tasks_remaining") != []:
+        stop("validation confirmation manual tasks must remain empty")
     if data.get("manual_tasks_remaining") != []:
         stop("manual tasks must remain empty")
     if data.get("next_goal_candidate") != "SDK validation visibility confirmation":
