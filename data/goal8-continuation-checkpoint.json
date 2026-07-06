@@ -1,0 +1,17 @@
+{
+  "schema_version": "stegverse.sdk.goal8_continuation_checkpoint.v0.1",
+  "goal": "Goal 8 continuation after Goal 4 guard confirmation",
+  "state": "goal8_active_goal4_preserved",
+  "handoff_source": "SDK_MIRROR_HANDOFF.md",
+  "active_goal": "SDK ingestion contract for LLM-adapter free-tier trust metadata",
+  "preserved_goal4_guard": "data/goal4-demo-session-interface-stabilization.json",
+  "goal8_installed_surface": [
+    "docs/FREE_TIER_METADATA_INGESTION.md",
+    "stegverse/free_tier_metadata.py",
+    "tests/test_free_tier_metadata.py",
+    "scripts/verify_free_tier_metadata_ingestion.py",
+    "sdk.capabilities.json"
+  ],
+  "manual_tasks_remaining": [],
+  "next_goal_candidate": "Goal 8 stabilization verifier"
+}
