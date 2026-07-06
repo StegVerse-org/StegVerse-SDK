@@ -1,0 +1,14 @@
+{
+  "query": "What is the capital of France?",
+  "request_hash": "demo-request-hash-0001",
+  "provider_response": {
+    "text": "Paris is the capital of France.",
+    "mode": "demo_fixture"
+  },
+  "evidence": {
+    "source": "fixture",
+    "network_required": false,
+    "production_authority": false
+  },
+  "authority_decision": "ALLOW"
+}
