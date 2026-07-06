@@ -1,0 +1,11 @@
+{
+  "schema_version": "stegverse.sdk.validation_visibility_confirmation.v0.1",
+  "goal": "SDK validation visibility confirmation",
+  "state": "workflow_run_not_connector_visible",
+  "checked_commit": "1ba73613563c2c62d8d9852dbc0784916087535e",
+  "workflow_runs_visible": false,
+  "interpretation": "visibility pending; do not treat as code failure without run data",
+  "goal8_completion_checkpoint": "data/goal8-completion-checkpoint.json",
+  "manual_tasks_remaining": [],
+  "next_goal_candidate": "SDK visibility refresh or cross-repo promotion record"
+}
