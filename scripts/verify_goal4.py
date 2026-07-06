@@ -13,6 +13,7 @@ COMMANDS: tuple[tuple[str, ...], ...] = (
     (sys.executable, "scripts/check_workflow_parity.py"),
     (sys.executable, "scripts/check_sdk_local_import_path.py"),
     (sys.executable, "scripts/smoke_governed_llm_sdk.py"),
+    (sys.executable, "scripts/check_goal4_demo_session_argument.py"),
     (sys.executable, "scripts/verify_governed_llm_demo_packet.py", "--session", "fixtures/governed-llm-demo-session.json"),
     (sys.executable, "scripts/check_pytest_compatibility_surface.py"),
     (sys.executable, "-m", "pytest", "tests/test_governed_llm_demo_packet.py", "-v"),
