@@ -1,0 +1,15 @@
+{
+  "schema_version": "stegverse.sdk.goal4_demo_session_interface_stabilization.v0.1",
+  "goal": "Goal 4 preserved validation surface",
+  "active_handoff_goal": "Goal 8: SDK ingestion contract for LLM-adapter free-tier trust metadata",
+  "state": "preserved_guard_installed",
+  "protected_interface": {
+    "verifier": "scripts/verify_governed_llm_demo_packet.py",
+    "required_argument": "--session",
+    "fixture": "fixtures/governed-llm-demo-session.json",
+    "goal4_runner": "scripts/verify_goal4.py",
+    "guard": "scripts/check_goal4_demo_session_argument.py"
+  },
+  "manual_tasks_remaining": [],
+  "next_goal_candidate": "Goal 8 continuation after Goal 4 guard confirmation"
+}
