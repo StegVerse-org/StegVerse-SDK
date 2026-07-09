@@ -1,0 +1,22 @@
+{
+  "receipt_type": "hps_sdk_route_observation_receipt",
+  "receipt_id": "hps_sdk_route_observation_pending_2026_07_08",
+  "timestamp": "2026-07-08T00:00:00Z",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "observed_commit": "facd65fd33634a146c361cb4cd8e9edec31391a4",
+  "workflow": ".github/workflows/sdk-demo-test.yml",
+  "observation_result": "NO_WORKFLOW_RUN_REPORTED_BY_CONNECTOR",
+  "installed_artifacts": [
+    "docs/HPS_SDK_INTEGRATION.md",
+    "schemas/hps.sdk.route.schema.json",
+    "examples/hps_sdk_route_allowed.json",
+    "examples/hps_sdk_route_expired.json",
+    "examples/hps_sdk_route_fail_closed.json",
+    "scripts/verify_hps_sdk_route.py",
+    "tests/test_hps_sdk_route.py"
+  ],
+  "claim": "SDK HPS route integration is installed, but no successful workflow run is claimed by this receipt.",
+  "standing": "PENDING_OBSERVED_RUN",
+  "required_next_receipt": "hps_sdk_route_observation_success_or_failure",
+  "reconstruction_available": true
+}
