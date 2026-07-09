@@ -66,13 +66,25 @@ FAIL_CLOSED
 ## Installed for Goal 9
 
 ```text
-Pending install:
-  docs/HPS_SDK_INTEGRATION.md
-  schemas/hps.sdk.route.schema.json
-  examples/hps_sdk_route_allowed.json
-  examples/hps_sdk_route_expired.json
-  scripts/verify_hps_sdk_route.py
-  tests/test_hps_sdk_route.py
+docs/HPS_SDK_INTEGRATION.md
+schemas/hps.sdk.route.schema.json
+examples/hps_sdk_route_allowed.json
+examples/hps_sdk_route_expired.json
+examples/hps_sdk_route_fail_closed.json
+scripts/verify_hps_sdk_route.py
+tests/test_hps_sdk_route.py
+.github/workflows/sdk-demo-test.yml updated to verify HPS SDK route fixtures
+SDK_MIRROR_HANDOFF.md updated
+```
+
+## Goal 9 verification commands
+
+```bash
+python scripts/verify_hps_sdk_route.py examples/hps_sdk_route_allowed.json
+python scripts/verify_hps_sdk_route.py examples/hps_sdk_route_expired.json
+python scripts/verify_hps_sdk_route.py examples/hps_sdk_route_fail_closed.json
+pytest tests/test_hps_sdk_route.py -v
+pytest tests/ -v
 ```
 
 ## Goal 9 downstream sync targets
@@ -195,21 +207,21 @@ python scripts/verify_micro_node_adapter_fixture.py
 pytest tests/test_micro_node_adapter_fixture.py -v
 python scripts/verify_free_tier_metadata_ingestion.py
 pytest tests/test_free_tier_metadata.py -v
+python scripts/verify_hps_sdk_route.py examples/hps_sdk_route_allowed.json
+pytest tests/test_hps_sdk_route.py -v
 pytest tests/ -v
 ```
 
-The SDK demo workflow runs:
-
-```text
-python scripts/verify_free_tier_metadata_ingestion.py
-python -c "from stegverse import validate_free_tier_metadata; print('Free-tier metadata ingestion import: OK')"
-```
+The SDK demo workflow runs free-tier metadata ingestion and HPS SDK route fixture verification before the test suite.
 
 ## Remaining files or modules to install
 
 ```text
 StegVerse-org/StegVerse-SDK:
-  - Goal 9 HPS SDK route artifacts listed above
+  - no known Goal 9 SDK-side files remain at this handoff
+
+StegVerse-org/LLM-adapter:
+  - consume SDK HPS route contract before governed adapter handoff
 
 StegVerse-Labs/admissibility-wiki:
   - optional public documentation of the Site + LLM-adapter + SDK bounded free-tier trust chain
