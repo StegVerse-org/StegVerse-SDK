@@ -6,9 +6,101 @@ This file is the handoff source of truth for `StegVerse-org/StegVerse-SDK` until
 
 ## Active goal
 
+Goal 9: HPS integration owner for SDK intake and capability-window routing.
+
+Goal 8 SDK ingestion contract for LLM-adapter free-tier trust metadata is preserved below as completed prior context. Goal 9 adds HPS as the SDK-level dynamic governor for route availability and expiration.
+
+## Goal 9 upstream completed input
+
+```text
+Admissible-Existence/HPS
+  -> Harmonic Principle of Standing formalism installed
+  -> heartbeat receipt schema/verifier installed
+  -> capability-window schema/verifier installed
+  -> expiration receipt schema/verifier installed
+  -> standing score schema/verifier installed
+  -> Ecosystem Chat visualization contract/builder installed
+  -> HPS Verify #12 observed successful by user screenshot
+  -> 15 tests passed
+```
+
+## Goal 9 ownership decision
+
+`StegVerse-org/StegVerse-SDK` owns the first StegVerse-org HPS integration layer because the SDK already serves as the user-facing intake boundary for:
+
+- SDK submissions;
+- LLM Adapter submissions;
+- Ecosystem Chat intake validation;
+- manifest-bound intake;
+- receipt-bound route packages;
+- downstream governance routing.
+
+`StegVerse-org/LLM-adapter` should consume HPS capability-window decisions, but it should not own ecosystem-wide HPS integration.
+
+## Goal 9 SDK route rule
+
+A route may proceed only when:
+
+```text
+heartbeat is PASS;
+standing class satisfies route requirement;
+capability window is open;
+authority is valid;
+policy is current;
+delegation is current;
+evidence is fresh;
+coordinate is valid;
+reconstruction is available;
+expiration triggers are empty.
+```
+
+If any required support fails, SDK must return a bounded route decision:
+
+```text
+ALLOW
+DENY
+REVIEW
+FAIL_CLOSED
+```
+
+## Installed for Goal 9
+
+```text
+Pending install:
+  docs/HPS_SDK_INTEGRATION.md
+  schemas/hps.sdk.route.schema.json
+  examples/hps_sdk_route_allowed.json
+  examples/hps_sdk_route_expired.json
+  scripts/verify_hps_sdk_route.py
+  tests/test_hps_sdk_route.py
+```
+
+## Goal 9 downstream sync targets
+
+```text
+StegVerse-org/LLM-adapter
+  -> consume SDK HPS route contract before tool use, memory commit, publication, or execution handoff
+
+StegVerse-Labs/Site
+  -> consume HPS visualization status payload for Ecosystem Chat
+
+StegVerse-Labs/admissibility-wiki
+  -> mirror HPS formalism summary and Standing Equation
+
+BCAT-GCAT-Engine/Publisher
+  -> require HPS restored standing before publication transitions
+
+master-records
+  -> preserve HPS heartbeat and SDK route receipts
+```
+
+---
+
+## Preserved Goal 8 context
+
 Goal 8: SDK ingestion contract for LLM-adapter free-tier trust metadata.
 
-Goal 4 preserved SDK validation of the `LLM-adapter` micro-node governed return-path fixtures. Goal 8 now adds SDK validation for `StegVerse-org/LLM-adapter` `free_tier_trust` metadata so Site, adapter, and SDK can align on bounded free-tier quota, receipt export, replay, reconstruction, retention, upgrade, and non-claim metadata.
+Goal 4 preserved SDK validation of the `LLM-adapter` micro-node governed return-path fixtures. Goal 8 added SDK validation for `StegVerse-org/LLM-adapter` `free_tier_trust` metadata so Site, adapter, and SDK can align on bounded free-tier quota, receipt export, replay, reconstruction, retention, upgrade, and non-claim metadata.
 
 ## Upstream completed inputs
 
@@ -106,37 +198,18 @@ pytest tests/test_free_tier_metadata.py -v
 pytest tests/ -v
 ```
 
-The SDK demo workflow now runs:
+The SDK demo workflow runs:
 
 ```text
 python scripts/verify_free_tier_metadata_ingestion.py
 python -c "from stegverse import validate_free_tier_metadata; print('Free-tier metadata ingestion import: OK')"
 ```
 
-## Downstream sync targets
-
-```text
-StegVerse-Labs/Site
-  -> can display free-tier trust metadata and guard static public wording
-
-StegVerse-org/LLM-adapter
-  -> remains source for free_tier_trust schema and capability manifest
-
-StegVerse-Labs/admissibility-wiki
-  -> document portable governed return-path proof and LLM free-tier trust chain once SDK validation is green
-
-GCAT-BCAT-Engine/Publisher
-  -> publication/import awareness after Site and SDK validation
-
-stegguardian-wiki
-  -> downstream summary after Site and SDK validation
-```
-
 ## Remaining files or modules to install
 
 ```text
 StegVerse-org/StegVerse-SDK:
-  - no known Goal 8 SDK-side files remain at this handoff
+  - Goal 9 HPS SDK route artifacts listed above
 
 StegVerse-Labs/admissibility-wiki:
   - optional public documentation of the Site + LLM-adapter + SDK bounded free-tier trust chain
@@ -144,4 +217,4 @@ StegVerse-Labs/admissibility-wiki:
 
 ## Archive posture
 
-This handoff preserves the SDK Goal 8 metadata ingestion state so the complete thread can be archived without needing additional context to continue.
+This handoff preserves the SDK Goal 9 HPS integration state and the prior Goal 8 metadata ingestion state so the complete thread can be archived without needing additional context to continue.
