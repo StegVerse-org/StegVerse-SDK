@@ -1,0 +1,19 @@
+{
+  "route_type": "hps_sdk_route",
+  "route_id": "hps_sdk_route_fail_closed_001",
+  "capability": "external.action",
+  "heartbeat_result": "UNKNOWN",
+  "standing_class": "FAILED",
+  "standing_required": "RESTORED",
+  "capability_window_state": "CLOSED",
+  "supports": {
+    "authority_valid": false,
+    "policy_current": true,
+    "delegation_current": false,
+    "evidence_fresh": true,
+    "coordinate_valid": false,
+    "reconstruction_available": false
+  },
+  "expiration_triggers": ["authority_invalid", "coordinate_invalid", "reconstruction_unavailable"],
+  "expected_decision": "FAIL_CLOSED"
+}
