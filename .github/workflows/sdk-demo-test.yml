@@ -38,6 +38,12 @@ jobs:
       - name: Verify free-tier metadata ingestion
         run: python scripts/verify_free_tier_metadata_ingestion.py
 
+      - name: Verify HPS SDK route fixtures
+        run: |
+          python scripts/verify_hps_sdk_route.py examples/hps_sdk_route_allowed.json
+          python scripts/verify_hps_sdk_route.py examples/hps_sdk_route_expired.json
+          python scripts/verify_hps_sdk_route.py examples/hps_sdk_route_fail_closed.json
+
       - name: Run tests with pytest
         run: |
           pytest tests/ -v --cov=stegverse --cov-report=xml
