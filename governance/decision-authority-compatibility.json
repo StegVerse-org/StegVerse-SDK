@@ -1,0 +1,48 @@
+{
+  "schema": "stegverse.decision_authority_compatibility.v0.1",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "canonical_source": "StegVerse-Labs/repo-standards/schemas/decision-authority.schema.json",
+  "canonical_values": [
+    "allowed",
+    "denied",
+    "advisory-only",
+    "requires-human-review",
+    "fail-closed"
+  ],
+  "scan_observation": {
+    "searched_terms": [
+      "ALLOW",
+      "DENY",
+      "DEFER",
+      "QUARANTINE",
+      "FAIL_CLOSED",
+      "ADVISORY_ONLY",
+      "decision"
+    ],
+    "detected_local_decision_enum": false,
+    "notes": "No obvious local decision enum was detected by repository search during adoption setup. SDK exposes validation results and non-authorizing status but must map any future decision values to ST-004 before treating them as transition authority."
+  },
+  "reserved_mappings": [
+    {
+      "source_value": "ALLOW",
+      "canonical_value": "allowed"
+    },
+    {
+      "source_value": "DENY",
+      "canonical_value": "denied"
+    },
+    {
+      "source_value": "DEFER",
+      "canonical_value": "requires-human-review"
+    },
+    {
+      "source_value": "ADVISORY_ONLY",
+      "canonical_value": "advisory-only"
+    },
+    {
+      "source_value": "FAIL_CLOSED",
+      "canonical_value": "fail-closed"
+    }
+  ],
+  "authority_boundary": "SDK validation results are not ST-004 transition authority unless explicitly mapped to the canonical authority vocabulary and supported by policy, delegation, evidence, and validation."
+}
