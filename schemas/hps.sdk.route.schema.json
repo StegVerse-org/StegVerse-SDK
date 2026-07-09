@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/StegVerse-org/StegVerse-SDK/schemas/hps.sdk.route.schema.json",
+  "title": "HPS SDK Route",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "route_type",
+    "route_id",
+    "capability",
+    "heartbeat_result",
+    "standing_class",
+    "standing_required",
+    "capability_window_state",
+    "supports",
+    "expiration_triggers",
+    "expected_decision"
+  ],
+  "properties": {
+    "route_type": {"const": "hps_sdk_route"},
+    "route_id": {"type": "string", "minLength": 1},
+    "capability": {"type": "string", "minLength": 1},
+    "heartbeat_result": {"type": "string", "enum": ["PASS", "DEGRADED", "QUARANTINED", "BLOCKED", "FAIL_CLOSED", "FAIL-CLOSED", "REVIEW_REQUIRED", "REVIEW-REQUIRED", "UNKNOWN"]},
+    "standing_class": {"type": "string", "enum": ["RESTORED", "DEGRADED", "FAILED"]},
+    "standing_required": {"type": "string", "enum": ["RESTORED", "DEGRADED"]},
+    "capability_window_state": {"type": "string", "enum": ["OPEN", "CLOSED", "EXPIRED", "REVIEW"]},
+    "supports": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority_valid",
+        "policy_current",
+        "delegation_current",
+        "evidence_fresh",
+        "coordinate_valid",
+        "reconstruction_available"
+      ],
+      "properties": {
+        "authority_valid": {"type": "boolean"},
+        "policy_current": {"type": "boolean"},
+        "delegation_current": {"type": "boolean"},
+        "evidence_fresh": {"type": "boolean"},
+        "coordinate_valid": {"type": "boolean"},
+        "reconstruction_available": {"type": "boolean"}
+      }
+    },
+    "expiration_triggers": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "expected_decision": {"type": "string", "enum": ["ALLOW", "DENY", "REVIEW", "FAIL_CLOSED"]}
+  }
+}
