@@ -2,28 +2,70 @@
 
 ## Purpose
 
-This document defines how `StegVerse-org/StegVerse-SDK` consumes the Harmonic Principle of Standing (HPS) as a dynamic route governor.
+This document defines how `StegVerse-org/StegVerse-SDK` participates in the corrected Harmonic Principle of Standing (HPS) runtime/bridge/delegation architecture.
 
-HPS is canonical in:
+HPS formalism is canonical in:
 
 ```text
 Admissible-Existence/HPS
 ```
 
-The SDK does not own the HPS formalism. The SDK owns the first StegVerse-org integration boundary: converting HPS heartbeat, standing score, capability-window, and expiration information into deterministic route decisions.
+Executable runtime semantics are owned by:
+
+```text
+StegVerse-org/HPS-runtime
+```
+
+Sibling input route normalization is owned by:
+
+```text
+StegVerse-Labs/hybrid-collab-bridge
+```
+
+Governed authority delegation evaluation is owned by:
+
+```text
+StegVerse-Labs/Ecosystem-Delegation
+```
+
+Ecosystem-wide cycle records and reconstruction receipts are owned by:
+
+```text
+master-records/orchestration
+```
+
+The SDK does not own ecosystem-wide HPS integration. The SDK is an SDK-origin input nest that reads runtime standing state, emits SDK-origin route candidates, and preserves non-authority through the next governed boundary.
+
+## Corrected architecture
+
+```text
+Admissible-Existence/HPS
+  -> standing-vector formalism
+
+StegVerse-org/HPS-runtime
+  -> runtime state, standing-vector registers, phases, epochs, capability windows
+
+SDK input            \
+LLM-adapter input     \
+Site input             -> hybrid-collab-bridge -> Ecosystem-Delegation -> next governed boundary
+External adapter      /
+Manual review        /
+```
 
 ## Core rule
 
 ```text
-HPS is not a status flag.
-HPS is a capability-window governor.
+SDK is a sibling input nest.
+SDK route ALLOW is not execution authority.
+SDK route ALLOW is not delegation authority.
+SDK does not make LLM-adapter subordinate to SDK.
 ```
 
-The SDK must not allow a route merely because the system is online, a workflow passed, or a receipt exists. A route may proceed only when current HPS standing supports the specific capability window.
+The SDK must not allow a route merely because the system is online, a workflow passed, or a receipt exists. A route may proceed only when current HPS runtime state and downstream bridge/delegation evaluation support the specific capability window.
 
 ## Route decision model
 
-SDK HPS route decisions are bounded to:
+SDK-facing HPS route decisions are bounded to:
 
 ```text
 ALLOW
@@ -32,7 +74,7 @@ REVIEW
 FAIL_CLOSED
 ```
 
-A decision of `ALLOW` means the SDK route is permitted to continue to the next governed boundary. It does not grant execution authority, publication authority, endorsement, compatibility recognition, or admissibility outside the route.
+A decision of `ALLOW` means the SDK-origin route is permitted to continue to the next governed boundary. It does not grant execution authority, publication authority, endorsement, compatibility recognition, delegation authority, or admissibility outside the route.
 
 ## Required support for ALLOW
 
@@ -102,10 +144,12 @@ capability is review-bound
 
 ```text
 The SDK HPS route decision is not execution authority.
-It is a bounded route decision for the next governed boundary.
+The SDK HPS route decision is not delegation authority.
+The SDK is not upstream authority for the LLM-adapter.
+It is a bounded SDK-origin route decision for the next governed boundary.
 ```
 
-## Minimal route object
+## Minimal SDK-origin route object
 
 ```json
 {
@@ -131,24 +175,24 @@ It is a bounded route decision for the next governed boundary.
 
 ## Relationship to LLM-adapter
 
-`StegVerse-org/LLM-adapter` should consume this SDK route contract before:
+`StegVerse-org/LLM-adapter` is a sibling input nest, not a downstream consumer of SDK authority.
 
-- tool use;
-- memory commit;
-- publication handoff;
-- execution handoff;
-- external API action;
-- long-lived retention;
-- public attribution or claim production.
+```text
+SDK-origin request -> bridge -> delegation -> next governed boundary
+LLM-origin request -> bridge -> delegation -> next governed boundary
+```
+
+Both input paths consume shared runtime, bridge, delegation, and orchestration contracts.
 
 ## Relationship to Ecosystem Chat
 
-Ecosystem Chat should display HPS state using the HPS visualization payload, but SDK route decisions determine whether a user request may proceed through an SDK-governed route.
+Ecosystem Chat should display HPS state using the HPS visualization payload. Site-origin requests are also sibling route candidates that should be normalized by the bridge and evaluated by delegation before consequence.
 
 ## Canonical SDK statement
 
 ```text
-The SDK consumes HPS as a dynamic capability-window governor.
+The SDK consumes HPS as an SDK-origin sibling input nest.
+It reads runtime standing state, emits bounded SDK-origin route candidates, and does not grant execution, delegation, or publication authority.
 A route opens only while current heartbeat, standing, authority, evidence, coordinate, and reconstruction support remain valid.
 When those supports decay, the SDK route closes, expires, denies, reviews, or fails closed.
 ```
