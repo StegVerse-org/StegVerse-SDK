@@ -6,9 +6,82 @@ This file is the handoff source of truth for `StegVerse-org/StegVerse-SDK` until
 
 ## Active goal
 
-Goal 9: HPS integration owner for SDK intake and capability-window routing.
+Goal 10: corrected HPS sibling-input alignment for SDK intake.
 
-Goal 8 SDK ingestion contract for LLM-adapter free-tier trust metadata is preserved below as completed prior context. Goal 9 adds HPS as the SDK-level dynamic governor for route availability and expiration.
+Goal 9 SDK HPS route fixtures are preserved below as installed prior context. Goal 10 corrects the architectural wording: the SDK is not the HPS integration owner for the ecosystem and is not upstream authority for the LLM adapter. The SDK is one sibling input nest that consumes HPS-runtime, hybrid-collab-bridge, and Ecosystem-Delegation contracts.
+
+## Goal 10 corrected architecture
+
+```text
+Admissible-Existence/HPS
+  -> standing-vector formalism
+
+StegVerse-org/HPS-runtime
+  -> executable runtime state, standing-vector registers, phases, epochs, capability windows
+
+SDK input            \
+LLM-adapter input     \
+Site input             -> StegVerse-Labs/hybrid-collab-bridge -> StegVerse-Labs/Ecosystem-Delegation -> next governed boundary
+External adapter      /
+Manual review        /
+
+master-records/orchestration
+  -> cycle state, receipts, participant records, reconstruction references
+```
+
+## Goal 10 SDK role
+
+```text
+StegVerse-org/StegVerse-SDK is an SDK-origin input nest.
+It may emit SDK-origin HPS route candidates.
+It may validate SDK-facing HPS route fixtures.
+It does not grant execution authority.
+It does not grant delegation authority.
+It does not make LLM-adapter subordinate to SDK.
+It does not own ecosystem-wide HPS orchestration.
+```
+
+## Goal 10 consumption rule
+
+SDK-origin requests should consume:
+
+```text
+StegVerse-org/HPS-runtime
+  -> runtime state and standing-vector registers
+
+StegVerse-Labs/hybrid-collab-bridge
+  -> sibling input route normalization
+
+StegVerse-Labs/Ecosystem-Delegation
+  -> governed authority delegation decision
+
+master-records/orchestration
+  -> receipts, observation state, reconstruction references
+```
+
+`ALLOW` or `ALLOW_NEXT_BOUNDARY` only permits the SDK-origin route to continue to the next governed boundary. It is not execution authority.
+
+## Goal 10 installed by handoff update
+
+```text
+SDK_MIRROR_HANDOFF.md updated to correct SDK role from ecosystem HPS owner to sibling input consumer.
+```
+
+## Goal 10 remaining work
+
+```text
+- Update docs/HPS_SDK_INTEGRATION.md to match the corrected sibling-input architecture.
+- Update schemas/examples later only if bridge/delegation runtime contracts require a different SDK-origin route shape.
+- Observe SDK workflow/test result and replace pending observation receipt.
+```
+
+---
+
+## Preserved Goal 9 context
+
+Goal 9: HPS integration layer for SDK intake and capability-window routing.
+
+Goal 8 SDK ingestion contract for LLM-adapter free-tier trust metadata is preserved below as completed prior context. Goal 9 added HPS route fixtures and verification at the SDK level.
 
 ## Goal 9 upstream completed input
 
@@ -24,18 +97,18 @@ Admissible-Existence/HPS
   -> 15 tests passed
 ```
 
-## Goal 9 ownership decision
+## Superseded Goal 9 ownership note
 
-`StegVerse-org/StegVerse-SDK` owns the first StegVerse-org HPS integration layer because the SDK already serves as the user-facing intake boundary for:
+The prior wording treated `StegVerse-org/StegVerse-SDK` as the first StegVerse-org HPS integration owner. That is now superseded by the corrected architecture:
 
-- SDK submissions;
-- LLM Adapter submissions;
-- Ecosystem Chat intake validation;
-- manifest-bound intake;
-- receipt-bound route packages;
-- downstream governance routing.
-
-`StegVerse-org/LLM-adapter` should consume HPS capability-window decisions, but it should not own ecosystem-wide HPS integration.
+```text
+HPS-runtime owns executable runtime semantics.
+hybrid-collab-bridge owns sibling route normalization.
+Ecosystem-Delegation owns governed delegation evaluation.
+SDK is one sibling input nest.
+LLM-adapter is one sibling input nest.
+master-records/orchestration owns ecosystem cycle records and receipts.
+```
 
 ## Goal 9 SDK route rule
 
@@ -87,23 +160,26 @@ pytest tests/test_hps_sdk_route.py -v
 pytest tests/ -v
 ```
 
-## Goal 9 downstream sync targets
+## Corrected downstream sync targets
 
 ```text
-StegVerse-org/LLM-adapter
-  -> consume SDK HPS route contract before tool use, memory commit, publication, or execution handoff
+StegVerse-org/HPS-runtime
+  -> supplies runtime state and standing-vector registers
+
+StegVerse-Labs/hybrid-collab-bridge
+  -> consumes SDK-origin route candidates as sibling input
+
+StegVerse-Labs/Ecosystem-Delegation
+  -> evaluates governed authority delegation after bridge normalization
 
 StegVerse-Labs/Site
-  -> consume HPS visualization status payload for Ecosystem Chat
+  -> consumes HPS visualization status payload for Ecosystem Chat
 
 StegVerse-Labs/admissibility-wiki
-  -> mirror HPS formalism summary and Standing Equation
+  -> mirrors HPS formalism and public explanation
 
-BCAT-GCAT-Engine/Publisher
-  -> require HPS restored standing before publication transitions
-
-master-records
-  -> preserve HPS heartbeat and SDK route receipts
+master-records/orchestration
+  -> preserves HPS runtime, bridge, delegation, SDK, adapter, Site, and mirror receipts
 ```
 
 ---
@@ -198,6 +274,9 @@ reconstruction_grants_commit_time_standing == false
 upgrade_changes_admissibility_requirements == false
 sdk_ingestion_performs_side_effects == false
 manual_demo_ingestion_trigger_required == false
+sdk_hps_route_allow_is_execution_authority == false
+sdk_hps_route_allow_is_delegation_authority == false
+sdk_and_llm_adapter_are_sibling_input_nests == true
 ```
 
 ## Verification commands
@@ -218,15 +297,16 @@ The SDK demo workflow runs free-tier metadata ingestion and HPS SDK route fixtur
 
 ```text
 StegVerse-org/StegVerse-SDK:
-  - no known Goal 9 SDK-side files remain at this handoff
+  - docs/HPS_SDK_INTEGRATION.md wording alignment to corrected sibling-input architecture
+  - observed SDK HPS workflow/test receipt
 
 StegVerse-org/LLM-adapter:
-  - consume SDK HPS route contract before governed adapter handoff
+  - aligned handoff/docs so it consumes runtime + bridge + delegation as sibling input, not SDK route authority
 
-StegVerse-Labs/admissibility-wiki:
-  - optional public documentation of the Site + LLM-adapter + SDK bounded free-tier trust chain
+master-records/orchestration:
+  - replace pending SDK observation receipt when workflow/test output is observed
 ```
 
 ## Archive posture
 
-This handoff preserves the SDK Goal 9 HPS integration state and the prior Goal 8 metadata ingestion state so the complete thread can be archived without needing additional context to continue.
+This handoff preserves SDK Goal 10 corrected HPS sibling-input alignment, Goal 9 HPS route fixtures, and Goal 8 metadata ingestion state so the complete thread can be archived without needing additional context to continue.
