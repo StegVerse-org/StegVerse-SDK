@@ -9,6 +9,8 @@ Public API surface:
     evaluate_admissibility_packet — evaluate dynamic admissibility tester packets
     handle_universal_transition_table_package — validate universal transition-table intake
     validate_commitment_candidate — validate non-authorizing commitment candidates
+    build_spe_commitment_candidate — convert SDK transition candidate for fresh SPE standing review
+    build_spe_intake_envelope — create deterministic transport-neutral SPE intake envelope
     build_query_packet    — build governed LLM retrieval/evidence packet
     build_response_receipt — build reconstructable governed LLM response receipt
     validate_governed_llm_session_packet — validate complete adapter session packets
@@ -71,7 +73,6 @@ from .llm_adapter_dual import (
 StegVerseLLMAdapter = StegVerseLLMAdapterDual
 
 
-# Convenience wrapper matching README API
 def govern_llm_output(
     provider=None, model: str = "", prompt: str = "", output: str = "", **kwargs
 ) -> dict:
@@ -84,7 +85,6 @@ def govern_llm_output(
         output=output,
         **kwargs,
     )
-    # Normalise field names for external consumers
     return {
         "decision": result.get("decision", "defer").lower(),
         "receipt": result.get("receipt_id") or result.get("receipt"),
@@ -158,28 +158,30 @@ from .universal_transition_table_intake import (
     validate_commitment_candidate,
 )
 
+# --- SDK-to-SPE commitment intake ---
+from .spe_commitment_intake import (
+    SPE_COMMITMENT_INTAKE_SCHEMA_VERSION,
+    build_spe_commitment_candidate,
+    build_spe_intake_envelope,
+)
+
 # --- Receipts ---
 from .receipts import verify_receipt
 
 __all__ = [
-    # Meta
     "__version__",
-    # Core SDK
     "StegVerseSDK",
     "StegClient",
     "submit_intent",
-    # Safety stack
     "StegVerseSafetyStack",
     "GCATState",
     "SafetyDecision",
     "StopLayer",
-    # LLM adapter
     "StegVerseLLMAdapter",
     "StegVerseLLMAdapterDual",
     "LLMProvider",
     "CanonicalIntent",
     "govern_llm_output",
-    # Governed LLM reconstruction contracts
     "GOVERNED_LLM_SCHEMA_VERSION",
     "LOW_RISK",
     "MEDIUM_RISK",
@@ -193,7 +195,6 @@ __all__ = [
     "classify_query_purpose",
     "classify_risk_tier",
     "reconstruction_summary",
-    # Governed LLM full session packets
     "SESSION_PACKET_SCHEMA_VERSION",
     "SESSION_INTAKE_SCHEMA_VERSION",
     "GOVERNED_LLM_MANIFEST_SCHEMA_VERSION",
@@ -207,10 +208,8 @@ __all__ = [
     "intake_governed_llm_session_packet",
     "build_governed_llm_manifest",
     "build_governed_llm_receipt_handoff",
-    # LLM-adapter free-tier trust metadata ingestion
     "FreeTierMetadataResult",
     "validate_free_tier_metadata",
-    # Dynamic admissibility
     "AdmissibilityDecision",
     "DEFAULT_ROUTES",
     "DYNAMIC_RESULT_SCHEMA",
@@ -220,10 +219,11 @@ __all__ = [
     "stable_hash",
     "to_dict",
     "validate_tester_packet",
-    # Universal transition-table intake
     "UniversalTransitionTableIntakeError",
     "handle_universal_transition_table_package",
     "validate_commitment_candidate",
-    # Receipts
+    "SPE_COMMITMENT_INTAKE_SCHEMA_VERSION",
+    "build_spe_commitment_candidate",
+    "build_spe_intake_envelope",
     "verify_receipt",
 ]
