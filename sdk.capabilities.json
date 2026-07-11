@@ -1,7 +1,7 @@
 {
-  "schema_version": "stegverse.sdk.capabilities.v0.2",
+  "schema_version": "stegverse.sdk.capabilities.v0.3",
   "repo": "StegVerse-org/StegVerse-SDK",
-  "status": "governed-llm-contract-layer-active-with-free-tier-metadata-ingestion",
+  "status": "governed-llm-contract-layer-active-with-sdk-to-spe-commitment-intake",
   "governed_llm_surfaces": {
     "evidence_pointer_contracts": "built",
     "query_packet_contracts": "built",
@@ -12,7 +12,31 @@
     "receipt_handoff_binding": "built",
     "free_tier_metadata_ingestion": "built_non_authorizing",
     "free_tier_metadata_shape_validation": "built_side_effect_free",
-    "free_tier_non_claim_validation": "built_side_effect_free"
+    "free_tier_non_claim_validation": "built_side_effect_free",
+    "sdk_transition_candidate_emission": "built_non_authorizing",
+    "spe_commitment_candidate_construction": "built_non_authorizing",
+    "spe_intake_envelope_construction": "built_transport_neutral"
+  },
+  "sdk_to_spe_commitment_intake": {
+    "source_module": "stegverse/transition_candidate.py",
+    "intake_module": "stegverse/spe_commitment_intake.py",
+    "existing_validator": "stegverse/universal_transition_table_intake.py::validate_commitment_candidate",
+    "documentation": "docs/SDK_TO_SPE_COMMITMENT_INTAKE.md",
+    "tests": "tests/test_spe_commitment_intake.py",
+    "destination_repo": "StegVerse-Labs/Standing-Proof-Engine",
+    "route_purpose": "FRESH_STANDING_DETERMINATION",
+    "expected_results": [
+      "ALLOW",
+      "DENY",
+      "FAIL_CLOSED"
+    ],
+    "required_non_claims": {
+      "sdk_construction_is_spe_standing": false,
+      "sdk_route_is_execution_authority": false,
+      "spe_allow_is_execution": false,
+      "receipt_is_master_record_installation": false,
+      "commitment_candidate_inherits_review_authority": false
+    }
   },
   "free_tier_metadata_ingestion": {
     "source_repo": "StegVerse-org/LLM-adapter",
@@ -38,6 +62,8 @@
     "SDK intake routing is not authority.",
     "Manifest binding is not persistence by itself.",
     "Receipt handoff is not master-record installation by itself.",
+    "Commitment Candidate construction is not SPE standing.",
+    "SPE routing is not execution authority.",
     "Free-tier metadata ingestion is not admissibility.",
     "Free-tier metadata ingestion is not execution authority.",
     "Free-tier metadata ingestion is not persistence.",
@@ -46,6 +72,8 @@
   ],
   "local_verification": {
     "unit_tests": [
+      "pytest tests/test_transition_candidate.py",
+      "pytest tests/test_spe_commitment_intake.py",
       "pytest tests/test_governed_llm.py",
       "pytest tests/test_governed_llm_session.py",
       "pytest tests/test_governed_llm_session_intake.py",
@@ -56,5 +84,5 @@
     "smoke_script": "python scripts/smoke_governed_llm_sdk.py",
     "free_tier_metadata_verifier": "python scripts/verify_free_tier_metadata_ingestion.py"
   },
-  "activation_definition": "A governed LLM adapter session packet can be validated, routed, manifest-bound, receipt-handoff-bound, and paired with non-authorizing free-tier metadata ingestion without execution, authority grant, persistence side effect, or commit-time standing claim."
+  "activation_definition": "An SDK-origin DECLARED transition candidate can be transformed into a deterministic, non-authorizing Commitment Candidate and transport-neutral SPE intake envelope while preserving transition identity, requiring a fresh standing determination, and making no execution, delegation, persistence, or standing claim."
 }
