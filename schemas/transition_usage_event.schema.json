@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/transition_usage_event.schema.json",
+  "title": "StegVerse Transition Usage Event",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "event_type",
+    "measurement_id",
+    "session_id",
+    "transition_id",
+    "entry_point",
+    "entry_point_role",
+    "metric_owner",
+    "evidence_class",
+    "metrics",
+    "occurred_at",
+    "invariants"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "event_type": {"const": "TRANSITION_USAGE_RECORDED"},
+    "measurement_id": {"type": "string", "minLength": 1},
+    "session_id": {"type": "string", "minLength": 1},
+    "transition_id": {"type": "string", "minLength": 1},
+    "parent_transition_id": {"type": ["string", "null"]},
+    "origin_entry_point": {"type": "string", "minLength": 1},
+    "entry_point": {"type": "string", "minLength": 1},
+    "entry_point_role": {"type": "string", "minLength": 1},
+    "interaction_type": {"type": "string", "minLength": 1},
+    "metric_owner": {"type": "string", "minLength": 1},
+    "measurement_source": {"type": "string", "minLength": 1},
+    "route_kind": {"type": ["string", "null"]},
+    "provider": {"type": ["string", "null"]},
+    "model": {"type": ["string", "null"]},
+    "evidence_class": {
+      "enum": ["MEASURED", "CONFIGURED", "DERIVED", "UNAVAILABLE"]
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value", "unit", "evidence_class"],
+        "properties": {
+          "value": {"type": ["string", "null"]},
+          "unit": {"type": "string"},
+          "evidence_class": {
+            "enum": ["MEASURED", "CONFIGURED", "DERIVED", "UNAVAILABLE"]
+          },
+          "source_ref": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "receipt_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "invariants": {
+      "type": "object",
+      "required": [
+        "usage_event_is_authority",
+        "usage_event_is_admissibility",
+        "entry_point_display_is_execution",
+        "session_identity_preserved",
+        "transition_lineage_preserved",
+        "measurement_owner_is_unique"
+      ],
+      "properties": {
+        "usage_event_is_authority": {"const": false},
+        "usage_event_is_admissibility": {"const": false},
+        "entry_point_display_is_execution": {"const": false},
+        "session_identity_preserved": {"const": true},
+        "transition_lineage_preserved": {"const": true},
+        "measurement_owner_is_unique": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "event_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": false
+}
