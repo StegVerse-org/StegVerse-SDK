@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/entry_point_role.schema.json",
+  "title": "StegVerse Entry Point Role",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "entry_point_id",
+    "display_name",
+    "primary_role",
+    "primary_audiences",
+    "interaction_types",
+    "accepted_inputs",
+    "produced_outputs",
+    "authority_boundaries",
+    "usage_reporting",
+    "session_continuity"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "entry_point_id": {"type": "string", "minLength": 1},
+    "display_name": {"type": "string", "minLength": 1},
+    "primary_role": {"type": "string", "minLength": 1},
+    "related_roles": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "primary_audiences": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "interaction_types": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "accepted_inputs": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "produced_outputs": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "authority_boundaries": {
+      "type": "object",
+      "required": ["acceptance_is_authority", "translation_is_admissibility", "display_is_execution"],
+      "properties": {
+        "acceptance_is_authority": {"const": false},
+        "translation_is_admissibility": {"const": false},
+        "display_is_execution": {"const": false}
+      },
+      "additionalProperties": true
+    },
+    "usage_reporting": {
+      "type": "object",
+      "required": ["emits_usage_events", "metric_owner_required", "measurement_id_required"],
+      "properties": {
+        "emits_usage_events": {"type": "boolean"},
+        "metric_owner_required": {"const": true},
+        "measurement_id_required": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "session_continuity": {
+      "type": "object",
+      "required": ["preserves_session_id", "preserves_transition_lineage", "supports_return_to_origin"],
+      "properties": {
+        "preserves_session_id": {"const": true},
+        "preserves_transition_lineage": {"const": true},
+        "supports_return_to_origin": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
