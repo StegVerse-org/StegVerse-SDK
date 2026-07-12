@@ -107,6 +107,61 @@ StegVerse-Labs/admissibility-wiki
 None for SDK Goal 4 fixture-bound proof.
 ```
 
+## Parallel Goal 5 candidate: governed-vs-recursive comparison test bed
+
+This candidate is being developed without displacing Goal 4. It prepares the SDK-side contract needed for Ecosystem Chat to compare one normalized request across a StegVerse governed route and an external recursive LLM route.
+
+### Installed candidate files
+
+```text
+stegverse/llm_route_comparison.py
+schemas/llm_route_comparison.schema.json
+tests/test_llm_route_comparison.py
+docs/GOVERNED_VS_RECURSIVE_COMPARISON.md
+```
+
+### Candidate proof path
+
+```text
+one normalized request
+-> SDK comparison package
+-> StegVerse governed route + external recursive route
+-> shared telemetry contract
+-> returned route traces
+-> DeltaCost / DeltaLatency / DeltaCalls / DeltaTokens / DeltaReceipts
+-> comparison receipt
+-> Ecosystem Chat visualization
+```
+
+### Remaining Goal 5 integrations
+
+```text
+StegVerse-org/StegVerse-SDK
+  -> export comparison API from stegverse/__init__.py
+  -> validate returned comparison results
+  -> add runtime transport adapter and CLI
+
+StegVerse-org/core-node-runtime-demo
+  -> accept comparison packages
+  -> execute the governed route
+  -> emit common telemetry and receipt-linked evidence
+
+StegVerse-org/LLM-adapter
+  -> execute or observe external recursive provider routes
+  -> emit provider-neutral cost, latency, call, token, retry, and tool traces
+
+StegVerse-Labs/Site
+  -> duplicate one Ecosystem Chat request across selected routes
+  -> render governed output, recursive output, route bars, and delta metrics
+
+master-records
+  -> retain route hashes, telemetry, receipts, and reconstruction pointers
+```
+
+### Candidate claim boundary
+
+SDK package preparation is not provider execution, runtime authority, or proof of cost superiority. Public deltas must come from actual traces or be explicitly marked configured or modeled.
+
 ## Archive posture
 
-Not archive-ready until the aggregate Goal 4 verification command passes in a live clone/Codespaces environment and the wiki handoff reflects the portable governed return-path proof.
+Not archive-ready until the aggregate Goal 4 verification command passes in a live clone/Codespaces environment and the wiki handoff reflects the portable governed return-path proof. Goal 5 remains a parallel candidate until its cross-repository execution path is installed.
