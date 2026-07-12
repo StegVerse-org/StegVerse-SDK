@@ -8,7 +8,7 @@ This file is the handoff source of truth for `StegVerse-org/StegVerse-SDK` until
 
 Goal 4: micro-node governed return-path SDK validation.
 
-Goal 3 established the governed LLM end-to-end demonstrator SDK intake path. Goal 4 now validates that the SDK can inspect the LLM-adapter micro-node return-path fixture pair without becoming the runtime, granting execution authority, or persisting a master record.
+Goal 3 established the governed LLM end-to-end demonstrator SDK intake path. Goal 4 validates that the SDK can inspect the LLM-adapter micro-node return path without becoming the runtime, granting execution authority, or persisting a master record.
 
 ## Goal 4 proof path
 
@@ -21,28 +21,7 @@ LLM-adapter micro-node request fixture
 -> fixture verification script
 ```
 
-## Installed baseline already present
-
-```text
-sdk.capabilities.json
-docs/GOVERNED_LLM_SDK_ACTIVATION.md
-docs/GOVERNED_LLM_SESSION_PACKETS.md
-scripts/smoke_governed_llm_sdk.py
-stegverse/governed_llm_session.py
-stegverse/governed_llm_session_intake.py
-stegverse/governed_llm_manifest.py
-stegverse/governed_llm_receipt.py
-tests/test_governed_llm_session.py
-tests/test_governed_llm_session_intake.py
-tests/test_governed_llm_manifest.py
-tests/test_governed_llm_receipt.py
-examples/governed_llm_demo/session_packet.simple_query.json
-examples/governed_llm_demo/README.md
-scripts/verify_governed_llm_demo_packet.py
-tests/test_governed_llm_demo_packet.py
-```
-
-## Installed for Goal 4 on current build branch
+## Goal 4 installed files
 
 ```text
 docs/MICRO_NODE_RETURN_PATH_SDK.md
@@ -54,7 +33,7 @@ stegverse/micro_node_return_path.py
 tests/test_micro_node_return_path.py
 ```
 
-## Required invariant
+## Required invariants
 
 ```text
 sdk_validation_is_execution == false
@@ -69,77 +48,47 @@ commitment_request_is_authority == false
 returned_to_origin == true
 ```
 
-## Canonical verification command
+## Goal 4 verification
 
 ```bash
 python scripts/verify_goal4.py
 ```
 
-The aggregate verifier runs:
-
-```bash
-python scripts/smoke_governed_llm_sdk.py
-python scripts/verify_governed_llm_demo_packet.py
-python -m pytest tests/test_governed_llm_demo_packet.py -v
-python scripts/verify_micro_node_return_path.py
-python -m pytest tests/test_micro_node_return_path.py -v
-```
-
-## Upstream sync targets
-
-```text
-StegVerse-org/LLM-adapter
-  -> emits the governed session demo packet
-  -> emits the micro-node-compatible governed return-path fixtures
-```
-
-## Downstream sync target
-
-```text
-StegVerse-Labs/admissibility-wiki
-  -> documents the public demo overview and verification path
-  -> publishes the Goal 4 portable governed return-path proof
-```
-
-## Remaining files or modules to install
-
-```text
-None for SDK Goal 4 fixture-bound proof.
-```
+The aggregate verifier includes the governed LLM packet, manifest, receipt, and micro-node return-path checks.
 
 ## Workflow consolidation
 
-GitHub Actions validation has been consolidated into:
+GitHub Actions validation is consolidated into one workflow:
 
 ```text
 .github/workflows/sdk-demo-test.yml
 ```
 
-The former standalone workflows were removed after their commands were absorbed into the consolidated workflow:
+The former standalone formal-route and dynamic-admissibility workflows were removed after their commands were absorbed into the consolidated workflow. The remaining workflow owns the Python test matrix, complete pytest suite, formal-route validation, dynamic-admissibility examples, comparison verification, package build, release, and PyPI publication.
 
-```text
-.github/workflows/formal-testing-route-validate.yml
-.github/workflows/dynamic-admissibility-tests.yml
-```
+## Parallel Goal 5: governed-vs-recursive comparison test bed
 
-The consolidated workflow now owns the Python-version test matrix, complete pytest suite, formal-route validation, dynamic-admissibility examples, Goal 5 comparison verification, package build, GitHub release, and PyPI publication. This reduces workflow-level duplication while preserving validation coverage as separate jobs and steps.
+This Goal 5 build proceeds without displacing Goal 4. It gives Ecosystem Chat a governed SDK boundary for sending one normalized request through a StegVerse governed route and an external recursive route, validating both returned traces, and calculating transparent deltas.
 
-## Parallel Goal 5 candidate: governed-vs-recursive comparison test bed
-
-This candidate is being developed without displacing Goal 4. It prepares the SDK-side contract needed for Ecosystem Chat to compare one normalized request across a StegVerse governed route and an external recursive LLM route.
-
-### Installed candidate files
+### Installed Goal 5 files
 
 ```text
 stegverse/llm_route_comparison.py
+stegverse/comparison_transport.py
+stegverse/comparison_orchestrator.py
 schemas/llm_route_comparison.schema.json
-tests/test_llm_route_comparison.py
 docs/GOVERNED_VS_RECURSIVE_COMPARISON.md
 scripts/verify_llm_route_comparison.py
-stegverse/__init__.py public comparison exports
+scripts/run_llm_route_comparison.py
+scripts/verify_comparison_orchestrator.py
+tests/test_llm_route_comparison.py
+tests/test_comparison_transport.py
+tests/test_comparison_orchestrator.py
+examples/llm_route_comparison/request.json
+stegverse/__init__.py public comparison and orchestration exports
 ```
 
-### Installed candidate capabilities
+### Installed Goal 5 capabilities
 
 ```text
 transport-neutral comparison request
@@ -148,64 +97,88 @@ common route telemetry contract
 MEASURED / CONFIGURED / DERIVED / UNAVAILABLE evidence classes
 returned route-result validation
 missing-metric rejection
-task-identity preservation check
+task-identity preservation
 measured-only delta calculation
-comparison receipt generation
-comparison receipt deterministic SHA-256
+deterministic comparison receipt
+HTTP transport envelope
+JSON import/export
+paired route orchestration
+parallel or sequential route submission
+exact route-target matching
+same immutable request envelope sent to both routes
+fail-closed route identity and comparison identity checks
+single canonical paired-result receipt
 public SDK imports
-standalone fixture verifier
+standalone verifiers
 ```
 
-### Candidate proof path
+### Goal 5 proof path
 
 ```text
 one normalized request
 -> SDK comparison package
--> StegVerse governed route + external recursive route
--> shared telemetry contract
--> returned route traces
--> SDK route-result validation
+-> paired orchestrator
+-> core-node-runtime-demo governed route
+-> LLM-adapter external recursive route
+-> validated route results
 -> DeltaCost / DeltaLatency / DeltaCalls / DeltaTokens / DeltaReceipts
 -> reconstructable comparison receipt
 -> Ecosystem Chat visualization
 ```
 
-### Canonical candidate verification commands
+### Goal 5 verification
 
 ```bash
 python scripts/verify_llm_route_comparison.py
-python -m pytest tests/test_llm_route_comparison.py -v
+python scripts/verify_comparison_orchestrator.py
+python -m pytest tests/test_llm_route_comparison.py tests/test_comparison_transport.py tests/test_comparison_orchestrator.py -v
 ```
 
-### Remaining Goal 5 integrations
+The consolidated workflow runs the complete test suite and both comparison verifiers. No additional workflow was created.
+
+### Cross-repository state
 
 ```text
-StegVerse-org/StegVerse-SDK
-  -> add runtime transport adapter
-  -> add user-facing comparison CLI
-  -> add receipt import/export helpers
-
 StegVerse-org/core-node-runtime-demo
-  -> accept SDK comparison packages
-  -> execute the governed route
-  -> emit common telemetry and receipt-linked evidence
+  -> governed comparison request consumer installed
+  -> governed route-result producer installed
+  -> fixture-bound telemetry only; live governed inference pending
 
 StegVerse-org/LLM-adapter
-  -> execute or observe external recursive provider routes
-  -> emit provider-neutral cost, latency, call, token, retry, and tool traces
+  -> external recursive route-result producer installed
+  -> provider-neutral telemetry contract installed
+  -> configured fixture only; live provider trace capture pending
+
+StegVerse-org/StegVerse-SDK
+  -> comparison request, transport, paired orchestration, validation, deltas, and receipt installed
 
 StegVerse-Labs/Site
-  -> duplicate one Ecosystem Chat request across selected routes
-  -> render governed output, recursive output, route bars, and delta metrics
+  -> Ecosystem Chat paired execution and visualization pending
 
 master-records
-  -> retain route hashes, telemetry, receipts, and reconstruction pointers
+  -> comparison receipt custody and reconstruction pointers pending
 ```
 
-### Candidate claim boundary
+### Claim boundary
 
-SDK package preparation and returned-result validation are not provider execution, runtime authority, or proof of cost superiority. Public deltas must come from actual traces or be explicitly marked configured or modeled.
+SDK package preparation, transport, orchestration, and returned-result validation are not provider execution, runtime authority, admissibility, or proof of universal cost superiority. Public deltas must derive from like-for-like traces. Fixture, configured, and modeled values must remain explicitly classified and cannot be presented as measured results.
+
+## Remaining files or modules
+
+```text
+StegVerse-org/core-node-runtime-demo
+  -> live governed trace capture and route endpoint
+
+StegVerse-org/LLM-adapter
+  -> live recursive provider instrumentation and route endpoint
+
+StegVerse-Labs/Site
+  -> request duplication controls, route timeline, governed/recursive output panels, delta visualization
+
+master-records
+  -> receipt custody, hashes, telemetry pointers, reconstruction index
+```
 
 ## Archive posture
 
-Not archive-ready until the consolidated validation workflow and aggregate Goal 4 verification command pass in a live GitHub Actions or clone/Codespaces environment and the wiki handoff reflects the portable governed return-path proof. Goal 5 remains a parallel candidate until its cross-repository execution path is installed and exercised.
+This handoff preserves Goal 4 and the complete Goal 5 SDK comparison state. Live CI execution, live provider/runtime traces, Site rendering, and Master-Records custody remain the external activation gates. Earlier conversation context is not required to continue.
