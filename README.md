@@ -2,8 +2,7 @@
 
 ![PyPI](https://img.shields.io/pypi/v/stegverse-sdk)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
-![SDK Demo Test](https://github.com/StegVerse-org/StegVerse-SDK/actions/workflows/sdk-demo-test.yml/badge.svg)
-![Formal Route](https://github.com/StegVerse-org/StegVerse-SDK/actions/workflows/formal-testing-route-validate.yml/badge.svg)
+![SDK Validation](https://github.com/StegVerse-org/StegVerse-SDK/actions/workflows/sdk-demo-test.yml/badge.svg)
 ![License](https://img.shields.io/github/license/StegVerse-org/StegVerse-SDK)
 
 > Submission is not execution. Execution is not authority. Authority is not admissibility.
@@ -109,13 +108,23 @@ It does not call a provider, persist records, issue receipts, export audit packe
 
 ---
 
+## Validation workflow
+
+The repository uses one consolidated GitHub Actions workflow:
+
+```text
+.github/workflows/sdk-demo-test.yml
+```
+
+It runs the Python compatibility matrix, complete test suite, formal route validation, dynamic-admissibility examples, Goal 5 comparison verification, package build, release creation, and PyPI publication. Formal-route and dynamic-admissibility checks remain distinct jobs and commands inside this workflow rather than separate workflow files.
+
 ## Primary routes
 
 | Route | Purpose | Key files |
 |---|---|---|
-| SDK Demo Test | Package install, imports, adapter behavior, demo path checks | `.github/workflows/sdk-demo-test.yml` |
-| Formal Testing Route | Receipt-bound testing-data loop and route result validation | `.github/workflows/formal-testing-route-validate.yml`, `docs/FORMAL_TESTING_ROUTE.md` |
-| Dynamic Admissibility | Boundary and admissibility fixture checks | `.github/workflows/dynamic-admissibility-tests.yml` |
+| Consolidated SDK Validation | Package install, tests, formal-route checks, admissibility checks, build, and release | `.github/workflows/sdk-demo-test.yml` |
+| Formal Testing Route | Receipt-bound testing-data loop and route-result validation | `docs/FORMAL_TESTING_ROUTE.md`, `scripts/validate_formal_testing_route.py` |
+| Dynamic Admissibility | Boundary and admissibility fixture checks | `stegverse/admissibility.py`, `tests/test_dynamic_admissibility.py` |
 | Ecosystem Chat Intake | Site-facing three-layer intake validation | `stegverse/ecosystem_chat_http.py` |
 | Free-Tier Metadata Ingestion | LLM-adapter `free_tier_trust` metadata validation | `stegverse/free_tier_metadata.py` |
 
