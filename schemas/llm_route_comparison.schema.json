@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/llm_route_comparison.schema.json",
+  "title": "StegVerse Governed vs Recursive LLM Comparison Package",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "comparison_id",
+    "task_identity",
+    "normalized_input",
+    "output_requirements",
+    "routes",
+    "metrics_requested",
+    "claim_boundary",
+    "invariants",
+    "package_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "comparison_id": {"type": "string", "minLength": 1},
+    "task_identity": {"type": "string", "minLength": 1},
+    "normalized_input": {"type": "object"},
+    "output_requirements": {"type": "object"},
+    "routes": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "route_id",
+          "route_kind",
+          "provider",
+          "model",
+          "execution_target",
+          "governance_profile",
+          "recursion_enabled",
+          "telemetry_required"
+        ],
+        "properties": {
+          "route_id": {"type": "string", "minLength": 1},
+          "route_kind": {
+            "enum": ["STEGVERSE_GOVERNED", "EXTERNAL_RECURSIVE"]
+          },
+          "provider": {"type": "string"},
+          "model": {"type": "string"},
+          "execution_target": {"type": "string", "minLength": 1},
+          "governance_profile": {"type": "string"},
+          "recursion_enabled": {"type": "boolean"},
+          "telemetry_required": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "metrics_requested": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "invariants": {
+      "type": "object",
+      "required": [
+        "sdk_preparation_is_execution",
+        "sdk_preparation_is_authority",
+        "route_outputs_must_share_task_identity",
+        "configured_values_must_not_be_reported_as_measured"
+      ],
+      "properties": {
+        "sdk_preparation_is_execution": {"const": false},
+        "sdk_preparation_is_authority": {"const": false},
+        "route_outputs_must_share_task_identity": {"const": true},
+        "configured_values_must_not_be_reported_as_measured": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "package_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": false
+}
