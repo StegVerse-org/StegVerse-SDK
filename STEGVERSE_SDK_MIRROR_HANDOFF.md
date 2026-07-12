@@ -118,6 +118,25 @@ stegverse/llm_route_comparison.py
 schemas/llm_route_comparison.schema.json
 tests/test_llm_route_comparison.py
 docs/GOVERNED_VS_RECURSIVE_COMPARISON.md
+scripts/verify_llm_route_comparison.py
+stegverse/__init__.py public comparison exports
+```
+
+### Installed candidate capabilities
+
+```text
+transport-neutral comparison request
+shared task identity and output requirement binding
+common route telemetry contract
+MEASURED / CONFIGURED / DERIVED / UNAVAILABLE evidence classes
+returned route-result validation
+missing-metric rejection
+task-identity preservation check
+measured-only delta calculation
+comparison receipt generation
+comparison receipt deterministic SHA-256
+public SDK imports
+standalone fixture verifier
 ```
 
 ### Candidate proof path
@@ -128,21 +147,29 @@ one normalized request
 -> StegVerse governed route + external recursive route
 -> shared telemetry contract
 -> returned route traces
+-> SDK route-result validation
 -> DeltaCost / DeltaLatency / DeltaCalls / DeltaTokens / DeltaReceipts
--> comparison receipt
+-> reconstructable comparison receipt
 -> Ecosystem Chat visualization
+```
+
+### Canonical candidate verification commands
+
+```bash
+python scripts/verify_llm_route_comparison.py
+python -m pytest tests/test_llm_route_comparison.py -v
 ```
 
 ### Remaining Goal 5 integrations
 
 ```text
 StegVerse-org/StegVerse-SDK
-  -> export comparison API from stegverse/__init__.py
-  -> validate returned comparison results
-  -> add runtime transport adapter and CLI
+  -> add runtime transport adapter
+  -> add user-facing comparison CLI
+  -> add receipt import/export helpers
 
 StegVerse-org/core-node-runtime-demo
-  -> accept comparison packages
+  -> accept SDK comparison packages
   -> execute the governed route
   -> emit common telemetry and receipt-linked evidence
 
@@ -160,8 +187,8 @@ master-records
 
 ### Candidate claim boundary
 
-SDK package preparation is not provider execution, runtime authority, or proof of cost superiority. Public deltas must come from actual traces or be explicitly marked configured or modeled.
+SDK package preparation and returned-result validation are not provider execution, runtime authority, or proof of cost superiority. Public deltas must come from actual traces or be explicitly marked configured or modeled.
 
 ## Archive posture
 
-Not archive-ready until the aggregate Goal 4 verification command passes in a live clone/Codespaces environment and the wiki handoff reflects the portable governed return-path proof. Goal 5 remains a parallel candidate until its cross-repository execution path is installed.
+Not archive-ready until the aggregate Goal 4 verification command passes in a live clone/Codespaces environment and the wiki handoff reflects the portable governed return-path proof. Goal 5 remains a parallel candidate until its cross-repository execution path is installed and exercised.
