@@ -20,6 +20,7 @@ Public API surface:
     validate_free_tier_metadata — validate LLM-adapter free_tier_trust metadata
     build_comparison_package — prepare governed-vs-recursive comparison request
     build_comparison_receipt — validate route telemetry and emit delta receipt
+    run_paired_comparison — execute paired route targets and emit one receipt
 """
 
 __version__ = "1.0.0"
@@ -171,6 +172,12 @@ from .llm_route_comparison import (
     required_default_metrics,
     validate_metric_map,
 )
+from .comparison_orchestrator import (
+    ORCHESTRATION_SCHEMA_VERSION,
+    ComparisonOrchestrationError,
+    ExecutorTarget,
+    run_paired_comparison,
+)
 
 # --- Receipts ---
 from .receipts import verify_receipt
@@ -243,5 +250,9 @@ __all__ = [
     "calculate_delta",
     "required_default_metrics",
     "validate_metric_map",
+    "ORCHESTRATION_SCHEMA_VERSION",
+    "ComparisonOrchestrationError",
+    "ExecutorTarget",
+    "run_paired_comparison",
     "verify_receipt",
 ]
