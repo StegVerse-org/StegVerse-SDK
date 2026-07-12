@@ -1,27 +1,4 @@
-"""StegVerse SDK — governed AI execution with verifiable receipts.
-
-Public API surface:
-    StegVerseSDK          — main client (submit_intent, get_decision, verify_receipt)
-    StegVerseLLMAdapter   — govern LLM outputs before execution
-    StegVerseSafetyStack  — 5-layer safety governance
-    submit_intent         — convenience function
-    govern_llm_output     — convenience function
-    evaluate_admissibility_packet — evaluate dynamic admissibility tester packets
-    handle_universal_transition_table_package — validate universal transition-table intake
-    validate_commitment_candidate — validate non-authorizing commitment candidates
-    build_spe_commitment_candidate — convert SDK transition candidate for fresh SPE standing review
-    build_spe_intake_envelope — create deterministic transport-neutral SPE intake envelope
-    build_query_packet    — build governed LLM retrieval/evidence packet
-    build_response_receipt — build reconstructable governed LLM response receipt
-    validate_governed_llm_session_packet — validate complete adapter session packets
-    intake_governed_llm_session_packet — produce route-ready SDK intake result
-    build_governed_llm_manifest — bind governed LLM session packet into receipt-ready manifest
-    build_governed_llm_receipt_handoff — bind governed LLM manifest into receipt handoff
-    validate_free_tier_metadata — validate LLM-adapter free_tier_trust metadata
-    build_comparison_package — prepare governed-vs-recursive comparison request
-    build_comparison_receipt — validate route telemetry and emit delta receipt
-    run_paired_comparison — execute paired route targets and emit one receipt
-"""
+"""StegVerse SDK — governed AI execution with verifiable receipts."""
 
 __version__ = "1.0.0"
 
@@ -179,6 +156,28 @@ from .comparison_orchestrator import (
     run_paired_comparison,
 )
 
+# --- Entry-point roles ---
+from .entry_point_roles import (
+    ENTRY_POINT_ROLES,
+    SCHEMA_VERSION as ENTRY_POINT_ROLE_SCHEMA_VERSION,
+    EntryPointRoleError,
+    get_entry_point_role,
+    list_entry_point_roles,
+    validate_entry_point_role,
+)
+
+# --- Cross-entry transition usage ---
+from .transition_usage import (
+    USAGE_SCHEMA_VERSION,
+    TransitionUsageEvent,
+    UsageMetric,
+    UsageValidationError,
+    aggregate_session_usage,
+    build_usage_event,
+    stable_usage_hash,
+    utc_now_iso,
+)
+
 # --- Receipts ---
 from .receipts import verify_receipt
 
@@ -254,5 +253,19 @@ __all__ = [
     "ComparisonOrchestrationError",
     "ExecutorTarget",
     "run_paired_comparison",
+    "ENTRY_POINT_ROLE_SCHEMA_VERSION",
+    "ENTRY_POINT_ROLES",
+    "EntryPointRoleError",
+    "get_entry_point_role",
+    "list_entry_point_roles",
+    "validate_entry_point_role",
+    "USAGE_SCHEMA_VERSION",
+    "TransitionUsageEvent",
+    "UsageMetric",
+    "UsageValidationError",
+    "aggregate_session_usage",
+    "build_usage_event",
+    "stable_usage_hash",
+    "utc_now_iso",
     "verify_receipt",
 ]
