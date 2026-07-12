@@ -1,8 +1,8 @@
 """Transport-neutral governed-vs-recursive LLM comparison contracts.
 
-This module prepares and validates comparison intent. It does not execute an
-LLM provider, a micro-node runtime, or a core-node runtime, and it does not
-grant execution authority.
+This module prepares and validates comparison intent and returned telemetry. It
+does not execute an LLM provider, a micro-node runtime, or a core-node runtime,
+and it does not grant execution authority.
 """
 
 from __future__ import annotations
@@ -11,9 +11,9 @@ from dataclasses import asdict, dataclass, field
 from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 import json
-from typing import Any, Dict, Iterable, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 EVIDENCE_CLASSES = {"MEASURED", "CONFIGURED", "DERIVED", "UNAVAILABLE"}
 ROUTE_KINDS = {"STEGVERSE_GOVERNED", "EXTERNAL_RECURSIVE"}
 
@@ -107,6 +107,32 @@ class ComparisonRequest:
             raise ComparisonValidationError("metrics_requested cannot be empty")
 
 
+@dataclass(frozen=True)
+class RouteResult:
+    route_id: str
+    task_identity: str
+    output_sha256: str
+    metrics: Mapping[str, Mapping[str, Any]]
+    admissibility_result: str
+    receipt_refs: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+
+    def validate(self, request: ComparisonRequest) -> None:
+        route_ids = {route.route_id for route in request.routes}
+        if self.route_id not in route_ids:
+            raise ComparisonValidationError(f"unknown route_id: {self.route_id}")
+        if self.task_identity != request.task_identity:
+            raise ComparisonValidationError("route result changed task identity")
+        if len(self.output_sha256) != 64:
+            raise ComparisonValidationError("output_sha256 must be a SHA-256 hex digest")
+        validate_metric_map(self.metrics)
+        missing = set(request.metrics_requested) - set(self.metrics)
+        if missing:
+            raise ComparisonValidationError(
+                f"route result missing requested metrics: {sorted(missing)}"
+            )
+
+
 def _canonical_json(value: Mapping[str, Any]) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
@@ -172,6 +198,66 @@ def calculate_delta(
         raise ComparisonValidationError("delta metrics must share the requested unit")
     value = Decimal(baseline.value or "0") - Decimal(candidate.value or "0")
     return MetricValue(format(value, "f"), unit, "DERIVED", "baseline-minus-candidate")
+
+
+def build_comparison_receipt(
+    request: ComparisonRequest,
+    results: List[RouteResult],
+) -> Dict[str, Any]:
+    """Validate route results and create a reconstructable comparison receipt."""
+
+    request.validate()
+    if len(results) != len(request.routes):
+        raise ComparisonValidationError("one result is required for every route")
+    seen = set()
+    for result in results:
+        result.validate(request)
+        if result.route_id in seen:
+            raise ComparisonValidationError("duplicate route result")
+        seen.add(result.route_id)
+
+    by_id = {result.route_id: result for result in results}
+    governed = next(r for r in request.routes if r.route_kind == "STEGVERSE_GOVERNED")
+    recursive = next(r for r in request.routes if r.route_kind == "EXTERNAL_RECURSIVE")
+    governed_result = by_id[governed.route_id]
+    recursive_result = by_id[recursive.route_id]
+
+    deltas: Dict[str, Dict[str, Any]] = {}
+    for metric_name in request.metrics_requested:
+        left_raw = recursive_result.metrics[metric_name]
+        right_raw = governed_result.metrics[metric_name]
+        left = MetricValue(
+            left_raw.get("value"), str(left_raw.get("unit", "")),
+            str(left_raw.get("evidence_class", "")), left_raw.get("source_ref")
+        )
+        right = MetricValue(
+            right_raw.get("value"), str(right_raw.get("unit", "")),
+            str(right_raw.get("evidence_class", "")), right_raw.get("source_ref")
+        )
+        unit = left.unit if left.unit == right.unit else ""
+        if not unit:
+            delta = MetricValue(None, "", "UNAVAILABLE", None)
+        else:
+            delta = calculate_delta(left, right, unit=unit)
+        deltas[metric_name] = asdict(delta)
+
+    request_package = build_comparison_package(request)
+    receipt = {
+        "schema_version": SCHEMA_VERSION,
+        "comparison_id": request.comparison_id,
+        "request_package_sha256": request_package["package_sha256"],
+        "task_identity": request.task_identity,
+        "route_results": [asdict(result) for result in results],
+        "delta_semantics": "external_recursive_minus_stegverse_governed",
+        "deltas": deltas,
+        "claim_boundary": (
+            "Measured deltas compare only like-for-like task results. "
+            "No delta establishes universal superiority or avoided-consequence cost."
+        ),
+        "reconstructable": True,
+    }
+    receipt["receipt_sha256"] = stable_hash(receipt)
+    return receipt
 
 
 def required_default_metrics() -> List[str]:
