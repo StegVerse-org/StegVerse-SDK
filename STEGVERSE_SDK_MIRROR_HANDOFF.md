@@ -136,49 +136,137 @@ python -m pytest tests/test_llm_route_comparison.py tests/test_comparison_transp
 
 The consolidated workflow runs the complete test suite and both comparison verifiers. No additional workflow was created.
 
-### Cross-repository state
+## Parallel Goal 6: cross-entry roles and transition usage ledger
+
+Goal 6 defines how SDK, LLM Adapter, Ecosystem Chat, and future entry points describe their roles while preserving one session and usage lineage.
+
+### Installed Goal 6 files
+
+```text
+schemas/entry_point_role.schema.json
+schemas/transition_usage_event.schema.json
+stegverse/entry_point_roles.py
+stegverse/transition_usage.py
+tests/test_entry_point_roles.py
+tests/test_transition_usage.py
+docs/ENTRY_POINT_ROLES.md
+docs/TRANSITION_USAGE_LEDGER.md
+stegverse/__init__.py public role and usage exports
+```
+
+### Installed Goal 6 capabilities
+
+```text
+canonical SDK / LLM Adapter / Ecosystem Chat role registry
+primary and related role declarations
+accepted-input and produced-output declarations
+interaction-type declarations
+entry-point authority-boundary validation
+stable measurement_id plus metric_owner deduplication
+cross-entry session aggregation
+mixed-session rejection
+MEASURED / CONFIGURED / DERIVED / UNAVAILABLE preservation
+transition and origin-entry-point lineage
+receipt reference preservation
+deterministic usage-event and aggregation hashes
+transition usage prepend contract
+public SDK imports
+```
+
+### Goal 6 proof path
+
+```text
+entry point interaction
+-> canonical role declaration
+-> TRANSITION_USAGE_RECORDED event
+-> measurement ownership validation
+-> session and transition lineage preservation
+-> duplicate measurement rejection
+-> cross-entry session aggregation
+-> transition prepend metadata
+-> shared Ecosystem Usage Ledger
+```
+
+### Required Goal 6 invariants
+
+```text
+entry_point_acceptance_is_authority == false
+translation_is_admissibility == false
+display_is_execution == false
+usage_event_is_authority == false
+usage_event_is_admissibility == false
+session_identity_preserved == true
+transition_lineage_preserved == true
+measurement_owner_is_unique == true
+```
+
+### Goal 6 verification
+
+```bash
+python -m pytest tests/test_entry_point_roles.py tests/test_transition_usage.py -v
+```
+
+The existing consolidated workflow discovers these tests and now verifies the public role and usage imports in both editable and built-wheel installations. No new workflow was created.
+
+## Cross-repository state
 
 ```text
 StegVerse-org/core-node-runtime-demo
   -> governed comparison request consumer installed
   -> governed route-result producer installed
+  -> runtime usage-event emitter pending
   -> fixture-bound telemetry only; live governed inference pending
 
 StegVerse-org/LLM-adapter
   -> external recursive route-result producer installed
   -> provider-neutral telemetry contract installed
-  -> configured fixture only; live provider trace capture pending
+  -> adapter role documentation installed
+  -> machine-readable role declaration and provider usage-event emitter pending
 
 StegVerse-org/StegVerse-SDK
   -> comparison request, transport, paired orchestration, validation, deltas, and receipt installed
+  -> entry-point role registry and shared usage-event contract installed
+  -> session aggregation and deduplication installed
 
 StegVerse-Labs/Site
-  -> Ecosystem Chat paired execution and visualization pending
+  -> Ecosystem Chat role page, transition prepend, session ledger, and comparison visualization pending
 
 master-records
-  -> comparison receipt custody and reconstruction pointers pending
+  -> comparison and usage-event custody, deduplication index, and reconstruction pointers pending
 ```
 
-### Claim boundary
+## Claim boundary
 
-SDK package preparation, transport, orchestration, and returned-result validation are not provider execution, runtime authority, admissibility, or proof of universal cost superiority. Public deltas must derive from like-for-like traces. Fixture, configured, and modeled values must remain explicitly classified and cannot be presented as measured results.
+SDK package preparation, transport, orchestration, role description, usage recording, aggregation, and returned-result validation are not provider execution, runtime authority, admissibility, standing, or proof of universal cost superiority. Fixture, configured, and modeled values must remain explicitly classified and cannot be presented as measured results.
 
 ## Remaining files or modules
 
 ```text
 StegVerse-org/core-node-runtime-demo
-  -> live governed trace capture and route endpoint
+  -> live governed trace capture
+  -> route endpoint
+  -> runtime/node/closure usage-event emitter
 
 StegVerse-org/LLM-adapter
-  -> live recursive provider instrumentation and route endpoint
+  -> live recursive provider instrumentation
+  -> route endpoint
+  -> machine-readable adapter role declaration
+  -> provider usage-event emitter
 
 StegVerse-Labs/Site
-  -> request duplication controls, route timeline, governed/recursive output panels, delta visualization
+  -> request duplication controls
+  -> entry-point role and capability page
+  -> transition usage prepend component
+  -> cross-entry session ledger
+  -> governed/recursive output panels and delta visualization
 
 master-records
-  -> receipt custody, hashes, telemetry pointers, reconstruction index
+  -> usage-event custody
+  -> measurement deduplication index
+  -> session and transition lineage reconstruction
+  -> receipt, hash, and telemetry pointer retention
 ```
 
 ## Archive posture
 
-This handoff preserves Goal 4 and the complete Goal 5 SDK comparison state. Live CI execution, live provider/runtime traces, Site rendering, and Master-Records custody remain the external activation gates. Earlier conversation context is not required to continue.
+This handoff preserves Goal 4 and the complete Goal 5 and Goal 6 SDK state. Live CI execution, live provider/runtime traces, Site rendering, and Master-Records custody remain the external activation gates. Earlier conversation context is not required to continue.
