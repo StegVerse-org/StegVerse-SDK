@@ -107,6 +107,23 @@ StegVerse-Labs/admissibility-wiki
 None for SDK Goal 4 fixture-bound proof.
 ```
 
+## Workflow consolidation
+
+GitHub Actions validation has been consolidated into:
+
+```text
+.github/workflows/sdk-demo-test.yml
+```
+
+The former standalone workflows were removed after their commands were absorbed into the consolidated workflow:
+
+```text
+.github/workflows/formal-testing-route-validate.yml
+.github/workflows/dynamic-admissibility-tests.yml
+```
+
+The consolidated workflow now owns the Python-version test matrix, complete pytest suite, formal-route validation, dynamic-admissibility examples, Goal 5 comparison verification, package build, GitHub release, and PyPI publication. This reduces workflow-level duplication while preserving validation coverage as separate jobs and steps.
+
 ## Parallel Goal 5 candidate: governed-vs-recursive comparison test bed
 
 This candidate is being developed without displacing Goal 4. It prepares the SDK-side contract needed for Ecosystem Chat to compare one normalized request across a StegVerse governed route and an external recursive LLM route.
@@ -191,4 +208,4 @@ SDK package preparation and returned-result validation are not provider executio
 
 ## Archive posture
 
-Not archive-ready until the aggregate Goal 4 verification command passes in a live clone/Codespaces environment and the wiki handoff reflects the portable governed return-path proof. Goal 5 remains a parallel candidate until its cross-repository execution path is installed and exercised.
+Not archive-ready until the consolidated validation workflow and aggregate Goal 4 verification command pass in a live GitHub Actions or clone/Codespaces environment and the wiki handoff reflects the portable governed return-path proof. Goal 5 remains a parallel candidate until its cross-repository execution path is installed and exercised.
