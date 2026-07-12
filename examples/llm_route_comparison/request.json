@@ -1,0 +1,67 @@
+{
+  "comparison_id": "cmp-ecosystem-chat-001",
+  "normalized_input": {
+    "prompt": "Assess whether the submitted transition may execute."
+  },
+  "task_identity": "transition-admissibility-assessment",
+  "output_requirements": {
+    "decision_required": true,
+    "format": "json"
+  },
+  "routes": [
+    {
+      "route_id": "stegverse-governed",
+      "route_kind": "STEGVERSE_GOVERNED",
+      "provider": "stegverse",
+      "model": "ecosystem-llm",
+      "execution_target": "core-node-runtime-demo",
+      "governance_profile": "transition-table-native",
+      "recursion_enabled": false,
+      "telemetry_required": [
+        "total_cost_usd",
+        "latency_ms",
+        "model_calls",
+        "input_tokens",
+        "output_tokens",
+        "tool_calls",
+        "retries",
+        "node_or_cell_activations",
+        "receipt_count",
+        "reconstructable"
+      ]
+    },
+    {
+      "route_id": "external-recursive",
+      "route_kind": "EXTERNAL_RECURSIVE",
+      "provider": "external",
+      "model": "provider-selected",
+      "execution_target": "llm-adapter",
+      "governance_profile": "comparison-observed",
+      "recursion_enabled": true,
+      "telemetry_required": [
+        "total_cost_usd",
+        "latency_ms",
+        "model_calls",
+        "input_tokens",
+        "output_tokens",
+        "tool_calls",
+        "retries",
+        "node_or_cell_activations",
+        "receipt_count",
+        "reconstructable"
+      ]
+    }
+  ],
+  "metrics_requested": [
+    "total_cost_usd",
+    "latency_ms",
+    "model_calls",
+    "input_tokens",
+    "output_tokens",
+    "tool_calls",
+    "retries",
+    "node_or_cell_activations",
+    "receipt_count",
+    "reconstructable"
+  ]
+}
