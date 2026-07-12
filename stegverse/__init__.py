@@ -18,6 +18,8 @@ Public API surface:
     build_governed_llm_manifest — bind governed LLM session packet into receipt-ready manifest
     build_governed_llm_receipt_handoff — bind governed LLM manifest into receipt handoff
     validate_free_tier_metadata — validate LLM-adapter free_tier_trust metadata
+    build_comparison_package — prepare governed-vs-recursive comparison request
+    build_comparison_receipt — validate route telemetry and emit delta receipt
 """
 
 __version__ = "1.0.0"
@@ -30,16 +32,7 @@ from .client import StegClient as _StegClientRef
 def submit_intent(
     action: str, mode: str = "execution_governance", reset: str = "hard", **kwargs
 ) -> dict:
-    """Submit an intent to the StegVerse Trust Kernel.
-
-    Returns a dict with keys:
-        status      : "submitted"
-        receipt_id  : UUID string
-        decision    : "allow" | "deny" | "defer"
-        action      : echoed action name
-        mode        : echoed mode
-        reset       : echoed reset flag
-    """
+    """Submit an intent to the StegVerse Trust Kernel."""
     import uuid
 
     receipt_id = str(uuid.uuid4())
@@ -69,7 +62,6 @@ from .llm_adapter_dual import (
     CanonicalIntent,
 )
 
-# Friendly alias per README
 StegVerseLLMAdapter = StegVerseLLMAdapterDual
 
 
@@ -165,6 +157,21 @@ from .spe_commitment_intake import (
     build_spe_intake_envelope,
 )
 
+# --- Governed-vs-recursive LLM comparison ---
+from .llm_route_comparison import (
+    ComparisonRequest,
+    ComparisonRoute,
+    ComparisonValidationError,
+    MetricValue,
+    RouteResult,
+    SCHEMA_VERSION as LLM_ROUTE_COMPARISON_SCHEMA_VERSION,
+    build_comparison_package,
+    build_comparison_receipt,
+    calculate_delta,
+    required_default_metrics,
+    validate_metric_map,
+)
+
 # --- Receipts ---
 from .receipts import verify_receipt
 
@@ -225,5 +232,16 @@ __all__ = [
     "SPE_COMMITMENT_INTAKE_SCHEMA_VERSION",
     "build_spe_commitment_candidate",
     "build_spe_intake_envelope",
+    "LLM_ROUTE_COMPARISON_SCHEMA_VERSION",
+    "ComparisonRequest",
+    "ComparisonRoute",
+    "ComparisonValidationError",
+    "MetricValue",
+    "RouteResult",
+    "build_comparison_package",
+    "build_comparison_receipt",
+    "calculate_delta",
+    "required_default_metrics",
+    "validate_metric_map",
     "verify_receipt",
 ]
