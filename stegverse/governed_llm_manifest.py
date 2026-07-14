@@ -56,12 +56,10 @@ def _bind_system_boundary(
         )
 
     declaration_copy = dict(declaration)
-    declaration_hash = stable_hash(declaration_copy)
     expected_ref = {
-        "schema_version": "stegverse.sdk.system_boundary_ref.v0.1",
+        "algorithm": "sha256",
+        "digest": stable_hash(declaration_copy),
         "declaration_id": declaration_copy["declaration_id"],
-        "declaration_hash": declaration_hash,
-        "source_repo": "StegVerse-org/LLM-adapter",
         "authorizing": False,
         "custody_transferred": False,
         "admissibility_determined": False,
