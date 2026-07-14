@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/repo_standards_gate_record.schema.json",
+  "title": "Repo Standards Gate Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_id",
+    "repository",
+    "gate_state",
+    "source_repository",
+    "source_ref",
+    "evidence_refs",
+    "authority_boundaries",
+    "continuation"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "record_id": {"type": "string", "minLength": 1},
+    "repository": {"type": "string", "minLength": 1},
+    "gate_state": {
+      "enum": ["PENDING", "SATISFIED", "BLOCKED", "NOT_APPLICABLE"]
+    },
+    "source_repository": {"type": "string", "minLength": 1},
+    "source_ref": {"type": "string", "minLength": 1},
+    "evidence_refs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "authority_boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sdk_validation_is_release_authority",
+        "sdk_transport_is_admissibility",
+        "gate_record_is_execution_authority",
+        "record_presence_is_gate_satisfaction"
+      ],
+      "properties": {
+        "sdk_validation_is_release_authority": {"const": false},
+        "sdk_transport_is_admissibility": {"const": false},
+        "gate_record_is_execution_authority": {"const": false},
+        "record_presence_is_gate_satisfaction": {"const": false}
+      }
+    },
+    "continuation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "next_action"],
+      "properties": {
+        "owner": {"type": "string", "minLength": 1},
+        "next_action": {"type": "string", "minLength": 1}
+      }
+    },
+    "record_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
