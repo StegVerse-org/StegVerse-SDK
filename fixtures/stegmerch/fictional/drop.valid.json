@@ -1,0 +1,17 @@
+{
+  "schema_version": "stegmerch.drop_manifest.v1",
+  "drop_id": "drop_harbor-moms_spring-001",
+  "design_ref": "design_harbor-moms_bmfs-001",
+  "brand_authorization_ref": "brandauth_harbor-moms-001",
+  "location_authorization_ref": "locauth_harbor-bay-001",
+  "opens_at": "2026-08-01T14:00:00Z",
+  "closes_at": "2026-08-08T14:00:00Z",
+  "currency": "USD",
+  "unit_price_minor": 3600,
+  "revenue_split": [
+    {"recipient": "fictional_franchise_location", "basis_points": 2500},
+    {"recipient": "fictional_fulfillment_provider", "basis_points": 5000},
+    {"recipient": "stegmerch_platform", "basis_points": 2500}
+  ],
+  "status": "draft"
+}
