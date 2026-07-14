@@ -18,14 +18,7 @@ evidence/system-boundary-activation.v0.1.json
 evidence/system-boundary-downstream-status.v0.1.json
 ```
 
-The workflow runs at minutes 17 and 47 of every hour and on relevant producer changes. It:
-
-1. polls completed public GitHub Actions runs for `LLM-adapter/validate.yml` and `StegVerse-SDK/sdk-demo-test.yml`;
-2. accepts only successful runs whose commit contains the installed baseline contract;
-3. binds each `PASS` record exactly to the observed run commit, run ID, and run URL;
-4. evaluates the joint activation gate;
-5. writes the canonical downstream status packet; and
-6. commits only changed evidence files using the repository-scoped GitHub token.
+The workflow runs at minutes 17 and 47 of every hour and on relevant producer changes. It polls completed public GitHub Actions runs, accepts only successful runs containing the installed baseline contract, binds each PASS record to the exact observed commit/run identity, evaluates joint activation, writes the canonical downstream status packet, and commits only changed evidence files using the repository-scoped GitHub token.
 
 No personal token, manual workflow inspection, manual evidence editing, or manual status-copy operation is required.
 
@@ -62,16 +55,29 @@ StegVerse-Labs/admissibility-wiki
 - scripts/sync_system_boundary_status.py
 - .github/workflows/system-boundary-status-sync.yml
 - canonical mirror: static/status/system-boundary-status.v0.1.json
+
+GCAT-BCAT-Engine/Publisher
+- scripts/sync_system_boundary_status.py
+- .github/workflows/system-boundary-status-sync.yml
+- canonical mirror: data/system-boundary-status.v0.1.json
+- handoff: docs/SYSTEM_BOUNDARY_STATUS_AUTOMATION_HANDOFF.md
+
+StegVerse-002/stegguardian-wiki
+- scripts/sync_system_boundary_status.py
+- .github/workflows/system-boundary-status-sync.yml
+- canonical mirror: data/system-boundary-status.v0.1.json
+- handoff: docs/SYSTEM_BOUNDARY_STATUS_AUTOMATION_HANDOFF.md
 ```
 
-Both consumers validate target membership, status-only posture, activation consistency, and all non-authority fields. Transient network failure retains the prior validated state.
+All consumers validate exact destination membership, status-only posture, activation consistency, and all non-authority fields. Transient network failure retains the prior validated state.
 
-## Other downstream targets
-
-`GCAT-BCAT-Engine/Publisher` and the Guardian wiki were not exposed as writable repositories to this session. No manual action is assigned to the user or retained by this session. Their continuation boundary is repository-owned polling of the canonical public SDK packet at:
+## Canonical destinations
 
 ```text
-evidence/system-boundary-downstream-status.v0.1.json
+StegVerse-Labs/Site
+GCAT-BCAT-Engine/Publisher
+StegVerse-Labs/admissibility-wiki
+StegVerse-002/stegguardian-wiki
 ```
 
 ## Current state
@@ -81,7 +87,9 @@ automatic evidence collection: installed
 automatic joint activation evaluation: installed
 automatic canonical status publication: installed
 Site consumption: installed
+Publisher consumption: installed
 admissibility-wiki consumption: installed
+StegGuardian consumption: installed
 manual observation task: eliminated
 manual status-copy task: eliminated
 production binding: disabled
@@ -90,4 +98,4 @@ release authorization: false
 
 ## Archive readiness
 
-All unique decisions, code paths, boundaries, ownership, and continuation instructions from this session are durable in repository files and commits. Future workflow execution and any repository-local consumer installation are owned by the ecosystem workflows and destination repositories. This session owns no unresolved manual obligation and can be archived.
+All unique decisions, code paths, destination identities, boundaries, ownership, and continuation instructions from this session are durable in repository files and commits. Future execution is owned by the installed ecosystem workflows. This session owns no unresolved manual obligation and can be archived.
