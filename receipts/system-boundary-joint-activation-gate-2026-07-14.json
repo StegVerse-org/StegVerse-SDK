@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "record_type": "system_boundary_joint_activation_gate_installation",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "installed": {
+    "gate": "stegverse/system_boundary_activation.py",
+    "pending_record": "evidence/system-boundary-activation.pending.v0.1.json",
+    "tests": "tests/test_system_boundary_activation.py"
+  },
+  "behavior": {
+    "adapter_pass_required": true,
+    "sdk_pass_required": true,
+    "single_pass_is_verified": false,
+    "pending_is_verified": false,
+    "failure_blocks_activation": true,
+    "invalid_evidence_fails_closed": true,
+    "downstream_propagation_allowed": false,
+    "production_binding_enabled": false,
+    "release_authorized": false
+  },
+  "validation": {
+    "structural_contract": "INSTALLED",
+    "canonical_workflow_binding": "PENDING_CURRENT_SHA_RETRY",
+    "observed_workflow_status": "PENDING"
+  },
+  "next_required_action": "Re-read .github/workflows/sdk-demo-test.yml using fetch_file, add tests/test_system_boundary_activation.py to the current system-boundary pytest command, then record the exact workflow commit. Do not infer PASS from missing status."
+}
