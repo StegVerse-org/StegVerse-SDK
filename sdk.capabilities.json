@@ -13,6 +13,10 @@
     "free_tier_metadata_ingestion": "built_non_authorizing",
     "free_tier_metadata_shape_validation": "built_side_effect_free",
     "free_tier_non_claim_validation": "built_side_effect_free",
+    "system_boundary_schema_mirror": "built",
+    "system_boundary_ingestion": "built_non_authorizing",
+    "system_boundary_shape_validation": "built_side_effect_free",
+    "system_boundary_non_claim_validation": "built_side_effect_free",
     "sdk_transition_candidate_emission": "built_non_authorizing",
     "spe_commitment_candidate_construction": "built_non_authorizing",
     "spe_intake_envelope_construction": "built_transport_neutral"
@@ -25,11 +29,7 @@
     "tests": "tests/test_spe_commitment_intake.py",
     "destination_repo": "StegVerse-Labs/Standing-Proof-Engine",
     "route_purpose": "FRESH_STANDING_DETERMINATION",
-    "expected_results": [
-      "ALLOW",
-      "DENY",
-      "FAIL_CLOSED"
-    ],
+    "expected_results": ["ALLOW", "DENY", "FAIL_CLOSED"],
     "required_non_claims": {
       "sdk_construction_is_spe_standing": false,
       "sdk_route_is_execution_authority": false,
@@ -57,6 +57,22 @@
       "upgrade_changes_admissibility_requirements": false
     }
   },
+  "system_boundary_ingestion": {
+    "source_repo": "StegVerse-Labs/admissibility-wiki",
+    "schema_mirror": "schemas/system-boundary-declaration.schema.v0.1.json",
+    "sdk_doc": "docs/SYSTEM_BOUNDARY_INGESTION.md",
+    "sdk_module": "stegverse/system_boundary.py",
+    "sdk_tests": "tests/test_system_boundary.py",
+    "manifest_field": "system_boundary_declaration",
+    "receipt_reference_field": "system_boundary_declaration_ref",
+    "required_non_claims": {
+      "sdk_validation_is_execution": false,
+      "sdk_validation_is_admissibility": false,
+      "state_continuity_proves_consciousness": false,
+      "self_report_proves_personhood": false,
+      "model_output_grants_commit_time_standing": false
+    }
+  },
   "explicit_non_claims": [
     "SDK validation is not execution.",
     "SDK intake routing is not authority.",
@@ -68,6 +84,8 @@
     "Free-tier metadata ingestion is not execution authority.",
     "Free-tier metadata ingestion is not persistence.",
     "Free-tier metadata ingestion does not grant commit-time standing.",
+    "System-boundary validation is not a consciousness test.",
+    "System-boundary validation does not grant execution authority.",
     "External executor integration remains outside this SDK contract layer."
   ],
   "local_verification": {
@@ -79,10 +97,11 @@
       "pytest tests/test_governed_llm_session_intake.py",
       "pytest tests/test_governed_llm_manifest.py",
       "pytest tests/test_governed_llm_receipt.py",
-      "pytest tests/test_free_tier_metadata.py"
+      "pytest tests/test_free_tier_metadata.py",
+      "pytest tests/test_system_boundary.py"
     ],
     "smoke_script": "python scripts/smoke_governed_llm_sdk.py",
     "free_tier_metadata_verifier": "python scripts/verify_free_tier_metadata_ingestion.py"
   },
-  "activation_definition": "An SDK-origin DECLARED transition candidate can be transformed into a deterministic, non-authorizing Commitment Candidate and transport-neutral SPE intake envelope while preserving transition identity, requiring a fresh standing determination, and making no execution, delegation, persistence, or standing claim."
+  "activation_definition": "An SDK-origin DECLARED transition candidate can be transformed into a deterministic, non-authorizing Commitment Candidate and transport-neutral SPE intake envelope while governed LLM metadata and system-boundary declarations are validated without creating execution, delegation, persistence, standing, consciousness, personhood, or welfare claims."
 }
