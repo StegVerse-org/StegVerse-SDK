@@ -66,7 +66,7 @@ jobs:
       - name: Verify SDK-to-SPE and system-boundary contracts
         run: |
           python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
-          pytest tests/test_system_boundary.py tests/test_system_boundary_round_trip.py tests/test_governed_llm_system_boundary_binding.py tests/test_adapter_origin_system_boundary_fixture.py tests/test_adapter_system_boundary_fixture_provenance.py tests/test_system_boundary_workflow_evidence.py -v
+          pytest tests/test_system_boundary.py tests/test_system_boundary_round_trip.py tests/test_governed_llm_system_boundary_binding.py tests/test_adapter_origin_system_boundary_fixture.py tests/test_adapter_system_boundary_fixture_provenance.py tests/test_system_boundary_workflow_evidence.py tests/test_system_boundary_activation.py -v
       - name: Validate formal testing route
         run: |
           python scripts/validate_formal_testing_route.py --kind loop examples/testing_data_loop.json
