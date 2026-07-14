@@ -53,6 +53,7 @@ def verify_public_api() -> None:
 
 def main() -> int:
     verify_public_api()
+    run([sys.executable, "scripts/check_goal7_status.py"])
     run([sys.executable, "-m", "pytest", "tests/test_repo_standards_gate_record.py", "-v"])
     print("SDK_GOAL7_PASS")
     return 0
