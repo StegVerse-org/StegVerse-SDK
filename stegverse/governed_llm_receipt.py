@@ -1,8 +1,8 @@
 """Receipt handoff binding for governed LLM manifests.
 
 This module creates a receipt-ready handoff from a governed LLM manifest. It is
-not execution, authority, or installation; it only links hashes and route status
-for downstream record retention.
+not execution, authority, or installation; it only links hashes, optional
+system-boundary references, and route status for downstream record retention.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ import hashlib
 import json
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional
 
 from .governed_llm_manifest import build_governed_llm_manifest
 
@@ -41,11 +41,14 @@ class GovernedLLMReceiptHandoff:
     intake_decision: str
     route: str
     retain_record: bool
+    system_boundary_declaration_ref: Optional[dict[str, Any]] = None
     created_at: str = ""
     schema_version: str = GOVERNED_LLM_RECEIPT_SCHEMA_VERSION
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
+        if data["system_boundary_declaration_ref"] is None:
+            data.pop("system_boundary_declaration_ref")
         data["created_at"] = self.created_at or utc_now_iso()
         data["receipt_handoff_hash"] = stable_hash(data)
         return data
@@ -72,6 +75,7 @@ def build_governed_llm_receipt_handoff(session_packet: Mapping[str, Any]) -> dic
         intake_decision=str(manifest["intake_decision"]),
         route=str(manifest["route"]),
         retain_record=bool(manifest["retain_record"]),
+        system_boundary_declaration_ref=manifest.get("system_boundary_declaration_ref"),
     )
     result = handoff.to_dict()
     result["manifest"] = manifest
