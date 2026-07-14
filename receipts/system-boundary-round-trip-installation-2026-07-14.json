@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "record_type": "system_boundary_sdk_round_trip_installation_receipt",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "source_repository": "StegVerse-org/LLM-adapter",
+  "installed": {
+    "verifier": {
+      "path": "stegverse/system_boundary_round_trip.py",
+      "commit_sha": "874063c94397a11a439fa674e6cebcf69c439da6"
+    },
+    "tests": {
+      "path": "tests/test_system_boundary_round_trip.py",
+      "commit_sha": "610c3c571086bf6884122cd061d9a74fe770252f"
+    },
+    "workflow": {
+      "path": ".github/workflows/sdk-demo-test.yml",
+      "commit_sha": "49085cc67ac9a68d64feb6378c76e020cf4b822a"
+    }
+  },
+  "verified_relationships": [
+    "declaration_id_to_canonical_content",
+    "receipt_to_reconstructed_receipt_body",
+    "reference_to_declaration_hash",
+    "reference_to_receipt_hash",
+    "evidence_refs_preserved",
+    "identical_replay_is_deterministic"
+  ],
+  "fail_closed_cases": [
+    "declaration_tamper",
+    "receipt_reconstruction_mismatch",
+    "reference_digest_drift",
+    "authority_escalation",
+    "custody_escalation",
+    "admissibility_escalation",
+    "production_binding_escalation",
+    "consciousness_reclassification"
+  ],
+  "state": {
+    "structural_installation": "COMPLETE",
+    "canonical_workflow_observation": "PENDING",
+    "adapter_production_binding": "DISABLED",
+    "sdk_acceptance_effect": "NON_AUTHORIZING_RECEIPT_HANDOFF_ONLY",
+    "master_records_custody": "NOT_ESTABLISHED",
+    "site_publication": "NOT_AUTHORIZED"
+  },
+  "authority_boundary": {
+    "sdk_round_trip_is_execution_authority": false,
+    "sdk_round_trip_is_admissibility": false,
+    "sdk_round_trip_is_custody": false,
+    "sdk_round_trip_grants_standing": false,
+    "declaration_proves_consciousness": false,
+    "production_binding_enabled": false
+  },
+  "next_required_event": "Observe a successful sdk-demo-test workflow containing commit 49085cc67ac9a68d64feb6378c76e020cf4b822a or later, then preserve the run-bound receipt without widening authority."
+}
