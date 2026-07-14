@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "record_type": "adapter_origin_system_boundary_fixture_installation_receipt",
+  "source_repository": "StegVerse-org/LLM-adapter",
+  "consumer_repository": "StegVerse-org/StegVerse-SDK",
+  "source_fixture": "tests/fixtures/system-boundary-sdk-session-packet.v1.json",
+  "consumer_fixture": "tests/fixtures/adapter-system-boundary-session-packet.v1.json",
+  "source_commit": "dbd6ca0bde250bdf9865532049f58d523269d305",
+  "consumer_commits": {
+    "fixture": "641d2c89270ce63fd98fa1dd20017b46d3171156",
+    "manifest_contract_repair": "c225fdd664a2e953fceb13d20c64ab8665704d1a",
+    "fixture_tests": "1089bbf6df3cb14f8643ea96e6805de653d57cfa",
+    "workflow_binding": "ab32578396a289ccd50f33c01ba4a802898139f3"
+  },
+  "result": "STRUCTURALLY_INSTALLED_WORKFLOW_OBSERVATION_PENDING",
+  "verified_boundaries": {
+    "adapter_tuple_consumed_without_test_local_reconstruction": true,
+    "declaration_receipt_reference_reconstructed": true,
+    "enriched_reference_preserved": true,
+    "tampered_receipt_fails_closed": true,
+    "production_escalation_fails_closed": true,
+    "execution_authority_granted": false,
+    "custody_transferred": false,
+    "admissibility_determined": false,
+    "production_binding_enabled": false,
+    "consciousness_classified": false
+  },
+  "pending_observation": "sdk-demo-test run containing ab32578396a289ccd50f33c01ba4a802898139f3 or later",
+  "authority_effect": "NONE"
+}
