@@ -1,0 +1,52 @@
+name: System Boundary Evidence Sync
+
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/sync_system_boundary_evidence.py'
+      - 'stegverse/system_boundary_activation.py'
+      - 'stegverse/system_boundary_downstream_status.py'
+      - 'stegverse/system_boundary_workflow_evidence.py'
+      - 'tests/test_sync_system_boundary_evidence.py'
+      - '.github/workflows/system-boundary-evidence-sync.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: system-boundary-evidence-sync
+  cancel-in-progress: false
+
+jobs:
+  synchronize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install SDK
+        run: python -m pip install -e '.[dev]'
+      - name: Test synchronizer and activation contracts
+        run: |
+          pytest tests/test_sync_system_boundary_evidence.py tests/test_system_boundary_workflow_evidence.py tests/test_system_boundary_activation.py tests/test_system_boundary_downstream_status.py -v
+      - name: Synchronize exact workflow evidence
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/sync_system_boundary_evidence.py
+      - name: Commit changed evidence
+        run: |
+          if git diff --quiet -- evidence/; then
+            echo 'No evidence change.'
+            exit 0
+          fi
+          git config user.name 'stegverse-evidence-bot'
+          git config user.email 'stegverse-evidence-bot@users.noreply.github.com'
+          git add evidence/
+          git commit -m 'Synchronize system-boundary workflow evidence'
+          git push
