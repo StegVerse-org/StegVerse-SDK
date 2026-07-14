@@ -17,6 +17,9 @@
     "system_boundary_ingestion": "built_non_authorizing",
     "system_boundary_shape_validation": "built_side_effect_free",
     "system_boundary_non_claim_validation": "built_side_effect_free",
+    "system_boundary_manifest_serialization": "built_optional_legacy_compatible",
+    "system_boundary_receipt_reference_preservation": "built_non_authorizing",
+    "system_boundary_round_trip_validation": "built_fail_closed",
     "sdk_transition_candidate_emission": "built_non_authorizing",
     "spe_commitment_candidate_construction": "built_non_authorizing",
     "spe_intake_envelope_construction": "built_transport_neutral"
@@ -59,12 +62,27 @@
   },
   "system_boundary_ingestion": {
     "source_repo": "StegVerse-Labs/admissibility-wiki",
+    "runtime_source_repo": "StegVerse-org/LLM-adapter",
     "schema_mirror": "schemas/system-boundary-declaration.schema.v0.1.json",
     "sdk_doc": "docs/SYSTEM_BOUNDARY_INGESTION.md",
     "sdk_module": "stegverse/system_boundary.py",
-    "sdk_tests": "tests/test_system_boundary.py",
+    "round_trip_module": "stegverse/system_boundary_round_trip.py",
+    "manifest_module": "stegverse/governed_llm_manifest.py",
+    "receipt_module": "stegverse/governed_llm_receipt.py",
+    "sdk_tests": [
+      "tests/test_system_boundary.py",
+      "tests/test_system_boundary_round_trip.py",
+      "tests/test_governed_llm_system_boundary_binding.py"
+    ],
     "manifest_field": "system_boundary_declaration",
     "receipt_reference_field": "system_boundary_declaration_ref",
+    "binding_mode": "optional_until_explicit_migration",
+    "reference_contract": {
+      "algorithm": "sha256",
+      "authorizing": false,
+      "custody_transferred": false,
+      "admissibility_determined": false
+    },
     "required_non_claims": {
       "sdk_validation_is_execution": false,
       "sdk_validation_is_admissibility": false,
@@ -85,7 +103,7 @@
     "Free-tier metadata ingestion is not persistence.",
     "Free-tier metadata ingestion does not grant commit-time standing.",
     "System-boundary validation is not a consciousness test.",
-    "System-boundary validation does not grant execution authority.",
+    "System-boundary manifest or receipt serialization does not grant custody, admissibility, or execution authority.",
     "External executor integration remains outside this SDK contract layer."
   ],
   "local_verification": {
@@ -98,10 +116,12 @@
       "pytest tests/test_governed_llm_manifest.py",
       "pytest tests/test_governed_llm_receipt.py",
       "pytest tests/test_free_tier_metadata.py",
-      "pytest tests/test_system_boundary.py"
+      "pytest tests/test_system_boundary.py",
+      "pytest tests/test_system_boundary_round_trip.py",
+      "pytest tests/test_governed_llm_system_boundary_binding.py"
     ],
     "smoke_script": "python scripts/smoke_governed_llm_sdk.py",
     "free_tier_metadata_verifier": "python scripts/verify_free_tier_metadata_ingestion.py"
   },
-  "activation_definition": "An SDK-origin DECLARED transition candidate can be transformed into a deterministic, non-authorizing Commitment Candidate and transport-neutral SPE intake envelope while governed LLM metadata and system-boundary declarations are validated without creating execution, delegation, persistence, standing, consciousness, personhood, or welfare claims."
+  "activation_definition": "An SDK-origin DECLARED transition candidate can be transformed into a deterministic, non-authorizing Commitment Candidate and transport-neutral SPE intake envelope while governed LLM metadata and system-boundary declarations are validated, serialized into optional legacy-compatible manifests, and preserved through receipt handoff without creating execution, delegation, persistence, custody, standing, consciousness, personhood, or welfare claims."
 }
