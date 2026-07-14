@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "record_type": "system_boundary_downstream_status_binding",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "builder_commit": "75cc0a38de2ae6ca4c78d673666168076fcbe201",
+  "test_commit": "d52f9836530741ddbd13edbf509e8380180b6d3c",
+  "pending_packet_commit": "2b2dac6745b3a19f809f6251cfed2bdd05766046",
+  "workflow_commit": "8e9626f45070a562dec5a1932599ba655829adb9",
+  "workflow": ".github/workflows/sdk-demo-test.yml",
+  "test": "tests/test_system_boundary_downstream_status.py",
+  "behavior": {
+    "pending_propagates": false,
+    "single_repository_pass_propagates": false,
+    "both_pass_emit_verified_status_only": true,
+    "production_binding_enabled": false,
+    "release_authorized": false,
+    "execution_authority_granted": false,
+    "custody_transferred": false,
+    "admissibility_determined": false
+  },
+  "workflow_observation": "PENDING"
+}
