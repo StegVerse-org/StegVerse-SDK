@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "record_type": "system_boundary_workflow_evidence_binding_receipt",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "installed": {
+    "evidence_validator": "stegverse/system_boundary_workflow_evidence.py",
+    "pending_record": "evidence/system-boundary-workflow-evidence.pending.v0.1.json",
+    "evidence_tests": "tests/test_system_boundary_workflow_evidence.py",
+    "workflow_commit": "b73d3b59803ae0443277c03aeb5801a28c34d335"
+  },
+  "validation": {
+    "canonical_binding": "INSTALLED",
+    "complete_suite_coverage": true,
+    "explicit_route_validation_coverage": true,
+    "observed_workflow_status": "PENDING"
+  },
+  "preserved_boundaries": {
+    "pending_is_verified": false,
+    "missing_status_becomes_pass": false,
+    "production_binding_enabled": false,
+    "release_authorized": false
+  },
+  "next_required_action": "Observe sdk-demo-test containing b73d3b59803ae0443277c03aeb5801a28c34d335 or later; repair only the first repository-local failure and record exact run identity before verified-status propagation."
+}
