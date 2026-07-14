@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from stegverse.repo_standards_gate_record import (
+from stegverse import (
+    REPO_STANDARDS_GATE_ALLOWED_STATES,
+    REPO_STANDARDS_GATE_RECORD_SCHEMA_VERSION,
     RepoStandardsGateRecordError,
     build_repo_standards_gate_record,
     normalize_repo_standards_gate_record,
+    validate_repo_standards_gate_record,
 )
 
 
@@ -22,9 +25,20 @@ def make_record() -> dict:
     )
 
 
+def test_public_exports_are_available() -> None:
+    assert REPO_STANDARDS_GATE_RECORD_SCHEMA_VERSION == "1.0.0"
+    assert REPO_STANDARDS_GATE_ALLOWED_STATES == {
+        "PENDING",
+        "SATISFIED",
+        "BLOCKED",
+        "NOT_APPLICABLE",
+    }
+
+
 def test_builds_deterministic_gate_record() -> None:
     first = make_record()
     second = make_record()
+    validate_repo_standards_gate_record(first)
     assert first == second
     assert len(first["record_sha256"]) == 64
     assert first["evidence_refs"] == sorted(first["evidence_refs"])
