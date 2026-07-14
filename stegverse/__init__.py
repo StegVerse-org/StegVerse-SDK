@@ -178,6 +178,17 @@ from .transition_usage import (
     utc_now_iso,
 )
 
+# --- Repo-standards gate records ---
+from .repo_standards_gate_record import (
+    ALLOWED_STATES as REPO_STANDARDS_GATE_ALLOWED_STATES,
+    SCHEMA_VERSION as REPO_STANDARDS_GATE_RECORD_SCHEMA_VERSION,
+    RepoStandardsGateRecordError,
+    build_repo_standards_gate_record,
+    normalize_repo_standards_gate_record,
+    stable_gate_record_hash,
+    validate_repo_standards_gate_record,
+)
+
 # --- Receipts ---
 from .receipts import verify_receipt
 
@@ -267,5 +278,12 @@ __all__ = [
     "build_usage_event",
     "stable_usage_hash",
     "utc_now_iso",
+    "REPO_STANDARDS_GATE_RECORD_SCHEMA_VERSION",
+    "REPO_STANDARDS_GATE_ALLOWED_STATES",
+    "RepoStandardsGateRecordError",
+    "build_repo_standards_gate_record",
+    "normalize_repo_standards_gate_record",
+    "stable_gate_record_hash",
+    "validate_repo_standards_gate_record",
     "verify_receipt",
 ]
