@@ -13,6 +13,8 @@ tests/fixtures/adapter-system-boundary-session-packet.v1.json
 tests/fixtures/adapter-system-boundary-session-packet.v1.provenance.json
 tests/test_adapter_system_boundary_fixture_provenance.py
 receipts/adapter-system-boundary-fixture-provenance-2026-07-14.json
+receipts/adapter-system-boundary-provenance-workflow-binding-2026-07-14.json
+.github/workflows/sdk-demo-test.yml
 ```
 
 ## Protected identities
@@ -39,6 +41,16 @@ personhood_claim: not_evaluated
 welfare_claim: not_evaluated
 ```
 
+## Workflow binding
+
+```text
+sdk-demo-test workflow commit: 6f83da7fb913ab64b2117769c19a73972267a842
+adapter fixture ingestion test: tests/test_adapter_origin_system_boundary_fixture.py
+provenance guard: tests/test_adapter_system_boundary_fixture_provenance.py
+complete test-suite coverage: inherited from pytest tests/
+explicit route-validation coverage: installed
+```
+
 ## Current state
 
 ```text
@@ -46,14 +58,16 @@ adapter-origin fixture ingestion: installed
 fixture provenance manifest: installed
 fixture provenance validation: installed
 installation receipt: installed
+canonical workflow binding: installed
 workflow observation: pending
+combined status observation: no status reported
 production binding: disabled
 ```
 
 ## Next event
 
-Observe `sdk-demo-test` containing commit `f324d8062484d900ab2e2eca9407106ef9bac42d` or later. Repair only the first repository-local failure. After success, preserve the workflow-bound provenance result and propagate verified status to Site, Publisher, admissibility-wiki, and stegguardian-wiki without converting verification into authority or enabling automatic production binding.
+Observe `sdk-demo-test` containing commit `6f83da7fb913ab64b2117769c19a73972267a842` or later. Repair only the first repository-local failure. After success, preserve the workflow-bound provenance result and propagate verified status to Site, Publisher, admissibility-wiki, and stegguardian-wiki without converting verification into authority or enabling automatic production binding.
 
 ## Archive readiness
 
-This handoff, the provenance manifest, validator, and installation receipt preserve the complete SDK-side continuation state. Earlier conversation context is not required.
+This handoff, the provenance manifests, validators, workflow-binding receipt, and installation receipt preserve the complete SDK-side continuation state. Earlier conversation context is not required.
