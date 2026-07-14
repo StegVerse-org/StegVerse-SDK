@@ -5,9 +5,9 @@
   "downstream_propagation_allowed": false,
   "targets": [
     "StegVerse-Labs/Site",
-    "StegVerse-Labs/Publisher",
+    "GCAT-BCAT-Engine/Publisher",
     "StegVerse-Labs/admissibility-wiki",
-    "StegVerse-Labs/stegguardian-wiki"
+    "StegVerse-002/stegguardian-wiki"
   ],
   "status_only": true,
   "production_binding_enabled": false,
