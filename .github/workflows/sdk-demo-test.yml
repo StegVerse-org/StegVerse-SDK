@@ -63,6 +63,10 @@ jobs:
           python scripts/verify_sdk_transition_candidate.py examples/sdk_transition_candidate.json
           python scripts/verify_llm_route_comparison.py
           python scripts/verify_comparison_orchestrator.py
+      - name: Verify SDK-to-SPE and system-boundary contracts
+        run: |
+          python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
+          pytest tests/test_system_boundary.py -v
       - name: Validate formal testing route
         run: |
           python scripts/validate_formal_testing_route.py --kind loop examples/testing_data_loop.json
