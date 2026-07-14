@@ -58,7 +58,7 @@ master_record_status: NOT_YET_SUBMITTED
 
 ## SDK-to-SPE commitment intake
 
-The new intake module reuses:
+The intake module reuses:
 
 ```text
 stegverse/universal_transition_table_intake.py::validate_commitment_candidate
@@ -97,6 +97,41 @@ StegVerse-Labs/Ecosystem-Delegation -> governed delegation evaluation
 master-records/orchestration -> lifecycle, receipts, custody references, reconstruction
 ```
 
+## Parallel governed-LLM system-boundary integration
+
+This bounded workstream is subordinate to the active SDK-to-SPE goal and does not replace it.
+
+Source doctrine and schema:
+
+```text
+StegVerse-Labs/admissibility-wiki
+docs/governance/llm-consciousness-model-system-boundary.md
+static/governance/system-boundary-declaration.schema.v0.1.json
+```
+
+Installed SDK artifacts:
+
+```text
+schemas/system-boundary-declaration.schema.v0.1.json
+stegverse/system_boundary.py
+tests/test_system_boundary.py
+docs/SYSTEM_BOUNDARY_INGESTION.md
+sdk.capabilities.json
+```
+
+Installed contract bindings:
+
+```text
+manifest field: system_boundary_declaration
+receipt reference field: system_boundary_declaration_ref
+model_has_execution_authority: false
+consciousness_claim: not_evaluated
+personhood_claim: not_evaluated
+welfare_claim: not_evaluated
+```
+
+The validator rejects false continuity without feedback paths, authority escalation, missing commit boundaries, prohibited consciousness claims, and unexpected top-level fields.
+
 ## Current verification
 
 Run through the existing SDK test surface; no new workflow was added:
@@ -104,16 +139,28 @@ Run through the existing SDK test surface; no new workflow was added:
 ```text
 python -m unittest tests.test_transition_candidate
 python -m unittest tests.test_spe_commitment_intake
+pytest tests/test_system_boundary.py
+```
+
+Current state:
+
+```text
+sdk_to_spe_tests: validation_pending
+system_boundary_tests: validation_pending
+workflow_evidence: pending
+release_readiness: not_ready_for_tag
 ```
 
 ## Next task
 
 ```text
-1. Verify sdk-demo-test workflow includes and passes the new SPE intake tests.
+1. Verify sdk-demo-test workflow includes and passes the new SPE intake and system-boundary tests.
 2. Add a transport-neutral SPE consumer adapter or fixture in StegVerse-Labs/Standing-Proof-Engine.
 3. Define the receipt-bound SPE return packet.
 4. Preserve transition_id and run_id through SPE, delegation, and final receipt.
 5. Record observed workflow evidence in master-records/orchestration.
+6. Install runtime system-boundary declaration generation in StegVerse-org/LLM-adapter.
+7. Bind generated declaration identifiers into governed session manifests and receipt handoffs.
 ```
 
 ## Downstream destinations
@@ -123,6 +170,7 @@ StegVerse-Labs/Standing-Proof-Engine
 StegVerse-Labs/hybrid-collab-bridge
 StegVerse-Labs/Ecosystem-Delegation
 master-records/orchestration
+StegVerse-org/LLM-adapter
 StegVerse-Labs/Site
 GCAT-BCAT-Engine/Publisher
 StegVerse-Labs/admissibility-wiki
@@ -131,8 +179,8 @@ StegVerse-002/stegguardian-wiki
 
 ## Boundary
 
-A candidate manifest is not execution authority. SDK route ALLOW permits only progression to the next governed boundary. SPE ALLOW is not execution and must be bound to a returned receipt before downstream use.
+A candidate manifest is not execution authority. SDK route ALLOW permits only progression to the next governed boundary. SPE ALLOW is not execution and must be bound to a returned receipt before downstream use. System-boundary validation is not a consciousness, personhood, welfare, admissibility, or standing determination.
 
 ## Archive readiness
 
-This handoff contains the complete current SDK transition-candidate and SPE intake state. Earlier thread context is not required.
+This handoff contains the complete current SDK transition-candidate, SPE intake, and bounded system-boundary integration state. Earlier thread context is not required.
