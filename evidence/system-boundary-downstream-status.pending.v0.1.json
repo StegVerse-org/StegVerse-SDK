@@ -1,0 +1,18 @@
+{
+  "schema_version": "stegverse.system_boundary.downstream_status.v0.1",
+  "activation_state": "PENDING",
+  "verified": false,
+  "downstream_propagation_allowed": false,
+  "targets": [
+    "StegVerse-Labs/Site",
+    "StegVerse-Labs/Publisher",
+    "StegVerse-Labs/admissibility-wiki",
+    "StegVerse-Labs/stegguardian-wiki"
+  ],
+  "status_only": true,
+  "production_binding_enabled": false,
+  "release_authorized": false,
+  "execution_authority_granted": false,
+  "custody_transferred": false,
+  "admissibility_determined": false
+}
