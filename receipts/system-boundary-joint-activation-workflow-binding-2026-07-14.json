@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "record_type": "system_boundary_joint_activation_workflow_binding",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "workflow": ".github/workflows/sdk-demo-test.yml",
+  "workflow_commit": "1e1d58d8da3327c2e7efd1f33c43eca3810cce07",
+  "bound_test": "tests/test_system_boundary_activation.py",
+  "activation_module": "stegverse/system_boundary_activation.py",
+  "pending_activation_record": "evidence/system-boundary-activation.pending.v0.1.json",
+  "behavior": {
+    "one_repository_pass_can_verify": false,
+    "both_exact_pass_records_required": true,
+    "failure_blocks_activation": true,
+    "invalid_evidence_fails_closed": true,
+    "downstream_propagation_allowed": false,
+    "production_binding_enabled": false,
+    "release_authorized": false
+  },
+  "validation": {
+    "canonical_workflow_binding": "INSTALLED",
+    "workflow_observation": "PENDING",
+    "combined_status_observation": "NO_STATUS_REPORTED"
+  },
+  "next_required_action": "Observe sdk-demo-test containing commit 1e1d58d8da3327c2e7efd1f33c43eca3810cce07 or later and the corresponding LLM-adapter validation. Record exact run evidence for both before permitting verified downstream propagation."
+}
