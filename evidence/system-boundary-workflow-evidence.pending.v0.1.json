@@ -1,0 +1,12 @@
+{
+  "schema_version": "stegverse.system_boundary.workflow_evidence.v0.1",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "workflow": ".github/workflows/sdk-demo-test.yml",
+  "required_commit": "6f83da7fb913ab64b2117769c19a73972267a842",
+  "observed_commit": null,
+  "run_id": null,
+  "run_url": null,
+  "result": "PENDING",
+  "production_binding_enabled": false,
+  "release_authorized": false
+}
