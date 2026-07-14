@@ -115,8 +115,11 @@ Installed SDK artifacts:
 schemas/system-boundary-declaration.schema.v0.1.json
 stegverse/system_boundary.py
 stegverse/system_boundary_round_trip.py
+stegverse/governed_llm_manifest.py
+stegverse/governed_llm_receipt.py
 tests/test_system_boundary.py
 tests/test_system_boundary_round_trip.py
+tests/test_governed_llm_system_boundary_binding.py
 docs/SYSTEM_BOUNDARY_INGESTION.md
 receipts/system-boundary-round-trip-installation-2026-07-14.json
 sdk.capabilities.json
@@ -128,7 +131,12 @@ Installed contract bindings:
 manifest field: system_boundary_declaration
 receipt field: system_boundary_declaration_receipt
 receipt reference field: system_boundary_declaration_ref
+manifest binding mode: optional until explicit migration
+reference algorithm: sha256
 model_has_execution_authority: false
+authorizing: false
+custody_transferred: false
+admissibility_determined: false
 consciousness_claim: not_evaluated
 personhood_claim: not_evaluated
 welfare_claim: not_evaluated
@@ -151,13 +159,15 @@ non-authority boundary fields
 
 It fails closed on declaration tamper, receipt mismatch, digest drift, authority escalation, custody escalation, admissibility escalation, production-binding escalation, and consciousness reclassification.
 
+The governed LLM manifest and receipt modules now also consume the adapter's actual optional `algorithm/digest/declaration_id` reference contract. They validate the declaration before manifest serialization, reject orphan or mismatched references, preserve legacy packets without boundary fields, and carry the validated reference into the receipt handoff. This serialization path remains non-authorizing and does not replace the stronger declaration/receipt/reference tuple verifier.
+
 ## Current verification
 
-The existing SDK test surface still runs the complete suite. Commit `e2c1467be02dfd40b0f136684247e7e04715c963` made the SPE and declaration contracts explicit. Commit `49085cc67ac9a68d64feb6378c76e020cf4b822a` extends the explicit system-boundary step to the receipt round-trip suite:
+The existing SDK test surface still runs the complete suite. Commit `e2c1467be02dfd40b0f136684247e7e04715c963` made the SPE and declaration contracts explicit. Commit `49085cc67ac9a68d64feb6378c76e020cf4b822a` extended the explicit system-boundary step to the receipt round-trip suite. Commit `3120ba858392000053b398464e86856f8ae95014` added the governed manifest/receipt serialization suite:
 
 ```text
 python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
-pytest tests/test_system_boundary.py tests/test_system_boundary_round_trip.py -v
+pytest tests/test_system_boundary.py tests/test_system_boundary_round_trip.py tests/test_governed_llm_system_boundary_binding.py -v
 ```
 
 Current state:
@@ -166,7 +176,9 @@ Current state:
 sdk_to_spe_tests: explicit_ci_binding_installed_observation_pending
 system_boundary_tests: explicit_ci_binding_installed_observation_pending
 system_boundary_round_trip_tests: explicit_ci_binding_installed_observation_pending
+manifest_receipt_serialization_tests: explicit_ci_binding_installed_observation_pending
 adapter_receipt_consumption: installed
+adapter_manifest_serialization: installed_optional_legacy_compatible
 adapter_production_binding: disabled
 workflow_evidence: pending_current_main_run
 release_readiness: not_ready_for_tag
@@ -181,16 +193,28 @@ Relevant round-trip commits:
 37a61dfbdcf161abf51d15fc6da9f5101224e7ea  installation receipt
 ```
 
+Relevant manifest/receipt serialization commits:
+
+```text
+e3d43a072648ec09b9bcbe5a0477c9f58a3fe78b  initial optional manifest binding
+5a6afcd388645b3c1534959a599c5cd2f8bc0a5b  receipt reference preservation
+4933bc4fb9449f78344af2f951889aaf4a4c5fd4  adapter reference-contract reconciliation
+bd2197bc39a28fa3b073cd64f01a2d19b7713bff  legacy and fail-closed serialization tests
+3120ba858392000053b398464e86856f8ae95014  explicit route-validation binding
+54eda9e5ca7c9002934e7178729dab059785f597  capability registration
+```
+
 ## Next task
 
 ```text
-1. Observe and record the current-main sdk-demo-test result containing commit 49085cc67ac9a68d64feb6378c76e020cf4b822a or later.
+1. Observe and record the current-main sdk-demo-test result containing commit 54eda9e5ca7c9002934e7178729dab059785f597 or later.
 2. Repair only the first repository-local failing step, if any.
-3. Preserve the workflow-bound SDK round-trip receipt after a successful run.
+3. Preserve the workflow-bound SDK round-trip and manifest-serialization receipts after a successful run.
 4. Preserve transition_id and run_id from the canonical SPE standing receipt into master-records/orchestration lifecycle evidence.
 5. Define the governed execution-authority consumer contract for SPE ALLOW without converting ALLOW into execution.
-6. Keep adapter production system-boundary binding disabled until separately authorized.
-7. Propagate verified status to Site, Publisher, admissibility-wiki, and stegguardian-wiki only after current-main evidence exists.
+6. Add an adapter-produced fixture that enters SDK manifest serialization without test-local reconstruction.
+7. Keep adapter production system-boundary binding disabled until separately authorized.
+8. Propagate verified status to Site, Publisher, admissibility-wiki, and stegguardian-wiki only after current-main evidence exists.
 ```
 
 ## Downstream destinations
@@ -209,8 +233,8 @@ StegVerse-002/stegguardian-wiki
 
 ## Boundary
 
-A candidate manifest is not execution authority. SDK route ALLOW permits only progression to the next governed boundary. SPE ALLOW is not execution and must be bound to a returned receipt before downstream use. System-boundary validation or receipt round-trip acceptance is not a consciousness, personhood, welfare, admissibility, custody, execution, or standing determination.
+A candidate manifest is not execution authority. SDK route ALLOW permits only progression to the next governed boundary. SPE ALLOW is not execution and must be bound to a returned receipt before downstream use. System-boundary validation, receipt round-trip acceptance, manifest serialization, or receipt-reference preservation is not a consciousness, personhood, welfare, admissibility, custody, execution, or standing determination.
 
 ## Archive readiness
 
-This handoff contains the complete current SDK transition-candidate, SPE intake, explicit CI binding, system-boundary validation, and receipt round-trip state. Earlier conversation context is not required.
+This handoff contains the complete current SDK transition-candidate, SPE intake, explicit CI binding, system-boundary validation, receipt round-trip, manifest serialization, and receipt-reference preservation state. Earlier conversation context is not required.
