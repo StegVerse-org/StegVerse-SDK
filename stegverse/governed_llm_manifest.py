@@ -16,6 +16,7 @@ from typing import Any, Mapping, Optional
 
 from .governed_llm_session_intake import intake_governed_llm_session_packet
 from .system_boundary import validate_system_boundary_declaration
+from .system_boundary_round_trip import validate_system_boundary_round_trip
 
 
 GOVERNED_LLM_MANIFEST_SCHEMA_VERSION = "stegverse.sdk.governed_llm_manifest.v0.1"
@@ -37,12 +38,13 @@ def _bind_system_boundary(
     session_packet: Mapping[str, Any],
 ) -> tuple[Optional[dict[str, Any]], Optional[dict[str, Any]]]:
     declaration = session_packet.get("system_boundary_declaration")
+    receipt = session_packet.get("system_boundary_declaration_receipt")
     supplied_ref = session_packet.get("system_boundary_declaration_ref")
 
     if declaration is None:
-        if supplied_ref is not None:
+        if receipt is not None or supplied_ref is not None:
             raise ValueError(
-                "system_boundary_declaration_ref cannot be supplied without system_boundary_declaration"
+                "system-boundary receipt or reference cannot be supplied without system_boundary_declaration"
             )
         return None, None
 
@@ -56,6 +58,24 @@ def _bind_system_boundary(
         )
 
     declaration_copy = dict(declaration)
+
+    if receipt is not None:
+        if supplied_ref is None:
+            raise ValueError(
+                "system_boundary_declaration_ref is required when a declaration receipt is supplied"
+            )
+        if not isinstance(receipt, Mapping) or not isinstance(supplied_ref, Mapping):
+            raise ValueError("system-boundary receipt and reference must be objects")
+        round_trip = validate_system_boundary_round_trip(
+            declaration_copy, receipt, supplied_ref
+        )
+        if not round_trip.accepted:
+            raise ValueError(
+                "invalid adapter system-boundary round trip: "
+                + "; ".join(round_trip.errors)
+            )
+        return declaration_copy, dict(supplied_ref)
+
     expected_ref = {
         "algorithm": "sha256",
         "digest": stable_hash(declaration_copy),
