@@ -114,8 +114,11 @@ Installed SDK artifacts:
 ```text
 schemas/system-boundary-declaration.schema.v0.1.json
 stegverse/system_boundary.py
+stegverse/system_boundary_round_trip.py
 tests/test_system_boundary.py
+tests/test_system_boundary_round_trip.py
 docs/SYSTEM_BOUNDARY_INGESTION.md
+receipts/system-boundary-round-trip-installation-2026-07-14.json
 sdk.capabilities.json
 ```
 
@@ -123,22 +126,38 @@ Installed contract bindings:
 
 ```text
 manifest field: system_boundary_declaration
+receipt field: system_boundary_declaration_receipt
 receipt reference field: system_boundary_declaration_ref
 model_has_execution_authority: false
 consciousness_claim: not_evaluated
 personhood_claim: not_evaluated
 welfare_claim: not_evaluated
+production_binding_enabled: false
 ```
 
-The validator rejects false continuity without feedback paths, authority escalation, missing commit boundaries, prohibited consciousness claims, and unexpected top-level fields.
+The declaration validator rejects false continuity without feedback paths, authority escalation, missing commit boundaries, prohibited consciousness claims, and unexpected top-level fields.
+
+The receipt round-trip verifier independently reconstructs:
+
+```text
+canonical declaration identity
+declaration content hash
+receipt body and receipt hash
+declaration-reference digest
+declaration-reference receipt hash
+evidence-reference preservation
+non-authority boundary fields
+```
+
+It fails closed on declaration tamper, receipt mismatch, digest drift, authority escalation, custody escalation, admissibility escalation, production-binding escalation, and consciousness reclassification.
 
 ## Current verification
 
-The existing SDK test surface still runs the complete suite. Commit `e2c1467be02dfd40b0f136684247e7e04715c963` also makes the active contracts explicit in the `route-validation` job:
+The existing SDK test surface still runs the complete suite. Commit `e2c1467be02dfd40b0f136684247e7e04715c963` made the SPE and declaration contracts explicit. Commit `49085cc67ac9a68d64feb6378c76e020cf4b822a` extends the explicit system-boundary step to the receipt round-trip suite:
 
 ```text
 python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
-pytest tests/test_system_boundary.py -v
+pytest tests/test_system_boundary.py tests/test_system_boundary_round_trip.py -v
 ```
 
 Current state:
@@ -146,19 +165,32 @@ Current state:
 ```text
 sdk_to_spe_tests: explicit_ci_binding_installed_observation_pending
 system_boundary_tests: explicit_ci_binding_installed_observation_pending
+system_boundary_round_trip_tests: explicit_ci_binding_installed_observation_pending
+adapter_receipt_consumption: installed
+adapter_production_binding: disabled
 workflow_evidence: pending_current_main_run
 release_readiness: not_ready_for_tag
+```
+
+Relevant round-trip commits:
+
+```text
+874063c94397a11a439fa674e6cebcf69c439da6  SDK round-trip verifier
+610c3c571086bf6884122cd061d9a74fe770252f  round-trip and tamper tests
+49085cc67ac9a68d64feb6378c76e020cf4b822a  sdk-demo-test integration
+37a61dfbdcf161abf51d15fc6da9f5101224e7ea  installation receipt
 ```
 
 ## Next task
 
 ```text
-1. Observe and record the current-main sdk-demo-test result for commit e2c1467be02dfd40b0f136684247e7e04715c963.
-2. Preserve transition_id and run_id from the canonical SPE standing receipt into master-records/orchestration lifecycle evidence.
-3. Define the governed execution-authority consumer contract for SPE ALLOW without converting ALLOW into execution.
-4. Install runtime system-boundary declaration generation in StegVerse-org/LLM-adapter.
-5. Bind generated declaration identifiers into governed session manifests and receipt handoffs.
-6. Propagate verified status to Site, Publisher, admissibility-wiki, and stegguardian-wiki only after current-main evidence exists.
+1. Observe and record the current-main sdk-demo-test result containing commit 49085cc67ac9a68d64feb6378c76e020cf4b822a or later.
+2. Repair only the first repository-local failing step, if any.
+3. Preserve the workflow-bound SDK round-trip receipt after a successful run.
+4. Preserve transition_id and run_id from the canonical SPE standing receipt into master-records/orchestration lifecycle evidence.
+5. Define the governed execution-authority consumer contract for SPE ALLOW without converting ALLOW into execution.
+6. Keep adapter production system-boundary binding disabled until separately authorized.
+7. Propagate verified status to Site, Publisher, admissibility-wiki, and stegguardian-wiki only after current-main evidence exists.
 ```
 
 ## Downstream destinations
@@ -177,8 +209,8 @@ StegVerse-002/stegguardian-wiki
 
 ## Boundary
 
-A candidate manifest is not execution authority. SDK route ALLOW permits only progression to the next governed boundary. SPE ALLOW is not execution and must be bound to a returned receipt before downstream use. System-boundary validation is not a consciousness, personhood, welfare, admissibility, or standing determination.
+A candidate manifest is not execution authority. SDK route ALLOW permits only progression to the next governed boundary. SPE ALLOW is not execution and must be bound to a returned receipt before downstream use. System-boundary validation or receipt round-trip acceptance is not a consciousness, personhood, welfare, admissibility, custody, execution, or standing determination.
 
 ## Archive readiness
 
-This handoff contains the complete current SDK transition-candidate, SPE intake, explicit CI binding, and bounded system-boundary integration state. Earlier thread context is not required.
+This handoff contains the complete current SDK transition-candidate, SPE intake, explicit CI binding, system-boundary validation, and receipt round-trip state. Earlier conversation context is not required.
