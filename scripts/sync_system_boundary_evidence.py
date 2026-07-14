@@ -108,9 +108,11 @@ def build_evidence(source: Mapping[str, Any], run: Mapping[str, Any] | None) -> 
         "release_authorized": False,
     }
     if run is not None:
+        observed_commit = run["head_sha"]
         evidence.update(
             {
-                "observed_commit": run["head_sha"],
+                "required_commit": observed_commit,
+                "observed_commit": observed_commit,
                 "run_id": str(run["id"]),
                 "run_url": run["html_url"],
                 "result": "PASS",
