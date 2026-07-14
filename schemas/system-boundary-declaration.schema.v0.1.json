@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/system-boundary-declaration.schema.v0.1.json",
+  "title": "StegVerse System Boundary Declaration",
+  "description": "Declares the state, persistence, recurrence, environment, and authority surfaces of an AI-enabled system without making a consciousness claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "declaration_id", "system_id", "generated_at", "surfaces", "continuity", "authority", "claims_boundary"],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "declaration_id": {"type": "string", "minLength": 1},
+    "system_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "surfaces": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model", "orchestration", "session", "memory", "environment"],
+      "properties": {
+        "model": {"$ref": "#/$defs/surface"},
+        "orchestration": {"$ref": "#/$defs/surface"},
+        "session": {"$ref": "#/$defs/surface"},
+        "memory": {"$ref": "#/$defs/surface"},
+        "environment": {"$ref": "#/$defs/surface"}
+      }
+    },
+    "continuity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prior_state_can_affect_future_transition", "feedback_paths", "trajectory_dependent", "reconstructable"],
+      "properties": {
+        "prior_state_can_affect_future_transition": {"type": "boolean"},
+        "feedback_paths": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "trajectory_dependent": {"type": "boolean"},
+        "reconstructable": {"type": "boolean"},
+        "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_has_execution_authority", "commit_boundary", "decision_source"],
+      "properties": {
+        "model_has_execution_authority": {"const": false},
+        "commit_boundary": {"type": "string", "minLength": 1},
+        "decision_source": {"enum": ["policy-engine", "human", "quorum", "none"]},
+        "policy_refs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "delegation_refs": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "claims_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["consciousness_claim", "personhood_claim", "welfare_claim", "scope_note"],
+      "properties": {
+        "consciousness_claim": {"const": "not_evaluated"},
+        "personhood_claim": {"const": "not_evaluated"},
+        "welfare_claim": {"const": "not_evaluated"},
+        "scope_note": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "$defs": {
+    "surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["present", "state_kind", "persistence", "mutable_by_inference"],
+      "properties": {
+        "present": {"type": "boolean"},
+        "state_kind": {"enum": ["none", "transient", "session", "durable", "external"]},
+        "persistence": {"enum": ["none", "invocation", "session", "cross-session", "indefinite"]},
+        "mutable_by_inference": {"type": "boolean"},
+        "storage_refs": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}
