@@ -8,8 +8,8 @@ This file is the current handoff and task source of truth for `StegVerse-org/Ste
 
 ```text
 Goal: SDK-origin governed transition candidate emission with deterministic SPE commitment intake
-Phase: emitter-and-SPE-envelope-installed-validation-pending
-Result: LOCAL_IMPLEMENTATION_INSTALLED_VALIDATION_PENDING
+Phase: explicit-current-main-validation-installed-observation-pending
+Result: LOCAL_IMPLEMENTATION_AND_CI_BINDING_INSTALLED_VALIDATION_PENDING
 ```
 
 ## Architecture
@@ -134,33 +134,31 @@ The validator rejects false continuity without feedback paths, authority escalat
 
 ## Current verification
 
-Run through the existing SDK test surface; no new workflow was added:
+The existing SDK test surface still runs the complete suite. Commit `e2c1467be02dfd40b0f136684247e7e04715c963` also makes the active contracts explicit in the `route-validation` job:
 
 ```text
-python -m unittest tests.test_transition_candidate
-python -m unittest tests.test_spe_commitment_intake
-pytest tests/test_system_boundary.py
+python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
+pytest tests/test_system_boundary.py -v
 ```
 
 Current state:
 
 ```text
-sdk_to_spe_tests: validation_pending
-system_boundary_tests: validation_pending
-workflow_evidence: pending
+sdk_to_spe_tests: explicit_ci_binding_installed_observation_pending
+system_boundary_tests: explicit_ci_binding_installed_observation_pending
+workflow_evidence: pending_current_main_run
 release_readiness: not_ready_for_tag
 ```
 
 ## Next task
 
 ```text
-1. Verify sdk-demo-test workflow includes and passes the new SPE intake and system-boundary tests.
-2. Add a transport-neutral SPE consumer adapter or fixture in StegVerse-Labs/Standing-Proof-Engine.
-3. Define the receipt-bound SPE return packet.
-4. Preserve transition_id and run_id through SPE, delegation, and final receipt.
-5. Record observed workflow evidence in master-records/orchestration.
-6. Install runtime system-boundary declaration generation in StegVerse-org/LLM-adapter.
-7. Bind generated declaration identifiers into governed session manifests and receipt handoffs.
+1. Observe and record the current-main sdk-demo-test result for commit e2c1467be02dfd40b0f136684247e7e04715c963.
+2. Preserve transition_id and run_id from the canonical SPE standing receipt into master-records/orchestration lifecycle evidence.
+3. Define the governed execution-authority consumer contract for SPE ALLOW without converting ALLOW into execution.
+4. Install runtime system-boundary declaration generation in StegVerse-org/LLM-adapter.
+5. Bind generated declaration identifiers into governed session manifests and receipt handoffs.
+6. Propagate verified status to Site, Publisher, admissibility-wiki, and stegguardian-wiki only after current-main evidence exists.
 ```
 
 ## Downstream destinations
@@ -183,4 +181,4 @@ A candidate manifest is not execution authority. SDK route ALLOW permits only pr
 
 ## Archive readiness
 
-This handoff contains the complete current SDK transition-candidate, SPE intake, and bounded system-boundary integration state. Earlier thread context is not required.
+This handoff contains the complete current SDK transition-candidate, SPE intake, explicit CI binding, and bounded system-boundary integration state. Earlier thread context is not required.
