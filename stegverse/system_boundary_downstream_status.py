@@ -14,9 +14,9 @@ from .system_boundary_activation import evaluate_system_boundary_activation
 
 DOWNSTREAM_TARGETS = (
     "StegVerse-Labs/Site",
-    "StegVerse-Labs/Publisher",
+    "GCAT-BCAT-Engine/Publisher",
     "StegVerse-Labs/admissibility-wiki",
-    "StegVerse-Labs/stegguardian-wiki",
+    "StegVerse-002/stegguardian-wiki",
 )
 
 
