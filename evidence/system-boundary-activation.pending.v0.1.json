@@ -1,0 +1,10 @@
+{
+  "schema_version": "stegverse.system_boundary.activation.v0.1",
+  "state": "PENDING",
+  "verified": false,
+  "adapter_evidence": "StegVerse-org/LLM-adapter:evidence/system-boundary-workflow-evidence.pending.v0.1.json",
+  "sdk_evidence": "evidence/system-boundary-workflow-evidence.pending.v0.1.json",
+  "downstream_propagation_allowed": false,
+  "production_binding_enabled": false,
+  "release_authorized": false
+}
