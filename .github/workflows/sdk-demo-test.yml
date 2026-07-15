@@ -42,6 +42,7 @@ jobs:
           python -c "from stegverse.ecosystem_projection import project_record, project_records"
           python -c "from stegverse.canonical_source_collector import CanonicalSourceCollector, validate_collection"
           python -c "from stegverse.repository_source_reader import AllowlistedRepositorySourceReader"
+          python -c "from stegverse.github_repository_fetcher import GitHubRepositoryFetcher"
           python -c "from stegverse.governed_conversation import GovernedConversationHandler"
           python -c "from stegverse.http_transport import AuthenticatedJSONTransport, LLMAdapterHTTPTransport"
           python -c "from stegverse.llm_adapter_bridge import GovernedLLMAdapterProvider, normalize_adapter_response"
@@ -84,7 +85,7 @@ jobs:
           python scripts/verify_comparison_orchestrator.py
       - name: Verify universal entry runtime and integrations
         run: |
-          pytest tests/test_universal_entry.py tests/test_universal_entry_dispatch.py tests/test_universal_entry_handlers.py tests/test_universal_entry_integrations.py tests/test_universal_entry_catalog_events.py tests/test_universal_entry_transport_projection.py tests/test_universal_entry_runtime_wrapper.py tests/test_master_records_custody.py tests/test_canonical_source_conversation.py tests/test_repository_source_activation.py tests/test_universal_entry_server_runtime.py tests/test_integration_config.py -v
+          pytest tests/test_universal_entry.py tests/test_universal_entry_dispatch.py tests/test_universal_entry_handlers.py tests/test_universal_entry_integrations.py tests/test_universal_entry_catalog_events.py tests/test_universal_entry_transport_projection.py tests/test_universal_entry_runtime_wrapper.py tests/test_master_records_custody.py tests/test_canonical_source_conversation.py tests/test_repository_source_activation.py tests/test_github_repository_fetcher.py tests/test_universal_entry_server_runtime.py tests/test_integration_config.py -v
       - name: Verify SDK-to-SPE and system-boundary contracts
         run: |
           python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
@@ -136,6 +137,7 @@ jobs:
           python -c "from stegverse.ecosystem_projection import project_records"
           python -c "from stegverse.canonical_source_collector import CanonicalSourceCollector"
           python -c "from stegverse.repository_source_reader import AllowlistedRepositorySourceReader"
+          python -c "from stegverse.github_repository_fetcher import GitHubRepositoryFetcher"
           python -c "from stegverse.governed_conversation import GovernedConversationHandler"
           python -c "from stegverse.http_transport import AuthenticatedJSONTransport"
           python -c "from stegverse.llm_adapter_bridge import GovernedLLMAdapterProvider"
