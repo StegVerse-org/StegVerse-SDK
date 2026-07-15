@@ -1,0 +1,36 @@
+{
+  "schema": "stegverse.entry_point_parity_fixture.v0.1",
+  "entry_points": [
+    "site_chat",
+    "sdk",
+    "api",
+    "portable_node",
+    "stegtalk",
+    "agent",
+    "external_actor_gateway"
+  ],
+  "request": {
+    "content_type": "text",
+    "content": "What is the current StegVerse Site activation status?",
+    "requested_capabilities": ["ecosystem_read"],
+    "external_information_allowed": false
+  },
+  "routing": {
+    "allowed_lanes": ["conversation", "ecosystem_query", "external_llm", "solver", "execution"]
+  },
+  "capabilities": {
+    "conversation": "operational",
+    "ecosystem_read": "operational",
+    "external_llm": "unavailable",
+    "solver": "operational",
+    "execution": "disabled"
+  },
+  "expected": {
+    "selected_lanes": ["conversation", "ecosystem_query"],
+    "dispatch_order": ["ecosystem_query", "conversation"],
+    "status": "routed",
+    "execution_authority_granted": false,
+    "admissibility_determined": false,
+    "custody_transferred": false
+  }
+}
