@@ -2,24 +2,21 @@
 
 Entry adapters never call providers, solvers, repositories, or executors
 directly. They submit a universal entry envelope to this dispatcher with a
-registry of lane handlers. The dispatcher preserves route order, captures
-per-lane results, fails closed on handler errors, and returns a governed
-response envelope with a deterministic dispatch receipt.
+registry of lane handlers. The dispatcher preserves governed route semantics,
+runs conversation last for multi-lane synthesis, captures per-lane results,
+fails closed on handler errors, and returns a governed response envelope with a
+deterministic dispatch receipt.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from hashlib import sha256
-import json
-from typing import Any, Callable, Dict, Mapping, MutableMapping, Protocol, Sequence
+from typing import Any, Dict, Mapping, MutableMapping, Protocol, Sequence
 
 from .universal_entry import (
     CapabilityRegistry,
     RouteDecision,
-    UniversalEntryError,
     build_governed_return,
-    canonical_json,
     digest,
     route_universal_entry,
 )
@@ -105,6 +102,12 @@ def _default_response_text(
 ) -> str:
     if decision.failed_closed:
         return "The request failed closed before any operational engine was invoked."
+    conversation = next(
+        (r for r in reversed(lane_results) if r.get("lane") == "conversation"),
+        None,
+    )
+    if conversation and conversation.get("response"):
+        return str(conversation["response"])
     failed = [r for r in lane_results if r.get("status") == "failed_closed"]
     unavailable = [r for r in lane_results if r.get("status") == "unavailable"]
     degraded = [r for r in lane_results if r.get("status") == "degraded"]
@@ -115,6 +118,15 @@ def _default_response_text(
     if degraded:
         return "The request completed through a degraded capability path."
     return "The request completed through the selected non-authorizing engines."
+
+
+def _dispatch_order(selected_lanes: Sequence[str]) -> Sequence[str]:
+    """Run operational lanes first and conversation last for synthesis."""
+
+    lanes = list(selected_lanes)
+    if "conversation" in lanes and len(lanes) > 1:
+        lanes = [lane for lane in lanes if lane != "conversation"] + ["conversation"]
+    return lanes
 
 
 def dispatch_universal_entry(
@@ -146,7 +158,7 @@ def dispatch_universal_entry(
     context["lane_results"] = []
     lane_results = []
 
-    for lane in decision.selected_lanes:
+    for lane in _dispatch_order(decision.selected_lanes):
         handler = handler_registry.get(lane)
         if handler is None:
             result = {
