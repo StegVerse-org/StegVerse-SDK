@@ -1,0 +1,20 @@
+{
+  "schema": "stegverse.node_capability_registry.v0.1",
+  "node_id": "portable-node-reference",
+  "capabilities": {
+    "conversation": "operational",
+    "ecosystem_read": "operational",
+    "external_llm": "degraded",
+    "solver": "operational",
+    "execution": "disabled"
+  },
+  "declared_limitations": [
+    "external_llm requires configured provider transport",
+    "execution requires a separately authorized governed executor"
+  ],
+  "authority": {
+    "execution_authority_granted": false,
+    "admissibility_determined": false,
+    "custody_transferred": false
+  }
+}
