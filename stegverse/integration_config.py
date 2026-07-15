@@ -56,7 +56,9 @@ def _https_endpoint(value: str, *, allow_localhost_http: bool = False) -> str:
     if not parsed.scheme or not parsed.netloc:
         raise IntegrationConfigError("endpoint must be an absolute URL")
     localhost = parsed.hostname in {"localhost", "127.0.0.1", "::1"}
-    if parsed.scheme != "https" and not (allow_localhost_http and localhost and parsed.scheme == "http"):
+    if parsed.scheme != "https" and not (
+        allow_localhost_http and localhost and parsed.scheme == "http"
+    ):
         raise IntegrationConfigError("remote integration endpoints must use HTTPS")
     if parsed.username or parsed.password:
         raise IntegrationConfigError("endpoint URLs must not contain credentials")
@@ -76,8 +78,10 @@ def _source_binding(raw: Mapping[str, Any]) -> dict[str, Any]:
     }
     unknown = sorted(set(raw) - allowed)
     if unknown:
-        raise IntegrationConfigError("unknown source binding fields: " + ", ".join(unknown))
-    binding = {
+        raise IntegrationConfigError(
+            "unknown source binding fields: " + ", ".join(unknown)
+        )
+    return {
         "source_id": _required_text(raw, "source_id"),
         "repository": _required_text(raw, "repository"),
         "path": _required_text(raw, "path"),
@@ -93,7 +97,6 @@ def _source_binding(raw: Mapping[str, Any]) -> dict[str, Any]:
         "read_receipt_required": raw.get("read_receipt_required", True) is True,
         "credential_ref": _credential_ref(raw),
     }
-    return binding
 
 
 def _service_binding(
@@ -110,12 +113,16 @@ def _service_binding(
         "expected_service",
         "expected_schema_version",
         "session_identity_required",
+        "required_path",
     }
     unknown = sorted(set(raw) - allowed)
     if unknown:
         raise IntegrationConfigError(
             f"unknown {service} binding fields: " + ", ".join(unknown)
         )
+    supplied_path = raw.get("required_path")
+    if supplied_path is not None and str(supplied_path) != required_path:
+        raise IntegrationConfigError(f"{service} required path mismatch")
     enabled = raw.get("enabled") is True
     if not enabled:
         return {
