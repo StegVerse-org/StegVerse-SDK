@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/universal-entry-envelope.schema.v0.1.json",
+  "title": "StegVerse Universal Entry Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "origin", "request", "routing", "authority", "receipt", "continuity"],
+  "properties": {
+    "schema": {"const": "stegverse.universal_entry_envelope.v0.1"},
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entry_point", "actor_id", "node_id", "session_id", "message_id"],
+      "properties": {
+        "entry_point": {"enum": ["site_chat", "sdk", "api", "portable_node", "stegtalk", "agent", "repository_ingest", "external_actor_gateway", "partner_adapter", "other"]},
+        "actor_id": {"type": ["string", "null"]},
+        "node_id": {"type": "string", "minLength": 1},
+        "session_id": {"type": "string", "minLength": 1},
+        "message_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content_type", "content", "intent_hint", "requested_capabilities", "external_information_allowed"],
+      "properties": {
+        "content_type": {"enum": ["text", "manifest", "file_reference", "event", "mixed"]},
+        "content": {},
+        "intent_hint": {"type": ["string", "null"]},
+        "requested_capabilities": {"type": "array", "uniqueItems": true, "items": {"enum": ["conversation", "ecosystem_query", "external_llm", "research", "solver", "governed_task", "execution"]}},
+        "external_information_allowed": {"type": "boolean"}
+      }
+    },
+    "routing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_lanes", "selected_lanes", "selection_status", "return_path"],
+      "properties": {
+        "allowed_lanes": {"type": "array", "uniqueItems": true, "items": {"enum": ["conversation", "ecosystem_query", "external_llm", "research", "solver", "governed_task", "execution"]}},
+        "selected_lanes": {"type": "array", "uniqueItems": true, "items": {"enum": ["conversation", "ecosystem_query", "external_llm", "research", "solver", "governed_task", "execution"]}},
+        "selection_status": {"enum": ["DECLARED", "CLASSIFIED", "ROUTED", "BLOCKED", "COMPLETED", "FAILED_CLOSED"]},
+        "return_path": {"enum": ["same_entry_point", "declared_destination", "receipt_only"]}
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "delegation_ref", "policy_refs", "execution_authority_granted"],
+      "properties": {
+        "class": {"enum": ["none", "advisory", "requires_human_review", "delegated", "restricted"]},
+        "delegation_ref": {"type": ["string", "null"]},
+        "policy_refs": {"type": "array", "items": {"type": "string"}},
+        "execution_authority_granted": {"const": false}
+      }
+    },
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "expected_types", "prior_receipt_refs"],
+      "properties": {
+        "required": {"type": "boolean"},
+        "expected_types": {"type": "array", "uniqueItems": true, "items": {"enum": ["routing", "usage", "retrieval", "decision", "execution", "custody", "reconstruction"]}},
+        "prior_receipt_refs": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "continuity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transition_id", "run_id", "parent_message_id", "manifest_hash", "replay_required"],
+      "properties": {
+        "transition_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1},
+        "parent_message_id": {"type": ["string", "null"]},
+        "manifest_hash": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"},
+        "replay_required": {"type": "boolean"}
+      }
+    }
+  }
+}
