@@ -31,6 +31,23 @@ def _iso(value: str) -> datetime:
     return parsed.astimezone(timezone.utc)
 
 
+def _record_mapping(record: EcosystemRecord) -> dict[str, Any]:
+    return {
+        "record_id": record.record_id,
+        "repository": record.repository,
+        "source": record.source,
+        "record_type": record.record_type,
+        "title": record.title,
+        "text": record.text,
+        "authoritative": record.authoritative,
+        "lifecycle_state": record.lifecycle_state,
+        "observed_at": record.observed_at,
+        "supersedes": list(record.supersedes),
+        "tags": list(record.tags),
+        "receipt_ref": record.receipt_ref,
+    }
+
+
 def build_catalog(
     projections: Iterable[Mapping[str, Any]],
     *,
@@ -57,8 +74,7 @@ def build_catalog(
         if record.record_id in identities:
             raise EcosystemCatalogError(f"duplicate record_id: {record.record_id}")
         identities.add(record.record_id)
-        item = record.to_mapping()
-        item["record_type"] = record_type
+        item = _record_mapping(record)
         item["catalog_source_digest"] = _digest(dict(raw))
         records.append(item)
 
