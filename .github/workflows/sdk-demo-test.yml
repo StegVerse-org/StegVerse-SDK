@@ -37,6 +37,8 @@ jobs:
           python -c "from stegverse.universal_entry import process_universal_entry, route_universal_entry"
           python -c "from stegverse.universal_entry_dispatch import dispatch_universal_entry"
           python -c "from stegverse.universal_entry_handlers import build_default_handler_registry, conversation_handler, solver_handler"
+          python -c "from stegverse.ecosystem_records import AuthoritativeEcosystemRetriever"
+          python -c "from stegverse.llm_adapter_bridge import GovernedLLMAdapterProvider, normalize_adapter_response"
       - name: Run complete test suite
         run: pytest tests/ -v --cov=stegverse --cov-report=xml
       - name: Upload coverage
@@ -67,9 +69,9 @@ jobs:
           python scripts/verify_sdk_transition_candidate.py examples/sdk_transition_candidate.json
           python scripts/verify_llm_route_comparison.py
           python scripts/verify_comparison_orchestrator.py
-      - name: Verify universal entry runtime and handlers
+      - name: Verify universal entry runtime and integrations
         run: |
-          pytest tests/test_universal_entry.py tests/test_universal_entry_dispatch.py tests/test_universal_entry_handlers.py -v
+          pytest tests/test_universal_entry.py tests/test_universal_entry_dispatch.py tests/test_universal_entry_handlers.py tests/test_universal_entry_integrations.py -v
       - name: Verify SDK-to-SPE and system-boundary contracts
         run: |
           python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
@@ -116,6 +118,8 @@ jobs:
           python -c "from stegverse.universal_entry import process_universal_entry"
           python -c "from stegverse.universal_entry_dispatch import dispatch_universal_entry"
           python -c "from stegverse.universal_entry_handlers import build_default_handler_registry"
+          python -c "from stegverse.ecosystem_records import AuthoritativeEcosystemRetriever"
+          python -c "from stegverse.llm_adapter_bridge import GovernedLLMAdapterProvider"
       - uses: actions/upload-artifact@v4
         with:
           name: dist
