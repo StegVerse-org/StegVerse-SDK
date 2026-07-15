@@ -1,0 +1,91 @@
+{
+  "universal_entry": {
+    "origin": {
+      "entry_point": "portable_node",
+      "session_id": "session.portable.example",
+      "message_id": "message.portable.example.0001"
+    },
+    "request": {
+      "content": "Search the web for the latest external governance research.",
+      "requested_capabilities": ["external_llm"],
+      "external_information_allowed": true
+    },
+    "routing": {
+      "allowed_lanes": ["conversation", "ecosystem_query", "external_llm", "solver", "execution"]
+    },
+    "continuity": {
+      "transition_id": "transition.portable.example.0001",
+      "run_id": "run.portable.example.0001",
+      "manifest_hash": "sha256:example-manifest",
+      "previous_receipt_id": null
+    }
+  },
+  "adapter_request": {
+    "message": "Search the web for the latest external governance research.",
+    "session_id": "session.portable.example",
+    "requested_route": "Unknown",
+    "transition_intent": "external_llm",
+    "transition_destination": "governed-return",
+    "goal": "universal entry governed provider response",
+    "execution_model": "allowlisted_task_request_only",
+    "raw_shell_allowed": false,
+    "authority_required": true,
+    "rate_limit_required": true,
+    "receipt_required_for_execution": true,
+    "interaction_profile": {},
+    "interaction_bands": ["provider", "receipt"],
+    "math_solver_supported": true,
+    "transition_identity": {
+      "transition_id": "transition.portable.example.0001",
+      "run_id": "run.portable.example.0001",
+      "event_id": "message.portable.example.0001",
+      "origin_manifest_id": "sha256:example-manifest",
+      "parent_transition_id": null,
+      "previous_receipt_id": null
+    }
+  },
+  "adapter_response": {
+    "response": "Bounded provider response example.",
+    "transition_id": "transition.portable.example.0001",
+    "run_id": "run.portable.example.0001",
+    "receipt_id": "gateway-receipt:example",
+    "final_receipt_id": "final-receipt:example",
+    "lifecycle_state": "COMPLETED",
+    "master_record_status": "PENDING",
+    "reconstruction_status": "RECONSTRUCTABLE",
+    "provider": {
+      "used": true,
+      "provider": "example-provider",
+      "model": "example-model",
+      "status": "USED",
+      "usage": {
+        "input_units": 10,
+        "output_units": 6
+      },
+      "provider_receipt_id": "provider-receipt:example"
+    },
+    "provider_usage_submission": {
+      "status": "LOCAL_USAGE_PERSISTED",
+      "authority_granted": false,
+      "custody_recorded": false
+    },
+    "authority": {
+      "provider_output_is_authority": false,
+      "repository_mutation_allowed": false,
+      "publication_allowed": false,
+      "final_response_receipt_is_repository_execution_authority": false,
+      "local_persistence_is_master_records_custody": false,
+      "site_grants_admissibility": false
+    }
+  },
+  "expected_normalized_provider_result": {
+    "response": "Bounded provider response example.",
+    "provider": "example-provider",
+    "model": "example-model",
+    "provider_used": true,
+    "provider_status": "USED",
+    "receipt_id": "provider-receipt:example",
+    "authority_granted": false,
+    "local_persistence_is_custody": false
+  }
+}
