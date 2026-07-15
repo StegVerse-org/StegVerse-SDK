@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the current continuation source for the authoritative ecosystem-retrieval, governed LLM-adapter, packaged catalog, canonical projection, authenticated transport, continuation-event, and governed runtime-return layers in `StegVerse-org/StegVerse-SDK`.
+This document is the current continuation source for the authoritative ecosystem-retrieval, governed LLM-adapter, packaged catalog, canonical projection, authenticated transport, continuation-event, governed runtime-return, and Master-Records custody-verification layers in `StegVerse-org/StegVerse-SDK`.
 
 ## Installed files
 
@@ -13,11 +13,13 @@ stegverse/ecosystem_projection.py
 stegverse/http_transport.py
 stegverse/llm_adapter_bridge.py
 stegverse/universal_entry_events.py
+stegverse/master_records_custody.py
 stegverse/universal_entry_runtime.py
 tests/test_universal_entry_integrations.py
 tests/test_universal_entry_catalog_events.py
 tests/test_universal_entry_transport_projection.py
 tests/test_universal_entry_runtime_wrapper.py
+tests/test_master_records_custody.py
 examples/universal_entry/llm_adapter_round_trip.json
 .github/workflows/sdk-demo-test.yml
 ```
@@ -67,9 +69,27 @@ route_universal_entry
 -> continuation metadata attached to governed return
 ```
 
-`run_universal_entry` is the canonical wrapper. It attaches `continuation_events` and a continuation summary containing the first event, last event, count, `custody_submitted=false`, and `master_records_installed=false`.
+`run_universal_entry` is the canonical wrapper. Without a custody client it attaches `continuation_events` and records `custody_submitted=false`, `custody_verified=false`, `master_records_installed=false`, and `reconstructability_status=NOT_SUBMITTED`.
 
-Continuation events preserve session, message, transition, run, entry-point, and prior-event identity. They reject chain discontinuity, digest drift, authority escalation, execution escalation, custody escalation, and admissibility escalation. They are transport-neutral records, not proof receipts or Master-Records custody.
+## Master-Records custody path
+
+```text
+validated continuation event chain
+-> build_custody_submission
+-> authenticated dependency-injected custody transport
+-> identity-matched Master-Records custody receipt
+-> authenticated reconstruction retrieval
+-> independent event-chain reconstruction validation
+-> reconstructability_status: PASS
+-> custody_verified=true
+-> master_records_installed=true
+```
+
+`MasterRecordsCustodyClient` is transport-neutral. Browser entry adapters must never own custody credentials. The custody receipt must preserve submission, session, message, transition, run, first-event, last-event, count, and event-digest identity. It must record custody, expose reconstruction availability, remain non-authorizing, and pass deterministic receipt validation.
+
+Reconstruction must return the complete validated event chain, match the submission digest and event boundaries, and explicitly report `PASS`. Identity mismatch, receipt tamper, chain drift, event-count mismatch, digest mismatch, missing reconstruction availability, authority escalation, execution escalation, or admissibility escalation fail closed.
+
+When an optional custody client is supplied to `run_universal_entry`, custody and installation fields are set only after both the receipt and reconstructed chain pass validation.
 
 ## Current operational state
 
@@ -92,37 +112,43 @@ provider usage preservation: installed
 routing/retrieval/provider/solver/synthesis continuation events: installed
 continuation chain validation: installed
 continuation events attached to governed return: installed
-Master-Records custody transport: not_connected
+Master-Records custody submission builder: installed
+Master-Records custody receipt validation: installed
+Master-Records reconstruction verification: installed
+Master-Records custody client: installed_dependency_injected
+live Master-Records endpoint: not_connected
 Site universal-envelope transport: not_connected
 ```
 
 ## CI binding
 
-The SDK workflow imports the transport, projection, runtime wrapper, catalog, bridge, and continuation modules. Route validation explicitly runs all universal-entry runtime, integration, catalog/event, transport/projection, and runtime-wrapper tests. The wheel job verifies the modules remain packaged.
+The SDK workflow imports the transport, projection, runtime wrapper, catalog, bridge, continuation, and custody modules. Route validation explicitly runs all universal-entry runtime, integration, catalog/event, transport/projection, runtime-wrapper, custody, and reconstruction tests. The wheel job verifies the modules remain packaged.
 
-A successful current-main run containing commit `12993715bbd0f42808026d96230b2d3831887067` or later has not yet been independently observed.
+A successful current-main run containing commit `3bce42a32bdc7acb4c255e995391eb8178265154` or later has not yet been independently observed.
 
 ## Site boundary
 
-`StegVerse-Labs/Site/docs/SITE_MIRROR_HANDOFF.md` remains the Site source of truth. It currently requires successor Site validation before further Site mutation and keeps live transport disabled. Therefore no Site browser transport, deployment, release, or live-activation change was made in this SDK work block.
+`StegVerse-Labs/Site/docs/SITE_MIRROR_HANDOFF.md` remains the Site source of truth. It requires successor Site validation before further Site mutation and keeps live transport disabled. Therefore no Site browser transport, deployment, release, or live-activation change was made in this SDK work block.
 
 ## Release boundary
 
-A portable node may declare `ecosystem_read` operational only when a validated packaged catalog or authenticated authoritative feed is installed. It may declare `external_llm` operational only when authenticated server-side transport is configured and a live provider result plus provider-usage event is verified. Transport implementation alone is not live-provider evidence.
+A portable node may declare `ecosystem_read` operational only when a validated packaged catalog or authenticated authoritative feed is installed. It may declare `external_llm` operational only when authenticated server-side transport is configured and a live provider result plus provider-usage event is verified. It may claim `RECORDED` only after an identity-matched custody receipt and independently reconstructed event chain both pass.
 
-Projection, catalog generation, retrieval, provider completion, continuation-event emission, and local persistence do not grant execution authority, admissibility, custody, standing, publication authority, or Master-Records installation.
+Transport implementation, custody-client implementation, fixture receipts, or local test reconstruction are not live deployment or external custody evidence.
+
+Projection, catalog generation, retrieval, provider completion, continuation-event emission, local persistence, custody submission construction, and reconstruction code do not grant execution authority, admissibility, standing, publication authority, or Master-Records installation by themselves.
 
 ## Next task
 
-1. Observe current-main SDK validation containing commit `12993715bbd0f42808026d96230b2d3831887067` or later and repair only the first exact repository-local failure.
+1. Observe current-main SDK validation containing commit `3bce42a32bdc7acb4c255e995391eb8178265154` or later and repair only the first exact repository-local failure.
 2. Observe the successor Site Task Runner after Site commit `0c076216f980f6b3c91677571d0692153d7ce94f`; do not mutate Site until the next exact failure or successful evidence set is known.
-3. Connect an authorized deployed LLM-adapter endpoint to `LLMAdapterHTTPTransport` in a server-side runtime; never place credentials in Site or portable-node browser storage.
-4. Add the live canonical source collector that reads explicitly authorized handoffs, manifests, status records, and receipt projections into `project_records`.
-5. Add Site universal-envelope construction and same-origin shared-router submission only after Site handoff gates permit mutation.
-6. Route general conversation through the governed provider lane when the local bounded handler cannot answer.
-7. Add an authenticated Master-Records custody client for continuation-event chains and require identity-matched custody receipts.
-8. Add reconstructability verification against the returned custody record before any RECORDED claim.
+3. Add the live canonical source collector that reads explicitly authorized handoffs, manifests, status records, and receipt projections into `project_records`.
+4. Connect an authorized deployed LLM-adapter endpoint to `LLMAdapterHTTPTransport` in a server-side runtime; never place credentials in Site or portable-node browser storage.
+5. Connect an authorized Master-Records endpoint to `MasterRecordsCustodyClient` and preserve the external receipt and reconstruction evidence.
+6. Add Site universal-envelope construction and same-origin shared-router submission only after Site handoff gates permit mutation.
+7. Route general conversation through the governed provider lane when the local bounded handler cannot answer.
+8. Add activation evidence binding only after Site validation, live provider use, custody receipt, and reconstructability PASS are observed together.
 
 ## Authority boundary
 
-Retrieval is not authority. A catalog is not authority. A canonical projection declaration is not execution authority. Provider output is not authority. Authenticated transport is not authority. Local usage persistence is not custody. Continuation events are not proof receipts or Master-Records installation.
+Retrieval is not authority. A catalog is not authority. A canonical projection declaration is not execution authority. Provider output is not authority. Authenticated transport is not authority. Local usage persistence is not custody. Continuation events are not proof receipts. Custody-client code is not custody. A local reconstruction fixture is not external reconstructability evidence. Only an identity-matched external custody receipt plus independently verified reconstruction can support a bounded `RECORDED` claim, and neither grants execution authority or admissibility.
