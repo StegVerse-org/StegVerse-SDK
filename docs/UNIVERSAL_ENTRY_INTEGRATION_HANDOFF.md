@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the current continuation source for universal-entry routing, governed conversation, canonical ecosystem retrieval, provider transport, continuation events, Master-Records custody verification, allowlisted repository source reading, and activation-evidence binding in `StegVerse-org/StegVerse-SDK`.
+This document is the current continuation source for universal-entry routing, governed conversation, canonical ecosystem retrieval, provider transport, continuation events, Master-Records custody verification, allowlisted repository source reading, server-side runtime composition, and activation-evidence binding in `StegVerse-org/StegVerse-SDK`.
 
 ## Installed files
 
@@ -11,6 +11,7 @@ stegverse/universal_entry.py
 stegverse/universal_entry_dispatch.py
 stegverse/universal_entry_handlers.py
 stegverse/universal_entry_runtime.py
+stegverse/universal_entry_server_runtime.py
 stegverse/ecosystem_records.py
 stegverse/ecosystem_projection.py
 stegverse/ecosystem_catalog.py
@@ -32,6 +33,7 @@ tests/test_universal_entry_runtime_wrapper.py
 tests/test_master_records_custody.py
 tests/test_canonical_source_conversation.py
 tests/test_repository_source_activation.py
+tests/test_universal_entry_server_runtime.py
 .github/workflows/sdk-demo-test.yml
 ```
 
@@ -51,7 +53,32 @@ entry adapter
 -> activation evidence aggregation
 ```
 
-Every entry adapter must use this same path. Entry adapters do not own provider credentials, repository credentials, custody credentials, execution authority, admissibility, or release authority.
+Every entry adapter must use this same path. Entry adapters do not own provider credentials, repository credentials, custody credentials, execution authority, admissibility, deployment authority, or release authority.
+
+## Server-side composition
+
+```text
+UniversalEntryServerConfig
+-> disabled-by-default source/provider/custody/readiness switches
+-> UniversalEntryServerRuntime
+-> optional canonical source collection and catalog construction
+-> optional governed provider binding
+-> canonical universal-entry execution wrapper
+-> optional custody submission and reconstruction verification
+-> optional activation-evidence evaluation
+```
+
+`UniversalEntryServerRuntime` is the canonical server-side composition surface. All live integrations default to disabled. Enabling source collection without an allowlisted source reader, provider use without a governed provider, or custody without a custody client fails closed.
+
+The server-runtime result always records:
+
+```text
+credentials_exposed_to_entry_adapter: false
+deployment_authorized: false
+activation_performed: false
+```
+
+Unknown configuration keys fail closed. Readiness evaluation is disabled unless explicitly enabled and still cannot deploy or activate anything.
 
 ## Canonical ecosystem path
 
@@ -140,7 +167,7 @@ execution_authority_granted: false
 admissibility_determined: false
 ```
 
-A complete packet may report `ready_for_separate_activation_decision=true`; that is not activation authority. Missing validation, source collection, provider use, usage evidence, custody, reconstruction, or entry-point parity remains an explicit blocker.
+A complete packet may report `ready_for_separate_activation_decision=true`; that is not activation authority.
 
 ## Current operational state
 
@@ -156,6 +183,8 @@ allowlisted repository source reader: installed_dependency_injected
 repository/path/ref/blob/content integrity guards: installed
 packaged read-only catalog builder: installed
 authoritative catalog retriever: installed_dependency_injected
+server-side runtime configuration: installed_disabled_by_default
+server-side runtime composition: installed
 live authorized repository fetcher: not_connected
 LLM-adapter request and return bridge: installed
 authenticated server-side JSON transport: installed
@@ -173,9 +202,9 @@ Site universal-envelope transport: not_connected
 
 ## CI binding
 
-The SDK workflow imports all universal-entry, collection, source-reader, provider, event, custody, and activation-evidence modules. Route validation explicitly includes `tests/test_repository_source_activation.py`, and the wheel job verifies the new modules remain packaged.
+The SDK workflow imports all universal-entry, collection, source-reader, provider, event, custody, activation-evidence, and server-runtime modules. Route validation explicitly includes `tests/test_universal_entry_server_runtime.py`, and the wheel job verifies the server runtime remains packaged.
 
-A successful current-main run containing commit `dc4f6f1cff684a862cd81df1f98aa770c1c52964` or later has not yet been independently observed. The GitHub combined-status endpoint returned no status entries, so there is no concrete failing check to repair yet.
+A successful current-main run containing commit `cbb27a93b0f9bd65b787e789f6e3b26748cd6bb1` or later has not yet been independently observed. The GitHub combined-status endpoint returned no status entries, so there is no concrete failing check to repair yet.
 
 ## Site boundary
 
@@ -190,19 +219,23 @@ A portable node may declare:
 - `RECORDED` only after external custody and reconstruction both pass;
 - activation readiness only after all required evidence is present in one validated packet.
 
-Reader code, transport code, fixtures, local tests, and readiness packets are not deployment, activation, release, custody, admissibility, or execution authority.
+Server composition, reader code, transport code, fixtures, local tests, and readiness packets are not deployment, activation, release, custody, admissibility, or execution authority.
 
 ## Next task
 
-1. Observe current-main SDK validation containing commit `dc4f6f1cff684a862cd81df1f98aa770c1c52964` or later and repair only the first exact repository-local failure.
+1. Observe current-main SDK validation containing commit `cbb27a93b0f9bd65b787e789f6e3b26748cd6bb1` or later and repair only the first exact repository-local failure.
 2. Observe the successor Site Task Runner after Site commit `0c076216f980f6b3c91677571d0692153d7ce94f`; do not mutate Site until the next exact failure or successful evidence set is known.
-3. Configure an authorized server-side repository fetcher for `AllowlistedRepositorySourceReader` and preserve read receipts and immutable refs.
-4. Connect an authorized deployed LLM-adapter endpoint to `LLMAdapterHTTPTransport` and preserve provider and usage evidence.
-5. Connect an authorized Master-Records endpoint to `MasterRecordsCustodyClient` and preserve the external custody receipt and reconstructed chain.
+3. Supply an explicitly authorized repository fetcher to `AllowlistedRepositorySourceReader` and preserve immutable refs, blob identities, content digests, and read receipts.
+4. Supply an authorized deployed LLM-adapter endpoint to `LLMAdapterHTTPTransport` and preserve provider and usage evidence.
+5. Supply an authorized Master-Records endpoint to `MasterRecordsCustodyClient` and preserve the external custody receipt and reconstructed chain.
 6. Add Site universal-envelope construction and same-origin shared-router submission only after Site handoff gates permit mutation.
 7. Build one activation-evidence packet only after SDK validation, Site validation, canonical retrieval, provider use, entry-point parity, custody, and reconstructability PASS are observed together.
 8. Do not deploy, activate, release, merge, or tag from this handoff.
 
 ## Authority boundary
 
-Retrieval is not authority. A source inventory is not authority. A catalog is not authority. Provider output is not authority. Authenticated transport is not authority. Continuation events are not proof receipts. Custody-client code is not custody. Activation-evidence readiness is not activation authority. Only separately authorized deployment may activate transport, and neither validation nor custody grants execution authority or admissibility.
+Retrieval is not authority. A source inventory is not authority. A catalog is not authority. Provider output is not authority. Authenticated transport is not authority. Server composition is not deployment. Continuation events are not proof receipts. Custody-client code is not custody. Activation-evidence readiness is not activation authority. Only separately authorized deployment may activate transport, and neither validation nor custody grants execution authority or admissibility.
+
+## Archive readiness
+
+This handoff preserves the complete universal-entry implementation, server-side composition, authority boundaries, validation posture, external blockers, and next-task state. No future continuation requires access to the conversation that produced these commits.
