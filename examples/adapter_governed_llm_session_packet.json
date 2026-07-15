@@ -1,0 +1,48 @@
+{
+  "provider_request": {
+    "provider": "fixture-adapter",
+    "model": "fixture-model-v1",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain the current governed transition status."
+      }
+    ]
+  },
+  "provider_request_hash": "adapter-request-hash-001",
+  "provider_response": {
+    "provider": "fixture-adapter",
+    "model": "fixture-model-v1",
+    "output": "The transition remains declared and non-executable pending its next governed boundary.",
+    "request_hash": "adapter-request-hash-001",
+    "response_hash": "adapter-response-hash-001"
+  },
+  "continuity": {
+    "freshness_status": "current",
+    "evidence": [
+      "receipt://adapter/session/001"
+    ]
+  },
+  "adapter_result": {
+    "decision": "ALLOW",
+    "admissibility_status": "allowed_read_only_candidate",
+    "reconstruction": {
+      "decision": "ALLOW"
+    }
+  },
+  "action_route": {
+    "route_status": "no_action_route_required",
+    "action_candidates": []
+  },
+  "commitment_request": {
+    "status": "no_commitment_request_required"
+  },
+  "authority_decision": {
+    "decision": "NOT_REQUIRED",
+    "authority_decision_hash": "adapter-authority-hash-001"
+  },
+  "execution_handoff": {
+    "status": "not_executable",
+    "execution_handoff_hash": "adapter-handoff-hash-001"
+  }
+}
