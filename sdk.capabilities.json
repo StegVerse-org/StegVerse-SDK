@@ -1,7 +1,14 @@
 {
-  "schema_version": "stegverse.sdk.capabilities.v0.3",
+  "schema_version": "stegverse.sdk.capabilities.v0.4",
   "repo": "StegVerse-org/StegVerse-SDK",
-  "status": "governed-llm-contract-layer-active-with-sdk-to-spe-commitment-intake",
+  "status": "universal-entry-and-governed-transition-contracts-installed-validation-pending",
+  "validation_posture": {
+    "implementation": "installed",
+    "ci_binding": "installed",
+    "current_main_result": "not_observed",
+    "release_ready": false,
+    "production_binding_enabled": false
+  },
   "governed_llm_surfaces": {
     "evidence_pointer_contracts": "built",
     "query_packet_contracts": "built",
@@ -10,118 +17,84 @@
     "session_packet_intake_routing": "built",
     "manifest_binding": "built",
     "receipt_handoff_binding": "built",
+    "adapter_origin_manifest_fixture": "built",
     "free_tier_metadata_ingestion": "built_non_authorizing",
-    "free_tier_metadata_shape_validation": "built_side_effect_free",
-    "free_tier_non_claim_validation": "built_side_effect_free",
-    "system_boundary_schema_mirror": "built",
     "system_boundary_ingestion": "built_non_authorizing",
-    "system_boundary_shape_validation": "built_side_effect_free",
-    "system_boundary_non_claim_validation": "built_side_effect_free",
     "system_boundary_manifest_serialization": "built_optional_legacy_compatible",
     "system_boundary_receipt_reference_preservation": "built_non_authorizing",
-    "system_boundary_round_trip_validation": "built_fail_closed",
-    "sdk_transition_candidate_emission": "built_non_authorizing",
-    "spe_commitment_candidate_construction": "built_non_authorizing",
-    "spe_intake_envelope_construction": "built_transport_neutral"
+    "system_boundary_round_trip_validation": "built_fail_closed"
   },
   "sdk_to_spe_commitment_intake": {
-    "source_module": "stegverse/transition_candidate.py",
-    "intake_module": "stegverse/spe_commitment_intake.py",
-    "existing_validator": "stegverse/universal_transition_table_intake.py::validate_commitment_candidate",
-    "documentation": "docs/SDK_TO_SPE_COMMITMENT_INTAKE.md",
-    "tests": "tests/test_spe_commitment_intake.py",
+    "transition_candidate_emission": "built_non_authorizing",
+    "commitment_candidate_construction": "built_non_authorizing",
+    "intake_envelope_construction": "built_transport_neutral",
+    "allow_receipt_consumer": "built_progression_only",
     "destination_repo": "StegVerse-Labs/Standing-Proof-Engine",
-    "route_purpose": "FRESH_STANDING_DETERMINATION",
     "expected_results": ["ALLOW", "DENY", "FAIL_CLOSED"],
+    "next_boundary_requires_fresh_authority": true,
     "required_non_claims": {
       "sdk_construction_is_spe_standing": false,
       "sdk_route_is_execution_authority": false,
       "spe_allow_is_execution": false,
-      "receipt_is_master_record_installation": false,
-      "commitment_candidate_inherits_review_authority": false
+      "spe_allow_is_delegation": false,
+      "spe_allow_is_mutation_authority": false,
+      "receipt_is_master_record_installation": false
     }
   },
-  "free_tier_metadata_ingestion": {
-    "source_repo": "StegVerse-org/LLM-adapter",
-    "source_response_field": "free_tier_trust",
-    "source_capability_manifest": "adapter.capabilities.json",
-    "sdk_doc": "docs/FREE_TIER_METADATA_INGESTION.md",
-    "sdk_module": "stegverse/free_tier_metadata.py",
-    "sdk_verifier": "scripts/verify_free_tier_metadata_ingestion.py",
-    "sdk_tests": "tests/test_free_tier_metadata.py",
-    "required_non_claims": {
-      "quota_allow_is_admissibility": false,
-      "quota_allow_is_execution_authority": false,
-      "limit_allow_is_execution_authority": false,
-      "free_tier_response_is_authority": false,
-      "replay_grants_commit_time_standing": false,
-      "reconstruction_grants_commit_time_standing": false,
-      "receipt_export_is_permanent_retention": false,
-      "upgrade_changes_admissibility_requirements": false
-    }
+  "universal_entry_runtime": {
+    "envelope_schema": "built",
+    "deterministic_router": "built",
+    "operational_dispatcher": "built",
+    "bounded_conversation": "built_limited",
+    "provider_backed_conversation": "built_dependency_injected",
+    "bounded_arithmetic_solver": "built",
+    "symbolic_solver": "not_connected",
+    "canonical_source_projection": "built",
+    "allowlisted_repository_reader": "built_dependency_injected",
+    "packaged_catalog": "built",
+    "authoritative_retriever": "built_dependency_injected",
+    "llm_adapter_bridge": "built_dependency_injected",
+    "authenticated_http_transport": "built_server_side",
+    "continuation_event_chain": "built",
+    "master_records_custody_client": "built_dependency_injected",
+    "reconstruction_verifier": "built",
+    "server_runtime_composition": "built_disabled_by_default",
+    "integration_config_packet": "built_non_secret_non_authorizing",
+    "activation_evidence_packet": "built_non_authorizing",
+    "entry_point_parity": "built_fixture_and_tests",
+    "live_repository_fetcher": "not_connected",
+    "live_provider_endpoint": "not_connected",
+    "live_master_records_endpoint": "not_connected",
+    "site_transport": "not_connected"
   },
-  "system_boundary_ingestion": {
-    "source_repo": "StegVerse-Labs/admissibility-wiki",
-    "runtime_source_repo": "StegVerse-org/LLM-adapter",
-    "schema_mirror": "schemas/system-boundary-declaration.schema.v0.1.json",
-    "sdk_doc": "docs/SYSTEM_BOUNDARY_INGESTION.md",
-    "sdk_module": "stegverse/system_boundary.py",
-    "round_trip_module": "stegverse/system_boundary_round_trip.py",
-    "manifest_module": "stegverse/governed_llm_manifest.py",
-    "receipt_module": "stegverse/governed_llm_receipt.py",
-    "sdk_tests": [
-      "tests/test_system_boundary.py",
-      "tests/test_system_boundary_round_trip.py",
-      "tests/test_governed_llm_system_boundary_binding.py"
-    ],
-    "manifest_field": "system_boundary_declaration",
-    "receipt_reference_field": "system_boundary_declaration_ref",
-    "binding_mode": "optional_until_explicit_migration",
-    "reference_contract": {
-      "algorithm": "sha256",
-      "authorizing": false,
-      "custody_transferred": false,
-      "admissibility_determined": false
-    },
-    "required_non_claims": {
-      "sdk_validation_is_execution": false,
-      "sdk_validation_is_admissibility": false,
-      "state_continuity_proves_consciousness": false,
-      "self_report_proves_personhood": false,
-      "model_output_grants_commit_time_standing": false
-    }
+  "authority_boundaries": {
+    "routing_grants_execution": false,
+    "provider_output_grants_authority": false,
+    "catalog_grants_authority": false,
+    "continuation_event_is_custody": false,
+    "custody_client_code_is_custody": false,
+    "activation_readiness_is_activation": false,
+    "server_composition_is_deployment": false,
+    "credentials_exposed_to_entry_adapter": false
   },
-  "explicit_non_claims": [
-    "SDK validation is not execution.",
-    "SDK intake routing is not authority.",
-    "Manifest binding is not persistence by itself.",
-    "Receipt handoff is not master-record installation by itself.",
-    "Commitment Candidate construction is not SPE standing.",
-    "SPE routing is not execution authority.",
-    "Free-tier metadata ingestion is not admissibility.",
-    "Free-tier metadata ingestion is not execution authority.",
-    "Free-tier metadata ingestion is not persistence.",
-    "Free-tier metadata ingestion does not grant commit-time standing.",
-    "System-boundary validation is not a consciousness test.",
-    "System-boundary manifest or receipt serialization does not grant custody, admissibility, or execution authority.",
-    "External executor integration remains outside this SDK contract layer."
-  ],
-  "local_verification": {
-    "unit_tests": [
-      "pytest tests/test_transition_candidate.py",
-      "pytest tests/test_spe_commitment_intake.py",
-      "pytest tests/test_governed_llm.py",
-      "pytest tests/test_governed_llm_session.py",
-      "pytest tests/test_governed_llm_session_intake.py",
-      "pytest tests/test_governed_llm_manifest.py",
-      "pytest tests/test_governed_llm_receipt.py",
-      "pytest tests/test_free_tier_metadata.py",
-      "pytest tests/test_system_boundary.py",
-      "pytest tests/test_system_boundary_round_trip.py",
-      "pytest tests/test_governed_llm_system_boundary_binding.py"
-    ],
-    "smoke_script": "python scripts/smoke_governed_llm_sdk.py",
-    "free_tier_metadata_verifier": "python scripts/verify_free_tier_metadata_ingestion.py"
+  "primary_validation": {
+    "workflow": ".github/workflows/sdk-demo-test.yml",
+    "focused_suites": [
+      "tests/test_spe_allow_consumer.py",
+      "tests/test_adapter_origin_manifest_fixture.py",
+      "tests/test_universal_entry.py",
+      "tests/test_universal_entry_dispatch.py",
+      "tests/test_universal_entry_handlers.py",
+      "tests/test_universal_entry_integrations.py",
+      "tests/test_universal_entry_catalog_events.py",
+      "tests/test_universal_entry_transport_projection.py",
+      "tests/test_universal_entry_runtime_wrapper.py",
+      "tests/test_master_records_custody.py",
+      "tests/test_canonical_source_conversation.py",
+      "tests/test_repository_source_activation.py",
+      "tests/test_universal_entry_server_runtime.py",
+      "tests/test_integration_config.py"
+    ]
   },
-  "activation_definition": "An SDK-origin DECLARED transition candidate can be transformed into a deterministic, non-authorizing Commitment Candidate and transport-neutral SPE intake envelope while governed LLM metadata and system-boundary declarations are validated, serialized into optional legacy-compatible manifests, and preserved through receipt handoff without creating execution, delegation, persistence, custody, standing, consciousness, personhood, or welfare claims."
+  "activation_definition": "The SDK may report implementation readiness only after current-main validation is observed. Live capability claims additionally require authorized repository, provider, Site, and Master-Records integrations with identity-matched receipts and reconstructability evidence. No installed SDK contract grants execution, delegation, publication, admissibility, custody, standing, deployment, activation, consciousness, personhood, or welfare status."
 }
