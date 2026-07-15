@@ -39,8 +39,11 @@ jobs:
           python -c "from stegverse.universal_entry_handlers import build_default_handler_registry, conversation_handler, solver_handler"
           python -c "from stegverse.ecosystem_records import AuthoritativeEcosystemRetriever"
           python -c "from stegverse.ecosystem_catalog import build_catalog, validate_catalog"
+          python -c "from stegverse.ecosystem_projection import project_record, project_records"
+          python -c "from stegverse.http_transport import AuthenticatedJSONTransport, LLMAdapterHTTPTransport"
           python -c "from stegverse.llm_adapter_bridge import GovernedLLMAdapterProvider, normalize_adapter_response"
           python -c "from stegverse.universal_entry_events import build_dispatch_event_chain, validate_event_chain"
+          python -c "from stegverse.universal_entry_runtime import run_universal_entry"
       - name: Run complete test suite
         run: pytest tests/ -v --cov=stegverse --cov-report=xml
       - name: Upload coverage
@@ -73,7 +76,7 @@ jobs:
           python scripts/verify_comparison_orchestrator.py
       - name: Verify universal entry runtime and integrations
         run: |
-          pytest tests/test_universal_entry.py tests/test_universal_entry_dispatch.py tests/test_universal_entry_handlers.py tests/test_universal_entry_integrations.py tests/test_universal_entry_catalog_events.py -v
+          pytest tests/test_universal_entry.py tests/test_universal_entry_dispatch.py tests/test_universal_entry_handlers.py tests/test_universal_entry_integrations.py tests/test_universal_entry_catalog_events.py tests/test_universal_entry_transport_projection.py tests/test_universal_entry_runtime_wrapper.py -v
       - name: Verify SDK-to-SPE and system-boundary contracts
         run: |
           python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
@@ -122,8 +125,11 @@ jobs:
           python -c "from stegverse.universal_entry_handlers import build_default_handler_registry"
           python -c "from stegverse.ecosystem_records import AuthoritativeEcosystemRetriever"
           python -c "from stegverse.ecosystem_catalog import build_catalog, validate_catalog"
+          python -c "from stegverse.ecosystem_projection import project_records"
+          python -c "from stegverse.http_transport import AuthenticatedJSONTransport"
           python -c "from stegverse.llm_adapter_bridge import GovernedLLMAdapterProvider"
           python -c "from stegverse.universal_entry_events import build_dispatch_event_chain, validate_event_chain"
+          python -c "from stegverse.universal_entry_runtime import run_universal_entry"
       - uses: actions/upload-artifact@v4
         with:
           name: dist
