@@ -34,6 +34,8 @@ jobs:
           python -c "from stegverse import handle_universal_transition_table_package, validate_free_tier_metadata"
           python -c "from stegverse import ExecutorTarget, run_paired_comparison"
           python -c "from stegverse import get_entry_point_role, list_entry_point_roles, build_usage_event, aggregate_session_usage"
+          python -c "from stegverse.universal_entry import process_universal_entry"
+          python -c "from stegverse.universal_entry_dispatch import dispatch_universal_entry"
       - name: Run complete test suite
         run: pytest tests/ -v --cov=stegverse --cov-report=xml
       - name: Upload coverage
@@ -64,6 +66,9 @@ jobs:
           python scripts/verify_sdk_transition_candidate.py examples/sdk_transition_candidate.json
           python scripts/verify_llm_route_comparison.py
           python scripts/verify_comparison_orchestrator.py
+      - name: Verify universal entry runtime and dispatch
+        run: |
+          pytest tests/test_universal_entry.py tests/test_universal_entry_dispatch.py -v
       - name: Verify SDK-to-SPE and system-boundary contracts
         run: |
           python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
@@ -107,6 +112,8 @@ jobs:
           pip install dist/*.whl
           python -c "import stegverse; print(f'Wheel OK: {stegverse.__version__}')"
           python -c "from stegverse import get_entry_point_role, build_usage_event, aggregate_session_usage"
+          python -c "from stegverse.universal_entry import process_universal_entry"
+          python -c "from stegverse.universal_entry_dispatch import dispatch_universal_entry"
       - uses: actions/upload-artifact@v4
         with:
           name: dist
