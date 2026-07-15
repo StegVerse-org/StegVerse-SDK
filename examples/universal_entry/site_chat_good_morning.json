@@ -1,0 +1,41 @@
+{
+  "schema": "stegverse.universal_entry_envelope.v0.1",
+  "origin": {
+    "entry_point": "site_chat",
+    "actor_id": null,
+    "node_id": "site.public.preview",
+    "session_id": "site-chat-session.example",
+    "message_id": "site-chat-message.0001"
+  },
+  "request": {
+    "content_type": "text",
+    "content": "Good morning!",
+    "intent_hint": null,
+    "requested_capabilities": ["conversation"],
+    "external_information_allowed": false
+  },
+  "routing": {
+    "allowed_lanes": ["conversation", "ecosystem_query", "external_llm", "research", "solver", "governed_task"],
+    "selected_lanes": ["conversation"],
+    "selection_status": "ROUTED",
+    "return_path": "same_entry_point"
+  },
+  "authority": {
+    "class": "none",
+    "delegation_ref": null,
+    "policy_refs": [],
+    "execution_authority_granted": false
+  },
+  "receipt": {
+    "required": false,
+    "expected_types": [],
+    "prior_receipt_refs": []
+  },
+  "continuity": {
+    "transition_id": "transition.site-chat.example.0001",
+    "run_id": "run.site-chat.example.0001",
+    "parent_message_id": null,
+    "manifest_hash": null,
+    "replay_required": false
+  }
+}
