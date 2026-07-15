@@ -62,6 +62,7 @@ stegverse/http_transport.py
 stegverse/llm_adapter_bridge.py
 stegverse/universal_entry_events.py
 stegverse/master_records_custody.py
+stegverse/master_records_http.py
 stegverse/activation_evidence.py
 stegverse/integration_config.py
 ```
@@ -85,7 +86,10 @@ GitHub read receipt: installed_deterministic_non_authorizing
 LLM-adapter request/return bridge: installed_dependency_injected
 authenticated server-side HTTP transport: installed
 continuation event chain: installed
-Master-Records custody receipt validation: installed
+Master-Records custody submission/receipt validation: installed
+Master-Records HTTPS transport: installed_server_side
+Master-Records token resolution: installed_dependency_injected
+Master-Records submit/reconstruction routing: installed
 independent reconstruction verification: installed
 server-side composition: installed_disabled_by_default
 non-secret integration configuration packet: installed
@@ -99,7 +103,10 @@ External runtime status:
 GitHub repository credentials: not_configured
 live immutable repository read evidence: not_observed
 live deployed LLM-adapter endpoint: not_connected
+Master-Records credential resolver: not_configured
 live Master-Records endpoint: not_connected
+external custody receipt: not_observed
+external reconstructability PASS: not_observed
 Site universal-envelope transport: not_connected
 symbolic solver: not_connected
 ```
@@ -133,6 +140,26 @@ credentials_exposed: false
 ```
 
 A repository read receipt is provenance for retrieval. It is not Master-Records custody, standing, admissibility, execution authority, or deployment evidence.
+
+## Master-Records HTTP custody path
+
+```text
+validated continuation event chain
+-> build_custody_submission
+-> MasterRecordsHTTPTransport.submit
+-> token resolved at call time from credential_ref
+-> POST /api/custody/universal-entry
+-> identity-matched custody receipt
+-> MasterRecordsHTTPTransport.reconstruct
+-> GET /api/custody/universal-entry/receipts/{receipt_id}/reconstruction
+-> independent event-chain reconstruction verification
+```
+
+`MasterRecordsHTTPTransport` requires HTTPS for remote services and allows localhost HTTP only when explicitly enabled. It places the resolved bearer token only in the server-side request header, preserves `X-SteGVerse-Session` on custody submission, URL-escapes receipt identities during reconstruction retrieval, requires JSON-object responses, and returns no credential material.
+
+`MasterRecordsHTTPTransport.as_custody_client()` binds the concrete HTTP methods to `MasterRecordsCustodyClient`. The custody client still sets custody and installation fields only after both the returned custody receipt and reconstructed event chain pass independent validation.
+
+Transport implementation is not custody. Endpoint configuration is not custody. A successful HTTP response is not custody until the receipt identity, event digest, event boundaries, reconstruction, and non-authority fields pass.
 
 ## SDK-to-SPE commitment and progression
 
@@ -201,7 +228,7 @@ Production system-boundary binding remains disabled until separately authorized.
 
 ## Capability registry
 
-`sdk.capabilities.json` is reconciled to schema `stegverse.sdk.capabilities.v0.5` and records:
+`sdk.capabilities.json` is reconciled to schema `stegverse.sdk.capabilities.v0.6` and records:
 
 ```text
 universal-entry runtime surfaces
@@ -209,6 +236,7 @@ SDK-to-SPE progression-only consumer
 governed LLM/system-boundary surfaces
 server runtime disabled-by-default posture
 GitHub repository fetcher and read-receipt posture
+Master-Records HTTPS transport posture
 live integration blockers
 current-main validation pending
 release readiness false
@@ -228,6 +256,7 @@ The workflow includes:
 full tests/ suite on Python 3.9, 3.11, and 3.12
 focused universal-entry route validation
 GitHub repository fetcher tests
+Master-Records custody and HTTP transport tests
 focused SDK-to-SPE and system-boundary validation
 SPE ALLOW consumer tests
 adapter-origin manifest fixture tests
@@ -239,13 +268,13 @@ wheel build and import verification
 Latest focused integration commits:
 
 ```text
-46cb2fc2a3c37485be083175289d0f0529c07f43  GitHub repository fetcher
-3de0cd82d8d0ef2c0248ec9e5adc75491352b540  GitHub repository fetcher tests
-d41212b3137ee9b9e7e8a8dcf383d234839bb78a  GitHub fetcher CI and wheel binding
-abb7ad959f1c780dc2c8ab4937ec13969a5a1167  capability registry v0.5
+54be64fc7850afc39c6f983350d084a9253118e8  Master-Records HTTPS transport
+3a5b5b63c752923d0dd1ca13f873df2ec9a88241  Master-Records HTTPS transport tests
+f352095c49408d5271e9561da2b34ee7eeb0bb54  Master-Records HTTP CI and wheel binding
+83321bfc963c4d27b6f6ada53a74ae89d0511a24  capability registry v0.6
 ```
 
-A successful current-main workflow containing commit `d41212b3137ee9b9e7e8a8dcf383d234839bb78a` or later has not yet been independently observed. Do not claim passing tests until workflow evidence exists.
+A successful current-main workflow containing commit `f352095c49408d5271e9561da2b34ee7eeb0bb54` or later has not yet been independently observed. Do not claim passing tests until workflow evidence exists.
 
 ## Site boundary
 
@@ -254,17 +283,18 @@ A successful current-main workflow containing commit `d41212b3137ee9b9e7e8a8dcf3
 ## Remaining modules and evidence
 
 ```text
-1. Observe current-main SDK validation containing d41212b3137ee9b9e7e8a8dcf383d234839bb78a or later.
+1. Observe current-main SDK validation containing f352095c49408d5271e9561da2b34ee7eeb0bb54 or later.
 2. Repair only the first exact repository-local failing step, if any.
 3. Preserve successful workflow receipts/artifacts after observation.
 4. Supply an explicitly authorized GitHub credential resolver to GitHubRepositoryFetcher.
 5. Perform and preserve one immutable repository read with ref, blob, digest, and read receipt evidence.
 6. Supply an authorized deployed LLM-adapter endpoint to LLMAdapterHTTPTransport.
-7. Supply an authorized Master-Records endpoint to MasterRecordsCustodyClient.
-8. Observe successor Site validation before any Site transport mutation.
-9. Add Site same-origin universal-envelope submission only after its handoff gate permits it.
-10. Build one activation-evidence packet only after SDK validation, Site validation, live canonical retrieval, live provider use, provider usage evidence, custody, and reconstructability PASS exist together.
-11. Keep production binding, deployment, activation, release, merge, and tag disabled until separately authorized.
+7. Supply an authorized Master-Records base URL and credential resolver to MasterRecordsHTTPTransport.
+8. Perform one custody submission and preserve the external custody receipt and reconstructed chain.
+9. Observe successor Site validation before any Site transport mutation.
+10. Add Site same-origin universal-envelope submission only after its handoff gate permits it.
+11. Build one activation-evidence packet only after SDK validation, Site validation, live canonical retrieval, live provider use, provider usage evidence, custody, and reconstructability PASS exist together.
+12. Keep production binding, deployment, activation, release, merge, and tag disabled until separately authorized.
 ```
 
 ## Release posture
@@ -280,8 +310,8 @@ current_main_validation_observed: false
 
 ## Authority boundary
 
-Routing is not execution. A manifest is not authority. A catalog is not authority. A repository read receipt is not custody. Provider output is not authority. SPE `ALLOW` is not execution. A progression packet is not delegation. Continuation events are not custody. Custody-client code is not custody. Reconstruction code is not external reconstructability evidence. Activation readiness is not activation authority.
+Routing is not execution. A manifest is not authority. A catalog is not authority. A repository read receipt is not custody. Provider output is not authority. SPE `ALLOW` is not execution. A progression packet is not delegation. Continuation events are not custody. Custody HTTP transport is not custody. Custody-client code is not custody. Reconstruction code is not external reconstructability evidence. Activation readiness is not activation authority.
 
 ## Archive readiness
 
-This handoff preserves the complete SDK transition/SPE path, universal-entry runtime, GitHub repository fetcher, governed LLM/system-boundary path, CI binding, capability registry, live integration blockers, release posture, and next-task sequence. Earlier conversation context is not required for continuation.
+This handoff preserves the complete SDK transition/SPE path, universal-entry runtime, GitHub repository fetcher, Master-Records HTTP transport, governed LLM/system-boundary path, CI binding, capability registry, live integration blockers, release posture, and next-task sequence. Earlier conversation context is not required for continuation.
