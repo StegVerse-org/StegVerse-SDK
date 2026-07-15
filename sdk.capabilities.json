@@ -1,5 +1,5 @@
 {
-  "schema_version": "stegverse.sdk.capabilities.v0.5",
+  "schema_version": "stegverse.sdk.capabilities.v0.6",
   "repo": "StegVerse-org/StegVerse-SDK",
   "status": "universal-entry-and-governed-transition-contracts-installed-validation-pending",
   "validation_posture": {
@@ -59,6 +59,9 @@
     "authenticated_http_transport": "built_server_side",
     "continuation_event_chain": "built",
     "master_records_custody_client": "built_dependency_injected",
+    "master_records_http_transport": "built_server_side_token_resolver_injected",
+    "master_records_submit_route": "/api/custody/universal-entry",
+    "master_records_reconstruction_route": "/api/custody/universal-entry/receipts/{receipt_id}/reconstruction",
     "reconstruction_verifier": "built",
     "server_runtime_composition": "built_disabled_by_default",
     "integration_config_packet": "built_non_secret_non_authorizing",
@@ -67,7 +70,9 @@
     "live_repository_credentials": "not_configured",
     "live_repository_reads_verified": false,
     "live_provider_endpoint": "not_connected",
+    "live_master_records_credentials": "not_configured",
     "live_master_records_endpoint": "not_connected",
+    "external_custody_verified": false,
     "site_transport": "not_connected"
   },
   "authority_boundaries": {
@@ -76,6 +81,7 @@
     "catalog_grants_authority": false,
     "repository_read_receipt_is_custody": false,
     "continuation_event_is_custody": false,
+    "custody_http_transport_is_custody": false,
     "custody_client_code_is_custody": false,
     "activation_readiness_is_activation": false,
     "server_composition_is_deployment": false,
@@ -94,6 +100,7 @@
       "tests/test_universal_entry_transport_projection.py",
       "tests/test_universal_entry_runtime_wrapper.py",
       "tests/test_master_records_custody.py",
+      "tests/test_master_records_http.py",
       "tests/test_canonical_source_conversation.py",
       "tests/test_repository_source_activation.py",
       "tests/test_github_repository_fetcher.py",
@@ -101,5 +108,5 @@
       "tests/test_integration_config.py"
     ]
   },
-  "activation_definition": "The SDK may report implementation readiness only after current-main validation is observed. Live capability claims additionally require authorized repository credentials and observed immutable GitHub reads, deployed provider and Master-Records endpoints, Site transport, identity-matched receipts, and reconstructability evidence. No installed SDK contract grants execution, delegation, publication, admissibility, custody, standing, deployment, activation, consciousness, personhood, or welfare status."
+  "activation_definition": "The SDK may report implementation readiness only after current-main validation is observed. Live capability claims additionally require authorized repository and Master-Records credential resolvers, observed immutable GitHub reads, deployed provider and custody endpoints, Site transport, identity-matched receipts, and reconstructability evidence. No installed SDK contract or HTTP transport grants execution, delegation, publication, admissibility, custody, standing, deployment, activation, consciousness, personhood, or welfare status."
 }
