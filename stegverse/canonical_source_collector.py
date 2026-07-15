@@ -13,6 +13,7 @@ import json
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from .ecosystem_projection import project_records
+from .ecosystem_records import EcosystemRecord
 
 
 class CanonicalSourceCollectorError(ValueError):
@@ -190,5 +191,14 @@ def validate_collection(collection: Mapping[str, Any]) -> dict[str, Any]:
     collection_id = expected.pop("collection_id", None)
     if collection_id != _digest(expected):
         raise CanonicalSourceCollectorError("collection digest mismatch")
-    project_records(projections)
+    seen: set[str] = set()
+    for raw in projections:
+        if raw.get("canonical_source_declared") is not True:
+            raise CanonicalSourceCollectorError("projection lacks canonical-source declaration")
+        if not str(raw.get("projection_source_digest", "")).startswith("sha256:"):
+            raise CanonicalSourceCollectorError("projection lacks source digest")
+        record = EcosystemRecord.from_mapping(raw)
+        if record.record_id in seen:
+            raise CanonicalSourceCollectorError("duplicate projected record_id")
+        seen.add(record.record_id)
     return dict(collection)
