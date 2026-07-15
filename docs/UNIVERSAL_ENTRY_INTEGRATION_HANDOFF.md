@@ -2,60 +2,78 @@
 
 ## Purpose
 
-This document records the authoritative ecosystem-retrieval and governed LLM-adapter integration layer installed after the universal router, dispatcher, operational handlers, synthesis, and entry-point parity foundation.
+This document is the current continuation source for the authoritative ecosystem-retrieval, governed LLM-adapter, packaged catalog, and continuation-event layers in `StegVerse-org/StegVerse-SDK`.
 
 ## Installed files
 
 ```text
 stegverse/ecosystem_records.py
+stegverse/ecosystem_catalog.py
 stegverse/llm_adapter_bridge.py
+stegverse/universal_entry_events.py
 tests/test_universal_entry_integrations.py
+tests/test_universal_entry_catalog_events.py
 examples/universal_entry/llm_adapter_round_trip.json
 .github/workflows/sdk-demo-test.yml
 ```
 
-## Ecosystem retrieval path
+## Ecosystem retrieval and packaged catalog path
 
 ```text
-repository/manifests/handoffs/status/receipt projection
+canonical handoff / manifest / status / receipt projection
 -> EcosystemRecord validation
--> authority/lifecycle/freshness/supersession filtering
--> deterministic query scoring
--> source and receipt-reference preservation
+-> packaged read-only catalog build
+-> deterministic catalog identity
+-> authority / lifecycle / freshness / supersession filtering
+-> AuthoritativeEcosystemRetriever
 -> EcosystemQueryHandler
 -> conversation synthesis
 ```
 
-`AuthoritativeEcosystemRetriever` accepts a bounded record catalog supplied by an entry runtime or gateway. It does not own repository credentials and does not infer authority from file presence alone.
+`build_catalog` accepts explicit canonical projections and emits a deterministic, read-only, non-authorizing catalog. Unsupported record classes fail closed. Non-authoritative, superseded, deprecated, and quarantined projections are excluded. Duplicate record identities and catalog tamper fail closed.
 
-Records must include stable identity, repository, source, type, title, text, observed time, lifecycle state, and explicit authority posture. Duplicate identities fail closed. Non-authoritative, superseded, deprecated, quarantined, and optionally stale records are excluded.
+The SDK does not decide that a repository file is authoritative merely because it exists. A producing gateway or build task must explicitly project canonical records into the catalog input contract.
 
 ## Governed provider path
 
 ```text
 universal entry envelope
 -> build_adapter_request
--> dependency-injected LLM-adapter transport
--> existing /api/ecosystem-chat contract
+-> dependency-injected authenticated server-side transport
+-> LLM-adapter /api/ecosystem-chat
 -> provider result and local provider-usage submission
 -> normalize_adapter_response
 -> ExternalLLMHandler
 -> conversation synthesis
 ```
 
-The SDK bridge preserves transition, run, session, message, manifest, and prior-receipt identity. It rejects transition/run mismatch and authority, custody, mutation, publication, or admissibility escalation.
+The SDK bridge preserves transition, run, session, message, manifest, parent-transition, and prior-receipt identity. It rejects identity mismatch and authority, custody, mutation, publication, or admissibility escalation.
 
-The bridge preserves provider identity, model, usage metadata, provider receipt, lifecycle state, Master-Records status, and reconstruction status. Local provider-usage persistence remains explicitly not Master-Records custody.
-
-## Dispatch context
-
-The universal dispatcher now places the original universal entry envelope into the immutable handler context as:
+## Continuation event path
 
 ```text
-universal_entry_envelope
+routing decision
+-> routing event
+-> retrieval event when ecosystem records are used
+-> provider-usage event when an external provider lane runs
+-> solver event when the checked solver runs
+-> synthesis event when conversation combines lane results
+-> deterministic linked event chain
 ```
 
-This permits provider and retrieval adapters to derive canonical identity without entry adapters directly invoking engines or holding provider/repository credentials.
+Installed event classes:
+
+```text
+routing
+retrieval
+provider_usage
+solver
+synthesis
+```
+
+Every event preserves session, message, transition, run, entry-point, and prior-event identity. Event chains reject discontinuity, digest drift, authority escalation, execution escalation, custody escalation, and admissibility escalation.
+
+These continuation events are not Master-Records custody. They are transport-neutral records prepared for later authenticated custody submission.
 
 ## Current operational state
 
@@ -64,34 +82,43 @@ universal router: installed
 engine dispatcher: installed
 bounded conversation and synthesis: installed
 authoritative record model: installed
+packaged read-only catalog builder: installed
+catalog integrity validation: installed
 authoritative catalog retriever: installed_dependency_injected
-live repository catalog feed: not_connected
+canonical projection producer: not_connected
 LLM-adapter request builder: installed
 LLM-adapter return validator: installed
 LLM-adapter transport: installed_dependency_injected
 live deployed provider endpoint: not_connected
 provider usage preservation: installed
-identity/authority/custody guards: installed
-adapter round-trip fixture: installed
-Master-Records custody: not_connected
+routing/retrieval/provider/solver/synthesis continuation events: installed
+continuation chain validation: installed
+Master-Records custody transport: not_connected
+Site universal-envelope transport: not_connected
 ```
+
+## CI binding
+
+The SDK workflow imports the catalog and continuation-event modules, runs `tests/test_universal_entry_catalog_events.py` in route validation, and verifies both modules are present in the built wheel.
+
+A successful current-main run containing commit `38ccc4ffc195c64edf0d0e32d5aac123b160653b` or later has not yet been independently observed.
 
 ## Release boundary
 
-This integration makes the node capable of using real ecosystem and provider engines when transports are supplied. It does not establish a live endpoint, provider credentials, authenticated repository feed, Master-Records custody, deployment evidence, or release authority.
+A portable node may declare `ecosystem_read` operational only when a validated packaged catalog or authenticated authoritative catalog feed is installed. It may declare `external_llm` operational only when authenticated server-side transport is configured and a live provider result plus provider-usage event is verified.
 
-A portable node must not declare `ecosystem_read` operational until an authenticated or packaged authoritative record feed is present. It must not declare `external_llm` operational until the governed LLM-adapter transport is configured and a live provider response plus provider-usage event has been verified.
+Catalog generation, retrieval, provider completion, continuation-event emission, and local persistence do not grant execution authority, admissibility, custody, standing, publication authority, or Master-Records installation.
 
 ## Next task
 
-1. Add a packaged read-only ecosystem catalog builder from canonical handoffs, manifests, status records, and receipt projections.
-2. Add an authenticated server-side HTTP transport for the LLM-adapter bridge; never place provider credentials in Site or portable-node browser storage.
+1. Add an authenticated server-side HTTP transport implementation for the LLM-adapter bridge.
+2. Add the canonical projection producer that packages current handoffs, manifests, status records, and receipt projections.
 3. Add Site universal-envelope construction and same-origin shared-router submission.
-4. Add general conversational-model routing through the governed provider lane.
-5. Add routing, retrieval, provider-usage, synthesis, and solver continuation records.
+4. Route general conversation through the governed provider lane when the local bounded handler cannot answer.
+5. Attach continuation-event output to the governed return envelope and downstream custody submission interface.
 6. Connect authenticated Master-Records custody and reconstructability verification.
-7. Observe current-main SDK validation containing this integration block and repair only the first exact repository-local failure.
+7. Observe current-main SDK validation and repair only the first exact repository-local failure.
 
 ## Authority boundary
 
-Retrieval is not authority. A current handoff record is not execution authority. Provider output is not authority. Local usage persistence is not custody. A gateway, routing, dispatch, provider, or synthesis receipt is not Master-Records installation or admissibility.
+Retrieval is not authority. A catalog is not authority. A current handoff is not execution authority. Provider output is not authority. Local usage persistence is not custody. Continuation events are not proof receipts or Master-Records installation.
