@@ -1,5 +1,5 @@
 {
-  "schema_version": "stegverse.sdk.capabilities.v0.4",
+  "schema_version": "stegverse.sdk.capabilities.v0.5",
   "repo": "StegVerse-org/StegVerse-SDK",
   "status": "universal-entry-and-governed-transition-contracts-installed-validation-pending",
   "validation_posture": {
@@ -51,6 +51,8 @@
     "symbolic_solver": "not_connected",
     "canonical_source_projection": "built",
     "allowlisted_repository_reader": "built_dependency_injected",
+    "github_repository_fetcher": "built_server_side_token_resolver_injected",
+    "github_read_receipt": "built_deterministic_non_authorizing",
     "packaged_catalog": "built",
     "authoritative_retriever": "built_dependency_injected",
     "llm_adapter_bridge": "built_dependency_injected",
@@ -62,7 +64,8 @@
     "integration_config_packet": "built_non_secret_non_authorizing",
     "activation_evidence_packet": "built_non_authorizing",
     "entry_point_parity": "built_fixture_and_tests",
-    "live_repository_fetcher": "not_connected",
+    "live_repository_credentials": "not_configured",
+    "live_repository_reads_verified": false,
     "live_provider_endpoint": "not_connected",
     "live_master_records_endpoint": "not_connected",
     "site_transport": "not_connected"
@@ -71,6 +74,7 @@
     "routing_grants_execution": false,
     "provider_output_grants_authority": false,
     "catalog_grants_authority": false,
+    "repository_read_receipt_is_custody": false,
     "continuation_event_is_custody": false,
     "custody_client_code_is_custody": false,
     "activation_readiness_is_activation": false,
@@ -92,9 +96,10 @@
       "tests/test_master_records_custody.py",
       "tests/test_canonical_source_conversation.py",
       "tests/test_repository_source_activation.py",
+      "tests/test_github_repository_fetcher.py",
       "tests/test_universal_entry_server_runtime.py",
       "tests/test_integration_config.py"
     ]
   },
-  "activation_definition": "The SDK may report implementation readiness only after current-main validation is observed. Live capability claims additionally require authorized repository, provider, Site, and Master-Records integrations with identity-matched receipts and reconstructability evidence. No installed SDK contract grants execution, delegation, publication, admissibility, custody, standing, deployment, activation, consciousness, personhood, or welfare status."
+  "activation_definition": "The SDK may report implementation readiness only after current-main validation is observed. Live capability claims additionally require authorized repository credentials and observed immutable GitHub reads, deployed provider and Master-Records endpoints, Site transport, identity-matched receipts, and reconstructability evidence. No installed SDK contract grants execution, delegation, publication, admissibility, custody, standing, deployment, activation, consciousness, personhood, or welfare status."
 }
