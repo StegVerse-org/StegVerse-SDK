@@ -2,117 +2,145 @@
 
 ## Purpose
 
-This document is the current continuation source for the authoritative ecosystem-retrieval, governed LLM-adapter, packaged catalog, canonical projection and collection, governed conversation, authenticated transport, continuation-event, governed runtime-return, and Master-Records custody-verification layers in `StegVerse-org/StegVerse-SDK`.
+This document is the current continuation source for universal-entry routing, governed conversation, canonical ecosystem retrieval, provider transport, continuation events, Master-Records custody verification, allowlisted repository source reading, and activation-evidence binding in `StegVerse-org/StegVerse-SDK`.
 
 ## Installed files
 
 ```text
+stegverse/universal_entry.py
+stegverse/universal_entry_dispatch.py
+stegverse/universal_entry_handlers.py
+stegverse/universal_entry_runtime.py
 stegverse/ecosystem_records.py
-stegverse/ecosystem_catalog.py
 stegverse/ecosystem_projection.py
+stegverse/ecosystem_catalog.py
 stegverse/canonical_source_collector.py
+stegverse/repository_source_reader.py
 stegverse/governed_conversation.py
 stegverse/http_transport.py
 stegverse/llm_adapter_bridge.py
 stegverse/universal_entry_events.py
 stegverse/master_records_custody.py
-stegverse/universal_entry_runtime.py
+stegverse/activation_evidence.py
+tests/test_universal_entry.py
+tests/test_universal_entry_dispatch.py
+tests/test_universal_entry_handlers.py
 tests/test_universal_entry_integrations.py
 tests/test_universal_entry_catalog_events.py
 tests/test_universal_entry_transport_projection.py
 tests/test_universal_entry_runtime_wrapper.py
 tests/test_master_records_custody.py
 tests/test_canonical_source_conversation.py
-examples/universal_entry/llm_adapter_round_trip.json
+tests/test_repository_source_activation.py
 .github/workflows/sdk-demo-test.yml
 ```
+
+## Universal path
+
+```text
+entry adapter
+-> universal manifest-bound envelope
+-> capability and authority-neutral routing
+-> operational lane dispatch
+-> bounded or provider-backed conversation synthesis
+-> governed return
+-> linked continuation events
+-> optional authenticated custody submission
+-> identity-matched custody receipt
+-> independent reconstruction verification
+-> activation evidence aggregation
+```
+
+Every entry adapter must use this same path. Entry adapters do not own provider credentials, repository credentials, custody credentials, execution authority, admissibility, or release authority.
 
 ## Canonical ecosystem path
 
 ```text
-explicitly authorized source inventory
+explicit source inventory
 -> CanonicalSourceSpec validation
--> dependency-injected authenticated/read-only source reader
--> repository/path/content-digest identity checks
--> canonical source collection evidence
--> project_record / project_records
--> explicit canonical=true and authoritative=true validation
--> packaged read-only catalog build
--> deterministic catalog identity
--> lifecycle / freshness / supersession filtering
+-> AllowlistedRepositorySourceReader
+-> repository / path / ref / blob / content-digest checks
+-> CanonicalSourceCollector
+-> canonical collection evidence
+-> project_records
+-> packaged read-only catalog
 -> AuthoritativeEcosystemRetriever
 -> EcosystemQueryHandler
 -> conversation synthesis
 ```
 
-`CanonicalSourceCollector` accepts only explicitly allowlisted source specifications. Every enabled source must declare stable source identity, repository, path, record type, title, observation time, `canonical=true`, and `authoritative=true`. Duplicate source identities and duplicate repository/path locations fail closed.
+`AllowlistedRepositorySourceReader` binds each source identifier to one explicit repository, path, and ref. Optional expected blob and content digests are enforced. Unbound sources, repository mismatch, path mismatch, ref mismatch, blob mismatch, empty content, and digest mismatch fail closed.
 
-The dependency-injected reader may return text plus repository, path, digest, and receipt metadata. Repository identity mismatch, path mismatch, empty content, unsupported reader output, and supplied content-digest mismatch fail closed. The collection emits deterministic evidence and projections and remains non-authorizing and non-custodial.
+The fetcher remains dependency-injected and server-side. Connector credentials are not stored by the SDK and must never enter Site JavaScript or portable-node browser storage.
 
-The SDK does not infer authority from repository file presence. Credentials and connector access remain in the server-side reader implementation, not in the SDK collector or browser entry adapters.
-
-## Governed conversation path
+## Governed conversation and provider path
 
 ```text
 conversation request
--> bounded local conversation handler
--> local response when supported
--> otherwise verify external_information_allowed=true
--> governed provider supplied through LLM-adapter bridge
+-> bounded local handler
+-> local response for supported greetings / thanks / capability explanation
+-> unresolved general conversation only
+-> external_information_allowed check
+-> GovernedConversationHandler
+-> LLMAdapterHTTPTransport
+-> LLM-adapter /api/ecosystem-chat
 -> provider identity / usage / receipt preservation
--> authority and custody escalation guards
--> governed conversational response
+-> non-authority guards
+-> governed response
 ```
 
-`GovernedConversationHandler` invokes the provider only for the existing `GENERAL_CONVERSATION_MODEL_NOT_ATTACHED` degradation. Greetings, thanks, capability explanations, and synthesis remain local and do not invoke a provider. Provider fallback is refused when the manifest prohibits external information or when no provider is configured.
+Provider fallback occurs only for `GENERAL_CONVERSATION_MODEL_NOT_ATTACHED`. Provider output remains non-authorizing. Provider attempts to grant authority, execution, custody, mutation, publication, or admissibility fail closed.
 
-Provider output remains non-authorizing. Provider receipt, model, usage, lifecycle, Master-Records status, and reconstruction status are preserved when supplied. Any provider attempt to grant authority, execution, custody, or admissibility fails closed.
-
-## Governed provider path
+## Continuation and custody path
 
 ```text
-universal entry envelope
--> build_adapter_request
--> AuthenticatedJSONTransport / LLMAdapterHTTPTransport
--> HTTPS server-side request to LLM-adapter /api/ecosystem-chat
--> provider result and local provider-usage submission
--> normalize_adapter_response
--> ExternalLLMHandler or GovernedConversationHandler
--> conversation synthesis when applicable
-```
-
-Remote cleartext HTTP is rejected. HTTP is accepted only for localhost development. Bearer credentials and same-origin session identity are server-side transport configuration, not browser state. The SDK bridge preserves transition, run, session, message, manifest, parent-transition, and prior-receipt identity and rejects identity, authority, custody, mutation, publication, or admissibility escalation.
-
-## Continuation and governed return path
-
-```text
-route_universal_entry
--> operational lane dispatch
--> governed return
--> routing event
--> retrieval / provider_usage / solver events as applicable
+routing event
+-> retrieval / provider_usage / solver event as applicable
 -> synthesis event as applicable
--> validate_event_chain
--> continuation metadata attached to governed return
+-> event-chain validation
+-> build_custody_submission
+-> authenticated custody transport
+-> identity-matched receipt validation
+-> reconstruction retrieval
+-> independent event-chain validation
+-> reconstructability_status: PASS
 ```
 
-`run_universal_entry` is the canonical wrapper. Without a custody client it records `custody_submitted=false`, `custody_verified=false`, `master_records_installed=false`, and `reconstructability_status=NOT_SUBMITTED`.
-
-## Master-Records custody path
+Without an injected custody client, the governed return records:
 
 ```text
-validated continuation event chain
--> build_custody_submission
--> authenticated dependency-injected custody transport
--> identity-matched Master-Records custody receipt
--> authenticated reconstruction retrieval
--> independent event-chain reconstruction validation
--> reconstructability_status: PASS
--> custody_verified=true
--> master_records_installed=true
+custody_submitted: false
+custody_verified: false
+master_records_installed: false
+reconstructability_status: NOT_SUBMITTED
 ```
 
-The custody receipt must preserve submission, session, message, transition, run, first-event, last-event, count, and event-digest identity. Reconstruction must return the complete validated chain and explicitly report `PASS`. Receipt tamper, identity mismatch, chain drift, digest mismatch, or authority escalation fails closed.
+Only an external identity-matched custody receipt plus independently verified reconstruction may set custody and installation fields true.
+
+## Activation evidence path
+
+```text
+SDK current-main validation
++ Site current-main validation and entry-point parity
++ non-empty canonical source collection
++ live provider result, provider receipt, and usage event
++ external custody receipt and reconstructability PASS
+-> evaluate_activation_evidence
+-> deterministic readiness packet
+```
+
+`activation_evidence.py` evaluates evidence only. It cannot deploy or activate anything. Its packet always preserves:
+
+```text
+activation_performed: false
+deployment_authorized: false
+release_authorized: false
+authorizing: false
+execution_authority_granted: false
+admissibility_determined: false
+```
+
+A complete packet may report `ready_for_separate_activation_decision=true`; that is not activation authority. Missing validation, source collection, provider use, usage evidence, custody, reconstruction, or entry-point parity remains an explicit blocker.
 
 ## Current operational state
 
@@ -124,54 +152,57 @@ governed general-conversation fallback: installed_dependency_injected
 authoritative record model: installed
 canonical projection producer: installed
 canonical source collector: installed_dependency_injected
-canonical collection integrity validation: installed
+allowlisted repository source reader: installed_dependency_injected
+repository/path/ref/blob/content integrity guards: installed
 packaged read-only catalog builder: installed
-catalog integrity validation: installed
 authoritative catalog retriever: installed_dependency_injected
-live authorized source reader: not_connected
-LLM-adapter request builder: installed
-LLM-adapter return validator: installed
+live authorized repository fetcher: not_connected
+LLM-adapter request and return bridge: installed
 authenticated server-side JSON transport: installed
 LLM-adapter HTTP transport: installed
 live deployed provider endpoint: not_connected
 provider usage preservation: installed
-routing/retrieval/provider/solver/synthesis continuation events: installed
-continuation chain validation: installed
-continuation events attached to governed return: installed
-Master-Records custody submission builder: installed
-Master-Records custody receipt validation: installed
-Master-Records reconstruction verification: installed
+continuation event chain: installed
 Master-Records custody client: installed_dependency_injected
+custody receipt validation: installed
+reconstruction verification: installed
 live Master-Records endpoint: not_connected
+activation evidence binder: installed_non_authorizing
 Site universal-envelope transport: not_connected
 ```
 
 ## CI binding
 
-The SDK workflow imports the canonical source collector and governed conversation handler, runs `tests/test_canonical_source_conversation.py` with the full universal-entry route-validation set, and verifies both modules remain in the built wheel.
+The SDK workflow imports all universal-entry, collection, source-reader, provider, event, custody, and activation-evidence modules. Route validation explicitly includes `tests/test_repository_source_activation.py`, and the wheel job verifies the new modules remain packaged.
 
-A successful current-main run containing commit `0d7fdf200542b87a7b69e6b611261b74e49a4c71` or later has not yet been independently observed.
+A successful current-main run containing commit `dc4f6f1cff684a862cd81df1f98aa770c1c52964` or later has not yet been independently observed. The GitHub combined-status endpoint returned no status entries, so there is no concrete failing check to repair yet.
 
 ## Site boundary
 
-`StegVerse-Labs/Site/docs/SITE_MIRROR_HANDOFF.md` remains the Site source of truth. It requires successor Site validation before further Site mutation and keeps live transport disabled. Therefore no Site browser transport, deployment, release, or live-activation change was made in this SDK work block.
+`StegVerse-Labs/Site/docs/SITE_MIRROR_HANDOFF.md` remains the Site source of truth. It requires successor Site validation before further Site mutation and keeps live transport disabled. No Site browser transport, deployment, release, or live activation was changed in this SDK block.
 
 ## Release boundary
 
-A portable node may declare `ecosystem_read` operational only when a validated packaged catalog or authenticated authoritative source reader is installed. It may declare provider-backed general conversation or `external_llm` operational only when authenticated server-side transport is configured and a live provider result plus provider-usage event is verified. It may claim `RECORDED` only after an identity-matched external custody receipt and independently reconstructed event chain both pass.
+A portable node may declare:
 
-Collector code, provider fallback code, transport implementation, fixture receipts, and local reconstruction tests are not live deployment, external custody, or activation evidence.
+- `ecosystem_read` operational only when a validated packaged catalog or authenticated allowlisted source reader is configured;
+- provider-backed conversation or `external_llm` operational only after a live governed provider response, provider receipt, and usage event are verified;
+- `RECORDED` only after external custody and reconstruction both pass;
+- activation readiness only after all required evidence is present in one validated packet.
+
+Reader code, transport code, fixtures, local tests, and readiness packets are not deployment, activation, release, custody, admissibility, or execution authority.
 
 ## Next task
 
-1. Observe current-main SDK validation containing commit `0d7fdf200542b87a7b69e6b611261b74e49a4c71` or later and repair only the first exact repository-local failure.
+1. Observe current-main SDK validation containing commit `dc4f6f1cff684a862cd81df1f98aa770c1c52964` or later and repair only the first exact repository-local failure.
 2. Observe the successor Site Task Runner after Site commit `0c076216f980f6b3c91677571d0692153d7ce94f`; do not mutate Site until the next exact failure or successful evidence set is known.
-3. Implement an authorized server-side source reader using the approved repository/connector topology and feed its results to `CanonicalSourceCollector`.
-4. Connect an authorized deployed LLM-adapter endpoint to `LLMAdapterHTTPTransport` and `GovernedConversationHandler`; never place credentials in Site or portable-node browser storage.
-5. Connect an authorized Master-Records endpoint to `MasterRecordsCustodyClient` and preserve external receipt and reconstruction evidence.
+3. Configure an authorized server-side repository fetcher for `AllowlistedRepositorySourceReader` and preserve read receipts and immutable refs.
+4. Connect an authorized deployed LLM-adapter endpoint to `LLMAdapterHTTPTransport` and preserve provider and usage evidence.
+5. Connect an authorized Master-Records endpoint to `MasterRecordsCustodyClient` and preserve the external custody receipt and reconstructed chain.
 6. Add Site universal-envelope construction and same-origin shared-router submission only after Site handoff gates permit mutation.
-7. Add activation evidence binding only after Site validation, live canonical retrieval, live provider use, custody receipt, and reconstructability PASS are observed together.
+7. Build one activation-evidence packet only after SDK validation, Site validation, canonical retrieval, provider use, entry-point parity, custody, and reconstructability PASS are observed together.
+8. Do not deploy, activate, release, merge, or tag from this handoff.
 
 ## Authority boundary
 
-Retrieval is not authority. A source inventory is not authority. A catalog is not authority. A canonical declaration is not execution authority. Provider output is not authority. Authenticated transport is not authority. Local usage persistence is not custody. Continuation events are not proof receipts. Custody-client code is not custody. Only an identity-matched external custody receipt plus independently verified reconstruction can support a bounded `RECORDED` claim, and neither grants execution authority or admissibility.
+Retrieval is not authority. A source inventory is not authority. A catalog is not authority. Provider output is not authority. Authenticated transport is not authority. Continuation events are not proof receipts. Custody-client code is not custody. Activation-evidence readiness is not activation authority. Only separately authorized deployment may activate transport, and neither validation nor custody grants execution authority or admissibility.
