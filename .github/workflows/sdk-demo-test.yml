@@ -49,6 +49,7 @@ jobs:
           python -c "from stegverse.master_records_custody import MasterRecordsCustodyClient, verify_reconstruction"
           python -c "from stegverse.activation_evidence import evaluate_activation_evidence, validate_activation_evidence"
           python -c "from stegverse.integration_config import build_integration_config, validate_integration_config"
+          python -c "from stegverse.spe_allow_consumer import build_progression_packet, validate_spe_receipt"
           python -c "from stegverse.universal_entry_runtime import run_universal_entry"
           python -c "from stegverse.universal_entry_server_runtime import UniversalEntryServerConfig, UniversalEntryServerRuntime"
       - name: Run complete test suite
@@ -87,7 +88,7 @@ jobs:
       - name: Verify SDK-to-SPE and system-boundary contracts
         run: |
           python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
-          pytest tests/test_system_boundary.py tests/test_system_boundary_round_trip.py tests/test_governed_llm_system_boundary_binding.py tests/test_adapter_origin_system_boundary_fixture.py tests/test_adapter_system_boundary_fixture_provenance.py tests/test_system_boundary_workflow_evidence.py tests/test_system_boundary_activation.py tests/test_system_boundary_downstream_status.py -v
+          pytest tests/test_spe_allow_consumer.py tests/test_adapter_origin_manifest_fixture.py tests/test_system_boundary.py tests/test_system_boundary_round_trip.py tests/test_governed_llm_system_boundary_binding.py tests/test_adapter_origin_system_boundary_fixture.py tests/test_adapter_system_boundary_fixture_provenance.py tests/test_system_boundary_workflow_evidence.py tests/test_system_boundary_activation.py tests/test_system_boundary_downstream_status.py -v
       - name: Validate formal testing route
         run: |
           python scripts/validate_formal_testing_route.py --kind loop examples/testing_data_loop.json
@@ -142,6 +143,7 @@ jobs:
           python -c "from stegverse.master_records_custody import MasterRecordsCustodyClient"
           python -c "from stegverse.activation_evidence import evaluate_activation_evidence"
           python -c "from stegverse.integration_config import build_integration_config, validate_integration_config"
+          python -c "from stegverse.spe_allow_consumer import build_progression_packet"
           python -c "from stegverse.universal_entry_runtime import run_universal_entry"
           python -c "from stegverse.universal_entry_server_runtime import UniversalEntryServerRuntime"
       - uses: actions/upload-artifact@v4
