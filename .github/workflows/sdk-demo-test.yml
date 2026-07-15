@@ -48,6 +48,7 @@ jobs:
           python -c "from stegverse.universal_entry_events import build_dispatch_event_chain, validate_event_chain"
           python -c "from stegverse.master_records_custody import MasterRecordsCustodyClient, verify_reconstruction"
           python -c "from stegverse.activation_evidence import evaluate_activation_evidence, validate_activation_evidence"
+          python -c "from stegverse.integration_config import build_integration_config, validate_integration_config"
           python -c "from stegverse.universal_entry_runtime import run_universal_entry"
           python -c "from stegverse.universal_entry_server_runtime import UniversalEntryServerConfig, UniversalEntryServerRuntime"
       - name: Run complete test suite
@@ -82,7 +83,7 @@ jobs:
           python scripts/verify_comparison_orchestrator.py
       - name: Verify universal entry runtime and integrations
         run: |
-          pytest tests/test_universal_entry.py tests/test_universal_entry_dispatch.py tests/test_universal_entry_handlers.py tests/test_universal_entry_integrations.py tests/test_universal_entry_catalog_events.py tests/test_universal_entry_transport_projection.py tests/test_universal_entry_runtime_wrapper.py tests/test_master_records_custody.py tests/test_canonical_source_conversation.py tests/test_repository_source_activation.py tests/test_universal_entry_server_runtime.py -v
+          pytest tests/test_universal_entry.py tests/test_universal_entry_dispatch.py tests/test_universal_entry_handlers.py tests/test_universal_entry_integrations.py tests/test_universal_entry_catalog_events.py tests/test_universal_entry_transport_projection.py tests/test_universal_entry_runtime_wrapper.py tests/test_master_records_custody.py tests/test_canonical_source_conversation.py tests/test_repository_source_activation.py tests/test_universal_entry_server_runtime.py tests/test_integration_config.py -v
       - name: Verify SDK-to-SPE and system-boundary contracts
         run: |
           python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
@@ -140,6 +141,7 @@ jobs:
           python -c "from stegverse.universal_entry_events import build_dispatch_event_chain, validate_event_chain"
           python -c "from stegverse.master_records_custody import MasterRecordsCustodyClient"
           python -c "from stegverse.activation_evidence import evaluate_activation_evidence"
+          python -c "from stegverse.integration_config import build_integration_config, validate_integration_config"
           python -c "from stegverse.universal_entry_runtime import run_universal_entry"
           python -c "from stegverse.universal_entry_server_runtime import UniversalEntryServerRuntime"
       - uses: actions/upload-artifact@v4
