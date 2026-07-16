@@ -1,18 +1,27 @@
 {
-  "activation_state": "PENDING",
+  "activation_state": "PENDING_VALIDATION",
   "admissibility_determined": false,
   "custody_transferred": false,
   "downstream_propagation_allowed": false,
+  "evidence": {
+    "current_main_validation_observed": true,
+    "current_main_validation_passed": false,
+    "latest_observed_conclusion": "failure",
+    "latest_observed_workflow_run_id": 29542165870
+  },
   "execution_authority_granted": false,
+  "generated_at": "2026-07-16T23:26:54.264161+00:00",
+  "manual_user_action_required": false,
   "production_binding_enabled": false,
   "release_authorized": false,
+  "repository": "StegVerse-org/StegVerse-SDK",
   "schema_version": "stegverse.system_boundary.downstream_status.v0.1",
+  "source_branch": "main",
+  "source_commit": "da1bde59f326121d44432d3a628f1f229168e87a",
+  "source_workflow": "StegVerse SDK Validation",
   "status_only": true,
   "targets": [
-    "StegVerse-Labs/Site",
-    "GCAT-BCAT-Engine/Publisher",
-    "StegVerse-Labs/admissibility-wiki",
-    "StegVerse-002/stegguardian-wiki"
+    "StegVerse-Labs/Site"
   ],
   "verified": false
 }
