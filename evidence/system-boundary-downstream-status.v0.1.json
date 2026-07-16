@@ -6,18 +6,18 @@
   "evidence": {
     "current_main_validation_observed": true,
     "current_main_validation_passed": false,
-    "latest_observed_conclusion": "failure",
-    "latest_observed_workflow_run_id": 29537440452
+    "latest_observed_conclusion": "cancelled",
+    "latest_observed_workflow_run_id": 29537481920
   },
   "execution_authority_granted": false,
-  "generated_at": "2026-07-16T21:50:18.210678+00:00",
+  "generated_at": "2026-07-16T21:50:37.766632+00:00",
   "manual_user_action_required": false,
   "production_binding_enabled": false,
   "release_authorized": false,
   "repository": "StegVerse-org/StegVerse-SDK",
   "schema_version": "stegverse.system_boundary.downstream_status.v0.1",
   "source_branch": "main",
-  "source_commit": "54c97a233fcd778736dce2a42881b453808720b1",
+  "source_commit": "c1df2d43721009f59b1f0b43785f77e50d616b99",
   "source_workflow": "StegVerse SDK Validation",
   "status_only": true,
   "targets": [
