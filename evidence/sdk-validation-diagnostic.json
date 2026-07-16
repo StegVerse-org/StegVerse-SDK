@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "record_type": "sdk_validation_diagnostic",
+  "generated_at": "2026-07-16T21:50:47.351554+00:00",
+  "status": "FAIL",
+  "first_failure": {
+    "command": [
+      "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+      "scripts/verify_universal_entry_envelope.py"
+    ],
+    "exit_code": 1,
+    "output_tail": "jsonschema is required: python -m pip install jsonschema\n"
+  },
+  "commands_executed": [
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+        "scripts/verify_universal_entry_envelope.py"
+      ],
+      "exit_code": 1,
+      "output_tail": "jsonschema is required: python -m pip install jsonschema\n"
+    }
+  ],
+  "manual_user_action_required": false
+}
