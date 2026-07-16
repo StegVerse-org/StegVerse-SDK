@@ -1,28 +1,27 @@
 {
-  "schema_version": "stegverse.system_boundary.downstream_status.v0.1",
-  "status_only": true,
-  "repository": "StegVerse-org/StegVerse-SDK",
-  "source_workflow": "StegVerse SDK Validation",
-  "source_branch": "main",
-  "source_commit": "e11d665a1b38f8fcdddf29c612eb9e69641bb02c",
   "activation_state": "PENDING_VALIDATION",
-  "verified": false,
+  "admissibility_determined": false,
+  "custody_transferred": false,
   "downstream_propagation_allowed": false,
+  "evidence": {
+    "current_main_validation_observed": true,
+    "current_main_validation_passed": false,
+    "latest_observed_conclusion": "cancelled",
+    "latest_observed_workflow_run_id": 29537425480
+  },
+  "execution_authority_granted": false,
+  "generated_at": "2026-07-16T21:49:47.657197+00:00",
+  "manual_user_action_required": false,
+  "production_binding_enabled": false,
+  "release_authorized": false,
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "schema_version": "stegverse.system_boundary.downstream_status.v0.1",
+  "source_branch": "main",
+  "source_commit": "3aaf2d0d159994e58991c0e6ff4ddbb3504dd3f2",
+  "source_workflow": "StegVerse SDK Validation",
+  "status_only": true,
   "targets": [
     "StegVerse-Labs/Site"
   ],
-  "production_binding_enabled": false,
-  "release_authorized": false,
-  "execution_authority_granted": false,
-  "custody_transferred": false,
-  "admissibility_determined": false,
-  "manual_user_action_required": false,
-  "next_owner": "StegVerse-org/StegVerse-SDK",
-  "next_action": "Repair current-main SDK validation and regenerate this status from the workflow result.",
-  "evidence": {
-    "latest_observed_workflow_run_id": 29387391204,
-    "latest_observed_conclusion": "failure",
-    "current_main_validation_observed": true,
-    "current_main_validation_passed": false
-  }
+  "verified": false
 }
