@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -22,27 +23,72 @@ COMMANDS = [
     [sys.executable, "-m", "pytest", "tests/", "-q", "--maxfail=1"],
 ]
 
+REQUIRED_MODULES = ["jsonschema", "pytest", "requests", "yaml", "dotenv"]
+
+
+def git_sha() -> str | None:
+    completed = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return completed.stdout.strip() or None
+
 
 def main() -> int:
+    dependency_state = {
+        module: importlib.util.find_spec(module) is not None for module in REQUIRED_MODULES
+    }
+    missing_dependencies = sorted(
+        module for module, installed in dependency_state.items() if not installed
+    )
+
     records = []
     first_failure = None
-    for command in COMMANDS:
-        completed = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
-        record = {
-            "command": command,
-            "exit_code": completed.returncode,
-            "output_tail": completed.stdout[-4000:],
+    failure_class = None
+
+    if missing_dependencies:
+        failure_class = "DIAGNOSTIC_ENVIRONMENT_INCOMPLETE"
+        first_failure = {
+            "command": [sys.executable, "-m", "pip", "install", "-e", ".[dev]"],
+            "exit_code": 1,
+            "output_tail": "Missing importable modules after dependency installation: "
+            + ", ".join(missing_dependencies),
         }
-        records.append(record)
-        if completed.returncode != 0:
-            first_failure = record
-            break
+    else:
+        for command in COMMANDS:
+            completed = subprocess.run(
+                command,
+                cwd=ROOT,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
+            record = {
+                "command": command,
+                "exit_code": completed.returncode,
+                "output_tail": completed.stdout[-4000:],
+            }
+            records.append(record)
+            if completed.returncode != 0:
+                failure_class = "SDK_VALIDATION_FAILURE"
+                first_failure = record
+                break
 
     payload = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "record_type": "sdk_validation_diagnostic",
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "source_commit_sha": git_sha(),
+        "python_executable": sys.executable,
+        "dependency_state": dependency_state,
+        "missing_dependencies": missing_dependencies,
         "status": "PASS" if first_failure is None else "FAIL",
+        "failure_class": failure_class,
         "first_failure": first_failure,
         "commands_executed": records,
         "manual_user_action_required": False,
@@ -50,6 +96,7 @@ def main() -> int:
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(f"SDK VALIDATION DIAGNOSTIC: {payload['status']}")
+    print(f"FAILURE CLASS: {payload['failure_class'] or 'none'}")
     return 0
 
 
