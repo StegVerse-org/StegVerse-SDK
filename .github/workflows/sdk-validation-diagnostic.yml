@@ -21,21 +21,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Install SDK test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          python -m pip install -e ".[dev]"
+          python -c "import jsonschema, pytest, requests, yaml, dotenv"
       - name: Capture first exact failure
         run: python scripts/capture_sdk_validation_diagnostic.py
-      - name: Return to current main before persisting evidence
-        run: |
-          git fetch origin main
-          git checkout -B main origin/main
-          python scripts/capture_sdk_validation_diagnostic.py
       - name: Commit durable diagnostic
         run: |
           git config user.name "github-actions[bot]"
