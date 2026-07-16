@@ -1,0 +1,50 @@
+name: SDK Validation Diagnostic
+
+on:
+  workflow_run:
+    workflows:
+      - StegVerse SDK Validation
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sdk-validation-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    if: github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install SDK test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Capture first exact failure
+        run: python scripts/capture_sdk_validation_diagnostic.py
+      - name: Return to current main before persisting evidence
+        run: |
+          git fetch origin main
+          git checkout -B main origin/main
+          python scripts/capture_sdk_validation_diagnostic.py
+      - name: Commit durable diagnostic
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evidence/sdk-validation-diagnostic.json
+          if git diff --cached --quiet; then
+            echo "No SDK validation diagnostic change."
+            exit 0
+          fi
+          git commit -m "chore: retain SDK validation diagnostic [diagnostic]"
+          git pull --rebase
+          git push
