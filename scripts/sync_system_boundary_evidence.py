@@ -37,9 +37,9 @@ SOURCES = {
     },
     "sdk": {
         "repository": "StegVerse-org/StegVerse-SDK",
-        "workflow": "sdk-demo-test.yml",
-        "workflow_path": ".github/workflows/sdk-demo-test.yml",
-        "required_commit": "8e9626f45070a562dec5a1932599ba655829adb9",
+        "workflow": "validate.yml",
+        "workflow_path": ".github/workflows/validate.yml",
+        "required_commit": "3f282a30595d8b2e486415ac86824ba9d5c81cfa",
         "output": ROOT / "evidence/system-boundary-workflow-evidence.sdk.v0.1.json",
     },
 }
