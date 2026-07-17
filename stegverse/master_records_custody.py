@@ -12,7 +12,7 @@ from hashlib import sha256
 import json
 from typing import Any, Callable, Mapping, Sequence
 
-from .universal_entry_events import validate_event_chain
+from .universal_entry_events import UniversalEntryEventError, validate_event_chain
 
 
 class MasterRecordsCustodyError(RuntimeError):
@@ -28,7 +28,10 @@ def _digest(value: Any) -> str:
 
 
 def build_custody_submission(events: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
-    normalized = validate_event_chain(events)
+    try:
+        normalized = validate_event_chain(events)
+    except UniversalEntryEventError as exc:
+        raise MasterRecordsCustodyError(f"custody submission event chain invalid: {exc}") from exc
     if not normalized:
         raise MasterRecordsCustodyError("continuation event chain is empty")
     first = normalized[0]
@@ -103,7 +106,10 @@ def verify_reconstruction(
     events = reconstruction.get("events")
     if not isinstance(events, list):
         raise MasterRecordsCustodyError("reconstruction events must be a list")
-    normalized = validate_event_chain(events)
+    try:
+        normalized = validate_event_chain(events)
+    except UniversalEntryEventError as exc:
+        raise MasterRecordsCustodyError(f"reconstruction event chain invalid: {exc}") from exc
     if len(normalized) != submission.get("event_count"):
         raise MasterRecordsCustodyError("reconstruction event count mismatch")
     if _digest(normalized) != submission.get("events_digest"):
