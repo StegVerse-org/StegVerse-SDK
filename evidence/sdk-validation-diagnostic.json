@@ -1,8 +1,8 @@
 {
   "schema_version": "1.2.0",
   "record_type": "sdk_validation_diagnostic",
-  "generated_at": "2026-07-16T19:49:22-05:00",
-  "source_commit_sha": "0b3a0a4f651b82922fc724de0c555a642079c37b",
+  "generated_at": "2026-07-16T19:49:31-05:00",
+  "source_commit_sha": "804cc549d8f62620e706c5080f5f286a4246d72b",
   "python_executable": "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
   "dependency_state": {
     "jsonschema": true,
