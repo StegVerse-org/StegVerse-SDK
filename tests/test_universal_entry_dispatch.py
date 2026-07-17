@@ -72,11 +72,11 @@ def test_conversation_handler_is_invoked_for_greeting():
     assert result["lane_results"][0]["output"] == "Good morning!"
 
 
-def test_mixed_query_dispatch_preserves_lane_order_and_context():
+def test_mixed_query_dispatch_preserves_synthesis_order_and_context():
     observed = []
 
     def conversation_handler(_envelope, context):
-        observed.append(("conversation", list(context["lane_results"])))
+        observed.append(("conversation", [r["lane"] for r in context["lane_results"]]))
         return {"status": "completed", "output": "interpreted"}
 
     def ecosystem_handler(_envelope, context):
@@ -101,12 +101,16 @@ def test_mixed_query_dispatch_preserves_lane_order_and_context():
     )
 
     assert [r["lane"] for r in result["lane_results"]] == [
-        "conversation",
         "ecosystem_query",
         "external_llm",
+        "conversation",
     ]
-    assert observed[1] == ("ecosystem_query", ["conversation"])
-    assert observed[2] == ("external_llm", ["conversation", "ecosystem_query"])
+    assert observed[0] == ("ecosystem_query", [])
+    assert observed[1] == ("external_llm", ["ecosystem_query"])
+    assert observed[2] == (
+        "conversation",
+        ["ecosystem_query", "external_llm"],
+    )
 
 
 def test_missing_handler_is_reported_as_unavailable_not_simulated():
