@@ -1,8 +1,8 @@
 {
   "schema_version": "1.2.0",
   "record_type": "sdk_validation_diagnostic",
-  "generated_at": "2026-07-16T19:51:33-05:00",
-  "source_commit_sha": "b53eb8de765cbf305e662c60eec705580f915bed",
+  "generated_at": "2026-07-16T20:56:13-05:00",
+  "source_commit_sha": "a90788c92e152c35e6d13a54ddafb3e866126e66",
   "python_executable": "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
   "dependency_state": {
     "jsonschema": true,
@@ -24,7 +24,7 @@
       "--maxfail=1"
     ],
     "exit_code": 1,
-    "output_tail": "FAIL /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_adapter_origin_manifest_fixture.py::test_adapter_origin_fixture_enters_manifest_serialization_directly\nTraceback (most recent call last):\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 127, in main\n    call_test(function, parameters)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 78, in call_test\n    function(**kwargs)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_adapter_origin_manifest_fixture.py\", line 21, in test_adapter_origin_fixture_enters_manifest_serialization_directly\n    assert manifest[\"intake_decision\"] == \"ALLOW\"\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n1 failed, 0 passed\n"
+    "output_tail": "FAIL /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_adapter_origin_manifest_fixture.py::test_adapter_origin_fixture_enters_receipt_handoff_directly\nTraceback (most recent call last):\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 127, in main\n    call_test(function, parameters)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 78, in call_test\n    function(**kwargs)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_adapter_origin_manifest_fixture.py\", line 31, in test_adapter_origin_fixture_enters_receipt_handoff_directly\n    assert receipt[\"source_repo\"] == \"StegVerse-org/StegVerse-SDK\"\n           ~~~~~~~^^^^^^^^^^^^^^^\nKeyError: 'source_repo'\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_adapter_origin_manifest_fixture.py::test_adapter_origin_fixture_enters_manifest_serialization_directly\n1 failed, 1 passed\n"
   },
   "commands_executed": [
     {
@@ -105,7 +105,7 @@
         "--maxfail=1"
       ],
       "exit_code": 1,
-      "output_tail": "FAIL /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_adapter_origin_manifest_fixture.py::test_adapter_origin_fixture_enters_manifest_serialization_directly\nTraceback (most recent call last):\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 127, in main\n    call_test(function, parameters)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 78, in call_test\n    function(**kwargs)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_adapter_origin_manifest_fixture.py\", line 21, in test_adapter_origin_fixture_enters_manifest_serialization_directly\n    assert manifest[\"intake_decision\"] == \"ALLOW\"\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n1 failed, 0 passed\n"
+      "output_tail": "FAIL /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_adapter_origin_manifest_fixture.py::test_adapter_origin_fixture_enters_receipt_handoff_directly\nTraceback (most recent call last):\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 127, in main\n    call_test(function, parameters)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 78, in call_test\n    function(**kwargs)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_adapter_origin_manifest_fixture.py\", line 31, in test_adapter_origin_fixture_enters_receipt_handoff_directly\n    assert receipt[\"source_repo\"] == \"StegVerse-org/StegVerse-SDK\"\n           ~~~~~~~^^^^^^^^^^^^^^^\nKeyError: 'source_repo'\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_adapter_origin_manifest_fixture.py::test_adapter_origin_fixture_enters_manifest_serialization_directly\n1 failed, 1 passed\n"
     }
   ],
   "manual_user_action_required": false
