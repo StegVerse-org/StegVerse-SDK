@@ -5,7 +5,6 @@ import importlib.util
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,9 +25,9 @@ COMMANDS = [
 REQUIRED_MODULES = ["jsonschema", "pytest", "requests", "yaml", "dotenv"]
 
 
-def git_sha() -> str | None:
+def git_value(*args: str) -> str | None:
     completed = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
+        ["git", *args],
         cwd=ROOT,
         text=True,
         stdout=subprocess.PIPE,
@@ -79,11 +78,12 @@ def main() -> int:
                 first_failure = record
                 break
 
+    source_commit = git_value("rev-parse", "HEAD")
     payload = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "record_type": "sdk_validation_diagnostic",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "source_commit_sha": git_sha(),
+        "generated_at": git_value("show", "-s", "--format=%cI", "HEAD"),
+        "source_commit_sha": source_commit,
         "python_executable": sys.executable,
         "dependency_state": dependency_state,
         "missing_dependencies": missing_dependencies,
@@ -94,8 +94,13 @@ def main() -> int:
         "manual_user_action_required": False,
     }
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    print(f"SDK VALIDATION DIAGNOSTIC: {payload['status']}")
+    rendered = json.dumps(payload, indent=2) + "\n"
+    if OUTPUT.exists() and OUTPUT.read_text(encoding="utf-8") == rendered:
+        print("SDK VALIDATION DIAGNOSTIC: UNCHANGED")
+    else:
+        OUTPUT.write_text(rendered, encoding="utf-8")
+        print(f"SDK VALIDATION DIAGNOSTIC: {payload['status']}")
+    print(f"SOURCE COMMIT: {source_commit}")
     print(f"FAILURE CLASS: {payload['failure_class'] or 'none'}")
     return 0
 
