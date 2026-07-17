@@ -1,13 +1,11 @@
 {
   "adapter_evidence": "evidence/system-boundary-workflow-evidence.adapter.v0.1.json",
   "downstream_propagation_allowed": false,
-  "errors": [
-    "sdk: workflow mismatch"
-  ],
+  "errors": [],
   "production_binding_enabled": false,
   "release_authorized": false,
   "schema_version": "stegverse.system_boundary.activation.v0.1",
   "sdk_evidence": "evidence/system-boundary-workflow-evidence.sdk.v0.1.json",
-  "state": "INVALID_EVIDENCE",
+  "state": "PENDING",
   "verified": false
 }
