@@ -28,8 +28,9 @@ def test_adapter_origin_fixture_enters_receipt_handoff_directly():
     packet = load_fixture()
     receipt = build_governed_llm_receipt_handoff(packet)
 
-    assert receipt["source_repo"] == "StegVerse-org/StegVerse-SDK"
-    assert receipt["receipt_hash"]
+    assert receipt["schema_version"] == "stegverse.sdk.governed_llm_receipt.v0.1"
+    assert receipt["receipt_handoff_hash"]
+    assert receipt["receipt_status"] == "route_ready_record_retained"
     assert receipt["manifest"]["source_repo"] == "StegVerse-org/LLM-adapter"
     assert receipt["manifest"]["intake_decision"] == "ROUTE"
     assert receipt["manifest"]["intake"]["validation_decision"] == "ALLOW"
