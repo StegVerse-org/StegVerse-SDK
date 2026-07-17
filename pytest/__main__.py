@@ -8,6 +8,7 @@ Supported surface:
 - ``tmp_path`` fixture
 - ``pytest.raises``
 - ``pytest.mark.parametrize``
+- ``--maxfail=N``
 
 The runner is intentionally bounded and does not claim full pytest
 compatibility.
@@ -96,13 +97,28 @@ def selected_files(argv: list[str]) -> list[Path]:
     return sorted((ROOT / "tests").glob("test_*.py"))
 
 
+def max_failures(argv: list[str]) -> int | None:
+    for index, arg in enumerate(argv):
+        if arg.startswith("--maxfail="):
+            return max(1, int(arg.split("=", 1)[1]))
+        if arg == "--maxfail" and index + 1 < len(argv):
+            return max(1, int(argv[index + 1]))
+    return None
+
+
 def main(argv: list[str]) -> int:
     files = selected_files(argv)
+    maxfail = max_failures(argv)
     total = 0
     failed = 0
+    stop = False
     for path in files:
+        if stop:
+            break
         module = load_module(path)
         for name, function in iter_tests(module):
+            if stop:
+                break
             for index, parameters in enumerate(parameter_cases(function)):
                 total += 1
                 suffix = f"[{index}]" if parameters else ""
@@ -114,6 +130,9 @@ def main(argv: list[str]) -> int:
                     failed += 1
                     print(f"FAIL {label}", file=sys.stderr)
                     traceback.print_exc()
+                    if maxfail is not None and failed >= maxfail:
+                        stop = True
+                        break
 
     if failed:
         print(f"{failed} failed, {total - failed} passed")
