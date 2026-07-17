@@ -18,7 +18,8 @@ def test_adapter_origin_fixture_enters_manifest_serialization_directly():
 
     assert manifest["source_repo"] == "StegVerse-org/LLM-adapter"
     assert manifest["manifest_type"] == "governed_llm_session"
-    assert manifest["intake_decision"] == "ALLOW"
+    assert manifest["intake_decision"] == "ROUTE"
+    assert manifest["intake"]["validation_decision"] == "ALLOW"
     assert manifest["manifest_hash"]
     assert manifest["intake"]["session_hash"] == manifest["session_hash"]
 
@@ -30,7 +31,8 @@ def test_adapter_origin_fixture_enters_receipt_handoff_directly():
     assert receipt["source_repo"] == "StegVerse-org/StegVerse-SDK"
     assert receipt["receipt_hash"]
     assert receipt["manifest"]["source_repo"] == "StegVerse-org/LLM-adapter"
-    assert receipt["manifest"]["intake_decision"] == "ALLOW"
+    assert receipt["manifest"]["intake_decision"] == "ROUTE"
+    assert receipt["manifest"]["intake"]["validation_decision"] == "ALLOW"
 
 
 def test_adapter_origin_fixture_remains_non_executable():
