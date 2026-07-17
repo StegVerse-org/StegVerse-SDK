@@ -1,26 +1,28 @@
 #!/usr/bin/env python3
-"""Minimal `python -m pytest` runner for repository route-artifact tests.
+"""Minimal ``python -m pytest`` runner for repository tests.
 
 Supported surface:
-- positional Python test files
-- functions named test_*
+- positional Python test files or automatic ``tests/test_*.py`` discovery
+- functions named ``test_*``
 - plain assert statements
-- tmp_path fixture
+- ``tmp_path`` fixture
+- ``pytest.raises``
+- ``pytest.mark.parametrize``
 
-This is intentionally small and exists so CI can run route-artifact tests even
-when the workflow runner has not installed external pytest.
+The runner is intentionally bounded and does not claim full pytest
+compatibility.
 """
-
 from __future__ import annotations
 
 import importlib.util
 import inspect
+import itertools
 import sys
 import tempfile
 import traceback
 from pathlib import Path
 from types import ModuleType
-
+from typing import Any, Iterable
 
 ROOT = Path.cwd()
 
@@ -35,12 +37,37 @@ def load_module(path: Path) -> ModuleType:
     return module
 
 
-def call_test(function) -> None:
+def parameter_cases(function) -> list[dict[str, Any]]:
+    declarations: Iterable[tuple[tuple[str, ...], list[Any]]] = getattr(
+        function, "_pytest_parametrize", []
+    )
+    cases: list[dict[str, Any]] = [{}]
+    for names, values in declarations:
+        expanded: list[dict[str, Any]] = []
+        for base, value in itertools.product(cases, values):
+            if len(names) == 1:
+                row = (value,)
+            else:
+                if not isinstance(value, (tuple, list)) or len(value) != len(names):
+                    raise ValueError(
+                        f"parametrize value {value!r} does not match names {names!r}"
+                    )
+                row = tuple(value)
+            merged = dict(base)
+            merged.update(dict(zip(names, row)))
+            expanded.append(merged)
+        cases = expanded
+    return cases
+
+
+def call_test(function, parameters: dict[str, Any]) -> None:
     signature = inspect.signature(function)
-    kwargs = {}
+    kwargs = dict(parameters)
     temp_dirs: list[tempfile.TemporaryDirectory[str]] = []
     try:
         for name in signature.parameters:
+            if name in kwargs:
+                continue
             if name == "tmp_path":
                 temp_dir = tempfile.TemporaryDirectory()
                 temp_dirs.append(temp_dir)
@@ -62,25 +89,31 @@ def iter_tests(module: ModuleType):
             yield name, value
 
 
-def main(argv: list[str]) -> int:
-    files = [Path(arg) for arg in argv if arg.endswith(".py")]
-    if not files:
-        files = sorted((ROOT / "tests").glob("test_*.py"))
+def selected_files(argv: list[str]) -> list[Path]:
+    files = [Path(arg.split("::", 1)[0]) for arg in argv if ".py" in arg]
+    if files:
+        return list(dict.fromkeys(files))
+    return sorted((ROOT / "tests").glob("test_*.py"))
 
+
+def main(argv: list[str]) -> int:
+    files = selected_files(argv)
     total = 0
     failed = 0
     for path in files:
         module = load_module(path)
         for name, function in iter_tests(module):
-            total += 1
-            label = f"{path}::{name}"
-            try:
-                call_test(function)
-                print(f"PASS {label}")
-            except BaseException:
-                failed += 1
-                print(f"FAIL {label}", file=sys.stderr)
-                traceback.print_exc()
+            for index, parameters in enumerate(parameter_cases(function)):
+                total += 1
+                suffix = f"[{index}]" if parameters else ""
+                label = f"{path}::{name}{suffix}"
+                try:
+                    call_test(function, parameters)
+                    print(f"PASS {label}")
+                except BaseException:
+                    failed += 1
+                    print(f"FAIL {label}", file=sys.stderr)
+                    traceback.print_exc()
 
     if failed:
         print(f"{failed} failed, {total - failed} passed")
