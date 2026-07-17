@@ -113,6 +113,24 @@ def _default_response_text(
     return "The request completed through the selected non-authorizing engines."
 
 
+def _response_text(
+    decision: RouteDecision,
+    lane_results: Sequence[Mapping[str, Any]],
+) -> str:
+    """Use terminal conversation output when available, otherwise a bounded default."""
+    if not decision.failed_closed:
+        for result in reversed(lane_results):
+            if result.get("lane") != "conversation":
+                continue
+            if result.get("status") not in {"completed", "degraded"}:
+                break
+            response = result.get("response")
+            if isinstance(response, str) and response.strip():
+                return response.strip()
+            break
+    return _default_response_text(decision, lane_results)
+
+
 def _dispatch_order(selected_lanes: Sequence[str]) -> list[str]:
     """Run conversation last when it must synthesize other lane results."""
     lanes = list(selected_lanes)
@@ -197,7 +215,7 @@ def dispatch_universal_entry(
     governed_return = build_governed_return(
         envelope,
         effective_decision,
-        response_text=_default_response_text(effective_decision, lane_results),
+        response_text=_response_text(effective_decision, lane_results),
     )
     governed_return["lane_results"] = lane_results
     governed_return["dispatch_receipt"] = build_dispatch_receipt(
