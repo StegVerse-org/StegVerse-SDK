@@ -1,15 +1,30 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.2.0",
   "record_type": "sdk_validation_diagnostic",
-  "generated_at": "2026-07-16T21:50:47.351554+00:00",
+  "generated_at": "2026-07-16T19:48:23-05:00",
+  "source_commit_sha": "b701d3a84951a579faa877d6d8187d390744b105",
+  "python_executable": "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+  "dependency_state": {
+    "jsonschema": true,
+    "pytest": true,
+    "requests": true,
+    "yaml": true,
+    "dotenv": true
+  },
+  "missing_dependencies": [],
   "status": "FAIL",
+  "failure_class": "SDK_VALIDATION_FAILURE",
   "first_failure": {
     "command": [
       "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
-      "scripts/verify_universal_entry_envelope.py"
+      "-m",
+      "pytest",
+      "tests/",
+      "-q",
+      "--maxfail=1"
     ],
     "exit_code": 1,
-    "output_tail": "jsonschema is required: python -m pip install jsonschema\n"
+    "output_tail": " no attribute 'raises'\nFAIL /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repository_source_activation.py::test_reader_rejects_unbound_source\nTraceback (most recent call last):\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 78, in main\n    call_test(function)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 50, in call_test\n    function(**kwargs)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repository_source_activation.py\", line 66, in test_reader_rejects_unbound_source\n    with pytest.raises(RepositorySourceReaderError, match=\"not allowlisted\"):\n         ^^^^^^^^^^^^^\nAttributeError: module 'pytest' has no attribute 'raises'\nTraceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 93, in <module>\n    raise SystemExit(main(sys.argv[1:]))\n                     ^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 73, in main\n    module = load_module(path)\n             ^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 34, in load_module\n    spec.loader.exec_module(module)\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_spe_allow_consumer.py\", line 66, in <module>\n    @pytest.mark.parametrize(\"decision\", [\"DENY\", \"FAIL_CLOSED\"])\n     ^^^^^^^^^^^\nAttributeError: module 'pytest' has no attribute 'mark'\n\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_receipts.py::test_invalid_receipt_with_broken_admissibility_reference\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_receipts.py::test_invalid_receipt_with_malformed_admissibility_reference\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_receipts.py::test_valid_receipt\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_receipts.py::test_valid_receipt_with_admissibility_reference\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repo_standards_gate_record.py::test_builds_deterministic_gate_record\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repo_standards_gate_record.py::test_public_exports_are_available\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repository_source_activation.py::test_activation_evidence_preserves_blockers\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repository_source_activation.py::test_activation_evidence_ready_but_does_not_activate\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repository_source_activation.py::test_allowlisted_reader_collects_verified_source\nPASS: Chain Integrity\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_safety_stack_quick.py::test_chain_integrity\nPASS: Layer 1 Mathematical\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_safety_stack_quick.py::test_layer1_mathematical\nPASS: Layer 3 Circuit Breaker\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_safety_stack_quick.py::test_layer3_circuit_breaker\nPASS: Layer 4 Consensus Halt\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_safety_stack_quick.py::test_layer4_consensus\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_sdk_core_node_fanout_goal.py::test_sdk_core_node_fanout_goal_is_valid\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_sdk_core_node_fanout_request.py::test_sdk_core_node_fanout_request_is_valid\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_sdk_core_node_result.py::test_sdk_core_node_result\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_sdk_core_node_unified_comparison_receipt.py::test_sdk_core_node_unified_comparison_receipt_is_valid\n"
   },
   "commands_executed": [
     {
@@ -17,8 +32,80 @@
         "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
         "scripts/verify_universal_entry_envelope.py"
       ],
+      "exit_code": 0,
+      "output_tail": "PASS: /home/runner/work/StegVerse-SDK/StegVerse-SDK/examples/universal_entry/site_chat_good_morning.json\nentry_point=site_chat\nselected_lanes=conversation\nreceipt_required=false\n"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+        "scripts/verify_free_tier_metadata_ingestion.py"
+      ],
+      "exit_code": 0,
+      "output_tail": "{\n  \"checks\": {\n    \"accepted_non_authorizing\": true,\n    \"doc_exists\": true,\n    \"module_exists\": true,\n    \"standing_escalation_denied\": true,\n    \"tests_exist\": true,\n    \"valid_metadata_accepted\": true\n  },\n  \"status\": \"PASS\"\n}\n"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+        "scripts/verify_hps_sdk_route.py",
+        "examples/hps_sdk_route_allowed.json"
+      ],
+      "exit_code": 0,
+      "output_tail": "decision: ALLOW\n"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+        "scripts/verify_hps_sdk_route.py",
+        "examples/hps_sdk_route_expired.json"
+      ],
+      "exit_code": 0,
+      "output_tail": "decision: DENY\n"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+        "scripts/verify_hps_sdk_route.py",
+        "examples/hps_sdk_route_fail_closed.json"
+      ],
+      "exit_code": 0,
+      "output_tail": "decision: FAIL_CLOSED\n"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+        "scripts/verify_sdk_transition_candidate.py",
+        "examples/sdk_transition_candidate.json"
+      ],
+      "exit_code": 0,
+      "output_tail": "SDK TRANSITION CANDIDATE: PASS\n"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+        "scripts/verify_llm_route_comparison.py"
+      ],
+      "exit_code": 0,
+      "output_tail": "LLM route comparison verification passed.\npackage_sha256=91c71f41bfbaeb6f5bb7b97394f93ea29ffe5adec5658e48ef36df53823b3451\nreceipt_sha256=dd7c1138fbe9d2bf51424ca679b902456bc803d96b9dc101aac08950ac864927\n"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+        "scripts/verify_comparison_orchestrator.py"
+      ],
+      "exit_code": 0,
+      "output_tail": "Paired comparison orchestrator: PASS\nOrchestration receipt: b7e7acf017b6995aecbbff97fa085c17564490e37abd98319db077a3ae11e862\n"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.11.15/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/",
+        "-q",
+        "--maxfail=1"
+      ],
       "exit_code": 1,
-      "output_tail": "jsonschema is required: python -m pip install jsonschema\n"
+      "output_tail": " no attribute 'raises'\nFAIL /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repository_source_activation.py::test_reader_rejects_unbound_source\nTraceback (most recent call last):\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 78, in main\n    call_test(function)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 50, in call_test\n    function(**kwargs)\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repository_source_activation.py\", line 66, in test_reader_rejects_unbound_source\n    with pytest.raises(RepositorySourceReaderError, match=\"not allowlisted\"):\n         ^^^^^^^^^^^^^\nAttributeError: module 'pytest' has no attribute 'raises'\nTraceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 93, in <module>\n    raise SystemExit(main(sys.argv[1:]))\n                     ^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 73, in main\n    module = load_module(path)\n             ^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/pytest/__main__.py\", line 34, in load_module\n    spec.loader.exec_module(module)\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_spe_allow_consumer.py\", line 66, in <module>\n    @pytest.mark.parametrize(\"decision\", [\"DENY\", \"FAIL_CLOSED\"])\n     ^^^^^^^^^^^\nAttributeError: module 'pytest' has no attribute 'mark'\n\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_receipts.py::test_invalid_receipt_with_broken_admissibility_reference\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_receipts.py::test_invalid_receipt_with_malformed_admissibility_reference\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_receipts.py::test_valid_receipt\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_receipts.py::test_valid_receipt_with_admissibility_reference\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repo_standards_gate_record.py::test_builds_deterministic_gate_record\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repo_standards_gate_record.py::test_public_exports_are_available\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repository_source_activation.py::test_activation_evidence_preserves_blockers\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repository_source_activation.py::test_activation_evidence_ready_but_does_not_activate\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_repository_source_activation.py::test_allowlisted_reader_collects_verified_source\nPASS: Chain Integrity\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_safety_stack_quick.py::test_chain_integrity\nPASS: Layer 1 Mathematical\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_safety_stack_quick.py::test_layer1_mathematical\nPASS: Layer 3 Circuit Breaker\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_safety_stack_quick.py::test_layer3_circuit_breaker\nPASS: Layer 4 Consensus Halt\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_safety_stack_quick.py::test_layer4_consensus\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_sdk_core_node_fanout_goal.py::test_sdk_core_node_fanout_goal_is_valid\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_sdk_core_node_fanout_request.py::test_sdk_core_node_fanout_request_is_valid\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_sdk_core_node_result.py::test_sdk_core_node_result\nPASS /home/runner/work/StegVerse-SDK/StegVerse-SDK/tests/test_sdk_core_node_unified_comparison_receipt.py::test_sdk_core_node_unified_comparison_receipt_is_valid\n"
     }
   ],
   "manual_user_action_required": false
