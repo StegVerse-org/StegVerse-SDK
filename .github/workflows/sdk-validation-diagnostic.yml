@@ -5,9 +5,10 @@ on:
     branches:
       - main
     paths-ignore:
-      - evidence/sdk-validation-diagnostic.json
+      - 'evidence/sdk-validation-diagnostic.json'
+      - 'evidence/system-boundary-*.json'
   schedule:
-    - cron: '23 * * * *'
+    - cron: '7 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -24,6 +25,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -32,8 +34,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
           python -c "import jsonschema, pytest, requests, yaml, dotenv"
-      - name: Capture first exact failure
-        run: python scripts/capture_sdk_validation_diagnostic.py
+      - name: Reset to latest main and capture first exact failure
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+          python scripts/capture_sdk_validation_diagnostic.py
       - name: Commit durable diagnostic
         run: |
           git config user.name "github-actions[bot]"
@@ -44,5 +49,17 @@ jobs:
             exit 0
           fi
           git commit -m "chore: retain SDK validation diagnostic [diagnostic]"
-          git pull --rebase
-          git push
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Diagnostic push attempt ${attempt} failed; refreshing report."
+            git rebase --abort || true
+            git fetch origin main
+            git reset --hard origin/main
+            python scripts/capture_sdk_validation_diagnostic.py
+            git add evidence/sdk-validation-diagnostic.json
+            git commit -m "chore: retain SDK validation diagnostic [diagnostic]" || true
+          done
+          echo "Unable to persist SDK validation diagnostic after three attempts."
+          exit 1
