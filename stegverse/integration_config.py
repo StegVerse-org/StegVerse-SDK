@@ -66,6 +66,7 @@ def _https_endpoint(value: str, *, allow_localhost_http: bool = False) -> str:
 
 
 def _source_binding(raw: Mapping[str, Any]) -> dict[str, Any]:
+    credential_ref = _credential_ref(raw)
     allowed = {
         "source_id",
         "repository",
@@ -95,7 +96,7 @@ def _source_binding(raw: Mapping[str, Any]) -> dict[str, Any]:
             else None
         ),
         "read_receipt_required": raw.get("read_receipt_required", True) is True,
-        "credential_ref": _credential_ref(raw),
+        "credential_ref": credential_ref,
     }
 
 
@@ -106,6 +107,7 @@ def _service_binding(
     required_path: str,
     allow_localhost_http: bool,
 ) -> dict[str, Any]:
+    credential_ref = _credential_ref(raw)
     allowed = {
         "enabled",
         "base_url",
@@ -140,7 +142,7 @@ def _service_binding(
     return {
         "enabled": True,
         "base_url": base_url,
-        "credential_ref": _credential_ref(raw),
+        "credential_ref": credential_ref,
         "expected_service": _required_text(raw, "expected_service"),
         "expected_schema_version": _required_text(raw, "expected_schema_version"),
         "session_identity_required": raw.get("session_identity_required", True) is True,
