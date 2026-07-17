@@ -37,6 +37,21 @@ def git_value(*args: str) -> str | None:
     return completed.stdout.strip() or None
 
 
+def failure_excerpt(output: str) -> str:
+    """Retain the first failing test and traceback even after many passing lines."""
+    marker = "FAIL "
+    start = output.find(marker)
+    if start >= 0:
+        summary_markers = ["\n1 failed", "\n2 failed", "\n3 failed", "\n4 failed"]
+        end = len(output)
+        for summary in summary_markers:
+            position = output.find(summary, start)
+            if position >= 0:
+                end = min(end, position + len(summary) + 80)
+        return output[start:end][:12000]
+    return output[-12000:]
+
+
 def main() -> int:
     dependency_state = {
         module: importlib.util.find_spec(module) is not None for module in REQUIRED_MODULES
@@ -54,7 +69,7 @@ def main() -> int:
         first_failure = {
             "command": [sys.executable, "-m", "pip", "install", "-e", ".[dev]"],
             "exit_code": 1,
-            "output_tail": "Missing importable modules after dependency installation: "
+            "output_excerpt": "Missing importable modules after dependency installation: "
             + ", ".join(missing_dependencies),
         }
     else:
@@ -70,7 +85,11 @@ def main() -> int:
             record = {
                 "command": command,
                 "exit_code": completed.returncode,
-                "output_tail": completed.stdout[-4000:],
+                "output_excerpt": (
+                    failure_excerpt(completed.stdout)
+                    if completed.returncode != 0
+                    else completed.stdout[-4000:]
+                ),
             }
             records.append(record)
             if completed.returncode != 0:
@@ -80,7 +99,7 @@ def main() -> int:
 
     source_commit = git_value("rev-parse", "HEAD")
     payload = {
-        "schema_version": "1.2.0",
+        "schema_version": "1.3.0",
         "record_type": "sdk_validation_diagnostic",
         "generated_at": git_value("show", "-s", "--format=%cI", "HEAD"),
         "source_commit_sha": source_commit,
