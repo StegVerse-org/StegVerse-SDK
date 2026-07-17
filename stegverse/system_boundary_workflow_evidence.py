@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 VALID_RESULTS = {"PENDING", "PASS", "FAIL"}
+CANONICAL_WORKFLOW = ".github/workflows/validate.yml"
 
 
 @dataclass(frozen=True)
@@ -57,7 +58,7 @@ def validate_workflow_evidence(record: Mapping[str, Any]) -> WorkflowEvidenceRes
         errors.append("unsupported schema_version")
     if record["repository"] != "StegVerse-org/StegVerse-SDK":
         errors.append("repository mismatch")
-    if record["workflow"] != ".github/workflows/sdk-demo-test.yml":
+    if record["workflow"] != CANONICAL_WORKFLOW:
         errors.append("workflow mismatch")
     if record["result"] not in VALID_RESULTS:
         errors.append("result must be PENDING, PASS, or FAIL")
