@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/coordinate_navigation_consumer.schema.json",
+  "title": "SDK Coordinate Navigation Consumer Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "navigation_id", "actor", "source_coordinate", "destination_coordinate", "context_refs", "authority_transfer", "standing_transfer", "delegation_transfer", "data_transfer", "receipt_required", "commit_time_revalidation_required", "return_path", "registry_version", "coordinate_version", "contract_ref", "coordinate_content_sha256", "sdk_boundary", "consumer_sha256"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "navigation_id": {"type": "string", "minLength": 8},
+    "actor": {"type": "string", "minLength": 1},
+    "source_coordinate": {"type": "string", "pattern": "^ecosystem://"},
+    "destination_coordinate": {"type": "string", "pattern": "^ecosystem://"},
+    "context_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "authority_transfer": {"const": "NONE"},
+    "standing_transfer": {"const": "NONE"},
+    "delegation_transfer": {"const": "NONE"},
+    "data_transfer": {"const": "DECLARED_REFS_ONLY"},
+    "receipt_required": {"const": true},
+    "commit_time_revalidation_required": {"const": true},
+    "return_path": {"type": "string", "minLength": 1},
+    "registry_version": {"type": "string", "minLength": 1},
+    "coordinate_version": {"type": "string", "minLength": 1},
+    "contract_ref": {"type": "string", "minLength": 1},
+    "coordinate_content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sdk_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sdk_consumption_is_navigation_authority", "sdk_consumption_transfers_authority", "sdk_consumption_is_commit_time_validation", "registry_is_execution_authority"],
+      "properties": {
+        "sdk_consumption_is_navigation_authority": {"const": false},
+        "sdk_consumption_transfers_authority": {"const": false},
+        "sdk_consumption_is_commit_time_validation": {"const": false},
+        "registry_is_execution_authority": {"const": false}
+      }
+    },
+    "consumer_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
