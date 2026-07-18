@@ -2,26 +2,40 @@
 
 ## Current source of truth
 
-This file is the handoff source of truth for `StegVerse-org/StegVerse-SDK` until superseded.
+This file is the authoritative continuation record for `StegVerse-org/StegVerse-SDK` until superseded.
 
-## Active goal
-
-Goal 4: micro-node governed return-path SDK validation.
-
-Goal 3 established the governed LLM end-to-end demonstrator SDK intake path. Goal 4 validates that the SDK can inspect the LLM-adapter micro-node return path without becoming the runtime, granting execution authority, or persisting a master record.
-
-## Goal 4 proof path
+## Active goals
 
 ```text
-LLM-adapter micro-node request fixture
--> SDK micro-node return-path validator
--> terminal governed return payload
--> return-path preservation check
--> no execution authority check
--> fixture verification script
+Goal 4: governed micro-node return-path validation.
+Goal 5: governed-vs-recursive comparison orchestration.
+Goal 6: cross-entry roles, transition usage, coordinate navigation consumption,
+and aggregate session receipt generation.
+Manual user action required: false
 ```
 
-## Goal 4 installed files
+## Authority boundary
+
+The SDK prepares, transports, validates, aggregates, and hands off governed objects. It is not provider execution, runtime authority, navigation authority, admissibility, standing, commit-time validation, or Master-Records custody.
+
+Required invariants:
+
+```text
+sdk_validation_is_execution == false
+sdk_intake_is_authority == false
+sdk_navigation_consumption_is_authority == false
+sdk_navigation_consumption_transfers_authority == false
+sdk_navigation_consumption_is_commit_time_validation == false
+usage_event_is_authority == false
+usage_event_is_admissibility == false
+session_receipt_is_master_record_custody == false
+aggregation_is_universal_cost_claim == false
+returned_to_origin == true
+```
+
+## Completed Goal 4 return-path surface
+
+Installed:
 
 ```text
 docs/MICRO_NODE_RETURN_PATH_SDK.md
@@ -33,114 +47,29 @@ stegverse/micro_node_return_path.py
 tests/test_micro_node_return_path.py
 ```
 
-## Required invariants
+The SDK validates terminal governed return payloads, origin return, receipt references, and no-authority boundaries without executing the micro-node or persisting a master record.
 
-```text
-sdk_validation_is_execution == false
-sdk_intake_is_authority == false
-manifest_binding_is_persistence == false
-receipt_handoff_is_master_record_installation == false
-sdk_micro_node_validation_is_runtime_execution == false
-sdk_micro_node_validation_grants_authority == false
-sdk_micro_node_validation_persists_master_record == false
-adapter_provider_output_is_authority == false
-commitment_request_is_authority == false
-returned_to_origin == true
-```
+## Completed Goal 5 comparison surface
 
-## Goal 4 verification
-
-```bash
-python scripts/verify_goal4.py
-```
-
-The aggregate verifier includes the governed LLM packet, manifest, receipt, and micro-node return-path checks.
-
-## Workflow consolidation
-
-GitHub Actions validation is consolidated into one workflow:
-
-```text
-.github/workflows/sdk-demo-test.yml
-```
-
-The former standalone formal-route and dynamic-admissibility workflows were removed after their commands were absorbed into the consolidated workflow. The remaining workflow owns the Python test matrix, complete pytest suite, formal-route validation, dynamic-admissibility examples, comparison verification, package build, release, and PyPI publication.
-
-## Parallel Goal 5: governed-vs-recursive comparison test bed
-
-This Goal 5 build proceeds without displacing Goal 4. It gives Ecosystem Chat a governed SDK boundary for sending one normalized request through a StegVerse governed route and an external recursive route, validating both returned traces, and calculating transparent deltas.
-
-### Installed Goal 5 files
+Installed:
 
 ```text
 stegverse/llm_route_comparison.py
 stegverse/comparison_transport.py
 stegverse/comparison_orchestrator.py
 schemas/llm_route_comparison.schema.json
-docs/GOVERNED_VS_RECURSIVE_COMPARISON.md
 scripts/verify_llm_route_comparison.py
-scripts/run_llm_route_comparison.py
 scripts/verify_comparison_orchestrator.py
 tests/test_llm_route_comparison.py
 tests/test_comparison_transport.py
 tests/test_comparison_orchestrator.py
-examples/llm_route_comparison/request.json
-stegverse/__init__.py public comparison and orchestration exports
 ```
 
-### Installed Goal 5 capabilities
+One immutable normalized request can be submitted to governed and recursive routes. Returned route identity, task identity, telemetry evidence classes, measured-only deltas, and deterministic comparison receipts are validated fail closed.
 
-```text
-transport-neutral comparison request
-shared task identity and output requirement binding
-common route telemetry contract
-MEASURED / CONFIGURED / DERIVED / UNAVAILABLE evidence classes
-returned route-result validation
-missing-metric rejection
-task-identity preservation
-measured-only delta calculation
-deterministic comparison receipt
-HTTP transport envelope
-JSON import/export
-paired route orchestration
-parallel or sequential route submission
-exact route-target matching
-same immutable request envelope sent to both routes
-fail-closed route identity and comparison identity checks
-single canonical paired-result receipt
-public SDK imports
-standalone verifiers
-```
+## Completed Goal 6 role and transition usage surface
 
-### Goal 5 proof path
-
-```text
-one normalized request
--> SDK comparison package
--> paired orchestrator
--> core-node-runtime-demo governed route
--> LLM-adapter external recursive route
--> validated route results
--> DeltaCost / DeltaLatency / DeltaCalls / DeltaTokens / DeltaReceipts
--> reconstructable comparison receipt
--> Ecosystem Chat visualization
-```
-
-### Goal 5 verification
-
-```bash
-python scripts/verify_llm_route_comparison.py
-python scripts/verify_comparison_orchestrator.py
-python -m pytest tests/test_llm_route_comparison.py tests/test_comparison_transport.py tests/test_comparison_orchestrator.py -v
-```
-
-The consolidated workflow runs the complete test suite and both comparison verifiers. No additional workflow was created.
-
-## Parallel Goal 6: cross-entry roles and transition usage ledger
-
-Goal 6 defines how SDK, LLM Adapter, Ecosystem Chat, and future entry points describe their roles while preserving one session and usage lineage.
-
-### Installed Goal 6 files
+Installed:
 
 ```text
 schemas/entry_point_role.schema.json
@@ -151,122 +80,141 @@ tests/test_entry_point_roles.py
 tests/test_transition_usage.py
 docs/ENTRY_POINT_ROLES.md
 docs/TRANSITION_USAGE_LEDGER.md
-stegverse/__init__.py public role and usage exports
 ```
 
-### Installed Goal 6 capabilities
+The SDK preserves session, transition, origin-entry-point, measurement-owner, evidence-class, and receipt-reference lineage. Duplicate measurement-owner pairs are deduplicated, mixed sessions fail closed, and unavailable evidence is never silently converted into zero.
+
+## Completed canonical coordinate navigation consumption
+
+Installed:
 
 ```text
-canonical SDK / LLM Adapter / Ecosystem Chat role registry
-primary and related role declarations
-accepted-input and produced-output declarations
-interaction-type declarations
-entry-point authority-boundary validation
-stable measurement_id plus metric_owner deduplication
-cross-entry session aggregation
-mixed-session rejection
-MEASURED / CONFIGURED / DERIVED / UNAVAILABLE preservation
-transition and origin-entry-point lineage
-receipt reference preservation
-deterministic usage-event and aggregation hashes
-transition usage prepend contract
-public SDK imports
+schemas/coordinate_navigation_consumer.schema.json
+stegverse/coordinate_navigation.py
+tests/test_coordinate_navigation.py
+scripts/verify_coordinate_usage_integration.py
 ```
 
-### Goal 6 proof path
+The consumer accepts the canonical navigation envelope and coordinate registry artifacts owned by `StegVerse-002/micro-node-runtime`.
+
+It verifies:
 
 ```text
-entry point interaction
--> canonical role declaration
--> TRANSITION_USAGE_RECORDED event
--> measurement ownership validation
--> session and transition lineage preservation
--> duplicate measurement rejection
--> cross-entry session aggregation
--> transition prepend metadata
--> shared Ecosystem Usage Ledger
+source coordinate resolves exactly once
+destination is one declared registry edge
+context references are unique and non-empty
+authority_transfer = NONE
+standing_transfer = NONE
+delegation_transfer = NONE
+data_transfer = DECLARED_REFS_ONLY
+receipt_required = true
+commit_time_revalidation_required = true
+registry version, coordinate version, contract reference, and content hash are present
 ```
 
-### Required Goal 6 invariants
+The resulting SDK consumer record preserves the registry and coordinate version bindings, the canonical coordinate content hash, return path, and a deterministic `consumer_sha256`.
+
+The SDK does not claim that consuming the envelope authorizes navigation or performs commit-time revalidation.
+
+## Completed aggregate session usage receipt
+
+Installed:
 
 ```text
-entry_point_acceptance_is_authority == false
-translation_is_admissibility == false
-display_is_execution == false
-usage_event_is_authority == false
-usage_event_is_admissibility == false
-session_identity_preserved == true
-transition_lineage_preserved == true
-measurement_owner_is_unique == true
+schemas/session_usage_receipt.schema.json
+stegverse/session_usage_receipt.py
+tests/test_session_usage_receipt.py
+scripts/verify_coordinate_usage_integration.py
 ```
 
-### Goal 6 verification
+The receipt builder:
+
+```text
+re-verifies every source usage-event hash
+rejects tampered events
+runs canonical session aggregation
+preserves measurement counts, entry points, transition IDs, totals, and exclusions
+preserves measurement_id + metric_owner deduplication semantics
+records unique source event hashes
+emits deterministic receipt_sha256
+sets custody_posture = HANDOFF_READY_NOT_CUSTODIED
+```
+
+Authority boundary:
+
+```text
+receipt_is_execution_authority = false
+receipt_is_admissibility = false
+receipt_is_master_record_custody = false
+aggregation_is_universal_cost_claim = false
+```
+
+## Automated verification
+
+The consolidated workflow remains:
+
+```text
+.github/workflows/sdk-demo-test.yml
+```
+
+Its complete `pytest tests/` execution automatically discovers:
+
+```text
+tests/test_coordinate_navigation.py
+tests/test_session_usage_receipt.py
+```
+
+Existing comparison, role, transition usage, return-path, package-build, editable-install, and wheel-install checks remain consolidated in the same workflow. No additional workflow, manual dispatch, manual event aggregation, manual navigation inspection, manual hash calculation, or manual receipt construction is required.
+
+Standalone verification:
 
 ```bash
-python -m pytest tests/test_entry_point_roles.py tests/test_transition_usage.py -v
+python scripts/verify_goal4.py
+python scripts/verify_llm_route_comparison.py
+python scripts/verify_comparison_orchestrator.py
+python scripts/verify_coordinate_usage_integration.py
+pytest tests/ -v
 ```
 
-The existing consolidated workflow discovers these tests and now verifies the public role and usage imports in both editable and built-wheel installations. No new workflow was created.
+Canonical GitHub Actions execution after these changes has not been observed here; no CI-pass claim is made.
 
-## Cross-repository state
+## Current completion state
 
 ```text
-StegVerse-org/core-node-runtime-demo
-  -> governed comparison request consumer installed
-  -> governed route-result producer installed
-  -> runtime usage-event emitter pending
-  -> fixture-bound telemetry only; live governed inference pending
-
-StegVerse-org/LLM-adapter
-  -> external recursive route-result producer installed
-  -> provider-neutral telemetry contract installed
-  -> adapter role documentation installed
-  -> machine-readable role declaration and provider usage-event emitter pending
-
-StegVerse-org/StegVerse-SDK
-  -> comparison request, transport, paired orchestration, validation, deltas, and receipt installed
-  -> entry-point role registry and shared usage-event contract installed
-  -> session aggregation and deduplication installed
-
-StegVerse-Labs/Site
-  -> Ecosystem Chat role page, transition prepend, session ledger, and comparison visualization pending
-
-master-records
-  -> comparison and usage-event custody, deduplication index, and reconstruction pointers pending
+Goal 4 governed return-path validation: COMPLETE
+Goal 5 comparison package, transport, orchestration, deltas, and receipts: COMPLETE
+Goal 6 entry-point role registry: COMPLETE
+Goal 6 transition usage event contract: COMPLETE
+Goal 6 cross-entry session aggregation and deduplication: COMPLETE
+canonical navigation-envelope and registry consumption: COMPLETE
+aggregate session usage receipt: COMPLETE
+source event hash re-verification: COMPLETE
+non-custodial handoff posture: COMPLETE
+repository-local SDK implementation for current adjacent goals: COMPLETE
+canonical GitHub Actions observation: PENDING MACHINE EVIDENCE
 ```
 
-## Claim boundary
-
-SDK package preparation, transport, orchestration, role description, usage recording, aggregation, and returned-result validation are not provider execution, runtime authority, admissibility, standing, or proof of universal cost superiority. Fixture, configured, and modeled values must remain explicitly classified and cannot be presented as measured results.
-
-## Remaining files or modules
+## Remaining adjacent goals owned elsewhere
 
 ```text
-StegVerse-org/core-node-runtime-demo
-  -> live governed trace capture
-  -> route endpoint
-  -> runtime/node/closure usage-event emitter
-
 StegVerse-org/LLM-adapter
-  -> live recursive provider instrumentation
-  -> route endpoint
+  -> provider-owned usage events with bounded reasoning provenance
   -> machine-readable adapter role declaration
-  -> provider usage-event emitter
 
 StegVerse-Labs/Site
-  -> request duplication controls
-  -> entry-point role and capability page
-  -> transition usage prepend component
-  -> cross-entry session ledger
-  -> governed/recursive output panels and delta visualization
+  -> render coordinate navigation, resident responses, entry-point roles,
+     transition usage, cross-entry sessions, and benchmark comparisons
 
-master-records
-  -> usage-event custody
-  -> measurement deduplication index
-  -> session and transition lineage reconstruction
-  -> receipt, hash, and telemetry pointer retention
+master-records/orchestration
+  -> accept custody handoffs
+  -> independently re-verify hashes
+  -> deduplicate measurements and packages
+  -> record retention policies and reconstruction pointers
+
+StegVerse-org/core-node-runtime-demo
+  -> live governed trace capture remains external evidence, not SDK implementation
 ```
 
 ## Archive posture
 
-This handoff preserves Goal 4 and the complete Goal 5 and Goal 6 SDK state. Live CI execution, live provider/runtime traces, Site rendering, and Master-Records custody remain the external activation gates. Earlier conversation context is not required to continue.
+The SDK repository-local navigation consumption and session aggregation receipt goals are complete, durable, and automated. No earlier conversation context is required to continue downstream. The broader ecosystem session is not yet ready for final archival because LLM Adapter, Site, and Master-Records implementation goals remain actionable.
