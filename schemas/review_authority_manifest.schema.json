@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/review_authority_manifest.schema.json",
+  "title": "Review Authority Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "artifact_id", "artifact_version", "visibility_state",
+    "process_state", "claim_authority", "publication_authority",
+    "attribution_authority", "public_association_authority", "endorsement",
+    "compatibility", "interoperability", "external_references"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "artifact_id": {"type": "string", "minLength": 1},
+    "artifact_version": {"type": "string", "minLength": 1},
+    "visibility_state": {"enum": ["PRIVATE", "RESTRICTED", "PUBLICLY_VISIBLE"]},
+    "process_state": {"enum": ["DRAFT", "REVIEW_ONLY", "ADOPTED", "WITHDRAWN", "SUPERSEDED"]},
+    "claim_authority": {"type": "boolean"},
+    "publication_authority": {"type": "boolean"},
+    "attribution_authority": {"type": "boolean"},
+    "public_association_authority": {"type": "boolean"},
+    "endorsement": {"enum": ["NONE", "ASSERTED", "AUTHORIZED"]},
+    "compatibility": {"enum": ["NONE", "ASSERTED", "AUTHORIZED"]},
+    "interoperability": {"enum": ["NONE", "ASSERTED", "AUTHORIZED"]},
+    "authority_source": {"type": "string", "minLength": 1},
+    "external_references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "association_status"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "association_status": {"enum": ["REFERENCE_ONLY", "REVIEW_REQUESTED", "AUTHORIZED_ASSOCIATION"]}
+        }
+      }
+    },
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"process_state": {"const": "REVIEW_ONLY"}}, "required": ["process_state"]},
+      "then": {
+        "properties": {
+          "claim_authority": {"const": false},
+          "publication_authority": {"const": false},
+          "attribution_authority": {"const": false},
+          "public_association_authority": {"const": false},
+          "endorsement": {"const": "NONE"},
+          "compatibility": {"const": "NONE"},
+          "interoperability": {"const": "NONE"}
+        }
+      }
+    }
+  ]
+}
