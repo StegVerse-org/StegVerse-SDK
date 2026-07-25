@@ -30,8 +30,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install focused validation dependencies
-        run: python -m pip install pytest jsonschema
+      - name: Install repository validation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+          python -m pip install jsonschema
       - name: Compile implementation
         run: python -m compileall -q stegverse/review_authority.py
       - name: Run Goal 7 repository tests
