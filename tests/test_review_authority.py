@@ -68,6 +68,11 @@ def test_acknowledgement_is_not_endorsement_or_attribution():
     assert len(receipt["receipt_sha256"]) == 64
 
 
+def test_acknowledgement_rejects_non_string_reviewer_identity():
+    with pytest.raises(ReviewAuthorityError, match="reviewer_id"):
+        build_acknowledgement_receipt(manifest(), reviewer_id=None)
+
+
 def test_transition_requires_declared_authorizer_authority():
     request = {
         "transition_id": "transition-001",
@@ -86,6 +91,23 @@ def test_transition_requires_declared_authorizer_authority():
     assert result["manifest"]["publication_authority"] is True
     assert result["receipt"]["visibility_was_authority_source"] is False
     assert result["receipt"]["decision"] == "ALLOW"
+
+
+def test_transition_rejects_non_string_authority_reference():
+    request = {
+        "transition_id": "transition-identity-type-check",
+        "target_process_state": "ADOPTED",
+        "authorizer_id": "owner-001",
+        "authorizer_authority_ref": None,
+        "requested_authorities": {
+            "claim_authority": False,
+            "publication_authority": False,
+            "attribution_authority": False,
+            "public_association_authority": False,
+        },
+    }
+    with pytest.raises(ReviewAuthorityError, match="authorizer_authority_ref"):
+        authorize_transition(manifest(), request)
 
 
 def test_transition_fails_without_complete_authority_dimensions():
