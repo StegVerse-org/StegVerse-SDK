@@ -11,7 +11,7 @@ Goal 4: governed micro-node return-path validation — COMPLETE
 Goal 5: governed-vs-recursive comparison orchestration — COMPLETE
 Goal 6: cross-entry roles, transition usage, coordinate navigation consumption,
 and aggregate session receipt generation — COMPLETE
-Goal 7: visibility/authority separation and review-state governance — IMPLEMENTED AND HEADLESS-VALIDATED
+Goal 7: visibility/authority separation and review-state governance — COMPLETE AND CANONICALLY VALIDATED
 Manual user action required: false
 ```
 
@@ -96,6 +96,8 @@ schemas/review_authority_manifest.schema.json
 stegverse/review_authority.py
 tests/test_review_authority.py
 docs/REVIEW_AUTHORITY_GOVERNANCE.md
+.github/workflows/goal7-review-authority-validation.yml
+validation/goal7_completion_request.json
 ```
 
 Implemented behavior:
@@ -115,23 +117,9 @@ manifest and receipt hashes are deterministic and tamper checked
 
 The current boundary document is version `0.3 (Publicly Visible Non-Authoritative Review Draft)`. It no longer uses `PRIVATE REVIEW DRAFT` to describe a publicly accessible artifact.
 
-## Headless validation record
+## Validation record
 
-A non-interactive command-line validation was executed under Python 3.13.5 against the committed Goal 7 implementation and test surface.
-
-Initial execution:
-
-```text
-python -m compileall -q stegverse: PASS
-pytest tests/test_review_authority.py -q: 8 passed
-adversarial deterministic-hash probes: PASS
-blank reviewer rejection: PASS
-None authority-reference rejection: FAIL
-```
-
-The failed probe demonstrated that `str(None)` was accepted as a nominal authority reference. The implementation was hardened to require typed, non-empty strings for artifact identity fields, reviewer identity, transition identity, authorizer identity, and authority references. Regression tests were added.
-
-Post-hardening execution:
+A non-interactive local command validation under Python 3.13.5 first exposed that `None` could be stringified into a nominal authority reference. The implementation was hardened to require typed, non-empty identity and authority-reference values. The corrected local result was:
 
 ```text
 python -m compileall -q stegverse: PASS
@@ -143,17 +131,33 @@ None reviewer rejection: PASS
 None authority-reference rejection: PASS
 ```
 
-This validates the Goal 7 module and its repository tests through a headless local command interface. The complete repository test suite was not executed in that environment because outbound DNS prevented repository cloning. GitHub reported no CI status contexts for commit `760c879eb55d5f8a4297285321764dd3d6bf89b3`; therefore no canonical GitHub Actions pass claim is made.
+Canonical GitHub Actions validation was then executed through `Goal 7 Review Authority Validation`, run `30161458313`, run number `4`.
+
+```text
+Python 3.9 Goal 7 compile, tests, schema, and deterministic receipts: PASS
+Python 3.11 Goal 7 compile, tests, schema, and deterministic receipts: PASS
+Python 3.12 Goal 7 compile, tests, schema, and deterministic receipts: PASS
+Workflow conclusion: SUCCESS
+Architecture Guard: SUCCESS
+```
+
+This supplies machine evidence for the Goal 7 completion claim. Broader repository workflows still report failures outside the Goal 7 completion surface; no full-repository green-build claim is made.
 
 ## Automated verification
 
-The consolidated workflow remains:
+Goal 7 canonical workflow:
+
+```text
+.github/workflows/goal7-review-authority-validation.yml
+```
+
+Broader consolidated workflow:
 
 ```text
 .github/workflows/sdk-demo-test.yml
 ```
 
-Its complete `pytest tests/` execution automatically discovers the Goal 4–7 tests. Standalone verification remains available through the existing scripts plus:
+Standalone verification:
 
 ```bash
 pytest tests/test_review_authority.py -v
@@ -195,14 +199,15 @@ admissibility-wiki and stegguardian-wiki
 Goal 4 governed return-path validation: COMPLETE
 Goal 5 comparison package and orchestration: COMPLETE
 Goal 6 role, usage, navigation, and aggregation: COMPLETE
-Goal 7 executable visibility/authority governance: IMPLEMENTED
-Goal 7 focused repository tests: HEADLESS PASS, 10/10
+Goal 7 executable visibility/authority governance: COMPLETE
+Goal 7 focused repository tests: LOCAL PASS, 10/10
 Goal 7 adversarial probes: PASS AFTER HARDENING
+Goal 7 canonical matrix CI: PASS ON PYTHON 3.9, 3.11, AND 3.12
+Goal 7 canonical completion evidence: COMPLETE
 repository-local SDK implementation for current goals: COMPLETE
-complete repository suite: NOT OBSERVED IN HEADLESS ENVIRONMENT
-canonical GitHub Actions observation: PENDING MACHINE EVIDENCE
+broader repository suite: FAILURES REMAIN OUTSIDE GOAL 7 SCOPE
 ```
 
 ## Archive posture
 
-The repository-local implementation, focused headless validation, tests, documentation, and continuation record are durable. No earlier conversation context is required to continue full-suite validation or downstream integration. The complete thread is ready for archiving.
+The repository-local implementation, local headless evidence, canonical matrix CI evidence, tests, documentation, validation receipt, and continuation record are durable. No earlier conversation context is required to continue downstream integration or broader repository remediation. The complete thread is ready for archiving.

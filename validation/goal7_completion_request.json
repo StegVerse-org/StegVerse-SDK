@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "validation_id": "goal7-headless-and-ci-completion-2026-07-25",
+  "target": "Goal 7 visibility/authority governance",
+  "validated_checks": [
+    "python-3.9-goal7-tests",
+    "python-3.11-goal7-tests",
+    "python-3.12-goal7-tests",
+    "implementation-compile",
+    "json-schema-meta-validation",
+    "deterministic-manifest-hash",
+    "deterministic-receipt-hash",
+    "acknowledgement-non-endorsement-boundary"
+  ],
+  "headless_validation": {
+    "compileall": "PASS",
+    "focused_tests": "10 PASSED",
+    "adversarial_identity_checks": "PASS"
+  },
+  "canonical_ci": {
+    "workflow": "Goal 7 Review Authority Validation",
+    "run_id": 30161458313,
+    "run_number": 4,
+    "conclusion": "SUCCESS",
+    "python_versions": ["3.9", "3.11", "3.12"]
+  },
+  "broader_repository_ci": {
+    "status": "FAILURE_OUTSIDE_GOAL7_COMPLETION_SCOPE",
+    "completion_claim": false
+  },
+  "claim_posture": "GOAL7_CANONICALLY_VALIDATED",
+  "manual_user_action_required": false
+}
