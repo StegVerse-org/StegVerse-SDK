@@ -11,7 +11,7 @@ Goal 4: governed micro-node return-path validation — COMPLETE
 Goal 5: governed-vs-recursive comparison orchestration — COMPLETE
 Goal 6: cross-entry roles, transition usage, coordinate navigation consumption,
 and aggregate session receipt generation — COMPLETE
-Goal 7: visibility/authority separation and review-state governance — IMPLEMENTED
+Goal 7: visibility/authority separation and review-state governance — IMPLEMENTED AND HEADLESS-VALIDATED
 Manual user action required: false
 ```
 
@@ -108,12 +108,42 @@ REVIEW_ONLY requires endorsement, compatibility, and interoperability NONE
 visibility cannot be named as authority_source
 external association requires explicit public_association_authority
 acknowledgement receipts grant no endorsement, attribution, or association
-review-to-ADOPTED transition requires authorizer identity and authority reference
+review-to-ADOPTED transition requires typed non-empty authorizer identity and authority reference
 all authority dimensions must be declared during transition
 manifest and receipt hashes are deterministic and tamper checked
 ```
 
 The current boundary document is version `0.3 (Publicly Visible Non-Authoritative Review Draft)`. It no longer uses `PRIVATE REVIEW DRAFT` to describe a publicly accessible artifact.
+
+## Headless validation record
+
+A non-interactive command-line validation was executed under Python 3.13.5 against the committed Goal 7 implementation and test surface.
+
+Initial execution:
+
+```text
+python -m compileall -q stegverse: PASS
+pytest tests/test_review_authority.py -q: 8 passed
+adversarial deterministic-hash probes: PASS
+blank reviewer rejection: PASS
+None authority-reference rejection: FAIL
+```
+
+The failed probe demonstrated that `str(None)` was accepted as a nominal authority reference. The implementation was hardened to require typed, non-empty strings for artifact identity fields, reviewer identity, transition identity, authorizer identity, and authority references. Regression tests were added.
+
+Post-hardening execution:
+
+```text
+python -m compileall -q stegverse: PASS
+pytest tests/test_review_authority.py -q: 10 passed
+adversarial deterministic manifest hash: PASS
+adversarial deterministic receipt hash: PASS
+blank reviewer rejection: PASS
+None reviewer rejection: PASS
+None authority-reference rejection: PASS
+```
+
+This validates the Goal 7 module and its repository tests through a headless local command interface. The complete repository test suite was not executed in that environment because outbound DNS prevented repository cloning. GitHub reported no CI status contexts for commit `760c879eb55d5f8a4297285321764dd3d6bf89b3`; therefore no canonical GitHub Actions pass claim is made.
 
 ## Automated verification
 
@@ -129,8 +159,6 @@ Its complete `pytest tests/` execution automatically discovers the Goal 4–7 te
 pytest tests/test_review_authority.py -v
 pytest tests/ -v
 ```
-
-Canonical GitHub Actions execution after the Goal 7 changes has not been observed here; no CI-pass claim is made.
 
 ## Remaining adjacent goals owned elsewhere
 
@@ -168,11 +196,13 @@ Goal 4 governed return-path validation: COMPLETE
 Goal 5 comparison package and orchestration: COMPLETE
 Goal 6 role, usage, navigation, and aggregation: COMPLETE
 Goal 7 executable visibility/authority governance: IMPLEMENTED
-Goal 7 repository tests: INSTALLED, MACHINE EXECUTION NOT YET OBSERVED
+Goal 7 focused repository tests: HEADLESS PASS, 10/10
+Goal 7 adversarial probes: PASS AFTER HARDENING
 repository-local SDK implementation for current goals: COMPLETE
+complete repository suite: NOT OBSERVED IN HEADLESS ENVIRONMENT
 canonical GitHub Actions observation: PENDING MACHINE EVIDENCE
 ```
 
 ## Archive posture
 
-The repository-local implementation, tests, documentation, and continuation record are durable. No earlier conversation context is required to continue validation or downstream integration. The complete thread is ready for archiving.
+The repository-local implementation, focused headless validation, tests, documentation, and continuation record are durable. No earlier conversation context is required to continue full-suite validation or downstream integration. The complete thread is ready for archiving.
