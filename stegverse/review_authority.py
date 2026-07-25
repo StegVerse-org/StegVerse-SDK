@@ -22,6 +22,12 @@ def _hash(value: Mapping[str, Any]) -> str:
     return sha256(_canonical(value).encode("utf-8")).hexdigest()
 
 
+def _required_text(value: Any, field: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ReviewAuthorityError(f"{field} is required and must be a non-empty string")
+    return value
+
+
 VISIBILITY_STATES = {"PRIVATE", "RESTRICTED", "PUBLICLY_VISIBLE"}
 PROCESS_STATES = {"DRAFT", "REVIEW_ONLY", "ADOPTED", "WITHDRAWN", "SUPERSEDED"}
 AUTHORITY_FIELDS = (
@@ -50,6 +56,9 @@ def validate_review_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         raise ReviewAuthorityError(f"missing required fields: {', '.join(missing)}")
 
     normalized = dict(manifest)
+    _required_text(normalized["schema_version"], "schema_version")
+    _required_text(normalized["artifact_id"], "artifact_id")
+    _required_text(normalized["artifact_version"], "artifact_version")
     if normalized["visibility_state"] not in VISIBILITY_STATES:
         raise ReviewAuthorityError("invalid visibility_state")
     if normalized["process_state"] not in PROCESS_STATES:
@@ -82,8 +91,7 @@ def validate_review_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     for reference in normalized["external_references"]:
         if not isinstance(reference, Mapping):
             raise ReviewAuthorityError("external reference must be an object")
-        if not reference.get("name"):
-            raise ReviewAuthorityError("external reference requires name")
+        _required_text(reference.get("name"), "external reference name")
         if reference.get("association_status") not in {
             "REFERENCE_ONLY",
             "REVIEW_REQUESTED",
@@ -115,8 +123,7 @@ def build_acknowledgement_receipt(
 ) -> dict[str, Any]:
     """Create a deterministic acknowledgement that grants no authority."""
     validated = validate_review_manifest(manifest)
-    if not reviewer_id.strip():
-        raise ReviewAuthorityError("reviewer_id is required")
+    _required_text(reviewer_id, "reviewer_id")
     if acknowledgement not in {
         "RECEIVED_ONLY",
         "UNDERSTOOD_NOT_ENDORSED",
@@ -160,10 +167,9 @@ def authorize_transition(
         raise ReviewAuthorityError(f"missing transition fields: {', '.join(missing)}")
     if request["target_process_state"] != "ADOPTED":
         raise ReviewAuthorityError("only explicit transition to ADOPTED is supported")
-    if not str(request["authorizer_id"]).strip() or not str(
-        request["authorizer_authority_ref"]
-    ).strip():
-        raise ReviewAuthorityError("authorizer identity and authority reference are required")
+    _required_text(request["transition_id"], "transition_id")
+    _required_text(request["authorizer_id"], "authorizer_id")
+    _required_text(request["authorizer_authority_ref"], "authorizer_authority_ref")
     requested = request["requested_authorities"]
     if not isinstance(requested, Mapping):
         raise ReviewAuthorityError("requested_authorities must be an object")
