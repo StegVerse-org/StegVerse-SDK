@@ -72,6 +72,6 @@ jobs:
           failure = report.get('first_failure')
           if failure:
               print('First failure command:', ' '.join(failure.get('command', [])))
-              print(failure.get('output_tail', ''))
+              print(failure.get('output_excerpt', ''))
           raise SystemExit(0 if report.get('status') == 'PASS' else 1)
           PY
