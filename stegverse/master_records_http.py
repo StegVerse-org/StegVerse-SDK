@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Optional
 from urllib.parse import quote, urlparse
 
 
@@ -17,7 +17,7 @@ class MasterRecordsHTTPError(RuntimeError):
 
 
 TokenResolver = Callable[[str], str]
-HTTPExecutor = Callable[[str, str, Mapping[str, str], bytes | None, float], Mapping[str, Any]]
+HTTPExecutor = Callable[[str, str, Mapping[str, str], Optional[bytes], float], Mapping[str, Any]]
 
 
 def _validate_base_url(value: str, *, allow_localhost_http: bool) -> str:

@@ -12,7 +12,7 @@ import base64
 from dataclasses import dataclass
 from hashlib import sha256
 import json
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Optional
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -32,7 +32,7 @@ def _digest(value: Any) -> str:
     return "sha256:" + sha256(_canonical(value).encode("utf-8")).hexdigest()
 
 
-TokenResolver = Callable[[str | None], str | None]
+TokenResolver = Callable[[Optional[str]], Optional[str]]
 HTTPExecutor = Callable[[Request, float], Mapping[str, Any]]
 
 

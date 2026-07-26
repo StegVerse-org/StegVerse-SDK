@@ -1,0 +1,29 @@
+name: Validate Provider Usage Ingestion
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install SDK
+        run: python -m pip install -e '.[dev]'
+      - name: Compile integration
+        run: python -m compileall -q stegverse/provider_usage_ingest.py tests/test_provider_usage_ingest.py
+      - name: Run provider usage ingestion tests
+        run: python -m pytest -q tests/test_provider_usage_ingest.py

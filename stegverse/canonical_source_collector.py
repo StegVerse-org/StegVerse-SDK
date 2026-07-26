@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from hashlib import sha256
 import json
-from typing import Any, Callable, Iterable, Mapping, Sequence
+from typing import Any, Callable, Iterable, Mapping, Sequence, Union
 
 from .ecosystem_projection import project_records
 from .ecosystem_records import EcosystemRecord
@@ -73,7 +73,7 @@ class CanonicalSourceSpec:
         )
 
 
-SourceReader = Callable[[CanonicalSourceSpec], Mapping[str, Any] | str]
+SourceReader = Callable[[CanonicalSourceSpec], Union[Mapping[str, Any], str]]
 
 
 @dataclass(frozen=True)

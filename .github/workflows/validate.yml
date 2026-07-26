@@ -26,6 +26,13 @@ jobs:
           python -c "import jsonschema, pytest, requests, yaml, dotenv"
       - name: Capture canonical SDK validation result
         run: python scripts/capture_sdk_validation_diagnostic.py
+      - name: Upload canonical diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-validation-diagnostic
+          path: evidence/sdk-validation-diagnostic.json
+          retention-days: 14
       - name: Persist canonical diagnostic
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/github-script@v7
@@ -72,6 +79,6 @@ jobs:
           failure = report.get('first_failure')
           if failure:
               print('First failure command:', ' '.join(failure.get('command', [])))
-              print(failure.get('output_tail', ''))
+              print(failure.get('output_excerpt', ''))
           raise SystemExit(0 if report.get('status') == 'PASS' else 1)
           PY

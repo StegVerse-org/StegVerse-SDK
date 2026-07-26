@@ -38,18 +38,17 @@ def git_value(*args: str) -> str | None:
 
 
 def failure_excerpt(output: str) -> str:
-    """Retain the first failing test and traceback even after many passing lines."""
+    """Retain only the first failing test and traceback."""
     marker = "FAIL "
     start = output.find(marker)
     if start >= 0:
-        summary_markers = ["\n1 failed", "\n2 failed", "\n3 failed", "\n4 failed"]
         end = len(output)
-        for summary in summary_markers:
-            position = output.find(summary, start)
+        for boundary in ("\nPASS ", "\n1 failed", "\n2 failed", "\n3 failed", "\n4 failed"):
+            position = output.find(boundary, start + len(marker))
             if position >= 0:
-                end = min(end, position + len(summary) + 80)
-        return output[start:end][:12000]
-    return output[-12000:]
+                end = min(end, position)
+        return output[start:end][:4000]
+    return output[-4000:]
 
 
 def main() -> int:
@@ -99,7 +98,7 @@ def main() -> int:
 
     source_commit = git_value("rev-parse", "HEAD")
     payload = {
-        "schema_version": "1.3.0",
+        "schema_version": "1.3.1",
         "record_type": "sdk_validation_diagnostic",
         "generated_at": git_value("show", "-s", "--format=%cI", "HEAD"),
         "source_commit_sha": source_commit,

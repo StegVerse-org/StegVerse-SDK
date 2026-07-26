@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from hashlib import sha256
 import json
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Union
 
 from .canonical_source_collector import CanonicalSourceSpec
 
@@ -60,7 +60,7 @@ class RepositorySourceBinding:
         )
 
 
-RepositoryFetcher = Callable[[RepositorySourceBinding], Mapping[str, Any] | str]
+RepositoryFetcher = Callable[[RepositorySourceBinding], Union[Mapping[str, Any], str]]
 
 
 @dataclass(frozen=True)
