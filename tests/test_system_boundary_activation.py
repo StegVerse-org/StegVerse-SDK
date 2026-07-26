@@ -19,7 +19,7 @@ ADAPTER_PENDING = {
 SDK_PENDING = {
     "schema_version": "stegverse.system_boundary.workflow_evidence.v0.1",
     "repository": "StegVerse-org/StegVerse-SDK",
-    "workflow": ".github/workflows/sdk-demo-test.yml",
+    "workflow": ".github/workflows/validate.yml",
     "required_commit": "b73d3b59803ae0443277c03aeb5801a28c34d335",
     "observed_commit": None,
     "run_id": None,
