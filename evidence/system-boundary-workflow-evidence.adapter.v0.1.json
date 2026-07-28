@@ -1,12 +1,12 @@
 {
-  "observed_commit": "ad1825d8047895d9135c192661c4c6cc5c1f3c71",
+  "observed_commit": "82fc47fcb938240af5257e55fa04da4a23f47c16",
   "production_binding_enabled": false,
   "release_authorized": false,
   "repository": "StegVerse-org/LLM-adapter",
-  "required_commit": "ad1825d8047895d9135c192661c4c6cc5c1f3c71",
+  "required_commit": "82fc47fcb938240af5257e55fa04da4a23f47c16",
   "result": "PASS",
-  "run_id": "30320999668",
-  "run_url": "https://github.com/StegVerse-org/LLM-adapter/actions/runs/30320999668",
+  "run_id": "30358338165",
+  "run_url": "https://github.com/StegVerse-org/LLM-adapter/actions/runs/30358338165",
   "schema_version": "stegverse.system_boundary.workflow_evidence.v0.1",
   "workflow": ".github/workflows/validate.yml"
 }
