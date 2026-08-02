@@ -1,0 +1,56 @@
+{
+  "schema_version": "stegverse.session_consolidation_receipt.v1",
+  "receipt_id": "orli-judgment-session-consolidation-2026-08-02",
+  "created_at": "2026-08-02T04:53:00-05:00",
+  "originating_session_goal": "Preserve and operationalize Judgment Architecture commitment-boundary concepts and durably transfer all implementation, validation, integration, observation, propagation, and release work.",
+  "canonical_repository": "StegVerse-org/StegVerse-SDK",
+  "canonical_branch": "main",
+  "canonical_handoff": "SDK_MIRROR_HANDOFF.md",
+  "bounded_handoff": "ORLI_JUDGMENT_SESSION_MIRROR_HANDOFF.md",
+  "inventory": "docs/session-consolidation/orli-judgment-system-boundary-2026-08-02.md",
+  "task_registry": "task-registry/orli-judgment-system-boundary-2026-08-02.json",
+  "validator": "scripts/validate_session_consolidation_registry.py",
+  "tests": "tests/test_session_consolidation_registry.py",
+  "commits": {
+    "inventory": "57b6da81ea5acfd0d85a7d9c2f7c5c104d2f79cb",
+    "task_registry": "cc53ee34d01fbfcc175597b117be8b0d168352e8",
+    "validator": "3e08c8f7fec1b178dcfefeec19b9563235e475c4",
+    "tests": "2a3ae972b792a8302f41925f303bbf9c867e55e1",
+    "bounded_handoff": "f91f5914ebb0eea75fb9c7aa140e9b3da41e2317"
+  },
+  "claims": {
+    "session_implementation": "RELEASED",
+    "session_validation": "RELEASED",
+    "session_integration": "RELEASED",
+    "session_observation": "RELEASED",
+    "sdk_validation": "MACHINE_OWNED",
+    "adapter_activation_observation": "MACHINE_OWNED",
+    "site_mutation": "BLOCKED_UNTIL_HANDOFF_GATE",
+    "release_tag": "BLOCKED_UNTIL_MACHINE_GATES"
+  },
+  "validation": {
+    "static_registry_contract": "INSTALLED",
+    "negative_claim_and_release_condition_tests": "INSTALLED",
+    "complete_sdk_suite_binding": "AUTOMATIC_TEST_DISCOVERY",
+    "hosted_current_main_observation": "PENDING_REPOSITORY_NATIVE_WORKFLOW",
+    "hosted_observation_is_session_archival_dependency": false
+  },
+  "archive_test": {
+    "primary_and_adjacent_goals_completed_superseded_or_transferred": true,
+    "unique_information_remaining_only_in_chat": false,
+    "unassigned_work": false,
+    "conflicting_session_claims": false,
+    "machine_owned_continuation_installed_or_assigned": true,
+    "canonical_continuation_location_recorded": true,
+    "deleting_conversation_impairs_execution": false,
+    "archive_ready": true
+  },
+  "authority_boundary": {
+    "receipt_is_execution_authority": false,
+    "receipt_is_validation_success": false,
+    "receipt_is_deployment": false,
+    "receipt_is_custody": false,
+    "receipt_is_release_authority": false,
+    "receipt_releases_only_originating_session_claims": true
+  }
+}
