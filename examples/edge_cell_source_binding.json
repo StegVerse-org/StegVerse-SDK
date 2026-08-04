@@ -1,0 +1,87 @@
+{
+  "schema_version": "stegverse.sdk.edge_cell_source_binding.v1",
+  "source": {
+    "repository": "StegVerse-002/micro-node-runtime",
+    "commit": "c9660dd0dffd97d9ececc9b7428ef165ae212419",
+    "profile_path": "profiles/governed_edge_cell.v1.json",
+    "activation_evidence_path": "examples/edge_cell_activation_evidence.generated.json",
+    "profile_sha256": "0a31dabd5ba8e8f5e526a087b4194eccca1456c693546c742ccf9b2fab945ab1",
+    "activation_input_sha256": "a90a33fb74205e947146f2098e020a299c9e29a50ddf2c8a9cafad759646ea2c"
+  },
+  "profile": {
+    "profile_id": "stegverse.edge-cell.governed.v1",
+    "profile_version": "1.0.0",
+    "node_class": "GOVERNED_EDGE_CELL",
+    "authority_effect": "NONE",
+    "execution_pattern": [
+      "PROPOSE",
+      "GOVERN",
+      "EXECUTE",
+      "VERIFY",
+      "RECEIPT",
+      "RECONSTRUCT"
+    ],
+    "base_capabilities": [
+      "LOCAL_INFERENCE",
+      "LOCAL_KNOWLEDGE_RETRIEVAL",
+      "SENSOR_OBSERVATION",
+      "SEGMENTED_STORAGE",
+      "RECEIPT_LEDGER",
+      "STORE_AND_FORWARD",
+      "MESH_RELAY",
+      "HEALTH_TELEMETRY",
+      "CONTINUITY_RECOVERY"
+    ],
+    "conditional_capabilities": [
+      "PHYSICAL_ACTUATION",
+      "EXTERNAL_EXPORT",
+      "FEDERATED_COMMIT"
+    ],
+    "governance_controls": {
+      "hardware_attestation_required": true,
+      "policy_ref_required": true,
+      "delegation_ref_required": true,
+      "consent_ref_required": true,
+      "commit_time_revalidation_required": true,
+      "receipt_required": true,
+      "rollback_or_containment_required": true,
+      "external_export_default": "DENY",
+      "direct_model_actuation": "DENY",
+      "missing_evidence_behavior": "FAIL_CLOSED"
+    },
+    "degraded_mode": {
+      "authority_behavior": "REDUCE_CAPABILITY",
+      "network_loss_mode": "LOCAL_ONLY",
+      "receipt_integrity_failure": "FAIL_CLOSED",
+      "continuity_failure": "FAIL_CLOSED"
+    },
+    "federation": {
+      "quorum_required": true,
+      "single_node_unilateral_commit": false,
+      "roles": [
+        "INITIATOR",
+        "ARBITER",
+        "OBSERVER",
+        "CONTINUITY_WITNESS"
+      ]
+    }
+  },
+  "activation_receipt": {
+    "receipt_type": "EDGE_CELL_ACTIVATION_EVALUATION",
+    "receipt_id": "edge-cell-activation:c546a4addf80eebead9cc173",
+    "receipt_hash": "c546a4addf80eebead9cc17324fad7580d6d5050c5347e86969c91d8d9cf7299",
+    "state": "ACTIVE",
+    "authority_effect": "NONE"
+  },
+  "custody": {
+    "status": "SOURCE_GENERATED_NOT_DESTINATION_ACCEPTED",
+    "destination_receipt_ref": null
+  },
+  "non_claims": {
+    "sdk_acceptance_is_execution_authority": false,
+    "sdk_acceptance_is_admissibility": false,
+    "sdk_acceptance_is_custody": false,
+    "source_receipt_is_destination_custody": false,
+    "conditional_capabilities_are_activated": false
+  }
+}
