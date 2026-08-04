@@ -4,7 +4,7 @@
 
 This file is the authoritative continuation record for
 `StegVerse-org/StegVerse-SDK`. Live default-branch state, Git history, issues,
-pull requests, workflow runs, artifacts, releases, and committed receipts are
+pull requests, workflow runs, artifacts, releases, and committed evidence are
 authoritative over historical conversation claims.
 
 ## Repository role
@@ -17,7 +17,7 @@ role: user-facing, non-authorizing intake and compatibility boundary
 
 SDK validation, compatibility, submission, aggregation, and ingestion are not
 execution, authority, admissibility, standing, commit-time validation,
-publication, or Master-Records custody.
+publication, deployment, or Master-Records custody.
 
 ## Completed goals retained
 
@@ -27,6 +27,7 @@ Goal 5 governed-vs-recursive comparison orchestration: COMPLETE
 Goal 6 entry-point role and transition-usage contracts: COMPLETE
 Goal 6 coordinate-navigation consumption: COMPLETE
 Goal 6 aggregate session-usage receipt: COMPLETE
+Goal 7 governed edge-cell source consumer: COMPLETE
 ```
 
 Existing invariants remain binding:
@@ -44,35 +45,32 @@ aggregation_is_universal_cost_claim == false
 returned_to_origin == true
 ```
 
-## Active Goal 7
+## Goal 7 completion record
 
 ```text
 goal id: EGC-PROP-SDK
 parent goal: EGC-PROP-001
-originating session goal: propagate the accepted governed edge-cell profile
-                          into the SDK as a source-bound consumer contract
-canonical source: StegVerse-002/micro-node-runtime
+state: COMPLETE
+source repository: StegVerse-002/micro-node-runtime
 source commit: c9660dd0dffd97d9ececc9b7428ef165ae212419
-source PR: StegVerse-002/micro-node-runtime#14
-source receipt hash: c546a4addf80eebead9cc17324fad7580d6d5050c5347e86969c91d8d9cf7299
 source propagation registry: StegVerse-002/micro-node-runtime#15
 SDK issue: #9
 SDK pull request: #10
-branch: feature/edge-cell-consumer
+SDK merge commit: 24c22b617daa4a2f2ea10a14487c047352591e9b
+claim state: COMPLETE / RELEASED
+claim released: 2026-08-04T11:55:00-05:00
 ```
 
-## Active claim
+Canonical source binding:
 
 ```text
-state: CLAIMED_FOR_INTEGRATION
-claimant: SDK edge-cell consumer lane
-github actor: StegVerse
-claim created: 2026-08-04T11:41:00-05:00
-claim expires: 2026-08-04T17:00:00-05:00
-release condition: PR #10 merged, closed, explicitly superseded, or expired
+profile: stegverse.edge-cell.governed.v1@1.0.0
+profile hash: 0a31dabd5ba8e8f5e526a087b4194eccca1456c693546c742ccf9b2fab945ab1
+activation-input hash: a90a33fb74205e947146f2098e020a299c9e29a50ddf2c8a9cafad759646ea2c
+activation-receipt hash: c546a4addf80eebead9cc17324fad7580d6d5050c5347e86969c91d8d9cf7299
 ```
 
-Claimed and implemented surfaces:
+Installed surfaces:
 
 ```text
 stegverse/edge_cell_consumer.py
@@ -83,20 +81,8 @@ docs/GOVERNED_EDGE_CELL_SDK_CONSUMER.md
 STEGVERSE_SDK_MIRROR_HANDOFF.md
 ```
 
-The existing consolidated workflow and package discovery already include the
-new module and test. No duplicate workflow or root-package export was required.
-The complete SDK suite executes the standalone verifier from
-`tests/test_edge_cell_consumer.py`.
-
-Collision boundaries preserved:
-
-```text
-existing universal-entry execution routes
-existing Master Records custody client
-canonical micro-node activation evaluator
-provider and LLM-adapter authority boundaries
-release and PyPI publishing jobs
-```
+The existing consolidated workflow and package discovery include the new
+module and tests. No duplicate workflow or root-package export was required.
 
 ## Implemented behavior
 
@@ -116,34 +102,31 @@ rejects malformed arrays without exception
 returns a deterministic SDK compatibility result
 ```
 
-Successful SDK status is limited to:
+Successful status is limited to:
 
 ```text
 accepted_for_non_authorizing_sdk_consumption
 ```
 
+It is not execution authority, admissibility, custody, publication acceptance,
+deployment proof, or activation of any conditional capability.
+
 ## Validation evidence
 
-Pull-request head validated:
+Pull-request validation:
 
 ```text
-head commit: 1962d142f1b3bec73164ebd542f16baffdf07e67
-workflow: StegVerse SDK Validation
-run: 30930727040
-conclusion: success
+PR head: 3280f024a57464ddb7d9bd1bf61fbd04db6f4ba2
+StegVerse SDK Validation runs: 30930727040 and 30930887252 — success
+Architecture Guard: 30930887348 — success
+validate: 30930887259 — success
+Validate Provider Usage Ingestion: 30930887818 — success
+Diagnose Python 3.9 Public Imports: 30930887299 — success
+Python matrix: 3.9, 3.11, 3.12 — success
+package build and wheel verification — success
 ```
 
-Inspected jobs:
-
-```text
-test (Python 3.9): success
-test (Python 3.11): success
-test (Python 3.12): success
-route-validation: success
-build and wheel verification: success
-```
-
-The Python 3.11 log records:
+Inspected Python 3.11 log:
 
 ```text
 406 tests collected
@@ -152,17 +135,18 @@ standalone verifier test passed
 406 passed
 ```
 
-Additional pull-request workflows:
+Default-branch machine evidence:
 
 ```text
-Architecture Guard run 30930726053: success
-validate run 30930726227: success
-Validate Provider Usage Ingestion run 30930726317: success
-Diagnose Python 3.9 Public Imports run 30930727620: success
+validated source commit: 24c22b617daa4a2f2ea10a14487c047352591e9b
+diagnostic persistence commit: d6fe045578ec305e0381bb539fb97e434bad45dd
+complete diagnostic suite: 398 passed
+manual_user_action_required: false
 ```
 
-The Codecov upload reported a missing token but `fail_ci_if_error: false`; it
-did not alter the successful SDK test or build conclusions.
+The diagnostic is a machine-retained validation record for the exact merged
+source commit. The Codecov upload warning was non-blocking and did not alter
+test or package-build success.
 
 ## Automation contract
 
@@ -170,10 +154,10 @@ did not alter the successful SDK test or build conclusions.
 trigger: existing SDK pull-request and main-branch workflow
 inputs: committed source-binding fixture
 outputs: deterministic SDK acceptance or fail-closed rejection
-persistent state: fixture, tests, verifier output, issue, PR, workflow, handoff
+persistent state: fixture, tests, verifier output, diagnostic, issue, PR, handoff
 missing evidence behavior: FAIL_CLOSED
 runtime statuses: ACCEPTED, REJECTED
-coordination statuses: CLAIMED, COMPLETE, BLOCKED, SUPERSEDED, MERGED
+coordination status: COMPLETE
 ```
 
 ## Validation commands
@@ -185,62 +169,49 @@ pytest tests/ -v
 python -m build
 ```
 
-## Cross-repository dependencies
+## Cross-repository continuation
 
 ```text
-source authority: StegVerse-002/micro-node-runtime@c9660dd0dffd97d9ececc9b7428ef165ae212419
+source implementation: StegVerse-002/micro-node-runtime@c9660dd0dffd97d9ececc9b7428ef165ae212419
 source registry: StegVerse-002/micro-node-runtime#15
-custody destination: master-records/orchestration
+custody destination: master-records/orchestration#19 and PR #20
 publication destinations: StegVerse-Labs/Site and GCAT-BCAT-Engine/Publisher
+vocabulary destinations: StegVerse-Labs/admissibility-wiki and StegVerse-002/stegguardian-wiki
 ```
 
-The SDK does not assert downstream custody or publication acceptance.
+The SDK destination is complete. Remaining propagation is owned by the source
+registry and the named destination repositories.
 
 ## Execution inventory
 
-| Task | Exact location | Claim state | Completion | Validation | Integration | Next action |
-|---|---|---|---|---|---|---|
-| SDK-EGC-1 | `stegverse/edge_cell_consumer.py` | CLAIMED_FOR_INTEGRATION | complete on PR #10 | hosted pass | PR pending | merge |
-| SDK-EGC-2 | `examples/edge_cell_source_binding.json` | CLAIMED_FOR_INTEGRATION | complete on PR #10 | hosted pass | PR pending | merge |
-| SDK-EGC-3 | `tests/test_edge_cell_consumer.py` | CLAIMED_FOR_VALIDATION | complete on PR #10 | 10/10 pass | PR pending | merge |
-| SDK-EGC-4 | `scripts/verify_edge_cell_consumer.py` | CLAIMED_FOR_VALIDATION | complete on PR #10 | executed by suite | PR pending | merge |
-| SDK-EGC-5 | `docs/GOVERNED_EDGE_CELL_SDK_CONSUMER.md` | CLAIMED_FOR_INTEGRATION | complete on PR #10 | reviewed by package workflow | PR pending | merge |
-| SDK-EGC-6 | this handoff | CLAIMED_FOR_INTEGRATION | updated | workflow evidence recorded | PR pending | merge and release claim |
+| Task | Exact location | State | Completion | Validation | Integration |
+|---|---|---|---|---|---|
+| SDK-EGC-1 | `stegverse/edge_cell_consumer.py` | COMPLETE | merged | hosted pass | main |
+| SDK-EGC-2 | `examples/edge_cell_source_binding.json` | COMPLETE | merged | hosted pass | main |
+| SDK-EGC-3 | `tests/test_edge_cell_consumer.py` | COMPLETE | 10 tests | hosted pass | main |
+| SDK-EGC-4 | `scripts/verify_edge_cell_consumer.py` | COMPLETE | merged | standalone pass | main |
+| SDK-EGC-5 | `docs/GOVERNED_EDGE_CELL_SDK_CONSUMER.md` | COMPLETE | merged | package validation | main |
+| SDK-EGC-6 | this handoff | COMPLETE | released | evidence recorded | source registry notified |
 
-## Completion denominator
+## Completion
 
 ```text
 developed files: 6/6
 scaffolding or stubs: 0
 missing required files: 0
 validation: 4/4
-integration: 2/3
-goal activation: 85%
-```
-
-Integration denominator:
-
-```text
-1 existing workflow/package wiring and hosted PR validation
-2 accepted implementation PR
-3 default-branch validation plus propagation receipt to source issue #15
-```
-
-## Exact next tasks
-
-```text
-1. Validate this handoff-only head update.
-2. Mark PR #10 ready and merge.
-3. Inspect default-branch workflows and package artifact.
-4. Release SDK issue/claim and update source issue #15.
+integration: 3/3
+goal activation: 100%
+session consolidation: 1/1
 ```
 
 ## Archive posture
 
-The earlier SDK goals remain durable. The active SDK integration claim is
-fully implemented and validated but not yet merged or propagated back to its
-source registry.
+The SDK edge-cell destination contains no unique continuation state outside
+this repository, its issue, PR, diagnostic, and source propagation registry.
+This SDK workstream is archive-safe; the broader originating session remains
+active only for other Goal 8 destinations.
 
 ```text
-DO NOT ARCHIVE THIS SESSION — DISTINCT SUPPORT WORK REMAINS.
+MERGED INTO: StegVerse-002/micro-node-runtime#15
 ```
