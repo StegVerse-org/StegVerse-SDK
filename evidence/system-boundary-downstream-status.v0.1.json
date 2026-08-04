@@ -1,8 +1,8 @@
 {
-  "activation_state": "PENDING",
+  "activation_state": "VERIFIED",
   "admissibility_determined": false,
   "custody_transferred": false,
-  "downstream_propagation_allowed": false,
+  "downstream_propagation_allowed": true,
   "execution_authority_granted": false,
   "production_binding_enabled": false,
   "release_authorized": false,
@@ -14,5 +14,5 @@
     "StegVerse-Labs/admissibility-wiki",
     "StegVerse-002/stegguardian-wiki"
   ],
-  "verified": false
+  "verified": true
 }
