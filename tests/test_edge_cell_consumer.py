@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import copy
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 from stegverse.edge_cell_consumer import (
@@ -85,6 +87,7 @@ def test_rejects_conditional_capability_reclassification():
     assert result.accepted is False
     assert "profile base capabilities do not match the accepted source" in result.errors
     assert "profile conditional capabilities do not match the accepted source" in result.errors
+    assert "conditional capabilities cannot be active base capabilities" in result.errors
 
 
 def test_rejects_false_destination_custody_claim():
@@ -107,3 +110,26 @@ def test_rejects_missing_fail_closed_control():
 
     assert result.accepted is False
     assert "missing evidence behavior must remain fail closed" in result.errors
+
+
+def test_malformed_capability_collection_fails_closed_without_exception():
+    binding = source_binding()
+    binding["profile"]["base_capabilities"] = None
+
+    result = validate_edge_cell_source_binding(binding)
+
+    assert result.accepted is False
+    assert "profile.base_capabilities must be a string array" in result.errors
+
+
+def test_standalone_verifier_executes_in_complete_suite():
+    completed = subprocess.run(
+        [sys.executable, "scripts/verify_edge_cell_consumer.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert "EDGE_CELL_SDK_CONSUMER_PASS" in completed.stdout
