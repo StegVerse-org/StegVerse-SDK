@@ -190,15 +190,30 @@ def validate_edge_cell_source_binding(
         errors.append("profile authority expansion is prohibited")
     if profile.get("execution_pattern") != EXPECTED_EXECUTION_PATTERN:
         errors.append("profile execution pattern is not canonical")
-    if set(profile.get("base_capabilities", [])) != EXPECTED_BASE_CAPABILITIES:
-        errors.append("profile base capabilities do not match the accepted source")
-    if (
-        set(profile.get("conditional_capabilities", []))
-        != EXPECTED_CONDITIONAL_CAPABILITIES
-    ):
-        errors.append("profile conditional capabilities do not match the accepted source")
 
-    controls = _mapping(profile.get("governance_controls"), "profile.governance_controls", errors)
+    base_capabilities = _string_set(
+        profile.get("base_capabilities"),
+        "profile.base_capabilities",
+        errors,
+    )
+    if base_capabilities != EXPECTED_BASE_CAPABILITIES:
+        errors.append("profile base capabilities do not match the accepted source")
+
+    conditional_capabilities = _string_set(
+        profile.get("conditional_capabilities"),
+        "profile.conditional_capabilities",
+        errors,
+    )
+    if conditional_capabilities != EXPECTED_CONDITIONAL_CAPABILITIES:
+        errors.append("profile conditional capabilities do not match the accepted source")
+    if base_capabilities & EXPECTED_CONDITIONAL_CAPABILITIES:
+        errors.append("conditional capabilities cannot be active base capabilities")
+
+    controls = _mapping(
+        profile.get("governance_controls"),
+        "profile.governance_controls",
+        errors,
+    )
     if controls.get("direct_model_actuation") != "DENY":
         errors.append("direct model actuation must remain denied")
     if controls.get("external_export_default") != "DENY":
@@ -252,6 +267,15 @@ def _mapping(value: Any, label: str, errors: list[str]) -> Mapping[str, Any]:
         return value
     errors.append(f"{label} must be an object")
     return {}
+
+
+def _string_set(value: Any, label: str, errors: list[str]) -> set[str]:
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        errors.append(f"{label} must be a string array")
+        return set()
+    if len(value) != len(set(value)):
+        errors.append(f"{label} must not contain duplicates")
+    return set(value)
 
 
 def _require_exact_keys(
