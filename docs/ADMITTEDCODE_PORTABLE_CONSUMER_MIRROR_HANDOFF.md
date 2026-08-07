@@ -6,12 +6,15 @@ This file is the task source of truth for the AdmittedCode portable receipt-cons
 
 ## Goal
 
-Consume and independently verify portable AdmittedCode receipts without turning SDK validation into execution, authority, admissibility, publication, deployment, or Master-Records custody.
+Consume and independently verify portable AdmittedCode receipts, including source-verification annotations, without turning SDK validation into execution, authority, admissibility, publication, deployment, or Master-Records custody.
 
 ## Installed paths
 
 - `stegverse/admittedcode_receipt.py`
+- `examples/governed_llm_demo/admittedcode/admissibility_receipt.allow.json`
+- `examples/governed_llm_demo/admittedcode/admissibility_receipt.deny.json`
 - `tests/test_admittedcode_receipt.py`
+- `tests/test_admittedcode_receipt_fixture.py`
 - this handoff
 
 ## Invariants
@@ -21,18 +24,31 @@ Consume and independently verify portable AdmittedCode receipts without turning 
 - `receipt_handoff_is_master_record_installation == false`
 - `authority_effect == NONE`
 
-The consumer rejects unsupported schemas, authority escalation, tampered receipt hashes, and any DENY/FAIL_CLOSED receipt that claims the provider key was requested.
+The consumer independently recomputes the canonical base receipt hash and rejects unsupported schemas, authority escalation, tampering, and any DENY/FAIL_CLOSED receipt that claims provider-key access.
+
+The fixture suite now includes both portable outcomes:
+
+- StegVerse source `ALLOW` -> AdmittedCode `ALLOW` -> SDK `ACCEPTED`.
+- StegVerse source `QUARANTINE` -> AdmittedCode `DENY` -> SDK `ACCEPTED` as a valid refusal receipt.
+
+`QUARANTINE`, `DENY`, and SDK `ACCEPTED` are deliberately different semantics. SDK acceptance means the receipt is structurally/integrity valid for non-authorizing consumption; it does not convert a denied action into an allowed action.
 
 ## Portable contract
 
-`LLM-adapter review_packet -> AdmittedCode -> provider_harness_receipt.v1 -> SDK verification`
+`LLM-adapter canonical fixture -> source-bound review_packet -> AdmittedCode source verification + review -> provider_harness_receipt.v1 -> SDK independent hash verification`
 
 ## Validation
 
 ```bash
 pytest tests/test_admittedcode_receipt.py -v
+pytest tests/test_admittedcode_receipt_fixture.py -v
+pytest tests/ -v
 ```
+
+## Current evidence
+
+The ALLOW and DENY receipt fixtures were generated from the provider-harness M0-M3 core using a local repository snapshot. Each fixture retains `key_requested=false`, `authority_effect=NONE`, source binding, and source verification metadata. The SDK verifies the canonical base receipt hash independently of those annotations.
 
 ## Remaining work
 
-Observe hosted SDK CI, then add the portable receipt consumer to the existing consolidated validation path if required by the repository's canonical workflow. Do not create a second authority-bearing implementation.
+Observe hosted SDK CI for the fixture expansion and merge when green. After the LLM-adapter canonical-binding PR and AdmittedCode source-verification PR are merged, refresh any source commit references needed for a reviewer-facing package. Do not create a second authority-bearing implementation.
