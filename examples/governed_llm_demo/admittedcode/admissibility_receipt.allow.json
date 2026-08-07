@@ -1,0 +1,40 @@
+{
+  "authority_effect": "NONE",
+  "canonicalization": {"hash": "sha256", "method": "stegverse.jcs.v1"},
+  "decision": "ALLOW",
+  "enforcement": {"manager": "adapter-bound", "note": "StegCGE not integrated in M0-M3"},
+  "gates": [
+    {"decision": "PASS", "detail": "request fully declared", "gate": "request_declaration"},
+    {"decision": "PASS", "detail": "explicit consent covers purpose", "gate": "consent"},
+    {"decision": "PASS", "detail": "estimated cost within budget", "gate": "budget"},
+    {"decision": "PASS", "detail": "a <= min(g,c,t)", "gate": "gcat_bcat"},
+    {"decision": "PASS", "detail": "mock mode: deterministic fixture, no key, no call", "gate": "execution"}
+  ],
+  "input_state_hash": "sha256:5d93af07dd816dc2ac61b1bb20de91f380c73da07e986b86dfb6ea628077030a",
+  "key_requested": false,
+  "mode": "mock",
+  "model": "fixture-model-v1",
+  "provider": "fixture-provider",
+  "purpose": "governed_demo_response",
+  "receipt_id": "sha256:70d975fe5f4d5a55b9d67c4537731c21c2b05e306d7159b28dd346e7d1971c00",
+  "replay": {"hit": false},
+  "review_packet": {
+    "packet_id": "stegverse-demo-allow-001",
+    "schema": "stegverse.admittedcode.review_packet.v1",
+    "source_refs": ["examples/end_to_end/admittedcode_review/review_packet.allow.json"],
+    "source_system": "StegVerse-org/LLM-adapter"
+  },
+  "schema": "stegverse.provider_harness_receipt.v1",
+  "scope": {
+    "asserts": [
+      "The declared provider request was evaluated under the declared governance path.",
+      "No live API key was requested unless decision is ALLOW in live mode (not available in this build)."
+    ],
+    "does_not_assert": [
+      "Provider security, privacy, or compliance.",
+      "Correctness or fitness of any model output.",
+      "That a lower cost is guaranteed."
+    ]
+  },
+  "timestamp_utc": "2026-08-07T07:32:53Z"
+}
