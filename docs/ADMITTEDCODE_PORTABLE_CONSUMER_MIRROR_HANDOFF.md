@@ -8,6 +8,10 @@ This file is the task source of truth for the AdmittedCode portable receipt-cons
 
 Consume and independently verify portable AdmittedCode receipts, including source-verification annotations, without turning SDK validation into execution, authority, admissibility, publication, deployment, or Master-Records custody.
 
+## Status
+
+**COMPLETE AND MERGED.** This slice no longer owns implementation work.
+
 ## Installed paths
 
 - `stegverse/admittedcode_receipt.py`
@@ -26,7 +30,7 @@ Consume and independently verify portable AdmittedCode receipts, including sourc
 
 The consumer independently recomputes the canonical base receipt hash and rejects unsupported schemas, authority escalation, tampering, and any DENY/FAIL_CLOSED receipt that claims provider-key access.
 
-The fixture suite now includes both portable outcomes:
+The fixture suite includes both portable outcomes:
 
 - StegVerse source `ALLOW` -> AdmittedCode `ALLOW` -> SDK `ACCEPTED`.
 - StegVerse source `QUARANTINE` -> AdmittedCode `DENY` -> SDK `ACCEPTED` as a valid refusal receipt.
@@ -39,16 +43,35 @@ The fixture suite now includes both portable outcomes:
 
 ## Validation
 
+Canonical validation commands:
+
 ```bash
 pytest tests/test_admittedcode_receipt.py -v
 pytest tests/test_admittedcode_receipt_fixture.py -v
 pytest tests/ -v
 ```
 
-## Current evidence
+PR #12 merged as `6227454a78b9c210a8ec0d3eb5be3f15b977c6e7`. Before merge, the observed SDK validation workflows all completed successfully:
 
-The ALLOW and DENY receipt fixtures were generated from the provider-harness M0-M3 core using a local repository snapshot. Each fixture retains `key_requested=false`, `authority_effect=NONE`, source binding, and source verification metadata. The SDK verifies the canonical base receipt hash independently of those annotations.
+- StegVerse SDK Validation
+- validate
+- Architecture Guard
+- Diagnose Python 3.9 Public Imports
+- Validate Provider Usage Ingestion
 
-## Remaining work
+## Cross-repository completion evidence
 
-Observe hosted SDK CI for the fixture expansion and merge when green. After the LLM-adapter canonical-binding PR and AdmittedCode source-verification PR are merged, refresh any source commit references needed for a reviewer-facing package. Do not create a second authority-bearing implementation.
+- LLM-adapter canonical source binding: PR #122, merge `12eefc095479b325ccb5551c7279b7ecec1d0283`.
+- AdmittedCode source verification: provider-harness PR #2, merge `c4eb15c63f4d0869080f59a57207449a8bf629e7`.
+- compact external reviewer packet: provider-harness PR #3, merge `b5b942d64cb7d7278b7a4137704fea75f325a77f`.
+
+## Canonical continuation
+
+MERGED INTO: `AdmittedCode/.github/ADMITTEDCODE_MIRROR_HANDOFF.md`
+
+The next ecosystem integration is `StegVerse-Labs/Site`, subject to Site machine admission. The blocked task and release-condition observer live at:
+
+- `AdmittedCode/.github/data/tasks/ADMITTEDCODE-SITE-REVIEW-INTEGRATION.json`
+- `AdmittedCode/.github/.github/workflows/site-admission-watch.yml`
+
+No second authority-bearing implementation is permitted. No additional work from this SDK slice is required until the portable receipt contract changes or a canonical downstream consumer requires a versioned compatibility update.
