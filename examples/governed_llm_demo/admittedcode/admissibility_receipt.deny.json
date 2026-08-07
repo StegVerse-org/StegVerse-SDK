@@ -4,7 +4,7 @@
     "hash": "sha256",
     "method": "stegverse.jcs.v1"
   },
-  "decision": "ALLOW",
+  "decision": "DENY",
   "enforcement": {
     "manager": "adapter-bound",
     "note": "StegCGE not integrated in M0-M3"
@@ -26,14 +26,9 @@
       "gate": "budget"
     },
     {
-      "decision": "PASS",
-      "detail": "a <= min(g,c,t)",
+      "decision": "DENY",
+      "detail": "execution pressure exceeds weakest legitimacy dimension",
       "gate": "gcat_bcat"
-    },
-    {
-      "decision": "PASS",
-      "detail": "mock mode: deterministic fixture, no key, no call",
-      "gate": "execution"
     }
   ],
   "input_state_hash": "sha256:d5e38f18dacc6c17f48c331c30a6fe170fafe95b18051b2c968af19dafd20a62",
@@ -41,27 +36,27 @@
   "mode": "mock",
   "model": "fixture-model-v1",
   "provider": "fixture-provider",
-  "purpose": "informational_query",
-  "receipt_id": "sha256:d6f6668b9a4193f1e86b2355f7a63197141e12a32ddd5e834ddbc67c8ee1d694",
+  "purpose": "repository_mutation_candidate",
+  "receipt_id": "sha256:923b34828f2235586e6a07f7098c6617a21e4dc60144333fb9158211eceb8485",
   "replay": {
     "hit": false
   },
   "review_packet": {
-    "packet_id": "stegverse-demo-allow-001",
+    "packet_id": "stegverse-demo-deny-001",
     "schema": "stegverse.admittedcode.review_packet.v1",
     "source_binding": {
-      "expected_outcome": "ALLOW",
-      "path": "examples/end_to_end/simple_query.json",
-      "sha256": "f2829c88bb6f876fe78868736c41eb11ea56feb981fb6a4148aaf0ae1436eef9"
+      "expected_outcome": "QUARANTINE",
+      "path": "examples/end_to_end/action_commit_candidate.json",
+      "sha256": "fb5e02a0dfa24b97917b2a08a33c8a3ea93f2f120217d81ccaac2c5f439f49e7"
     },
     "source_refs": [
-      "examples/end_to_end/simple_query.json"
+      "examples/end_to_end/action_commit_candidate.json"
     ],
     "source_system": "StegVerse-org/LLM-adapter",
     "source_verification": {
-      "expected_outcome": "ALLOW",
-      "path": "examples/end_to_end/simple_query.json",
-      "sha256": "f2829c88bb6f876fe78868736c41eb11ea56feb981fb6a4148aaf0ae1436eef9",
+      "expected_outcome": "QUARANTINE",
+      "path": "examples/end_to_end/action_commit_candidate.json",
+      "sha256": "fb5e02a0dfa24b97917b2a08a33c8a3ea93f2f120217d81ccaac2c5f439f49e7",
       "verified": true
     }
   },
@@ -77,5 +72,5 @@
       "That a lower cost is guaranteed."
     ]
   },
-  "timestamp_utc": "2026-08-07T12:42:48Z"
+  "timestamp_utc": "2026-08-07T12:43:32Z"
 }
