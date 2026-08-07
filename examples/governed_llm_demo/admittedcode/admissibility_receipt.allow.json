@@ -1,28 +1,69 @@
 {
   "authority_effect": "NONE",
-  "canonicalization": {"hash": "sha256", "method": "stegverse.jcs.v1"},
+  "canonicalization": {
+    "hash": "sha256",
+    "method": "stegverse.jcs.v1"
+  },
   "decision": "ALLOW",
-  "enforcement": {"manager": "adapter-bound", "note": "StegCGE not integrated in M0-M3"},
+  "enforcement": {
+    "manager": "adapter-bound",
+    "note": "StegCGE not integrated in M0-M3"
+  },
   "gates": [
-    {"decision": "PASS", "detail": "request fully declared", "gate": "request_declaration"},
-    {"decision": "PASS", "detail": "explicit consent covers purpose", "gate": "consent"},
-    {"decision": "PASS", "detail": "estimated cost within budget", "gate": "budget"},
-    {"decision": "PASS", "detail": "a <= min(g,c,t)", "gate": "gcat_bcat"},
-    {"decision": "PASS", "detail": "mock mode: deterministic fixture, no key, no call", "gate": "execution"}
+    {
+      "decision": "PASS",
+      "detail": "request fully declared",
+      "gate": "request_declaration"
+    },
+    {
+      "decision": "PASS",
+      "detail": "explicit consent covers purpose",
+      "gate": "consent"
+    },
+    {
+      "decision": "PASS",
+      "detail": "estimated cost within budget",
+      "gate": "budget"
+    },
+    {
+      "decision": "PASS",
+      "detail": "a <= min(g,c,t)",
+      "gate": "gcat_bcat"
+    },
+    {
+      "decision": "PASS",
+      "detail": "mock mode: deterministic fixture, no key, no call",
+      "gate": "execution"
+    }
   ],
-  "input_state_hash": "sha256:5d93af07dd816dc2ac61b1bb20de91f380c73da07e986b86dfb6ea628077030a",
+  "input_state_hash": "sha256:d5e38f18dacc6c17f48c331c30a6fe170fafe95b18051b2c968af19dafd20a62",
   "key_requested": false,
   "mode": "mock",
   "model": "fixture-model-v1",
   "provider": "fixture-provider",
-  "purpose": "governed_demo_response",
-  "receipt_id": "sha256:70d975fe5f4d5a55b9d67c4537731c21c2b05e306d7159b28dd346e7d1971c00",
-  "replay": {"hit": false},
+  "purpose": "informational_query",
+  "receipt_id": "sha256:d6f6668b9a4193f1e86b2355f7a63197141e12a32ddd5e834ddbc67c8ee1d694",
+  "replay": {
+    "hit": false
+  },
   "review_packet": {
     "packet_id": "stegverse-demo-allow-001",
     "schema": "stegverse.admittedcode.review_packet.v1",
-    "source_refs": ["examples/end_to_end/admittedcode_review/review_packet.allow.json"],
-    "source_system": "StegVerse-org/LLM-adapter"
+    "source_binding": {
+      "expected_outcome": "ALLOW",
+      "path": "examples/end_to_end/simple_query.json",
+      "sha256": "f2829c88bb6f876fe78868736c41eb11ea56feb981fb6a4148aaf0ae1436eef9"
+    },
+    "source_refs": [
+      "examples/end_to_end/simple_query.json"
+    ],
+    "source_system": "StegVerse-org/LLM-adapter",
+    "source_verification": {
+      "expected_outcome": "ALLOW",
+      "path": "examples/end_to_end/simple_query.json",
+      "sha256": "f2829c88bb6f876fe78868736c41eb11ea56feb981fb6a4148aaf0ae1436eef9",
+      "verified": true
+    }
   },
   "schema": "stegverse.provider_harness_receipt.v1",
   "scope": {
@@ -36,5 +77,5 @@
       "That a lower cost is guaranteed."
     ]
   },
-  "timestamp_utc": "2026-08-07T07:32:53Z"
+  "timestamp_utc": "2026-08-07T12:42:48Z"
 }
