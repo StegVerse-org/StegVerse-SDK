@@ -1,11 +1,10 @@
 # StegVerse SDK Mirror Handoff
 
+Updated: 2026-08-09
+
 ## Current source of truth
 
-This file is the authoritative continuation record for
-`StegVerse-org/StegVerse-SDK`. Live default-branch state, Git history, issues,
-pull requests, workflow runs, artifacts, releases, and committed evidence are
-authoritative over historical conversation claims.
+This file is the authoritative continuation record for `StegVerse-org/StegVerse-SDK`. Live default-branch state, Git history, issues, pull requests, workflow runs, artifacts, releases, and committed evidence are authoritative over historical conversation claims.
 
 ## Repository role
 
@@ -15,9 +14,7 @@ default branch: main
 role: user-facing, non-authorizing intake and compatibility boundary
 ```
 
-SDK validation, compatibility, submission, aggregation, and ingestion are not
-execution, authority, admissibility, standing, commit-time validation,
-publication, deployment, or Master-Records custody.
+SDK validation, compatibility, submission, aggregation, ingestion, device discovery, or capability declaration are not execution, authority, admissibility, standing, commit-time validation, publication, deployment, or Master-Records custody.
 
 ## Completed goals retained
 
@@ -45,6 +42,42 @@ aggregation_is_universal_cost_claim == false
 returned_to_origin == true
 ```
 
+## New machine-owned continuation — `BIOINTERFACE-SDK-001`
+
+Origin: StegHealth/StegNeuro hardware convergence discussion.
+Canonical issue: `StegVerse-org/StegVerse-SDK#13`.
+Task state: `MACHINE_OWNED`.
+Active implementation claim: none.
+Session-specific implementation authority: none.
+Architecture source: `docs/BIOINTERFACE_DEVICE_SDK_CONVERGENCE.md`.
+
+The requirement is to extract the reusable physical-device substrate shared by physiological and neural nodes without moving domain semantics or execution authority into the SDK.
+
+Required implementation:
+
+1. common device/capability schema;
+2. transport-neutral packet/envelope contract compatible with StegHealth native/raw preservation;
+3. reference Python host client;
+4. device adapter interface;
+5. READ/WRITE capability separation and authority-neutrality tests;
+6. StegHealth profile fixture;
+7. StegNeuro profile fixture spanning CNS/PNS/ANS/ENS/neuromuscular/sensory pathways without implying semantic decoding;
+8. conformance tests and existing SDK workflow integration.
+
+Release condition: all eight surfaces are implemented, merged, validated through the existing SDK workflow/package path, and this handoff contains the exact evidence. An implementation lane must claim exact files before mutation to prevent duplicate work.
+
+Collision boundaries:
+
+```text
+StegHealth -> physiological signal/hardware semantics
+StegNeuro -> neural READ/WRITE interface semantics
+StegCore -> admissibility/consequence authority
+Master Records -> reconstruction/evidence qualification
+StegVerse-SDK -> shared device compatibility/intake substrate only
+```
+
+Capability declaration never grants execution authority. READ and WRITE may share hardware/transport but must remain separately declared and governed.
+
 ## Goal 7 completion record
 
 ```text
@@ -70,7 +103,7 @@ activation-input hash: a90a33fb74205e947146f2098e020a299c9e29a50ddf2c8a9cafad759
 activation-receipt hash: c546a4addf80eebead9cc17324fad7580d6d5050c5347e86969c91d8d9cf7299
 ```
 
-Installed surfaces:
+Installed Goal-7 surfaces remain:
 
 ```text
 stegverse/edge_cell_consumer.py
@@ -81,39 +114,9 @@ docs/GOVERNED_EDGE_CELL_SDK_CONSUMER.md
 STEGVERSE_SDK_MIRROR_HANDOFF.md
 ```
 
-The existing consolidated workflow and package discovery include the new
-module and tests. No duplicate workflow or root-package export was required.
+## Goal 7 validation evidence
 
-## Implemented behavior
-
-The SDK consumer:
-
-```text
-verifies the canonical source repository and exact source commit
-verifies profile id, version, paths, and deterministic source hashes
-verifies the accepted activation receipt id and hash
-verifies authority_effect == NONE
-verifies physical actuation, external export, and federated commit remain conditional
-verifies direct model actuation and default external export remain denied
-verifies degraded operation reduces capability and network loss becomes local-only
-verifies federated commit requires quorum and disables single-node unilateral commit
-rejects false destination-custody claims
-rejects malformed arrays without exception
-returns a deterministic SDK compatibility result
-```
-
-Successful status is limited to:
-
-```text
-accepted_for_non_authorizing_sdk_consumption
-```
-
-It is not execution authority, admissibility, custody, publication acceptance,
-deployment proof, or activation of any conditional capability.
-
-## Validation evidence
-
-Pull-request validation:
+Pull-request validation retained:
 
 ```text
 PR head: 3280f024a57464ddb7d9bd1bf61fbd04db6f4ba2
@@ -126,92 +129,41 @@ Python matrix: 3.9, 3.11, 3.12 — success
 package build and wheel verification — success
 ```
 
-Inspected Python 3.11 log:
-
-```text
-406 tests collected
-10 edge-cell consumer tests passed
-standalone verifier test passed
-406 passed
-```
-
-Default-branch machine evidence:
-
-```text
-validated source commit: 24c22b617daa4a2f2ea10a14487c047352591e9b
-diagnostic persistence commit: d6fe045578ec305e0381bb539fb97e434bad45dd
-complete diagnostic suite: 398 passed
-manual_user_action_required: false
-```
-
-The diagnostic is a machine-retained validation record for the exact merged
-source commit. The Codecov upload warning was non-blocking and did not alter
-test or package-build success.
+Inspected Python 3.11 log historically recorded 406 tests collected, 10 edge-cell consumer tests passed, standalone verifier passed, 406 passed.
 
 ## Automation contract
 
-```text
-trigger: existing SDK pull-request and main-branch workflow
-inputs: committed source-binding fixture
-outputs: deterministic SDK acceptance or fail-closed rejection
-persistent state: fixture, tests, verifier output, diagnostic, issue, PR, handoff
-missing evidence behavior: FAIL_CLOSED
-runtime statuses: ACCEPTED, REJECTED
-coordination status: COMPLETE
-```
+Existing SDK pull-request/main workflows remain the validation owner. `BIOINTERFACE-SDK-001` must integrate into those workflows rather than create an isolated parallel validation authority unless technically required and explicitly recorded.
 
-## Validation commands
-
-```bash
-pytest tests/test_edge_cell_consumer.py -v
-python scripts/verify_edge_cell_consumer.py
-pytest tests/ -v
-python -m build
-```
+Missing implementation remains fail-closed as incomplete; issue presence or architecture documentation does not equal SDK implementation.
 
 ## Cross-repository continuation
 
 ```text
-source implementation: StegVerse-002/micro-node-runtime@c9660dd0dffd97d9ececc9b7428ef165ae212419
-source registry: StegVerse-002/micro-node-runtime#15
-custody destination: master-records/orchestration#19 and PR #20
-publication destinations: StegVerse-Labs/Site and GCAT-BCAT-Engine/Publisher
-vocabulary destinations: StegVerse-Labs/admissibility-wiki and StegVerse-002/stegguardian-wiki
+shared biointerface SDK: StegVerse-org/StegVerse-SDK#13
+physiological device profiles: StegVerse-Labs/StegHealth
+neural device profiles: StegVerse-Labs/StegNeuro
+admissibility/consequence: StegVerse-Labs/StegCore
+reconstruction resolution: master-records/core-lite#31
 ```
 
-The SDK destination is complete. Remaining propagation is owned by the source
-registry and the named destination repositories.
+Existing Goal-7 source/destination relationships remain preserved and are not reopened.
 
-## Execution inventory
+## Completion accounting
 
-| Task | Exact location | State | Completion | Validation | Integration |
-|---|---|---|---|---|---|
-| SDK-EGC-1 | `stegverse/edge_cell_consumer.py` | COMPLETE | merged | hosted pass | main |
-| SDK-EGC-2 | `examples/edge_cell_source_binding.json` | COMPLETE | merged | hosted pass | main |
-| SDK-EGC-3 | `tests/test_edge_cell_consumer.py` | COMPLETE | 10 tests | hosted pass | main |
-| SDK-EGC-4 | `scripts/verify_edge_cell_consumer.py` | COMPLETE | merged | standalone pass | main |
-| SDK-EGC-5 | `docs/GOVERNED_EDGE_CELL_SDK_CONSUMER.md` | COMPLETE | merged | package validation | main |
-| SDK-EGC-6 | this handoff | COMPLETE | released | evidence recorded | source registry notified |
+Completed Goal-7 slice remains 6/6 developed, 4/4 validation, 3/3 integration.
 
-## Completion
+New `BIOINTERFACE-SDK-001` denominator resets independently:
 
 ```text
-developed files: 6/6
-scaffolding or stubs: 0
-missing required files: 0
-validation: 4/4
-integration: 3/3
-goal activation: 100%
-session consolidation: 1/1
+architecture transfer: 1/1 complete
+implementation deliverables: 0/8
+scaffolding/stubs presented as implementation: 0
+validation: 0/3 new-goal gates
+integration: 0/3 new-goal domain bindings
+claim: MACHINE_OWNED / no active implementation claimant
 ```
 
-## Archive posture
+## Session consolidation
 
-The SDK edge-cell destination contains no unique continuation state outside
-this repository, its issue, PR, diagnostic, and source propagation registry.
-This SDK workstream is archive-safe; the broader originating session remains
-active only for other Goal 8 destinations.
-
-```text
-MERGED INTO: StegVerse-002/micro-node-runtime#15
-```
+The shared Health/Neuro device-substrate requirement and whole-nervous-system profile scope are now durable in `docs/BIOINTERFACE_DEVICE_SDK_CONVERGENCE.md` and issue #13. The originating chat does not need to remain open merely to preserve that architecture; future implementation must proceed from the issue and this handoff.
