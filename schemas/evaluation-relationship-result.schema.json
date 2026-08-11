@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/sdk/evaluation-relationship-result.schema.json",
+  "title": "StegVerse SDK Evaluation Relationship Result",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema", "request_id", "objectives", "admitted_capabilities", "denied_or_unavailable", "unresolved_objectives", "receipt_hash"],
+  "properties": {
+    "schema": {"const": "stegverse.sdk.evaluation-relationship-result.v1"},
+    "request_id": {"type": "string", "minLength": 1},
+    "objectives": {"type": "array", "items": {"type": "string"}},
+    "admitted_capabilities": {"type": "array", "items": {"type": "object"}},
+    "denied_or_unavailable": {"type": "array", "items": {"type": "object"}},
+    "unresolved_objectives": {"type": "array", "items": {"type": "string"}},
+    "recipient_specific_package": {"const": false},
+    "identity_bound_package": {"const": false},
+    "execution_authority_granted": {"const": false},
+    "mutation_authority_granted": {"const": false},
+    "publication_authority_granted": {"const": false},
+    "wallet_authority_granted": {"const": false},
+    "credential_authority_granted": {"const": false},
+    "repository_access_granted": {"const": false},
+    "unknown_interest_auto_admitted": {"const": false},
+    "receipt_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
