@@ -38,6 +38,9 @@ dev = [
     "mypy>=1.0",
 ]
 
+[project.scripts]
+stegverse = "stegverse.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/StegVerse-org/StegVerse-SDK"
 Documentation = "https://github.com/StegVerse-org/StegVerse-SDK#readme"
