@@ -1,8 +1,9 @@
 """Non-secret external integration configuration for universal-entry servers.
 
-This module records endpoint identities, immutable source bindings, and credential
-references without storing credential values or authorizing deployment. Validation is
-deterministic and fail closed; a valid packet is configuration evidence only.
+This module records endpoint identities, immutable public-source bindings, and
+service credential references without storing credential values or authorizing
+deployment. Public GitHub source bindings are credential-free; protected-route
+credential semantics remain outside the SDK and are governed by TV/TVC.
 """
 from __future__ import annotations
 
@@ -66,7 +67,22 @@ def _https_endpoint(value: str, *, allow_localhost_http: bool = False) -> str:
 
 
 def _source_binding(raw: Mapping[str, Any]) -> dict[str, Any]:
-    credential_ref = _credential_ref(raw)
+    forbidden = sorted(
+        name for name in (
+            "credential_ref", "credential", "credential_value", "token",
+            "api_key", "secret", "password", "authorization", "bearer_token",
+        )
+        if raw.get(name) not in (None, "")
+    )
+    if forbidden:
+        raise IntegrationConfigError(
+            "public repository source bindings are credential-free; protected access belongs to TV/TVC: "
+            + ", ".join(forbidden)
+        )
+    if raw.get("credential_requirement") not in (None, "", "NONE"):
+        raise IntegrationConfigError("public repository credential_requirement must be NONE")
+    if raw.get("credential_authority") not in (None, "", "TV/TVC"):
+        raise IntegrationConfigError("public repository credential_authority must be TV/TVC")
     allowed = {
         "source_id",
         "repository",
@@ -75,7 +91,8 @@ def _source_binding(raw: Mapping[str, Any]) -> dict[str, Any]:
         "expected_blob_sha",
         "expected_content_digest",
         "read_receipt_required",
-        "credential_ref",
+        "credential_requirement",
+        "credential_authority",
     }
     unknown = sorted(set(raw) - allowed)
     if unknown:
@@ -96,7 +113,8 @@ def _source_binding(raw: Mapping[str, Any]) -> dict[str, Any]:
             else None
         ),
         "read_receipt_required": raw.get("read_receipt_required", True) is True,
-        "credential_ref": credential_ref,
+        "credential_requirement": "NONE",
+        "credential_authority": "TV/TVC",
     }
 
 
@@ -192,12 +210,14 @@ def build_integration_config(
         route = None
 
     body: dict[str, Any] = {
-        "schema": "stegverse.universal_entry_integration_config.v0.1",
+        "schema": "stegverse.universal_entry_integration_config.v0.2",
         "environment": environment,
         "source_bindings": sources,
         "provider": provider_binding,
         "custody": custody_binding,
         "site_same_origin_route": route,
+        "github_tokens_supported": False,
+        "credential_authority": "TV/TVC",
         "credentials_embedded": False,
         "credentials_exposed_to_entry_adapter": False,
         "deployment_authorized": False,
@@ -212,8 +232,12 @@ def build_integration_config(
 
 
 def validate_integration_config(packet: Mapping[str, Any]) -> dict[str, Any]:
-    if packet.get("schema") != "stegverse.universal_entry_integration_config.v0.1":
+    if packet.get("schema") != "stegverse.universal_entry_integration_config.v0.2":
         raise IntegrationConfigError("unsupported integration configuration schema")
+    if packet.get("github_tokens_supported") is not False:
+        raise IntegrationConfigError("SDK integration configuration may not enable GitHub tokens")
+    if packet.get("credential_authority") != "TV/TVC":
+        raise IntegrationConfigError("credential authority must remain TV/TVC")
     for field in (
         "credentials_embedded",
         "credentials_exposed_to_entry_adapter",

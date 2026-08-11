@@ -1,10 +1,9 @@
-"""Authenticated GitHub file fetcher for allowlisted canonical sources.
+"""Credential-free GitHub file fetcher for allowlisted public canonical sources.
 
-Credentials are resolved at call time through a dependency-injected resolver. Tokens are
-never stored in source bindings, integration packets, returned metadata, or browser state.
-The fetcher uses GitHub's contents API, validates repository/path/ref identity, decodes UTF-8
-file content, and returns immutable blob and read-receipt evidence to the existing
-AllowlistedRepositorySourceReader.
+The public SDK does not acquire or resolve GitHub tokens. Production credential
+semantics and protected-resource authority belong to TV/TVC and must cross that
+separate governed boundary. This fetcher therefore performs only unauthenticated,
+read-only GitHub contents requests and emits non-authorizing provenance receipts.
 """
 from __future__ import annotations
 
@@ -12,7 +11,7 @@ import base64
 from dataclasses import dataclass
 from hashlib import sha256
 import json
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Callable, Mapping
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -21,7 +20,7 @@ from .repository_source_reader import RepositorySourceBinding
 
 
 class GitHubRepositoryFetcherError(RuntimeError):
-    """Raised when GitHub source retrieval cannot be verified."""
+    """Raised when a public GitHub source retrieval cannot be verified."""
 
 
 def _canonical(value: Any) -> str:
@@ -32,7 +31,6 @@ def _digest(value: Any) -> str:
     return "sha256:" + sha256(_canonical(value).encode("utf-8")).hexdigest()
 
 
-TokenResolver = Callable[[Optional[str]], Optional[str]]
 HTTPExecutor = Callable[[Request, float], Mapping[str, Any]]
 
 
@@ -43,11 +41,11 @@ def _default_http_executor(request: Request, timeout_seconds: float) -> Mapping[
     except HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
         raise GitHubRepositoryFetcherError(
-            f"GitHub contents request failed with HTTP {exc.code}: {detail[:300]}"
+            f"public GitHub contents request failed with HTTP {exc.code}: {detail[:300]}"
         ) from exc
     except URLError as exc:
         raise GitHubRepositoryFetcherError(
-            f"GitHub contents request failed: {exc.reason}"
+            f"public GitHub contents request failed: {exc.reason}"
         ) from exc
     try:
         decoded = json.loads(payload)
@@ -60,24 +58,12 @@ def _default_http_executor(request: Request, timeout_seconds: float) -> Mapping[
 
 @dataclass(frozen=True)
 class GitHubRepositoryFetcher:
-    """Read one allowlisted GitHub file at an explicit ref."""
+    """Read one allowlisted public GitHub file at an explicit ref."""
 
-    credential_ref: str | None = None
-    token_resolver: TokenResolver | None = None
     http_executor: HTTPExecutor = _default_http_executor
     api_base: str = "https://api.github.com"
     timeout_seconds: float = 15.0
-    user_agent: str = "StegVerse-SDK-Universal-Entry/0.1"
-
-    def _token(self) -> str | None:
-        if self.credential_ref and self.token_resolver is None:
-            raise GitHubRepositoryFetcherError(
-                "credential_ref configured without a token resolver"
-            )
-        token = self.token_resolver(self.credential_ref) if self.token_resolver else None
-        if token is not None and not str(token).strip():
-            raise GitHubRepositoryFetcherError("token resolver returned an empty token")
-        return str(token).strip() if token is not None else None
+    user_agent: str = "StegVerse-SDK-Universal-Entry/0.2"
 
     def __call__(self, binding: RepositorySourceBinding) -> Mapping[str, Any]:
         if self.api_base.rstrip("/") != "https://api.github.com":
@@ -98,9 +84,6 @@ class GitHubRepositoryFetcher:
             "User-Agent": self.user_agent,
             "X-GitHub-Api-Version": "2022-11-28",
         }
-        token = self._token()
-        if token:
-            headers["Authorization"] = f"Bearer {token}"
         request = Request(url, headers=headers, method="GET")
         response = self.http_executor(request, self.timeout_seconds)
 
@@ -134,7 +117,7 @@ class GitHubRepositoryFetcher:
         if binding.expected_content_digest and content_digest != binding.expected_content_digest:
             raise GitHubRepositoryFetcherError("GitHub content digest mismatch")
         receipt_body = {
-            "schema": "stegverse.github_repository_read_receipt.v0.1",
+            "schema": "stegverse.github_repository_read_receipt.v0.2",
             "repository": binding.repository,
             "path": binding.path,
             "ref": binding.ref,
@@ -143,6 +126,8 @@ class GitHubRepositoryFetcher:
             "read_only": True,
             "authorizing": False,
             "custody_transferred": False,
+            "credential_requirement": "NONE",
+            "credential_authority": "TV/TVC",
         }
         receipt_id = _digest(receipt_body)
         return {
@@ -158,6 +143,7 @@ class GitHubRepositoryFetcher:
             "authorizing": False,
             "custody_transferred": False,
             "credentials_exposed": False,
+            "credential_requirement": "NONE",
         }
 
 

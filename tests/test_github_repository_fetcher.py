@@ -1,5 +1,4 @@
 import base64
-from copy import deepcopy
 
 import pytest
 
@@ -33,65 +32,36 @@ def response(text="# SDK Mirror Handoff\n", **overrides):
     return raw
 
 
-def test_fetches_authenticated_file_and_emits_read_receipt():
+def test_fetches_public_file_without_authorization_and_emits_receipt():
     observed = {}
 
     def execute(request, timeout):
         observed["url"] = request.full_url
-        observed["headers"] = dict(request.header_items())
+        observed["headers"] = {key.lower(): value for key, value in request.header_items()}
         observed["timeout"] = timeout
         return response()
 
-    fetcher = GitHubRepositoryFetcher(
-        credential_ref="secret://github/source-reader",
-        token_resolver=lambda ref: "token-value" if ref else None,
-        http_executor=execute,
-    )
-    result = fetcher(binding())
+    result = GitHubRepositoryFetcher(http_executor=execute)(binding())
 
     assert result["text"].startswith("# SDK Mirror Handoff")
     assert result["blob_sha"] == "blob-123"
     assert result["receipt_ref"] == result["read_receipt"]["receipt_id"]
     assert result["read_receipt"]["authorizing"] is False
     assert result["read_receipt"]["custody_transferred"] is False
+    assert result["read_receipt"]["credential_requirement"] == "NONE"
+    assert result["read_receipt"]["credential_authority"] == "TV/TVC"
     assert result["credentials_exposed"] is False
-    assert "token-value" not in repr(result)
+    assert "authorization" not in observed["headers"]
     assert observed["url"].endswith("/contents/SDK_MIRROR_HANDOFF.md?ref=main")
-    normalized_headers = {key.lower(): value for key, value in observed["headers"].items()}
-    assert normalized_headers["authorization"] == "Bearer token-value"
-    assert normalized_headers["x-github-api-version"] == "2022-11-28"
+    assert observed["headers"]["x-github-api-version"] == "2022-11-28"
     assert observed["timeout"] == 15.0
 
 
-def test_public_read_omits_authorization_header():
-    observed = {}
-
-    def execute(request, timeout):
-        observed["headers"] = {key.lower(): value for key, value in request.header_items()}
-        return response()
-
-    result = GitHubRepositoryFetcher(http_executor=execute)(binding())
-    assert "authorization" not in observed["headers"]
-    assert result["credentials_exposed"] is False
-
-
-def test_requires_token_resolver_for_credential_reference():
-    fetcher = GitHubRepositoryFetcher(
-        credential_ref="secret://github/source-reader",
-        http_executor=lambda request, timeout: response(),
-    )
-    with pytest.raises(GitHubRepositoryFetcherError, match="without a token resolver"):
-        fetcher(binding())
-
-
-def test_rejects_empty_resolved_token():
-    fetcher = GitHubRepositoryFetcher(
-        credential_ref="secret://github/source-reader",
-        token_resolver=lambda ref: "   ",
-        http_executor=lambda request, timeout: response(),
-    )
-    with pytest.raises(GitHubRepositoryFetcherError, match="empty token"):
-        fetcher(binding())
+def test_constructor_has_no_github_token_interface():
+    with pytest.raises(TypeError):
+        GitHubRepositoryFetcher(credential_ref="secret://github/source-reader")
+    with pytest.raises(TypeError):
+        GitHubRepositoryFetcher(token_resolver=lambda ref: "token")
 
 
 def test_rejects_non_file_response():

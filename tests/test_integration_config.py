@@ -18,7 +18,6 @@ def source_binding():
         "expected_blob_sha": "blob-1",
         "expected_content_digest": "sha256:content",
         "read_receipt_required": True,
-        "credential_ref": "secret-manager://github/read-only",
     }
 
 
@@ -26,7 +25,7 @@ def provider_binding():
     return {
         "enabled": True,
         "base_url": "https://gateway.example.test",
-        "credential_ref": "secret-manager://llm-adapter/service",
+        "credential_ref": "tvc://llm-adapter/service",
         "expected_service": "stegverse-ecosystem-chat-gateway",
         "expected_schema_version": "1.3.0",
         "session_identity_required": True,
@@ -37,7 +36,7 @@ def custody_binding():
     return {
         "enabled": True,
         "base_url": "https://records.example.test",
-        "credential_ref": "secret-manager://master-records/custody",
+        "credential_ref": "tvc://master-records/custody",
         "expected_service": "stegverse-master-records",
         "expected_schema_version": "1.0.0",
         "session_identity_required": True,
@@ -57,6 +56,10 @@ def packet():
 def test_build_and_validate_non_secret_configuration():
     result = packet()
     assert validate_integration_config(result) == result
+    assert result["schema"] == "stegverse.universal_entry_integration_config.v0.2"
+    assert result["github_tokens_supported"] is False
+    assert result["credential_authority"] == "TV/TVC"
+    assert result["source_bindings"][0]["credential_requirement"] == "NONE"
     assert result["credentials_embedded"] is False
     assert result["credentials_exposed_to_entry_adapter"] is False
     assert result["deployment_authorized"] is False
@@ -84,6 +87,13 @@ def test_configuration_is_deterministic_across_source_order():
         source_bindings=[second, source_binding()],
     )
     assert first == reversed_packet
+
+
+def test_github_source_credential_reference_is_rejected():
+    source = source_binding()
+    source["credential_ref"] = "secret-manager://github/read-only"
+    with pytest.raises(IntegrationConfigError, match="credential-free"):
+        build_integration_config(environment="staging", source_bindings=[source])
 
 
 def test_embedded_secret_is_rejected():

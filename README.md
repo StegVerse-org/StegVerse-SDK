@@ -1,201 +1,156 @@
-# STEGVERSE SDK
+# StegVerse SDK
 
-![PyPI](https://img.shields.io/pypi/v/stegverse-sdk)
-![Python](https://img.shields.io/badge/python-3.9%2B-blue)
-![SDK Validation](https://github.com/StegVerse-org/StegVerse-SDK/actions/workflows/sdk-demo-test.yml/badge.svg)
-![License](https://img.shields.io/github/license/StegVerse-org/StegVerse-SDK)
+The StegVerse SDK is the developer-facing, non-authorizing Python interface for local governance testing, admissibility evaluation, receipt verification, bounded routing, and integration development.
 
-> Submission is not execution. Execution is not authority. Authority is not admissibility.
+It is not an execution authority. It does not grant deployment, mutation, publication, custody, standing, or admissibility simply because a request, route, receipt, or result is accepted.
 
-`StegVerse-SDK` is the user-facing Python intake boundary for StegVerse governance testing. It binds submitted data to a manifest, preserves route intent, and prepares the package for downstream receipt-bound evaluation.
+## Start here
 
-The SDK does not claim endorsement, compatibility, provenance, collaboration, or validation from any reviewer or external framework. It prepares artifacts for bounded testing routes.
-
----
-
-## What it does
-
-```text
-User / SDK / LLM Adapter / Ecosystem Chat
-→ manifest-bound intake
-→ receipt-bound route package
-→ StegVerse-org ingestion
-→ StegGhost/entity-sandbox-runner bounded sandbox path
-→ returned result / reconstruction packet
-```
-
-The SDK supports:
-
-- raw JSON package submission;
-- governed-data package submission;
-- LLM Adapter submission;
-- governed LLM session packet validation, intake routing, manifest binding, and receipt handoff;
-- Ecosystem Chat intake validation;
-- LLM Adapter free-tier trust metadata ingestion;
-- formal testing route artifacts;
-- dynamic admissibility tests;
-- private boundary-review test packets.
-
----
-
-## Governed LLM SDK activation
-
-The governed LLM SDK contract layer is documented in:
-
-```text
-docs/GOVERNED_LLM_SDK_ACTIVATION.md
-```
-
-The session packet contract is documented in:
-
-```text
-docs/GOVERNED_LLM_SESSION_PACKETS.md
-```
-
-The free-tier metadata ingestion contract is documented in:
-
-```text
-docs/FREE_TIER_METADATA_INGESTION.md
-```
-
-The machine-readable capability manifest is:
-
-```text
-sdk.capabilities.json
-```
-
-Current SDK chain:
-
-```text
-adapter session packet
-  -> SDK validation
-  -> SDK intake routing
-  -> SDK manifest binding
-  -> SDK receipt handoff
-  -> optional free_tier_trust metadata validation
-```
-
-Local verification:
+The current canonical demo is the repository checkout. This guarantees that the console, examples, tests, and documentation match the exact code being evaluated:
 
 ```bash
-pytest tests/test_governed_llm.py
-pytest tests/test_governed_llm_session.py
-pytest tests/test_governed_llm_session_intake.py
-pytest tests/test_governed_llm_manifest.py
-pytest tests/test_governed_llm_receipt.py
-pytest tests/test_free_tier_metadata.py
-python scripts/smoke_governed_llm_sdk.py
-python scripts/verify_free_tier_metadata_ingestion.py
+git clone https://github.com/StegVerse-org/StegVerse-SDK.git
+cd StegVerse-SDK
+python -m pip install -e ".[dev]"
+stegverse
 ```
 
----
+The equivalent entry command is:
 
-## LLM free-tier metadata ingestion
-
-The SDK can validate the `free_tier_trust` response field emitted by `StegVerse-org/LLM-adapter` and displayed by `StegVerse-Labs/Site`.
-
-```text
-LLM-adapter free_tier_trust metadata
--> SDK metadata ingestion contract
--> deterministic validation result
--> non-authorizing SDK status
--> downstream compatibility signal
+```bash
+python -m stegverse
 ```
 
-This contract validates shape, quota metadata, receipt/replay/reconstruction metadata, upgrade reasons, and explicit non-claims.
+The published `stegverse-sdk` package may lag the repository between releases. Do not assume a package release contains a console feature until that release identifies it.
 
-It does not call a provider, persist records, issue receipts, export audit packets, replay sessions, reconstruct sessions, grant execution authority, or convert quota availability into admissibility.
+## Discover the SDK from the console
 
----
+Every developer, tester, and evaluator uses the same interface. There are no person-specific routes.
 
-## Validation workflow
+```bash
+stegverse surfaces
+stegverse help-surface <surface>
+stegverse capabilities
+```
 
-The repository uses one consolidated GitHub Actions workflow:
+`stegverse surfaces` lists only user-facing surfaces that are callable from the installed SDK. `stegverse capabilities` prints that same public surface registry as JSON.
+
+## Run an allowed local surface
+
+```bash
+stegverse run <surface> [options]
+```
+
+Current generic console surfaces are:
+
+| Surface | What it does | Example |
+|---|---|---|
+| `admissibility` | Evaluate a governed tester packet locally | `stegverse run admissibility --input packet.json` |
+| `llm-admissibility` | Evaluate LLM text under the SDK admissibility bridge | `stegverse help-surface llm-admissibility` |
+| `math-admissibility` | Evaluate a math/formalism artifact | `stegverse help-surface math-admissibility` |
+| `admittedcode` | Verify a portable AdmittedCode receipt | `stegverse run admittedcode --input receipt.json` |
+| `universal-entry` | Route an envelope against an explicit capability registry | `stegverse help-surface universal-entry` |
+| `bridges` | List registered dynamic-admissibility bridges | `stegverse run bridges` |
+| `entry-points` | List canonical StegVerse entry-point roles | `stegverse run entry-points` |
+
+Full console documentation is in `docs/SDK_CONSOLE.md`.
+
+## AdmittedCode
+
+AdmittedCode is a normal SDK surface, not a special evaluator mode. Any SDK user can discover it:
+
+```bash
+stegverse help-surface admittedcode
+```
+
+Then verify a receipt:
+
+```bash
+stegverse run admittedcode --input examples/governed_llm_demo/admittedcode/admissibility_receipt.allow.json
+stegverse run admittedcode --input examples/governed_llm_demo/admittedcode/admissibility_receipt.deny.json
+```
+
+The SDK validates the portable receipt boundary and preserves the underlying decision. SDK `ACCEPTED` means the receipt is structurally and cryptographically acceptable to the SDK consumer; it does not convert a `DENY` into an `ALLOW`.
+
+## Dynamic admissibility
+
+A local LLM-output example:
+
+```bash
+stegverse run llm-admissibility \
+  --provider fixture-provider \
+  --model fixture-model \
+  --prompt "Draft a research note." \
+  --output "A bounded research note."
+```
+
+A local formalism example:
+
+```bash
+stegverse run math-admissibility \
+  --formalism RTG-STCM \
+  --artifact-type solver_artifact \
+  --summary "Candidate derivation for bounded review."
+```
+
+These SDK evaluations are local and non-authorizing. They do not certify domain correctness or create execution proof.
+
+## Universal entry
+
+The SDK includes deterministic universal-entry routing. Supply both the request envelope and the capability registry explicitly:
+
+```bash
+stegverse run universal-entry \
+  --input <universal-entry-envelope.json> \
+  --registry <capabilities.json>
+```
+
+Routing is capability-bounded and can fail closed. A routing result does not grant execution authority or custody.
+
+## Credentials and TV/TVC boundary
+
+The public SDK console does not require GitHub tokens for its local test and verification surfaces.
+
+Production credential semantics and route authority belong to TV/TVC. Do not place GitHub tokens, provider keys, private keys, or other credential material into SDK packets, examples, receipts, or console arguments. Protected or live execution routes must cross the separately governed TV/TVC authority boundary rather than acquiring credentials inside the SDK.
+
+Public repository source inspection, when used by SDK support code, is non-authorizing and should remain credential-free. Private-source access is not a public SDK-console capability.
+
+## What the SDK is for
+
+The canonical SDK role is developer-native programmatic intake, testing, integration, and observation. Existing modules include dynamic admissibility, governed LLM contracts, receipt handling, system-boundary contracts, universal-entry routing, SDK-to-SPE progression contracts, comparison contracts, and bounded integration helpers.
+
+The repository contains internal handoffs and project-control records as well as product code. Files such as `*_MIRROR_HANDOFF.md` are development continuity records; they are not user entry points and are not created by someone merely accessing the SDK.
+
+## Validate the checkout
+
+```bash
+pytest tests/ -v
+```
+
+The canonical hosted validation workflow is:
 
 ```text
 .github/workflows/sdk-demo-test.yml
 ```
 
-It runs the Python compatibility matrix, complete test suite, formal route validation, dynamic-admissibility examples, Goal 5 comparison verification, package build, release creation, and PyPI publication. Formal-route and dynamic-admissibility checks remain distinct jobs and commands inside this workflow rather than separate workflow files.
+The workflow tests Python compatibility, public imports, the complete test suite, route fixtures, dynamic admissibility examples, package build, and wheel installation.
 
-## Primary routes
+## Machine-readable repository state
 
-| Route | Purpose | Key files |
-|---|---|---|
-| Consolidated SDK Validation | Package install, tests, formal-route checks, admissibility checks, build, and release | `.github/workflows/sdk-demo-test.yml` |
-| Formal Testing Route | Receipt-bound testing-data loop and route-result validation | `docs/FORMAL_TESTING_ROUTE.md`, `scripts/validate_formal_testing_route.py` |
-| Dynamic Admissibility | Boundary and admissibility fixture checks | `stegverse/admissibility.py`, `tests/test_dynamic_admissibility.py` |
-| Ecosystem Chat Intake | Site-facing three-layer intake validation | `stegverse/ecosystem_chat_http.py` |
-| Free-Tier Metadata Ingestion | LLM-adapter `free_tier_trust` metadata validation | `stegverse/free_tier_metadata.py` |
+`sdk.capabilities.json` records repository implementation and integration posture. It can contain internal or not-yet-live integration state and therefore is not the same thing as the console's callable-surface list.
 
----
+`SDK_MIRROR_HANDOFF.md` is the canonical repository work handoff. It is a project-control record, not SDK usage documentation.
 
-## Formal testing route
-
-The canonical formal testing path is:
+## Authority boundary
 
 ```text
-User
-→ StegVerse-org/StegVerse-SDK or LLM Adapter
-→ StegVerse-org ingestion
-→ StegGhost/entity-sandbox-runner ingestion/CGE
-→ ephemeral sandbox batch
-→ StegGhost/entity-sandbox-runner ingestion/CGE return validation
-→ StegVerse-org ingestion
-→ User
+submission != execution
+routing != execution
+validation != authority
+receipt acceptance != action approval
+SPE ALLOW != execution
+local persistence != custody
+provider output != authority
 ```
 
-Every ingestion point is expected to emit an action receipt to `master-records`.
-
-See:
-
-```text
-docs/FORMAL_TESTING_ROUTE.md
-```
-
----
-
-## Ecosystem Chat SDK intake
-
-The SDK includes a pre-backend intake validator, transport-free backend handler, and HTTP adapter for the Site Ecosystem Chat form gateway.
-
-```python
-from stegverse.ecosystem_chat_http import handle_ecosystem_chat_http
-
-status, response = handle_ecosystem_chat_http(
-    "POST",
-    "/api/ecosystem-chat",
-    request_body,
-)
-```
-
-The adapter accepts the Site three-layer payload only when `fields`, `manifest`, and `receipt_window` remain distinct and internally consistent. In this stage, `receipt_id` remains `None`; receipt issuance is not installed in the Site-facing intake path.
-
----
-
-## Relationship to runtime demos
-
-This repository is the intake and SDK boundary. Runtime comparison work is demonstrated separately in:
-
-```text
-StegVerse-org/core-node-runtime-demo
-```
-
-That runtime demo compares the same submitted package across cross-org ingestion and core-node / micro-node paths, emitting comparable result reports, closure artifacts, witness records, memory objects, terminal closure receipts, and kernel compatibility records.
-
----
-
-## Install
-
-```bash
-pip install stegverse-sdk
-```
-
-For local development:
-
-```bash
-git clone https://github.com/StegVerse-org/StegVerse-SDK.git
-cd StegVerse-SDK
-pip install -e ".[dev]"
-pytest tests/
-```
+The SDK should fail closed rather than silently convert missing authority, unavailable capability, invalid evidence, or unsupported input into success.
