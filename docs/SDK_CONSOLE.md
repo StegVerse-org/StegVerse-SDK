@@ -1,10 +1,10 @@
 # StegVerse SDK Console
 
-The console is the generic entry point for developers, testers, and evaluators. It exposes only locally callable SDK surfaces and does not create person-specific routes.
+The console is the generic public entry point for developers, testers, and evaluators. It exposes only locally callable SDK surfaces and does not create person-specific routes.
 
-## Install the current canonical demo
+## Install the canonical current demo
 
-Use a repository checkout when evaluating the current code so the console, examples, tests, and documentation are at the same revision:
+Use a repository checkout when evaluating current code so the console, examples, tests, and documentation are all at the same revision:
 
 ```bash
 git clone https://github.com/StegVerse-org/StegVerse-SDK.git
@@ -12,47 +12,36 @@ cd StegVerse-SDK
 python -m pip install -e ".[dev]"
 ```
 
-The published package can lag the repository between releases. A PyPI install should only be treated as equivalent after the corresponding release identifies the console feature.
+The published package can lag the repository between releases. Treat a PyPI install as equivalent only after the corresponding release explicitly identifies the console revision.
 
-## Enter the SDK
+## Enter and discover
 
 ```bash
 stegverse
+stegverse surfaces
 ```
 
-Equivalent:
+Equivalent module entry:
 
 ```bash
 python -m stegverse
 ```
 
-## Discover callable surfaces
-
-```bash
-stegverse surfaces
-```
-
-For help:
+For detailed help on any callable surface:
 
 ```bash
 stegverse help-surface <surface>
 ```
 
-For a machine-readable view of the callable console registry:
+For the machine-readable public registry:
 
 ```bash
 stegverse capabilities
 ```
 
-The repository-level `sdk.capabilities.json` is broader. It records implementation and integration posture, including disabled or unobserved dependencies; it is not the same thing as the callable console registry.
+The repository-level `sdk.capabilities.json` is intentionally broader. It records implementation and integration posture, including disabled or unobserved dependencies, and is not the same thing as the callable console registry.
 
-## Run a surface
-
-```bash
-stegverse run <surface> [options]
-```
-
-Current runnable local surfaces:
+## Runnable surfaces
 
 ```text
 admissibility
@@ -64,24 +53,55 @@ bridges
 entry-points
 ```
 
-Always use `stegverse help-surface <surface>` to see the exact input contract.
+General execution form:
 
-## AdmittedCode receipt verification
+```bash
+stegverse run <surface> [options]
+```
 
-Discover it generically:
+Always use `stegverse help-surface <surface>` to inspect the exact local contract, backing module, documentation pointer, examples, and authority posture.
+
+## AdmittedCode
+
+AdmittedCode is a first-class generic SDK surface for portable provider-harness receipt verification.
+
+Discover it:
 
 ```bash
 stegverse help-surface admittedcode
 ```
 
-Repository checkout examples:
+Run the bundled credential-free demonstration:
+
+```bash
+stegverse demo admittedcode
+```
+
+The demo exercises both canonical repository fixtures. Expected semantics:
+
+```text
+allow fixture -> verification.status = ACCEPTED; verification.decision = ALLOW
+deny fixture  -> verification.status = ACCEPTED; verification.decision = DENY
+authority_effect = NONE
+```
+
+A valid `DENY` receipt being SDK `ACCEPTED` is intentional: acceptance means the portable receipt boundary validated. It does not convert the denied action into an allowed action.
+
+Run a single bundled case:
+
+```bash
+stegverse demo admittedcode --case allow
+stegverse demo admittedcode --case deny
+```
+
+Or verify a receipt directly:
 
 ```bash
 stegverse run admittedcode --input examples/governed_llm_demo/admittedcode/admissibility_receipt.allow.json
 stegverse run admittedcode --input examples/governed_llm_demo/admittedcode/admissibility_receipt.deny.json
 ```
 
-A result of SDK `ACCEPTED` validates the receipt boundary. It does not alter the receipt's underlying `ALLOW`, `DENY`, or `FAIL_CLOSED` decision.
+The SDK consumer validates required fields, supported schema, allowed decision vocabulary, the refusal/key-request boundary, authority escalation, and the canonical receipt hash. Corrupt, unsupported, or authority-escalating receipts return `REJECTED` rather than being coerced into success.
 
 ## LLM admissibility
 
@@ -93,7 +113,7 @@ stegverse run llm-admissibility \
   --output "A bounded research note."
 ```
 
-Optional:
+Optional fields:
 
 ```text
 --intent <declared-intent>
@@ -111,7 +131,7 @@ stegverse run math-admissibility \
   --summary "Candidate derivation for bounded review."
 ```
 
-This evaluates what posture the artifact may take. It does not certify mathematical correctness or proof closure.
+This evaluates allowed posture. It does not certify mathematical correctness or proof closure.
 
 ## Generic admissibility packet
 
@@ -119,7 +139,7 @@ This evaluates what posture the artifact may take. It does not certify mathemati
 stegverse run admissibility --input <tester-packet.json>
 ```
 
-The input must be a JSON object in the SDK tester-packet family.
+The input must be a JSON object in the SDK tester-packet family. Missing or malformed input fails closed with a nonzero exit code.
 
 ## Universal-entry routing
 
@@ -131,26 +151,45 @@ stegverse run universal-entry \
 
 The registry is explicit because routing must not silently assume capabilities. Unsupported or unavailable lanes fail closed according to the universal-entry contract.
 
-## Inspect bridge and entry-point registries
+## Inspect registries
 
 ```bash
 stegverse run bridges
 stegverse run entry-points
 ```
 
-These commands are useful for determining what adapter bridges and entry-point roles the installed SDK recognizes.
+These commands show the dynamic-admissibility bridges and canonical entry-point roles recognized by the installed SDK.
 
 ## Credential boundary
 
-The public console does not require GitHub tokens for these local tasks.
+The public console requires no GitHub token for local discovery, demos, tests, or receipt verification.
 
-Do not supply GitHub tokens, provider keys, private keys, passwords, or bearer tokens to the SDK console. Production credential semantics and route authority are owned by TV/TVC. Any protected or live execution route must cross that governed authority boundary instead of acquiring credentials through the SDK.
+Do not supply GitHub tokens, provider keys, private keys, bearer tokens, passwords, or other secrets to the SDK console. Production credential semantics and protected route authority are owned by TV/TVC. Any protected or live execution route must cross that governed authority boundary instead of acquiring credentials through the SDK.
 
-Private-source access is not a public SDK-console capability. Public source reads are non-authorizing and should be credential-free.
+Private-source access is not a public console capability. Public source reads used by support code are non-authorizing and credential-free.
 
-## Repository control files are not console surfaces
+## Exit behavior and troubleshooting
 
-Files such as `SDK_MIRROR_HANDOFF.md` and other `*_MIRROR_HANDOFF.md` files preserve implementation continuity, validation state, and task ownership. They are repository control records, not SDK user commands and not artifacts generated merely by accessing the SDK.
+Successful local commands return exit code `0`. Invalid input, unknown surfaces, unsupported demos, malformed JSON, and missing required arguments return a nonzero code and an `ERROR:` or explicit failure message.
+
+Useful recovery commands:
+
+```bash
+stegverse surfaces
+stegverse help-surface admittedcode
+stegverse capabilities
+pytest tests/test_cli.py -v
+```
+
+If `stegverse` is not found after a repository checkout, reinstall the editable package from the repository root:
+
+```bash
+python -m pip install -e ".[dev]"
+```
+
+## Repository control files are not product surfaces
+
+`SDK_MIRROR_HANDOFF.md` and other `*_MIRROR_HANDOFF.md` files preserve implementation continuity, validation state, and task ownership. They are project-control records, not SDK user commands, and they are not generated by someone merely accessing the SDK.
 
 ## Validate the checkout
 
@@ -162,4 +201,4 @@ Hosted validation is defined by `.github/workflows/sdk-demo-test.yml`.
 
 ## Authority boundary
 
-The console never converts discovery or successful local evaluation into execution authority, deployment authority, publication authority, custody, standing, or admissibility beyond the explicit result contract returned by the selected SDK surface.
+The console never converts discovery or successful local evaluation into execution authority, deployment authority, publication authority, custody, standing, or broader admissibility beyond the explicit result contract returned by the selected SDK surface.

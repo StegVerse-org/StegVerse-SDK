@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "stegverse-sdk"
 version = '1.0.13'
-description = "StegVerse SDK for governed AI execution"
+description = "StegVerse SDK for governed AI testing, admissibility evaluation, receipt verification, and bounded routing"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
 authors = [
     {name = "StegVerse", email = "dev@stegverse.org"}
 ]
-keywords = ["ai", "governance", "stegverse", "admissibility"]
+keywords = ["ai", "governance", "stegverse", "admissibility", "receipts", "verification"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -21,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
@@ -43,10 +44,13 @@ stegverse = "stegverse.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/StegVerse-org/StegVerse-SDK"
-Documentation = "https://github.com/StegVerse-org/StegVerse-SDK#readme"
+Documentation = "https://github.com/StegVerse-org/StegVerse-SDK/blob/main/docs/SDK_CONSOLE.md"
 Repository = "https://github.com/StegVerse-org/StegVerse-SDK"
 Issues = "https://github.com/StegVerse-org/StegVerse-SDK/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["stegverse*"]
+
+[tool.setuptools.package-data]
+"stegverse.demo_data" = ["*.json"]
