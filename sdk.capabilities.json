@@ -1,5 +1,5 @@
 {
-  "schema_version": "stegverse.sdk.capabilities.v0.6",
+  "schema_version": "stegverse.sdk.capabilities.v0.7",
   "repo": "StegVerse-org/StegVerse-SDK",
   "status": "universal-entry-and-governed-transition-contracts-installed-validation-pending",
   "validation_posture": {
@@ -23,6 +23,26 @@
     "system_boundary_manifest_serialization": "built_optional_legacy_compatible",
     "system_boundary_receipt_reference_preservation": "built_non_authorizing",
     "system_boundary_round_trip_validation": "built_fail_closed"
+  },
+  "admittedcode_surface": {
+    "discoverability": "built_sdk_root_and_docs",
+    "portable_receipt_consumer": "built_non_authorizing",
+    "canonical_hash_recomputation": "built",
+    "source_verification_annotations": "supported",
+    "allow_fixture": "built",
+    "deny_fixture": "built",
+    "refusal_semantics_preserved": true,
+    "sdk_accepted_is_execution_permission": false,
+    "sdk_validation_is_execution": false,
+    "sdk_intake_is_authority": false,
+    "receipt_handoff_is_master_record_installation": false,
+    "authority_effect": "NONE",
+    "developer_guide": "docs/ADMITTEDCODE.md",
+    "implementation": "stegverse/admittedcode_receipt.py",
+    "focused_tests": [
+      "tests/test_admittedcode_receipt.py",
+      "tests/test_admittedcode_receipt_fixture.py"
+    ]
   },
   "sdk_to_spe_commitment_intake": {
     "transition_candidate_emission": "built_non_authorizing",
@@ -90,6 +110,8 @@
   "primary_validation": {
     "workflow": ".github/workflows/sdk-demo-test.yml",
     "focused_suites": [
+      "tests/test_admittedcode_receipt.py",
+      "tests/test_admittedcode_receipt_fixture.py",
       "tests/test_spe_allow_consumer.py",
       "tests/test_adapter_origin_manifest_fixture.py",
       "tests/test_universal_entry.py",
