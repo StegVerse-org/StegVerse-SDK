@@ -79,6 +79,10 @@ def _source_binding(raw: Mapping[str, Any]) -> dict[str, Any]:
             "public repository source bindings are credential-free; protected access belongs to TV/TVC: "
             + ", ".join(forbidden)
         )
+    if raw.get("credential_requirement") not in (None, "", "NONE"):
+        raise IntegrationConfigError("public repository credential_requirement must be NONE")
+    if raw.get("credential_authority") not in (None, "", "TV/TVC"):
+        raise IntegrationConfigError("public repository credential_authority must be TV/TVC")
     allowed = {
         "source_id",
         "repository",
@@ -87,6 +91,8 @@ def _source_binding(raw: Mapping[str, Any]) -> dict[str, Any]:
         "expected_blob_sha",
         "expected_content_digest",
         "read_receipt_required",
+        "credential_requirement",
+        "credential_authority",
     }
     unknown = sorted(set(raw) - allowed)
     if unknown:
