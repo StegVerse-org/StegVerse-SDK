@@ -5,36 +5,51 @@
 Organization: `StegVerse-org`  
 Repository: `StegVerse-SDK`  
 Canonical branch: `main`  
-Active integration branch: `polish/public-sdk-surface-20260811`  
-Active pull request: `#15`  
 
-This file is the canonical repository handoff. Live repository state, Git history, PR state, workflow evidence, immutable receipts, and this handoff supersede prior chat claims.
+This file is the canonical repository handoff. Live repository state, Git history, workflow evidence, immutable receipts, and this handoff supersede prior chat claims.
 
 ## Goal inventory
 
-### SDK-PUBLIC-CONSOLE-001 — COMPLETE
+### SDK-PUBLIC-CONSOLE-001 — COMPLETE_RELEASED
 
 Originating goal: any developer/tester/evaluator can enter the SDK through one generic console, discover supported surfaces, run allowed local tasks, and obtain accurate help without person-specific instructions.
 
 ```text
-canonical_merge: 0509c4cf3783cb76d9355a866b41ed2999a3d3f6
 merged_pr: #14
+canonical_merge: 0509c4cf3783cb76d9355a866b41ed2999a3d3f6
 successor_main_validation: 31523998702 SUCCESS
+```
+
+### SDK-PUBLIC-POLISH-002 — COMPLETE_RELEASED
+
+Originating goal: make the SDK surface polished and ready for public display, including AdmittedCode as a normal self-discoverable surface usable by any external developer from checkout and from the built wheel artifact.
+
+```text
+merged_pr: #15
+canonical_merge: 17e2d163734ab1d76702884f6407ef859dd54f8b
+final_pr_head: 060aaca83b8e7691800dd1598c2a971e00e152e6
 claim_state: COMPLETE_RELEASED
 ```
 
-### SDK-PUBLIC-POLISH-002 — CLAIMED_FOR_IMPLEMENTATION/VALIDATION
-
-Originating goal: make the SDK surface 100% polished and ready for public display, including AdmittedCode as a normal self-discoverable surface usable by any external developer from checkout and, when released, from the built wheel.
+Final PR-head hosted validation:
 
 ```text
-branch: polish/public-sdk-surface-20260811
-pull_request: #15
-claimant: this PR
-claim_created: 2026-08-11
-release_condition: final-head hosted validation PASS + merge + successor-main Public SDK Surface Readiness PASS
-collision_boundary: no person-specific routes; no duplicate local-model authority; no credential authority inside SDK
+Public SDK Surface Readiness run 31526157562: SUCCESS
+StegVerse SDK Validation run 31526157647: SUCCESS
+validate run 31526157572: SUCCESS
+Architecture Guard run 31526157588: SUCCESS
+Validate Provider Usage Ingestion run 31526157583: SUCCESS
+Diagnose Python 3.9 Public Imports run 31526157568: SUCCESS
 ```
+
+Successor-main public distribution proof:
+
+```text
+Public SDK Surface Readiness run 31526281736: SUCCESS
+merge commit: 17e2d163734ab1d76702884f6407ef859dd54f8b
+```
+
+That successor-main run proved editable checkout installation, deterministic public-surface verification, package build, clean virtualenv wheel installation outside the repository checkout, and successful execution of `stegverse surfaces`, `stegverse help-surface admittedcode`, and `stegverse demo admittedcode` from the installed wheel.
 
 ## Public user experience
 
@@ -75,7 +90,7 @@ bridges
 entry-points
 ```
 
-Every callable surface must publish summary, command, backing module, documentation pointer, and `authority_effect: NONE`.
+Every callable surface publishes a summary, command, backing module, documentation pointer, and `authority_effect: NONE`.
 
 ## AdmittedCode public surface
 
@@ -94,7 +109,7 @@ stegverse/demo_data/admittedcode_allow.json
 stegverse/demo_data/admittedcode_deny.json
 ```
 
-Required proof semantics:
+Verified proof semantics:
 
 ```text
 ALLOW fixture -> SDK ACCEPTED; decision ALLOW
@@ -114,15 +129,9 @@ README.md
 docs/SDK_CONSOLE.md
 ```
 
-Public polish requirements:
+The README gives a sub-two-minute checkout-to-demo path, exposes AdmittedCode directly, distinguishes repository checkout from unreleased PyPI state, and describes the SDK as testing/verification/bounded routing rather than as execution authority.
 
-1. first-time developer can reach a working demo in under two minutes from repository checkout;
-2. AdmittedCode is visible in the root README and console discovery;
-3. help explains result semantics, not only command syntax;
-4. no private or person-specific directions are required;
-5. README does not claim an unreleased PyPI version already contains current behavior;
-6. package metadata describes the SDK as testing/verification/bounded routing, not as execution authority;
-7. built wheel includes the bundled demo fixtures and can execute `stegverse demo admittedcode` outside the repository checkout.
+The console guide documents surface discovery, AdmittedCode semantics, direct receipt verification, LLM/math admissibility, universal-entry routing, credential boundaries, exit behavior, troubleshooting, and repository-control-file boundaries.
 
 ## Credential and GitHub-token boundary
 
@@ -139,7 +148,7 @@ GitHub Actions may use GitHub's own ephemeral workflow transport for CI checkout
 
 ## Local model/runtime convergence
 
-No SDK implementation claim is authorized for the local model/runtime lane.
+No SDK implementation claim exists for the local model/runtime lane.
 
 Canonical owner/evidence:
 
@@ -154,24 +163,24 @@ implementation_state: COMPLETE_RELEASED
 
 The fallback `stegverse-reference-lm-v1` is a formally developed repository-local reference language model and is not a production-scale foundation LLM.
 
-LLM-adapter runtime activation remains machine-owned by its canonical handoff and carrier/TVC/Master Records workstream. This SDK session must not duplicate it.
+LLM-adapter runtime activation remains machine-owned by its canonical handoff and carrier/TVC/Master Records workstream. No duplication is authorized here.
 
-## Validation
+## Validation and automation
 
-Existing canonical workflow:
+Canonical SDK workflow:
 
 ```text
 .github/workflows/sdk-demo-test.yml
 ```
 
-Public-readiness gate added by PR #15:
+Permanent public-readiness gate:
 
 ```text
 .github/workflows/public-sdk-surface.yml
 scripts/verify_public_sdk_surface.py
 ```
 
-The public-readiness workflow must prove:
+The public-readiness workflow automatically proves:
 
 ```text
 editable checkout install
@@ -187,23 +196,24 @@ stegverse help-surface admittedcode from wheel
 stegverse demo admittedcode from wheel
 ```
 
-Do not claim 100% public readiness until final PR-head checks pass, PR #15 merges, and successor-main Public SDK Surface Readiness passes.
+This gate runs on pull requests to main and pushes to main, preventing future public-surface regressions from silently passing as release-ready repository state.
 
 ## Integration and release state
 
 ```text
 PR #14 generic console: COMPLETE_MERGED_VALIDATED
-PR #15 public polish: ACTIVE
-current repository checkout public readiness: branch implementation complete, hosted validation pending
-published package containing PR #15: NOT RELEASED
+PR #15 public polish: COMPLETE_MERGED_VALIDATED
+repository checkout public-display readiness: COMPLETE
+built wheel artifact public-surface readiness: COMPLETE_VALIDATED
+published PyPI package containing PR #15: NOT RELEASED
 release/tag authority: NOT GRANTED BY THIS HANDOFF
 ```
 
-A future PyPI release is a separate release-authority event. Repository public-display readiness and package-publication status must remain distinct.
+Repository public-display readiness and PyPI publication remain distinct. A future package release is a separate release-authority event.
 
 ## Session consolidation
 
-Durably transferred requirements:
+Durably transferred/completed requirements:
 
 1. generic SDK entry for every developer/tester/evaluator;
 2. discoverable and runnable AdmittedCode surface from the SDK itself;
@@ -215,39 +225,26 @@ Durably transferred requirements:
 8. TV/TVC remains credential/route authority;
 9. local-runtime discovery/launch/proof remains canonical in `StegVerse-002/micro-node-runtime#22`;
 10. formal local reference-model development remains canonical in `StegVerse-002/micro-node-runtime#22`;
-11. wheel must preserve the public console and bundled AdmittedCode demo outside a source checkout;
-12. public metadata must not describe the SDK as an execution authority.
+11. built wheel preserves the public console and bundled AdmittedCode demo outside a source checkout;
+12. public metadata does not describe the SDK as an execution authority;
+13. permanent automated public-readiness regression gate is installed.
 
 ## Completion accounting
 
-For `SDK-PUBLIC-POLISH-002`, required deliverables are:
-
-```text
-1 root README public landing page
-1 console guide
-1 enriched public surface registry
-1 generic console with bundled demo routing
-2 packaged AdmittedCode fixtures
-1 package metadata correction
-1 deterministic public-readiness verifier
-1 hosted public-readiness workflow
-1 CLI validation suite
-1 canonical handoff update
-```
-
-Current branch accounting:
+For `SDK-PUBLIC-POLISH-002`:
 
 ```text
 developed_files: 11/11
 scaffolding_or_stubs: 0
 missing_required_files: 0
-implementation: COMPLETE_ON_BRANCH
-validation: PENDING_FINAL_HEAD
-integration: PENDING_PR_MERGE
-propagation: not required for this repository-only public SDK polish goal
-session_requirements_transferred: 12/12
+implementation: COMPLETE
+validation: COMPLETE
+integration: COMPLETE
+public_display_readiness: COMPLETE
+published_package_release: OUTSIDE_THIS_GOAL / NOT_RELEASED
+session_requirements_transferred_or_complete: 13/13
 ```
 
 ## Archive conditions
 
-This session remains a distinct SDK integration/validation lane until PR #15 is hosted-green, merged, successor-main public-readiness validation is successful, and this handoff is updated with immutable evidence. No local-model/runtime implementation work remains here.
+The SDK public-console and public-polish implementation goals are complete, merged, validated, and automation-protected. This repository no longer requires this session for implementation, validation, or integration. Any future PyPI release is a distinct release-authority event and must not be inferred from repository public-display readiness.
