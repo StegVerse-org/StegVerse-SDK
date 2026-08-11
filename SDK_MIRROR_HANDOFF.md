@@ -5,18 +5,16 @@
 Organization: `StegVerse-org`  
 Repository: `StegVerse-SDK`  
 Canonical branch: `main`  
-Active integration branch: `feat/generic-sdk-console-20260811`  
-Active pull request: `#14`  
-This file is the canonical repository handoff. Live repository state, Git history, PR state, workflow evidence, immutable receipts, and this handoff supersede prior chat claims.
+This file is the canonical repository handoff. Live repository state, Git history, workflow evidence, immutable receipts, and this handoff supersede prior chat claims.
 
 ## Active goal
 
 ```text
 goal_id: SDK-PUBLIC-CONSOLE-001
 originating_goal: any developer/tester/evaluator can enter the SDK through one generic console, discover supported surfaces, run allowed local tasks, and obtain accurate help without person-specific instructions
-claim_state: CLAIMED_FOR_IMPLEMENTATION
-claimant: PR #14 / feat/generic-sdk-console-20260811
-release_condition: merge PR #14 after hosted validation on its final head, then observe successor-main validation
+claim_state: COMPLETE
+canonical_merge: 0509c4cf3783cb76d9355a866b41ed2999a3d3f6
+merged_pr: #14
 collision_boundary: no person-specific routes; no duplicate local-model/runtime authority; no credential authority inside SDK
 ```
 
@@ -90,9 +88,11 @@ The public SDK does not acquire or resolve GitHub tokens. `stegverse/github_repo
 
 `stegverse/integration_config.py` rejects credential references on public repository source bindings. Protected/live route credential semantics remain outside the SDK and are governed by TV/TVC. Service bindings may carry non-secret authority references, but embedded credential values remain prohibited.
 
+GitHub Actions may use GitHub's own ephemeral workflow token to check out repository code inside CI. That CI transport detail is not a production SDK/runtime credential dependency and grants no SDK route authority.
+
 ## Local model/runtime convergence
 
-The session requirement to replace descriptive local-model selection with executable discovery/launch/proof and to formally develop a local model is **not owned by this SDK branch**.
+The session requirement to replace descriptive local-model selection with executable discovery/launch/proof and to formally develop a local model is not owned by the SDK and must not be duplicated here.
 
 Canonical owner and evidence:
 
@@ -118,39 +118,45 @@ master-records/orchestration
 
 No GitHub token is a production local-model/runtime prerequisite.
 
-## Validation
+## Validation evidence
 
-Canonical workflow: `.github/workflows/sdk-demo-test.yml`.
-
-PR #14 validation must cover:
+Final PR head:
 
 ```text
-Python 3.9 / 3.11 / 3.12 complete test suite
-public imports
-CLI tests
-credential-free GitHub source tests
-integration-config TV/TVC boundary tests
-route validation
-dynamic admissibility examples
-package build
-wheel installation
-architecture guard
+272b2fa4b6c9c3dfd754f603547fd7493beddf20
 ```
 
-Do not claim merged/main or public-package readiness from branch implementation alone.
+All associated hosted workflows completed successfully, including:
+
+```text
+StegVerse SDK Validation run 31523742856: SUCCESS
+validate run 31523742739: SUCCESS
+Architecture Guard run 31523742724: SUCCESS
+Validate Provider Usage Ingestion run 31523742712: SUCCESS
+Diagnose Python 3.9 Public Imports run 31523742728: SUCCESS
+```
+
+The SDK validation job proved Python 3.9/3.11/3.12 complete tests, route-validation, dynamic-admissibility examples, package build, and wheel installation.
+
+Canonical merge:
+
+```text
+PR #14: MERGED
+main merge commit: 0509c4cf3783cb76d9355a866b41ed2999a3d3f6
+successor-main StegVerse SDK Validation run 31523998702: SUCCESS
+```
 
 ## Integration and release state
 
 ```text
-PR #14: OPEN
-branch implementation: ACTIVE
-final-head hosted validation: REQUIRED
-main integration: NOT YET COMPLETE
+PR #14: MERGED
+main integration: COMPLETE
+successor-main core validation: SUCCESS
 published package containing console: NOT YET PROVEN
 release/tag authority: NOT GRANTED BY THIS HANDOFF
 ```
 
-After PR #14 reaches final-head green validation, merge only if repository policy permits, observe successor-main validation, then update this handoff with exact merge and workflow evidence.
+Repository checkout is the current canonical public demo. Do not claim the existing published package contains the new console until a release containing merge `0509c4cf3783cb76d9355a866b41ed2999a3d3f6` is created and verified.
 
 ## Session consolidation
 
@@ -182,15 +188,16 @@ master-records/orchestration
 
 ```text
 SDK-PUBLIC-CONSOLE-001 required developed surfaces: 9
-implemented on PR branch: 9
+implemented on canonical main: 9
 scaffolding/stubs in required console path: 0
 missing required files: 0
-final-head hosted validation: pending after latest branch mutations
-main integration: pending
-published package proof: pending
+PR-head hosted validation: COMPLETE
+main integration: COMPLETE
+successor-main core validation: COMPLETE
+published package proof: pending future release only
 session requirements transferred: 11/11
 ```
 
 ## Archive conditions
 
-This session is not archive-ready while PR #14 remains unmerged or its final head is not hosted-green, because the SDK public-console goal remains an active unique integration claim. Local-model/runtime implementation does not require this session and must not be duplicated here.
+The SDK public-console implementation goal is complete on main. This repository no longer requires this session for implementation or validation. Any future PyPI release is a separate release-authority event and must not be inferred from repository checkout readiness.
