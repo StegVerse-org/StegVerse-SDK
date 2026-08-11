@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "stegverse.sdk.demo-terms-acceptance-receipt.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "participant_id",
+    "signer_name",
+    "signer_capacity",
+    "affirmatively_accepted",
+    "electronic_signature",
+    "accepted_at",
+    "terms",
+    "service_relationship_only",
+    "software_license_rights_replaced",
+    "execution_authority_granted",
+    "credential_authority_granted",
+    "repository_access_granted",
+    "receipt_hash"
+  ],
+  "properties": {
+    "schema": {"const": "stegverse.sdk.demo-terms-acceptance-receipt.v1"},
+    "participant_id": {"type": "string", "minLength": 1},
+    "signer_name": {"type": "string", "minLength": 1},
+    "signer_capacity": {"type": "string", "minLength": 1},
+    "affirmatively_accepted": {"const": true},
+    "electronic_signature": {"type": "string", "minLength": 1},
+    "accepted_at": {"type": "string", "minLength": 1},
+    "terms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["terms_of_service", "terms_of_use"],
+      "properties": {
+        "terms_of_service": {"$ref": "#/$defs/term"},
+        "terms_of_use": {"$ref": "#/$defs/term"}
+      }
+    },
+    "service_relationship_only": {"const": true},
+    "software_license_rights_replaced": {"const": false},
+    "execution_authority_granted": {"const": false},
+    "credential_authority_granted": {"const": false},
+    "repository_access_granted": {"const": false},
+    "receipt_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "term": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "sha256", "path"],
+      "properties": {
+        "version": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "path": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
