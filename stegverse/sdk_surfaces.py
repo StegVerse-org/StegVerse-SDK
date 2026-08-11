@@ -16,6 +16,7 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
         "input": "JSON tester packet file",
         "command": "stegverse run admissibility --input <packet.json>",
         "module": "stegverse.admissibility.evaluate_admissibility_packet",
+        "documentation": "docs/DYNAMIC_ADMISSIBILITY.md",
         "authority_effect": "NONE",
     },
     "llm-admissibility": {
@@ -24,6 +25,7 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
         "input": "provider/model/prompt/output values",
         "command": "stegverse run llm-admissibility --provider <name> --model <name> --prompt <text> --output <text>",
         "module": "stegverse.llm_admissibility.evaluate_llm_output_admissibility",
+        "documentation": "docs/DYNAMIC_ADMISSIBILITY.md",
         "authority_effect": "NONE",
     },
     "math-admissibility": {
@@ -32,6 +34,7 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
         "input": "formalism id, artifact type, artifact summary",
         "command": "stegverse run math-admissibility --formalism <id> --artifact-type <type> --summary <text>",
         "module": "stegverse.math_admissibility.evaluate_math_artifact_admissibility",
+        "documentation": "docs/DYNAMIC_ADMISSIBILITY.md",
         "authority_effect": "NONE",
     },
     "admittedcode": {
@@ -39,8 +42,11 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
         "mode": "local",
         "input": "AdmittedCode receipt JSON file",
         "command": "stegverse run admittedcode --input <receipt.json>",
+        "demo_command": "stegverse demo admittedcode",
         "module": "stegverse.admittedcode_receipt.verify_admittedcode_receipt",
+        "documentation": "docs/SDK_CONSOLE.md#admittedcode",
         "authority_effect": "NONE",
+        "result_semantics": "SDK ACCEPTED validates the portable receipt boundary and preserves the underlying ALLOW/DENY/FAIL_CLOSED decision.",
         "repository_examples": [
             "examples/governed_llm_demo/admittedcode/admissibility_receipt.allow.json",
             "examples/governed_llm_demo/admittedcode/admissibility_receipt.deny.json",
@@ -52,6 +58,7 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
         "input": "envelope JSON and capability-registry JSON files",
         "command": "stegverse run universal-entry --input <envelope.json> --registry <capabilities.json>",
         "module": "stegverse.universal_entry.process_universal_entry",
+        "documentation": "docs/UNIVERSAL_ENTRY.md",
         "authority_effect": "NONE",
     },
     "bridges": {
@@ -60,6 +67,7 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
         "input": "none",
         "command": "stegverse run bridges",
         "module": "stegverse.bridge_registry.list_dynamic_bridges",
+        "documentation": "docs/DYNAMIC_ADMISSIBILITY.md",
         "authority_effect": "NONE",
     },
     "entry-points": {
@@ -68,6 +76,7 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
         "input": "none",
         "command": "stegverse run entry-points",
         "module": "stegverse.entry_point_roles.list_entry_point_roles",
+        "documentation": "docs/ENTRY_POINT_ROLES.md",
         "authority_effect": "NONE",
     },
 }
