@@ -25,6 +25,10 @@ def _load_json(path: str, label: str) -> Mapping[str, Any]:
     return value
 
 
+def _repo_path(relative: str) -> Path:
+    return Path(__file__).resolve().parent.parent / relative
+
+
 def list_surfaces(_registry: dict[str, Any] | None = None) -> list[tuple[str, str]]:
     """Compatibility helper returning canonical user-facing surfaces."""
     return [(row["id"], row["summary"]) for row in list_sdk_surfaces()]
@@ -41,12 +45,51 @@ def print_help_for_surface(name: str, _registry: dict[str, Any] | None = None) -
     print(f"  mode: {surface['mode']}")
     print(f"  input: {surface['input']}")
     print(f"  command: {surface['command']}")
+    if surface.get("demo_command"):
+        print(f"  demo: {surface['demo_command']}")
     print(f"  module: {surface['module']}")
+    if surface.get("documentation"):
+        print(f"  documentation: {surface['documentation']}")
+    if surface.get("result_semantics"):
+        print(f"  result semantics: {surface['result_semantics']}")
     if surface.get("repository_examples"):
         print("  repository examples:")
         for path in surface["repository_examples"]:
             print(f"    {path}")
     print("  authority effect: NONE")
+    return 0
+
+
+def _run_admittedcode_file(path: str) -> dict[str, Any]:
+    from .admittedcode_receipt import verify_admittedcode_receipt
+    return verify_admittedcode_receipt(_load_json(path, "AdmittedCode receipt"))
+
+
+def _demo_surface(args: argparse.Namespace) -> int:
+    surface = canonical_surface_name(args.surface)
+    if surface != "admittedcode":
+        print(f"No bundled demo is registered for: {args.surface}")
+        print("Run 'stegverse surfaces' and 'stegverse help-surface <name>' for available local operations.")
+        return 2
+
+    cases = {
+        "allow": "examples/governed_llm_demo/admittedcode/admissibility_receipt.allow.json",
+        "deny": "examples/governed_llm_demo/admittedcode/admissibility_receipt.deny.json",
+    }
+    selected = [args.case] if args.case in cases else ["allow", "deny"]
+    results: dict[str, Any] = {}
+    for case in selected:
+        path = _repo_path(cases[case])
+        results[case] = {
+            "fixture": cases[case],
+            "verification": _run_admittedcode_file(str(path)),
+        }
+    print(json.dumps({
+        "surface": "admittedcode",
+        "demo": "portable receipt verification",
+        "authority_effect": "NONE",
+        "results": results,
+    }, indent=2, sort_keys=True))
     return 0
 
 
@@ -94,9 +137,8 @@ def _run_surface(args: argparse.Namespace) -> int:
 
     elif surface == "admittedcode":
         if not args.input:
-            raise ValueError("admittedcode requires --input <receipt.json>")
-        from .admittedcode_receipt import verify_admittedcode_receipt
-        result = verify_admittedcode_receipt(_load_json(args.input, "AdmittedCode receipt"))
+            raise ValueError("admittedcode requires --input <receipt.json>; for bundled examples run 'stegverse demo admittedcode'")
+        result = _run_admittedcode_file(args.input)
 
     elif surface == "universal-entry":
         if not args.input or not args.registry:
@@ -137,6 +179,10 @@ def build_parser() -> argparse.ArgumentParser:
     help_parser = sub.add_parser("help-surface", help="show help for a named SDK surface")
     help_parser.add_argument("surface")
 
+    demo_parser = sub.add_parser("demo", help="run a bundled, credential-free demonstration")
+    demo_parser.add_argument("surface")
+    demo_parser.add_argument("--case", choices=("allow", "deny", "all"), default="all")
+
     run_parser = sub.add_parser("run", help="run an allowed local SDK surface")
     run_parser.add_argument("surface")
     run_parser.add_argument("--input")
@@ -160,6 +206,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command is None:
             parser.print_help()
             print("\nStart with: stegverse surfaces")
+            print("Bundled demo: stegverse demo admittedcode")
             return 0
         if args.command == "surfaces":
             print("StegVerse SDK callable surfaces")
@@ -167,12 +214,15 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  {name:<24} {summary}")
             print("\nHelp: stegverse help-surface <name>")
             print("Run:  stegverse run <name> [options]")
+            print("Demo: stegverse demo admittedcode")
             return 0
         if args.command == "capabilities":
             print(json.dumps({"surfaces": list_sdk_surfaces(), "authority_effect": "NONE"}, indent=2, sort_keys=True))
             return 0
         if args.command == "help-surface":
             return print_help_for_surface(args.surface)
+        if args.command == "demo":
+            return _demo_surface(args)
         if args.command == "run":
             return _run_surface(args)
     except ValueError as exc:
