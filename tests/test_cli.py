@@ -24,11 +24,14 @@ def test_list_surfaces_is_generic_and_callable():
     assert all("mansoor" not in name.lower() for name in names)
 
 
-def test_admittedcode_help_is_generic():
+def test_admittedcode_help_is_generic_and_actionable():
     result, out = _capture(cli.print_help_for_surface, "admittedcode")
     assert result == 0
     assert "portable admittedcode" in out
     assert "stegverse run admittedcode" in out
+    assert "stegverse demo admittedcode" in out
+    assert "result semantics" in out
+    assert "docs/sdk_console.md#admittedcode" in out
     assert "mansoor" not in out
 
 
@@ -72,7 +75,27 @@ def test_llm_admissibility_run_is_local_and_receipt_referenced():
     assert "admissibility_receipt_reference" in payload
 
 
-def test_missing_run_input_fails_closed():
+def test_admittedcode_demo_exercises_allow_and_deny_receipts():
+    result, out = _capture(cli.main, ["demo", "admittedcode"])
+    assert result == 0
+    payload = json.loads(out)
+    assert payload["surface"] == "admittedcode"
+    assert payload["authority_effect"] == "none"
+    assert payload["results"]["allow"]["verification"]["status"] == "accepted"
+    assert payload["results"]["allow"]["verification"]["decision"] == "allow"
+    assert payload["results"]["deny"]["verification"]["status"] == "accepted"
+    assert payload["results"]["deny"]["verification"]["decision"] == "deny"
+
+
+def test_admittedcode_demo_can_select_one_case():
+    result, out = _capture(cli.main, ["demo", "admittedcode", "--case", "deny"])
+    assert result == 0
+    payload = json.loads(out)
+    assert set(payload["results"]) == {"deny"}
+
+
+def test_missing_run_input_fails_closed_with_demo_hint():
     result, out = _capture(cli.main, ["run", "admittedcode"])
     assert result == 2
     assert "requires --input" in out
+    assert "stegverse demo admittedcode" in out
