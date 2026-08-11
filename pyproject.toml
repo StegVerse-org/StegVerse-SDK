@@ -51,3 +51,6 @@ Issues = "https://github.com/StegVerse-org/StegVerse-SDK/issues"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["stegverse*"]
+
+[tool.setuptools.package-data]
+"stegverse.demo_data" = ["*.json"]
