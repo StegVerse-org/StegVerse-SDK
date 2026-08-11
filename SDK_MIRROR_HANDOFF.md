@@ -2,316 +2,195 @@
 
 ## Source of truth
 
-This file is the current handoff and task source of truth for `StegVerse-org/StegVerse-SDK`.
+Organization: `StegVerse-org`  
+Repository: `StegVerse-SDK`  
+Canonical branch: `main`  
+Active integration branch: `feat/generic-sdk-console-20260811`  
+Active pull request: `#14`  
+This file is the canonical repository handoff. Live repository state, Git history, PR state, workflow evidence, immutable receipts, and this handoff supersede prior chat claims.
 
 ## Active goal
 
 ```text
-Goal: governed universal-entry runtime plus SDK-origin transition/SPE progression contracts
-Phase: implementation-and-ci-binding-installed-current-main-observation-pending
-Result: LOCAL_IMPLEMENTATION_INSTALLED_LIVE_INTEGRATIONS_AND_VALIDATION_EVIDENCE_PENDING
+goal_id: SDK-PUBLIC-CONSOLE-001
+originating_goal: any developer/tester/evaluator can enter the SDK through one generic console, discover supported surfaces, run allowed local tasks, and obtain accurate help without person-specific instructions
+claim_state: CLAIMED_FOR_IMPLEMENTATION
+claimant: PR #14 / feat/generic-sdk-console-20260811
+release_condition: merge PR #14 after hosted validation on its final head, then observe successor-main validation
+collision_boundary: no person-specific routes; no duplicate local-model/runtime authority; no credential authority inside SDK
 ```
 
-The SDK remains non-authorizing. It does not grant execution, delegation, mutation, publication, admissibility, custody, standing, deployment, activation, release, consciousness, personhood, or welfare status.
-
-## Primary architecture
+## Required user experience
 
 ```text
-entry adapter
--> universal manifest-bound envelope
--> deterministic capability routing
--> operational lane dispatch
--> bounded or governed-provider conversation
--> governed return
--> linked continuation events
--> optional authenticated Master-Records custody
--> independent reconstruction verification
--> non-authorizing activation-evidence packet
+repository checkout
+-> python -m pip install -e ".[dev]"
+-> stegverse
+-> stegverse surfaces
+-> stegverse help-surface <surface>
+-> stegverse run <surface> [options]
+-> JSON result / receipt / bounded routing output
 ```
 
-Parallel SDK-origin transition path:
+The equivalent entry command is `python -m stegverse`.
+
+The public SDK console is generic. No customer, reviewer, evaluator, or named person receives a bespoke route.
+
+## Callable console surfaces
+
+Canonical registry: `stegverse/sdk_surfaces.py`.
 
 ```text
-SDK_INPUT DECLARED transition candidate
--> deterministic Commitment Candidate
--> transport-neutral SPE intake
--> identity-bound SPE standing receipt
--> progression-only SPE receipt consumer
--> next governed authority boundary
--> master-records/orchestration lifecycle
+admissibility
+llm-admissibility
+math-admissibility
+admittedcode
+universal-entry
+bridges
+entry-points
 ```
 
-SPE `ALLOW` permits progression only. It is never execution, delegation, mutation, publication, custody, or admissibility.
+`stegverse capabilities` reports this callable user-facing registry. Repository-level `sdk.capabilities.json` remains the broader implementation/integration posture and must not be confused with what a user can execute locally.
 
-## Installed universal-entry modules
+## Public documentation
 
 ```text
-stegverse/universal_entry.py
-stegverse/universal_entry_dispatch.py
-stegverse/universal_entry_handlers.py
-stegverse/universal_entry_runtime.py
-stegverse/universal_entry_server_runtime.py
-stegverse/ecosystem_records.py
-stegverse/ecosystem_projection.py
-stegverse/ecosystem_catalog.py
-stegverse/canonical_source_collector.py
-stegverse/repository_source_reader.py
-stegverse/github_repository_fetcher.py
-stegverse/governed_conversation.py
-stegverse/http_transport.py
-stegverse/llm_adapter_bridge.py
-stegverse/universal_entry_events.py
-stegverse/master_records_custody.py
-stegverse/master_records_http.py
-stegverse/activation_evidence.py
-stegverse/integration_config.py
+README.md
+docs/SDK_CONSOLE.md
 ```
 
-Installed behavior:
+The README is written for arbitrary external developers. Repository checkout is the canonical current demo path. It does not claim that an older published PyPI package already contains unreleased console behavior.
+
+The docs explain discovery, runnable surfaces, AdmittedCode verification, dynamic admissibility, universal-entry routing, checkout validation, and authority boundaries.
+
+## AdmittedCode surface
+
+AdmittedCode is a normal generic SDK surface.
 
 ```text
-universal envelope validation: installed
-capability and lane routing: installed
-restricted fail-closed behavior: installed
-operational dispatch: installed
-conversation synthesis: installed
-bounded arithmetic solver: installed
-governed conversation fallback: installed_dependency_injected
-authoritative record projection/catalog/retrieval: installed_dependency_injected
-allowlisted repository source reader: installed_dependency_injected
-GitHub repository contents fetcher: installed_server_side
-token resolution: installed_dependency_injected
-immutable ref/blob/content validation: installed
-GitHub read receipt: installed_deterministic_non_authorizing
-LLM-adapter request/return bridge: installed_dependency_injected
-authenticated server-side HTTP transport: installed
-continuation event chain: installed
-Master-Records custody submission/receipt validation: installed
-Master-Records HTTPS transport: installed_server_side
-Master-Records token resolution: installed_dependency_injected
-Master-Records submit/reconstruction routing: installed
-independent reconstruction verification: installed
-server-side composition: installed_disabled_by_default
-non-secret integration configuration packet: installed
-activation-evidence binder: installed_non_authorizing
-entry-point parity fixtures/tests: installed
+stegverse help-surface admittedcode
+stegverse run admittedcode --input examples/governed_llm_demo/admittedcode/admissibility_receipt.allow.json
+stegverse run admittedcode --input examples/governed_llm_demo/admittedcode/admissibility_receipt.deny.json
 ```
 
-External runtime status:
+Canonical consumer: `stegverse/admittedcode_receipt.py`.
+
+SDK `ACCEPTED` means the portable receipt boundary validated. It never changes the receipt's underlying `ALLOW`, `DENY`, or `FAIL_CLOSED` decision and never grants execution authority.
+
+## Credential and GitHub-token boundary
 
 ```text
-GitHub repository credentials: not_configured
-live immutable repository read evidence: not_observed
-live deployed LLM-adapter endpoint: not_connected
-Master-Records credential resolver: not_configured
-live Master-Records endpoint: not_connected
-external custody receipt: not_observed
-external reconstructability PASS: not_observed
-Site universal-envelope transport: not_connected
-symbolic solver: not_connected
+github_tokens_supported_by_public_sdk: false
+public_repository_read_credential_requirement: NONE
+credential_authority: TV/TVC
+private_source_access_is_public_console_capability: false
 ```
 
-## GitHub canonical source path
+The public SDK does not acquire or resolve GitHub tokens. `stegverse/github_repository_fetcher.py` is credential-free and limited to unauthenticated public GitHub contents reads with non-authorizing provenance receipts.
+
+`stegverse/integration_config.py` rejects credential references on public repository source bindings. Protected/live route credential semantics remain outside the SDK and are governed by TV/TVC. Service bindings may carry non-secret authority references, but embedded credential values remain prohibited.
+
+## Local model/runtime convergence
+
+The session requirement to replace descriptive local-model selection with executable discovery/launch/proof and to formally develop a local model is **not owned by this SDK branch**.
+
+Canonical owner and evidence:
 
 ```text
-RepositorySourceBinding
--> GitHubRepositoryFetcher
--> token resolved at call time from credential_ref
--> GitHub contents API at explicit repository/path/ref
--> UTF-8 file content + blob identity
--> deterministic non-authorizing read receipt
--> AllowlistedRepositorySourceReader
--> CanonicalSourceCollector
--> packaged catalog
--> authoritative retrieval
+StegVerse-002/micro-node-runtime#22
+MICRO_NODE_RUNTIME_MIRROR_HANDOFF.md
+docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
+validated_code_commit: 395d4013d1354c07bc3cf66c44f4f26f856c75fc
+canonical_validation_run: 31339534741 SUCCESS
+implementation_state: COMPLETE_RELEASED
 ```
 
-`GitHubRepositoryFetcher` accepts only `https://api.github.com`, validates owner/name repository form, URL-encodes path and ref components, requires file responses, verifies path, blob SHA, UTF-8 base64 content, and optional content digest, and returns no credential material.
+The canonical local implementation is `stegverse-reference-lm-v1`, a real repository-local order-2 token-transition reference language model. Runtime discovery prefers a qualifying local llama.cpp/GGUF or Ollama model when present and otherwise uses the reference model. The reference model is not to be represented as a production-scale foundation LLM.
 
-The token is resolved through a dependency-injected resolver at call time. The token, authorization header, and resolved secret never enter the source binding, read receipt, canonical collection, catalog, governed return, Site, or portable-node browser storage.
-
-The read receipt preserves repository, path, ref, blob SHA, and content digest with:
+LLM-adapter continuation is machine-owned runtime observation, not another implementation claim:
 
 ```text
-read_only: true
-authorizing: false
-custody_transferred: false
-credentials_exposed: false
+StegVerse-org/LLM-adapter/LLM_ADAPTER_MIRROR_HANDOFF.md
+StegVerse-Labs/.github#60 / SHWP-ECOSYSTEM-CHAT-INFERENCE-001
+StegVerse-Labs/TVC/tasks/TVC-SOVEREIGN-LOCAL-MODEL-ROUTE-002.json
+master-records/orchestration
 ```
 
-A repository read receipt is provenance for retrieval. It is not Master-Records custody, standing, admissibility, execution authority, or deployment evidence.
+No GitHub token is a production local-model/runtime prerequisite.
 
-## Master-Records HTTP custody path
+## Validation
 
-```text
-validated continuation event chain
--> build_custody_submission
--> MasterRecordsHTTPTransport.submit
--> token resolved at call time from credential_ref
--> POST /api/custody/universal-entry
--> identity-matched custody receipt
--> MasterRecordsHTTPTransport.reconstruct
--> GET /api/custody/universal-entry/receipts/{receipt_id}/reconstruction
--> independent event-chain reconstruction verification
-```
+Canonical workflow: `.github/workflows/sdk-demo-test.yml`.
 
-`MasterRecordsHTTPTransport` requires HTTPS for remote services and allows localhost HTTP only when explicitly enabled. It places the resolved bearer token only in the server-side request header, preserves `X-SteGVerse-Session` on custody submission, URL-escapes receipt identities during reconstruction retrieval, requires JSON-object responses, and returns no credential material.
-
-`MasterRecordsHTTPTransport.as_custody_client()` binds the concrete HTTP methods to `MasterRecordsCustodyClient`. The custody client still sets custody and installation fields only after both the returned custody receipt and reconstructed event chain pass independent validation.
-
-Transport implementation is not custody. Endpoint configuration is not custody. A successful HTTP response is not custody until the receipt identity, event digest, event boundaries, reconstruction, and non-authority fields pass.
-
-## SDK-to-SPE commitment and progression
-
-Installed files:
+PR #14 validation must cover:
 
 ```text
-stegverse/transition_candidate.py
-stegverse/spe_commitment_intake.py
-stegverse/spe_allow_consumer.py
-examples/sdk_transition_candidate.json
-tests/test_transition_candidate.py
-tests/test_spe_commitment_intake.py
-tests/test_spe_allow_consumer.py
-docs/SDK_TO_SPE_COMMITMENT_INTAKE.md
-```
-
-The SPE consumer validates:
-
-```text
-transition_id
-run_id
-candidate_hash
-receipt_id
-receipt_hash
-policy_ref
-standing_evidence_ref
-decision: ALLOW | DENY | FAIL_CLOSED
-```
-
-The progression packet always preserves:
-
-```text
-execution_permitted: false
-authorizing: false
-execution_authority_granted: false
-delegation_granted: false
-mutation_authorized: false
-publication_authorized: false
-custody_transferred: false
-admissibility_determined: false
-fresh_authority_determination_required: true
-```
-
-`ALLOW` produces `READY_FOR_NEXT_GOVERNED_BOUNDARY`; `DENY` and `FAIL_CLOSED` produce `PROGRESSION_BLOCKED`.
-
-## Governed LLM and system-boundary path
-
-Installed core artifacts:
-
-```text
-schemas/system-boundary-declaration.schema.v0.1.json
-stegverse/system_boundary.py
-stegverse/system_boundary_round_trip.py
-stegverse/governed_llm_manifest.py
-stegverse/governed_llm_receipt.py
-examples/adapter_governed_llm_session_packet.json
-tests/test_system_boundary.py
-tests/test_system_boundary_round_trip.py
-tests/test_governed_llm_system_boundary_binding.py
-tests/test_adapter_origin_manifest_fixture.py
-```
-
-The adapter-origin fixture enters manifest and receipt serialization directly from a repository artifact. Test-local packet reconstruction is not required for that path.
-
-Production system-boundary binding remains disabled until separately authorized.
-
-## Capability registry
-
-`sdk.capabilities.json` is reconciled to schema `stegverse.sdk.capabilities.v0.6` and records:
-
-```text
-universal-entry runtime surfaces
-SDK-to-SPE progression-only consumer
-governed LLM/system-boundary surfaces
-server runtime disabled-by-default posture
-GitHub repository fetcher and read-receipt posture
-Master-Records HTTPS transport posture
-live integration blockers
-current-main validation pending
-release readiness false
-```
-
-## CI binding
-
-Canonical workflow:
-
-```text
-.github/workflows/sdk-demo-test.yml
-```
-
-The workflow includes:
-
-```text
-full tests/ suite on Python 3.9, 3.11, and 3.12
-focused universal-entry route validation
-GitHub repository fetcher tests
-Master-Records custody and HTTP transport tests
-focused SDK-to-SPE and system-boundary validation
-SPE ALLOW consumer tests
-adapter-origin manifest fixture tests
-formal-route validation
+Python 3.9 / 3.11 / 3.12 complete test suite
+public imports
+CLI tests
+credential-free GitHub source tests
+integration-config TV/TVC boundary tests
+route validation
 dynamic admissibility examples
-wheel build and import verification
+package build
+wheel installation
+architecture guard
 ```
 
-Latest focused integration commits:
+Do not claim merged/main or public-package readiness from branch implementation alone.
+
+## Integration and release state
 
 ```text
-54be64fc7850afc39c6f983350d084a9253118e8  Master-Records HTTPS transport
-3a5b5b63c752923d0dd1ca13f873df2ec9a88241  Master-Records HTTPS transport tests
-f352095c49408d5271e9561da2b34ee7eeb0bb54  Master-Records HTTP CI and wheel binding
-83321bfc963c4d27b6f6ada53a74ae89d0511a24  capability registry v0.6
+PR #14: OPEN
+branch implementation: ACTIVE
+final-head hosted validation: REQUIRED
+main integration: NOT YET COMPLETE
+published package containing console: NOT YET PROVEN
+release/tag authority: NOT GRANTED BY THIS HANDOFF
 ```
 
-A successful current-main workflow containing commit `f352095c49408d5271e9561da2b34ee7eeb0bb54` or later has not yet been independently observed. Do not claim passing tests until workflow evidence exists.
+After PR #14 reaches final-head green validation, merge only if repository policy permits, observe successor-main validation, then update this handoff with exact merge and workflow evidence.
 
-## Site boundary
+## Session consolidation
 
-`StegVerse-Labs/Site/docs/SITE_MIRROR_HANDOFF.md` remains the Site source of truth. Site live transport remains disabled and Site mutation is gated by successor current-main validation. No Site browser transport, deployment, activation, release, merge, or tag is authorized here.
+Transferred requirements:
 
-## Remaining modules and evidence
+1. generic SDK entry for every developer/tester/evaluator;
+2. discoverable AdmittedCode surface from the SDK itself;
+3. runnable allowed SDK tasks, not documentation-only discovery;
+4. help documentation for each generic console route;
+5. no person-specific evaluator route;
+6. root/session handoff files are project-control records, not SDK user surfaces;
+7. no GitHub tokens in the public SDK path;
+8. TV/TVC remains credential/route authority;
+9. local-runtime discovery/launch/proof requirement transferred to and completed by `StegVerse-002/micro-node-runtime#22`;
+10. formal local reference-model development transferred to and completed by `StegVerse-002/micro-node-runtime#22`;
+11. LLM-adapter same-carrier execution implementation is complete/released; remaining work is machine-owned runtime observation/custody/reconstruction.
+
+MERGED INTO canonical continuation for local-model/runtime activation:
 
 ```text
-1. Observe current-main SDK validation containing f352095c49408d5271e9561da2b34ee7eeb0bb54 or later.
-2. Repair only the first exact repository-local failing step, if any.
-3. Preserve successful workflow receipts/artifacts after observation.
-4. Supply an explicitly authorized GitHub credential resolver to GitHubRepositoryFetcher.
-5. Perform and preserve one immutable repository read with ref, blob, digest, and read receipt evidence.
-6. Supply an authorized deployed LLM-adapter endpoint to LLMAdapterHTTPTransport.
-7. Supply an authorized Master-Records base URL and credential resolver to MasterRecordsHTTPTransport.
-8. Perform one custody submission and preserve the external custody receipt and reconstructed chain.
-9. Observe successor Site validation before any Site transport mutation.
-10. Add Site same-origin universal-envelope submission only after its handoff gate permits it.
-11. Build one activation-evidence packet only after SDK validation, Site validation, live canonical retrieval, live provider use, provider usage evidence, custody, and reconstructability PASS exist together.
-12. Keep production binding, deployment, activation, release, merge, and tag disabled until separately authorized.
+StegVerse-002/micro-node-runtime#16/#22
+StegVerse-org/LLM-adapter#18
+StegVerse-Labs/.github#60 / SHWP-ECOSYSTEM-CHAT-INFERENCE-001
+StegVerse-Labs/TVC/tasks/TVC-SOVEREIGN-LOCAL-MODEL-ROUTE-002.json
+master-records/orchestration
 ```
 
-## Release posture
+## Completion accounting
 
 ```text
-release_ready: false
-release_or_tag_authorized: false
-production_binding_enabled: false
-live_transport_verified: false
-external_custody_verified: false
-current_main_validation_observed: false
+SDK-PUBLIC-CONSOLE-001 required developed surfaces: 9
+implemented on PR branch: 9
+scaffolding/stubs in required console path: 0
+missing required files: 0
+final-head hosted validation: pending after latest branch mutations
+main integration: pending
+published package proof: pending
+session requirements transferred: 11/11
 ```
 
-## Authority boundary
+## Archive conditions
 
-Routing is not execution. A manifest is not authority. A catalog is not authority. A repository read receipt is not custody. Provider output is not authority. SPE `ALLOW` is not execution. A progression packet is not delegation. Continuation events are not custody. Custody HTTP transport is not custody. Custody-client code is not custody. Reconstruction code is not external reconstructability evidence. Activation readiness is not activation authority.
-
-## Archive readiness
-
-This handoff preserves the complete SDK transition/SPE path, universal-entry runtime, GitHub repository fetcher, Master-Records HTTP transport, governed LLM/system-boundary path, CI binding, capability registry, live integration blockers, release posture, and next-task sequence. Earlier conversation context is not required for continuation.
+This session is not archive-ready while PR #14 remains unmerged or its final head is not hosted-green, because the SDK public-console goal remains an active unique integration claim. Local-model/runtime implementation does not require this session and must not be duplicated here.
