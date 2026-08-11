@@ -1,4 +1,5 @@
-import json
+from contextlib import redirect_stdout
+from io import StringIO
 
 from stegverse import cli
 
@@ -13,6 +14,13 @@ def _registry():
     }
 
 
+def _capture(function, *args):
+    stream = StringIO()
+    with redirect_stdout(stream):
+        result = function(*args)
+    return result, stream.getvalue().lower()
+
+
 def test_list_surfaces_is_generic():
     names = [name for name, _ in cli.list_surfaces(_registry())]
     assert "governed-llm-surfaces" in names
@@ -21,14 +29,15 @@ def test_list_surfaces_is_generic():
     assert all("mansoor" not in name.lower() for name in names)
 
 
-def test_admittedcode_help_is_generic(capsys):
-    assert cli.print_help_for_surface("admittedcode", _registry()) == 0
-    out = capsys.readouterr().out.lower()
+def test_admittedcode_help_is_generic():
+    result, out = _capture(cli.print_help_for_surface, "admittedcode", _registry())
+    assert result == 0
     assert "admittedcode" in out
     assert "admissibility" in out
     assert "mansoor" not in out
 
 
-def test_unknown_surface_fails_closed(capsys):
-    assert cli.print_help_for_surface("does-not-exist", _registry()) == 2
-    assert "unknown surface" in capsys.readouterr().out.lower()
+def test_unknown_surface_fails_closed():
+    result, out = _capture(cli.print_help_for_surface, "does-not-exist", _registry())
+    assert result == 2
+    assert "unknown surface" in out
