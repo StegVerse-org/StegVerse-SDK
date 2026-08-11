@@ -4,6 +4,8 @@ import hashlib
 import json
 from typing import Any, Mapping, Sequence
 
+from .demo_terms import verify_demo_terms_acceptance
+
 REQUEST_SCHEMA = "stegverse.sdk.evaluation-interest-request.v1"
 RESULT_SCHEMA = "stegverse.sdk.evaluation-relationship-result.v1"
 
@@ -19,13 +21,17 @@ def _normalized_words(text: str) -> set[str]:
 def resolve_evaluation_relationship(
     request: Mapping[str, Any],
     capability_catalog: Sequence[Mapping[str, Any]],
+    *,
+    terms_acceptance_receipt: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Resolve evaluator interests against a bounded portable capability catalog.
 
-    The request is non-authorizing. Unknown interests never expand scope. The
-    result may only select capabilities already present and evaluator-visible in
-    the supplied catalog.
+    The request is non-authorizing. Unknown interests never expand scope. A
+    valid acceptance receipt for the exact current Demo Terms of Service and
+    Terms of Use is mandatory before any relationship may be created.
     """
+    if not verify_demo_terms_acceptance(terms_acceptance_receipt):
+        raise PermissionError("demo_terms_acceptance_required_or_invalid")
     if request.get("schema") != REQUEST_SCHEMA:
         raise ValueError("evaluation_request_schema_mismatch")
 
@@ -91,6 +97,8 @@ def resolve_evaluation_relationship(
     result: dict[str, Any] = {
         "schema": RESULT_SCHEMA,
         "request_id": request_id,
+        "participant_id": str(terms_acceptance_receipt["participant_id"]),
+        "terms_acceptance_receipt_hash": str(terms_acceptance_receipt["receipt_hash"]),
         "objectives": objectives,
         "matched_by_objective": matched_by_objective,
         "admitted_capabilities": admitted,
@@ -114,6 +122,9 @@ def resolve_evaluation_relationship(
 def verify_evaluation_relationship(result: Mapping[str, Any]) -> bool:
     if result.get("schema") != RESULT_SCHEMA:
         return False
+    for key in ("participant_id", "terms_acceptance_receipt_hash"):
+        if not isinstance(result.get(key), str) or not str(result.get(key)).strip():
+            return False
     for key in (
         "recipient_specific_package",
         "identity_bound_package",
