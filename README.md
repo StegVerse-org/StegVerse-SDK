@@ -30,11 +30,44 @@ The SDK supports:
 - governed-data package submission;
 - LLM Adapter submission;
 - governed LLM session packet validation, intake routing, manifest binding, and receipt handoff;
+- **AdmittedCode portable receipt verification and refusal-preserving review consumption**;
 - Ecosystem Chat intake validation;
 - LLM Adapter free-tier trust metadata ingestion;
 - formal testing route artifacts;
 - dynamic admissibility tests;
 - private boundary-review test packets.
+
+### AdmittedCode review and receipt verification
+
+AdmittedCode is a generic SDK surface available to any developer or evaluator. The SDK independently verifies portable AdmittedCode/provider-harness receipts while preserving the distinction between review, execution, authority, admissibility, and downstream receipt consumption.
+
+Start here:
+
+```text
+docs/ADMITTEDCODE.md
+```
+
+Implementation:
+
+```text
+stegverse/admittedcode_receipt.py
+```
+
+Included portable examples:
+
+```text
+examples/governed_llm_demo/admittedcode/admissibility_receipt.allow.json
+examples/governed_llm_demo/admittedcode/admissibility_receipt.deny.json
+```
+
+Focused verification:
+
+```bash
+pytest tests/test_admittedcode_receipt.py -v
+pytest tests/test_admittedcode_receipt_fixture.py -v
+```
+
+SDK `ACCEPTED` means a receipt is valid for non-authorizing consumption; it does not convert `DENY`, `FAIL_CLOSED`, or upstream `QUARANTINE` into permission.
 
 ---
 
@@ -123,6 +156,7 @@ It runs the Python compatibility matrix, complete test suite, formal route valid
 | Route | Purpose | Key files |
 |---|---|---|
 | Consolidated SDK Validation | Package install, tests, formal-route checks, admissibility checks, build, and release | `.github/workflows/sdk-demo-test.yml` |
+| AdmittedCode | Portable AdmittedCode receipt verification with refusal semantics preserved | `docs/ADMITTEDCODE.md`, `stegverse/admittedcode_receipt.py`, `tests/test_admittedcode_receipt.py`, `tests/test_admittedcode_receipt_fixture.py` |
 | Formal Testing Route | Receipt-bound testing-data loop and route-result validation | `docs/FORMAL_TESTING_ROUTE.md`, `scripts/validate_formal_testing_route.py` |
 | Dynamic Admissibility | Boundary and admissibility fixture checks | `stegverse/admissibility.py`, `tests/test_dynamic_admissibility.py` |
 | Ecosystem Chat Intake | Site-facing three-layer intake validation | `stegverse/ecosystem_chat_http.py` |
