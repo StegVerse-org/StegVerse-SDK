@@ -1,0 +1,54 @@
+{
+  "schema": "stegverse.000-demo-dataset.v1",
+  "demo_only": true,
+  "accepted_as_user_manifest": false,
+  "purpose": "Teach the active governance outcome vocabulary before the 000 demo input and manifested trajectory.",
+  "governance_outcome_examples": [
+    {
+      "governance_state": "ALLOW",
+      "label": "Allowed",
+      "meaning": "The canonical governance evaluation permits the candidate to proceed to any separately required commit/consequence checks.",
+      "consequence_implied": false,
+      "authority_granted_by_example": false,
+      "transition_class": "governance",
+      "receipt_class": "governance-decision"
+    },
+    {
+      "governance_state": "DENY",
+      "label": "Denied",
+      "meaning": "The canonical governance evaluation rejects the candidate for the evaluated boundary.",
+      "consequence_implied": false,
+      "authority_granted_by_example": false,
+      "transition_class": "governance",
+      "receipt_class": "governance-decision"
+    },
+    {
+      "governance_state": "REVIEW",
+      "label": "Review required",
+      "meaning": "The canonical governance evaluation requires a separate review or approval boundary before consequential continuation.",
+      "consequence_implied": false,
+      "authority_granted_by_example": false,
+      "transition_class": "governance",
+      "receipt_class": "governance-decision"
+    },
+    {
+      "governance_state": "FAIL_CLOSED",
+      "label": "Fail closed",
+      "meaning": "The system cannot establish the conditions required to continue and therefore blocks consequential continuation.",
+      "consequence_implied": false,
+      "authority_granted_by_example": false,
+      "transition_class": "governance",
+      "receipt_class": "governance-decision"
+    }
+  ],
+  "demo_input": {
+    "payload": {"demo_value": 1},
+    "candidate": {"action": "evaluate_demo"},
+    "declared_intent": "demonstrate_governed_manifest_shape",
+    "requested_consequence": "none"
+  },
+  "notes": {
+    "ordering": "governance_outcome_examples are intentionally prepended before the demo input so a human or LLM learns the outcome vocabulary before reading the example transaction.",
+    "scope": "This dataset is for option 000 only and MUST NOT be treated as a submitted manifest, a governance decision, or execution authority."
+  }
+}
