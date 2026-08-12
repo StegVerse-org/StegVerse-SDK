@@ -1,4 +1,4 @@
-"""Guided parameter/submit/replay/reconstruct navigation for governed SDK runs.
+"""Guided demo/parameter/submit/replay/reconstruct navigation for governed SDK runs.
 
 This module owns user-facing instructions and ingress validation only. It does not
 implement StegGate authority. A structurally valid manifest is acceptable input
@@ -17,10 +17,12 @@ import re
 from typing import Any, Mapping
 
 INGRESS_PROFILE = "stegverse.ingress-manifest.v1"
+DEMO_OUTPUT_PROFILE = "stegverse.manifest-demo-output.v1"
 RECEIPT_ID_RE = re.compile(r"^MR-[A-F0-9]{16,64}$")
 RETURN_PROJECTION_MODES = {"ALL", "SELECTED", "NONE"}
 
 NAVIGATION = (
+    ("000", "Demo test sequence without user-supplied manifest"),
     ("00", "User-defined run parameters"),
     ("0", "Submit data for governance"),
     ("1", "Replay previously run set"),
@@ -29,21 +31,37 @@ NAVIGATION = (
 
 MANIFEST_SHAPE_GUIDANCE = """MANIFEST SHAPE
 
-Every governed run is represented by a manifest with four conceptual groups:
+Every governed run is represented by a manifest with clearly labeled sections.
+Each section should identify the transition class(es) and receipt class(es) that
+can be produced from that part of the process.
 
 1. Profile and provenance
-   manifest_profile, manifest_profile_version, source_framework,
+   fields: manifest_profile, manifest_profile_version, source_framework,
    source_instance, source_output_id, created_at, freshness
+   transition classes: ingress, provenance
+   receipt classes: manifest-admission, source-identity
 
 2. Governed subject
-   payload OR payload_commitment, candidate, declared_intent,
+   fields: payload OR payload_commitment, candidate, declared_intent,
    requested_consequence, context_refs
+   transition classes: subject, intent, candidate
+   receipt classes: input-commitment, candidate-identity, request-identity
 
 3. Integrity and attestation
-   canonicalization_profile, hashes, attestation, extensions
+   fields: canonicalization_profile, hashes, attestation, extensions
+   transition classes: canonicalization, verification
+   receipt classes: hash-verification, attestation-verification
 
-4. Caller-return projection
-   return_projection.mode, return_projection.transition_classes
+4. Governance and consequence trajectory
+   generated from the actual governed run rather than user-authored authority
+   transition classes: ingestion, governance, consequence, return_ingestion
+   receipt classes: MANIFEST_ADMITTED, governance-decision, execution-observation,
+   RESULT_INGESTED, receipt-chain verification
+
+5. Caller-return projection
+   fields: return_projection.mode, return_projection.transition_classes
+   transition class: disclosure_projection
+   receipt class: projection-decision
 
 Required identity, integrity, governed-subject, and routing fields cannot be set
 to NONE merely to hide them from governance. They are part of the canonical run.
@@ -55,15 +73,6 @@ The editable NONE control applies to caller-facing receipt projection:
 - return_projection.mode = SELECTED -> return only named transition_classes;
 - return_projection.mode = NONE     -> return no transition-detail receipt projection.
 
-For a focused receipt request under option 00, use SELECTED and name only the
-transition classes wanted back, for example:
-
-  return_projection:
-    mode: SELECTED
-    transition_classes:
-      - steggate
-      - return_ingestion
-
 Use NONE only when no transition-detail receipts should be returned to that
 caller. NONE never means that StegVerse skipped, erased, or failed to retain the
 underlying state transitions. Master Records custody is independent of this
@@ -72,6 +81,30 @@ caller-facing projection.
 The manifest_receipt_id is always the canonical locator for the exact immutable
 run and is not an authority token. It remains the handle for later replay or
 reconstruction even when transition-detail projection is NONE.
+"""
+
+DEMO_GUIDANCE = """DEMO TEST SEQUENCE WITHOUT USER-SUPPLIED MANIFEST
+
+This option runs a safe demonstration using SDK-owned fixture input and no
+user-supplied manifest.
+
+Purpose:
+- show the ordinary StegVerse process end to end;
+- show the final output manifest shape the user would receive;
+- label every section with its purpose, transition class(es), receipt class(es),
+  editable fields, and non-editable authority/custody boundaries;
+- make the result sufficiently self-describing that a person can reconstruct a
+  conforming manifest by hand;
+- make the result sufficiently machine-readable that it can be supplied to an
+  external LLM, which can understand the structure and propose a new manifest
+  from the user's stated preferences.
+
+Important boundary:
+- the demo teaches structure and evidence semantics; it does not grant authority;
+- any manifest proposed later by a user or LLM must still pass normal profile,
+  hash, provenance, governance, and consequence-boundary validation;
+- the explanatory labels are output metadata. The canonical input manifest
+  remains the accepted stegverse.ingress-manifest.v1 structure.
 """
 
 PARAMETER_GUIDANCE = """USER-DEFINED RUN PARAMETERS
@@ -187,7 +220,9 @@ def manifest_shape_guidance() -> str:
 
 def guidance_for(selection: str) -> str:
     key = selection.strip().upper()
-    if key == "00":
+    if key == "000":
+        specific = DEMO_GUIDANCE
+    elif key == "00":
         specific = PARAMETER_GUIDANCE
     elif key in {"0", "0A", "0B"}:
         specific = SUBMIT_GUIDANCE
@@ -196,8 +231,123 @@ def guidance_for(selection: str) -> str:
     elif key == "2":
         specific = RECONSTRUCT_GUIDANCE
     else:
-        raise ValueError("selection must be 00, 0, 1, or 2")
+        raise ValueError("selection must be 000, 00, 0, 1, or 2")
     return specific.rstrip() + "\n\n" + MANIFEST_SHAPE_GUIDANCE
+
+
+def demo_output_manifest_shape() -> dict[str, Any]:
+    """Return a self-describing demo output envelope for hand/LLM reconstruction.
+
+    This is an explanatory output artifact, not a substitute for a governed run
+    or a pre-authorized input manifest.
+    """
+    canonical_manifest = {
+        "manifest_profile": INGRESS_PROFILE,
+        "manifest_profile_version": "1",
+        "source_framework": "stegverse-sdk-demo",
+        "source_instance": "local-demo",
+        "source_output_id": "DEMO-OUTPUT-001",
+        "created_at": "<generated-at-run-time>",
+        "freshness": {"status": "demo"},
+        "payload": {"demo_value": 1},
+        "candidate": {"action": "evaluate_demo"},
+        "declared_intent": "demonstrate_governed_manifest_shape",
+        "requested_consequence": "none",
+        "context_refs": [],
+        "canonicalization_profile": "steggate.jcs.v1",
+        "hashes": {
+            "payload_sha256": "<computed>",
+            "candidate_sha256": "<computed>",
+        },
+        "attestation": None,
+        "extensions": {},
+        "return_projection": {
+            "mode": "ALL",
+            "transition_classes": [],
+        },
+    }
+    sections = [
+        {
+            "section_id": "profile_provenance",
+            "label": "Profile and provenance",
+            "fields": ["manifest_profile", "manifest_profile_version", "source_framework", "source_instance", "source_output_id", "created_at", "freshness"],
+            "transition_classes": ["ingress", "provenance"],
+            "receipt_classes": ["manifest-admission", "source-identity"],
+            "editable": True,
+            "authority_effect": "NONE",
+        },
+        {
+            "section_id": "governed_subject",
+            "label": "Governed subject",
+            "fields": ["payload|payload_commitment", "candidate", "declared_intent", "requested_consequence", "context_refs"],
+            "transition_classes": ["subject", "intent", "candidate"],
+            "receipt_classes": ["input-commitment", "candidate-identity", "request-identity"],
+            "editable": True,
+            "authority_effect": "NONE",
+        },
+        {
+            "section_id": "integrity_attestation",
+            "label": "Integrity and attestation",
+            "fields": ["canonicalization_profile", "hashes", "attestation", "extensions"],
+            "transition_classes": ["canonicalization", "verification"],
+            "receipt_classes": ["hash-verification", "attestation-verification"],
+            "editable": "profile-bounded",
+            "authority_effect": "NONE",
+        },
+        {
+            "section_id": "governed_trajectory",
+            "label": "Governance and consequence trajectory",
+            "fields": ["generated_transition_receipts", "governance_state", "consequence_executed", "receipt_chain_head"],
+            "transition_classes": ["ingestion", "governance", "consequence", "return_ingestion"],
+            "receipt_classes": ["MANIFEST_ADMITTED", "governance-decision", "execution-observation", "RESULT_INGESTED", "receipt-chain-verification"],
+            "editable": False,
+            "generated_by": "canonical governed runtime",
+            "authority_effect": "OBSERVATION_ONLY",
+        },
+        {
+            "section_id": "caller_return_projection",
+            "label": "Caller-return projection",
+            "fields": ["return_projection.mode", "return_projection.transition_classes"],
+            "transition_classes": ["disclosure_projection"],
+            "receipt_classes": ["projection-decision"],
+            "editable": True,
+            "allowed_modes": ["ALL", "SELECTED", "NONE"],
+            "suppresses_master_records_custody": False,
+            "authority_effect": "NONE",
+        },
+        {
+            "section_id": "exact_run_locator",
+            "label": "Exact-run locator",
+            "fields": ["manifest_receipt_id"],
+            "transition_classes": ["custody_reference"],
+            "receipt_classes": ["manifest-receipt"],
+            "editable": False,
+            "generated_by": "canonical exact-run receipt path",
+            "locator_grants_authority": False,
+        },
+    ]
+    return {
+        "schema": DEMO_OUTPUT_PROFILE,
+        "purpose": "self-describing manifest example for human or LLM-assisted reconstruction",
+        "canonical_input_profile": INGRESS_PROFILE,
+        "canonical_manifest_example": canonical_manifest,
+        "sections": sections,
+        "process_sequence": [
+            {"order": 0, "stage": "manifestation", "transition_class": "ingress", "receipt_class": "manifest-admission"},
+            {"order": 1, "stage": "ingestion", "transition_class": "ingestion", "receipt_class": "MANIFEST_ADMITTED"},
+            {"order": 2, "stage": "steggate", "transition_class": "governance", "receipt_class": "governance-decision"},
+            {"order": 3, "stage": "consequence_boundary", "transition_class": "consequence", "receipt_class": "execution-observation"},
+            {"order": 4, "stage": "return_ingestion", "transition_class": "return_ingestion", "receipt_class": "RESULT_INGESTED"},
+            {"order": 5, "stage": "master_records", "transition_class": "custody", "receipt_class": "manifest-receipt"},
+            {"order": 6, "stage": "caller_projection", "transition_class": "disclosure_projection", "receipt_class": "projection-decision"},
+        ],
+        "reconstruction_notes": {
+            "human": "Copy the canonical_manifest_example, replace editable values, recompute required hashes, and submit through the normal manifest path.",
+            "llm": "Treat sections and process_sequence as explanatory metadata. Produce a new stegverse.ingress-manifest.v1 object only; do not invent authority or generated runtime receipts.",
+            "master_records_custody_independent_of_caller_projection": True,
+        },
+        "demo_grants_authority": False,
+    }
 
 
 def validate_manifest_receipt_id(value: str) -> str:
@@ -236,12 +386,7 @@ def normalize_return_projection(value: Mapping[str, Any] | None) -> dict[str, An
 
 
 def validate_external_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
-    """Validate and canonicalize a machine-produced ingress manifest.
-
-    The profile intentionally standardizes an interoperable envelope while
-    allowing framework-specific metadata under ``extensions``. Unknown top-level
-    fields are rejected so semantic drift is observable and versioned.
-    """
+    """Validate and canonicalize a machine-produced ingress manifest."""
     allowed = {
         "manifest_profile", "manifest_profile_version", "source_framework",
         "source_instance", "source_output_id", "created_at", "freshness",
