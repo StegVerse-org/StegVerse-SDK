@@ -20,23 +20,23 @@ stegverse/cli.py
 tests/test_governance_navigation.py
 ```
 
-Installation commits:
+Recent installation commits:
 
 ```text
-f36f9e10c558c22e6668e98bdc4614503b6bd160  navigation + ingress profile contract
-25de84e1febfe021c35d4208dc84cd6a32d15edc  initial tests
-78498596670ed1fd02943bd914c5d755ab18f211  CLI governance menu
-b49a313705fec266b825bce77e2668cf4231a2eb  guidance test correction
+22775c19e3b3cd9b95b4d06e89caaf186ff9156a  00 parameters + return projection semantics
+230f0eb13b05199756c85edd7c25a622881a28f8  return-projection custody-boundary tests
+e6e6aa80eef3842af03ffee59895682e11845244  CLI exposes 00 option
 ```
 
 ## User contract
 
-The CLI exposes:
+The CLI now exposes:
 
 ```text
-[0] Submit data for governance
-[1] Replay previously run set
-[2] Reconstruct previously run set
+[00] User-defined run parameters
+[0]  Submit data for governance
+[1]  Replay previously run set
+[2]  Reconstruct previously run set
 ```
 
 Each selection displays process guidance before requesting the next input.
@@ -55,6 +55,46 @@ stegverse.ingress-manifest.v1
 ```
 
 A structurally valid machine manifest means only that the machine output is acceptable for governance. It never means ALLOW and never grants execution authority.
+
+## Manifest routing and recording boundary
+
+The manifest is the canonical routing/declaration carrier for a submitted unit. It declares how the unit enters the StegVerse path and may declare how state-transition evidence is projected back to the caller.
+
+The user-facing return projection and ecosystem custody are distinct planes:
+
+```text
+manifest routing / requested return projection
+  -> controls what user-disclosable transition evidence is returned to the caller
+
+Master Records ecosystem custody
+  -> records canonical ecosystem state transitions independently of caller return projection
+```
+
+This distinction is mandatory. A manifest may request that all, selected, or no transition details be returned to the caller. A `NONE` return projection means only that no transition-detail projection is included in the user-facing result. It MUST NOT be interpreted as evidence that no state transitions occurred or that Master Records recorded nothing.
+
+Installed return-projection modes:
+
+```text
+ALL
+  return all user-disclosable transition evidence for the run
+
+SELECTED
+  return only named user-disclosable transition classes
+
+NONE
+  return no state-transition detail projection to the caller
+```
+
+Invariant fields produced by the SDK normalizer:
+
+```text
+controls_user_return_only: true
+suppresses_master_records_custody: false
+erases_ecosystem_transitions: false
+grants_authority: false
+```
+
+The final `manifest_receipt_id` remains an exact-run locator and not an execution/admissibility authority token.
 
 ## Cross-repository implementation now available
 
@@ -76,7 +116,10 @@ StegVerse-org/LLM-adapter/llm_adapter/governed_manifest_ingress.py
 ## Completed handoff tasks
 
 ```text
-[done] public 0/1/2 navigation and pre-input guidance installed
+[done] public 00/0/1/2 navigation and pre-input guidance installed
+[done] user-defined return-projection contract installed
+[done] ALL / SELECTED / NONE return modes installed
+[done] explicit separation of user return projection from Master Records custody installed
 [done] raw-user vs preformatted-machine ingress distinction installed
 [done] versioned external ingress profile installed
 [done] receipt-ID validation contract installed
@@ -93,15 +136,17 @@ The remaining SDK work is narrowly defined. Do not create another evaluator, rec
 Next executable tasks:
 
 ```text
-1. wire Option 0 execution to the canonical manifested transaction/provider path;
-2. accept either raw SDK-manifested input or validated stegverse.ingress-manifest.v1 input;
-3. return the full ordinary evidence package plus canonical manifest_receipt_id;
-4. retain the exact package through the shared-backing provider when an admitted transport is available;
-5. wire Option 1 to replay by manifest_receipt_id only;
-6. wire Option 2 to reconstruction by manifest_receipt_id only;
-7. make unknown IDs fail closed with a user-readable explanation;
-8. add integration tests proving guidance precedes input, shared backing preserves one-ID/one-run identity, and the original run is not mutated;
-9. run the sovereign/local validation path and record inspectable PASS evidence here.
+1. wire Option 00 parameters into the manifest produced/accepted by Option 0;
+2. wire Option 0 execution to the canonical manifested transaction/provider path;
+3. enforce return projection only after canonical governance/transition recording semantics are complete;
+4. prove `NONE` suppresses caller transition detail only and does not suppress Master Records custody;
+5. return the permitted user-facing result plus canonical manifest_receipt_id;
+6. retain the exact full package through the shared-backing provider when an admitted transport is available;
+7. wire Option 1 to replay by manifest_receipt_id only;
+8. wire Option 2 to reconstruction by manifest_receipt_id only;
+9. make unknown IDs fail closed with a user-readable explanation;
+10. add integration tests proving one-ID/one-run identity, caller projection behavior, full Master Records retention, and original-run immutability;
+11. run the sovereign/local validation path and record inspectable PASS evidence here.
 ```
 
 The user should never need internal commit SHAs, repository paths, transaction IDs, or receipt filenames to operate these flows.
