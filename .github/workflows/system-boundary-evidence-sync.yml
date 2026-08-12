@@ -1,15 +1,11 @@
-name: System Boundary Evidence Validation
+name: System Boundary Evidence Validation (Optional Hosted)
+
+# Optional convenience validation only. Canonical evidence synchronization is
+# sovereign/local and must not depend on GitHub Actions availability, billing,
+# authenticated API access, repository mutation, or GitHub workflow evidence.
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'scripts/sync_system_boundary_evidence.py'
-      - 'stegverse/system_boundary_activation.py'
-      - 'stegverse/system_boundary_downstream_status.py'
-      - 'stegverse/system_boundary_workflow_evidence.py'
-      - 'tests/test_sync_system_boundary_evidence.py'
-      - '.github/workflows/system-boundary-evidence-sync.yml'
 
 permissions: {}
 
@@ -23,4 +19,5 @@ jobs:
           test -z "${GITHUB_TOKEN:-}"
           test -z "${GH_TOKEN:-}"
           echo 'SYSTEM_BOUNDARY_EVIDENCE_HOSTED_MUTATION_DISABLED'
-          echo 'Canonical evidence synchronization belongs to sovereign/local repository tooling. GitHub Actions may not fetch authenticated workflow evidence, commit evidence, or push repository state.'
+          echo 'Canonical evidence synchronization belongs to sovereign/local repository tooling.'
+          echo 'GitHub Actions may not fetch authenticated workflow evidence, commit evidence, push repository state, or act as a continuity trigger.'
