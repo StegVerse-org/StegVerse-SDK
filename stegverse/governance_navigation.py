@@ -27,6 +27,53 @@ NAVIGATION = (
     ("2", "Reconstruct previously run set"),
 )
 
+MANIFEST_SHAPE_GUIDANCE = """MANIFEST SHAPE
+
+Every governed run is represented by a manifest with four conceptual groups:
+
+1. Profile and provenance
+   manifest_profile, manifest_profile_version, source_framework,
+   source_instance, source_output_id, created_at, freshness
+
+2. Governed subject
+   payload OR payload_commitment, candidate, declared_intent,
+   requested_consequence, context_refs
+
+3. Integrity and attestation
+   canonicalization_profile, hashes, attestation, extensions
+
+4. Caller-return projection
+   return_projection.mode, return_projection.transition_classes
+
+Required identity, integrity, governed-subject, and routing fields cannot be set
+to NONE merely to hide them from governance. They are part of the canonical run.
+Optional provenance/extension fields may be null or empty only where the profile
+allows it.
+
+The editable NONE control applies to caller-facing receipt projection:
+- return_projection.mode = ALL      -> return all user-disclosable transition evidence;
+- return_projection.mode = SELECTED -> return only named transition_classes;
+- return_projection.mode = NONE     -> return no transition-detail receipt projection.
+
+For a focused receipt request under option 00, use SELECTED and name only the
+transition classes wanted back, for example:
+
+  return_projection:
+    mode: SELECTED
+    transition_classes:
+      - steggate
+      - return_ingestion
+
+Use NONE only when no transition-detail receipts should be returned to that
+caller. NONE never means that StegVerse skipped, erased, or failed to retain the
+underlying state transitions. Master Records custody is independent of this
+caller-facing projection.
+
+The manifest_receipt_id is always the canonical locator for the exact immutable
+run and is not an authority token. It remains the handle for later replay or
+reconstruction even when transition-detail projection is NONE.
+"""
+
 PARAMETER_GUIDANCE = """USER-DEFINED RUN PARAMETERS
 
 Use this option to define permitted run preferences before submission, including
@@ -133,17 +180,24 @@ def navigation_text() -> str:
     return "\n".join(lines)
 
 
+def manifest_shape_guidance() -> str:
+    """Return the common manifest-shape explanation shown with every choice."""
+    return MANIFEST_SHAPE_GUIDANCE
+
+
 def guidance_for(selection: str) -> str:
     key = selection.strip().upper()
     if key == "00":
-        return PARAMETER_GUIDANCE
-    if key in {"0", "0A", "0B"}:
-        return SUBMIT_GUIDANCE
-    if key == "1":
-        return REPLAY_GUIDANCE
-    if key == "2":
-        return RECONSTRUCT_GUIDANCE
-    raise ValueError("selection must be 00, 0, 1, or 2")
+        specific = PARAMETER_GUIDANCE
+    elif key in {"0", "0A", "0B"}:
+        specific = SUBMIT_GUIDANCE
+    elif key == "1":
+        specific = REPLAY_GUIDANCE
+    elif key == "2":
+        specific = RECONSTRUCT_GUIDANCE
+    else:
+        raise ValueError("selection must be 00, 0, 1, or 2")
+    return specific.rstrip() + "\n\n" + MANIFEST_SHAPE_GUIDANCE
 
 
 def validate_manifest_receipt_id(value: str) -> str:
