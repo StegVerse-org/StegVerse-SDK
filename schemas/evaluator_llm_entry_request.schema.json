@@ -1,0 +1,24 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"stegverse.sdk.evaluator-llm-entry-request.v1",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["schema","request_id","participant_id","relationship_receipt_hash","terms_acceptance_receipt_hash","capability_id","route","evaluation_model_scope","prompt","max_output_tokens","provider_selection_authority","credential_access_granted","execution_authority_granted","repository_access_granted","request_hash"],
+  "properties":{
+    "schema":{"const":"stegverse.sdk.evaluator-llm-entry-request.v1"},
+    "request_id":{"type":"string","minLength":1},
+    "participant_id":{"type":"string","minLength":1},
+    "relationship_receipt_hash":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "terms_acceptance_receipt_hash":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "capability_id":{"const":"llm_adapter.evaluator_interaction"},
+    "route":{"const":"sdk://StegVerse-org/LLM-adapter/evaluator-entry"},
+    "evaluation_model_scope":{"const":"local_reference_only"},
+    "prompt":{"type":"string","minLength":1},
+    "max_output_tokens":{"type":"integer","minimum":1,"maximum":512},
+    "provider_selection_authority":{"const":false},
+    "credential_access_granted":{"const":false},
+    "execution_authority_granted":{"const":false},
+    "repository_access_granted":{"const":false},
+    "request_hash":{"type":"string","pattern":"^[0-9a-f]{64}$"}
+  }
+}
