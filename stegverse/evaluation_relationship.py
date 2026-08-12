@@ -4,6 +4,8 @@ import hashlib
 import json
 from typing import Any, Mapping, Sequence
 
+from .demo_terms import verify_demo_terms_acceptance
+
 REQUEST_SCHEMA = "stegverse.sdk.evaluation-interest-request.v1"
 RESULT_SCHEMA = "stegverse.sdk.evaluation-relationship-result.v1"
 
@@ -16,16 +18,10 @@ def _normalized_words(text: str) -> set[str]:
     return {part for part in "".join(ch.lower() if ch.isalnum() else " " for ch in text).split() if len(part) > 1}
 
 
-def resolve_evaluation_relationship(
-    request: Mapping[str, Any],
-    capability_catalog: Sequence[Mapping[str, Any]],
-) -> dict[str, Any]:
-    """Resolve evaluator interests against a bounded portable capability catalog.
-
-    The request is non-authorizing. Unknown interests never expand scope. The
-    result may only select capabilities already present and evaluator-visible in
-    the supplied catalog.
-    """
+def resolve_evaluation_relationship(request: Mapping[str, Any], capability_catalog: Sequence[Mapping[str, Any]], *, terms_acceptance_receipt: Mapping[str, Any]) -> dict[str, Any]:
+    """Resolve evaluator interests against a bounded catalog after exact Demo terms acceptance."""
+    if not verify_demo_terms_acceptance(terms_acceptance_receipt):
+        raise PermissionError("demo_terms_acceptance_required_or_invalid")
     if request.get("schema") != REQUEST_SCHEMA:
         raise ValueError("evaluation_request_schema_mismatch")
 
@@ -81,16 +77,13 @@ def resolve_evaluation_relationship(
         if depth not in depth_rank or depth_rank[depth] > depth_rank[max_depth]:
             denied.append({"capability_id": cid, "reason": "EVALUATOR_INTERACTION_LIMIT"})
             continue
-        admitted.append({
-            "capability_id": cid,
-            "title": str(item.get("title") or cid),
-            "interaction": depth,
-            "route": item.get("route"),
-        })
+        admitted.append({"capability_id": cid, "title": str(item.get("title") or cid), "interaction": depth, "route": item.get("route")})
 
     result: dict[str, Any] = {
         "schema": RESULT_SCHEMA,
         "request_id": request_id,
+        "participant_id": str(terms_acceptance_receipt["participant_id"]),
+        "terms_acceptance_receipt_hash": str(terms_acceptance_receipt["receipt_hash"]),
         "objectives": objectives,
         "matched_by_objective": matched_by_objective,
         "admitted_capabilities": admitted,
@@ -114,17 +107,10 @@ def resolve_evaluation_relationship(
 def verify_evaluation_relationship(result: Mapping[str, Any]) -> bool:
     if result.get("schema") != RESULT_SCHEMA:
         return False
-    for key in (
-        "recipient_specific_package",
-        "identity_bound_package",
-        "execution_authority_granted",
-        "mutation_authority_granted",
-        "publication_authority_granted",
-        "wallet_authority_granted",
-        "credential_authority_granted",
-        "repository_access_granted",
-        "unknown_interest_auto_admitted",
-    ):
+    for key in ("participant_id", "terms_acceptance_receipt_hash"):
+        if not isinstance(result.get(key), str) or not str(result.get(key)).strip():
+            return False
+    for key in ("recipient_specific_package", "identity_bound_package", "execution_authority_granted", "mutation_authority_granted", "publication_authority_granted", "wallet_authority_granted", "credential_authority_granted", "repository_access_granted", "unknown_interest_auto_admitted"):
         if result.get(key) is not False:
             return False
     candidate = dict(result)
