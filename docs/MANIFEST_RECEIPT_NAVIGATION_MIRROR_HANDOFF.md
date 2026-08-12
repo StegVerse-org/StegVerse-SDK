@@ -60,34 +60,55 @@ A structurally valid machine manifest means only that the machine output is acce
 
 ```text
 StegVerse-Labs/StegCore/src/stegcore/manifest_receipts.py
-  canonical manifest_receipt_id + evidence/replay/reconstruct provider-neutral semantics
+StegVerse-Labs/StegCore/src/stegcore/manifest_receipt_provider.py
+  canonical manifest_receipt_id + evidence/replay/reconstruct semantics and shared-backing contract
 
 master-records/orchestration/services/manifest_receipt_custody.py
 master-records/orchestration/services/manifest_receipt_custody_api.py
-  exact-run immutable custody + authenticated lookup/reconstruction primitives
+master-records/orchestration/services/canonical_custody_app.py
+master-records/orchestration/render-custody.yaml
+  exact-run immutable custody + authenticated lookup/reconstruction composed into canonical custody deployment
 
 StegVerse-org/LLM-adapter/llm_adapter/governed_manifest_ingress.py
   machine TEST/LIVE_STREAM ingress and governed-result egress
 ```
 
+## Completed handoff tasks
+
+```text
+[done] public 0/1/2 navigation and pre-input guidance installed
+[done] raw-user vs preformatted-machine ingress distinction installed
+[done] versioned external ingress profile installed
+[done] receipt-ID validation contract installed
+[done] StegCore canonical exact-run receipt registry exists
+[done] StegCore shared-backing provider contract exists
+[done] Master Records exact-run custody API exists
+[done] Master Records exact-run routes are composed into its canonical deployment target
+```
+
 ## Worker continuation boundary
 
-The remaining SDK work is now narrowly defined. Do not create another evaluator, receipt registry, or custody store in this repository.
+The remaining SDK work is narrowly defined. Do not create another evaluator, receipt registry, custody store, or Master Records transport authority in this repository.
 
 Next executable tasks:
 
 ```text
-1. wire Option 0 execution to the canonical manifested transaction provider;
+1. wire Option 0 execution to the canonical manifested transaction/provider path;
 2. accept either raw SDK-manifested input or validated stegverse.ingress-manifest.v1 input;
 3. return the full ordinary evidence package plus canonical manifest_receipt_id;
-4. wire Option 1 to replay by manifest_receipt_id only;
-5. wire Option 2 to reconstruction by manifest_receipt_id only;
-6. make unknown IDs fail closed with a user-readable explanation;
-7. add integration tests proving the UI guidance appears before input and the original run is not mutated;
-8. run the sovereign/local validation path and record inspectable PASS evidence here.
+4. retain the exact package through the shared-backing provider when an admitted transport is available;
+5. wire Option 1 to replay by manifest_receipt_id only;
+6. wire Option 2 to reconstruction by manifest_receipt_id only;
+7. make unknown IDs fail closed with a user-readable explanation;
+8. add integration tests proving guidance precedes input, shared backing preserves one-ID/one-run identity, and the original run is not mutated;
+9. run the sovereign/local validation path and record inspectable PASS evidence here.
 ```
 
 The user should never need internal commit SHAs, repository paths, transaction IDs, or receipt filenames to operate these flows.
+
+## Activation boundary
+
+Master Records canonical route composition is installed but production custody activation remains gated by the Master Records repository-wide persistent-storage, backup/restore, and live-authenticated round-trip readiness requirements. The SDK must not represent installed custody code as live production custody until those conditions are evidenced.
 
 ## Validation status
 
