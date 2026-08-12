@@ -1,33 +1,37 @@
 import unittest
 
 from stegverse.governance_navigation import (
+    DEMO_OUTPUT_PROFILE,
     INGRESS_PROFILE,
+    canonical_sha256,
+    demo_output_manifest_shape,
     guidance_for,
     manifest_shape_guidance,
     navigation_text,
+    normalize_return_projection,
     validate_external_manifest,
     validate_manifest_receipt_id,
-    normalize_return_projection,
-    canonical_sha256,
 )
 
 
 class GovernanceNavigationTests(unittest.TestCase):
-    def test_navigation_exposes_parameter_and_three_canonical_operations(self):
+    def test_navigation_exposes_demo_parameter_and_three_canonical_operations(self):
         text = navigation_text()
+        self.assertIn("[000] Demo test sequence without user-supplied manifest", text)
         self.assertIn("[00] User-defined run parameters", text)
         self.assertIn("[0] Submit data for governance", text)
         self.assertIn("[1] Replay previously run set", text)
         self.assertIn("[2] Reconstruct previously run set", text)
 
     def test_guidance_is_explicit_before_input(self):
+        self.assertIn("no user-supplied manifest", guidance_for("000"))
         self.assertIn("Master Records", guidance_for("00"))
         self.assertIn("preformatted machine manifest", guidance_for("0"))
         self.assertIn("manifest_receipt_id", guidance_for("1"))
         self.assertIn("consequential side effects", guidance_for("2"))
 
     def test_every_choice_explains_manifest_shape_and_projection(self):
-        for selection in ("00", "0", "1", "2"):
+        for selection in ("000", "00", "0", "1", "2"):
             text = guidance_for(selection)
             self.assertIn("MANIFEST SHAPE", text)
             self.assertIn("manifest_profile", text)
@@ -35,6 +39,29 @@ class GovernanceNavigationTests(unittest.TestCase):
             self.assertIn("SELECTED", text)
             self.assertIn("NONE", text)
             self.assertIn("Master Records custody is independent", text)
+
+    def test_manifest_shape_labels_transition_and_receipt_classes(self):
+        text = manifest_shape_guidance()
+        self.assertIn("transition classes", text)
+        self.assertIn("receipt classes", text)
+        self.assertIn("Governance and consequence trajectory", text)
+        self.assertIn("MANIFEST_ADMITTED", text)
+        self.assertIn("RESULT_INGESTED", text)
+
+    def test_demo_output_is_self_describing_for_human_or_llm_reconstruction(self):
+        demo = demo_output_manifest_shape()
+        self.assertEqual(demo["schema"], DEMO_OUTPUT_PROFILE)
+        self.assertEqual(demo["canonical_input_profile"], INGRESS_PROFILE)
+        self.assertEqual(demo["canonical_manifest_example"]["manifest_profile"], INGRESS_PROFILE)
+        self.assertGreaterEqual(len(demo["sections"]), 6)
+        self.assertGreaterEqual(len(demo["process_sequence"]), 7)
+        for section in demo["sections"]:
+            self.assertIn("label", section)
+            self.assertIn("transition_classes", section)
+            self.assertIn("receipt_classes", section)
+        self.assertIn("human", demo["reconstruction_notes"])
+        self.assertIn("llm", demo["reconstruction_notes"])
+        self.assertFalse(demo["demo_grants_authority"])
 
     def test_manifest_shape_explains_required_fields_cannot_be_hidden(self):
         text = manifest_shape_guidance()
