@@ -20,7 +20,7 @@ class GovernanceNavigationTests(unittest.TestCase):
     def test_guidance_is_explicit_before_input(self):
         self.assertIn("preformatted machine manifest", guidance_for("0"))
         self.assertIn("manifest_receipt_id", guidance_for("1"))
-        self.assertIn("Consequential side effects", guidance_for("2").replace("consequential", "Consequential"))
+        self.assertIn("consequential side effects", guidance_for("2"))
 
     def test_external_manifest_is_structural_not_authority(self):
         payload = {"reading": 42}
