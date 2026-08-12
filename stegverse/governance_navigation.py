@@ -4,10 +4,9 @@ This module owns user-facing instructions and ingress validation only. It does n
 implement StegGate authority. A structurally valid manifest is acceptable input
 to governance; it is never an ALLOW decision.
 
-A manifest may also request how transition evidence is projected back to the
-caller. That user-return projection never controls Master Records custody:
-ecosystem state transitions remain eligible for canonical Master Records
-recording even when the caller requests selected or no transition details back.
+A manifest may request both (a) which transition evidence is projected back to
+the caller and (b) which explanatory labels are attached to the returned
+package. Neither return control changes canonical Master Records custody.
 """
 from __future__ import annotations
 
@@ -20,8 +19,10 @@ from typing import Any, Mapping
 INGRESS_PROFILE = "stegverse.ingress-manifest.v1"
 DEMO_OUTPUT_PROFILE = "stegverse.manifest-demo-output.v1"
 DEMO_DATASET_PROFILE = "stegverse.000-demo-dataset.v1"
+MANIFEST_LABEL_PROFILE = "stegverse.manifest-labels.v1"
 RECEIPT_ID_RE = re.compile(r"^MR-[A-F0-9]{16,64}$")
 RETURN_PROJECTION_MODES = {"ALL", "SELECTED", "NONE"}
+MANIFEST_LABEL_MODES = {"ALL", "SELECTED", "NONE"}
 GOVERNANCE_OUTCOME_STATES = ("ALLOW", "DENY", "REVIEW", "FAIL_CLOSED")
 
 NAVIGATION = (
@@ -35,8 +36,9 @@ NAVIGATION = (
 MANIFEST_SHAPE_GUIDANCE = """MANIFEST SHAPE
 
 Every governed run is represented by a manifest with clearly labeled sections.
-Each section should identify the transition class(es) and receipt class(es) that
-can be produced from that part of the process.
+The labels are themselves requested by the manifest through `manifest_labels`.
+This means the same explanatory return package demonstrated by option 000 can
+also be requested on an ordinary option 0 submission.
 
 1. Profile and provenance
    fields: manifest_profile, manifest_profile_version, source_framework,
@@ -61,29 +63,45 @@ can be produced from that part of the process.
    receipt classes: MANIFEST_ADMITTED, governance-decision, execution-observation,
    RESULT_INGESTED, receipt-chain verification
 
-5. Caller-return projection
+5. Caller-return receipt projection
    fields: return_projection.mode, return_projection.transition_classes
    transition class: disclosure_projection
    receipt class: projection-decision
+
+6. Return-package explanatory labels
+   fields: manifest_labels.profile, manifest_labels.mode,
+   manifest_labels.sections and label-detail toggles
+   transition class: return_label_projection
+   receipt class: manifest-label-projection
+
+`return_projection` controls which user-disclosable transition receipts are
+returned. `manifest_labels` independently controls whether explanatory titles,
+descriptions, class labels, editability labels, and authority-boundary labels are
+attached to that return package.
 
 Required identity, integrity, governed-subject, and routing fields cannot be set
 to NONE merely to hide them from governance. They are part of the canonical run.
 Optional provenance/extension fields may be null or empty only where the profile
 allows it.
 
-The editable NONE control applies to caller-facing receipt projection:
+Receipt projection:
 - return_projection.mode = ALL      -> return all user-disclosable transition evidence;
 - return_projection.mode = SELECTED -> return only named transition_classes;
 - return_projection.mode = NONE     -> return no transition-detail receipt projection.
 
-Use NONE only when no transition-detail receipts should be returned to that
-caller. NONE never means that StegVerse skipped, erased, or failed to retain the
-underlying state transitions. Master Records custody is independent of this
-caller-facing projection.
+Explanation-label projection:
+- manifest_labels.mode = ALL      -> label/explain all returned package sections;
+- manifest_labels.mode = SELECTED -> label/explain only named sections;
+- manifest_labels.mode = NONE     -> return no explanatory manifest labels.
+
+Neither NONE mode means StegVerse skipped, erased, or failed to retain underlying
+state transitions. Master Records custody is independent of both caller-facing
+return controls.
 
 The manifest_receipt_id is always the canonical locator for the exact immutable
 run and is not an authority token. It remains the handle for later replay or
-reconstruction even when transition-detail projection is NONE.
+reconstruction even when transition-detail or explanation-label projection is
+NONE.
 """
 
 DEMO_GUIDANCE = """DEMO TEST SEQUENCE WITHOUT USER-SUPPLIED MANIFEST
@@ -91,54 +109,52 @@ DEMO_GUIDANCE = """DEMO TEST SEQUENCE WITHOUT USER-SUPPLIED MANIFEST
 This option runs a safe demonstration using an SDK-owned dataset and no
 user-supplied manifest.
 
-The demo dataset begins with one labeled example of every active governance
-outcome class: ALLOW, DENY, REVIEW, and FAIL_CLOSED. Those outcome examples are
-teaching records only. They are not prior decisions, authority, or executable
-instructions. The example transaction data follows those outcome examples.
+The dataset begins with one labeled example of every active governance outcome
+class: ALLOW, DENY, REVIEW, and FAIL_CLOSED. Those outcome examples are teaching
+data only. They are not prior decisions, authority, or executable instructions.
+
+For option 000 the ENTIRE demo dataset is the submitted payload. The returned
+shape therefore includes a dataset hash plus the receipt classes that must prove
+manifest admission, governance processing, return ingestion, and final exact-run
+custody. Until the demo is bound to the canonical runtime those runtime receipt
+values remain explicitly PENDING rather than being fabricated.
+
+Option 000 also requests `manifest_labels.mode = ALL`, so every explanatory title,
+description, transition class, receipt class, editability boundary, and authority
+boundary is part of the demo return package.
 
 Purpose:
-- teach the full governance outcome vocabulary before showing the demo run;
+- teach the complete governance outcome vocabulary;
+- make it evident which dataset was submitted as the demo payload;
+- show what evidence proves that payload was processed;
 - show the ordinary StegVerse process end to end;
 - show the final output manifest shape the user would receive;
-- label every section with its purpose, transition class(es), receipt class(es),
-  editable fields, and non-editable authority/custody boundaries;
 - make the result sufficiently self-describing that a person can reconstruct a
   conforming manifest by hand;
-- make the result sufficiently machine-readable that it can be supplied to an
-  external LLM, which can understand the structure and propose a new manifest
-  from the user's stated preferences.
+- make the result sufficiently machine-readable that an external LLM can propose
+  a new manifest from the user's stated preferences.
 
 Important boundary:
-- the 000 dataset is strictly demo-only and is not accepted as a user manifest;
+- the 000 dataset is demo-only and is submitted as DATA, not accepted as a user
+  manifest;
 - the demo teaches structure and evidence semantics; it does not grant authority;
-- any manifest proposed later by a user or LLM must still pass normal profile,
-  hash, provenance, governance, and consequence-boundary validation;
-- the explanatory labels are output metadata. The canonical input manifest
-  remains the accepted stegverse.ingress-manifest.v1 structure.
+- any later manifest proposed by a user or LLM must still pass normal profile,
+  hash, provenance, governance, and consequence-boundary validation.
 """
 
 PARAMETER_GUIDANCE = """USER-DEFINED RUN PARAMETERS
 
 Use this option to define permitted run preferences before submission, including
-how governed transition evidence should be projected back in the user-facing
-result.
+which transition receipts should be returned and whether the returned package
+should carry explanatory manifest labels.
 
 Important boundary:
-- the manifest routes the submitted unit through StegVerse and declares the
-  requested user-return projection for state-transition evidence;
-- return projection controls what transition evidence is returned to the caller,
-  not whether ecosystem transitions occurred or were retained;
-- Master Records remains the canonical ecosystem custody surface and may retain
-  all state transitions required by StegVerse continuity, governance, audit, and
-  reconstruction semantics;
+- return_projection controls user-visible transition evidence;
+- manifest_labels controls user-visible explanatory labels;
+- neither controls whether ecosystem transitions occurred or were retained;
+- Master Records remains the canonical ecosystem custody surface;
 - a caller cannot use run parameters to suppress canonical Master Records
   recording, erase a transition, grant authority, or rewrite historical state.
-
-Return projection modes:
-- ALL: return all user-disclosable transition evidence for the run;
-- SELECTED: return only the requested user-disclosable transition classes;
-- NONE: return no transition-detail projection to the caller. This does NOT mean
-  no state transitions were recorded by StegVerse or Master Records.
 
 The final manifest_receipt_id remains a locator for the exact immutable run and
 is not execution or admissibility authority.
@@ -155,20 +171,21 @@ Choose submission type:
      Use this when another system or framework already produced a manifest
      conforming to the accepted StegVerse ingress profile.
 
+An option 0 manifest may include `manifest_labels`. Set `manifest_labels.mode` to
+ALL when you want the returned package to include the same kind of explanatory
+section descriptions, transition-class labels, receipt-class labels, editability
+labels, and authority-boundary labels demonstrated by option 000.
+
 What will happen:
 - input is manifested or the supplied manifest is validated and canonicalized;
-- the manifest declares routing and the requested user-return projection;
+- the manifest declares routing, receipt projection, and explanation-label
+  projection;
 - the transaction enters canonical ingestion -> StegGate governance ->
   commit/consequence boundary -> return ingestion;
 - submission and manifest validity do not grant authority;
-- Master Records custody is independent of how much transition evidence is
-  projected back to the caller;
-- the completed run returns the permitted user-facing result and a final
+- Master Records custody is independent of caller return formatting;
+- the completed run returns the permitted user-facing result and final
   manifest_receipt_id identifying the exact immutable master-record run.
-
-For machine manifests, required identity/provenance/hash/intent/payload or
-payload-commitment fields are validated before governance. Structural validity
-means only that the machine output is acceptable for governance.
 """
 
 REPLAY_GUIDANCE = """REPLAY A PREVIOUSLY RUN SET
@@ -185,8 +202,8 @@ What will happen:
 What you receive:
 - a new replay receipt linked to the original manifest receipt;
 - original-vs-replay decision/state and identity/determinism comparisons;
-- verification evidence for the replay, subject to the applicable return
-  projection and disclosure boundary.
+- verification evidence subject to applicable receipt and manifest-label
+  projection boundaries.
 """
 
 RECONSTRUCT_GUIDANCE = """RECONSTRUCT A PREVIOUSLY RUN SET
@@ -201,8 +218,8 @@ What will happen:
 - consequential side effects are not executed again.
 
 What you receive:
-- reconstructed trajectory and chain verification subject to the applicable
-  disclosure/return projection;
+- reconstructed trajectory and chain verification subject to applicable
+  disclosure/label projection;
 - explicit distinction between natively persisted historical evidence and
   evidence reconstructed afterward;
 - a new reconstruction receipt linked to the original manifest receipt.
@@ -224,7 +241,6 @@ def navigation_text() -> str:
 
 
 def manifest_shape_guidance() -> str:
-    """Return the common manifest-shape explanation shown with every choice."""
     return MANIFEST_SHAPE_GUIDANCE
 
 
@@ -243,6 +259,40 @@ def guidance_for(selection: str) -> str:
     else:
         raise ValueError("selection must be 000, 00, 0, 1, or 2")
     return specific.rstrip() + "\n\n" + MANIFEST_SHAPE_GUIDANCE
+
+
+def normalize_manifest_labels(value: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Normalize explanatory labels requested for the caller-facing package."""
+    labels = dict(value or {})
+    profile = str(labels.get("profile") or MANIFEST_LABEL_PROFILE)
+    if profile != MANIFEST_LABEL_PROFILE:
+        raise ValueError(f"manifest_labels.profile must be {MANIFEST_LABEL_PROFILE}")
+    mode = str(labels.get("mode") or "NONE").strip().upper()
+    if mode not in MANIFEST_LABEL_MODES:
+        raise ValueError("manifest_labels.mode must be ALL, SELECTED, or NONE")
+    sections = labels.get("sections") or []
+    if not isinstance(sections, list) or not all(isinstance(item, str) and item.strip() for item in sections):
+        raise ValueError("manifest_labels.sections must be a list of non-empty strings")
+    sections = list(dict.fromkeys(item.strip() for item in sections))
+    if mode == "SELECTED" and not sections:
+        raise ValueError("SELECTED manifest_labels requires sections")
+    if mode != "SELECTED" and sections:
+        raise ValueError("manifest_labels.sections are only valid with SELECTED mode")
+    defaults = mode != "NONE"
+    return {
+        "profile": MANIFEST_LABEL_PROFILE,
+        "mode": mode,
+        "sections": sections,
+        "include_field_descriptions": bool(labels.get("include_field_descriptions", defaults)),
+        "include_transition_class_labels": bool(labels.get("include_transition_class_labels", defaults)),
+        "include_receipt_class_labels": bool(labels.get("include_receipt_class_labels", defaults)),
+        "include_editability_labels": bool(labels.get("include_editability_labels", defaults)),
+        "include_authority_boundary_labels": bool(labels.get("include_authority_boundary_labels", defaults)),
+        "controls_return_explanation_only": True,
+        "changes_governance_decision": False,
+        "suppresses_master_records_custody": False,
+        "grants_authority": False,
+    }
 
 
 def _load_000_demo_dataset() -> dict[str, Any]:
@@ -269,15 +319,36 @@ def _load_000_demo_dataset() -> dict[str, Any]:
     return dataset
 
 
-def demo_output_manifest_shape() -> dict[str, Any]:
-    """Return a self-describing 000 demo envelope for hand/LLM reconstruction.
+def _manifest_label(
+    *,
+    title: str,
+    description: str,
+    transition_classes: list[str],
+    receipt_classes: list[str],
+    editable: Any,
+    authority_effect: str,
+) -> dict[str, Any]:
+    return {
+        "profile": MANIFEST_LABEL_PROFILE,
+        "title": title,
+        "description": description,
+        "transition_classes": transition_classes,
+        "receipt_classes": receipt_classes,
+        "editable": editable,
+        "authority_effect": authority_effect,
+    }
 
-    The demo dataset is deliberately prepended and contains exactly one teaching
-    example of each active governance outcome before the demo transaction input.
-    This is explanatory output, not a substitute for a governed run or a
-    pre-authorized input manifest.
+
+def demo_output_manifest_shape() -> dict[str, Any]:
+    """Return the self-describing option-000 demo envelope.
+
+    The entire SDK-owned dataset is embedded as the example manifest payload so
+    the final runtime-bound demo can prove which exact dataset was admitted and
+    processed. Runtime processing evidence remains explicitly pending until the
+    canonical demo execution is wired.
     """
     demo_dataset = _load_000_demo_dataset()
+    dataset_hash = canonical_sha256(demo_dataset)
     canonical_manifest = {
         "manifest_profile": INGRESS_PROFILE,
         "manifest_profile_version": "1",
@@ -286,87 +357,106 @@ def demo_output_manifest_shape() -> dict[str, Any]:
         "source_output_id": "DEMO-OUTPUT-001",
         "created_at": "<generated-at-run-time>",
         "freshness": {"status": "demo"},
-        "payload": dict(demo_dataset["demo_input"]["payload"]),
+        "payload": demo_dataset,
         "candidate": dict(demo_dataset["demo_input"]["candidate"]),
         "declared_intent": demo_dataset["demo_input"]["declared_intent"],
         "requested_consequence": demo_dataset["demo_input"]["requested_consequence"],
         "context_refs": [],
         "canonicalization_profile": "steggate.jcs.v1",
         "hashes": {
-            "payload_sha256": "<computed>",
-            "candidate_sha256": "<computed>",
+            "payload_sha256": dataset_hash,
+            "candidate_sha256": canonical_sha256(demo_dataset["demo_input"]["candidate"]),
         },
         "attestation": None,
         "extensions": {},
-        "return_projection": {
-            "mode": "ALL",
-            "transition_classes": [],
-        },
+        "return_projection": {"mode": "ALL", "transition_classes": []},
+        "manifest_labels": normalize_manifest_labels({"mode": "ALL"}),
     }
-    sections = [
-        {
-            "section_id": "profile_provenance",
-            "label": "Profile and provenance",
-            "fields": ["manifest_profile", "manifest_profile_version", "source_framework", "source_instance", "source_output_id", "created_at", "freshness"],
-            "transition_classes": ["ingress", "provenance"],
-            "receipt_classes": ["manifest-admission", "source-identity"],
-            "editable": True,
-            "authority_effect": "NONE",
-        },
-        {
-            "section_id": "governed_subject",
-            "label": "Governed subject",
-            "fields": ["payload|payload_commitment", "candidate", "declared_intent", "requested_consequence", "context_refs"],
-            "transition_classes": ["subject", "intent", "candidate"],
-            "receipt_classes": ["input-commitment", "candidate-identity", "request-identity"],
-            "editable": True,
-            "authority_effect": "NONE",
-        },
-        {
-            "section_id": "integrity_attestation",
-            "label": "Integrity and attestation",
-            "fields": ["canonicalization_profile", "hashes", "attestation", "extensions"],
-            "transition_classes": ["canonicalization", "verification"],
-            "receipt_classes": ["hash-verification", "attestation-verification"],
-            "editable": "profile-bounded",
-            "authority_effect": "NONE",
-        },
-        {
-            "section_id": "governed_trajectory",
-            "label": "Governance and consequence trajectory",
-            "fields": ["generated_transition_receipts", "governance_state", "consequence_executed", "receipt_chain_head"],
-            "transition_classes": ["ingestion", "governance", "consequence", "return_ingestion"],
-            "receipt_classes": ["MANIFEST_ADMITTED", "governance-decision", "execution-observation", "RESULT_INGESTED", "receipt-chain-verification"],
-            "editable": False,
-            "generated_by": "canonical governed runtime",
-            "authority_effect": "OBSERVATION_ONLY",
-        },
-        {
-            "section_id": "caller_return_projection",
-            "label": "Caller-return projection",
-            "fields": ["return_projection.mode", "return_projection.transition_classes"],
-            "transition_classes": ["disclosure_projection"],
-            "receipt_classes": ["projection-decision"],
-            "editable": True,
-            "allowed_modes": ["ALL", "SELECTED", "NONE"],
-            "suppresses_master_records_custody": False,
-            "authority_effect": "NONE",
-        },
-        {
-            "section_id": "exact_run_locator",
-            "label": "Exact-run locator",
-            "fields": ["manifest_receipt_id"],
-            "transition_classes": ["custody_reference"],
-            "receipt_classes": ["manifest-receipt"],
-            "editable": False,
-            "generated_by": "canonical exact-run receipt path",
-            "locator_grants_authority": False,
-        },
+
+    section_specs = [
+        (
+            "profile_provenance", "Profile and provenance",
+            "Identifies the manifest profile, source, run instance, source output, and freshness context.",
+            ["manifest_profile", "manifest_profile_version", "source_framework", "source_instance", "source_output_id", "created_at", "freshness"],
+            ["ingress", "provenance"], ["manifest-admission", "source-identity"], True, "NONE",
+        ),
+        (
+            "governed_subject", "Governed subject",
+            "Identifies the exact submitted data, candidate action, declared intent, requested consequence, and context.",
+            ["payload|payload_commitment", "candidate", "declared_intent", "requested_consequence", "context_refs"],
+            ["subject", "intent", "candidate"], ["input-commitment", "candidate-identity", "request-identity"], True, "NONE",
+        ),
+        (
+            "integrity_attestation", "Integrity and attestation",
+            "Shows canonicalization, hashes, attestations, and bounded extensions used to verify what was submitted.",
+            ["canonicalization_profile", "hashes", "attestation", "extensions"],
+            ["canonicalization", "verification"], ["hash-verification", "attestation-verification"], "profile-bounded", "NONE",
+        ),
+        (
+            "governed_trajectory", "Governance and consequence trajectory",
+            "Shows runtime-generated admission, governance, consequence observation, and return-ingestion evidence.",
+            ["generated_transition_receipts", "governance_state", "consequence_executed", "receipt_chain_head"],
+            ["ingestion", "governance", "consequence", "return_ingestion"], ["MANIFEST_ADMITTED", "governance-decision", "execution-observation", "RESULT_INGESTED", "receipt-chain-verification"], False, "OBSERVATION_ONLY",
+        ),
+        (
+            "caller_return_projection", "Caller-return receipt projection",
+            "Explains which user-disclosable transition receipts were requested for the returned package.",
+            ["return_projection.mode", "return_projection.transition_classes"],
+            ["disclosure_projection"], ["projection-decision"], True, "NONE",
+        ),
+        (
+            "return_manifest_labels", "Return-package manifest labels",
+            "Explains which human/LLM-readable titles, descriptions, class labels, and boundary labels were requested on return.",
+            ["manifest_labels.profile", "manifest_labels.mode", "manifest_labels.sections"],
+            ["return_label_projection"], ["manifest-label-projection"], True, "NONE",
+        ),
+        (
+            "exact_run_locator", "Exact-run locator",
+            "Identifies the final immutable run handle used for later replay and reconstruction.",
+            ["manifest_receipt_id"], ["custody_reference"], ["manifest-receipt"], False, "LOCATOR_ONLY",
+        ),
     ]
+    sections = []
+    for section_id, title, description, fields, transition_classes, receipt_classes, editable, authority_effect in section_specs:
+        sections.append(
+            {
+                "section_id": section_id,
+                "fields": fields,
+                "manifest_label": _manifest_label(
+                    title=title,
+                    description=description,
+                    transition_classes=transition_classes,
+                    receipt_classes=receipt_classes,
+                    editable=editable,
+                    authority_effect=authority_effect,
+                ),
+            }
+        )
+
     return {
-        "000_governance_outcome_dataset": demo_dataset,
         "schema": DEMO_OUTPUT_PROFILE,
         "purpose": "self-describing manifest example for human or LLM-assisted reconstruction",
+        "000_governance_outcome_dataset": demo_dataset,
+        "demo_dataset_processing": {
+            "dataset_schema": DEMO_DATASET_PROFILE,
+            "dataset_sha256": dataset_hash,
+            "submitted_as": "canonical_manifest_example.payload",
+            "dataset_loaded_into_demo_manifest": True,
+            "canonical_processing_status": "PENDING_RUNTIME_BINDING",
+            "required_processing_receipt_classes": [
+                "MANIFEST_ADMITTED",
+                "governance-decision",
+                "RESULT_INGESTED",
+                "manifest-receipt",
+            ],
+            "required_final_fields": [
+                "manifest_receipt_id",
+                "receipt_chain_head",
+                "governance_state",
+                "chain_verified",
+            ],
+            "do_not_claim_processed_until_receipts_exist": True,
+        },
         "canonical_input_profile": INGRESS_PROFILE,
         "canonical_manifest_example": canonical_manifest,
         "sections": sections,
@@ -378,10 +468,11 @@ def demo_output_manifest_shape() -> dict[str, Any]:
             {"order": 4, "stage": "return_ingestion", "transition_class": "return_ingestion", "receipt_class": "RESULT_INGESTED"},
             {"order": 5, "stage": "master_records", "transition_class": "custody", "receipt_class": "manifest-receipt"},
             {"order": 6, "stage": "caller_projection", "transition_class": "disclosure_projection", "receipt_class": "projection-decision"},
+            {"order": 7, "stage": "return_labeling", "transition_class": "return_label_projection", "receipt_class": "manifest-label-projection"},
         ],
         "reconstruction_notes": {
-            "human": "Read the four demo governance outcomes first. Then copy the canonical_manifest_example, replace editable values, recompute required hashes, and submit through the normal manifest path.",
-            "llm": "Treat the 000 governance outcome examples, sections, and process_sequence as explanatory metadata. Produce a new stegverse.ingress-manifest.v1 object only; do not copy demo outcomes as decisions or invent authority/generated runtime receipts.",
+            "human": "Verify demo_dataset_processing first. Then copy canonical_manifest_example, replace editable values, recompute required hashes, choose receipt/label projections, and submit through the normal manifest path.",
+            "llm": "Treat manifest_label objects as explanatory metadata requested by the manifest. Produce a new stegverse.ingress-manifest.v1 object; preserve or modify manifest_labels according to the user's desired return explanations, and never copy demo governance outcomes as authority.",
             "master_records_custody_independent_of_caller_projection": True,
         },
         "demo_grants_authority": False,
@@ -396,11 +487,7 @@ def validate_manifest_receipt_id(value: str) -> str:
 
 
 def normalize_return_projection(value: Mapping[str, Any] | None) -> dict[str, Any]:
-    """Normalize the caller-facing transition-evidence projection.
-
-    This is a disclosure/return contract only. It cannot suppress canonical
-    ecosystem custody or alter transition history.
-    """
+    """Normalize the caller-facing transition-evidence projection."""
     projection = dict(value or {})
     mode = str(projection.get("mode") or "ALL").strip().upper()
     if mode not in RETURN_PROJECTION_MODES:
@@ -431,6 +518,7 @@ def validate_external_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "payload", "payload_commitment", "candidate", "declared_intent",
         "requested_consequence", "context_refs", "canonicalization_profile",
         "hashes", "attestation", "extensions", "return_projection",
+        "manifest_labels",
     }
     unknown = sorted(set(manifest) - allowed)
     if unknown:
@@ -471,15 +559,23 @@ def validate_external_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     canonical.setdefault("attestation", None)
     canonical.setdefault("extensions", {})
     canonical["return_projection"] = normalize_return_projection(manifest.get("return_projection"))
+    canonical["manifest_labels"] = normalize_manifest_labels(manifest.get("manifest_labels"))
     canonical["ingress_mode"] = "external_manifest"
     canonical["external_manifest_valid"] = True
     canonical["external_manifest_grants_authority"] = False
     canonical["master_records_transition_custody_independent_of_return_projection"] = True
+    canonical["manifest_labels_change_governance"] = False
     canonical["canonical_manifest_sha256"] = canonical_sha256(canonical)
     return canonical
 
 
-def build_raw_submission_descriptor(*, source: str, subject: str, return_projection: Mapping[str, Any] | None = None) -> dict[str, Any]:
+def build_raw_submission_descriptor(
+    *,
+    source: str,
+    subject: str,
+    return_projection: Mapping[str, Any] | None = None,
+    manifest_labels: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     if not source.strip() or not subject.strip():
         raise ValueError("source and subject are required")
     return {
@@ -487,6 +583,7 @@ def build_raw_submission_descriptor(*, source: str, subject: str, return_project
         "source": source,
         "subject": subject,
         "return_projection": normalize_return_projection(return_projection),
+        "manifest_labels": normalize_manifest_labels(manifest_labels),
         "sdk_will_create_manifest": True,
         "submission_grants_authority": False,
         "master_records_transition_custody_independent_of_return_projection": True,
