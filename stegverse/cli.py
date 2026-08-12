@@ -67,6 +67,28 @@ def print_help_for_surface(name: str, _registry: dict[str, Any] | None = None) -
     return 0
 
 
+def _governance_guide(args: argparse.Namespace) -> int:
+    from .governance_navigation import guidance_for, navigation_text
+    print(navigation_text())
+    selection = args.select
+    if selection is None:
+        try:
+            selection = input("\nSelect an option: ").strip()
+        except EOFError:
+            print("\nUse: stegverse governance --select 0|1|2")
+            return 2
+    print()
+    print(guidance_for(selection))
+    key = selection.strip().upper()
+    if key == "0":
+        print("Next: choose 0A for raw/user data or 0B for a preformatted machine manifest.")
+    elif key == "1":
+        print("Next: provide the manifest_receipt_id returned by the original run.")
+    elif key == "2":
+        print("Next: provide the manifest_receipt_id returned by the original run.")
+    return 0
+
+
 def _verify_admittedcode(receipt: Mapping[str, Any]) -> dict[str, Any]:
     from .admittedcode_receipt import verify_admittedcode_receipt
     return verify_admittedcode_receipt(receipt)
@@ -79,10 +101,7 @@ def _demo_surface(args: argparse.Namespace) -> int:
         print("Run 'stegverse surfaces' and 'stegverse help-surface <name>' for available local operations.")
         return 2
 
-    cases = {
-        "allow": "admittedcode_allow.json",
-        "deny": "admittedcode_deny.json",
-    }
+    cases = {"allow": "admittedcode_allow.json", "deny": "admittedcode_deny.json"}
     selected = [args.case] if args.case in cases else ["allow", "deny"]
     results: dict[str, Any] = {}
     for case in selected:
@@ -163,6 +182,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("surfaces", help="list callable SDK surfaces")
     sub.add_parser("capabilities", help="print the user-facing surface registry as JSON")
+    governance = sub.add_parser("governance", help="guided submit/replay/reconstruct governance navigation")
+    governance.add_argument("--select", choices=("0", "1", "2"), help="show guidance for one canonical governance option")
     help_parser = sub.add_parser("help-surface", help="show help for a named SDK surface")
     help_parser.add_argument("surface")
     demo_parser = sub.add_parser("demo", help="run a bundled, credential-free demonstration")
@@ -181,15 +202,19 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command is None:
             parser.print_help()
-            print("\nStart with: stegverse surfaces")
+            print("\nStart with: stegverse governance")
+            print("Discover surfaces: stegverse surfaces")
             print("Bundled demo: stegverse demo admittedcode")
             return 0
+        if args.command == "governance":
+            return _governance_guide(args)
         if args.command == "surfaces":
             print("StegVerse SDK callable surfaces")
             for name, summary in list_surfaces():
                 print(f"  {name:<24} {summary}")
             print("\nHelp: stegverse help-surface <name>")
             print("Run:  stegverse run <name> [options]")
+            print("Governance: stegverse governance")
             print("Demo: stegverse demo admittedcode")
             return 0
         if args.command == "capabilities":
