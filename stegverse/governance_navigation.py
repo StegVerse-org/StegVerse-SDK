@@ -12,14 +12,17 @@ recording even when the caller requests selected or no transition details back.
 from __future__ import annotations
 
 import hashlib
+from importlib import resources
 import json
 import re
 from typing import Any, Mapping
 
 INGRESS_PROFILE = "stegverse.ingress-manifest.v1"
 DEMO_OUTPUT_PROFILE = "stegverse.manifest-demo-output.v1"
+DEMO_DATASET_PROFILE = "stegverse.000-demo-dataset.v1"
 RECEIPT_ID_RE = re.compile(r"^MR-[A-F0-9]{16,64}$")
 RETURN_PROJECTION_MODES = {"ALL", "SELECTED", "NONE"}
+GOVERNANCE_OUTCOME_STATES = ("ALLOW", "DENY", "REVIEW", "FAIL_CLOSED")
 
 NAVIGATION = (
     ("000", "Demo test sequence without user-supplied manifest"),
@@ -85,10 +88,16 @@ reconstruction even when transition-detail projection is NONE.
 
 DEMO_GUIDANCE = """DEMO TEST SEQUENCE WITHOUT USER-SUPPLIED MANIFEST
 
-This option runs a safe demonstration using SDK-owned fixture input and no
+This option runs a safe demonstration using an SDK-owned dataset and no
 user-supplied manifest.
 
+The demo dataset begins with one labeled example of every active governance
+outcome class: ALLOW, DENY, REVIEW, and FAIL_CLOSED. Those outcome examples are
+teaching records only. They are not prior decisions, authority, or executable
+instructions. The example transaction data follows those outcome examples.
+
 Purpose:
+- teach the full governance outcome vocabulary before showing the demo run;
 - show the ordinary StegVerse process end to end;
 - show the final output manifest shape the user would receive;
 - label every section with its purpose, transition class(es), receipt class(es),
@@ -100,6 +109,7 @@ Purpose:
   from the user's stated preferences.
 
 Important boundary:
+- the 000 dataset is strictly demo-only and is not accepted as a user manifest;
 - the demo teaches structure and evidence semantics; it does not grant authority;
 - any manifest proposed later by a user or LLM must still pass normal profile,
   hash, provenance, governance, and consequence-boundary validation;
@@ -235,12 +245,39 @@ def guidance_for(selection: str) -> str:
     return specific.rstrip() + "\n\n" + MANIFEST_SHAPE_GUIDANCE
 
 
-def demo_output_manifest_shape() -> dict[str, Any]:
-    """Return a self-describing demo output envelope for hand/LLM reconstruction.
+def _load_000_demo_dataset() -> dict[str, Any]:
+    """Load and verify the SDK-owned dataset used only by option 000."""
+    try:
+        text = resources.files("stegverse.demo_data").joinpath(
+            "manifest_000_governance_outcomes.json"
+        ).read_text(encoding="utf-8")
+        dataset = json.loads(text)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"000 demo dataset unavailable or invalid: {exc}") from exc
+    if not isinstance(dataset, dict):
+        raise ValueError("000 demo dataset must be an object")
+    if dataset.get("schema") != DEMO_DATASET_PROFILE:
+        raise ValueError("000 demo dataset schema mismatch")
+    if dataset.get("demo_only") is not True or dataset.get("accepted_as_user_manifest") is not False:
+        raise ValueError("000 demo dataset boundary invalid")
+    examples = dataset.get("governance_outcome_examples")
+    if not isinstance(examples, list):
+        raise ValueError("000 demo governance outcomes missing")
+    states = [str(item.get("governance_state") or "") for item in examples if isinstance(item, dict)]
+    if tuple(states) != GOVERNANCE_OUTCOME_STATES:
+        raise ValueError("000 demo must contain exactly one example of every active governance outcome")
+    return dataset
 
-    This is an explanatory output artifact, not a substitute for a governed run
-    or a pre-authorized input manifest.
+
+def demo_output_manifest_shape() -> dict[str, Any]:
+    """Return a self-describing 000 demo envelope for hand/LLM reconstruction.
+
+    The demo dataset is deliberately prepended and contains exactly one teaching
+    example of each active governance outcome before the demo transaction input.
+    This is explanatory output, not a substitute for a governed run or a
+    pre-authorized input manifest.
     """
+    demo_dataset = _load_000_demo_dataset()
     canonical_manifest = {
         "manifest_profile": INGRESS_PROFILE,
         "manifest_profile_version": "1",
@@ -249,10 +286,10 @@ def demo_output_manifest_shape() -> dict[str, Any]:
         "source_output_id": "DEMO-OUTPUT-001",
         "created_at": "<generated-at-run-time>",
         "freshness": {"status": "demo"},
-        "payload": {"demo_value": 1},
-        "candidate": {"action": "evaluate_demo"},
-        "declared_intent": "demonstrate_governed_manifest_shape",
-        "requested_consequence": "none",
+        "payload": dict(demo_dataset["demo_input"]["payload"]),
+        "candidate": dict(demo_dataset["demo_input"]["candidate"]),
+        "declared_intent": demo_dataset["demo_input"]["declared_intent"],
+        "requested_consequence": demo_dataset["demo_input"]["requested_consequence"],
         "context_refs": [],
         "canonicalization_profile": "steggate.jcs.v1",
         "hashes": {
@@ -327,6 +364,7 @@ def demo_output_manifest_shape() -> dict[str, Any]:
         },
     ]
     return {
+        "000_governance_outcome_dataset": demo_dataset,
         "schema": DEMO_OUTPUT_PROFILE,
         "purpose": "self-describing manifest example for human or LLM-assisted reconstruction",
         "canonical_input_profile": INGRESS_PROFILE,
@@ -342,8 +380,8 @@ def demo_output_manifest_shape() -> dict[str, Any]:
             {"order": 6, "stage": "caller_projection", "transition_class": "disclosure_projection", "receipt_class": "projection-decision"},
         ],
         "reconstruction_notes": {
-            "human": "Copy the canonical_manifest_example, replace editable values, recompute required hashes, and submit through the normal manifest path.",
-            "llm": "Treat sections and process_sequence as explanatory metadata. Produce a new stegverse.ingress-manifest.v1 object only; do not invent authority or generated runtime receipts.",
+            "human": "Read the four demo governance outcomes first. Then copy the canonical_manifest_example, replace editable values, recompute required hashes, and submit through the normal manifest path.",
+            "llm": "Treat the 000 governance outcome examples, sections, and process_sequence as explanatory metadata. Produce a new stegverse.ingress-manifest.v1 object only; do not copy demo outcomes as decisions or invent authority/generated runtime receipts.",
             "master_records_custody_independent_of_caller_projection": True,
         },
         "demo_grants_authority": False,
