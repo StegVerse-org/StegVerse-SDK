@@ -1,8 +1,13 @@
-"""Guided submit/replay/reconstruct navigation for governed SDK runs.
+"""Guided parameter/submit/replay/reconstruct navigation for governed SDK runs.
 
 This module owns user-facing instructions and ingress validation only. It does not
 implement StegGate authority. A structurally valid manifest is acceptable input
 to governance; it is never an ALLOW decision.
+
+A manifest may also request how transition evidence is projected back to the
+caller. That user-return projection never controls Master Records custody:
+ecosystem state transitions remain eligible for canonical Master Records
+recording even when the caller requests selected or no transition details back.
 """
 from __future__ import annotations
 
@@ -13,12 +18,41 @@ from typing import Any, Mapping
 
 INGRESS_PROFILE = "stegverse.ingress-manifest.v1"
 RECEIPT_ID_RE = re.compile(r"^MR-[A-F0-9]{16,64}$")
+RETURN_PROJECTION_MODES = {"ALL", "SELECTED", "NONE"}
 
 NAVIGATION = (
+    ("00", "User-defined run parameters"),
     ("0", "Submit data for governance"),
     ("1", "Replay previously run set"),
     ("2", "Reconstruct previously run set"),
 )
+
+PARAMETER_GUIDANCE = """USER-DEFINED RUN PARAMETERS
+
+Use this option to define permitted run preferences before submission, including
+how governed transition evidence should be projected back in the user-facing
+result.
+
+Important boundary:
+- the manifest routes the submitted unit through StegVerse and declares the
+  requested user-return projection for state-transition evidence;
+- return projection controls what transition evidence is returned to the caller,
+  not whether ecosystem transitions occurred or were retained;
+- Master Records remains the canonical ecosystem custody surface and may retain
+  all state transitions required by StegVerse continuity, governance, audit, and
+  reconstruction semantics;
+- a caller cannot use run parameters to suppress canonical Master Records
+  recording, erase a transition, grant authority, or rewrite historical state.
+
+Return projection modes:
+- ALL: return all user-disclosable transition evidence for the run;
+- SELECTED: return only the requested user-disclosable transition classes;
+- NONE: return no transition-detail projection to the caller. This does NOT mean
+  no state transitions were recorded by StegVerse or Master Records.
+
+The final manifest_receipt_id remains a locator for the exact immutable run and
+is not execution or admissibility authority.
+"""
 
 SUBMIT_GUIDANCE = """SUBMIT DATA FOR GOVERNANCE
 
@@ -33,10 +67,13 @@ Choose submission type:
 
 What will happen:
 - input is manifested or the supplied manifest is validated and canonicalized;
+- the manifest declares routing and the requested user-return projection;
 - the transaction enters canonical ingestion -> StegGate governance ->
   commit/consequence boundary -> return ingestion;
 - submission and manifest validity do not grant authority;
-- the completed run returns an inspectable evidence package and a final
+- Master Records custody is independent of how much transition evidence is
+  projected back to the caller;
+- the completed run returns the permitted user-facing result and a final
   manifest_receipt_id identifying the exact immutable master-record run.
 
 For machine manifests, required identity/provenance/hash/intent/payload or
@@ -58,7 +95,8 @@ What will happen:
 What you receive:
 - a new replay receipt linked to the original manifest receipt;
 - original-vs-replay decision/state and identity/determinism comparisons;
-- verification evidence for the replay.
+- verification evidence for the replay, subject to the applicable return
+  projection and disclosure boundary.
 """
 
 RECONSTRUCT_GUIDANCE = """RECONSTRUCT A PREVIOUSLY RUN SET
@@ -73,7 +111,8 @@ What will happen:
 - consequential side effects are not executed again.
 
 What you receive:
-- reconstructed trajectory and chain verification;
+- reconstructed trajectory and chain verification subject to the applicable
+  disclosure/return projection;
 - explicit distinction between natively persisted historical evidence and
   evidence reconstructed afterward;
 - a new reconstruction receipt linked to the original manifest receipt.
@@ -96,13 +135,15 @@ def navigation_text() -> str:
 
 def guidance_for(selection: str) -> str:
     key = selection.strip().upper()
+    if key == "00":
+        return PARAMETER_GUIDANCE
     if key in {"0", "0A", "0B"}:
         return SUBMIT_GUIDANCE
     if key == "1":
         return REPLAY_GUIDANCE
     if key == "2":
         return RECONSTRUCT_GUIDANCE
-    raise ValueError("selection must be 0, 1, or 2")
+    raise ValueError("selection must be 00, 0, 1, or 2")
 
 
 def validate_manifest_receipt_id(value: str) -> str:
@@ -110,6 +151,34 @@ def validate_manifest_receipt_id(value: str) -> str:
     if not RECEIPT_ID_RE.fullmatch(normalized):
         raise ValueError("manifest_receipt_id must use the canonical MR-<hex> form")
     return normalized
+
+
+def normalize_return_projection(value: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Normalize the caller-facing transition-evidence projection.
+
+    This is a disclosure/return contract only. It cannot suppress canonical
+    ecosystem custody or alter transition history.
+    """
+    projection = dict(value or {})
+    mode = str(projection.get("mode") or "ALL").strip().upper()
+    if mode not in RETURN_PROJECTION_MODES:
+        raise ValueError("return_projection.mode must be ALL, SELECTED, or NONE")
+    selected = projection.get("transition_classes") or []
+    if not isinstance(selected, list) or not all(isinstance(item, str) and item.strip() for item in selected):
+        raise ValueError("return_projection.transition_classes must be a list of non-empty strings")
+    selected = list(dict.fromkeys(item.strip() for item in selected))
+    if mode == "SELECTED" and not selected:
+        raise ValueError("SELECTED return projection requires transition_classes")
+    if mode != "SELECTED" and selected:
+        raise ValueError("transition_classes are only valid with SELECTED return projection")
+    return {
+        "mode": mode,
+        "transition_classes": selected,
+        "controls_user_return_only": True,
+        "suppresses_master_records_custody": False,
+        "erases_ecosystem_transitions": False,
+        "grants_authority": False,
+    }
 
 
 def validate_external_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
@@ -124,7 +193,7 @@ def validate_external_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "source_instance", "source_output_id", "created_at", "freshness",
         "payload", "payload_commitment", "candidate", "declared_intent",
         "requested_consequence", "context_refs", "canonicalization_profile",
-        "hashes", "attestation", "extensions",
+        "hashes", "attestation", "extensions", "return_projection",
     }
     unknown = sorted(set(manifest) - allowed)
     if unknown:
@@ -164,20 +233,24 @@ def validate_external_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     canonical.setdefault("canonicalization_profile", "steggate.jcs.v1")
     canonical.setdefault("attestation", None)
     canonical.setdefault("extensions", {})
+    canonical["return_projection"] = normalize_return_projection(manifest.get("return_projection"))
     canonical["ingress_mode"] = "external_manifest"
     canonical["external_manifest_valid"] = True
     canonical["external_manifest_grants_authority"] = False
+    canonical["master_records_transition_custody_independent_of_return_projection"] = True
     canonical["canonical_manifest_sha256"] = canonical_sha256(canonical)
     return canonical
 
 
-def build_raw_submission_descriptor(*, source: str, subject: str) -> dict[str, Any]:
+def build_raw_submission_descriptor(*, source: str, subject: str, return_projection: Mapping[str, Any] | None = None) -> dict[str, Any]:
     if not source.strip() or not subject.strip():
         raise ValueError("source and subject are required")
     return {
         "ingress_mode": "sdk_manifested_raw_data",
         "source": source,
         "subject": subject,
+        "return_projection": normalize_return_projection(return_projection),
         "sdk_will_create_manifest": True,
         "submission_grants_authority": False,
+        "master_records_transition_custody_independent_of_return_projection": True,
     }
