@@ -6,21 +6,41 @@ from stegverse.governance_navigation import (
     navigation_text,
     validate_external_manifest,
     validate_manifest_receipt_id,
+    normalize_return_projection,
     canonical_sha256,
 )
 
 
 class GovernanceNavigationTests(unittest.TestCase):
-    def test_navigation_exposes_three_canonical_options(self):
+    def test_navigation_exposes_parameter_and_three_canonical_operations(self):
         text = navigation_text()
+        self.assertIn("[00] User-defined run parameters", text)
         self.assertIn("[0] Submit data for governance", text)
         self.assertIn("[1] Replay previously run set", text)
         self.assertIn("[2] Reconstruct previously run set", text)
 
     def test_guidance_is_explicit_before_input(self):
+        self.assertIn("Master Records", guidance_for("00"))
         self.assertIn("preformatted machine manifest", guidance_for("0"))
         self.assertIn("manifest_receipt_id", guidance_for("1"))
         self.assertIn("consequential side effects", guidance_for("2"))
+
+    def test_return_projection_none_never_suppresses_master_records(self):
+        projection = normalize_return_projection({"mode": "NONE"})
+        self.assertEqual(projection["mode"], "NONE")
+        self.assertTrue(projection["controls_user_return_only"])
+        self.assertFalse(projection["suppresses_master_records_custody"])
+        self.assertFalse(projection["erases_ecosystem_transitions"])
+        self.assertFalse(projection["grants_authority"])
+
+    def test_selected_return_projection_requires_explicit_classes(self):
+        projection = normalize_return_projection({
+            "mode": "SELECTED",
+            "transition_classes": ["governance", "return_ingestion"],
+        })
+        self.assertEqual(projection["transition_classes"], ["governance", "return_ingestion"])
+        with self.assertRaises(ValueError):
+            normalize_return_projection({"mode": "SELECTED"})
 
     def test_external_manifest_is_structural_not_authority(self):
         payload = {"reading": 42}
@@ -35,6 +55,7 @@ class GovernanceNavigationTests(unittest.TestCase):
             "candidate": candidate,
             "declared_intent": "evaluation",
             "requested_consequence": "none",
+            "return_projection": {"mode": "NONE"},
             "hashes": {
                 "payload_sha256": canonical_sha256(payload),
                 "candidate_sha256": canonical_sha256(candidate),
@@ -44,6 +65,8 @@ class GovernanceNavigationTests(unittest.TestCase):
         self.assertTrue(result["external_manifest_valid"])
         self.assertFalse(result["external_manifest_grants_authority"])
         self.assertEqual(result["ingress_mode"], "external_manifest")
+        self.assertEqual(result["return_projection"]["mode"], "NONE")
+        self.assertTrue(result["master_records_transition_custody_independent_of_return_projection"])
 
     def test_unknown_manifest_fields_fail_closed(self):
         with self.assertRaises(ValueError):
