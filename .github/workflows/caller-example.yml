@@ -1,17 +1,24 @@
-name: Call Reusable Release
+name: Validate Release Candidate Example
+
+# Optional GitHub-hosted convenience wrapper only.
+# No credentials, repository mutation, tag creation, release publication,
+# package publication, or TV/TVC secret transport is permitted here.
+# Sovereign/local release tooling under TV/TVC owns actual release execution.
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release'
+        description: 'Version candidate to validate'
         required: true
         type: string
 
+permissions: {}
+
 jobs:
-  release:
+  validate-release-candidate:
     uses: StegVerse-org/StegVerse-SDK/.github/workflows/reusable-release.yml@main
     with:
       version: ${{ inputs.version }}
+      dry_run: true
       pypi_target: 'pypi'
-    secrets: inherit
