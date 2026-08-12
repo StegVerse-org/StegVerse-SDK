@@ -1,183 +1,38 @@
-name: StegVerse SDK Validation
+name: StegVerse SDK Validation (Optional Hosted)
 
 on:
-  push:
-    branches: [main, develop]
-    tags: ['v*']
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
-concurrency:
-  group: sdk-validation-${{ github.ref }}
-  cancel-in-progress: true
+permissions: {}
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.11', '3.12']
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-      - name: Verify public imports
-        run: |
-          python -c "import stegverse; print(stegverse.__version__)"
-          python -c "from stegverse import submit_intent, StegVerseLLMAdapter, govern_llm_output, StegVerseSDK"
-          python -c "from stegverse import handle_universal_transition_table_package, validate_free_tier_metadata"
-          python -c "from stegverse import ExecutorTarget, run_paired_comparison"
-          python -c "from stegverse import get_entry_point_role, list_entry_point_roles, build_usage_event, aggregate_session_usage"
-          python -c "from stegverse.universal_entry import process_universal_entry, route_universal_entry"
-          python -c "from stegverse.universal_entry_dispatch import dispatch_universal_entry"
-          python -c "from stegverse.universal_entry_handlers import build_default_handler_registry, conversation_handler, solver_handler"
-          python -c "from stegverse.ecosystem_records import AuthoritativeEcosystemRetriever"
-          python -c "from stegverse.ecosystem_catalog import build_catalog, validate_catalog"
-          python -c "from stegverse.ecosystem_projection import project_record, project_records"
-          python -c "from stegverse.canonical_source_collector import CanonicalSourceCollector, validate_collection"
-          python -c "from stegverse.repository_source_reader import AllowlistedRepositorySourceReader"
-          python -c "from stegverse.github_repository_fetcher import GitHubRepositoryFetcher"
-          python -c "from stegverse.governed_conversation import GovernedConversationHandler"
-          python -c "from stegverse.http_transport import AuthenticatedJSONTransport, LLMAdapterHTTPTransport"
-          python -c "from stegverse.llm_adapter_bridge import GovernedLLMAdapterProvider, normalize_adapter_response"
-          python -c "from stegverse.universal_entry_events import build_dispatch_event_chain, validate_event_chain"
-          python -c "from stegverse.master_records_custody import MasterRecordsCustodyClient, verify_reconstruction"
-          python -c "from stegverse.master_records_http import MasterRecordsHTTPTransport"
-          python -c "from stegverse.activation_evidence import evaluate_activation_evidence, validate_activation_evidence"
-          python -c "from stegverse.integration_config import build_integration_config, validate_integration_config"
-          python -c "from stegverse.spe_allow_consumer import build_progression_packet, validate_spe_receipt"
-          python -c "from stegverse.universal_entry_runtime import run_universal_entry"
-          python -c "from stegverse.universal_entry_server_runtime import UniversalEntryServerConfig, UniversalEntryServerRuntime"
-      - name: Run complete test suite
-        run: pytest tests/ -v --cov=stegverse --cov-report=xml
-      - name: Upload coverage
-        if: matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: false
-
-  route-validation:
+  validate-source:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install
+      - name: Materialize public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-      - name: Verify SDK routes and fixtures
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          test -z "${PYPI_API_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Run standard-library evaluator relationship validation
         run: |
+          set -eu
+          cd /tmp/source
+          python -m unittest tests.test_demo_terms tests.test_evaluation_relationship tests.test_evaluator_llm_entry
+      - name: Run repository-native source validators available without dependency installation
+        run: |
+          set -eu
+          cd /tmp/source
+          python scripts/verify_public_sdk_surface.py
           python scripts/verify_universal_entry_envelope.py
           python scripts/verify_free_tier_metadata_ingestion.py
-          python scripts/verify_hps_sdk_route.py examples/hps_sdk_route_allowed.json
-          python scripts/verify_hps_sdk_route.py examples/hps_sdk_route_expired.json
-          python scripts/verify_hps_sdk_route.py examples/hps_sdk_route_fail_closed.json
-          python scripts/verify_sdk_transition_candidate.py examples/sdk_transition_candidate.json
-          python scripts/verify_llm_route_comparison.py
-          python scripts/verify_comparison_orchestrator.py
-      - name: Verify universal entry runtime and integrations
-        run: |
-          pytest tests/test_universal_entry.py tests/test_universal_entry_dispatch.py tests/test_universal_entry_handlers.py tests/test_universal_entry_integrations.py tests/test_universal_entry_catalog_events.py tests/test_universal_entry_transport_projection.py tests/test_universal_entry_runtime_wrapper.py tests/test_master_records_custody.py tests/test_master_records_http.py tests/test_canonical_source_conversation.py tests/test_repository_source_activation.py tests/test_github_repository_fetcher.py tests/test_universal_entry_server_runtime.py tests/test_integration_config.py -v
-      - name: Verify SDK-to-SPE and system-boundary contracts
-        run: |
-          python -m unittest tests.test_transition_candidate tests.test_spe_commitment_intake
-          pytest tests/test_spe_allow_consumer.py tests/test_adapter_origin_manifest_fixture.py tests/test_system_boundary.py tests/test_system_boundary_round_trip.py tests/test_governed_llm_system_boundary_binding.py tests/test_adapter_origin_system_boundary_fixture.py tests/test_adapter_system_boundary_fixture_provenance.py tests/test_system_boundary_workflow_evidence.py tests/test_system_boundary_activation.py tests/test_system_boundary_downstream_status.py -v
-      - name: Validate formal testing route
-        run: |
-          python scripts/validate_formal_testing_route.py --kind loop examples/testing_data_loop.json
-          python scripts/validate_formal_testing_route.py --kind handoff examples/testing_data_loop_handoff.json
-          python scripts/validate_formal_testing_route.py --kind status examples/testing_data_loop_status.json
-          python scripts/ingest_testing_data_loop_status.py --status examples/testing_data_loop_status.json --observations examples/testing_data_loop_workflow_observations.json --output /tmp/testing_data_loop_status.json
-          python scripts/validate_formal_testing_route.py --kind status /tmp/testing_data_loop_status.json
-          python scripts/validate_formal_testing_route.py examples/formal_testing_route_manifest.json
-          python scripts/validate_formal_testing_route.py --kind result examples/formal_testing_route_result_receipt.json
-      - name: Run dynamic admissibility examples
-        run: |
-          python examples/dynamic_admissibility_packet.py
-          python examples/admissibility_bundle_check.py
-          python examples/admissibility_bundle_demo.py
-          python examples/admissibility_exchange_check.py
-          python examples/admissibility_receipt_reference.py
-          python examples/governance_tightness_profile.py
-          python examples/list_dynamic_bridges.py
-          python examples/llm_dynamic_admissibility.py
-          python examples/math_dynamic_admissibility.py
-          python examples/verify_receipt_with_admissibility_reference.py
-
-  build:
-    runs-on: ubuntu-latest
-    needs: [test, route-validation]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Build and verify package
-        run: |
-          python -m pip install --upgrade pip
-          pip install build twine
-          python -m build
-          twine check dist/*
-          pip install dist/*.whl
-          python -c "import stegverse; print(f'Wheel OK: {stegverse.__version__}')"
-          python -c "from stegverse import get_entry_point_role, build_usage_event, aggregate_session_usage"
-          python -c "from stegverse.universal_entry import process_universal_entry"
-          python -c "from stegverse.universal_entry_dispatch import dispatch_universal_entry"
-          python -c "from stegverse.universal_entry_handlers import build_default_handler_registry"
-          python -c "from stegverse.ecosystem_records import AuthoritativeEcosystemRetriever"
-          python -c "from stegverse.ecosystem_catalog import build_catalog, validate_catalog"
-          python -c "from stegverse.ecosystem_projection import project_records"
-          python -c "from stegverse.canonical_source_collector import CanonicalSourceCollector"
-          python -c "from stegverse.repository_source_reader import AllowlistedRepositorySourceReader"
-          python -c "from stegverse.github_repository_fetcher import GitHubRepositoryFetcher"
-          python -c "from stegverse.governed_conversation import GovernedConversationHandler"
-          python -c "from stegverse.http_transport import AuthenticatedJSONTransport"
-          python -c "from stegverse.llm_adapter_bridge import GovernedLLMAdapterProvider"
-          python -c "from stegverse.universal_entry_events import build_dispatch_event_chain, validate_event_chain"
-          python -c "from stegverse.master_records_custody import MasterRecordsCustodyClient"
-          python -c "from stegverse.master_records_http import MasterRecordsHTTPTransport"
-          python -c "from stegverse.activation_evidence import evaluate_activation_evidence"
-          python -c "from stegverse.integration_config import build_integration_config, validate_integration_config"
-          python -c "from stegverse.spe_allow_consumer import build_progression_packet"
-          python -c "from stegverse.universal_entry_runtime import run_universal_entry"
-          python -c "from stegverse.universal_entry_server_runtime import UniversalEntryServerRuntime"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-          retention-days: 90
-
-  release:
-    runs-on: ubuntu-latest
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
-    permissions:
-      contents: write
-      id-token: write
-    environment:
-      name: pypi
-      url: https://pypi.org/p/stegverse-sdk
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-      - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*
-          generate_release_notes: true
-          fail_on_unmatched_files: true
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist/
+          echo 'SDK_OPTIONAL_HOSTED_VALIDATION_PASS'
+          echo 'Full dependency-bearing test/build suites remain sovereign/local repository commands and are not release-gated on GitHub Actions.'
+          echo 'This workflow cannot publish, tag, push, upload release artifacts, request OIDC, or receive TV/TVC credentials.'
