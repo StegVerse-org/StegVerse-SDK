@@ -75,12 +75,15 @@ def _governance_guide(args: argparse.Namespace) -> int:
         try:
             selection = input("\nSelect an option: ").strip()
         except EOFError:
-            print("\nUse: stegverse governance --select 0|1|2")
+            print("\nUse: stegverse governance --select 00|0|1|2")
             return 2
     print()
     print(guidance_for(selection))
     key = selection.strip().upper()
-    if key == "0":
+    if key == "00":
+        print("Next: define permitted run preferences, including ALL, SELECTED, or NONE user-return transition projection.")
+        print("Master Records custody remains independent of the user-return projection.")
+    elif key == "0":
         print("Next: choose 0A for raw/user data or 0B for a preformatted machine manifest.")
     elif key == "1":
         print("Next: provide the manifest_receipt_id returned by the original run.")
@@ -182,8 +185,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("surfaces", help="list callable SDK surfaces")
     sub.add_parser("capabilities", help="print the user-facing surface registry as JSON")
-    governance = sub.add_parser("governance", help="guided submit/replay/reconstruct governance navigation")
-    governance.add_argument("--select", choices=("0", "1", "2"), help="show guidance for one canonical governance option")
+    governance = sub.add_parser("governance", help="guided parameter/submit/replay/reconstruct governance navigation")
+    governance.add_argument("--select", choices=("00", "0", "1", "2"), help="show guidance for one canonical governance option")
     help_parser = sub.add_parser("help-surface", help="show help for a named SDK surface")
     help_parser.add_argument("surface")
     demo_parser = sub.add_parser("demo", help="run a bundled, credential-free demonstration")
