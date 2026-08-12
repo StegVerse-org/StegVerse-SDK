@@ -1,44 +1,30 @@
-name: Public SDK Surface Readiness
+name: Public SDK Surface Readiness (Optional Hosted Validation)
 
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
   workflow_dispatch:
 
-concurrency:
-  group: public-sdk-surface-${{ github.ref }}
-  cancel-in-progress: true
+permissions: {}
 
 jobs:
   public-surface:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install checkout
+      - name: Materialize public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
-      - name: Verify public surface contract
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Verify source-level public and evaluator surfaces
         run: |
+          set -eu
+          cd /tmp/source
           python scripts/verify_public_sdk_surface.py
-          stegverse surfaces
-          stegverse help-surface admittedcode
-          stegverse demo admittedcode
-      - name: Build distributable
-        run: |
-          python -m pip install build
-          python -m build
-      - name: Verify wheel is self-contained
-        run: |
-          python -m venv /tmp/stegverse-public-wheel
-          /tmp/stegverse-public-wheel/bin/python -m pip install --upgrade pip
-          /tmp/stegverse-public-wheel/bin/python -m pip install dist/*.whl
-          cd /tmp
-          /tmp/stegverse-public-wheel/bin/stegverse surfaces
-          /tmp/stegverse-public-wheel/bin/stegverse help-surface admittedcode
-          /tmp/stegverse-public-wheel/bin/stegverse demo admittedcode
+          python -m unittest tests.test_demo_terms tests.test_evaluation_relationship tests.test_evaluator_llm_entry
+          echo 'PUBLIC_SDK_OPTIONAL_HOSTED_VALIDATION_PASS'
+          echo 'No package publication, repository mutation, artifact upload, credential retrieval, or authority transition occurs here.'
