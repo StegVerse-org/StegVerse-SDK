@@ -17,6 +17,7 @@ release_state: NOT_RELEASED
 ```text
 stegverse/governance_navigation.py
 stegverse/cli.py
+stegverse/demo_data/manifest_000_governance_outcomes.json
 tests/test_governance_navigation.py
 ```
 
@@ -24,18 +25,18 @@ Recent installation commits:
 
 ```text
 22775c19e3b3cd9b95b4d06e89caaf186ff9156a  00 parameters + return projection semantics
-230f0eb13b05199756c85edd7c25a622881a28f8  return-projection custody-boundary tests
-e6e6aa80eef3842af03ffee59895682e11845244  CLI exposes 00 option
 29a9bf4764f167499aa095c919a0f118dc3cdf78  manifest-shape guidance on every governance choice
-0eafc7f0aadb5df79560a74f6d9f7f63df7db98b  manifest-shape/projection guidance tests
 a174af5e593380d181b6f2928b0d2f995545e9c1  000 self-describing demo output contract
-ca7b1c01c8ffcd2cd3235fa262e1f8f142974618  000 demo/output reconstruction tests
-8bdfac96a0635d039251d88e82db87ddf2665cb6  CLI exposes 000 and prints demo output shape
+b02f663ad0c7e6e80e867fe359e787c417d400d1  000 governance-outcome demo dataset
+8c0ec2471529289eb2909d18a21cc59c529c0172  prepend/validate full governance outcome vocabulary
+4d94ed8aac4fd558356cffd41a27fc2ecba6e92a  manifest-label projection + dataset processing contract
+a271c8ad4d347805ca73b098f1eb30655b50c32a  manifest-label/dataset-processing tests
+155859ca2b81128430160b683fba4bda25b4a163  outcome descriptions converted to manifest labels
 ```
 
 ## User contract
 
-The CLI now exposes:
+The CLI exposes:
 
 ```text
 [000] Demo test sequence without user-supplied manifest
@@ -45,83 +46,166 @@ The CLI now exposes:
 [2]   Reconstruct previously run set
 ```
 
-Each selection displays process guidance before requesting the next input, and every choice explains the manifest shape, canonical vs editable fields, transition classes, receipt classes, caller-return projection, and Master Records custody boundary.
+Every choice explains the manifest shape, transition/receipt classes, caller return controls, exact-run locator, and Master Records custody boundary.
 
-## Option 000 — self-describing demo sequence
+## Option 000 — demo dataset is the submitted data
 
-Option `000` requires no user-supplied manifest. It emits a safe SDK-owned demonstration artifact with schema:
+Option `000` uses an SDK-owned dataset with schema:
+
+```text
+stegverse.000-demo-dataset.v1
+```
+
+The dataset contains exactly one teaching example of each current governance disposition:
+
+```text
+ALLOW
+DENY
+REVIEW
+FAIL_CLOSED
+```
+
+Each outcome description is encoded as a `manifest_label` using:
+
+```text
+profile: stegverse.manifest-labels.v1
+title
+description
+transition_classes
+receipt_classes
+editable
+authority_effect
+```
+
+The examples are demo data, not actual governance decisions and not authority.
+
+The entire dataset is embedded as:
+
+```text
+canonical_manifest_example.payload
+```
+
+and its canonical SHA-256 is placed in:
+
+```text
+canonical_manifest_example.hashes.payload_sha256
+demo_dataset_processing.dataset_sha256
+```
+
+This is the required binding for making the submitted dataset evident in the final demo output.
+
+The demo output also carries a `demo_dataset_processing` object. Until Option 000 is bound to a real canonical manifested run, it must report:
+
+```text
+canonical_processing_status: PENDING_RUNTIME_BINDING
+do_not_claim_processed_until_receipts_exist: true
+```
+
+A completed runtime-bound 000 demo is not allowed to claim that the dataset was processed merely because it was embedded in the manifest. It must replace the pending status with directly inspectable runtime evidence containing at least:
+
+```text
+MANIFEST_ADMITTED
+governance-decision
+RESULT_INGESTED
+manifest-receipt
+manifest_receipt_id
+receipt_chain_head
+governance_state
+chain_verified
+```
+
+That is the acceptance boundary for the statement "the demo dataset was submitted and processed."
+
+## Manifest labels are an ordinary manifest return control
+
+Explanatory descriptions are no longer a 000-only wrapper convention. They are represented by the manifest field:
+
+```yaml
+manifest_labels:
+  profile: stegverse.manifest-labels.v1
+  mode: ALL | SELECTED | NONE
+  sections: []
+  include_field_descriptions: true
+  include_transition_class_labels: true
+  include_receipt_class_labels: true
+  include_editability_labels: true
+  include_authority_boundary_labels: true
+```
+
+`manifest_labels` controls explanatory labeling of the caller-facing return package only. It does not alter governance, grant authority, suppress receipts in Master Records, or rewrite the canonical run.
+
+Modes:
+
+```text
+ALL
+  include explanatory manifest labels for all returned sections
+
+SELECTED
+  include explanatory labels only for named sections
+
+NONE
+  include no explanatory manifest labels
+```
+
+This is independent from `return_projection`:
+
+```text
+return_projection -> which user-disclosable transition receipts are returned
+manifest_labels   -> how returned sections are labeled/explained
+Master Records    -> canonical ecosystem custody, independent of both
+```
+
+Therefore an Option `0` machine manifest may request the same explanatory return package demonstrated by Option `000`, for example:
+
+```yaml
+return_projection:
+  mode: SELECTED
+  transition_classes:
+    - governance
+    - return_ingestion
+
+manifest_labels:
+  profile: stegverse.manifest-labels.v1
+  mode: ALL
+```
+
+That request means "return only these receipt classes, but explain/label every returned section." It does not mean only those transitions were recorded in Master Records.
+
+## Option 000 self-describing output
+
+The demo output schema remains:
 
 ```text
 stegverse.manifest-demo-output.v1
 ```
 
-The output is deliberately self-describing. It contains:
+Every output section now has a literal `manifest_label` object containing:
 
 ```text
-canonical_input_profile
-canonical_manifest_example
-sections[]
-  section_id
-  label
-  fields
-  transition_classes
-  receipt_classes
-  editable / generated_by
-  authority boundary metadata
-process_sequence[]
-  order
-  stage
-  transition_class
-  receipt_class
-reconstruction_notes
-  human
-  llm
+title
+description
+transition_classes
+receipt_classes
+editable
+authority_effect
 ```
 
-Purpose:
+The demo also requests:
 
 ```text
-human -> understand every part of the process and reconstruct a conforming manifest by hand
-LLM   -> ingest the received demonstration outcome, understand the labeled manifest/process shape, and propose a new canonical input manifest from user preferences
+manifest_labels.mode = ALL
 ```
 
-The explanatory output wrapper is not itself a pre-authorized governance request. An LLM or user constructing a new request must output a normal `stegverse.ingress-manifest.v1` manifest, recompute required hashes, and submit it through Option `0` / the normal governed ingress path.
+so all descriptions are part of the 000 demo's requested return package, not hidden implementation commentary.
 
-The demo never grants authority and never authorizes generated runtime receipts to be copied into a new input manifest.
-
-## Manifest shape and class labeling
-
-Every section now names both its transition classes and receipt classes.
+Human/LLM purpose:
 
 ```text
-Profile / provenance
-  transition classes: ingress, provenance
-  receipt classes: manifest-admission, source-identity
-
-Governed subject
-  transition classes: subject, intent, candidate
-  receipt classes: input-commitment, candidate-identity, request-identity
-
-Integrity / attestation
-  transition classes: canonicalization, verification
-  receipt classes: hash-verification, attestation-verification
-
-Governance / consequence trajectory
-  transition classes: ingestion, governance, consequence, return_ingestion
-  receipt classes: MANIFEST_ADMITTED, governance-decision,
-                   execution-observation, RESULT_INGESTED,
-                   receipt-chain-verification
-
-Caller-return projection
-  transition class: disclosure_projection
-  receipt class: projection-decision
-
-Exact-run locator
-  transition class: custody_reference
-  receipt class: manifest-receipt
+human -> inspect what data was submitted, what each process section means, what receipt class proves it, and reconstruct a new manifest by hand
+LLM   -> ingest the labeled return package and produce a new stegverse.ingress-manifest.v1 manifest reflecting the user's desired data, receipt projection, and explanation-label projection
 ```
 
-The runtime-generated governance/consequence trajectory and exact-run locator are explicitly non-editable output sections. Their labels exist so a human or LLM can understand what happened, not so they can be asserted as authority in a future input manifest.
+Generated governance receipts, custody receipts, and authority claims remain non-editable observations and must not be copied into a new manifest as authority.
 
 ## Option 0 ingress modes
 
@@ -136,94 +220,78 @@ Canonical external ingress profile:
 stegverse.ingress-manifest.v1
 ```
 
-A structurally valid machine manifest means only that the machine output is acceptable for governance. It never means ALLOW and never grants execution authority.
+The validator now accepts and normalizes `manifest_labels` as part of that ordinary manifest profile. Structural validity still means only that the manifest is acceptable input to governance; it never means ALLOW and never grants execution authority.
 
 ## Caller projection / Master Records separation
 
-The manifest is the canonical routing/declaration carrier for a submitted unit. It may request how user-disclosable state-transition evidence is projected back to the caller.
-
 ```text
-return_projection.mode = ALL
-  return all user-disclosable transition evidence
-
-return_projection.mode = SELECTED
-  return only named user-disclosable transition classes
-
-return_projection.mode = NONE
-  return no transition-detail receipt projection to the caller
+return_projection.mode = ALL | SELECTED | NONE
+manifest_labels.mode   = ALL | SELECTED | NONE
 ```
 
-`NONE` does not suppress or erase canonical ecosystem transition custody. Master Records remains independent of caller projection. The final `manifest_receipt_id` remains the exact-run locator even when caller transition projection is `NONE`.
+Both are caller-return controls. Neither may suppress or erase canonical ecosystem state-transition custody. The final `manifest_receipt_id` remains the exact-run locator even when receipt projection and/or explanation-label projection is `NONE`.
 
-Invariant fields produced by the SDK normalizer:
-
-```text
-controls_user_return_only: true
-suppresses_master_records_custody: false
-erases_ecosystem_transitions: false
-grants_authority: false
-```
-
-## Cross-repository implementation now available
+## Cross-repository implementation available
 
 ```text
 StegVerse-Labs/StegCore/src/stegcore/manifest_receipts.py
 StegVerse-Labs/StegCore/src/stegcore/manifest_receipt_provider.py
-  canonical manifest_receipt_id + evidence/replay/reconstruct semantics and shared-backing contract
+  canonical exact-run receipt semantics + shared backing provider
 
 master-records/orchestration/services/manifest_receipt_custody.py
 master-records/orchestration/services/manifest_receipt_custody_api.py
 master-records/orchestration/services/canonical_custody_app.py
-master-records/orchestration/render-custody.yaml
-  exact-run immutable custody + authenticated lookup/reconstruction composed into canonical custody deployment
+  immutable exact-run custody + authenticated lookup/reconstruction
 
 StegVerse-org/LLM-adapter/llm_adapter/governed_manifest_ingress.py
-  machine TEST/LIVE_STREAM ingress and governed-result egress
+  machine TEST/LIVE_STREAM governed ingress/egress
 ```
 
 ## Completed handoff tasks
 
 ```text
 [done] public 000/00/0/1/2 navigation installed
-[done] 000 safe demo requires no user-supplied manifest
-[done] 000 emits self-describing human/LLM-readable manifest-output shape
-[done] every demo section labels fields, transition classes, and receipt classes
-[done] demo differentiates editable input material from runtime-generated evidence
-[done] manifest shape is explained on every governance choice
-[done] user-defined ALL / SELECTED / NONE return projection installed
-[done] explicit separation of user return projection from Master Records custody installed
+[done] 000 SDK-owned demo dataset contains ALLOW/DENY/REVIEW/FAIL_CLOSED teaching records
+[done] 000 outcome descriptions encoded as manifest_label objects
+[done] entire 000 dataset embedded as canonical demo payload
+[done] dataset hash bound into canonical demo manifest + processing evidence object
+[done] explicit no-false-processing-claim boundary installed
+[done] manifest_labels added as ordinary stegverse.ingress-manifest.v1 return control
+[done] ALL / SELECTED / NONE manifest-label modes installed
+[done] option 0 external manifest validator accepts/normalizes manifest_labels
+[done] every demo section carries a literal manifest_label
+[done] return_projection remains independent from manifest_labels
+[done] both caller-return controls remain independent from Master Records custody
 [done] raw-user vs preformatted-machine ingress distinction installed
-[done] versioned external ingress profile installed
-[done] receipt-ID validation contract installed
-[done] StegCore canonical exact-run receipt registry exists
-[done] StegCore shared-backing provider contract exists
-[done] Master Records exact-run custody API exists
-[done] Master Records exact-run routes are composed into its canonical deployment target
+[done] StegCore canonical exact-run receipt registry/provider exists
+[done] Master Records exact-run custody routes are composed into canonical deployment target
 ```
 
 ## Worker continuation boundary
 
-Do not create another evaluator, receipt registry, custody store, or Master Records transport authority in this repository.
+Do not redesign receipt custody, receipt IDs, governance authority, or explanatory label semantics.
 
 Next executable tasks:
 
 ```text
-1. bind Option 000 to an actual safe canonical manifested demo run, replacing placeholder generated values with real runtime values;
-2. populate the final demo output from real transition receipts and the final manifest_receipt_id;
-3. derive the public transition/receipt class registry from the actual canonical runtime receipt vocabulary rather than leaving labels as documentation-only mappings;
-4. wire Option 00 parameters into the manifest produced/accepted by Option 0;
-5. wire Option 0 execution to the canonical manifested transaction/provider path;
-6. enforce return projection only after canonical governance/transition recording semantics are complete;
-7. map SELECTED transition_classes to actual user-disclosable receipt classes without changing canonical custody;
-8. wire Options 1 and 2 to receipt-ID replay/reconstruction;
-9. add integration tests proving the 000 output can be used by a human or LLM to create a fresh conforming manifest while generated receipts/authority claims cannot be replayed as input authority;
-10. run the sovereign/local validation path and record inspectable PASS evidence here.
+1. bind Option 000 to an actual safe canonical manifested demo run;
+2. submit the ENTIRE stegverse.000-demo-dataset.v1 object as that run's payload;
+3. replace PENDING_RUNTIME_BINDING with actual MANIFEST_ADMITTED / governance / RESULT_INGESTED / manifest-receipt evidence;
+4. prove the returned payload hash matches the exact SDK-owned dataset hash;
+5. populate the actual manifest_receipt_id and receipt_chain_head;
+6. render manifest_label descriptions from manifest_labels after canonical transition recording is complete;
+7. wire manifest_labels through ordinary Option 0 execution/return packaging as well as 000;
+8. derive public transition/receipt classes from the canonical runtime receipt vocabulary;
+9. wire return_projection SELECTED/NONE only after full canonical recording;
+10. wire Options 1/2 to exact-run replay/reconstruction;
+11. add end-to-end tests proving a human/LLM can use the labeled returned package to construct a fresh conforming manifest without importing generated authority;
+12. run sovereign/local validation and retain inspectable PASS evidence.
 ```
 
 ## Activation boundary
 
-Master Records canonical route composition is installed but production custody activation remains gated by the Master Records repository-wide persistent-storage, backup/restore, and live-authenticated round-trip readiness requirements. The SDK must not represent installed custody code as live production custody until those conditions are evidenced.
+Master Records production activation remains gated by its repository-wide persistent-storage, backup/restore, and live authenticated round-trip requirements. SDK labels and demo packaging must not be represented as proof of live custody activation.
 
 ## Validation status
 
-Repository code and tests are installed, but no sovereign/local test execution receipt was produced in this change session. Option `000` currently emits a self-describing demonstration shape with placeholders where an actual canonical demo run must later provide runtime-generated values. Do not claim COMPLETE, VALIDATED, RELEASED, or product activation until the owning local validation/release path executes the relevant tests and the demo is bound to the real governed runtime.
+The manifest-label and 000 dataset submission/processing contracts are installed with tests, but no sovereign/local test execution receipt was produced in this session. Option `000` still reports canonical processing as `PENDING_RUNTIME_BINDING`; this is intentional and prevents a false claim that the dataset was processed before real canonical receipts exist.
