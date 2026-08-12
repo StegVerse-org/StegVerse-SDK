@@ -68,19 +68,23 @@ def print_help_for_surface(name: str, _registry: dict[str, Any] | None = None) -
 
 
 def _governance_guide(args: argparse.Namespace) -> int:
-    from .governance_navigation import guidance_for, navigation_text
+    from .governance_navigation import demo_output_manifest_shape, guidance_for, navigation_text
     print(navigation_text())
     selection = args.select
     if selection is None:
         try:
             selection = input("\nSelect an option: ").strip()
         except EOFError:
-            print("\nUse: stegverse governance --select 00|0|1|2")
+            print("\nUse: stegverse governance --select 000|00|0|1|2")
             return 2
     print()
     print(guidance_for(selection))
     key = selection.strip().upper()
-    if key == "00":
+    if key == "000":
+        print("\nDEMO SELF-DESCRIBING OUTPUT SHAPE")
+        print(json.dumps(demo_output_manifest_shape(), indent=2, sort_keys=True))
+        print("\nThis demonstration output is explanatory and non-authorizing. A new manifest must still be submitted through the normal governed path.")
+    elif key == "00":
         print("Next: define permitted run preferences, including ALL, SELECTED, or NONE user-return transition projection.")
         print("Master Records custody remains independent of the user-return projection.")
     elif key == "0":
@@ -185,8 +189,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("surfaces", help="list callable SDK surfaces")
     sub.add_parser("capabilities", help="print the user-facing surface registry as JSON")
-    governance = sub.add_parser("governance", help="guided parameter/submit/replay/reconstruct governance navigation")
-    governance.add_argument("--select", choices=("00", "0", "1", "2"), help="show guidance for one canonical governance option")
+    governance = sub.add_parser("governance", help="guided demo/parameter/submit/replay/reconstruct governance navigation")
+    governance.add_argument("--select", choices=("000", "00", "0", "1", "2"), help="show guidance for one canonical governance option")
     help_parser = sub.add_parser("help-surface", help="show help for a named SDK surface")
     help_parser.add_argument("surface")
     demo_parser = sub.add_parser("demo", help="run a bundled, credential-free demonstration")
