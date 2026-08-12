@@ -4,247 +4,244 @@
 
 Organization: `StegVerse-org`  
 Repository: `StegVerse-SDK`  
-Canonical branch: `main`  
+Canonical branch: `main`
 
-This file is the canonical repository handoff. Live repository state, Git history, workflow evidence, immutable receipts, and this handoff supersede prior chat claims.
+This is the canonical repository handoff. Live repository state, immutable commits, local validation receipts, and this handoff supersede prior chat claims.
 
 ## Goal inventory
 
 ### SDK-PUBLIC-CONSOLE-001 — COMPLETE_RELEASED
 
-Originating goal: any developer/tester/evaluator can enter the SDK through one generic console, discover supported surfaces, run allowed local tasks, and obtain accurate help without person-specific instructions.
+Generic public SDK console and AdmittedCode surface are merged and released. No recipient-specific evaluator route is canonical.
+
+Historical release evidence:
 
 ```text
-merged_pr: #14
-canonical_merge: 0509c4cf3783cb76d9355a866b41ed2999a3d3f6
-successor_main_validation: 31523998702 SUCCESS
+PR #14 merge: 0509c4cf3783cb76d9355a866b41ed2999a3d3f6
+PR #15 merge: 17e2d163734ab1d76702884f6407ef859dd54f8b
 ```
 
-### SDK-PUBLIC-POLISH-002 — COMPLETE_RELEASED
+### SDK-GENERAL-EVALUATION-RELATIONSHIP-001 — COMPLETE_RELEASED
 
-Originating goal: make the SDK surface polished and ready for public display, including AdmittedCode as a normal self-discoverable surface usable by any external developer from checkout and from the built wheel artifact.
+Canonical scoped handoff:
 
 ```text
-merged_pr: #15
-canonical_merge: 17e2d163734ab1d76702884f6407ef859dd54f8b
-final_pr_head: 060aaca83b8e7691800dd1598c2a971e00e152e6
-claim_state: COMPLETE_RELEASED
+docs/EVALUATION_RELATIONSHIP_MIRROR_HANDOFF.md
 ```
 
-Final PR-head hosted validation:
+Released implementation includes exact Demo TOS/TOU acceptance binding, deterministic evaluator-interest resolution, bounded relationship receipts, and SDK-mediated evaluator LLM request envelopes. Direct LLM-adapter access is not granted by the SDK relationship.
+
+Release commit:
 
 ```text
-Public SDK Surface Readiness run 31526157562: SUCCESS
-StegVerse SDK Validation run 31526157647: SUCCESS
-validate run 31526157572: SUCCESS
-Architecture Guard run 31526157588: SUCCESS
-Validate Provider Usage Ingestion run 31526157583: SUCCESS
-Diagnose Python 3.9 Public Imports run 31526157568: SUCCESS
+985cdb57ec953fc95b5020ea781a9c3e4aaf097b
 ```
 
-Successor-main public distribution proof:
+### SDK-NO-GITHUB-AUTHORITY-003 — COMPLETE_RELEASED
+
+Originating requirement:
 
 ```text
-Public SDK Surface Readiness run 31526281736: SUCCESS
-merge commit: 17e2d163734ab1d76702884f6407ef859dd54f8b
+GitHub tokens are not StegVerse credential authority.
+TV/TVC owns credential and capability authority.
+StegVerse continuity is primary; third-party accessibility is fallback.
+GitHub account pause, billing exhaustion, workflow outage, or provider outage must not prevent canonical SDK validation, release preparation, evidence handling, or continuation.
 ```
 
-That successor-main run proved editable checkout installation, deterministic public-surface verification, package build, clean virtualenv wheel installation outside the repository checkout, and successful execution of `stegverse surfaces`, `stegverse help-surface admittedcode`, and `stegverse demo admittedcode` from the installed wheel.
-
-## Public user experience
-
-Canonical checkout path:
+Canonical claim state:
 
 ```text
-git clone https://github.com/StegVerse-org/StegVerse-SDK.git
-cd StegVerse-SDK
-python -m pip install -e ".[dev]"
-stegverse surfaces
-stegverse help-surface <surface>
-stegverse run <surface> [options]
+implementation_claim: COMPLETE_RELEASED
+validation_claim: COMPLETE_RELEASED
+session_claim: NONE
 ```
 
-Bundled proof path:
+## Credential and continuity boundary
 
 ```text
-stegverse demo admittedcode
-stegverse demo admittedcode --case allow
-stegverse demo admittedcode --case deny
-```
-
-Equivalent module entry: `python -m stegverse`.
-
-The public console is generic. No customer, reviewer, evaluator, or named person receives a bespoke route.
-
-## Callable console surfaces
-
-Canonical registry: `stegverse/sdk_surfaces.py`.
-
-```text
-admissibility
-llm-admissibility
-math-admissibility
-admittedcode
-universal-entry
-bridges
-entry-points
-```
-
-Every callable surface publishes a summary, command, backing module, documentation pointer, and `authority_effect: NONE`.
-
-## AdmittedCode public surface
-
-AdmittedCode is a first-class generic SDK surface.
-
-Canonical consumer:
-
-```text
-stegverse/admittedcode_receipt.py
-```
-
-Bundled wheel-safe fixtures:
-
-```text
-stegverse/demo_data/admittedcode_allow.json
-stegverse/demo_data/admittedcode_deny.json
-```
-
-Verified proof semantics:
-
-```text
-ALLOW fixture -> SDK ACCEPTED; decision ALLOW
-DENY fixture  -> SDK ACCEPTED; decision DENY
-SDK ACCEPTED does not rewrite the underlying decision
-authority_effect: NONE
-```
-
-The consumer validates required fields, supported schema, decision vocabulary, refusal/key-request boundary, authority escalation, and canonical receipt hash. Invalid or corrupt receipts fail closed.
-
-## Public documentation
-
-Canonical public docs:
-
-```text
-README.md
-docs/SDK_CONSOLE.md
-```
-
-The README gives a sub-two-minute checkout-to-demo path, exposes AdmittedCode directly, distinguishes repository checkout from unreleased PyPI state, and describes the SDK as testing/verification/bounded routing rather than as execution authority.
-
-The console guide documents surface discovery, AdmittedCode semantics, direct receipt verification, LLM/math admissibility, universal-entry routing, credential boundaries, exit behavior, troubleshooting, and repository-control-file boundaries.
-
-## Credential and GitHub-token boundary
-
-```text
-github_tokens_supported_by_public_sdk: false
-public_repository_read_credential_requirement: NONE
+github_token_runtime_authority: NONE
+github_token_release_authority: NONE
+github_token_evidence_authority: NONE
+github_token_tvc_authority: NONE
+github_actions_continuity_authority: NONE
+github_actions_release_authority: NONE
+github_actions_repository_mutation_authority: NONE
+github_actions_package_publication_authority: NONE
+github_actions_oidc_authority: NONE
 credential_authority: TV/TVC
-private_source_access_is_public_console_capability: false
+canonical_validation_path: SOVEREIGN_LOCAL
+canonical_release_path: SOVEREIGN_LOCAL_TV_TVC
+third_party_accessibility_role: OPTIONAL_FALLBACK_ONLY
 ```
 
-The public SDK does not acquire or resolve GitHub tokens, provider keys, private keys, bearer tokens, or passwords. Protected/live route credential semantics remain outside the SDK and are governed by TV/TVC.
+The SDK does not acquire, resolve, transport, inherit, mint, publish, or persist GitHub tokens, provider keys, TV/TVC identity material, package-registry credentials, private keys, bearer tokens, passwords, or wallet secrets through GitHub Actions.
 
-GitHub Actions may use GitHub's own ephemeral workflow transport for CI checkout. That is not a production SDK/runtime credential dependency and grants no SDK route authority.
+## Hosted workflow boundary
+
+All 12 workflow files under `.github/workflows/` were directly inspected after the no-token reconciliation:
+
+```text
+architecture-guard.yml
+caller-example.yml
+diagnose-python39-public-imports.yml
+goal7-review-authority-validation.yml
+headless-release.yml
+public-sdk-surface.yml
+reusable-release.yml
+sdk-demo-test.yml
+system-boundary-evidence-sync.yml
+tvc-ephemeral.yml
+validate-provider-usage-ingest.yml
+validate.yml
+```
+
+Canonical rule:
+
+```text
+hosted workflows: OPTIONAL_MANUAL_OR_REUSABLE_FALLBACK_ONLY
+permissions: EMPTY
+repository writes: PROHIBITED
+push/tag/release creation: PROHIBITED
+package publication: PROHIBITED
+OIDC credential minting: PROHIBITED
+TV/TVC secret transport: PROHIBITED
+workflow secret inheritance: PROHIBITED
+automatic push/PR/schedule continuity triggers: PROHIBITED
+artifact upload/download as authority path: PROHIBITED
+external GitHub Actions dependencies: PROHIBITED
+```
+
+The optional hosted wrappers may validate public source when deliberately invoked, but success or availability is not a release, activation, continuity, or archive prerequisite.
+
+## Removed authority paths
+
+The following prior hosted paths were explicitly retired:
+
+```text
+02f55dbe0e0de03f3c08a489303ddeaf2d416f75  headless release -> validation-only
+b07fa019b0c653a8b48f5b0920225e01d3fb7589  reusable release -> validation-only
+ef1bbeb6bba5486acc2db327575d180bba89db27  TVC hosted secret transport disabled
+216cfffbb77eb2f656abf14215ecb746bc9d515e  hosted evidence mutation disabled
+5617895603c4e2f586519b44014f26472f818366  Architecture Guard -> optional anonymous validation
+c05d8ad735d7904c197af2413af7e49ce57f3181  public SDK gate -> optional anonymous validation
+380856c422dffe2b0dba53b9e050e9162bb24a85  SDK validation -> optional anonymous validation
+376ab8f79c3d6a9397f89f165d5407cc1ae98ea1  public-import diagnostic -> optional anonymous validation
+5ff3b21e4e6911fc949b2516185316dae8fac47c  Goal 7 validation -> optional anonymous validation
+60c904fe5e1303028222af941c5e7622c0cb6033  SDK diagnostic repository-write authority removed
+737a54037560547fbee43749bc4d4de1bc25a135  provider usage validation -> optional anonymous validation
+2ddaf0567a17ab6b1f6aaaca9a7df1745cdb5882  inherited workflow secrets removed
+1cad6ccacc3c94b3034729d10c4a96c354e32884  automatic hosted evidence trigger removed
+```
+
+## Regression prevention
+
+Repository-native validator:
+
+```text
+scripts/verify_github_fallback_boundary.py
+```
+
+Regression tests:
+
+```text
+tests/test_github_fallback_boundary.py
+```
+
+Installation commits:
+
+```text
+39fae32d70daed9e83654f28223ba05b098a0074  validator
+39c501522a843c820c72249bd617af2441dc5608  tests
+```
+
+The validator fails if a workflow reintroduces automatic push/PR/schedule/workflow-run triggers, secret contexts, GitHub token contexts, write/OIDC permissions, external Actions dependencies, artifact authority paths, GitHub releases, package publication, repository pushes, or inherited secrets.
+
+Canonical local validation command:
+
+```bash
+python scripts/verify_github_fallback_boundary.py
+python -m unittest tests.test_github_fallback_boundary
+```
 
 ## Local model/runtime convergence
 
-No SDK implementation claim exists for the local model/runtime lane.
-
-Canonical owner/evidence:
+No SDK implementation claim exists for the sovereign local-model lane because it is already complete in the canonical owner:
 
 ```text
-StegVerse-002/micro-node-runtime#16/#22
-MICRO_NODE_RUNTIME_MIRROR_HANDOFF.md
-docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
+StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
+StegVerse-002/micro-node-runtime/work_claims/SOVEREIGN-LOCAL-MODEL-001.json
 validated_code_commit: 395d4013d1354c07bc3cf66c44f4f26f856c75fc
-canonical_validation_run: 31339534741 SUCCESS
 implementation_state: COMPLETE_RELEASED
+credential_authority: TV/TVC
+github_token_required: false
 ```
 
-The fallback `stegverse-reference-lm-v1` is a formally developed repository-local reference language model and is not a production-scale foundation LLM.
+The repository-local fallback `stegverse-reference-lm-v1` is formally developed and provides actual discovery, launch, inference, and proof. It is a bounded local reference language model, not a claim of production-scale foundation-model equivalence.
 
-LLM-adapter runtime activation remains machine-owned by its canonical handoff and carrier/TVC/Master Records workstream. No duplication is authorized here.
-
-## Validation and automation
-
-Canonical SDK workflow:
+## Cross-repository ownership
 
 ```text
-.github/workflows/sdk-demo-test.yml
+Demo evaluator package: StegVerse-org/stegverse-demo-suite/docs/DEMO_EVALUATOR_MIRROR_HANDOFF.md
+Evaluator relationship: StegVerse-org/StegVerse-SDK/docs/EVALUATION_RELATIONSHIP_MIRROR_HANDOFF.md
+Restricted evaluator model facade: StegVerse-org/LLM-adapter/docs/EVALUATOR_ENTRY_MIRROR_HANDOFF.md
+Local model/runtime: StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
+Trading continuation: StegVerse-Labs/stegfin-governance/docs/STEGFIN_MIRROR_HANDOFF.md
+Sovereign heartbeat: StegVerse-Labs/.github/control/heartbeat-state.json
 ```
 
-Permanent public-readiness gate:
+No SDK duplication of those owners is authorized.
 
-```text
-.github/workflows/public-sdk-surface.yml
-scripts/verify_public_sdk_surface.py
-```
+## Machine-owned continuation
 
-The public-readiness workflow automatically proves:
+The SDK has no unresolved implementation claim from this session. Runtime/live-trading continuation belongs to the canonical heartbeat and StegFin task registry. GitHub-hosted workflows are not observers or release conditions for those tasks.
 
-```text
-editable checkout install
-public surface registry completeness
-all surfaces non-authorizing
-AdmittedCode help discoverability
-AdmittedCode bundled ALLOW/DENY demo
-package build
-clean virtualenv wheel install
-wheel execution outside repository checkout
-stegverse surfaces from wheel
-stegverse help-surface admittedcode from wheel
-stegverse demo admittedcode from wheel
-```
+## Propagation obligations
 
-This gate runs on pull requests to main and pushes to main, preventing future public-surface regressions from silently passing as release-ready repository state.
-
-## Integration and release state
-
-```text
-PR #14 generic console: COMPLETE_MERGED_VALIDATED
-PR #15 public polish: COMPLETE_MERGED_VALIDATED
-repository checkout public-display readiness: COMPLETE
-built wheel artifact public-surface readiness: COMPLETE_VALIDATED
-published PyPI package containing PR #15: NOT RELEASED
-release/tag authority: NOT GRANTED BY THIS HANDOFF
-```
-
-Repository public-display readiness and PyPI publication remain distinct. A future package release is a separate release-authority event.
-
-## Session consolidation
-
-Durably transferred/completed requirements:
-
-1. generic SDK entry for every developer/tester/evaluator;
-2. discoverable and runnable AdmittedCode surface from the SDK itself;
-3. self-contained bundled AdmittedCode ALLOW/DENY demonstration;
-4. help documentation that explains result semantics;
-5. no person-specific evaluator route;
-6. root/session handoff files remain project-control records rather than user surfaces;
-7. no GitHub-token dependency in the public SDK path;
-8. TV/TVC remains credential/route authority;
-9. local-runtime discovery/launch/proof remains canonical in `StegVerse-002/micro-node-runtime#22`;
-10. formal local reference-model development remains canonical in `StegVerse-002/micro-node-runtime#22`;
-11. built wheel preserves the public console and bundled AdmittedCode demo outside a source checkout;
-12. public metadata does not describe the SDK as an execution authority;
-13. permanent automated public-readiness regression gate is installed.
+The no-GitHub-authority correction is an SDK/control-plane boundary correction, not a product-content publication requiring duplicate implementation in Site, Publisher, admissibility-wiki, or stegguardian-wiki. Downstream repositories must consume TV/TVC and sovereign/local authority semantics through their canonical contracts; they must not recreate GitHub as credential authority.
 
 ## Completion accounting
 
-For `SDK-PUBLIC-POLISH-002`:
+For `SDK-NO-GITHUB-AUTHORITY-003`:
 
 ```text
-developed_files: 11/11
+required workflow surfaces audited: 12/12
+workflow authority leaks removed: 6/6 classes
+canonical regression validator: 1/1
+regression test module: 1/1
+automatic hosted continuity/release gates: 0
 scaffolding_or_stubs: 0
 missing_required_files: 0
 implementation: COMPLETE
-validation: COMPLETE
+static repository validation: COMPLETE
 integration: COMPLETE
-public_display_readiness: COMPLETE
-published_package_release: OUTSIDE_THIS_GOAL / NOT_RELEASED
-session_requirements_transferred_or_complete: 13/13
+claim_state: COMPLETE_RELEASED
 ```
+
+Six eliminated authority classes:
+
+1. GitHub-token/repository write authority;
+2. package-registry credential/publication authority;
+3. GitHub release/tag/push authority;
+4. GitHub OIDC authority;
+5. TV/TVC secret/identity transport through hosted workflows;
+6. automatic hosted workflow dependency for canonical validation/evidence continuity.
+
+## Session consolidation
+
+Durably transferred/completed session requirements include:
+
+1. generic SDK evaluator/developer surface;
+2. Demo TOS/TOU relationship gate;
+3. bounded LLM-adapter evaluator entry;
+4. no person-specific evaluator implementation;
+5. no GitHub-token credential authority;
+6. TV/TVC credential authority preserved;
+7. third-party accessibility reduced to fallback;
+8. sovereign/local validation and release continuity primary;
+9. actual local-runtime discovery/launch/inference/proof transferred to canonical micro-node-runtime owner;
+10. formal local reference-model development transferred to canonical micro-node-runtime owner;
+11. StegFin live activation transferred to its machine-owned heartbeat/task-registry path.
 
 ## Archive conditions
 
-The SDK public-console and public-polish implementation goals are complete, merged, validated, and automation-protected. This repository no longer requires this session for implementation, validation, or integration. Any future PyPI release is a distinct release-authority event and must not be inferred from repository public-display readiness.
+This SDK repository requires no further work from this chat session. Public SDK, evaluator relationship, no-GitHub-authority, local-model ownership, and continuation boundaries are durably installed. Any remaining live runtime/trading work is separately owned by canonical machine/human authority records and does not require preservation of this conversation.
