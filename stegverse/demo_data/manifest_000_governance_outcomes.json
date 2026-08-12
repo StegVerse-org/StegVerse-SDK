@@ -2,43 +2,64 @@
   "schema": "stegverse.000-demo-dataset.v1",
   "demo_only": true,
   "accepted_as_user_manifest": false,
-  "purpose": "Teach the active governance outcome vocabulary before the 000 demo input and manifested trajectory.",
+  "submitted_as_demo_payload": true,
+  "purpose": "Teach the active governance outcome vocabulary as data submitted and processed by the option 000 demonstration.",
   "governance_outcome_examples": [
     {
       "governance_state": "ALLOW",
-      "label": "Allowed",
-      "meaning": "The canonical governance evaluation permits the candidate to proceed to any separately required commit/consequence checks.",
+      "manifest_label": {
+        "profile": "stegverse.manifest-labels.v1",
+        "title": "Allowed",
+        "description": "The canonical governance evaluation permits the candidate to proceed to any separately required commit/consequence checks.",
+        "transition_classes": ["governance"],
+        "receipt_classes": ["governance-decision"],
+        "editable": false,
+        "authority_effect": "NONE"
+      },
       "consequence_implied": false,
-      "authority_granted_by_example": false,
-      "transition_class": "governance",
-      "receipt_class": "governance-decision"
+      "authority_granted_by_example": false
     },
     {
       "governance_state": "DENY",
-      "label": "Denied",
-      "meaning": "The canonical governance evaluation rejects the candidate for the evaluated boundary.",
+      "manifest_label": {
+        "profile": "stegverse.manifest-labels.v1",
+        "title": "Denied",
+        "description": "The canonical governance evaluation rejects the candidate for the evaluated boundary.",
+        "transition_classes": ["governance"],
+        "receipt_classes": ["governance-decision"],
+        "editable": false,
+        "authority_effect": "NONE"
+      },
       "consequence_implied": false,
-      "authority_granted_by_example": false,
-      "transition_class": "governance",
-      "receipt_class": "governance-decision"
+      "authority_granted_by_example": false
     },
     {
       "governance_state": "REVIEW",
-      "label": "Review required",
-      "meaning": "The canonical governance evaluation requires a separate review or approval boundary before consequential continuation.",
+      "manifest_label": {
+        "profile": "stegverse.manifest-labels.v1",
+        "title": "Review required",
+        "description": "The canonical governance evaluation requires a separate review or approval boundary before consequential continuation.",
+        "transition_classes": ["governance"],
+        "receipt_classes": ["governance-decision"],
+        "editable": false,
+        "authority_effect": "NONE"
+      },
       "consequence_implied": false,
-      "authority_granted_by_example": false,
-      "transition_class": "governance",
-      "receipt_class": "governance-decision"
+      "authority_granted_by_example": false
     },
     {
       "governance_state": "FAIL_CLOSED",
-      "label": "Fail closed",
-      "meaning": "The system cannot establish the conditions required to continue and therefore blocks consequential continuation.",
+      "manifest_label": {
+        "profile": "stegverse.manifest-labels.v1",
+        "title": "Fail closed",
+        "description": "The system cannot establish the conditions required to continue and therefore blocks consequential continuation.",
+        "transition_classes": ["governance"],
+        "receipt_classes": ["governance-decision"],
+        "editable": false,
+        "authority_effect": "NONE"
+      },
       "consequence_implied": false,
-      "authority_granted_by_example": false,
-      "transition_class": "governance",
-      "receipt_class": "governance-decision"
+      "authority_granted_by_example": false
     }
   ],
   "demo_input": {
@@ -49,6 +70,7 @@
   },
   "notes": {
     "ordering": "governance_outcome_examples are intentionally prepended before the demo input so a human or LLM learns the outcome vocabulary before reading the example transaction.",
-    "scope": "This dataset is for option 000 only and MUST NOT be treated as a submitted manifest, a governance decision, or execution authority."
+    "submission": "Option 000 embeds this entire dataset as the governed demo manifest payload so the final runtime-bound output can prove which exact dataset was admitted and processed.",
+    "scope": "This dataset is for option 000 only. It is submitted as DATA and MUST NOT be treated as a user-authored manifest, a governance decision, or execution authority."
   }
 }
