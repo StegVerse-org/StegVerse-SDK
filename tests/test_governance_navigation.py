@@ -3,6 +3,7 @@ import unittest
 from stegverse.governance_navigation import (
     INGRESS_PROFILE,
     guidance_for,
+    manifest_shape_guidance,
     navigation_text,
     validate_external_manifest,
     validate_manifest_receipt_id,
@@ -25,6 +26,22 @@ class GovernanceNavigationTests(unittest.TestCase):
         self.assertIn("manifest_receipt_id", guidance_for("1"))
         self.assertIn("consequential side effects", guidance_for("2"))
 
+    def test_every_choice_explains_manifest_shape_and_projection(self):
+        for selection in ("00", "0", "1", "2"):
+            text = guidance_for(selection)
+            self.assertIn("MANIFEST SHAPE", text)
+            self.assertIn("manifest_profile", text)
+            self.assertIn("return_projection.mode", text)
+            self.assertIn("SELECTED", text)
+            self.assertIn("NONE", text)
+            self.assertIn("Master Records custody is independent", text)
+
+    def test_manifest_shape_explains_required_fields_cannot_be_hidden(self):
+        text = manifest_shape_guidance()
+        self.assertIn("cannot be set", text)
+        self.assertIn("Required identity, integrity, governed-subject, and routing fields", text)
+        self.assertIn("manifest_receipt_id", text)
+
     def test_return_projection_none_never_suppresses_master_records(self):
         projection = normalize_return_projection({"mode": "NONE"})
         self.assertEqual(projection["mode"], "NONE")
@@ -36,9 +53,9 @@ class GovernanceNavigationTests(unittest.TestCase):
     def test_selected_return_projection_requires_explicit_classes(self):
         projection = normalize_return_projection({
             "mode": "SELECTED",
-            "transition_classes": ["governance", "return_ingestion"],
+            "transition_classes": ["steggate", "return_ingestion"],
         })
-        self.assertEqual(projection["transition_classes"], ["governance", "return_ingestion"])
+        self.assertEqual(projection["transition_classes"], ["steggate", "return_ingestion"])
         with self.assertRaises(ValueError):
             normalize_return_projection({"mode": "SELECTED"})
 
