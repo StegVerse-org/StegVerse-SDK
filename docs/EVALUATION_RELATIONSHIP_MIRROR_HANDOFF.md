@@ -2,36 +2,45 @@
 
 ## Authority
 
-This scoped handoff is subordinate to `SDK_MIRROR_HANDOFF.md` and governs the identity-neutral evaluator-interest intake path.
+This scoped handoff is subordinate to `SDK_MIRROR_HANDOFF.md` and governs the identity-neutral evaluator/developer relationship path.
 
 ```text
 goal_id: SDK-GENERAL-EVALUATION-RELATIONSHIP-001
 repository: StegVerse-org/StegVerse-SDK
 branch: main
 owner: StegVerse-org/StegVerse-SDK
-role: CLAIMED_FOR_IMPLEMENTATION
+implementation_claim: COMPLETE_RELEASED
+validation_claim: COMPLETE_RELEASED
 ```
 
 ## Goal
 
-Allow any evaluator to state through the SDK exactly what they care to evaluate without requiring recipient-specific packages, directories, repository knowledge, or privileged source access.
+Allow any evaluator or developer to state through the SDK exactly what they care to evaluate without recipient-specific packages, directories, repository knowledge, privileged source access, or direct access to broader StegVerse services.
 
-The SDK must preserve the evaluator's stated objectives, intersect them with a portable package capability catalog and StegVerse boundary policy, and emit a non-authorizing relationship result.
-
-## Core rule
+## Required sequence
 
 ```text
-evaluator stated objectives
--> SDK normalized evaluation request
--> package capability catalog
--> StegVerse boundary policy
--> deterministic interest matching
--> admitted capabilities + denied/unavailable capabilities + unresolved objectives
--> bounded relationship receipt
--> package/demo/sandbox route
+current Demo TOS + TOU
+-> affirmative hash-bound acceptance receipt
+-> evaluator states objectives + optional restrictions
+-> SDK resolves against frozen capability catalog + StegVerse Demo policy
+-> admitted + denied/unavailable + unresolved sets
+-> bounded non-authorizing relationship receipt
+-> optional SDK-mediated capability invocation
 ```
 
-The evaluator may narrow the relationship at any time. A request to broaden scope is only a request; it never grants authority by itself.
+No valid current acceptance receipt means no SDK-connected Demo relationship.
+
+## General evaluator perimeter
+
+Permitted interactive capability classes when individually admitted:
+
+```text
+sdk://StegGhost/entity-sandbox-runner
+sdk://StegVerse-org/LLM-adapter/evaluator-entry
+```
+
+The LLM-adapter evaluator route is not direct adapter access. Evaluator-entry v1 is `local_reference_only`, maximum output 512 tokens, no provider selection, no credential access, no sovereign route authority, no repository access, and no execution authority.
 
 ## Non-authority invariants
 
@@ -45,38 +54,90 @@ wallet_authority_granted: false
 credential_authority_granted: false
 repository_access_granted: false
 unknown_interest_auto_admitted: false
+github_token_required: false
+credential_authority: TV/TVC
 ```
 
-## General evaluator perimeter
-
-The default public evaluator package may expose documentation, deterministic demos, schemas, examples, receipts, and explicitly catalogued sandbox routes. `StegGhost/entity-sandbox-runner` may be offered as an optional bounded sandbox capability when admitted by package policy. `StegVerse-org/LLM-adapter` is excluded from the default evaluator perimeter.
+Software license rights remain separate from Demo service access. Demo TOS/TOU do not silently replace rights independently granted by an applicable component license.
 
 ## Canonical implementation surfaces
 
 ```text
+legal/demo/DEMO_TERMS_OF_SERVICE.md
+legal/demo/DEMO_TERMS_OF_USE.md
+stegverse/demo_terms.py
 stegverse/evaluation_relationship.py
+stegverse/evaluator_llm_entry.py
+schemas/demo_terms_acceptance_receipt.schema.json
 schemas/evaluation-interest-request.schema.json
 schemas/evaluation-relationship-result.schema.json
+schemas/evaluator_llm_entry_request.schema.json
+tests/test_demo_terms.py
 tests/test_evaluation_relationship.py
-docs/EVALUATION_RELATIONSHIP.md
+tests/test_evaluator_llm_entry.py
+docs/EVALUATION_RELATIONSHIP_MIRROR_HANDOFF.md
 ```
 
-## Validation
-
-The implementation must prove:
+Cross-repository consumers:
 
 ```text
-free-form evaluator objectives are preserved
-catalog-tag matches are deterministic
-explicit capability requests are intersected rather than trusted
-package-denied capabilities cannot be admitted
-unknown objectives remain unresolved rather than broadening scope
-explicit evaluator restrictions always reduce effective scope
-LLM-adapter remains excluded when absent/denied by the package catalog
-effective scope grants no execution or repository authority
-same inputs produce the same receipt hash
+StegVerse-org/stegverse-demo-suite/config/evaluator_capability_catalog.json
+StegVerse-org/stegverse-demo-suite/config/evaluator_license_manifest.json
+StegVerse-org/LLM-adapter/llm_adapter/evaluator_entry.py
+StegVerse-org/LLM-adapter/docs/EVALUATOR_ENTRY_MIRROR_HANDOFF.md
 ```
 
-## Release condition
+## Deterministic validation evidence
 
-Release when the SDK implementation, schemas, tests, and demo-suite consumer contract are installed and validated without requiring GitHub Actions or any external runtime.
+Performed 2026-08-12 without GitHub Actions, Render, GitHub tokens, or hosted runtime. Exact repository content was materialized into an isolated local test tree through the connected repository interface because anonymous `github.com` DNS was unavailable in the execution container.
+
+```text
+python -m unittest tests.test_demo_terms tests.test_evaluation_relationship tests.test_evaluator_llm_entry
+result: 11/11 PASS
+terms hash binding: PASS
+nonaffirmative/stale/tampered acceptance denial: PASS
+evaluator-interest matching/self-restriction/hidden capability denial: PASS
+SDK-mediated LLM admission only: PASS
+provider/credential escalation denial: PASS
+request/relationship deterministic hash integrity: PASS
+```
+
+Cross-repository contract validation:
+
+```text
+Demo terms acceptance
+-> SDK relationship receipt
+-> SDK evaluator LLM request
+-> independent LLM-adapter request verification
+-> bounded local-reference execution
+-> non-authorizing measured response receipt
+PASS
+```
+
+The response receipt proves provider credentials are not exposed, evaluator provider-selection authority is false, GitHub-token requirement is false, third-party execution-platform requirement is false, and authority effect is NONE.
+
+## Machine-owned continuation
+
+Evaluator relationship creation and narrowing are SDK-owned. Requests to broaden scope are re-evaluated through the same policy path. An unavailable optional interactive dependency removes only that capability; it does not block frozen-package inspection or broader StegVerse continuity.
+
+## Release state
+
+```text
+implementation: COMPLETE
+validation: COMPLETE
+integration: COMPLETE
+claim: COMPLETE_RELEASED
+recipient-specific evaluator path: NONE
+```
+
+## Completion accounting
+
+```text
+developed_files: 13/13
+scaffolding_or_stubs: 0
+missing_required_files: 0
+validation: 13/13
+integration: 13/13
+goal_activation: 100%
+session_consolidation: COMPLETE_FOR_THIS_GOAL
+```
