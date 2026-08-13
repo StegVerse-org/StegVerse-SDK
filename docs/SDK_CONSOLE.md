@@ -1,8 +1,8 @@
 # StegVerse SDK Console
 
-The console is the generic public entry point for developers, testers, and evaluators. It exposes only locally callable SDK surfaces and does not create person-specific routes.
+The console is the generic public entry point for developers, testers, evaluators, humans, and assisting LLMs. It exposes discoverable SDK guidance and locally callable SDK surfaces without creating person-specific routes or authority.
 
-## Install the canonical current demo
+## Install the current checkout
 
 Use a repository checkout when evaluating current code so the console, examples, tests, and documentation are all at the same revision:
 
@@ -14,11 +14,10 @@ python -m pip install -e ".[dev]"
 
 The published package can lag the repository between releases. Treat a PyPI install as equivalent only after the corresponding release explicitly identifies the console revision.
 
-## Enter and discover
+## Enter the console
 
 ```bash
 stegverse
-stegverse surfaces
 ```
 
 Equivalent module entry:
@@ -27,21 +26,136 @@ Equivalent module entry:
 python -m stegverse
 ```
 
-For detailed help on any callable surface:
+The top-level console points to the canonical human-facing governance navigator:
 
 ```bash
-stegverse help-surface <surface>
+stegverse governance
 ```
 
-For the machine-readable public registry:
+## Canonical governance navigation
+
+```text
+[000] Demo test sequence without user-supplied manifest
+[00]  User-defined run parameters
+[0]   Submit data for governance
+[1]   Replay previously run set
+[2]   Reconstruct previously run set
+```
+
+Use the interactive navigator or select one option directly:
 
 ```bash
+stegverse governance
+stegverse governance --select 000
+stegverse governance --select 00
+stegverse governance --select 0
+stegverse governance --select 1
+stegverse governance --select 2
+```
+
+Options `000` and `00` are optional transparency/configuration surfaces. They are not prerequisites for ordinary governance or machine-to-machine use. A machine/LLM that already understands the accepted `stegverse.ingress-manifest.v1` profile may construct a conforming manifest and use the ordinary governed ingress path directly.
+
+### 000 — worked transparency/demo sequence
+
+`000` uses an SDK-owned dataset. The dataset begins with one labeled teaching example of each active governance disposition:
+
+```text
+ALLOW
+DENY
+REVIEW
+FAIL_CLOSED
+```
+
+The entire dataset is the submitted demo payload. The labeled outcomes are teaching data, not prior decisions or authority. The self-describing demo shape identifies the payload/dataset hash and the receipt classes required to prove manifest admission, governance processing, return ingestion, and exact-run custody. Runtime receipt values must remain explicitly pending until produced by the canonical runtime; they must not be fabricated.
+
+`000` requests full explanatory manifest labels so a human or assisting LLM can see fields, transition classes, receipt classes, editability, return behavior, and authority boundaries.
+
+### 00 — user-defined return/explanation parameters
+
+`00` explains caller-facing run preferences.
+
+```text
+return_projection
+  controls which user-disclosable transition receipts are returned
+
+manifest_labels
+  controls explanatory labels attached to returned sections
+```
+
+Both controls are caller-facing. Neither suppresses canonical ecosystem transitions or Master Records custody.
+
+### 0 — ordinary governed submission
+
+`0` is the ordinary submission path. The guide distinguishes:
+
+```text
+0A — raw/user data; SDK constructs the manifest
+0B — preformatted machine manifest conforming to the accepted profile
+```
+
+Submission and structural manifest validity do not grant authority. A machine/LLM does not need `000` or `00` before `0B` if it already knows the canonical manifest contract.
+
+### 1 — replay by manifest_receipt_id
+
+Provide the `manifest_receipt_id` returned by an earlier exact governed run. The identifier is a canonical locator, not an authority token. Replay must link new replay evidence to the immutable original rather than overwrite history.
+
+### 2 — reconstruction by manifest_receipt_id
+
+Provide the `manifest_receipt_id` returned by the original run. Reconstruction uses retained manifests, hashes, receipts, state records, and lineage to rebuild the historical trajectory without re-executing consequential side effects. Native historical evidence must remain distinguishable from later reconstruction evidence.
+
+## Return projection, labels, and custody
+
+Every governed manifest can separately express caller-return receipt projection and caller-return explanation labels.
+
+`return_projection.mode`:
+
+```text
+ALL      return all user-disclosable transition evidence
+SELECTED return named transition classes
+NONE     return no transition-detail receipt projection
+```
+
+`manifest_labels.mode`:
+
+```text
+ALL      explain/label all returned sections
+SELECTED explain/label named sections
+NONE     return no explanatory manifest labels
+```
+
+Required identity, integrity, governed-subject, and routing information remains part of the canonical run even when caller-facing projection is reduced. Neither `NONE` mode means StegVerse skipped, erased, or failed to retain underlying transitions. Master Records custody is independent of both controls.
+
+The final `manifest_receipt_id` remains the canonical locator for the exact immutable run and the handle for later replay/reconstruction even when transition-detail or label projection is `NONE`.
+
+## LLM and agent shape
+
+An LLM/agent does not receive a privileged governance path:
+
+```text
+External LLM/framework
+  -> optionally use 000 to explain the worked shape
+  -> optionally use 00 to help configure caller preferences
+  -> construct stegverse.ingress-manifest.v1
+  -> ordinary manifest validation/canonicalization
+  -> canonical governance
+  -> consequence boundary if applicable
+  -> return ingestion
+  -> governed result + manifest_receipt_id
+```
+
+The same vocabulary and authority boundaries are visible to a human and an assisting LLM. Demo outcomes, labels, schema discovery, manifest validity, and receipt IDs grant no authority.
+
+## Lower-level callable surfaces
+
+The five governance options are navigation over the governed workflow. They are distinct from the lower-level focused SDK surfaces:
+
+```bash
+stegverse surfaces
+stegverse help-surface <surface>
 stegverse capabilities
 ```
 
-The repository-level `sdk.capabilities.json` is intentionally broader. It records implementation and integration posture, including disabled or unobserved dependencies, and is not the same thing as the callable console registry.
-
-## Runnable surfaces
+Current callable surfaces:
 
 ```text
 admissibility
@@ -53,57 +167,15 @@ bridges
 entry-points
 ```
 
-General execution form:
+General focused execution form:
 
 ```bash
 stegverse run <surface> [options]
 ```
 
-Always use `stegverse help-surface <surface>` to inspect the exact local contract, backing module, documentation pointer, examples, and authority posture.
+### LLM admissibility
 
-## AdmittedCode
-
-AdmittedCode is a first-class generic SDK surface for portable provider-harness receipt verification.
-
-Discover it:
-
-```bash
-stegverse help-surface admittedcode
-```
-
-Run the bundled credential-free demonstration:
-
-```bash
-stegverse demo admittedcode
-```
-
-The demo exercises both canonical repository fixtures. Expected semantics:
-
-```text
-allow fixture -> verification.status = ACCEPTED; verification.decision = ALLOW
-deny fixture  -> verification.status = ACCEPTED; verification.decision = DENY
-authority_effect = NONE
-```
-
-A valid `DENY` receipt being SDK `ACCEPTED` is intentional: acceptance means the portable receipt boundary validated. It does not convert the denied action into an allowed action.
-
-Run a single bundled case:
-
-```bash
-stegverse demo admittedcode --case allow
-stegverse demo admittedcode --case deny
-```
-
-Or verify a receipt directly:
-
-```bash
-stegverse run admittedcode --input examples/governed_llm_demo/admittedcode/admissibility_receipt.allow.json
-stegverse run admittedcode --input examples/governed_llm_demo/admittedcode/admissibility_receipt.deny.json
-```
-
-The SDK consumer validates required fields, supported schema, allowed decision vocabulary, the refusal/key-request boundary, authority escalation, and the canonical receipt hash. Corrupt, unsupported, or authority-escalating receipts return `REJECTED` rather than being coerced into success.
-
-## LLM admissibility
+A local posture test can evaluate supplied LLM output without calling a hosted provider:
 
 ```bash
 stegverse run llm-admissibility \
@@ -113,92 +185,60 @@ stegverse run llm-admissibility \
   --output "A bounded research note."
 ```
 
-Optional fields:
+This does not create provider execution authority and is not a substitute for the ordinary governed manifest path.
 
-```text
---intent <declared-intent>
---consequence <level>
-```
+### AdmittedCode
 
-This is local SDK evaluation. It does not call a hosted provider and does not create provider execution authority.
-
-## Math/formalism admissibility
+AdmittedCode is a focused portable receipt-verification surface, not the five-option governance workflow.
 
 ```bash
-stegverse run math-admissibility \
-  --formalism RTG-STCM \
-  --artifact-type solver_artifact \
-  --summary "Candidate derivation for bounded review."
+stegverse help-surface admittedcode
+stegverse demo admittedcode
 ```
 
-This evaluates allowed posture. It does not certify mathematical correctness or proof closure.
-
-## Generic admissibility packet
-
-```bash
-stegverse run admissibility --input <tester-packet.json>
-```
-
-The input must be a JSON object in the SDK tester-packet family. Missing or malformed input fails closed with a nonzero exit code.
-
-## Universal-entry routing
-
-```bash
-stegverse run universal-entry \
-  --input <universal-entry-envelope.json> \
-  --registry <capability-registry.json>
-```
-
-The registry is explicit because routing must not silently assume capabilities. Unsupported or unavailable lanes fail closed according to the universal-entry contract.
-
-## Inspect registries
-
-```bash
-stegverse run bridges
-stegverse run entry-points
-```
-
-These commands show the dynamic-admissibility bridges and canonical entry-point roles recognized by the installed SDK.
+A valid `DENY` receipt being SDK `ACCEPTED` is intentional: acceptance means the portable receipt boundary validated. It does not convert the denied action into an allowed action.
 
 ## Credential boundary
 
-The public console requires no GitHub token for local discovery, demos, tests, or receipt verification.
+The public console requires no GitHub token for local discovery, guidance, demos, tests, or receipt verification.
 
-Do not supply GitHub tokens, provider keys, private keys, bearer tokens, passwords, or other secrets to the SDK console. Production credential semantics and protected route authority are owned by TV/TVC. Any protected or live execution route must cross that governed authority boundary instead of acquiring credentials through the SDK.
+Do not supply GitHub tokens, provider keys, private keys, bearer tokens, passwords, or other secrets to the SDK console. Production credential semantics and protected route authority are owned by TV/TVC.
 
-Private-source access is not a public console capability. Public source reads used by support code are non-authorizing and credential-free.
+## Troubleshooting and validation
 
-## Exit behavior and troubleshooting
-
-Successful local commands return exit code `0`. Invalid input, unknown surfaces, unsupported demos, malformed JSON, and missing required arguments return a nonzero code and an `ERROR:` or explicit failure message.
-
-Useful recovery commands:
+Useful commands:
 
 ```bash
+stegverse
+stegverse governance
+stegverse governance --select 000
+stegverse governance --select 00
+stegverse governance --select 0
+stegverse governance --select 1
+stegverse governance --select 2
 stegverse surfaces
-stegverse help-surface admittedcode
 stegverse capabilities
-pytest tests/test_cli.py -v
+pytest tests/ -v
 ```
 
-If `stegverse` is not found after a repository checkout, reinstall the editable package from the repository root:
+If `stegverse` is not found after a repository checkout:
 
 ```bash
 python -m pip install -e ".[dev]"
 ```
 
-## Repository control files are not product surfaces
-
-`SDK_MIRROR_HANDOFF.md` and other `*_MIRROR_HANDOFF.md` files preserve implementation continuity, validation state, and task ownership. They are project-control records, not SDK user commands, and they are not generated by someone merely accessing the SDK.
-
-## Validate the checkout
-
-```bash
-pytest tests/ -v
-```
-
-Hosted validation is defined by `.github/workflows/sdk-demo-test.yml`.
-
 ## Authority boundary
 
-The console never converts discovery or successful local evaluation into execution authority, deployment authority, publication authority, custody, standing, or broader admissibility beyond the explicit result contract returned by the selected SDK surface.
+```text
+000 grants authority: false
+00 grants authority: false
+manifest labels grant authority: false
+schema discovery grants authority: false
+manifest structural validity grants authority: false
+manifest_receipt_id grants authority: false
+return projection changes custody: false
+replay overwrites history: false
+reconstruction re-executes consequence: false
+```
+
+The console never converts discovery, explanation, configuration, or successful local evaluation into execution authority, deployment authority, publication authority, custody, standing, or broader admissibility.
