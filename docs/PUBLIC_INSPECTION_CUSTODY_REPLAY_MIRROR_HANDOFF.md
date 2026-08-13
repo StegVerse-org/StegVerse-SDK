@@ -8,25 +8,13 @@ repository: StegVerse-org/StegVerse-SDK
 branch: feat/inspection-custody
 parent_handoff: docs/PUBLIC_INSPECTION_GOVERNED_TEST_RUNTIME_MIRROR_HANDOFF.md
 repository_handoff: SDK_MIRROR_HANDOFF.md
-implementation_state: INSTALLED_PENDING_VALIDATION_MERGE
+implementation_state: INSTALLED_PENDING_INTEGRATED_VALIDATION_MERGE
 release_state: NOT_RELEASED
 ```
 
 ## Goal
 
-Enforce the ecosystem invariant that every governed SDK state transition is retained in Master Records, and make SDK replay/reconstruction actual callable operations rather than documentation-only promises.
-
-## Installed implementation
-
-```text
-stegverse/public_inspection_runtime.py
-tests/test_public_inspection_runtime.py
-README.md
-docs/SDK_CONSOLE.md
-docs/PUBLIC_INSPECTION_ENTRY.md
-docs/PUBLIC_INSPECTION_GOVERNED_TEST_RUNTIME_MIRROR_HANDOFF.md
-SDK_MIRROR_HANDOFF.md
-```
+Enforce the ecosystem invariant that every state transition required by SDK run, replay, and reconstruction is retained in Master Records before the corresponding artifact is returned.
 
 ## Governed-run ordering
 
@@ -37,54 +25,74 @@ public inspection request
 -> canonical run_manifested_transaction
 -> complete hash-chained transition trajectory
 -> canonical manifest_receipt_id
--> build_master_records_submission
--> POST canonical exact-run evidence package to Master Records
+-> POST exact-run evidence package to Master Records
 -> require custody_status: RECORDED
--> return governed result to caller
+-> return governed result
 ```
 
-The runtime preflights Master Records before governance and fails closed if custody cannot be configured or confirmed. The TEST consequence executor remains side-effect-free; governance transitions are still ecosystem state transitions and therefore require custody.
+## Replay operation custody
 
-## Replay
+Input: `manifest_receipt_id`.
+
+The original run remains immutable and its consequence executor is never invoked. The replay request itself creates a new observable ecosystem trajectory:
 
 ```text
-input: manifest_receipt_id
-source: Master Records exact-run evidence package
-operation: canonical StegCore admissibility re-evaluation only
-consequence executor: NEVER INVOKED
-original Master Record mutation: NONE
+REQUESTED
+-> SOURCE_RESOLVED
+-> EVALUATED
+-> RETURNED
 ```
 
-Replay compares original/replayed disposition and candidate identity and reports deterministic comparison fields.
+Each transition is appended to Master Records under a distinct replay `operation_id`, hash-linked in sequence, and assigned an operation-event receipt. The SDK fails closed if any transition cannot be recorded. Only after `RETURNED` is recorded may the replay artifact be returned to the caller.
 
-## Reconstruction
+## Reconstruction operation custody
+
+Input: `manifest_receipt_id`.
+
+The original consequence is not re-executed and the original retained exact-run package is not mutated. The reconstruction request still creates new ecosystem states:
 
 ```text
-input: manifest_receipt_id
-source: Master Records canonical reconstruction route
-consequence reexecution: FALSE
-original Master Record mutation: NONE
+REQUESTED
+-> SOURCE_RESOLVED
+-> ARTIFACT_DERIVED
+-> RETURNED
 ```
 
-## Read-only boundary
+Those transitions are likewise recorded in Master Records before the reconstruction artifact is returned.
 
-Replay and reconstruction intentionally do not create new ecosystem state. They query retained state and derive comparisons without mutation. Therefore they do not require a second custody write merely for being read.
+## Correct boundary
 
-If a future replay/reconstruction mode creates persisted derived artifacts, approvals, decisions, consequences, or other ecosystem mutations, those new states must be separately retained in Master Records before that future mode may report success.
+```text
+read-only with respect to original record != no ecosystem transition
+original_record_mutated: false
+consequence_reexecuted: false
+operation_transition_custody: required
+```
+
+## Cross-repository dependency
+
+The SDK operation-event client requires the matching `master-records/orchestration` operation-event API:
+
+```text
+POST /api/master-records/manifest-receipts/{manifest_receipt_id}/operations
+GET  /api/master-records/manifest-receipts/{manifest_receipt_id}/operations/{operation_id}
+```
+
+Master Records owns operation event IDs, sequencing, hash linkage, and durable custody. The SDK only requests custody and refuses to return success until `RECORDED` is confirmed.
 
 ## Validation gate
 
-Required before merge/release claim:
+Before merge/release claim:
 
 ```text
-1. SDK unit/contract tests PASS.
-2. Canonical StegCore dependency installs from the pinned revision.
-3. Canonical master-records/orchestration local custody service starts.
-4. One governed TEST produces custody_status RECORDED.
-5. Returned manifest_receipt_id resolves through Master Records to the same immutable run.
-6. Replay reads that retained request, does not invoke consequence, and deterministic comparison is inspectable.
-7. Reconstruction returns persisted-vs-derived evidence and consequence_reexecuted false.
-8. Original retained record hash is unchanged before/after replay and reconstruction.
+1. Master Records operation-transition implementation/tests PASS.
+2. Canonical custody app exposes operation POST/GET routes.
+3. One governed TEST returns only after exact-run custody RECORDED.
+4. Replay records REQUESTED/SOURCE_RESOLVED/EVALUATED/RETURNED and then returns artifact.
+5. Reconstruction records REQUESTED/SOURCE_RESOLVED/ARTIFACT_DERIVED/RETURNED and then returns artifact.
+6. Original exact-run hash is unchanged after both operations.
+7. Original consequence is not re-executed.
+8. SDK tests and integrated authenticated round trip PASS.
 ```
 
-No release, evaluator-ready receipt, or production activation claim is authorized until the applicable validation evidence exists.
+No release, evaluator-ready receipt, or production activation claim is authorized until applicable validation evidence exists.
