@@ -10,7 +10,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from pathlib import Path
 from typing import Any, Mapping
 
 import requests
@@ -58,12 +57,22 @@ def _headers(token: str) -> dict[str, str]:
 
 
 def _preflight_master_records(base_url: str, token: str) -> None:
+    """Verify the exact-run route and credential before any governed transition."""
+    probe_id = "MR-" + ("0" * 64)
     try:
-        response = requests.get(f"{base_url}/health", timeout=10)
+        response = requests.get(
+            f"{base_url}/api/master-records/manifest-receipts/{probe_id}",
+            headers=_headers(token),
+            timeout=10,
+        )
     except requests.RequestException as exc:
         raise PublicInspectionRuntimeError(f"Master Records preflight failed: {exc}") from exc
-    if response.status_code >= 500:
-        raise PublicInspectionRuntimeError(f"Master Records is not ready: HTTP {response.status_code}")
+    # A missing probe is the expected authorized response. 200 is also acceptable
+    # if a store somehow contains that exact locator. Everything else fails closed.
+    if response.status_code not in (200, 404):
+        raise PublicInspectionRuntimeError(
+            f"Master Records exact-run custody route is not admitted: HTTP {response.status_code}"
+        )
 
 
 def _retain_in_master_records(base_url: str, token: str, record: Any, evidence: Mapping[str, Any], build_submission: Any) -> dict[str, Any]:
@@ -98,8 +107,6 @@ def run_public_inspection_test(
     *,
     master_records_url: str | None = None,
     master_records_token: str | None = None,
-    registry_path: str | Path | None = None,
-    ledger_path: str | Path | None = None,
 ) -> dict[str, Any]:
     normalized = validate_public_inspection_request(request)
     steggate_body, input_data = _runtime_input(normalized)
@@ -111,8 +118,10 @@ def run_public_inspection_test(
     except Exception as exc:
         raise PublicInspectionRuntimeError(f"invalid StegCore admissibility request: {exc}") from exc
 
-    registry = ManifestReceiptRegistry(registry_path)
-    ledger = TransactionLedger(ledger_path)
+    # Keep pre-custody state in memory only. A failed custody write therefore cannot
+    # leave a second local canonical history that falsely competes with Master Records.
+    registry = ManifestReceiptRegistry()
+    ledger = TransactionLedger()
 
     def simulated_executor() -> dict[str, Any]:
         return {"status": "SIMULATED_TEST_CONSEQUENCE", "external_side_effect": False, "request_id": normalized["request_id"]}
@@ -149,6 +158,7 @@ def run_public_inspection_test(
         "external_side_effect": False,
         "master_records_custody_status": custody.get("custody_status"),
         "master_records_custody_receipt": custody,
+        "ecosystem_commit_status": "RECORDED",
         "locator_grants_authority": False,
         "github_grants_runtime_authority": False,
     }
@@ -181,6 +191,7 @@ def replay_manifest_receipt(manifest_receipt_id: str, *, master_records_url: str
         "consequence_reexecuted": False,
         "original_record_mutated": False,
         "master_records_source": True,
+        "operation_is_read_only": True,
         "replay_grants_authority": False,
     }
 
@@ -190,6 +201,8 @@ def reconstruct_manifest_receipt(manifest_receipt_id: str, *, master_records_url
     body = _get_json(f"{base_url}/api/master-records/manifest-receipts/{manifest_receipt_id}/reconstruction", token)
     if body.get("consequence_reexecuted") is not False:
         raise PublicInspectionRuntimeError("reconstruction boundary invalid: consequence_reexecuted must be false")
+    body = dict(body)
+    body["operation_is_read_only"] = True
     return body
 
 
@@ -199,13 +212,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("target", help="request JSON for run, or manifest_receipt_id for replay/reconstruct")
     parser.add_argument("--master-records-url")
     parser.add_argument("--master-records-token")
-    parser.add_argument("--registry", default=None)
-    parser.add_argument("--ledger", default=None)
     args = parser.parse_args(argv)
     try:
         if args.operation == "run":
             request = load_public_inspection_request(args.target)
-            result = run_public_inspection_test(request, master_records_url=args.master_records_url, master_records_token=args.master_records_token, registry_path=args.registry, ledger_path=args.ledger)
+            result = run_public_inspection_test(request, master_records_url=args.master_records_url, master_records_token=args.master_records_token)
         elif args.operation == "replay":
             result = replay_manifest_receipt(args.target, master_records_url=args.master_records_url, master_records_token=args.master_records_token)
         else:
