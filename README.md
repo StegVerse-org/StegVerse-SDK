@@ -1,6 +1,6 @@
 # StegVerse SDK
 
-The StegVerse SDK is the public developer interface for local, non-authorizing governance testing, governed submission, replay/reconstruction guidance, receipt verification, bounded routing, and inspectable public requests.
+The StegVerse SDK is the public developer interface for non-authorizing governance testing, governed submission, replay/reconstruction, receipt verification, bounded routing, and inspectable public requests.
 
 A request, manifest, pull request, validation result, or receipt locator does not by itself grant execution, custody, release, standing, or other authority.
 
@@ -29,7 +29,7 @@ Canonical governance navigation:
 
 A contributor can create a distinct, visible inspection request through an ordinary pull request using `.github/PULL_REQUEST_TEMPLATE/public-inspection-request.md` and `inspection/request.schema.json`.
 
-The PR is a submission and discussion record only. It is not the evaluator implementation, execution authority, release authority, or production Master Records custody.
+The PR is a submission and discussion record only. It is not the evaluator implementation, execution authority, release authority, or Master Records custody.
 
 ### Validate or prepare only
 
@@ -40,49 +40,43 @@ python -m stegverse.public_inspection inspection/examples/example-request.json
 
 Preparation maps the declarative request to ordinary SDK option `0A` and intentionally does not claim a runtime run.
 
-### Actually run a governed TEST and get a result
+### Run a governed TEST
 
-The public SDK now also exposes a side-effect-free governed TEST runtime backed by the canonical StegCore manifested-transaction implementation.
+The governed TEST path uses canonical StegCore and requires Master Records custody. A run is not reported as successfully completed until Master Records confirms `custody_status: RECORDED` for the complete exact-run evidence package.
 
-Python 3.11+ is required for this governed-test extra because StegCore requires Python 3.11+.
+Python 3.11+ is required because StegCore requires Python 3.11+.
+
+Configure the admitted Master Records endpoint through your authorized environment or pass the equivalent command options:
 
 ```bash
+export MASTER_RECORDS_URL="<admitted-master-records-base-url>"
+export MASTER_RECORDS_AUTH_TOKEN="<authorized-token>"
 python -m pip install -e ".[dev,governed-test]"
-python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
+python -m stegverse.public_inspection_runtime run \
+  inspection/examples/governed-test-request.json
 ```
 
-That command performs an actual canonical StegCore governed TEST run and returns, in the same command output:
+A successful run returns:
 
 ```text
 governance_state
 manifest_receipt_id
 transaction_id
 chain_verified
-exact-run evidence package
-reconstruction receipt
+master_records_custody_status: RECORDED
+master_records_custody_receipt
 ```
 
-The run is retained in the local append-only StegCore test registry and transition ledger under `.stegverse/public-inspection/` by default. The executor is deliberately simulated and cannot produce an external consequence.
-
-A local governed TEST `manifest_receipt_id` is a real canonical StegCore exact-run locator for that retained local test run. It is **not** a claim that the record was stored in production Master Records. Production custody remains a separate admitted transport boundary.
+The executor used by this public governed TEST is deliberately simulated and cannot produce an external consequence. The governance transitions themselves are real StegCore TEST transitions and are retained in the exact-run Master Records evidence package before the run is reported successful.
 
 ```text
 public PR or local request
   -> bounded declarative validation
   -> ordinary SDK option 0A semantics
   -> trusted canonical StegCore TEST governance
-  -> append-only local exact-run receipt registry
-  -> governance result + manifest_receipt_id + evidence + reconstruction
-```
-
-For production-custody execution the continuation remains:
-
-```text
-trusted governed ingress
-  -> StegCore governance / consequence boundary
-  -> full canonical Master Records custody
-  -> caller projection
-  -> manifest_receipt_id associated with that production-custodied run
+  -> complete exact-run evidence package
+  -> Master Records custody: RECORDED
+  -> governance result + manifest_receipt_id
 ```
 
 Untrusted PR code is never used as the evaluator/runtime. Inspection requests must remain declarative and must not include secrets, credentials, executable instructions, workflow authority, or authority claims.
@@ -104,15 +98,51 @@ Caller-facing controls remain separate from custody:
 
 - `return_projection` controls which user-disclosable transition receipts are returned.
 - `manifest_labels` controls explanatory labels on the returned package.
-- Neither grants governance authority or changes the identity of an exact run.
+- Neither grants governance authority or changes the identity or custody of an exact run.
 
-## Replay and reconstruction
+## Replay and reconstruction are operational
 
-`manifest_receipt_id` is the canonical locator for an exact retained run; it is not authority.
+`manifest_receipt_id` is the canonical locator for an exact Master Records-retained run; it is not authority.
 
-`1` replays without rewriting the original history. `2` reconstructs the retained trajectory without re-executing consequential side effects and must distinguish native historical evidence from later reconstruction material.
+Replay does not invoke the original consequence executor and does not mutate the historical exact-run record. The replay operation itself does traverse new ecosystem states. Those state transitions are recorded in Master Records before the replay artifact is returned:
 
-The governed public TEST command returns reconstruction evidence immediately for the newly retained local run.
+```text
+REPLAY_REQUESTED
+  -> SOURCE_RESOLVED
+  -> EVALUATED
+  -> RETURNED
+```
+
+```bash
+python -m stegverse.public_inspection_runtime replay \
+  MR-<SHA256>
+```
+
+The replay artifact reports the original and replay dispositions, candidate identity comparison, deterministic disposition comparison, `consequence_reexecuted: false`, `original_record_mutated: false`, an `operation_id`, and the Master Records operation-event receipts proving the replay-return path was recorded.
+
+Reconstruction likewise does not re-execute the original consequence or rewrite the original record. Its own request/derivation/return transitions are new ecosystem states and are recorded:
+
+```text
+RECONSTRUCT_REQUESTED
+  -> SOURCE_RESOLVED
+  -> ARTIFACT_DERIVED
+  -> RETURNED
+```
+
+```bash
+python -m stegverse.public_inspection_runtime reconstruct \
+  MR-<SHA256>
+```
+
+Reconstruction preserves persisted historical evidence separately from reconstructed material, reports `consequence_reexecuted: false`, and returns its operation-transition custody receipts.
+
+The important distinction is:
+
+```text
+original exact run remains immutable
+replay/reconstruction do not re-execute original consequence
+replay/reconstruction operation state transitions are still recorded in Master Records
+```
 
 ## Core invariants
 
@@ -120,12 +150,15 @@ The governed public TEST command returns reconstruction evidence immediately for
 submission != execution
 manifest validity != ALLOW
 public PR != runtime authority
-local TEST registry != production Master Records custody
+governed run success requires Master Records custody
 manifest_receipt_id != authority
 return_projection != custody
 manifest_labels != authority
 replay != historical rewrite
-reconstruction != re-execution
+replay != consequence execution
+replay state transitions -> Master Records
+reconstruction != original consequence re-execution
+reconstruction state transitions -> Master Records
 ```
 
 ## Other SDK surfaces
@@ -142,7 +175,7 @@ Console documentation: `docs/SDK_CONSOLE.md`.
 
 ## LLM / agent boundary
 
-An LLM may help construct or explain a request. It does not receive special authority by doing so. Provider/runtime translation belongs to `StegVerse-org/LLM-adapter`; protected production runtime authority remains outside the public test request surface.
+An LLM may help construct or explain a request. It does not receive special authority by doing so. Provider/runtime translation belongs to `StegVerse-org/LLM-adapter`; protected runtime authority remains outside the public request surface.
 
 ## Validate the checkout
 
@@ -153,6 +186,7 @@ python -m unittest tests.test_github_fallback_boundary
 python scripts/validate_public_inspection_request.py inspection/examples/example-request.json
 python -m unittest tests.test_public_inspection_request
 python -m unittest tests.test_public_inspection_governed_binding
+python -m unittest tests.test_public_inspection_runtime
 ```
 
 Preparation only:
@@ -161,11 +195,13 @@ Preparation only:
 python -m stegverse.public_inspection inspection/examples/example-request.json
 ```
 
-Actual governed TEST result:
+Governed run, replay, reconstruction:
 
 ```bash
 python -m pip install -e ".[dev,governed-test]"
-python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
+python -m stegverse.public_inspection_runtime run inspection/examples/governed-test-request.json
+python -m stegverse.public_inspection_runtime replay MR-<SHA256>
+python -m stegverse.public_inspection_runtime reconstruct MR-<SHA256>
 ```
 
 ## Repository control files

@@ -8,6 +8,7 @@
     "schema_version",
     "request_id",
     "case_profile",
+    "execution_provenance",
     "input",
     "return_projection",
     "authority_claim"
@@ -17,6 +18,58 @@
     "request_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{3,80}$"},
     "requester_label": {"type": "string", "maxLength": 120},
     "case_profile": {"type": "string", "enum": ["ordinary", "longitudinal-boundary", "custom-declarative"]},
+    "execution_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lane_class",
+        "routing_surface",
+        "containment",
+        "sandbox_required",
+        "external_consequence_enabled"
+      ],
+      "properties": {
+        "lane_class": {
+          "type": "string",
+          "enum": ["PRODUCTION_VALIDATION", "ENCLOSED_DEMO_TEST"]
+        },
+        "routing_surface": {
+          "type": "string",
+          "enum": ["CANONICAL_PRODUCTION", "DEMO_TEST_REPOSITORY"]
+        },
+        "containment": {
+          "type": "string",
+          "enum": ["PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE", "DEMO_REPOSITORY_CONTAINED"]
+        },
+        "sandbox_required": {"type": "boolean"},
+        "sandbox_tier": {"type": "string", "maxLength": 120},
+        "origin_surface": {"type": "string", "maxLength": 200},
+        "external_consequence_enabled": {"type": "boolean"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"lane_class": {"const": "PRODUCTION_VALIDATION"}}},
+          "then": {
+            "properties": {
+              "routing_surface": {"const": "CANONICAL_PRODUCTION"},
+              "containment": {"const": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE"},
+              "external_consequence_enabled": {"const": false}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"lane_class": {"const": "ENCLOSED_DEMO_TEST"}}},
+          "then": {
+            "properties": {
+              "routing_surface": {"const": "DEMO_TEST_REPOSITORY"},
+              "containment": {"const": "DEMO_REPOSITORY_CONTAINED"},
+              "sandbox_required": {"const": true},
+              "external_consequence_enabled": {"const": false}
+            }
+          }
+        }
+      ]
+    },
     "input": {"type": "object", "maxProperties": 50},
     "return_projection": {"type": "string", "enum": ["ALL", "SELECTED", "NONE"]},
     "manifest_labels": {"type": "boolean", "default": false},

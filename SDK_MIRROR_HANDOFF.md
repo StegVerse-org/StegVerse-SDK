@@ -18,60 +18,111 @@ SDK-GENERAL-EVALUATION-RELATIONSHIP-001: COMPLETE_RELEASED
 SDK-NO-GITHUB-AUTHORITY-003: COMPLETE_RELEASED
 SDK-PUBLIC-INSPECTION-ENTRY-001: COMPLETE_VALIDATED_MERGED, NOT_RELEASED
 SDK-PUBLIC-INSPECTION-GOVERNED-BINDING-002: COMPLETE_STATIC_VALIDATED_MERGED, NOT_RELEASED
-SDK-PUBLIC-INSPECTION-GOVERNED-TEST-004: COMPLETE_CONTRACT_VALIDATED_MERGED, NOT_RELEASED
+SDK-PUBLIC-INSPECTION-GOVERNED-TEST-004: SUPERSEDED_BY_CUSTODY_BACKED_RUNTIME
+SDK-PUBLIC-INSPECTION-CUSTODY-REPLAY-005: CODE_COMPLETE_PENDING_HOSTED_DEPLOY_AND_INTEGRATED_RUN
 ```
 
 No person-specific evaluator route is canonical.
 
-## Governed public inspection TEST runtime
+## Governing invariant
 
 ```text
-source_of_truth: docs/PUBLIC_INSPECTION_GOVERNED_TEST_RUNTIME_MIRROR_HANDOFF.md
-merge_pr: #21
-merge_commit: 4d98e6e51f86e15f3262e67fe36eaad61f99778d
-validation: validation/PUBLIC_INSPECTION_GOVERNED_TEST_RUNTIME_2026-08-13.md
-pinned_stegcore: 8774a024ba6efe7e45d0846db70362f1836e7f36
+every ecosystem state transition is recorded in Master Records
+successful governed SDK run without Master Records custody: PROHIBITED
+successful replay/reconstruction return without operation-transition custody: PROHIBITED
+caller return projection may suppress Master Records custody: FALSE
 ```
 
-The public SDK now has two distinct request operations:
+## Production-validation route
+
+The governed SDK runtime now uses the manifested Core-Lite route carrier and targets the deployed StegCore service rather than evaluating locally.
 
 ```text
-PREPARE -> validate/bind request without running governance
-TEST    -> run canonical StegCore governance and return a test result
+SDK entry
+-> Core-Lite manifested route carrier
+-> Master Records MRR-* route transition custody
+-> deployed StegCore /v1/manifested-validation
+-> canonical StegGate evaluation
+-> StegCore manifested transaction receipts
+-> Master Records MR-* exact-run custody
+-> Core-Lite return ingestion/CGE
+-> Master Records MRR-* return transition custody
+-> SDK return
 ```
 
-Python 3.11+ governed TEST command:
+One upstream `transaction_id` is preserved across the route manifest and StegCore manifested transaction. Production-validation provenance is bound into the route manifest and retained exact-run evidence.
 
-```bash
-python -m pip install -e ".[dev,governed-test]"
-python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
-```
-
-The TEST result includes `governance_state`, `manifest_receipt_id`, `transaction_id`, chain verification, exact-run evidence, and reconstruction. CLI defaults persist the local run in append-only StegCore test files. In-memory programmatic use does not claim persistence.
-
-Local TEST retention is distinct from production Master Records custody. Production custody still requires the separately admitted Master Records transport and readiness gates.
-
-## Public PR boundary
-
-A public PR is a visible declarative request/discussion record. It can retain the request and a labeled local TEST result. PR-supplied code is not used as the evaluator/runtime.
-
-## Cross-repository ownership
+The StegCore service endpoint was merged in StegCore PR #90 as:
 
 ```text
-LLM transport/translation: StegVerse-org/LLM-adapter
-Canonical governance/exact-run semantics: StegVerse-Labs/StegCore
-Production exact-run custody: master-records/orchestration
+083557adec1bdbace09ebd10fb0765eb8e9a9d08
 ```
 
-## Remaining stronger goal
+All five required StegCore repository workflows passed before that merge.
+
+Core-Lite route carrier is merged as:
 
 ```text
-goal: PUBLIC-INSPECTION-END-TO-END-CUSTODY-003
-state: PRODUCTION_CUSTODY_NOT_YET_CLAIMED
+72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
 ```
 
-The remaining gap is production shared custody and independent shared-backing replay/reconstruction, not the ability to submit public SDK test data and get a governed result.
+Master Records route and replay/reconstruction transition custody is merged as:
+
+```text
+d0828441f2e92de736df1123bad5668f67e935fc
+```
+
+## Replay
+
+Replay is executable against a retained `MR-*` source and creates its own Master Records operation trajectory:
+
+```text
+REQUESTED
+-> SOURCE_RESOLVED
+-> EVALUATED
+-> RETURNED
+```
+
+The original exact run is not mutated and its consequence is not re-executed. The replay artifact is not returned unless all operation transitions are recorded.
+
+## Reconstruction
+
+Reconstruction creates its own Master Records operation trajectory:
+
+```text
+REQUESTED
+-> SOURCE_RESOLVED
+-> ARTIFACT_DERIVED
+-> RETURNED
+```
+
+The original exact run remains immutable and the original consequence is not re-executed.
+
+## Hosted deployment gate
+
+The existing Render `steggate-core` service auto-deploy attempted the StegCore merged commit above. Render canceled the build before execution because the workspace had exhausted build-pipeline minutes for the current billing period.
+
+```text
+repository implementation: COMPLETE
+StegCore repository CI: PASS
+new live StegCore manifested-validation endpoint: NOT YET ACTIVE
+hosted SDK -> Core-Lite -> StegCore -> Master Records integrated run: NOT YET EXECUTED
+genuine evaluator receipt IDs from that hosted route: NOT YET ISSUED
+```
+
+This is an external hosting-capacity blocker, not a repository test failure. Do not substitute older local or ephemeral receipt identifiers.
+
+## Remaining evaluator-readiness gate
+
+```text
+1. restore hosted build capacity or otherwise activate the merged StegCore endpoint on the canonical hosted surface;
+2. execute T0, T1-A, and T1-B through the hosted production-validation route;
+3. verify one transaction identity per manifested run;
+4. verify complete MRR-* route transition chain and MR-* exact-run custody;
+5. execute replay and reconstruction and verify MRO-* operation transition custody;
+6. retain PASS evidence and only then hand off genuine receipt IDs.
+```
 
 ## Release state
 
-The governed TEST runtime is merged but not yet tagged/released. Release propagation is not yet triggered.
+Do not claim evaluator-ready production validation or release until the hosted integrated run above passes.

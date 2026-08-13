@@ -1,6 +1,6 @@
 # StegVerse SDK Console
 
-The console is the generic public entry point for developers, testers, evaluators, humans, and assisting LLMs. It exposes discoverable SDK guidance and locally callable surfaces without creating person-specific routes or authority.
+The console is the generic public entry point for developers, testers, evaluators, humans, and assisting LLMs. It exposes discoverable SDK guidance and callable surfaces without creating person-specific routes or authority.
 
 ## Install
 
@@ -28,7 +28,7 @@ stegverse governance
 
 ## Public inspection requests
 
-A public PR may carry bounded declarative request data matching `inspection/request.schema.json`. The PR is a visible request/discussion record, not evaluator code or production custody.
+A public PR may carry bounded declarative request data matching `inspection/request.schema.json`. The PR is a visible request/discussion record, not evaluator code or Master Records custody.
 
 Preparation only:
 
@@ -37,49 +37,62 @@ python scripts/validate_public_inspection_request.py inspection/examples/example
 python -m stegverse.public_inspection inspection/examples/example-request.json
 ```
 
-That path intentionally stops with no runtime execution and no receipt locator.
+That path intentionally stops with no governed runtime execution and no receipt locator.
 
 ## Actual governed TEST execution
 
-To run the submitted test data through canonical StegCore governance and get a result back, use Python 3.11+ and install the pinned governed-test extra:
+A governed test must be recorded in Master Records. The SDK requires an admitted Master Records endpoint before it starts the canonical StegCore run and will not report success until exact-run custody returns `RECORDED`.
 
 ```bash
+export MASTER_RECORDS_URL="<admitted-master-records-base-url>"
+export MASTER_RECORDS_AUTH_TOKEN="<authorized-token>"
 python -m pip install -e ".[dev,governed-test]"
-python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
+python -m stegverse.public_inspection_runtime run inspection/examples/governed-test-request.json
 ```
 
-The governed TEST command returns:
+The TEST consequence executor performs no external side effect. Canonical governance transitions are still ecosystem transitions and are retained in the exact-run Master Records evidence package.
+
+## Replay — option 1
+
+Replay is operational. It does not rewrite the original exact-run record or invoke its consequence executor. The replay operation itself creates a new ecosystem trajectory that is recorded before the artifact is returned:
 
 ```text
-governance_state
-manifest_receipt_id
-transaction_id
-chain_verified
-evidence_package
-reconstruction
+REQUESTED -> SOURCE_RESOLVED -> EVALUATED -> RETURNED
 ```
 
-The exact run is retained in the local append-only canonical StegCore test registry and transaction ledger under `.stegverse/public-inspection/` by default. The TEST executor performs no external side effect.
+```bash
+python -m stegverse.public_inspection_runtime replay MR-<SHA256>
+```
 
-The returned `manifest_receipt_id` is a real canonical StegCore exact-run locator for that locally retained governed TEST run. It is not a production Master Records custody claim.
+A successful replay result includes an `operation_id`, original/replay comparisons, `consequence_reexecuted: false`, `original_record_mutated: false`, `operation_transition_custody_status: RECORDED`, and the Master Records operation-event receipts.
 
-## Production custody boundary
+If any replay transition cannot be recorded, the SDK fails closed and does not return a successful replay artifact.
 
-Production custody is a separate stronger path:
+## Reconstruction — option 2
+
+Reconstruction does not rewrite the original exact-run record or re-execute its consequence. Its own request/derivation/return path is recorded:
 
 ```text
-trusted governed ingress
--> canonical StegCore governance
--> admitted Master Records exact-run custody
--> caller projection
--> production-custodied manifest_receipt_id
+REQUESTED -> SOURCE_RESOLVED -> ARTIFACT_DERIVED -> RETURNED
 ```
 
-Do not equate local governed TEST retention with production Master Records custody.
+```bash
+python -m stegverse.public_inspection_runtime reconstruct MR-<SHA256>
+```
 
-## Replay and reconstruction
+The reconstruction artifact distinguishes persisted historical evidence from derived material and includes its `operation_id`, `operation_transition_custody_status: RECORDED`, and Master Records operation-event receipts.
 
-A `manifest_receipt_id` is a locator, not authority. Replay must not overwrite history or re-execute consequence. Reconstruction must distinguish retained historical evidence from later derived material.
+## State-transition rule
+
+```text
+original record is immutable
+original consequence is not re-executed by replay/reconstruction
+replay/reconstruction still create operation state transitions
+all such transitions are recorded in Master Records
+caller artifact is returned only after RETURNED is RECORDED
+```
+
+Caller return projection and explanatory labels never suppress Master Records custody.
 
 ## Lower-level surfaces
 
@@ -100,20 +113,17 @@ python -m unittest tests.test_public_inspection_governed_binding
 python -m unittest tests.test_public_inspection_runtime
 ```
 
-With the governed-test extra installed:
-
-```bash
-python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
-```
-
 ## Authority boundary
 
 ```text
 public PR grants runtime authority: false
-public PR creates production custody: false
-local TEST registry equals production custody: false
+public PR creates custody: false
+governed run success without Master Records custody: false
 manifest_receipt_id grants authority: false
 return projection changes custody: false
-replay overwrites history: false
-reconstruction re-executes consequence: false
+replay overwrites original history: false
+replay executes original consequence: false
+replay transitions bypass Master Records: false
+reconstruction re-executes original consequence: false
+reconstruction transitions bypass Master Records: false
 ```
