@@ -1,15 +1,19 @@
-"""Trusted local TEST runtime for bounded public inspection requests.
+"""Governed public-inspection runtime with mandatory Master Records custody.
 
-This module accepts the same bounded public-inspection schema and executes an
-embedded canonical StegCore AdmissibilityRequest through the canonical
-manifested-transaction path. TEST mode uses a side-effect-free executor.
+A governed run is not reported as successful until the complete exact-run evidence
+package is recorded through the canonical Master Records manifest-receipt API.
+Replay and reconstruction are read-only: they never re-execute a consequence and
+never mutate the retained original.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Any, Mapping
+
+import requests
 
 from .public_inspection import PublicInspectionRequestError, load_public_inspection_request, validate_public_inspection_request
 
@@ -20,14 +24,15 @@ class PublicInspectionRuntimeError(RuntimeError):
 
 def _load_stegcore():
     try:
+        from stegcore.manifest_receipt_provider import build_master_records_submission
         from stegcore.manifest_receipts import ManifestReceiptRegistry
-        from stegcore.steggate import AdmissibilityRequest
+        from stegcore.steggate import AdmissibilityRequest, evaluate_admissibility
         from stegcore.transaction_lifecycle import TransactionLedger, run_manifested_transaction
     except ImportError as exc:
         raise PublicInspectionRuntimeError(
-            "StegCore is required for governed TEST execution. Install the current StegVerse-Labs/StegCore checkout in this Python environment."
+            "StegCore is required for governed execution. Install the current governed-test dependency."
         ) from exc
-    return ManifestReceiptRegistry, AdmissibilityRequest, TransactionLedger, run_manifested_transaction
+    return build_master_records_submission, ManifestReceiptRegistry, AdmissibilityRequest, evaluate_admissibility, TransactionLedger, run_manifested_transaction
 
 
 def _runtime_input(request: Mapping[str, Any]) -> tuple[Mapping[str, Any], Any]:
@@ -36,16 +41,71 @@ def _runtime_input(request: Mapping[str, Any]) -> tuple[Mapping[str, Any], Any]:
         raise PublicInspectionRuntimeError("public inspection input must be an object")
     steggate_request = input_block.get("steggate_request")
     if not isinstance(steggate_request, Mapping):
-        raise PublicInspectionRuntimeError(
-            "governed TEST execution requires input.steggate_request containing a canonical StegCore AdmissibilityRequest"
-        )
+        raise PublicInspectionRuntimeError("governed execution requires input.steggate_request containing a canonical StegCore AdmissibilityRequest")
     return steggate_request, input_block.get("input_data", {})
 
 
-def run_public_inspection_test(request: Mapping[str, Any], *, registry_path: str | Path | None = None, ledger_path: str | Path | None = None) -> dict[str, Any]:
+def _master_records_config(base_url: str | None = None, token: str | None = None) -> tuple[str, str]:
+    url = (base_url or os.getenv("MASTER_RECORDS_URL") or "").rstrip("/")
+    auth = token or os.getenv("MASTER_RECORDS_AUTH_TOKEN") or ""
+    if not url or not auth:
+        raise PublicInspectionRuntimeError("Master Records custody is required. Set MASTER_RECORDS_URL and MASTER_RECORDS_AUTH_TOKEN, or pass --master-records-url/--master-records-token.")
+    return url, auth
+
+
+def _headers(token: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+
+def _preflight_master_records(base_url: str, token: str) -> None:
+    try:
+        response = requests.get(f"{base_url}/health", timeout=10)
+    except requests.RequestException as exc:
+        raise PublicInspectionRuntimeError(f"Master Records preflight failed: {exc}") from exc
+    if response.status_code >= 500:
+        raise PublicInspectionRuntimeError(f"Master Records is not ready: HTTP {response.status_code}")
+
+
+def _retain_in_master_records(base_url: str, token: str, record: Any, evidence: Mapping[str, Any], build_submission: Any) -> dict[str, Any]:
+    payload = build_submission(record, evidence)
+    try:
+        response = requests.post(f"{base_url}/api/master-records/manifest-receipts", headers=_headers(token), json=payload, timeout=30)
+    except requests.RequestException as exc:
+        raise PublicInspectionRuntimeError(f"Master Records custody failed: {exc}") from exc
+    if response.status_code not in (200, 201):
+        raise PublicInspectionRuntimeError(f"Master Records custody failed: HTTP {response.status_code}: {response.text[:500]}")
+    body = response.json()
+    if body.get("custody_status") != "RECORDED":
+        raise PublicInspectionRuntimeError("Master Records did not confirm RECORDED custody")
+    return body
+
+
+def _get_json(url: str, token: str) -> dict[str, Any]:
+    try:
+        response = requests.get(url, headers=_headers(token), timeout=30)
+    except requests.RequestException as exc:
+        raise PublicInspectionRuntimeError(f"Master Records lookup failed: {exc}") from exc
+    if response.status_code != 200:
+        raise PublicInspectionRuntimeError(f"Master Records lookup failed: HTTP {response.status_code}: {response.text[:500]}")
+    body = response.json()
+    if not isinstance(body, dict):
+        raise PublicInspectionRuntimeError("Master Records returned a non-object response")
+    return body
+
+
+def run_public_inspection_test(
+    request: Mapping[str, Any],
+    *,
+    master_records_url: str | None = None,
+    master_records_token: str | None = None,
+    registry_path: str | Path | None = None,
+    ledger_path: str | Path | None = None,
+) -> dict[str, Any]:
     normalized = validate_public_inspection_request(request)
     steggate_body, input_data = _runtime_input(normalized)
-    ManifestReceiptRegistry, AdmissibilityRequest, TransactionLedger, run_manifested_transaction = _load_stegcore()
+    base_url, token = _master_records_config(master_records_url, master_records_token)
+    _preflight_master_records(base_url, token)
+    build_submission, ManifestReceiptRegistry, AdmissibilityRequest, _evaluate, TransactionLedger, run_manifested_transaction = _load_stegcore()
     try:
         admissibility_request = AdmissibilityRequest.model_validate(steggate_body)
     except Exception as exc:
@@ -55,11 +115,7 @@ def run_public_inspection_test(request: Mapping[str, Any], *, registry_path: str
     ledger = TransactionLedger(ledger_path)
 
     def simulated_executor() -> dict[str, Any]:
-        return {
-            "status": "SIMULATED_TEST_CONSEQUENCE",
-            "external_side_effect": False,
-            "request_id": normalized["request_id"],
-        }
+        return {"status": "SIMULATED_TEST_CONSEQUENCE", "external_side_effect": False, "request_id": normalized["request_id"]}
 
     result = run_manifested_transaction(
         admissibility_request,
@@ -73,14 +129,15 @@ def run_public_inspection_test(request: Mapping[str, Any], *, registry_path: str
             "case_profile": normalized["case_profile"],
             "test_mode": True,
             "external_side_effects_enabled": False,
+            "governance_request": admissibility_request.model_dump(mode="json", exclude_none=False),
         },
     )
     record = registry.register(result)
     evidence = registry.evidence_package(record.manifest_receipt_id)
-    reconstruction = registry.reconstruct(record.manifest_receipt_id).model_dump(mode="json")
+    custody = _retain_in_master_records(base_url, token, record, evidence, build_submission)
     evaluation = result.execution_observation.get("evaluation") or {}
     return {
-        "schema": "stegverse.public-inspection-governed-test-result.v1",
+        "schema": "stegverse.public-inspection-governed-test-result.v2",
         "request_id": normalized["request_id"],
         "case_profile": normalized["case_profile"],
         "runtime_mode": "TEST",
@@ -90,24 +147,69 @@ def run_public_inspection_test(request: Mapping[str, Any], *, registry_path: str
         "chain_verified": bool(result.chain_verified),
         "consequence_executor_invoked": bool(result.execution_observation.get("executor_invoked")),
         "external_side_effect": False,
-        "evidence_package": evidence,
-        "reconstruction": reconstruction,
-        "local_exact_run_retained": registry_path is not None,
-        "production_master_records_custody": False,
+        "master_records_custody_status": custody.get("custody_status"),
+        "master_records_custody_receipt": custody,
         "locator_grants_authority": False,
         "github_grants_runtime_authority": False,
     }
 
 
+def replay_manifest_receipt(manifest_receipt_id: str, *, master_records_url: str | None = None, master_records_token: str | None = None) -> dict[str, Any]:
+    base_url, token = _master_records_config(master_records_url, master_records_token)
+    body = _get_json(f"{base_url}/api/master-records/manifest-receipts/{manifest_receipt_id}", token)
+    package = body.get("evidence_package")
+    if not isinstance(package, Mapping):
+        raise PublicInspectionRuntimeError("retained evidence package missing")
+    manifest = package.get("manifest") or {}
+    metadata = manifest.get("metadata") or {}
+    request_body = metadata.get("governance_request")
+    if not isinstance(request_body, Mapping):
+        raise PublicInspectionRuntimeError("retained run predates replay-capable governance_request custody")
+    _build_submission, _Registry, AdmissibilityRequest, evaluate_admissibility, _Ledger, _run = _load_stegcore()
+    request = AdmissibilityRequest.model_validate(request_body)
+    replay_eval = evaluate_admissibility(request)
+    original = ((package.get("execution_observation") or {}).get("evaluation") or {})
+    original_disposition = str(original.get("disposition") or "")
+    original_candidate_hash = str(original.get("candidate_hash") or "")
+    return {
+        "schema": "stegverse.public-inspection-replay.v1",
+        "manifest_receipt_id": manifest_receipt_id.strip().upper(),
+        "original_disposition": original_disposition,
+        "replay_disposition": replay_eval.disposition,
+        "deterministic_disposition_match": replay_eval.disposition == original_disposition,
+        "candidate_identity_match": replay_eval.candidate_hash == original_candidate_hash,
+        "consequence_reexecuted": False,
+        "original_record_mutated": False,
+        "master_records_source": True,
+        "replay_grants_authority": False,
+    }
+
+
+def reconstruct_manifest_receipt(manifest_receipt_id: str, *, master_records_url: str | None = None, master_records_token: str | None = None) -> dict[str, Any]:
+    base_url, token = _master_records_config(master_records_url, master_records_token)
+    body = _get_json(f"{base_url}/api/master-records/manifest-receipts/{manifest_receipt_id}/reconstruction", token)
+    if body.get("consequence_reexecuted") is not False:
+        raise PublicInspectionRuntimeError("reconstruction boundary invalid: consequence_reexecuted must be false")
+    return body
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run a bounded public inspection request through canonical StegCore TEST governance")
-    parser.add_argument("request")
-    parser.add_argument("--registry", default=".stegverse/public-inspection/manifest-receipts.jsonl")
-    parser.add_argument("--ledger", default=".stegverse/public-inspection/transaction-receipts.jsonl")
+    parser = argparse.ArgumentParser(description="Run, replay, or reconstruct a governed public inspection through canonical StegCore + Master Records")
+    parser.add_argument("operation", choices=("run", "replay", "reconstruct"))
+    parser.add_argument("target", help="request JSON for run, or manifest_receipt_id for replay/reconstruct")
+    parser.add_argument("--master-records-url")
+    parser.add_argument("--master-records-token")
+    parser.add_argument("--registry", default=None)
+    parser.add_argument("--ledger", default=None)
     args = parser.parse_args(argv)
     try:
-        request = load_public_inspection_request(args.request)
-        result = run_public_inspection_test(request, registry_path=args.registry, ledger_path=args.ledger)
+        if args.operation == "run":
+            request = load_public_inspection_request(args.target)
+            result = run_public_inspection_test(request, master_records_url=args.master_records_url, master_records_token=args.master_records_token, registry_path=args.registry, ledger_path=args.ledger)
+        elif args.operation == "replay":
+            result = replay_manifest_receipt(args.target, master_records_url=args.master_records_url, master_records_token=args.master_records_token)
+        else:
+            result = reconstruct_manifest_receipt(args.target, master_records_url=args.master_records_url, master_records_token=args.master_records_token)
     except (PublicInspectionRequestError, PublicInspectionRuntimeError, ValueError) as exc:
         print(f"ERROR: {exc}")
         return 2
