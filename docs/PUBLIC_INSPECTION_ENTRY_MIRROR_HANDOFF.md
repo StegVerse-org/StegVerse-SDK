@@ -5,31 +5,15 @@ goal_id: SDK-PUBLIC-INSPECTION-ENTRY-001
 repository: StegVerse-org/StegVerse-SDK
 branch: feat/public-inspection-entry
 parent_handoff: SDK_MIRROR_HANDOFF.md
-implementation_state: INSTALLED_PENDING_VALIDATION
+implementation_state: VALIDATED_PENDING_MERGE
 release_state: NOT_RELEASED
+validation_evidence: validation/PUBLIC_INSPECTION_ENTRY_2026-08-13.md
 ```
 
-Goal: provide a public, neutral, person-independent inspection request surface through an ordinary pull request while preserving the SDK no-GitHub-authority boundary.
+The public inspection entry is installed and locally validated. Pull requests are visible submission/discussion records only and do not grant runtime, credential, release, TV/TVC, or Master Records authority.
 
-A pull request is a public submission and discussion record only. It is not runtime authority, release authority, TV/TVC authority, or Master Records custody.
+Installed surfaces: guide, PR template, declarative request schema, example request, repository-native validator, unit tests, and validation evidence.
 
-Safe flow:
+Validation: example request PASS; 5/5 tests PASS; personal requester name not required; authority claims rejected; credential-like fields rejected; executable/command-like fields rejected; no `.github/workflows` changes introduced.
 
-```text
-contributor PR -> bounded declarative request -> trusted SDK/StegGate processing -> receipt identifiers posted back to PR -> canonical custody handled separately
-```
-
-Untrusted PR code must never become the evaluator/runtime. No credentials or secrets belong in inspection requests. No automatic PR workflow authority is introduced.
-
-Installed surfaces planned for this goal:
-
-```text
-docs/PUBLIC_INSPECTION_ENTRY.md
-.github/PULL_REQUEST_TEMPLATE/public-inspection-request.md
-inspection/request.schema.json
-inspection/examples/example-request.json
-scripts/validate_public_inspection_request.py
-tests/test_public_inspection_request.py
-```
-
-Public requests do not require a person's name. Personal attribution must be explicit rather than inferred.
+Remaining: merge PR #18 and then reconcile `SDK_MIRROR_HANDOFF.md`. No release/tag is authorized by this handoff.
