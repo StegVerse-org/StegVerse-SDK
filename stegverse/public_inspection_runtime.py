@@ -2,7 +2,8 @@
 
 Governed runs, replay operations, and reconstruction operations do not return
 success until every state transition required to produce the returned artifact
-has been recorded in Master Records.
+has been recorded in Master Records. Execution-lane provenance is part of the
+manifested transaction and retained receipt evidence.
 """
 from __future__ import annotations
 
@@ -44,6 +45,24 @@ def _runtime_input(request: Mapping[str, Any]) -> tuple[Mapping[str, Any], Any]:
     steggate_request = input_block.get("steggate_request")
     if not isinstance(steggate_request, Mapping): raise PublicInspectionRuntimeError("governed execution requires input.steggate_request containing a canonical StegCore AdmissibilityRequest")
     return steggate_request, input_block.get("input_data", {})
+
+
+def _execution_provenance(request: Mapping[str, Any]) -> dict[str, Any]:
+    provenance = request.get("execution_provenance")
+    if not isinstance(provenance, Mapping):
+        raise PublicInspectionRuntimeError("execution_provenance is required for governed validation")
+    lane_class = str(provenance.get("lane_class") or "")
+    if lane_class not in {"PRODUCTION_VALIDATION", "ENCLOSED_DEMO_TEST"}:
+        raise PublicInspectionRuntimeError("execution_provenance.lane_class is invalid")
+    return dict(provenance)
+
+
+def _source_execution_provenance(package: Mapping[str, Any]) -> dict[str, Any]:
+    metadata = ((package.get("manifest") or {}).get("metadata") or {})
+    provenance = metadata.get("execution_provenance")
+    if not isinstance(provenance, Mapping):
+        raise PublicInspectionRuntimeError("retained run predates execution-provenance custody")
+    return dict(provenance)
 
 
 def _master_records_config(base_url: str | None = None, token: str | None = None) -> tuple[str, str]:
@@ -95,16 +114,16 @@ def _record_operation_event(base_url: str, token: str, manifest_receipt_id: str,
 
 
 def run_public_inspection_test(request: Mapping[str, Any], *, master_records_url: str | None = None, master_records_token: str | None = None) -> dict[str, Any]:
-    normalized = validate_public_inspection_request(request); steggate_body, input_data = _runtime_input(normalized)
+    normalized = validate_public_inspection_request(request); steggate_body, input_data = _runtime_input(normalized); provenance = _execution_provenance(normalized)
     base_url, token = _master_records_config(master_records_url, master_records_token); _preflight_master_records(base_url, token)
     build_submission, ManifestReceiptRegistry, AdmissibilityRequest, _evaluate, TransactionLedger, run_manifested_transaction = _load_stegcore()
     try: admissibility_request = AdmissibilityRequest.model_validate(steggate_body)
     except Exception as exc: raise PublicInspectionRuntimeError(f"invalid StegCore admissibility request: {exc}") from exc
     registry = ManifestReceiptRegistry(); ledger = TransactionLedger()
     def simulated_executor() -> dict[str, Any]: return {"status": "SIMULATED_TEST_CONSEQUENCE", "external_side_effect": False, "request_id": normalized["request_id"]}
-    result = run_manifested_transaction(admissibility_request, simulated_executor, input_data=input_data, source="stegverse-sdk:public-inspection-test", subject=f"public-inspection:{normalized['request_id']}", ledger=ledger, metadata={"public_inspection_request_id": normalized["request_id"], "case_profile": normalized["case_profile"], "test_mode": True, "external_side_effects_enabled": False, "governance_request": admissibility_request.model_dump(mode="json", exclude_none=False)})
+    result = run_manifested_transaction(admissibility_request, simulated_executor, input_data=input_data, source="stegverse-sdk:public-inspection-test", subject=f"public-inspection:{normalized['request_id']}", ledger=ledger, metadata={"public_inspection_request_id": normalized["request_id"], "case_profile": normalized["case_profile"], "test_mode": True, "external_side_effects_enabled": False, "execution_provenance": provenance, "governance_request": admissibility_request.model_dump(mode="json", exclude_none=False)})
     record = registry.register(result); evidence = registry.evidence_package(record.manifest_receipt_id); custody = _retain_in_master_records(base_url, token, record, evidence, build_submission); evaluation = result.execution_observation.get("evaluation") or {}
-    return {"schema": "stegverse.public-inspection-governed-test-result.v2", "request_id": normalized["request_id"], "case_profile": normalized["case_profile"], "runtime_mode": "TEST", "governance_state": evaluation.get("disposition"), "manifest_receipt_id": record.manifest_receipt_id, "transaction_id": record.transaction_id, "chain_verified": bool(result.chain_verified), "consequence_executor_invoked": bool(result.execution_observation.get("executor_invoked")), "external_side_effect": False, "master_records_custody_status": custody.get("custody_status"), "master_records_custody_receipt": custody, "ecosystem_commit_status": "RECORDED", "locator_grants_authority": False, "github_grants_runtime_authority": False}
+    return {"schema": "stegverse.public-inspection-governed-test-result.v2", "request_id": normalized["request_id"], "case_profile": normalized["case_profile"], "runtime_mode": "TEST", "execution_provenance": provenance, "governance_state": evaluation.get("disposition"), "manifest_receipt_id": record.manifest_receipt_id, "transaction_id": record.transaction_id, "chain_verified": bool(result.chain_verified), "consequence_executor_invoked": bool(result.execution_observation.get("executor_invoked")), "external_side_effect": False, "master_records_custody_status": custody.get("custody_status"), "master_records_custody_receipt": custody, "ecosystem_commit_status": "RECORDED", "locator_grants_authority": False, "github_grants_runtime_authority": False}
 
 
 def replay_manifest_receipt(manifest_receipt_id: str, *, master_records_url: str | None = None, master_records_token: str | None = None) -> dict[str, Any]:
@@ -113,20 +132,24 @@ def replay_manifest_receipt(manifest_receipt_id: str, *, master_records_url: str
     body = _get_json(f"{base_url}/api/master-records/manifest-receipts/{rid}", token); receipts.append(_record_operation_event(base_url, token, rid, operation_id, "REPLAY", 1, "SOURCE_RESOLVED", details={"source_master_record_sha256": body.get("master_record_sha256")}))
     package = body.get("evidence_package")
     if not isinstance(package, Mapping): raise PublicInspectionRuntimeError("retained evidence package missing")
+    provenance = _source_execution_provenance(package)
     request_body = ((package.get("manifest") or {}).get("metadata") or {}).get("governance_request")
     if not isinstance(request_body, Mapping): raise PublicInspectionRuntimeError("retained run predates replay-capable governance_request custody")
     _build, _Registry, AdmissibilityRequest, evaluate_admissibility, _Ledger, _run = _load_stegcore(); replay_eval = evaluate_admissibility(AdmissibilityRequest.model_validate(request_body)); original = ((package.get("execution_observation") or {}).get("evaluation") or {})
-    artifact = {"schema": "stegverse.public-inspection-replay.v2", "operation_id": operation_id, "manifest_receipt_id": rid, "original_disposition": str(original.get("disposition") or ""), "replay_disposition": replay_eval.disposition, "deterministic_disposition_match": replay_eval.disposition == str(original.get("disposition") or ""), "candidate_identity_match": replay_eval.candidate_hash == str(original.get("candidate_hash") or ""), "consequence_reexecuted": False, "original_record_mutated": False, "master_records_source": True, "replay_grants_authority": False}
-    receipts.append(_record_operation_event(base_url, token, rid, operation_id, "REPLAY", 2, "EVALUATED", artifact=artifact)); receipts.append(_record_operation_event(base_url, token, rid, operation_id, "REPLAY", 3, "RETURNED", artifact=artifact, details={"return_target": "sdk_caller"})); artifact["master_records_operation_receipts"] = receipts; artifact["operation_transition_custody_status"] = "RECORDED"; return artifact
+    artifact = {"schema": "stegverse.public-inspection-replay.v2", "operation_id": operation_id, "manifest_receipt_id": rid, "source_execution_provenance": provenance, "original_disposition": str(original.get("disposition") or ""), "replay_disposition": replay_eval.disposition, "deterministic_disposition_match": replay_eval.disposition == str(original.get("disposition") or ""), "candidate_identity_match": replay_eval.candidate_hash == str(original.get("candidate_hash") or ""), "consequence_reexecuted": False, "original_record_mutated": False, "master_records_source": True, "replay_grants_authority": False}
+    receipts.append(_record_operation_event(base_url, token, rid, operation_id, "REPLAY", 2, "EVALUATED", artifact=artifact)); receipts.append(_record_operation_event(base_url, token, rid, operation_id, "REPLAY", 3, "RETURNED", artifact=artifact, details={"return_target": "sdk_caller", "source_lane_class": provenance.get("lane_class")})); artifact["master_records_operation_receipts"] = receipts; artifact["operation_transition_custody_status"] = "RECORDED"; return artifact
 
 
 def reconstruct_manifest_receipt(manifest_receipt_id: str, *, master_records_url: str | None = None, master_records_token: str | None = None) -> dict[str, Any]:
     base_url, token = _master_records_config(master_records_url, master_records_token); rid = manifest_receipt_id.strip().upper(); operation_id = "OP-RECONSTRUCT-" + uuid.uuid4().hex.upper()
     receipts = [_record_operation_event(base_url, token, rid, operation_id, "RECONSTRUCT", 0, "REQUESTED", details={"requested_artifact": "reconstruction"})]
     source = _get_json(f"{base_url}/api/master-records/manifest-receipts/{rid}", token); receipts.append(_record_operation_event(base_url, token, rid, operation_id, "RECONSTRUCT", 1, "SOURCE_RESOLVED", details={"source_master_record_sha256": source.get("master_record_sha256")}))
+    source_package = source.get("evidence_package")
+    if not isinstance(source_package, Mapping): raise PublicInspectionRuntimeError("retained evidence package missing")
+    provenance = _source_execution_provenance(source_package)
     body = _get_json(f"{base_url}/api/master-records/manifest-receipts/{rid}/reconstruction", token)
     if body.get("consequence_reexecuted") is not False: raise PublicInspectionRuntimeError("reconstruction boundary invalid: consequence_reexecuted must be false")
-    artifact = dict(body); artifact["operation_id"] = operation_id; receipts.append(_record_operation_event(base_url, token, rid, operation_id, "RECONSTRUCT", 2, "ARTIFACT_DERIVED", artifact=artifact)); receipts.append(_record_operation_event(base_url, token, rid, operation_id, "RECONSTRUCT", 3, "RETURNED", artifact=artifact, details={"return_target": "sdk_caller"})); artifact["master_records_operation_receipts"] = receipts; artifact["operation_transition_custody_status"] = "RECORDED"; return artifact
+    artifact = dict(body); artifact["operation_id"] = operation_id; artifact["source_execution_provenance"] = provenance; receipts.append(_record_operation_event(base_url, token, rid, operation_id, "RECONSTRUCT", 2, "ARTIFACT_DERIVED", artifact=artifact)); receipts.append(_record_operation_event(base_url, token, rid, operation_id, "RECONSTRUCT", 3, "RETURNED", artifact=artifact, details={"return_target": "sdk_caller", "source_lane_class": provenance.get("lane_class")})); artifact["master_records_operation_receipts"] = receipts; artifact["operation_transition_custody_status"] = "RECORDED"; return artifact
 
 
 def main(argv: list[str] | None = None) -> int:
