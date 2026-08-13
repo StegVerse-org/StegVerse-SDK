@@ -18,60 +18,107 @@ SDK-GENERAL-EVALUATION-RELATIONSHIP-001: COMPLETE_RELEASED
 SDK-NO-GITHUB-AUTHORITY-003: COMPLETE_RELEASED
 SDK-PUBLIC-INSPECTION-ENTRY-001: COMPLETE_VALIDATED_MERGED, NOT_RELEASED
 SDK-PUBLIC-INSPECTION-GOVERNED-BINDING-002: COMPLETE_STATIC_VALIDATED_MERGED, NOT_RELEASED
-SDK-PUBLIC-INSPECTION-GOVERNED-TEST-004: COMPLETE_CONTRACT_VALIDATED_MERGED, NOT_RELEASED
+SDK-PUBLIC-INSPECTION-GOVERNED-TEST-004: SUPERSEDED_BY_CUSTODY_BACKED_RUNTIME
+SDK-PUBLIC-INSPECTION-CUSTODY-REPLAY-005: INSTALLED_PENDING_VALIDATION_MERGE
 ```
 
 No person-specific evaluator route is canonical.
 
-## Governed public inspection TEST runtime
+## Governing invariant
 
 ```text
-source_of_truth: docs/PUBLIC_INSPECTION_GOVERNED_TEST_RUNTIME_MIRROR_HANDOFF.md
-merge_pr: #21
-merge_commit: 4d98e6e51f86e15f3262e67fe36eaad61f99778d
-validation: validation/PUBLIC_INSPECTION_GOVERNED_TEST_RUNTIME_2026-08-13.md
-pinned_stegcore: 8774a024ba6efe7e45d0846db70362f1836e7f36
+every ecosystem state transition produced by a governed SDK run must be retained in Master Records
+successful governed SDK run without Master Records custody: PROHIBITED
+caller return projection may suppress Master Records custody: FALSE
 ```
 
-The public SDK now has two distinct request operations:
+A preparation-only operation is not an ecosystem state transition and may still stop before governance with `NOT_RUN` / `NOT_CLAIMED`.
+
+## Custody-backed governed public inspection runtime
+
+Current implementation:
 
 ```text
-PREPARE -> validate/bind request without running governance
-TEST    -> run canonical StegCore governance and return a test result
+stegverse/public_inspection_runtime.py
 ```
 
-Python 3.11+ governed TEST command:
+The runtime now requires `MASTER_RECORDS_URL` and `MASTER_RECORDS_AUTH_TOKEN` (or equivalent explicit arguments) before it begins a governed TEST. It preflights the custody service, runs the canonical StegCore manifested-transaction path, derives the canonical `manifest_receipt_id`, builds the canonical Master Records submission through StegCore, and requires a `RECORDED` custody response before reporting success.
+
+The canonical governance request itself is retained in the transaction manifest metadata so a later read-only replay can reconstruct the exact StegCore request from Master Records.
+
+Canonical ordering:
+
+```text
+bounded inspection request
+-> canonical StegCore AdmissibilityRequest
+-> canonical manifested transaction
+-> complete transition receipt chain
+-> canonical manifest_receipt_id
+-> full exact-run Master Records custody
+-> custody_status: RECORDED
+-> caller result
+```
+
+The TEST consequence executor remains side-effect-free, but the governance state transitions are real ecosystem transitions and therefore are custodied.
+
+## Option 1 — replay
+
+Replay is no longer guidance-only.
 
 ```bash
-python -m pip install -e ".[dev,governed-test]"
-python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
+python -m stegverse.public_inspection_runtime replay MR-<SHA256>
 ```
 
-The TEST result includes `governance_state`, `manifest_receipt_id`, `transaction_id`, chain verification, exact-run evidence, and reconstruction. CLI defaults persist the local run in append-only StegCore test files. In-memory programmatic use does not claim persistence.
+Replay:
 
-Local TEST retention is distinct from production Master Records custody. Production custody still requires the separately admitted Master Records transport and readiness gates.
+```text
+1. resolves the exact retained package from Master Records;
+2. recovers the retained canonical governance request;
+3. performs a pure canonical StegCore admissibility re-evaluation;
+4. compares original vs replay disposition and candidate identity;
+5. never invokes the consequence executor;
+6. never mutates the original Master Record.
+```
+
+Because replay is implemented as a pure read/evaluation operation with no state mutation, it creates no new ecosystem state transition requiring a second custody write.
+
+## Option 2 — reconstruction
+
+Reconstruction is no longer guidance-only.
+
+```bash
+python -m stegverse.public_inspection_runtime reconstruct MR-<SHA256>
+```
+
+The SDK reads the canonical Master Records reconstruction route and requires `consequence_reexecuted: false`. The Master Records response preserves persisted historical evidence separately from reconstructed material and does not mutate the original exact-run record.
+
+Because reconstruction is read-only, it creates no new ecosystem state transition.
 
 ## Public PR boundary
 
-A public PR is a visible declarative request/discussion record. It can retain the request and a labeled local TEST result. PR-supplied code is not used as the evaluator/runtime.
+A public PR is a visible declarative request/discussion record. PR-supplied code is not used as evaluator/runtime authority. A receipt locator may be posted back to the PR only after the governed run has been recorded in Master Records.
+
+## Isolated local custody
+
+A tester may run the canonical `master-records/orchestration` custody application locally. This does not duplicate Master Records inside the SDK; it reuses the owning implementation. Local canonical custody is valid test custody but is not a claim of production activation.
 
 ## Cross-repository ownership
 
 ```text
 LLM transport/translation: StegVerse-org/LLM-adapter
 Canonical governance/exact-run semantics: StegVerse-Labs/StegCore
-Production exact-run custody: master-records/orchestration
+Exact-run custody/reconstruction: master-records/orchestration
 ```
 
-## Remaining stronger goal
+## Remaining cross-repository work
 
 ```text
-goal: PUBLIC-INSPECTION-END-TO-END-CUSTODY-003
-state: PRODUCTION_CUSTODY_NOT_YET_CLAIMED
+1. validate this SDK runtime against a canonical local Master Records service;
+2. reconcile the LLM-adapter so its governed ingress uses the same custody-before-return invariant;
+3. prove the shared/live Master Records transport once repository-wide storage/readiness gates are satisfied;
+4. run the frozen external-evaluation cases only through this custody-backed path before describing their IDs as evaluator-ready.
 ```
-
-The remaining gap is production shared custody and independent shared-backing replay/reconstruction, not the ability to submit public SDK test data and get a governed result.
 
 ## Release state
 
-The governed TEST runtime is merged but not yet tagged/released. Release propagation is not yet triggered.
+This custody/replay/reconstruction correction is not yet tagged/released. Do not propagate release claims until validation, merge, and release authority gates are satisfied.
