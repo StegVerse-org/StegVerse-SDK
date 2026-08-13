@@ -1,9 +1,9 @@
-"""Neutral public-inspection request adapter for the ordinary SDK governance path.
+"""Neutral public-inspection adapter for the ordinary SDK governance path.
 
-A public pull request is only a visible request/discussion carrier. This module
-validates the bounded declarative request and converts it into the same raw-data
-submission descriptor used by option 0A. It does not execute the request, grant
-authority, select credentials, or claim Master Records custody.
+A public pull request is a visible request/discussion carrier only. This module
+validates bounded declarative request data and converts it into the same raw-data
+submission descriptor used by ordinary governance option 0A. It does not run
+StegGate, grant authority, select protected capabilities, or claim custody.
 """
 from __future__ import annotations
 
@@ -16,39 +16,47 @@ from .governance_navigation import build_raw_submission_descriptor
 REQUEST_SCHEMA_VERSION = "1.0"
 REQUEST_PROFILES = {"ordinary", "longitudinal-boundary", "custom-declarative"}
 RETURN_PROJECTIONS = {"ALL", "SELECTED", "NONE"}
-_FORBIDDEN_KEY_PARTS = (
-    "token", "secret", "password", "private_key", "privatekey", "api_key",
-    "apikey", "credential", "bearer", "command", "shell", "executable",
-    "workflow", "github_token", "tvc", "trustvault",
-)
+FORBIDDEN_KEY_FRAGMENTS = {
+    "token", "secret", "password", "private_key", "privatekey", "bearer",
+    "credential", "api_key", "apikey", "github_token", "tvc_identity",
+    "script", "command", "executable", "workflow", "code",
+}
+ALLOWED_TOP_LEVEL = {
+    "schema_version", "request_id", "requester_label", "case_profile", "input",
+    "return_projection", "manifest_labels", "authority_claim", "notes",
+}
 
 
 class PublicInspectionRequestError(ValueError):
     """Raised when a public inspection request violates the bounded contract."""
 
 
-def _walk_forbidden(value: Any, path: str = "$") -> None:
+def _walk(value: Any, path: str = "$") -> None:
     if isinstance(value, Mapping):
         for raw_key, child in value.items():
-            key = str(raw_key).lower().replace("-", "_")
-            if any(part in key for part in _FORBIDDEN_KEY_PARTS):
-                raise PublicInspectionRequestError(
-                    f"forbidden credential/executable-style field at {path}.{raw_key}"
-                )
-            _walk_forbidden(child, f"{path}.{raw_key}")
+            lowered = str(raw_key).lower()
+            if any(fragment in lowered for fragment in FORBIDDEN_KEY_FRAGMENTS):
+                raise PublicInspectionRequestError(f"forbidden field at {path}.{raw_key}")
+            _walk(child, f"{path}.{raw_key}")
     elif isinstance(value, list):
         for index, child in enumerate(value):
-            _walk_forbidden(child, f"{path}[{index}]")
+            _walk(child, f"{path}[{index}]")
+    elif isinstance(value, str):
+        if "-----BEGIN " in value or value.lower().startswith("bearer "):
+            raise PublicInspectionRequestError(f"credential-like value at {path}")
 
 
 def validate_public_inspection_request(request: Mapping[str, Any]) -> dict[str, Any]:
-    allowed = {
-        "schema_version", "request_id", "requester_label", "case_profile",
-        "input", "return_projection", "manifest_labels", "authority_claim", "notes",
-    }
-    unknown = sorted(set(request) - allowed)
+    unknown = sorted(set(request) - ALLOWED_TOP_LEVEL)
     if unknown:
         raise PublicInspectionRequestError("unknown request fields: " + ", ".join(unknown))
+    required = {
+        "schema_version", "request_id", "case_profile", "input",
+        "return_projection", "authority_claim",
+    }
+    missing = sorted(required - set(request))
+    if missing:
+        raise PublicInspectionRequestError("missing required fields: " + ", ".join(missing))
     if request.get("schema_version") != REQUEST_SCHEMA_VERSION:
         raise PublicInspectionRequestError("schema_version must be 1.0")
     request_id = request.get("request_id")
@@ -58,16 +66,16 @@ def validate_public_inspection_request(request: Mapping[str, Any]) -> dict[str, 
         raise PublicInspectionRequestError("request_id contains unsupported characters")
     label = request.get("requester_label")
     if label is not None and (not isinstance(label, str) or len(label) > 120):
-        raise PublicInspectionRequestError("requester_label must be a string no longer than 120 characters")
+        raise PublicInspectionRequestError("invalid requester_label")
     if request.get("case_profile") not in REQUEST_PROFILES:
         raise PublicInspectionRequestError("unsupported case_profile")
     input_data = request.get("input")
     if not isinstance(input_data, Mapping):
         raise PublicInspectionRequestError("input must be an object")
     if len(input_data) > 50:
-        raise PublicInspectionRequestError("input may contain at most 50 top-level properties")
+        raise PublicInspectionRequestError("input has too many fields")
     if request.get("return_projection") not in RETURN_PROJECTIONS:
-        raise PublicInspectionRequestError("return_projection must be ALL, SELECTED, or NONE")
+        raise PublicInspectionRequestError("unsupported return_projection")
     labels = request.get("manifest_labels", False)
     if not isinstance(labels, bool):
         raise PublicInspectionRequestError("manifest_labels must be boolean")
@@ -75,8 +83,8 @@ def validate_public_inspection_request(request: Mapping[str, Any]) -> dict[str, 
         raise PublicInspectionRequestError("authority_claim must be false")
     notes = request.get("notes")
     if notes is not None and (not isinstance(notes, str) or len(notes) > 2000):
-        raise PublicInspectionRequestError("notes must be a string no longer than 2000 characters")
-    _walk_forbidden(input_data)
+        raise PublicInspectionRequestError("invalid notes")
+    _walk(request)
     normalized = dict(request)
     normalized.setdefault("manifest_labels", False)
     normalized.setdefault("requester_label", None)
@@ -85,6 +93,7 @@ def validate_public_inspection_request(request: Mapping[str, Any]) -> dict[str, 
 
 
 def prepare_public_inspection_submission(request: Mapping[str, Any]) -> dict[str, Any]:
+    """Prepare an ordinary option-0A descriptor without claiming it was run."""
     normalized = validate_public_inspection_request(request)
     request_id = normalized["request_id"]
     descriptor = build_raw_submission_descriptor(
@@ -129,13 +138,12 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = argparse.ArgumentParser(
         prog="python -m stegverse.public_inspection",
-        description="Validate and prepare a public inspection request for ordinary option 0A governance",
+        description="Prepare a public inspection request for ordinary option 0A governance",
     )
     parser.add_argument("request", help="path to a public inspection request JSON document")
     args = parser.parse_args(argv)
     try:
-        request = load_public_inspection_request(args.request)
-        prepared = prepare_public_inspection_submission(request)
+        prepared = prepare_public_inspection_submission(load_public_inspection_request(args.request))
     except PublicInspectionRequestError as exc:
         print(f"ERROR: {exc}")
         return 2
