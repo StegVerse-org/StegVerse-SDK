@@ -6,7 +6,7 @@ The public SDK can be used as a visible inspection-request surface through ordin
 
 A pull request can retain a public record of the declarative request payload, revisions, discussion, and receipt identifiers later posted back from a trusted processor.
 
-A PR does **not** itself mean the request has been admitted, governed, executed, retained in production Master Records, released, or activated.
+A PR does **not** itself mean the request has been admitted, governed, executed, retained in Master Records, released, or activated.
 
 ## Submission shape
 
@@ -29,77 +29,121 @@ master_records_custody_status: NOT_CLAIMED
 manifest_receipt_id: null
 ```
 
-That command is useful for inspecting the ingress object but it is not the governed TEST command.
+That command is useful for inspecting ingress shape. It is not a governed run.
 
-## Run the request and get a governed TEST result
+## Run the request and get a governed result
 
-Install the optional governed-test runtime. Python 3.11+ is required because the pinned canonical StegCore revision requires Python 3.11+.
+A governed TEST is an ecosystem state transition. The SDK therefore requires canonical Master Records custody before it will report the run as successfully completed.
+
+Python 3.11+ is required because the governed-test StegCore dependency requires Python 3.11+.
 
 ```bash
+export MASTER_RECORDS_URL="<admitted-master-records-base-url>"
+export MASTER_RECORDS_AUTH_TOKEN="<authorized-token>"
 python -m pip install -e ".[dev,governed-test]"
-python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
+python -m stegverse.public_inspection_runtime run \
+  inspection/examples/governed-test-request.json
 ```
 
 The governed-test fixture contains `input.steggate_request`, a canonical StegCore `AdmissibilityRequest`, plus separate `input.input_data` used to identify the submitted test payload.
 
-The runtime uses the canonical StegCore `run_manifested_transaction(...)` and `ManifestReceiptRegistry` implementations. It does not implement a parallel evaluator. The executor is a side-effect-free TEST executor.
+The runtime uses canonical StegCore `run_manifested_transaction(...)`, `ManifestReceiptRegistry`, and `build_master_records_submission(...)`. It does not implement a parallel evaluator, receipt algorithm, or custody store. The consequence executor is side-effect-free in TEST mode.
 
-The result contains:
+A successful result contains:
 
 ```text
 runtime_mode: TEST
 governance_state: ALLOW | DENY | REVIEW | FAIL_CLOSED
 manifest_receipt_id: MR-...
 transaction_id: TX-...
-chain_verified: true | false
+chain_verified: true
 external_side_effect: false
-evidence_package: {...}
-reconstruction: {...}
-local_exact_run_retained: true
-production_master_records_custody: false
+master_records_custody_status: RECORDED
+master_records_custody_receipt: {...}
 ```
 
-The returned `manifest_receipt_id` is therefore a real canonical StegCore exact-run locator for that locally retained governed TEST run. It is not fabricated and it can be used against the same local append-only test registry. It is **not** a representation that production Master Records custody occurred.
-
-Default local retained files:
-
-```text
-.stegverse/public-inspection/manifest-receipts.jsonl
-.stegverse/public-inspection/transaction-receipts.jsonl
-```
+The complete exact-run evidence package contains the manifested transaction and its transition receipt chain. Master Records custody occurs before the SDK reports success.
 
 ## Public PR inspection sequence
-
-A public PR can carry `inspection/request.schema.json` data as a visible request record. A reviewer or contributor can then run the exact request with trusted checked-out SDK code rather than code supplied by the PR:
 
 ```text
 public PR / local JSON request
 -> bounded request validation
 -> canonical StegCore governed TEST runtime
--> append-only local exact-run registry
--> governance result + manifest_receipt_id + evidence + reconstruction
--> result/locator may be posted back to the PR as an observation
+-> complete exact-run evidence package
+-> canonical Master Records custody: RECORDED
+-> governance result + manifest_receipt_id
+-> locator may be posted back to the PR as an observation
 ```
 
-GitHub remains the visible collaboration record, not the evaluator or runtime authority.
+GitHub remains the visible collaboration record, not evaluator/runtime/custody authority.
 
-## Production-custody continuation
+## Replay — option 1
 
-The production path is a stronger and separate custody boundary:
+Replay is available through the same SDK surface:
+
+```bash
+python -m stegverse.public_inspection_runtime replay MR-<SHA256>
+```
+
+The SDK retrieves the exact retained package from Master Records, rebuilds the original canonical StegCore governance request, and re-evaluates it without invoking a consequence executor.
+
+Required replay properties:
 
 ```text
-trusted governed ingress
--> canonical StegCore governance / consequence boundary
--> full exact-run Master Records custody
--> caller-facing projection
--> production-custodied manifest_receipt_id
+deterministic_disposition_match: true | false
+candidate_identity_match: true | false
+consequence_reexecuted: false
+original_record_mutated: false
 ```
 
-The local TEST command does not claim that production custody step. Production custody remains dependent on the admitted Master Records transport and its activation/readiness requirements.
+Replay is read-only. Because no ecosystem state is changed, replay does not create a second custody mutation or rewrite the original run.
+
+## Reconstruction — option 2
+
+Reconstruction is also available through the SDK:
+
+```bash
+python -m stegverse.public_inspection_runtime reconstruct MR-<SHA256>
+```
+
+The SDK calls the canonical Master Records reconstruction route. The response separates persisted historical evidence from reconstructed/derived material and must preserve:
+
+```text
+original_record_mutated: false
+consequence_reexecuted: false
+reconstruction_grants_authority: false
+```
+
+Reconstruction is read-only and does not create an ecosystem state change.
+
+## Isolated local Master Records
+
+A tester can run the canonical `master-records/orchestration` service locally instead of using a shared deployment. This keeps the same ownership and custody implementation rather than duplicating Master Records in the SDK.
+
+Example:
+
+```bash
+git clone https://github.com/master-records/orchestration.git ../master-records-orchestration
+export PYTHONPATH="../master-records-orchestration:${PYTHONPATH}"
+export MASTER_RECORDS_AUTH_TOKEN="local-test-token"
+export MASTER_RECORDS_RECEIPT_KEY="local-test-receipt-key"
+export MASTER_RECORDS_DB="$PWD/.stegverse/master-records.db"
+python -m uvicorn services.canonical_custody_app:app --host 127.0.0.1 --port 8787
+```
+
+Then in the SDK shell:
+
+```bash
+export MASTER_RECORDS_URL="http://127.0.0.1:8787"
+export MASTER_RECORDS_AUTH_TOKEN="local-test-token"
+```
+
+This is canonical Master Records custody in an isolated test environment; it is not a production-activation claim.
 
 ## Receipt publication boundary
 
-A receipt locator may be associated with a PR only after the corresponding governed run produced it. When the run is local TEST mode, the record must be labeled as a local TEST exact-run locator. When production Master Records custody is independently verified, the locator may be described as production-custodied. A locator is never permission or authority.
+A `manifest_receipt_id` may be associated with a PR only after the corresponding governed run produced it **and Master Records confirmed exact-run custody**. The locator is never permission or authority.
 
 ## Validation
 
@@ -107,10 +151,5 @@ A receipt locator may be associated with a PR only after the corresponding gover
 python scripts/validate_public_inspection_request.py inspection/examples/governed-test-request.json
 python -m unittest tests.test_public_inspection_request
 python -m unittest tests.test_public_inspection_governed_binding
-```
-
-With the governed-test extra installed:
-
-```bash
-python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
+python -m unittest tests.test_public_inspection_runtime
 ```
