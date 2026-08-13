@@ -3,15 +3,18 @@
 ```text
 goal_id: SDK-PUBLIC-INSPECTION-GOVERNED-TEST-004
 repository: StegVerse-org/StegVerse-SDK
-branch: feat/public-inspection-governed-test-runtime
+branch: main
 parent_handoff: docs/PUBLIC_INSPECTION_GOVERNED_BINDING_MIRROR_HANDOFF.md
-implementation_state: INSTALLED_PENDING_MERGE
+implementation_state: COMPLETE_CONTRACT_VALIDATED_MERGED
 release_state: NOT_RELEASED
+merge_pr: #21
+merge_commit: 4d98e6e51f86e15f3262e67fe36eaad61f99778d
+validation_evidence: validation/PUBLIC_INSPECTION_GOVERNED_TEST_RUNTIME_2026-08-13.md
 ```
 
 This goal closes the preparation-only public testing gap.
 
-A bounded public inspection request containing `input.steggate_request` can now execute through the canonical StegCore manifested-transaction path and return a real canonical StegCore `manifest_receipt_id`, governance state, exact-run evidence package, and reconstruction evidence.
+A bounded public inspection request containing `input.steggate_request` can execute through the canonical StegCore manifested-transaction path and return a canonical StegCore `manifest_receipt_id`, governance state, exact-run evidence package, and reconstruction evidence.
 
 Installed surfaces:
 
@@ -47,11 +50,12 @@ Result boundary:
 ```text
 runtime_mode: TEST
 external_side_effect: false
-local_exact_run_retained: true
 production_master_records_custody: false
 ```
 
-The local receipt ID is a canonical StegCore exact-run locator for the retained governed TEST run. It must not be described as production Master Records custody.
+When the CLI defaults are used, the exact local run is retained in append-only local StegCore registry/ledger files. Programmatic in-memory use does not claim durable local persistence.
+
+The returned local receipt ID is a canonical StegCore exact-run locator for that governed TEST run. It must not be described as production Master Records custody.
 
 Public command, Python 3.11+:
 
@@ -61,6 +65,15 @@ python -m stegverse.public_inspection_runtime inspection/examples/governed-test-
 ```
 
 A public PR remains a declarative request/discussion carrier. Trusted SDK code runs the test; PR-supplied code is never used as evaluator/runtime authority.
+
+Validation state:
+
+```text
+isolated SDK runtime contract harness: PASS 3/3
+PEP 508 governed-test dependency syntax: PASS
+fixture vs pinned StegCore AdmissibilityRequest shape: PASS by direct schema inspection
+fresh network install/execution of pinned StegCore in validation environment: NOT AVAILABLE
+```
 
 Production continuation remains:
 
