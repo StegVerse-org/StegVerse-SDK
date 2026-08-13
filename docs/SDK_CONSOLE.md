@@ -2,15 +2,13 @@
 
 The console is the generic public entry point for developers, testers, evaluators, humans, and assisting LLMs. It exposes discoverable SDK guidance and locally callable surfaces without creating person-specific routes or authority.
 
-## Install the current checkout
+## Install
 
 ```bash
 git clone https://github.com/StegVerse-org/StegVerse-SDK.git
 cd StegVerse-SDK
 python -m pip install -e ".[dev]"
 ```
-
-A published package may lag the repository between releases. Use the checkout when evaluating current code and documentation.
 
 ## Canonical governance navigation
 
@@ -26,52 +24,64 @@ stegverse governance
 [2]   Reconstruct previously run set
 ```
 
-Options `000` and `00` are optional transparency/configuration surfaces. Machines and LLMs that already understand `stegverse.ingress-manifest.v1` can use ordinary governed ingress directly.
+`000` and `00` are optional. Machines or LLMs that already understand the canonical manifest profile can use ordinary governed ingress directly.
 
-### 0 — ordinary governed submission
+## Public inspection requests
 
-```text
-0A — raw/user data; SDK constructs the manifest
-0B — preformatted machine manifest conforming to the accepted profile
-```
+A public PR may carry bounded declarative request data matching `inspection/request.schema.json`. The PR is a visible request/discussion record, not evaluator code or production custody.
 
-Submission and structural manifest validity do not grant authority.
-
-### 1 and 2 — retained evidence
-
-`1` replays by `manifest_receipt_id` without overwriting the original. `2` reconstructs by the same locator without re-executing consequential side effects. The locator is not authority.
-
-## Public inspection preparation
-
-A public inspection request is a bounded declarative request described by `inspection/request.schema.json`. An ordinary pull request may carry the request as a visible submission/discussion record, but the PR is not the evaluator/runtime and is not Master Records custody.
-
-Validate and prepare the example:
+Preparation only:
 
 ```bash
 python scripts/validate_public_inspection_request.py inspection/examples/example-request.json
 python -m stegverse.public_inspection inspection/examples/example-request.json
 ```
 
-`python -m stegverse.public_inspection` converts the validated request into the ordinary option `0A` descriptor. It does **not** claim a governed run occurred. Until a trusted processor actually uses the admitted path, the prepared output remains `runtime_processing_status: NOT_RUN`, `master_records_custody_status: NOT_CLAIMED`, and `manifest_receipt_id: null`.
+That path intentionally stops with no runtime execution and no receipt locator.
 
-```text
-public request
--> bounded validation
--> option 0A descriptor
--> trusted governed ingress
--> canonical governance / consequence boundary
--> canonical custody
--> caller projection
--> manifest_receipt_id may be associated with the public record
+## Actual governed TEST execution
+
+To run the submitted test data through canonical StegCore governance and get a result back, use Python 3.11+ and install the pinned governed-test extra:
+
+```bash
+python -m pip install -e ".[dev,governed-test]"
+python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
 ```
 
-Detailed instructions: `docs/PUBLIC_INSPECTION_ENTRY.md`.
+The governed TEST command returns:
 
-## Return projection, labels, and custody
+```text
+governance_state
+manifest_receipt_id
+transaction_id
+chain_verified
+evidence_package
+reconstruction
+```
 
-`return_projection` controls user-disclosable transition evidence. `manifest_labels` controls explanatory labels. Neither can suppress canonical transitions or Master Records custody.
+The exact run is retained in the local append-only canonical StegCore test registry and transaction ledger under `.stegverse/public-inspection/` by default. The TEST executor performs no external side effect.
 
-## Lower-level callable surfaces
+The returned `manifest_receipt_id` is a real canonical StegCore exact-run locator for that locally retained governed TEST run. It is not a production Master Records custody claim.
+
+## Production custody boundary
+
+Production custody is a separate stronger path:
+
+```text
+trusted governed ingress
+-> canonical StegCore governance
+-> admitted Master Records exact-run custody
+-> caller projection
+-> production-custodied manifest_receipt_id
+```
+
+Do not equate local governed TEST retention with production Master Records custody.
+
+## Replay and reconstruction
+
+A `manifest_receipt_id` is a locator, not authority. Replay must not overwrite history or re-execute consequence. Reconstruction must distinguish retained historical evidence from later derived material.
+
+## Lower-level surfaces
 
 ```bash
 stegverse surfaces
@@ -80,30 +90,28 @@ stegverse capabilities
 stegverse run <surface> [options]
 ```
 
-Focused surfaces include admissibility, LLM-output admissibility, math/formalism posture, AdmittedCode receipt verification, universal entry, bridge discovery, and entry-point discovery. These are not replacements for the canonical governance navigation.
-
-## LLM and agent boundary
-
-An LLM may explain or construct a conforming request or manifest. It does not receive a privileged governance path. Schema discovery, local validation, demo outcomes, labels, and receipt identifiers do not grant authority.
-
 ## Validation
 
 ```bash
 pytest tests/ -v
-python scripts/validate_public_inspection_request.py inspection/examples/example-request.json
+python scripts/validate_public_inspection_request.py inspection/examples/governed-test-request.json
 python -m unittest tests.test_public_inspection_request
 python -m unittest tests.test_public_inspection_governed_binding
-python -m stegverse.public_inspection inspection/examples/example-request.json
+python -m unittest tests.test_public_inspection_runtime
+```
+
+With the governed-test extra installed:
+
+```bash
+python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
 ```
 
 ## Authority boundary
 
 ```text
-000 grants authority: false
-00 grants authority: false
 public PR grants runtime authority: false
-public PR creates custody: false
-manifest structural validity grants authority: false
+public PR creates production custody: false
+local TEST registry equals production custody: false
 manifest_receipt_id grants authority: false
 return projection changes custody: false
 replay overwrites history: false
