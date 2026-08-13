@@ -92,7 +92,7 @@ def run_public_inspection_test(request: Mapping[str, Any], *, registry_path: str
         "external_side_effect": False,
         "evidence_package": evidence,
         "reconstruction": reconstruction,
-        "local_exact_run_retained": True,
+        "local_exact_run_retained": registry_path is not None,
         "production_master_records_custody": False,
         "locator_grants_authority": False,
         "github_grants_runtime_authority": False,
