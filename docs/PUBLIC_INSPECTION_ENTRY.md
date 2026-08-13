@@ -25,9 +25,20 @@ Preparation intentionally stops before governed execution and returns `NOT_RUN`,
 
 A governed TEST is an ecosystem state transition. The SDK therefore requires canonical Master Records custody before reporting it successfully completed.
 
+Public callers do not manage protected custody credentials. Credential and route authority are owned by TV/TVC. The custody-backed runtime must receive its authenticated Master Records capability through the authorized TV/TVC runtime boundary, not through public SDK arguments, pull requests, manifests, fixtures, or caller-managed environment instructions.
+
+Canonical reconciliation task:
+
+```text
+StegVerse-Labs/TVC/tasks/TVC-MASTER-RECORDS-CUSTODY-BROKER-004.json
+StegVerse-Labs/TVC/docs/MASTER_RECORDS_CUSTODY_BROKER_MIRROR_HANDOFF.md
+```
+
+Until that credential-neutral custody transport is integrated and validated, ordinary local checkouts should use validation/preparation and other credential-free SDK surfaces. Custody-backed run/replay/reconstruction remain authorized-runtime operations.
+
+On an authorized runtime the execution command remains:
+
 ```bash
-export MASTER_RECORDS_URL="<admitted-master-records-base-url>"
-export MASTER_RECORDS_AUTH_TOKEN="<authorized-token>"
 python -m pip install -e ".[dev,governed-test]"
 python -m stegverse.public_inspection_runtime run inspection/examples/governed-test-request.json
 ```
@@ -89,6 +100,7 @@ original_record_mutated: false
 original_consequence_reexecuted: false
 replay/reconstruction operation transitions exist: true
 operation transitions recorded in Master Records: required
+caller-managed protected runtime credentials: prohibited
 ```
 
 A failure to record any required replay/reconstruction transition is a fail-closed condition; no successful artifact is returned.
@@ -99,6 +111,7 @@ A failure to record any required replay/reconstruction transition is a fail-clos
 public PR / local JSON request
 -> bounded validation
 -> canonical StegCore governed runtime
+-> TV/TVC-managed custody transport
 -> complete exact-run Master Records custody
 -> governance result + manifest_receipt_id
 -> later replay/reconstruction request
@@ -120,3 +133,5 @@ python -m unittest tests.test_public_inspection_request
 python -m unittest tests.test_public_inspection_governed_binding
 python -m unittest tests.test_public_inspection_runtime
 ```
+
+Credential boundary: `docs/PUBLIC_CREDENTIAL_BOUNDARY.md`.
