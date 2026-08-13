@@ -3,6 +3,15 @@
   "request_id": "example-longitudinal-001",
   "requester_label": "public-evaluator",
   "case_profile": "longitudinal-boundary",
+  "execution_provenance": {
+    "lane_class": "PRODUCTION_VALIDATION",
+    "routing_surface": "CANONICAL_PRODUCTION",
+    "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
+    "sandbox_required": false,
+    "sandbox_tier": "NONE",
+    "origin_surface": "StegVerse-org/StegVerse-SDK:public-inspection",
+    "external_consequence_enabled": false
+  },
   "input": {
     "amount": 420,
     "currency": "USD",
@@ -11,5 +20,5 @@
   "return_projection": "ALL",
   "manifest_labels": true,
   "authority_claim": false,
-  "notes": "Example only. No personal attribution is required."
+  "notes": "Example only. No personal attribution is required. Lane provenance states the intended production-validation route even when this file is used for validation/preparation only."
 }
