@@ -2,12 +2,20 @@
 
 This legacy filename is retained for compatibility with older links.
 
-The canonical public SDK documentation is now:
+Canonical documentation:
 
-- `README.md` — current public overview and quick start
-- `docs/SDK_CONSOLE.md` — canonical console and governance navigation
-- `docs/PUBLIC_INSPECTION_ENTRY.md` — public inspection-request instructions
-- `docs/PUBLIC_INSPECTION_ENTRY_MIRROR_HANDOFF.md` — scoped implementation/validation state
-- `SDK_MIRROR_HANDOFF.md` — repository-level source of truth
+- `README.md` — current public overview and governed TEST quick start
+- `docs/SDK_CONSOLE.md` — console/navigation reference
+- `docs/PUBLIC_INSPECTION_ENTRY.md` — public inspection request and governed TEST instructions
+- `SDK_MIRROR_HANDOFF.md` — repository source of truth
 
-Do not use older examples from historical revisions of this file as the current SDK contract. Public inspection requests use bounded declarative data and bind to ordinary governance option `0A`; they do not create a separate evaluator/runtime or grant authority.
+Do not use historical examples from older revisions as the current SDK contract.
+
+For an actual side-effect-free governed TEST using canonical StegCore, Python 3.11+:
+
+```bash
+python -m pip install -e ".[dev,governed-test]"
+python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
+```
+
+The returned `manifest_receipt_id` identifies the locally retained governed TEST run. Local TEST retention is not production Master Records custody.

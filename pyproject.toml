@@ -38,6 +38,9 @@ dev = [
     "black>=23.0",
     "mypy>=1.0",
 ]
+governed-test = [
+    "stegcore @ git+https://github.com/StegVerse-Labs/StegCore.git@8774a024ba6efe7e45d0846db70362f1836e7f36",
+]
 
 [project.scripts]
 stegverse = "stegverse.cli:main"

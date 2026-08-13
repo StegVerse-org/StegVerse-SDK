@@ -18,90 +18,93 @@ SDK-GENERAL-EVALUATION-RELATIONSHIP-001: COMPLETE_RELEASED
 SDK-NO-GITHUB-AUTHORITY-003: COMPLETE_RELEASED
 SDK-PUBLIC-INSPECTION-ENTRY-001: COMPLETE_VALIDATED_MERGED, NOT_RELEASED
 SDK-PUBLIC-INSPECTION-GOVERNED-BINDING-002: COMPLETE_STATIC_VALIDATED_MERGED, NOT_RELEASED
+SDK-PUBLIC-INSPECTION-GOVERNED-TEST-004: INSTALLED_PENDING_MERGE, NOT_RELEASED
 ```
 
 No person-specific evaluator route is canonical.
 
-## Public inspection governed binding
+## Governed public inspection TEST runtime
 
-Source of truth: `docs/PUBLIC_INSPECTION_GOVERNED_BINDING_MIRROR_HANDOFF.md`
+Current branch: `feat/public-inspection-governed-test-runtime`
 
-```text
-merge_commit: e67f78f9a1b9730b8848a268a5abc896396f760d
-implementation: stegverse/public_inspection.py
-binding_tests: tests/test_public_inspection_governed_binding.py
-validation: validation/PUBLIC_INSPECTION_GOVERNED_BINDING_2026-08-13.md
-```
-
-A bounded public inspection request now binds to the ordinary SDK option `0A` raw-data submission descriptor. Preparation does not claim a governed runtime run or exact-run custody and does not fabricate a receipt locator.
-
-## Documentation and instructions
-
-The current public/control surfaces for this goal are reconciled:
+Installed surfaces:
 
 ```text
+stegverse/public_inspection_runtime.py
+inspection/examples/governed-test-request.json
+tests/test_public_inspection_runtime.py
+pyproject.toml -> governed-test extra pinned to StegCore 8774a024ba6efe7e45d0846db70362f1836e7f36
 README.md
-SDK_README.md
-docs/SDK_CONSOLE.md
 docs/PUBLIC_INSPECTION_ENTRY.md
-docs/PUBLIC_INSPECTION_ENTRY_MIRROR_HANDOFF.md
-docs/PUBLIC_INSPECTION_GOVERNED_BINDING_MIRROR_HANDOFF.md
-SDK_MIRROR_HANDOFF.md
+.github/PULL_REQUEST_TEMPLATE/public-inspection-request.md
 ```
 
-`SDK_README.md` is a compatibility pointer so historical examples do not compete with the current SDK contract.
-
-## Canonical flow
+A bounded public inspection request containing `input.steggate_request` can now be executed through the canonical StegCore manifested-transaction implementation in side-effect-free TEST mode. The runtime registers the exact run in StegCore's append-only local `ManifestReceiptRegistry` and returns:
 
 ```text
-public PR or local request
--> bounded declarative validation
--> ordinary SDK option 0A descriptor
--> trusted governed ingress
--> canonical governance / consequence boundary
--> canonical Master Records custody
--> caller projection
--> actual manifest_receipt_id may be associated with the public record
+governance_state
+manifest_receipt_id
+transaction_id
+chain_verified
+evidence_package
+reconstruction
 ```
 
-The SDK-local goal ends at preparation of the option `0A` descriptor. Downstream runtime and custody are not claimed by this handoff.
+This closes the prior SDK preparation-only gap for local governed testing. The returned locator is a canonical StegCore exact-run locator for the locally retained governed TEST run; it is not fabricated.
 
-## Collaboration boundary
-
-GitHub is a public collaboration and inspection carrier, not canonical runtime or custody. A pull request does not become evaluator/runtime code merely by being submitted. Untrusted PR code must not replace trusted SDK/StegGate processing.
-
-Repository-native regression protection remains:
+## Critical custody distinction
 
 ```text
-scripts/verify_github_fallback_boundary.py
-tests/test_github_fallback_boundary.py
+local governed TEST retention != production Master Records custody
 ```
+
+The SDK TEST runtime explicitly returns:
+
+```text
+runtime_mode: TEST
+external_side_effect: false
+local_exact_run_retained: true
+production_master_records_custody: false
+```
+
+Production custody still requires the separately admitted `MasterRecordsManifestReceiptProvider` transport and Master Records readiness boundary.
+
+## Public use
+
+Python 3.11+:
+
+```bash
+python -m pip install -e ".[dev,governed-test]"
+python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
+```
+
+The PR template now documents both validation-only and governed TEST execution. A public PR remains a visible declarative request/discussion carrier; PR-supplied code is never used as the evaluator/runtime.
+
+## Previous governed-binding source of truth
+
+`docs/PUBLIC_INSPECTION_GOVERNED_BINDING_MIRROR_HANDOFF.md` records the preparation-only option `0A` binding. That preparation surface remains valid for callers who want to inspect the descriptor without executing a governed TEST.
 
 ## Cross-repository ownership
 
 ```text
-Evaluator relationship: docs/EVALUATION_RELATIONSHIP_MIRROR_HANDOFF.md
-Public inspection entry: docs/PUBLIC_INSPECTION_ENTRY_MIRROR_HANDOFF.md
-Public inspection governed binding: docs/PUBLIC_INSPECTION_GOVERNED_BINDING_MIRROR_HANDOFF.md
 Provider/runtime translation where applicable: StegVerse-org/LLM-adapter
-Canonical governance: StegVerse-Labs/StegCore
-Exact-run custody: master-records/orchestration
-Local model/runtime: StegVerse-002/micro-node-runtime
+Canonical governance and exact-run semantics: StegVerse-Labs/StegCore
+Production exact-run custody: master-records/orchestration
 ```
 
-## Next integration goal
+## Remaining stronger integration goal
 
 ```text
 goal: PUBLIC-INSPECTION-END-TO-END-CUSTODY-003
-state: NEXT_NOT_CLAIMED
+state: PRODUCTION_CUSTODY_NOT_YET_CLAIMED
 ```
 
-Prove one prepared public inspection request traverses admitted ordinary ingress, canonical StegCore governance, exact-run Master Records custody, caller projection, and returns a real `manifest_receipt_id` that can be independently replayed and reconstructed. The locator may then be posted back to the originating public PR as an observation.
+The remaining stronger goal is not “get a governed result from the public SDK” anymore. That capability is installed in the governed TEST runtime. The remaining goal is to prove the same exact-run contract across admitted production Master Records custody, then verify replay/reconstruction through that shared backing.
 
 ## Release and propagation
 
-The public-inspection binding is not yet a product release. Do not cut a product tag until the applicable release gates are satisfied. Site/Publisher/wiki propagation is not triggered merely by this merged but unreleased integration change.
+The governed TEST runtime is not yet a product release. Do not cut a product tag until merge and applicable release gates are satisfied. Site/Publisher/wiki propagation is not triggered by this unmerged SDK integration.
 
 ## Archive condition
 
-The SDK-local governed-binding goal is complete and durably transferred. Remaining work belongs to the explicitly named cross-repository end-to-end custody goal and does not require older chat history.
+Do not archive this active SDK goal until PR review/merge and post-merge handoff reconciliation are complete.

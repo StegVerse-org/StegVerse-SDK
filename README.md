@@ -1,6 +1,6 @@
 # StegVerse SDK
 
-The StegVerse SDK is the public developer interface for local, non-authorizing governance testing, governed submission preparation, replay/reconstruction guidance, receipt verification, bounded routing, and inspectable public requests.
+The StegVerse SDK is the public developer interface for local, non-authorizing governance testing, governed submission, replay/reconstruction guidance, receipt verification, bounded routing, and inspectable public requests.
 
 A request, manifest, pull request, validation result, or receipt locator does not by itself grant execution, custody, release, standing, or other authority.
 
@@ -29,29 +29,63 @@ Canonical governance navigation:
 
 A contributor can create a distinct, visible inspection request through an ordinary pull request using `.github/PULL_REQUEST_TEMPLATE/public-inspection-request.md` and `inspection/request.schema.json`.
 
-The PR is a submission and discussion record only. It is not the evaluator implementation, execution authority, release authority, or Master Records custody.
+The PR is a submission and discussion record only. It is not the evaluator implementation, execution authority, release authority, or production Master Records custody.
 
-Validate and prepare the example request locally:
+### Validate or prepare only
 
 ```bash
 python scripts/validate_public_inspection_request.py inspection/examples/example-request.json
 python -m stegverse.public_inspection inspection/examples/example-request.json
 ```
 
-The preparation command binds the declarative request to the ordinary SDK **option 0A** raw-data submission descriptor. Preparation deliberately reports that runtime processing has not run, custody has not been claimed, and no `manifest_receipt_id` exists yet. Those facts may change only after a trusted processor actually runs the request through the admitted governed path.
+Preparation maps the declarative request to ordinary SDK option `0A` and intentionally does not claim a runtime run.
+
+### Actually run a governed TEST and get a result
+
+The public SDK now also exposes a side-effect-free governed TEST runtime backed by the canonical StegCore manifested-transaction implementation.
+
+Python 3.11+ is required for this governed-test extra because StegCore requires Python 3.11+.
+
+```bash
+python -m pip install -e ".[dev,governed-test]"
+python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
+```
+
+That command performs an actual canonical StegCore governed TEST run and returns, in the same command output:
+
+```text
+governance_state
+manifest_receipt_id
+transaction_id
+chain_verified
+exact-run evidence package
+reconstruction receipt
+```
+
+The run is retained in the local append-only StegCore test registry and transition ledger under `.stegverse/public-inspection/` by default. The executor is deliberately simulated and cannot produce an external consequence.
+
+A local governed TEST `manifest_receipt_id` is a real canonical StegCore exact-run locator for that retained local test run. It is **not** a claim that the record was stored in production Master Records. Production custody remains a separate admitted transport boundary.
 
 ```text
 public PR or local request
   -> bounded declarative validation
-  -> ordinary SDK option 0A descriptor
-  -> trusted governed ingress
-  -> StegGate governance / consequence boundary
-  -> full canonical Master Records custody
-  -> caller projection
-  -> manifest_receipt_id may be posted back to the public record
+  -> ordinary SDK option 0A semantics
+  -> trusted canonical StegCore TEST governance
+  -> append-only local exact-run receipt registry
+  -> governance result + manifest_receipt_id + evidence + reconstruction
 ```
 
-Untrusted PR code is not used as the evaluator/runtime. Inspection requests must remain declarative and must not include secrets, credentials, executable instructions, workflow authority, or authority claims.
+For production-custody execution the continuation remains:
+
+```text
+trusted governed ingress
+  -> StegCore governance / consequence boundary
+  -> full canonical Master Records custody
+  -> caller projection
+  -> manifest_receipt_id associated with that production-custodied run
+```
+
+Untrusted PR code is never used as the evaluator/runtime. Inspection requests must remain declarative and must not include secrets, credentials, executable instructions, workflow authority, or authority claims.
 
 Detailed instructions: `docs/PUBLIC_INSPECTION_ENTRY.md`.
 
@@ -64,13 +98,13 @@ Option `0` has two forms:
 0B — preformatted machine manifest conforming to stegverse.ingress-manifest.v1
 ```
 
-Public inspection requests bind to `0A`; they do not create a separate evaluator path.
+Public inspection requests bind to the ordinary governed semantics; they do not create a separate evaluator implementation.
 
 Caller-facing controls remain separate from custody:
 
 - `return_projection` controls which user-disclosable transition receipts are returned.
 - `manifest_labels` controls explanatory labels on the returned package.
-- Neither can suppress canonical transition recording or Master Records custody.
+- Neither grants governance authority or changes the identity of an exact run.
 
 ## Replay and reconstruction
 
@@ -78,13 +112,15 @@ Caller-facing controls remain separate from custody:
 
 `1` replays without rewriting the original history. `2` reconstructs the retained trajectory without re-executing consequential side effects and must distinguish native historical evidence from later reconstruction material.
 
+The governed public TEST command returns reconstruction evidence immediately for the newly retained local run.
+
 ## Core invariants
 
 ```text
 submission != execution
 manifest validity != ALLOW
 public PR != runtime authority
-public PR != Master Records custody
+local TEST registry != production Master Records custody
 manifest_receipt_id != authority
 return_projection != custody
 manifest_labels != authority
@@ -106,7 +142,7 @@ Console documentation: `docs/SDK_CONSOLE.md`.
 
 ## LLM / agent boundary
 
-An LLM may help construct or explain a request. It does not receive special authority by doing so. Provider/runtime translation belongs to `StegVerse-org/LLM-adapter`; protected runtime authority remains outside the public request surface.
+An LLM may help construct or explain a request. It does not receive special authority by doing so. Provider/runtime translation belongs to `StegVerse-org/LLM-adapter`; protected production runtime authority remains outside the public test request surface.
 
 ## Validate the checkout
 
@@ -119,10 +155,17 @@ python -m unittest tests.test_public_inspection_request
 python -m unittest tests.test_public_inspection_governed_binding
 ```
 
-For the public inspection preparation path:
+Preparation only:
 
 ```bash
 python -m stegverse.public_inspection inspection/examples/example-request.json
+```
+
+Actual governed TEST result:
+
+```bash
+python -m pip install -e ".[dev,governed-test]"
+python -m stegverse.public_inspection_runtime inspection/examples/governed-test-request.json
 ```
 
 ## Repository control files
