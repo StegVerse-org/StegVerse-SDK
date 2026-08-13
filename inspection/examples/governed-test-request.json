@@ -2,6 +2,15 @@
   "schema_version": "1.0",
   "request_id": "governed-test-001",
   "case_profile": "ordinary",
+  "execution_provenance": {
+    "lane_class": "PRODUCTION_VALIDATION",
+    "routing_surface": "CANONICAL_PRODUCTION",
+    "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
+    "sandbox_required": false,
+    "sandbox_tier": "NONE",
+    "origin_surface": "StegVerse-org/StegVerse-SDK:public-inspection",
+    "external_consequence_enabled": false
+  },
   "input": {
     "steggate_request": {
       "candidate": {
@@ -60,5 +69,5 @@
   "return_projection": "ALL",
   "manifest_labels": true,
   "authority_claim": false,
-  "notes": "Runs only through the trusted local StegCore TEST runtime; executor side effects are simulated."
+  "notes": "Production-lane validation test. Uses canonical production-capable routing/governance/custody lanes with external consequence disabled; distinct from enclosed StegGhost/demo testing surfaces."
 }
