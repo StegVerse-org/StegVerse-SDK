@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "request_id": "example-longitudinal-001",
+  "requester_label": "public-evaluator",
+  "case_profile": "longitudinal-boundary",
+  "input": {
+    "amount": 420,
+    "currency": "USD",
+    "phase": "T0"
+  },
+  "return_projection": "ALL",
+  "manifest_labels": true,
+  "authority_claim": false,
+  "notes": "Example only. No personal attribution is required."
+}
