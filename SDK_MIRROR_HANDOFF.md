@@ -8,7 +8,7 @@ repository: StegVerse-SDK
 canonical_branch: main
 ```
 
-Live repository state, immutable commits, validation evidence, scoped mirror handoffs, and this file supersede prior chat claims.
+Live repository state, immutable commits, retained validation evidence, scoped mirror handoffs, and this file supersede prior chat claims.
 
 ## Goal inventory
 
@@ -16,21 +16,31 @@ Live repository state, immutable commits, validation evidence, scoped mirror han
 SDK-PUBLIC-CONSOLE-001: COMPLETE_RELEASED
 SDK-GENERAL-EVALUATION-RELATIONSHIP-001: COMPLETE_RELEASED
 SDK-NO-GITHUB-AUTHORITY-003: COMPLETE_RELEASED
-SDK-PUBLIC-INSPECTION-ENTRY-001: COMPLETE_VALIDATED_MERGED, NOT_RELEASED
-SDK-PUBLIC-INSPECTION-GOVERNED-BINDING-002: COMPLETE_STATIC_VALIDATED_MERGED, NOT_RELEASED
+SDK-PUBLIC-INSPECTION-ENTRY-001: COMPLETE_VALIDATED_MERGED
+SDK-PUBLIC-INSPECTION-GOVERNED-BINDING-002: COMPLETE_STATIC_VALIDATED_MERGED
 SDK-PUBLIC-INSPECTION-GOVERNED-TEST-004: SUPERSEDED_BY_CUSTODY_BACKED_RUNTIME
-SDK-PUBLIC-INSPECTION-CUSTODY-REPLAY-005: CODE_COMPLETE_PENDING_HOSTED_DEPLOY_AND_INTEGRATED_RUN
-SDK-PUBLIC-GOVERNANCE-DOCS-006: COMPLETE_MERGED
-SDK-PUBLIC-CREDENTIAL-BOUNDARY-007: DOCS_COMPLETE; TVC_TRANSPORT_IMPLEMENTATION_CLAIM_ACTIVE
+SDK-PUBLIC-INSPECTION-CUSTODY-REPLAY-005: COMPLETE_SOVEREIGN_VALIDATION
+SDK-SOVEREIGN-PRODUCTION-VALIDATION-008: COMPLETE_VALIDATION_EVIDENCE_RETAINED
 ```
 
 No person-specific evaluator route is canonical.
 
-## Public governance/navigation reconciliation
+## Governing invariants
 
-The public evaluator-facing path is now the ordinary SDK repository and installed console rather than a private instruction channel.
+```text
+every ecosystem state transition is recorded in Master Records
+manifest establishes intended route
+recorded checkpoint receipt clears next manifest leg
+heartbeat is transaction/routing carrier state
+successful governed SDK run without Master Records custody: PROHIBITED
+successful replay/reconstruction return without operation-transition custody: PROHIBITED
+caller projection may suppress Master Records custody: FALSE
+third-party host required for execution or validation: FALSE
+manifest_receipt_id grants authority: FALSE
+GitHub grants runtime authority: FALSE
+```
 
-Canonical navigation:
+## Canonical governance navigation
 
 ```text
 000 -> optional worked transparency/demo
@@ -40,183 +50,173 @@ Canonical navigation:
 2   -> reconstruction by manifest_receipt_id
 ```
 
-Primary public surfaces:
+`000` and `00` are optional human inspection surfaces and are not prerequisites for machine-to-machine evaluation.
+
+## Production-validation provenance
+
+The evaluator validation lane is explicitly manifested as:
 
 ```text
-README.md
-docs/SDK_CONSOLE.md
-docs/PUBLIC_INSPECTION_ENTRY.md
-docs/PUBLIC_CREDENTIAL_BOUNDARY.md
-SDK_README.md -> compatibility pointer only
+lane_class: PRODUCTION_VALIDATION
+routing_surface: CANONICAL_PRODUCTION
+containment: PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE
+external_consequence_enabled: false
 ```
 
-The README explicitly distinguishes the five-option governance navigation from focused lower-level surfaces such as AdmittedCode and LLM admissibility.
-
-## Credential authority correction
-
-Originating requirement:
+A sovereign execution additionally records:
 
 ```text
-protected runtime secrets/tokens are managed by TV/TVC
-public SDK caller credential handling is not a supported path
-GitHub token runtime authority: NONE
+execution_host_class: SOVEREIGN_LOCAL
+third_party_host_required: false
 ```
 
-Public documentation no longer instructs evaluators to place protected Master Records credentials into public SDK commands or public environment instructions. Custody-backed production validation remains an authorized-runtime operation.
+This is intentionally distinct from `ENCLOSED_DEMO_TEST`, which remains on demo/test repository surfaces. Lane provenance is transaction data and is retained with the manifest and receipt history.
 
-Canonical credential-neutral transport continuation:
+## Canonical sovereign route
 
-```text
-StegVerse-Labs/TVC/tasks/TVC-MASTER-RECORDS-CUSTODY-BROKER-004.json
-StegVerse-Labs/TVC/docs/MASTER_RECORDS_CUSTODY_BROKER_MIRROR_HANDOFF.md
-```
-
-The current SDK production-validation source still contains a direct authenticated Master Records transport implementation. That source is not declared caller-facing authority. Full source reconciliation is not complete until the TV/TVC broker consumer replaces direct caller-token inputs and is deterministically validated. Do not represent public credential-neutral custody execution as active before that integration passes.
-
-## Governing invariant
-
-```text
-every ecosystem state transition is recorded in Master Records
-successful governed SDK run without Master Records custody: PROHIBITED
-successful replay/reconstruction return without operation-transition custody: PROHIBITED
-caller return projection may suppress Master Records custody: FALSE
-credential presence != authority
-manifest_receipt_id != authority
-```
-
-## Production-validation route
-
-The governed SDK runtime uses the manifested Core-Lite route carrier and targets the deployed StegCore service rather than evaluating locally.
+The default public-inspection runtime is now sovereign/local. Hosted HTTP is optional transport, never a prerequisite.
 
 ```text
 SDK entry
 -> Core-Lite manifested route carrier
--> Master Records MRR-* route transition custody
--> deployed StegCore /v1/manifested-validation
--> canonical StegGate evaluation
--> StegCore manifested transaction receipts
+-> Master Records MRR-* checkpoint custody
+-> canonical StegCore manifested transaction
+-> canonical StegGate + commit-coherence evaluation
 -> Master Records MR-* exact-run custody
--> Core-Lite return ingestion/CGE
--> Master Records MRR-* return transition custody
+-> return ingestion/CGE
+-> Master Records MRR-* return custody
 -> SDK return
 ```
 
-One upstream `transaction_id` is preserved across the route manifest and StegCore manifested transaction. Production-validation provenance is bound into the route manifest and retained exact-run evidence.
-
-The StegCore service endpoint was merged in StegCore PR #90 as:
+Every successful frozen case produced this 10-transition route:
 
 ```text
-083557adec1bdbace09ebd10fb0765eb8e9a9d08
+MANIFEST_ESTABLISHED
+SDK_ENTERED
+INGESTION_ENTERED
+CGE_ADMITTED
+CGE_ROUTED
+MODULE_ENTERED
+MODULE_RESULT
+CGE_RETURN_INGESTED
+ROUTE_CLEARED
+RETURNED
 ```
 
-All five required StegCore repository workflows passed before that merge.
+A transition that is not `RECORDED` cannot clear advancement.
 
-Core-Lite route carrier is merged as:
+Canonical component bindings:
 
 ```text
-72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+StegCore manifested validation / transaction identity: 083557adec1bdbace09ebd10fb0765eb8e9a9d08
+Core-Lite manifest route carrier: 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+Master Records sovereign/portable custody: 6626c6a7f1df6bf531940c165b2f4db374e08b92
 ```
 
-Master Records route and replay/reconstruction transition custody is merged as:
+SDK optional `governed-test` dependencies pin those canonical implementations. The SDK does not embed a parallel evaluator or Master Records algorithm.
+
+## Frozen evaluator validation
+
+Retained validation evidence:
 
 ```text
-d0828441f2e92de736df1123bad5668f67e935fc
+validation/SOVEREIGN_FROZEN_EVALUATOR_VALIDATION_2026-08-13.md
 ```
+
+Frozen cases:
+
+```text
+T0   original 420 USD state                                  -> ALLOW
+T1-A same 420 USD, materially changed current policy state   -> DENY
+T1-B 4200 USD candidate retaining earlier 420 approval bind  -> DENY
+```
+
+Genuine sovereign production-validation exact-run locators:
+
+```text
+T0   MR-2F21EC98FB60A78DD0135E580DD80B1FE6CEC9C62B905A4F758E5567F1C666E2
+T1-A MR-620DDEE41541E2F787BC2702FE56977F4BB298BC1CE34C4284203A429F5453C8
+T1-B MR-804AF43FC68949F0BBC4B89E4729CA1880AB5BFA4655185C171CE5D2332487B4
+```
+
+Assertions retained as PASS:
+
+```text
+all StegCore receipt chains verified
+all exact-run Master Records custody recorded
+all three routes contain 10 ordered MRR-* transitions
+one transaction identity preserved across each manifested route
+production-validation provenance retained
+third-party host required = false
+replay operation custody recorded, four MRO-* transitions per case
+reconstruction operation custody recorded, four MRO-* transitions per case
+replay/reconstruction consequence reexecution = false
+```
+
+The complete canonical custody snapshot is retained in `master-records/orchestration`:
+
+```text
+validation/evaluator-frozen-sovereign-custody-2026-08-13.zlib.b64
+```
+
+It contains 3 exact-run records, 30 route events, and 24 replay/reconstruction operation events. It is portable transport only and grants no authority.
+
+These identifiers supersede earlier local-ephemeral evaluator test IDs.
 
 ## Replay
 
-Replay is executable against a retained `MR-*` source and creates its own Master Records operation trajectory:
+Replay is non-mutating with respect to the original exact run, but its requested operation is new ecosystem history:
 
 ```text
-REQUESTED
--> SOURCE_RESOLVED
--> EVALUATED
--> RETURNED
+REQUESTED -> SOURCE_RESOLVED -> EVALUATED -> RETURNED
 ```
 
-The original exact run is not mutated and its consequence is not re-executed. The replay artifact is not returned unless all operation transitions are recorded.
+Each state receives an `MRO-*` Master Records operation receipt before the replay artifact can be returned.
 
 ## Reconstruction
 
-Reconstruction creates its own Master Records operation trajectory:
+Reconstruction does not re-execute the original consequence, but its operation trajectory is new ecosystem history:
 
 ```text
-REQUESTED
--> SOURCE_RESOLVED
--> ARTIFACT_DERIVED
--> RETURNED
+REQUESTED -> SOURCE_RESOLVED -> ARTIFACT_DERIVED -> RETURNED
 ```
 
-The original exact run remains immutable and the original consequence is not re-executed.
+Each state receives an `MRO-*` receipt before the reconstruction artifact can be returned.
 
-## Local model/runtime convergence
+## Third-party hosting boundary
 
-The session requirements to replace descriptive local-model selection with executable discovery/launch/inference/proof and to formally develop a local model are already complete in the canonical owner and must not be duplicated in the SDK.
+Render, Vercel, GitHub Actions, or another hosted provider may be used as optional transport/compute. Their quota, availability, authentication, or deployment state cannot gate the sovereign route.
+
+The previous hosted-deployment gate is superseded. Hosted StegCore remains useful for public/live transport but is not required to establish the frozen evaluator production-validation records.
+
+## Credential boundary
+
+Protected runtime credentials remain under TV/TVC authority. The sovereign evaluator run does not require a public caller to manage Master Records bearer credentials and does not use GitHub credentials as StegVerse authority.
+
+## Remaining work after evaluator handoff
+
+Evaluator handoff is no longer blocked. Remaining tasks are general hardening rather than prerequisites for the frozen evaluation:
 
 ```text
-canonical_owner: StegVerse-002/micro-node-runtime
-handoff: docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
-goal: SOVEREIGN-LOCAL-MODEL-001
-state: COMPLETE_RELEASED
-reference_model: stegverse-reference-lm-v1
-github_token_required: false
-third_party_inference_required: false
-credential_authority: TV/TVC
+operation retry/idempotency
+explicit failed-operation terminal state custody
+portable custody import/export CI execution
+backup/replication automation
+LLM-adapter convergence on the same manifested/custody-before-return invariant
+hosted transport activation where useful
 ```
 
-Continuation of live activation is machine-owned through the resident sovereign heartbeat, TVC route authority, LLM-adapter transport, and Master Records custody. No SDK implementation claim exists for that lane.
-
-## Hosted deployment gate
-
-The existing Render `steggate-core` service auto-deploy attempted the merged StegCore manifested-validation endpoint. The recorded handoff evidence says Render canceled the build before execution because the workspace had exhausted build-pipeline minutes for the billing period.
+## Evaluator handoff state
 
 ```text
-repository implementation: COMPLETE
-StegCore repository CI: PASS
-new live StegCore manifested-validation endpoint: NOT YET CONFIRMED ACTIVE
-hosted SDK -> Core-Lite -> StegCore -> Master Records integrated run: NOT YET EXECUTED
-genuine evaluator receipt IDs from that hosted route: NOT YET ISSUED
+ordinary SDK route: READY
+frozen production-validation run: COMPLETE
+Master Records exact-run custody: COMPLETE
+manifested route custody: COMPLETE
+replay custody: COMPLETE
+reconstruction custody: COMPLETE
+third-party dependency: NONE
+three genuine manifest_receipt_id values: READY_TO_SEND
 ```
 
-This is a hosted activation/evidence blocker, not a repository test failure. Do not substitute older local or ephemeral receipt identifiers.
-
-## Remaining evaluator-readiness gate
-
-```text
-1. complete TV/TVC credential-neutral Master Records custody transport and SDK consumer integration;
-2. activate or otherwise directly observe the merged StegCore manifested-validation endpoint on the canonical hosted surface;
-3. execute T0, T1-A, and T1-B through the canonical production-validation route;
-4. verify one transaction identity per manifested run;
-5. verify complete MRR-* route transition chain and MR-* exact-run custody;
-6. execute replay and reconstruction and verify MRO-* operation transition custody;
-7. retain PASS evidence and only then hand off genuine receipt IDs.
-```
-
-## Session-specific requirements transferred
-
-The following unique requirements from the current conversation are now durable:
-
-1. public README is the primary evaluator entry point;
-2. cloned-console documentation must match the public README;
-3. `000/00/0/1/2` is the human-facing governance workflow;
-4. AdmittedCode is a focused subsystem test surface, not the whole evaluator workflow;
-5. public SDK can be featured as a governance experiment/test environment for AdmittedCode, StegGate-style admissibility, LLM output, replay, and reconstruction;
-6. protected runtime credentials are managed by TV/TVC and are not a caller-managed public SDK concern;
-7. local-runtime discovery/launch/proof and formal local-model development are merged into the canonical micro-node-runtime workstream and are not duplicated here;
-8. Eduardo-style evaluator handoff remains ordinary SDK plus genuine T0/T1-A/T1-B manifest receipt IDs after exact-run custody validation.
-
-Items 1–8 are transferred to repository state or canonical continuation records. The remaining executable implementation is the TV/TVC custody transport integration and machine/hosting activation evidence.
-
-## Collision / claim state
-
-```text
-SDK public documentation: COMPLETE_MERGED; no active implementation claim
-local model/runtime: MERGED_INTO_CANONICAL_WORKSTREAM -> StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
-Master Records credential-neutral transport: CLAIMED_FOR_IMPLEMENTATION -> StegVerse-Labs/TVC/tasks/TVC-MASTER-RECORDS-CUSTODY-BROKER-004.json
-production evaluator hosted activation: BLOCKED / activation evidence pending
-T0/T1-A/T1-B execution: BLOCKED until custody transport + hosted StegCore prerequisites are observable
-```
-
-## Release state
-
-Do not claim evaluator-ready production validation, genuine evaluator receipt IDs, or public custody-backed execution until the integrated route above passes. Credential-free local SDK demos/navigation remain public and usable independently of that activation gate.
+Interpretation of the frozen cases is intentionally left open to the external evaluator.
