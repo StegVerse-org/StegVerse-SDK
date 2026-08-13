@@ -40,23 +40,30 @@ python -m stegverse.public_inspection inspection/examples/example-request.json
 
 Preparation maps the declarative request to ordinary SDK option `0A` and intentionally does not claim a runtime run.
 
-### Run a governed TEST
+### Run a custody-backed governed TEST
 
-The governed TEST path uses canonical StegCore and requires Master Records custody. A run is not reported as successfully completed until Master Records confirms `custody_status: RECORDED` for the complete exact-run evidence package.
+A governed TEST uses canonical StegCore and requires Master Records custody. A run is not reported as successfully completed until Master Records confirms `custody_status: RECORDED` for the complete exact-run evidence package.
 
-Python 3.11+ is required because StegCore requires Python 3.11+.
+**Public callers do not supply Master Records bearer tokens or other protected credentials.** Credential and route authority belong to TV/TVC. Protected custody credentials must be resolved inside the authorized TV/TVC runtime and must not be copied into SDK commands, manifests, pull requests, fixtures, receipts, logs, or public environment instructions.
 
-Configure the admitted Master Records endpoint through your authorized environment or pass the equivalent command options:
+The credential-neutral custody transport is tracked at:
+
+```text
+StegVerse-Labs/TVC/tasks/TVC-MASTER-RECORDS-CUSTODY-BROKER-004.json
+StegVerse-Labs/TVC/docs/MASTER_RECORDS_CUSTODY_BROKER_MIRROR_HANDOFF.md
+```
+
+Until that transport is integrated and validated, an ordinary public checkout should use the credential-free governance navigation, demos, request preparation, AdmittedCode verification, and focused local SDK surfaces. A custody-backed production-validation run remains an authorized-runtime operation rather than a caller-managed credential flow.
+
+The intended authorized-runtime command remains:
 
 ```bash
-export MASTER_RECORDS_URL="<admitted-master-records-base-url>"
-export MASTER_RECORDS_AUTH_TOKEN="<authorized-token>"
 python -m pip install -e ".[dev,governed-test]"
 python -m stegverse.public_inspection_runtime run \
   inspection/examples/governed-test-request.json
 ```
 
-A successful run returns:
+A successful authorized-runtime run returns:
 
 ```text
 governance_state
@@ -74,14 +81,14 @@ public PR or local request
   -> bounded declarative validation
   -> ordinary SDK option 0A semantics
   -> trusted canonical StegCore TEST governance
-  -> complete exact-run evidence package
-  -> Master Records custody: RECORDED
+  -> TV/TVC-managed custody transport
+  -> complete exact-run Master Records custody
   -> governance result + manifest_receipt_id
 ```
 
 Untrusted PR code is never used as the evaluator/runtime. Inspection requests must remain declarative and must not include secrets, credentials, executable instructions, workflow authority, or authority claims.
 
-Detailed instructions: `docs/PUBLIC_INSPECTION_ENTRY.md`.
+Detailed instructions: `docs/PUBLIC_INSPECTION_ENTRY.md`. Credential boundary: `docs/PUBLIC_CREDENTIAL_BOUNDARY.md`.
 
 ## Ordinary governed submission
 
@@ -113,6 +120,8 @@ REPLAY_REQUESTED
   -> RETURNED
 ```
 
+On an authorized TV/TVC runtime with the custody transport available:
+
 ```bash
 python -m stegverse.public_inspection_runtime replay \
   MR-<SHA256>
@@ -128,6 +137,8 @@ RECONSTRUCT_REQUESTED
   -> ARTIFACT_DERIVED
   -> RETURNED
 ```
+
+On an authorized TV/TVC runtime:
 
 ```bash
 python -m stegverse.public_inspection_runtime reconstruct \
@@ -159,6 +170,9 @@ replay != consequence execution
 replay state transitions -> Master Records
 reconstruction != original consequence re-execution
 reconstruction state transitions -> Master Records
+SDK caller credential handling: prohibited
+GitHub token runtime authority: none
+TV/TVC manages protected runtime credentials
 ```
 
 ## Other SDK surfaces
@@ -176,6 +190,8 @@ Console documentation: `docs/SDK_CONSOLE.md`.
 ## LLM / agent boundary
 
 An LLM may help construct or explain a request. It does not receive special authority by doing so. Provider/runtime translation belongs to `StegVerse-org/LLM-adapter`; protected runtime authority remains outside the public request surface.
+
+The descriptive “select a local model/runtime” step is no longer canonical. Executable local-runtime discovery, launch, inference, measurement, and proof plus the formally developed `stegverse-reference-lm-v1` are owned and released in `StegVerse-002/micro-node-runtime`. The public SDK does not duplicate that authority.
 
 ## Validate the checkout
 
@@ -195,14 +211,7 @@ Preparation only:
 python -m stegverse.public_inspection inspection/examples/example-request.json
 ```
 
-Governed run, replay, reconstruction:
-
-```bash
-python -m pip install -e ".[dev,governed-test]"
-python -m stegverse.public_inspection_runtime run inspection/examples/governed-test-request.json
-python -m stegverse.public_inspection_runtime replay MR-<SHA256>
-python -m stegverse.public_inspection_runtime reconstruct MR-<SHA256>
-```
+Custody-backed run, replay, and reconstruction require the authorized TV/TVC custody transport; ordinary callers do not supply protected credentials.
 
 ## Repository control files
 
