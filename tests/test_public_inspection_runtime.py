@@ -6,6 +6,17 @@ from unittest.mock import Mock, patch
 from stegverse.public_inspection_runtime import PublicInspectionRuntimeError, _preflight_master_records, _runtime_input, reconstruct_manifest_receipt, replay_manifest_receipt, run_public_inspection_test
 
 
+PROVENANCE = {
+    "lane_class": "PRODUCTION_VALIDATION",
+    "routing_surface": "CANONICAL_PRODUCTION",
+    "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
+    "sandbox_required": False,
+    "sandbox_tier": "NONE",
+    "origin_surface": "StegVerse-org/StegVerse-SDK:public-inspection",
+    "external_consequence_enabled": False,
+}
+
+
 class _FakeRequest(dict):
     @classmethod
     def model_validate(cls, value): return cls(value)
@@ -27,13 +38,14 @@ class _FakeRecord:
 class _FakeRegistry:
     def __init__(self, path=None): self.path = path
     def register(self, result): return _FakeRecord()
-    def evidence_package(self, receipt_id): return {"manifest_receipt_id": receipt_id, "transaction_id": "TX-TEST", "manifest": {"manifest_hash": "b" * 64, "metadata": {"governance_request": {"candidate": {"action": "inspect"}}}}, "receipt_chain_head": "c" * 64, "canonical_runtime_identity": "runtime", "locator_grants_authority": False}
+    def evidence_package(self, receipt_id): return {"manifest_receipt_id": receipt_id, "transaction_id": "TX-TEST", "manifest": {"manifest_hash": "b" * 64, "metadata": {"governance_request": {"candidate": {"action": "inspect"}}, "execution_provenance": dict(PROVENANCE)}}, "receipt_chain_head": "c" * 64, "canonical_runtime_identity": "runtime", "locator_grants_authority": False}
 
 class _FakeLedger:
     def __init__(self, path=None): self.path = path
 
 def _fake_run(request, executor, **kwargs):
     assert executor()["external_side_effect"] is False
+    assert kwargs["metadata"]["execution_provenance"]["lane_class"] == "PRODUCTION_VALIDATION"
     return _FakeResult()
 
 def _fake_build(record, evidence):
@@ -45,7 +57,7 @@ def _operation_receipt(*args, **kwargs):
 
 class PublicInspectionRuntimeTests(unittest.TestCase):
     def request(self):
-        return {"schema_version": "1.0", "request_id": "runtime-001", "case_profile": "ordinary", "input": {"steggate_request": {"candidate": {"action": "inspect"}}, "input_data": {"value": 420}}, "return_projection": "ALL", "manifest_labels": True, "authority_claim": False}
+        return {"schema_version": "1.0", "request_id": "runtime-001", "case_profile": "ordinary", "execution_provenance": dict(PROVENANCE), "input": {"steggate_request": {"candidate": {"action": "inspect"}}, "input_data": {"value": 420}}, "return_projection": "ALL", "manifest_labels": True, "authority_claim": False}
 
     def test_requires_steggate_request_for_execution(self):
         request = self.request(); request["input"].pop("steggate_request")
@@ -64,6 +76,7 @@ class PublicInspectionRuntimeTests(unittest.TestCase):
         result = run_public_inspection_test(self.request(), master_records_url="https://records.example", master_records_token="test-token")
         self.assertEqual(result["master_records_custody_status"], "RECORDED")
         self.assertEqual(result["ecosystem_commit_status"], "RECORDED")
+        self.assertEqual(result["execution_provenance"]["lane_class"], "PRODUCTION_VALIDATION")
 
     def test_run_without_master_records_configuration_fails_before_governance(self):
         with patch.dict("os.environ", {}, clear=True):
@@ -75,19 +88,21 @@ class PublicInspectionRuntimeTests(unittest.TestCase):
     @patch("stegverse.public_inspection_runtime._get_json")
     @patch("stegverse.public_inspection_runtime._load_stegcore", return_value=(_fake_build, _FakeRegistry, _FakeRequest, lambda req: _FakeEval(), _FakeLedger, _fake_run))
     def test_replay_records_all_return_path_transitions(self, _load, get_json, record_event):
-        get_json.return_value = {"master_record_sha256": "abc", "evidence_package": {"manifest": {"metadata": {"governance_request": {"candidate": {"action": "inspect"}}}}, "execution_observation": {"evaluation": {"disposition": "ALLOW", "candidate_hash": "candidate-hash"}}}}
+        get_json.return_value = {"master_record_sha256": "abc", "evidence_package": {"manifest": {"metadata": {"governance_request": {"candidate": {"action": "inspect"}}, "execution_provenance": dict(PROVENANCE)}}, "execution_observation": {"evaluation": {"disposition": "ALLOW", "candidate_hash": "candidate-hash"}}}}
         result = replay_manifest_receipt("MR-" + "A" * 64, master_records_url="https://records.example", master_records_token="test-token")
         self.assertEqual(record_event.call_count, 4)
         self.assertEqual(result["operation_transition_custody_status"], "RECORDED")
+        self.assertEqual(result["source_execution_provenance"]["lane_class"], "PRODUCTION_VALIDATION")
         self.assertFalse(result["consequence_reexecuted"])
 
     @patch("stegverse.public_inspection_runtime._record_operation_event", side_effect=_operation_receipt)
     @patch("stegverse.public_inspection_runtime._get_json")
     def test_reconstruction_records_all_return_path_transitions(self, get_json, record_event):
-        get_json.side_effect = [{"master_record_sha256": "abc"}, {"consequence_reexecuted": False, "reconstruction_grants_authority": False}]
+        get_json.side_effect = [{"master_record_sha256": "abc", "evidence_package": {"manifest": {"metadata": {"execution_provenance": dict(PROVENANCE)}}}}, {"consequence_reexecuted": False, "reconstruction_grants_authority": False}]
         result = reconstruct_manifest_receipt("MR-" + "A" * 64, master_records_url="https://records.example", master_records_token="test-token")
         self.assertEqual(record_event.call_count, 4)
         self.assertEqual(result["operation_transition_custody_status"], "RECORDED")
+        self.assertEqual(result["source_execution_provenance"]["lane_class"], "PRODUCTION_VALIDATION")
         self.assertFalse(result["consequence_reexecuted"])
 
     @patch("stegverse.public_inspection_runtime._record_operation_event", side_effect=PublicInspectionRuntimeError("operation custody failed"))
