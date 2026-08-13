@@ -9,18 +9,15 @@ implementation_state: COMPLETE_VALIDATED_MERGED
 release_state: NOT_RELEASED
 merge_commit: e1d31c6aa0529add5b18737f7ec5554c3c3ff9c1
 validation_evidence: validation/PUBLIC_INSPECTION_ENTRY_2026-08-13.md
+continuation_handoff: docs/PUBLIC_INSPECTION_GOVERNED_BINDING_MIRROR_HANDOFF.md
 ```
 
-The public inspection entry is installed, validated, and merged. Pull requests can serve as visible submission/discussion records for bounded declarative inspection requests. They do not grant runtime, credential, release, TV/TVC, or Master Records authority.
+The public inspection entry is installed, validated, and merged. Pull requests can serve as visible submission and discussion records for bounded declarative inspection requests. They do not grant runtime, release, or Master Records authority.
 
-Installed surfaces: guide, PR template, request schema, example, validator, tests, and validation evidence.
+Installed entry surfaces: guide, PR template, request schema, example, validator, tests, and validation evidence.
 
-Validation: example request PASS; 5/5 tests PASS; a personal requester name is not required; authority claims, credential-like fields, and executable/command-like fields are rejected; no `.github/workflows` changes were introduced.
+Entry-layer validation passed and does not require a personal requester name. The public request remains declarative and non-authorizing.
 
-Canonical flow:
+The next continuation binds a validated request to ordinary governance option `0A`. Its source of truth is `docs/PUBLIC_INSPECTION_GOVERNED_BINDING_MIRROR_HANDOFF.md`. That continuation must not claim runtime execution or Master Records custody until those later boundaries produce inspectable evidence.
 
-```text
-contributor PR -> bounded declarative request -> repository-native validation -> trusted SDK/StegGate processing independent of untrusted PR code -> receipt identifiers may be posted back to the PR -> canonical custody remains separately governed
-```
-
-No product tag or release is authorized by this scoped goal.
+No product tag or release is authorized by this scoped entry goal.
