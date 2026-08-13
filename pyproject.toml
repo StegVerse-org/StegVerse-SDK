@@ -41,6 +41,7 @@ dev = [
 governed-test = [
     "stegcore @ git+https://github.com/StegVerse-Labs/StegCore.git@083557adec1bdbace09ebd10fb0765eb8e9a9d08",
     "stegverse-core-lite @ git+https://github.com/Data-Continuation/core-lite.git@72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8",
+    "stegverse-master-records @ git+https://github.com/master-records/orchestration.git@6626c6a7f1df6bf531940c165b2f4db374e08b92",
 ]
 
 [project.scripts]
