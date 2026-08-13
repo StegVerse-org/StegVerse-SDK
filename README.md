@@ -104,25 +104,45 @@ Caller-facing controls remain separate from custody:
 
 `manifest_receipt_id` is the canonical locator for an exact Master Records-retained run; it is not authority.
 
-Replay is a read-only re-evaluation of the retained canonical governance request. It does not invoke the consequence executor and does not mutate the historical Master Record:
+Replay does not invoke the original consequence executor and does not mutate the historical exact-run record. The replay operation itself does traverse new ecosystem states. Those state transitions are recorded in Master Records before the replay artifact is returned:
+
+```text
+REPLAY_REQUESTED
+  -> SOURCE_RESOLVED
+  -> EVALUATED
+  -> RETURNED
+```
 
 ```bash
 python -m stegverse.public_inspection_runtime replay \
   MR-<SHA256>
 ```
 
-The replay result reports the original and replay dispositions, candidate identity comparison, deterministic disposition comparison, `consequence_reexecuted: false`, and `original_record_mutated: false`.
+The replay artifact reports the original and replay dispositions, candidate identity comparison, deterministic disposition comparison, `consequence_reexecuted: false`, `original_record_mutated: false`, an `operation_id`, and the Master Records operation-event receipts proving the replay-return path was recorded.
 
-Reconstruction is read directly from the canonical Master Records reconstruction route:
+Reconstruction likewise does not re-execute the original consequence or rewrite the original record. Its own request/derivation/return transitions are new ecosystem states and are recorded:
+
+```text
+RECONSTRUCT_REQUESTED
+  -> SOURCE_RESOLVED
+  -> ARTIFACT_DERIVED
+  -> RETURNED
+```
 
 ```bash
 python -m stegverse.public_inspection_runtime reconstruct \
   MR-<SHA256>
 ```
 
-Reconstruction preserves persisted historical evidence separately from reconstructed material and must report `consequence_reexecuted: false`.
+Reconstruction preserves persisted historical evidence separately from reconstructed material, reports `consequence_reexecuted: false`, and returns its operation-transition custody receipts.
 
-Replay and reconstruction are deliberately read-only, so they do not create a new ecosystem state transition. The governed run they inspect is already retained in Master Records.
+The important distinction is:
+
+```text
+original exact run remains immutable
+replay/reconstruction do not re-execute original consequence
+replay/reconstruction operation state transitions are still recorded in Master Records
+```
 
 ## Core invariants
 
@@ -136,7 +156,9 @@ return_projection != custody
 manifest_labels != authority
 replay != historical rewrite
 replay != consequence execution
-reconstruction != re-execution
+replay state transitions -> Master Records
+reconstruction != original consequence re-execution
+reconstruction state transitions -> Master Records
 ```
 
 ## Other SDK surfaces
