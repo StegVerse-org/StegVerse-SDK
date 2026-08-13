@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/public-inspection-request.v1.json",
+  "title": "StegVerse Public Inspection Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "case_profile",
+    "input",
+    "return_projection",
+    "authority_claim"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "request_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{3,80}$"},
+    "requester_label": {"type": "string", "maxLength": 120},
+    "case_profile": {"type": "string", "enum": ["ordinary", "longitudinal-boundary", "custom-declarative"]},
+    "input": {"type": "object", "maxProperties": 50},
+    "return_projection": {"type": "string", "enum": ["ALL", "SELECTED", "NONE"]},
+    "manifest_labels": {"type": "boolean", "default": false},
+    "authority_claim": {"const": false},
+    "notes": {"type": "string", "maxLength": 2000}
+  }
+}
