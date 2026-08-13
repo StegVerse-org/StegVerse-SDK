@@ -5,16 +5,15 @@
 ```text
 goal_id: SDK-PUBLIC-INSPECTION-GOVERNED-BINDING-002
 repository: StegVerse-org/StegVerse-SDK
-branch: feat/public-inspection-governed-binding
+branch: main
 parent_handoff: docs/PUBLIC_INSPECTION_ENTRY_MIRROR_HANDOFF.md
 repository_handoff: SDK_MIRROR_HANDOFF.md
-implementation_state: INSTALLED_PENDING_VALIDATION
+implementation_state: COMPLETE_STATIC_VALIDATED_MERGED
+integration_state: OPTION_0A_PREPARATION_VALIDATED
 release_state: NOT_RELEASED
+merge_commit: e67f78f9a1b9730b8848a268a5abc896396f760d
+validation_evidence: validation/PUBLIC_INSPECTION_GOVERNED_BINDING_2026-08-13.md
 ```
-
-## Goal
-
-Bind the merged public inspection request format to the ordinary SDK governed submission path without creating a separate evaluator/runtime, GitHub authority path, or false custody claim.
 
 ## Installed implementation
 
@@ -23,9 +22,9 @@ stegverse/public_inspection.py
 tests/test_public_inspection_governed_binding.py
 ```
 
-The adapter maps a validated public inspection request to `build_raw_submission_descriptor(...)` with ordinary governance option `0A` and `ingress_mode: sdk_manifested_raw_data`.
+A bounded public inspection request now maps to the ordinary SDK option `0A` raw-data submission descriptor through `build_raw_submission_descriptor(...)` with `ingress_mode: sdk_manifested_raw_data`.
 
-Preparation is explicitly non-authorizing and non-custodial:
+Preparation remains explicitly non-authorizing and non-custodial:
 
 ```text
 runtime_processing_status: NOT_RUN
@@ -35,7 +34,9 @@ authority_claim: false
 github_grants_runtime_authority: false
 ```
 
-## Documentation surfaces in this change
+## Documentation and instruction reconciliation
+
+The following current public/control surfaces were reconciled with the installed binding:
 
 ```text
 README.md
@@ -43,31 +44,19 @@ SDK_README.md
 docs/SDK_CONSOLE.md
 docs/PUBLIC_INSPECTION_ENTRY.md
 docs/PUBLIC_INSPECTION_ENTRY_MIRROR_HANDOFF.md
+docs/PUBLIC_INSPECTION_GOVERNED_BINDING_MIRROR_HANDOFF.md
 SDK_MIRROR_HANDOFF.md
 ```
 
-`SDK_README.md` is retained only as a compatibility pointer so it cannot continue to publish stale legacy SDK semantics in parallel with `README.md`.
+`SDK_README.md` is intentionally a compatibility pointer rather than a second competing SDK specification.
 
-## Validation gate
+## Validation boundary
 
-Required before merge:
+Validation evidence establishes the request-to-option-0A preparation contract and rejection of authority/executable/credential-style escalation. Hosted PR checks remain intentionally absent under the repository hosted-workflow boundary.
 
-```bash
-python scripts/validate_public_inspection_request.py inspection/examples/example-request.json
-python -m unittest tests.test_public_inspection_request
-python -m unittest tests.test_public_inspection_governed_binding
-python -m stegverse.public_inspection inspection/examples/example-request.json
-python scripts/verify_github_fallback_boundary.py
-python -m unittest tests.test_github_fallback_boundary
-```
+This handoff does **not** claim the prepared request has traversed canonical governance or exact-run custody.
 
-The prepared example must identify option `0A`, make no runtime/custody claim, and return no fabricated `manifest_receipt_id`.
-
-## Remaining cross-repository gap
-
-This SDK goal ends at trusted preparation for ordinary governed ingress. It does not claim that the prepared request has traversed StegCore or canonical Master Records custody.
-
-The next integration owner sequence is:
+## Next integration goal
 
 ```text
 StegVerse-SDK prepared option 0A request
@@ -76,7 +65,10 @@ StegVerse-SDK prepared option 0A request
 -> master-records/orchestration exact-run custody
 -> caller projection
 -> actual manifest_receipt_id
--> optional publication of that locator back to the public PR
+-> replay/reconstruction verification
+-> optional publication of locator back to public PR
 ```
 
-Do not mark this next cross-repository sequence complete until inspectable runtime and custody evidence exists.
+That cross-repository sequence is the next goal and must remain unclaimed until directly inspectable runtime and custody evidence exists.
+
+No product tag or release is authorized by this scoped integration goal.
