@@ -76,13 +76,22 @@ class PublicInspectionRuntimeTests(unittest.TestCase):
 
     @patch("stegverse.public_inspection_runtime._load_stegcore", return_value=(_FakeRegistry, _FakeRequest, _FakeLedger, _fake_run))
     def test_returns_governed_result_and_receipt(self, _mock):
-        result = run_public_inspection_test(self.request())
+        result = run_public_inspection_test(
+            self.request(),
+            registry_path="manifest-receipts.jsonl",
+            ledger_path="transaction-receipts.jsonl",
+        )
         self.assertEqual(result["governance_state"], "ALLOW")
         self.assertEqual(result["manifest_receipt_id"], "MR-ABCDEF0123456789")
         self.assertTrue(result["chain_verified"])
         self.assertTrue(result["local_exact_run_retained"])
         self.assertFalse(result["production_master_records_custody"])
         self.assertFalse(result["external_side_effect"])
+
+    @patch("stegverse.public_inspection_runtime._load_stegcore", return_value=(_FakeRegistry, _FakeRequest, _FakeLedger, _fake_run))
+    def test_programmatic_in_memory_run_is_not_claimed_persisted(self, _mock):
+        result = run_public_inspection_test(self.request())
+        self.assertFalse(result["local_exact_run_retained"])
 
 
 if __name__ == "__main__":
