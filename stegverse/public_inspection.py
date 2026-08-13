@@ -1,10 +1,4 @@
-"""Neutral public-inspection adapter for the ordinary SDK governance path.
-
-A public pull request is a visible request/discussion carrier only. This module
-validates bounded declarative request data and converts it into the same raw-data
-submission descriptor used by ordinary governance option 0A. It does not run
-StegGate, grant authority, select protected capabilities, or claim custody.
-"""
+"""Neutral public-inspection adapter for the ordinary SDK governance path."""
 from __future__ import annotations
 
 import json
@@ -16,19 +10,21 @@ from .governance_navigation import build_raw_submission_descriptor
 REQUEST_SCHEMA_VERSION = "1.0"
 REQUEST_PROFILES = {"ordinary", "longitudinal-boundary", "custom-declarative"}
 RETURN_PROJECTIONS = {"ALL", "SELECTED", "NONE"}
+LANE_CLASSES = {"PRODUCTION_VALIDATION", "ENCLOSED_DEMO_TEST"}
 FORBIDDEN_KEY_FRAGMENTS = {
     "token", "secret", "password", "private_key", "privatekey", "bearer",
     "credential", "api_key", "apikey", "github_token", "tvc_identity",
     "script", "command", "executable", "workflow", "code",
 }
 ALLOWED_TOP_LEVEL = {
-    "schema_version", "request_id", "requester_label", "case_profile", "input",
-    "return_projection", "manifest_labels", "authority_claim", "notes",
+    "schema_version", "request_id", "requester_label", "case_profile",
+    "execution_provenance", "input", "return_projection", "manifest_labels",
+    "authority_claim", "notes",
 }
 
 
 class PublicInspectionRequestError(ValueError):
-    """Raised when a public inspection request violates the bounded contract."""
+    pass
 
 
 def _walk(value: Any, path: str = "$") -> None:
@@ -46,13 +42,48 @@ def _walk(value: Any, path: str = "$") -> None:
             raise PublicInspectionRequestError(f"credential-like value at {path}")
 
 
+def _validate_execution_provenance(value: Any) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise PublicInspectionRequestError("execution_provenance must be an object")
+    allowed = {
+        "lane_class", "routing_surface", "containment", "sandbox_required",
+        "sandbox_tier", "origin_surface", "external_consequence_enabled",
+        "execution_host_class", "execution_host_identity", "third_party_host_required",
+    }
+    unknown = sorted(set(value) - allowed)
+    if unknown:
+        raise PublicInspectionRequestError("unknown execution_provenance fields: " + ", ".join(unknown))
+    required = {"lane_class", "routing_surface", "containment", "sandbox_required", "external_consequence_enabled"}
+    missing = sorted(required - set(value))
+    if missing:
+        raise PublicInspectionRequestError("missing execution_provenance fields: " + ", ".join(missing))
+    lane = value.get("lane_class")
+    if lane not in LANE_CLASSES:
+        raise PublicInspectionRequestError("unsupported execution_provenance.lane_class")
+    if not isinstance(value.get("sandbox_required"), bool) or not isinstance(value.get("external_consequence_enabled"), bool):
+        raise PublicInspectionRequestError("execution_provenance boolean fields are invalid")
+    if value.get("external_consequence_enabled") is not False:
+        raise PublicInspectionRequestError("public inspection validation cannot enable external consequence")
+    if lane == "PRODUCTION_VALIDATION":
+        if value.get("routing_surface") != "CANONICAL_PRODUCTION":
+            raise PublicInspectionRequestError("PRODUCTION_VALIDATION requires CANONICAL_PRODUCTION routing")
+        if value.get("containment") != "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE":
+            raise PublicInspectionRequestError("PRODUCTION_VALIDATION containment is invalid")
+    else:
+        if value.get("routing_surface") != "DEMO_TEST_REPOSITORY":
+            raise PublicInspectionRequestError("ENCLOSED_DEMO_TEST requires DEMO_TEST_REPOSITORY routing")
+        if value.get("containment") != "DEMO_REPOSITORY_CONTAINED" or value.get("sandbox_required") is not True:
+            raise PublicInspectionRequestError("ENCLOSED_DEMO_TEST containment is invalid")
+    return dict(value)
+
+
 def validate_public_inspection_request(request: Mapping[str, Any]) -> dict[str, Any]:
     unknown = sorted(set(request) - ALLOWED_TOP_LEVEL)
     if unknown:
         raise PublicInspectionRequestError("unknown request fields: " + ", ".join(unknown))
     required = {
-        "schema_version", "request_id", "case_profile", "input",
-        "return_projection", "authority_claim",
+        "schema_version", "request_id", "case_profile", "execution_provenance",
+        "input", "return_projection", "authority_claim",
     }
     missing = sorted(required - set(request))
     if missing:
@@ -69,6 +100,7 @@ def validate_public_inspection_request(request: Mapping[str, Any]) -> dict[str, 
         raise PublicInspectionRequestError("invalid requester_label")
     if request.get("case_profile") not in REQUEST_PROFILES:
         raise PublicInspectionRequestError("unsupported case_profile")
+    provenance = _validate_execution_provenance(request.get("execution_provenance"))
     input_data = request.get("input")
     if not isinstance(input_data, Mapping):
         raise PublicInspectionRequestError("input must be an object")
@@ -86,6 +118,7 @@ def validate_public_inspection_request(request: Mapping[str, Any]) -> dict[str, 
         raise PublicInspectionRequestError("invalid notes")
     _walk(request)
     normalized = dict(request)
+    normalized["execution_provenance"] = provenance
     normalized.setdefault("manifest_labels", False)
     normalized.setdefault("requester_label", None)
     normalized.setdefault("notes", None)
@@ -93,7 +126,6 @@ def validate_public_inspection_request(request: Mapping[str, Any]) -> dict[str, 
 
 
 def prepare_public_inspection_submission(request: Mapping[str, Any]) -> dict[str, Any]:
-    """Prepare an ordinary option-0A descriptor without claiming it was run."""
     normalized = validate_public_inspection_request(request)
     request_id = normalized["request_id"]
     descriptor = build_raw_submission_descriptor(
@@ -107,6 +139,7 @@ def prepare_public_inspection_submission(request: Mapping[str, Any]) -> dict[str
         "request_id": request_id,
         "requester_label": normalized["requester_label"],
         "case_profile": normalized["case_profile"],
+        "execution_provenance": normalized["execution_provenance"],
         "ordinary_governance_option": "0A",
         "submission_descriptor": descriptor,
         "payload": dict(normalized["input"]),
@@ -135,12 +168,8 @@ def load_public_inspection_request(path: str | Path) -> dict[str, Any]:
 
 def main(argv: list[str] | None = None) -> int:
     import argparse
-
-    parser = argparse.ArgumentParser(
-        prog="python -m stegverse.public_inspection",
-        description="Prepare a public inspection request for ordinary option 0A governance",
-    )
-    parser.add_argument("request", help="path to a public inspection request JSON document")
+    parser = argparse.ArgumentParser(prog="python -m stegverse.public_inspection")
+    parser.add_argument("request")
     args = parser.parse_args(argv)
     try:
         prepared = prepare_public_inspection_submission(load_public_inspection_request(args.request))
