@@ -21,7 +21,8 @@ SDK-PUBLIC-INSPECTION-GOVERNED-BINDING-002: COMPLETE_STATIC_VALIDATED_MERGED
 SDK-PUBLIC-INSPECTION-GOVERNED-TEST-004: SUPERSEDED_BY_CUSTODY_BACKED_RUNTIME
 SDK-PUBLIC-INSPECTION-CUSTODY-REPLAY-005: COMPLETE_SOVEREIGN_VALIDATION
 SDK-SOVEREIGN-PRODUCTION-VALIDATION-008: COMPLETE_VALIDATION_EVIDENCE_RETAINED
-SDK-AUTHORITY-BOUNDARY-PRESERVATION-001: ACTIVE_FIXTURE_MERGED_PENDING_SOVEREIGN_RUN
+SDK-AUTHORITY-BOUNDARY-PRESERVATION-001: ACTIVE_RUNNER_SOURCE_VALIDATED_PENDING_SOVEREIGN_EXECUTION
+SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002: COMPLETE_RELEASED_TO_MACHINE_EXECUTION
 ```
 
 No person-specific evaluator route is canonical.
@@ -39,6 +40,8 @@ caller projection may suppress Master Records custody: FALSE
 third-party host required for execution or validation: FALSE
 manifest_receipt_id grants authority: FALSE
 GitHub grants runtime authority: FALSE
+credential authority: TV/TVC
+non-TV/TVC secret or runtime token required: FALSE
 ```
 
 ## Canonical governance navigation
@@ -75,7 +78,7 @@ This is intentionally distinct from `ENCLOSED_DEMO_TEST`, which remains on demo/
 
 ## Canonical sovereign route
 
-The default public-inspection runtime is now sovereign/local. Hosted HTTP is optional transport, never a prerequisite.
+The default public-inspection runtime is sovereign/local. Hosted HTTP is optional transport, never a prerequisite.
 
 ```text
 SDK entry
@@ -154,17 +157,9 @@ reconstruction operation custody recorded, four MRO-* transitions per case
 replay/reconstruction consequence reexecution = false
 ```
 
-The complete canonical custody snapshot is retained in `master-records/orchestration`:
+The complete canonical custody snapshot is retained in `master-records/orchestration` at `validation/evaluator-frozen-sovereign-custody-2026-08-13.zlib.b64`. These identifiers supersede earlier local-ephemeral evaluator test IDs.
 
-```text
-validation/evaluator-frozen-sovereign-custody-2026-08-13.zlib.b64
-```
-
-It contains 3 exact-run records, 30 route events, and 24 replay/reconstruction operation events. It is portable transport only and grants no authority.
-
-These identifiers supersede earlier local-ephemeral evaluator test IDs.
-
-## Replay
+## Replay and reconstruction
 
 Replay is non-mutating with respect to the original exact run, but its requested operation is new ecosystem history:
 
@@ -172,45 +167,39 @@ Replay is non-mutating with respect to the original exact run, but its requested
 REQUESTED -> SOURCE_RESOLVED -> EVALUATED -> RETURNED
 ```
 
-Each state receives an `MRO-*` Master Records operation receipt before the replay artifact can be returned.
-
-## Reconstruction
-
 Reconstruction does not re-execute the original consequence, but its operation trajectory is new ecosystem history:
 
 ```text
 REQUESTED -> SOURCE_RESOLVED -> ARTIFACT_DERIVED -> RETURNED
 ```
 
-Each state receives an `MRO-*` receipt before the reconstruction artifact can be returned.
+Each state receives an `MRO-*` receipt before the operation artifact can be returned.
 
-## Third-party hosting boundary
+## Third-party hosting and credential boundary
 
-Render, Vercel, GitHub Actions, or another hosted provider may be used as optional transport/compute. Their quota, availability, authentication, or deployment state cannot gate the sovereign route.
-
-The previous hosted-deployment gate is superseded. Hosted StegCore remains useful for public/live transport but is not required to establish the frozen evaluator production-validation records.
-
-## Credential boundary
-
-Protected runtime credentials remain under TV/TVC authority. The sovereign evaluator run does not require a public caller to manage Master Records bearer credentials and does not use GitHub credentials as StegVerse authority.
+Render, Vercel, GitHub Actions, or another hosted provider may be used as optional non-authorizing validation/transport. Their quota, availability, authentication, or deployment state cannot gate the sovereign route. Protected runtime credentials remain under TV/TVC authority. GitHub credentials are not StegVerse runtime authority.
 
 ## Authority-boundary preservation extension
 
 Tracking issue: `#25`.
-Merged implementation: PR `#26`, merge commit `d2b2bee3d61f414d0908105b1afdef7533234649`.
+Initial fixture implementation: PR `#26`, merge commit `d2b2bee3d61f414d0908105b1afdef7533234649`.
 
 The active integration goal is a participant-neutral extension of `Manifest_and_Receipt_Governance_Boundary.md` that tests whether an explicit T0 authority boundary remains reconstructably intact across downstream acknowledgement, attempted endorsement inference, attempted attribution/public association, replay, and reconstruction.
 
-Implemented fixture surfaces on `main`:
+Installed participant-neutral surfaces on `main`:
 
 ```text
 experiments/authority_boundary_preservation/README.md
 experiments/authority_boundary_preservation/fixture.json
 experiments/authority_boundary_preservation/validate_fixture.py
+experiments/authority_boundary_preservation/run_sovereign_experiment.py
 tests/test_authority_boundary_preservation_experiment.py
+tests/test_authority_boundary_sovereign_runner.py
+.github/workflows/authority-boundary-source-validation.yml
+claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json
 ```
 
-Current fixture invariant:
+Invariant:
 
 ```text
 UNDERSTANDING=true does not imply agreement, validation, endorsement, acceptance,
@@ -218,37 +207,85 @@ claim authority, publication authority, attribution authority,
 public-association authority, or delegation authority.
 ```
 
-The experiment remains explicitly participant-neutral. No external reviewer/framework identity, endorsement, compatibility, interoperability, attribution permission, or public association is encoded.
+The sovereign runner now prepares the exact fixture as canonical `PRODUCTION_VALIDATION` requests, requires ALLOW for acknowledgement and DENY for attempted authority widening, requires a ten-transition route and exact-run custody shape, then invokes replay and reconstruction and requires four operation receipts for each. It does not encode an external reviewer identity and requires no non-TV/TVC secret or token.
 
-Completion boundary:
+### Source validation — COMPLETE
+
+```text
+workflow: Authority Boundary Source Validation (Non-Authorizing)
+run: 31838347112
+job: 94889598424
+head: e629fa05f14a7b09a393417b179895e18095dcaf
+result: SUCCESS
+fixture validator: AUTHORITY_BOUNDARY_PRESERVED
+tests: 3 passed
+process GITHUB_TOKEN present: false
+process GH_TOKEN present: false
+credential_authority: TV/TVC
+production_activation_role: NONE
+```
+
+The GitHub runner platform reports its normal metadata-read token context, but the validation process explicitly proves `GITHUB_TOKEN` and `GH_TOKEN` are absent and anonymously materializes public source. This hosted run validates source only. It does not prove `SOVEREIGN_LOCAL` execution, TVC `ROUTE_ADMITTED`, production Master Records custody, or governed activation.
+
+### Completion boundary
 
 ```text
 fixture/specification installed on main: COMPLETE
-repository test wrapper installed on main: COMPLETE
-durable issue/PR/handoff state: COMPLETE
-fixture deterministic validator implementation: COMPLETE
-GitHub-hosted validation run: NOT_OBSERVED_FOR_PR_26
-sovereign SDK manifested run: PENDING
+fixture deterministic validation: COMPLETE
+sovereign runner source installed: COMPLETE
+runner contract tests: COMPLETE
+no-token/non-authorizing hosted source validation: COMPLETE
+implementation claim: RELEASED_TO_MACHINE_EXECUTION
+sovereign SDK manifested execution of this exact fixture: PENDING
 Master Records exact-run + route custody: PENDING
 replay operation custody: PENDING
 reconstruction operation custody: PENDING
 independent reviewer interpretation: PENDING_EXTERNAL
 ```
 
-No PR-triggered workflow run was observed for PR #26. A fixture-only PASS or static inspection must not be represented as a sovereign execution result. The goal completes only after the same boundary is submitted through the canonical sovereign SDK route and the resulting manifest, exact-run receipt, route transitions, replay operation receipts, reconstruction operation receipts, and final state are retained and independently inspectable.
+A source-validation PASS must not be represented as a sovereign execution result. Goal completion requires execution by the canonical sovereign SDK lane and retained immutable run/replay/reconstruction evidence.
 
-## Remaining work after evaluator handoff
+## Local model/runtime convergence for this session
 
-Evaluator handoff is no longer blocked. Remaining tasks are general hardening plus the active authority-boundary preservation extension:
+The session requirements to replace descriptive local-runtime selection and formally develop the local model have already converged on a completed canonical owner and must not be duplicated here.
 
 ```text
-authority-boundary preservation sovereign run (#25)
-operation retry/idempotency
-explicit failed-operation terminal state custody
-portable custody import/export CI execution
-backup/replication automation
-LLM-adapter convergence on the same manifested/custody-before-return invariant
-hosted transport activation where useful
+MERGED INTO: StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
+source state: COMPLETE_RELEASED
+formal model: stegverse-reference-lm-v1 COMPLETE_RELEASED
+local discovery/private launch/real inference/usage/proof: COMPLETE_RELEASED
+canonical validation: 31339534741 SUCCESS
+persistent endpoint validation: 31384116055 SUCCESS
+github_token_required: false
+third_party_inference_required: false
+credential authority: TV/TVC
+```
+
+Live same-carrier activation is separately machine-owned and must not be duplicated by this SDK/session:
+
+```text
+StegVerse-Labs/.github#60
+resident sovereign heartbeat -> TVC -> LLM-adapter -> master-records/orchestration
+last directly observed heartbeat: HB29
+release condition: fresh authorized fence >20 + real private model observation + TVC ROUTE_ADMITTED credential_requirement NONE + exact LLM-adapter execution + measured usage + same-execution Master Records reconstruction PASS
+```
+
+## Trade-readiness convergence
+
+The user-directed trade-ready goal is owned by `StegVerse-Labs/stegfin-governance`, not this SDK. Canonical continuation is `docs/STEGFIN_MIRROR_HANDOFF.md` and `task-state/STEGFIN-LIVE-ENTRY-003.json`. Source readiness is complete; wallet signing and broadcast are USER_ONLY; TV/TVC owns credentials/provider operation. The live terminal `WALLET_HANDOFF_READY` receipt has not been observed. No SDK or chat-session trade execution authority is inferred.
+
+## Remaining work
+
+```text
+authority-boundary sovereign execution/custody (#25): canonical sovereign SDK execution lane
+local-model live activation: MACHINE_OWNED StegVerse-Labs/.github#60 chain
+trade-ready wallet handoff: MACHINE_OWNED StegFin/TVC/.github continuation until WALLET_HANDOFF_READY; signing/broadcast USER_ONLY
+operation retry/idempotency: general SDK hardening
+explicit failed-operation terminal state custody: general SDK hardening
+portable custody import/export CI execution: general SDK hardening
+backup/replication automation: general SDK hardening
+LLM-adapter convergence on manifested/custody-before-return invariant: canonical adapter integration owner
+hosted transport activation: optional only
 ```
 
 ## Evaluator handoff state
@@ -261,7 +298,9 @@ manifested route custody: COMPLETE
 replay custody: COMPLETE
 reconstruction custody: COMPLETE
 third-party dependency: NONE
-three genuine manifest_receipt_id values: READY_TO_SEND
+three genuine frozen evaluator manifest_receipt_id values: READY_TO_SEND
+authority-boundary source runner: COMPLETE_VALIDATED
+authority-boundary exact sovereign run: PENDING_MACHINE_EXECUTION
 ```
 
-Interpretation of the frozen cases is intentionally left open to the external evaluator.
+Interpretation of the frozen cases and the future authority-boundary execution remains open to independent reviewers.
