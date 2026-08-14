@@ -23,6 +23,7 @@ SDK-PUBLIC-INSPECTION-CUSTODY-REPLAY-005: COMPLETE_SOVEREIGN_VALIDATION
 SDK-SOVEREIGN-PRODUCTION-VALIDATION-008: COMPLETE_VALIDATION_EVIDENCE_RETAINED
 SDK-AUTHORITY-BOUNDARY-PRESERVATION-001: ACTIVE_RUNNER_SOURCE_VALIDATED_PENDING_SOVEREIGN_EXECUTION
 SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002: COMPLETE_RELEASED_TO_MACHINE_EXECUTION
+SDK-USAGE-GOVERNED-OPERATION-WIRING-002: COMPLETE_VALIDATED_MERGED
 ```
 
 No person-specific evaluator route is canonical.
@@ -72,40 +73,11 @@ SDK entry
 -> SDK return
 ```
 
-A sovereign production-validation execution is required to retain ten ordered route transitions before advancement. Replay and reconstruction are separately recorded four-transition operations and do not re-execute the original consequence.
+Replay and reconstruction are separately recorded operations and do not re-execute the original consequence.
 
 ## Authority-boundary preservation extension
 
-Tracking issue: `#25`.
-Initial fixture implementation: PR `#26`, merge commit `d2b2bee3d61f414d0908105b1afdef7533234649`.
-
-The active integration goal is a participant-neutral extension of `Manifest_and_Receipt_Governance_Boundary.md` that tests whether an explicit T0 authority boundary remains reconstructably intact across downstream acknowledgement, attempted endorsement inference, attempted attribution/public association, replay, and reconstruction.
-
-Installed participant-neutral surfaces on `main`:
-
-```text
-experiments/authority_boundary_preservation/README.md
-experiments/authority_boundary_preservation/fixture.json
-experiments/authority_boundary_preservation/validate_fixture.py
-experiments/authority_boundary_preservation/run_sovereign_experiment.py
-tests/test_authority_boundary_preservation_experiment.py
-tests/test_authority_boundary_sovereign_runner.py
-.github/workflows/authority-boundary-source-validation.yml
-claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json
-docs/SESSION_GOAL_INVENTORY_2026-08-14_AUTHORITY_BOUNDARY_LOCAL_RUNTIME.md
-```
-
-Invariant:
-
-```text
-UNDERSTANDING=true does not imply agreement, validation, endorsement, acceptance,
-claim authority, publication authority, attribution authority,
-public-association authority, or delegation authority.
-```
-
-The sovereign runner prepares the exact fixture as canonical `PRODUCTION_VALIDATION` requests, requires ALLOW for acknowledgement and DENY for attempted authority widening, requires a ten-transition route and exact-run custody shape, then invokes replay and reconstruction and requires four operation receipts for each. It does not encode an external reviewer identity and requires no non-TV/TVC secret or token.
-
-### Source validation — COMPLETE
+Tracking issue: `#25`. Source implementation and non-authorizing hosted validation are installed and released to the canonical sovereign execution lane. Source validation evidence remains:
 
 ```text
 workflow: Authority Boundary Source Validation (Non-Authorizing)
@@ -121,29 +93,11 @@ credential_authority: TV/TVC
 production_activation_role: NONE
 ```
 
-The GitHub runner platform reports its normal metadata-read token context, but the validation process explicitly proves `GITHUB_TOKEN` and `GH_TOKEN` are absent and anonymously materializes public source. This hosted run validates source only. It does not prove `SOVEREIGN_LOCAL` execution, TVC `ROUTE_ADMITTED`, production Master Records custody, or governed activation.
+Remaining exact sovereign execution/custody is machine-owned and must not be represented as completed merely from source validation.
 
-### Completion boundary
+## Local model/runtime convergence
 
-```text
-fixture/specification installed on main: COMPLETE
-fixture deterministic validation: COMPLETE
-sovereign runner source installed: COMPLETE
-runner contract tests: COMPLETE
-no-token/non-authorizing hosted source validation: COMPLETE
-implementation claim: RELEASED_TO_MACHINE_EXECUTION
-sovereign SDK manifested execution of this exact fixture: PENDING
-Master Records exact-run + route custody: PENDING
-replay operation custody: PENDING
-reconstruction operation custody: PENDING
-independent reviewer interpretation: PENDING_EXTERNAL
-```
-
-A source-validation PASS must not be represented as a sovereign execution result. Goal completion requires execution by the canonical sovereign SDK lane and retained immutable run/replay/reconstruction evidence.
-
-## Local model/runtime convergence for this session
-
-The requirements to replace descriptive local-runtime selection and formally develop the local model have already converged on a completed canonical owner and must not be duplicated here.
+The session requirements to replace descriptive local-runtime selection and formally develop the local model are complete and released in the canonical owner:
 
 ```text
 MERGED INTO: StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
@@ -157,20 +111,36 @@ third_party_inference_required: false
 credential authority: TV/TVC
 ```
 
-Live same-carrier activation is separately machine-owned and must not be duplicated by this SDK/session:
+Live same-carrier activation remains separately machine-owned:
 
 ```text
 StegVerse-Labs/.github#60
 resident sovereign heartbeat -> TVC -> LLM-adapter -> master-records/orchestration
-last directly observed heartbeat: HB29
-release condition: fresh authorized fence >20 + real private model observation + TVC ROUTE_ADMITTED credential_requirement NONE + exact LLM-adapter execution + measured usage + same-execution Master Records reconstruction PASS
+release condition: fresh authorized fence + real private model observation + TVC ROUTE_ADMITTED credential_requirement NONE + exact LLM-adapter execution + measured usage + same-execution Master Records reconstruction PASS
 ```
 
-## Trade-readiness convergence and archive dependency
+No chat/session implementation claim remains for local model/runtime work.
 
-The user-directed trade-ready goal is owned by `StegVerse-Labs/stegfin-governance`, not this SDK. Canonical continuation is `docs/STEGFIN_MIRROR_HANDOFF.md` and `task-state/STEGFIN-LIVE-ENTRY-003.json`.
+## SDK usage observability convergence
+
+Actual governed option `0`/`1`/`2` observation wiring is validated and merged. Canonical source/control continuation is:
 
 ```text
+StegVerse-org/StegVerse-SDK/SDK_USAGE_OBSERVABILITY_MIRROR_HANDOFF.md
+-> StegVerse-Labs/StegCore/docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md / issue #85 for provider binding
+-> StegVerse-Labs/TVC/tasks/TVC-SDK-USAGE-NOTIFICATION-RELAY-001.json
+-> StegVerse-Labs/TVC PR #24
+-> StegVerse-Labs/StegCore#117
+```
+
+The TVC relay source is implemented and its implementation claim is released. Exact relay test execution is durably blocked on validation-runner allocation. An explicit rerun of Test Readiness run `31838966908`, rerun job `94896794181`, again failed before executable steps with no relay tests executed. This is a validation-infrastructure blocker, not a source PASS or failure. The relay handoff explicitly records `session_continuation_required: false` and assigns continuation to repository-native validation and TV/TVC runtime authority.
+
+## Trade-readiness convergence
+
+The user-directed trade-ready goal is owned by `StegVerse-Labs/stegfin-governance`.
+
+```text
+MERGED INTO: StegVerse-Labs/stegfin-governance/docs/STEGFIN_MIRROR_HANDOFF.md
 trade-ready source deliverables: 7/8 complete
 trade-ready developed files: 24/24
 terminal machine execution to WALLET_HANDOFF_READY: PENDING
@@ -178,36 +148,58 @@ credential authority: TV/TVC
 non-TV/TVC provider secret/token use: PROHIBITED
 wallet signing authority: USER_ONLY
 broadcast authority: USER_ONLY
-StegFin session_role: DISTINCT_VALIDATION_RECONCILIATION_SUPPORT
-StegFin thread_archive_ready: false
+session_role: MERGED_INTO_CANONICAL_MACHINE_WORKSTREAM
+thread_archive_ready: true
+product_activation: incomplete
 ```
 
-No SDK or chat-session trade execution authority is inferred. Existing StegFin/TVC/.github workers own the live execution path and must not be duplicated. However, the canonical StegFin handoff explicitly retains this user-directed session in a distinct validation/reconciliation support role until `WALLET_HANDOFF_READY` is observed or a later canonical record releases that support role. Therefore cross-repository session archival is not yet allowed even though the SDK implementation claim is released.
+Canonical execution remains:
+
+```text
+StegVerse-Labs/TVC/tasks/TVC-CAPABILITY-RUNTIME-002.json
+-> StegVerse-Labs/.github/handoffs/STEGFIN-CONTINUITY-CARRIER-007.json
+-> WALLET_HANDOFF_READY
+-> USER_ONLY review/sign/broadcast
+```
+
+This release of the chat support role does not claim the trade occurred or that product activation is complete.
 
 ## Session consolidation
 
-Canonical cross-session inventory: `docs/SESSION_GOAL_INVENTORY_2026-08-14_AUTHORITY_BOUNDARY_LOCAL_RUNTIME.md`.
+Canonical cross-session inventory: `docs/SESSION_GOAL_INVENTORY_2026-08-14_AUTHORITY_BOUNDARY_LOCAL_RUNTIME.md` plus the canonical handoffs named above.
 
-All SDK-specific unique requirements are implemented/validated or bound to exact durable owners. No SDK implementation claim remains with this chat session.
+```text
+local model/runtime implementation: COMPLETE_RELEASED
+formal local model development: COMPLETE_RELEASED
+no non-TV/TVC secret/token rule: DURABLY PRESERVED
+SDK actual governed-operation observability: COMPLETE_VALIDATED_MERGED
+TVC relay source: IMPLEMENTED; IMPLEMENTATION CLAIM RELEASED; VALIDATION BLOCKED WITH MACHINE-OBSERVABLE CONDITION
+trade-ready source/support: COMPLETE_OR_DURABLY_MACHINE_OWNED; chat support role RELEASED
+authority-boundary sovereign execution: MACHINE_OWNED
+```
 
-## Remaining machine-owned/external work
+All unique session requirements are implemented, explicitly superseded, or durably transferred. No remaining execution, validation, integration, propagation, reconciliation, or observation responsibility requires undocumented information from this conversation.
+
+## Remaining repository/machine-owned work
 
 ```text
 authority-boundary sovereign execution/custody (#25): canonical sovereign SDK execution lane
 local-model live activation: MACHINE_OWNED StegVerse-Labs/.github#60 chain
-trade-ready wallet handoff: MACHINE_OWNED StegFin/TVC/.github continuation until WALLET_HANDOFF_READY; signing/broadcast USER_ONLY
-independent authority-boundary interpretation: independent reviewer; no attribution implied
-public propagation after release: Site/Publisher/admissibility-wiki/stegguardian-wiki consumer release owners
+manifest receipt provider binding: StegVerse-Labs/StegCore#85 + master-records/orchestration
+TVC SDK usage relay validation/merge/live dispatch: StegVerse-Labs/TVC task + PR #24 + TV/TVC runtime
+trade-ready wallet handoff: MACHINE_OWNED StegFin/TVC/.github until WALLET_HANDOFF_READY; signing/broadcast USER_ONLY
+public propagation after release: Site/Publisher/admissibility-wiki/stegguardian-wiki only when their release criteria are actually reached
 ```
 
 ## Archive condition
 
 ```text
-SDK implementation claims remaining: 0
-SDK source work archive-ready: true
-cross-repository session archive-ready: false
-blocking canonical handoff: StegVerse-Labs/stegfin-governance/docs/STEGFIN_MIRROR_HANDOFF.md
-release condition: WALLET_HANDOFF_READY observed OR later canonical StegFin record explicitly releases DISTINCT_VALIDATION_RECONCILIATION_SUPPORT
+SDK implementation claims remaining with chat: 0
+cross-repository session claims remaining with chat: 0
+unique requirements existing only in chat: 0
+machine-owned unresolved work has durable owners/release conditions: true
+cross-repository session archive-ready: true
+product activation complete: false
 ```
 
-This handoff is sufficient to continue SDK and authority-boundary work without chat history. The current conversation must remain only for the distinct StegFin validation/reconciliation support role required by its canonical handoff, not for duplicate SDK/local-runtime implementation.
+The conversation may be archived without impairing continuation. Pending product/runtime work remains active only in the canonical repositories, task registries, issues, handoffs, workers, and authority boundaries above.
