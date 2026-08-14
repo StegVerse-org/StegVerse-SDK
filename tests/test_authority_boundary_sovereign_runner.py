@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 from pathlib import Path
 
 from experiments.authority_boundary_preservation import run_sovereign_experiment as runner
@@ -36,7 +37,7 @@ def test_requests_preserve_no_authority_and_no_secret_boundaries():
         assert "private_key" not in text
 
 
-def test_runner_requires_real_custody_shape_without_claiming_external_execution(monkeypatch, tmp_path):
+def test_runner_requires_real_custody_shape_without_claiming_external_execution():
     receipt_counter = {"value": 0}
 
     def fake_run(request, *, custody_db, host_identity):
@@ -69,11 +70,20 @@ def test_runner_requires_real_custody_shape_without_claiming_external_execution(
             "operation_receipt_ids": ["MRO-C1", "MRO-C2", "MRO-C3", "MRO-C4"],
         }
 
-    monkeypatch.setattr(runner, "run_sovereign_validation", fake_run)
-    monkeypatch.setattr(runner, "replay_sovereign", fake_replay)
-    monkeypatch.setattr(runner, "reconstruct_sovereign", fake_reconstruct)
+    original_run = runner.run_sovereign_validation
+    original_replay = runner.replay_sovereign
+    original_reconstruct = runner.reconstruct_sovereign
+    try:
+        runner.run_sovereign_validation = fake_run
+        runner.replay_sovereign = fake_replay
+        runner.reconstruct_sovereign = fake_reconstruct
+        with tempfile.TemporaryDirectory(prefix="authority-boundary-test-") as tmp:
+            result = runner.run_experiment(fixture_path=FIXTURE, custody_db=Path(tmp) / "custody.db")
+    finally:
+        runner.run_sovereign_validation = original_run
+        runner.replay_sovereign = original_replay
+        runner.reconstruct_sovereign = original_reconstruct
 
-    result = runner.run_experiment(fixture_path=FIXTURE, custody_db=tmp_path / "custody.db")
     assert receipt_counter["value"] == 3
     assert result["status"] == "AUTHORITY_BOUNDARY_SOVEREIGN_EXECUTION_PASS"
     assert result["authority_boundary_preserved"] is True
