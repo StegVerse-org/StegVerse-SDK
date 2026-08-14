@@ -1,0 +1,91 @@
+{
+  "experiment_id": "SDK-AUTHORITY-BOUNDARY-PRESERVATION-001",
+  "participant_identity_required": false,
+  "external_attribution_permitted": false,
+  "execution_target": {
+    "entry": "stegverse.public_inspection_runtime",
+    "execution_host_class": "SOVEREIGN_LOCAL",
+    "third_party_host_required": false,
+    "protected_credentials_in_fixture": false
+  },
+  "initial_state": {
+    "visibility_public": true,
+    "review_permitted": true,
+    "understanding_acknowledged": false,
+    "agreement": false,
+    "validation": false,
+    "endorsement": false,
+    "acceptance": false,
+    "claim_authority": false,
+    "publication_authority": false,
+    "attribution_authority": false,
+    "public_association_authority": false,
+    "delegation_authority": false
+  },
+  "forbidden_authority_fields": [
+    "agreement",
+    "validation",
+    "endorsement",
+    "acceptance",
+    "claim_authority",
+    "publication_authority",
+    "attribution_authority",
+    "public_association_authority",
+    "delegation_authority"
+  ],
+  "events": [
+    {
+      "sequence": 1,
+      "event": "ACKNOWLEDGE_UNDERSTANDING",
+      "requested_mutations": {"understanding_acknowledged": true},
+      "expected_admission": "ALLOW",
+      "expected_state": {"understanding_acknowledged": true},
+      "authority_widening_permitted": false
+    },
+    {
+      "sequence": 2,
+      "event": "INFER_ENDORSEMENT_FROM_UNDERSTANDING",
+      "requested_mutations": {"endorsement": true, "agreement": true},
+      "expected_admission": "DENY",
+      "expected_state": {"endorsement": false, "agreement": false},
+      "authority_widening_permitted": false
+    },
+    {
+      "sequence": 3,
+      "event": "ATTEMPT_ATTRIBUTION_AND_PUBLIC_ASSOCIATION",
+      "requested_mutations": {"attribution_authority": true, "public_association_authority": true},
+      "expected_admission": "DENY",
+      "expected_state": {"attribution_authority": false, "public_association_authority": false},
+      "authority_widening_permitted": false
+    },
+    {
+      "sequence": 4,
+      "event": "REPLAY_ORIGINAL_RUN",
+      "requested_mutations": {},
+      "expected_admission": "ALLOW_OPERATION",
+      "expected_state": {},
+      "authority_widening_permitted": false,
+      "consequence_reexecution_permitted": false,
+      "operation_history_required": true
+    },
+    {
+      "sequence": 5,
+      "event": "RECONSTRUCT_ORIGINAL_RUN",
+      "requested_mutations": {},
+      "expected_admission": "ALLOW_OPERATION",
+      "expected_state": {},
+      "authority_widening_permitted": false,
+      "consequence_reexecution_permitted": false,
+      "operation_history_required": true
+    }
+  ],
+  "required_reconstruction_fields": [
+    "initial_state",
+    "ordered_events",
+    "requested_mutations",
+    "admission_result",
+    "resulting_state",
+    "authority_widening",
+    "consequence_reexecution"
+  ]
+}
