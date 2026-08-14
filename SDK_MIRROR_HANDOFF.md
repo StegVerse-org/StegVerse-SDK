@@ -133,11 +133,39 @@ StegVerse-org/StegVerse-SDK/SDK_USAGE_OBSERVABILITY_MIRROR_HANDOFF.md
 -> StegVerse-Labs/StegCore#117
 ```
 
-The TVC relay source is implemented and its implementation claim is released. Exact relay test execution is durably blocked on validation-runner allocation. An explicit rerun of Test Readiness run `31838966908`, rerun job `94896794181`, again failed before executable steps with no relay tests executed. This is a validation-infrastructure blocker, not a source PASS or failure. The relay handoff explicitly records `session_continuation_required: false` and assigns continuation to repository-native validation and TV/TVC runtime authority.
+The TVC relay source is implemented and its implementation claim is released. Exact relay test execution is durably blocked on validation-runner allocation. An explicit rerun of Test Readiness run `31838966908`, rerun job `94896794181`, again failed before executable steps with no relay tests executed. This is a validation-infrastructure blocker, not a source PASS or failure.
+
+## Assist-workers scope
+
+Canonical interpretation is recorded in `docs/SESSION_GOAL_INVENTORY_2026-08-14_AUTHORITY_BOUNDARY_LOCAL_RUNTIME.md`.
+
+```text
+Assist workers := assist workers/tasks/claims traceable to goals established in this session.
+Cross-session convergence := coordination evidence, not authority to replace this session's goal hierarchy.
+```
+
+Current directly related active/support worker graph:
+
+```text
+StegVerse-org/StegVerse-SDK#25
+  authority-boundary sovereign execution/custody
+
+StegVerse-Labs/StegCore#85
+  manifest-receipt admitted provider binding and immutable replay/reconstruction proof
+
+StegVerse-Labs/TVC#20
+  TV/TVC-owned bounded repository-operation transport supporting AE/StegCore workers without exposing credentials
+
+StegVerse-Labs/TVC#24
+  disclosure-safe SDK usage notification relay
+  -> StegVerse-Labs/StegCore#117
+```
+
+The session may assist these workers through distinct validation, integration, reconciliation, and non-conflicting dependency work. It must not create competing execution lanes, custody authorities, receipt-ID algorithms, credentials, or worker claims.
 
 ## Trade-readiness convergence
 
-The user-directed trade-ready goal is owned by `StegVerse-Labs/stegfin-governance`.
+The explicitly added trade-ready goal is owned by `StegVerse-Labs/stegfin-governance`.
 
 ```text
 MERGED INTO: StegVerse-Labs/stegfin-governance/docs/STEGFIN_MIRROR_HANDOFF.md
@@ -149,7 +177,6 @@ non-TV/TVC provider secret/token use: PROHIBITED
 wallet signing authority: USER_ONLY
 broadcast authority: USER_ONLY
 session_role: MERGED_INTO_CANONICAL_MACHINE_WORKSTREAM
-thread_archive_ready: true
 product_activation: incomplete
 ```
 
@@ -162,11 +189,11 @@ StegVerse-Labs/TVC/tasks/TVC-CAPABILITY-RUNTIME-002.json
 -> USER_ONLY review/sign/broadcast
 ```
 
-This release of the chat support role does not claim the trade occurred or that product activation is complete.
+StegFin is an adjacent explicitly added goal. It does not redefine `assist workers`, and unresolved StegFin work does not imply that no workers exist on the originating authority-boundary/SDK goals.
 
 ## Session consolidation
 
-Canonical cross-session inventory: `docs/SESSION_GOAL_INVENTORY_2026-08-14_AUTHORITY_BOUNDARY_LOCAL_RUNTIME.md` plus the canonical handoffs named above.
+Canonical session inventory: `docs/SESSION_GOAL_INVENTORY_2026-08-14_AUTHORITY_BOUNDARY_LOCAL_RUNTIME.md` plus the canonical handoffs named above.
 
 ```text
 local model/runtime implementation: COMPLETE_RELEASED
@@ -174,20 +201,22 @@ formal local model development: COMPLETE_RELEASED
 no non-TV/TVC secret/token rule: DURABLY PRESERVED
 SDK actual governed-operation observability: COMPLETE_VALIDATED_MERGED
 TVC relay source: IMPLEMENTED; IMPLEMENTATION CLAIM RELEASED; VALIDATION BLOCKED WITH MACHINE-OBSERVABLE CONDITION
-trade-ready source/support: COMPLETE_OR_DURABLY_MACHINE_OWNED; chat support role RELEASED
-authority-boundary sovereign execution: MACHINE_OWNED
+trade-ready source/support: COMPLETE_OR_DURABLY_MACHINE_OWNED
+authority-boundary sovereign execution: MACHINE_OWNED / DISTINCT SESSION SUPPORT REMAINS
+manifest-receipt provider binding: ACTIVE CANONICAL INTEGRATION / DISTINCT SESSION SUPPORT REMAINS
 ```
 
-All unique session requirements are implemented, explicitly superseded, or durably transferred. No remaining execution, validation, integration, propagation, reconciliation, or observation responsibility requires undocumented information from this conversation.
+Unique requirements are durably recorded, but workers related to this session remain assistable. The session therefore retains a distinct support role rather than being kept alive merely to poll unrelated work.
 
-## Remaining repository/machine-owned work
+## Remaining repository/machine-owned work relevant to this session
 
 ```text
 authority-boundary sovereign execution/custody (#25): canonical sovereign SDK execution lane
-local-model live activation: MACHINE_OWNED StegVerse-Labs/.github#60 chain
 manifest receipt provider binding: StegVerse-Labs/StegCore#85 + master-records/orchestration
-TVC SDK usage relay validation/merge/live dispatch: StegVerse-Labs/TVC task + PR #24 + TV/TVC runtime
-trade-ready wallet handoff: MACHINE_OWNED StegFin/TVC/.github until WALLET_HANDOFF_READY; signing/broadcast USER_ONLY
+TVC bounded repository-operation transport validation/admission: StegVerse-Labs/TVC#20
+TVC SDK usage relay validation/merge/live dispatch: StegVerse-Labs/TVC#24 + TV/TVC runtime -> StegCore#117
+local-model live activation: MACHINE_OWNED StegVerse-Labs/.github#60 chain
+trade-ready wallet handoff: MACHINE_OWNED adjacent StegFin/TVC/.github until WALLET_HANDOFF_READY; signing/broadcast USER_ONLY
 public propagation after release: Site/Publisher/admissibility-wiki/stegguardian-wiki only when their release criteria are actually reached
 ```
 
@@ -195,11 +224,11 @@ public propagation after release: Site/Publisher/admissibility-wiki/stegguardian
 
 ```text
 SDK implementation claims remaining with chat: 0
-cross-repository session claims remaining with chat: 0
 unique requirements existing only in chat: 0
-machine-owned unresolved work has durable owners/release conditions: true
-cross-repository session archive-ready: true
+related workers still available for distinct support: true
+session distinct support role: ACTIVE
+cross-repository session archive-ready: false
 product activation complete: false
 ```
 
-The conversation may be archived without impairing continuation. Pending product/runtime work remains active only in the canonical repositories, task registries, issues, handoffs, workers, and authority boundaries above.
+Do not archive while related authority-boundary/SDK workers remain and this session can provide distinct validation/integration/reconciliation support without colliding with their claims. Archive only after those support obligations are complete or durably released and no worker related to this session remains to assist.
