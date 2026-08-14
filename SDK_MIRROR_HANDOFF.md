@@ -37,7 +37,7 @@ heartbeat is transaction/routing carrier state
 successful governed SDK run without Master Records custody: PROHIBITED
 successful replay/reconstruction return without operation-transition custody: PROHIBITED
 caller projection may suppress Master Records custody: FALSE
-third-party host required for execution or validation: FALSE
+third_party_host_required: FALSE
 manifest_receipt_id grants authority: FALSE
 GitHub grants runtime authority: FALSE
 credential authority: TV/TVC
@@ -73,8 +73,6 @@ SDK entry
 ```
 
 A sovereign production-validation execution is required to retain ten ordered route transitions before advancement. Replay and reconstruction are separately recorded four-transition operations and do not re-execute the original consequence.
-
-Canonical component bindings remain pinned to the retained sovereign evaluator validation. The SDK does not embed a parallel evaluator or Master Records algorithm.
 
 ## Authority-boundary preservation extension
 
@@ -168,7 +166,7 @@ last directly observed heartbeat: HB29
 release condition: fresh authorized fence >20 + real private model observation + TVC ROUTE_ADMITTED credential_requirement NONE + exact LLM-adapter execution + measured usage + same-execution Master Records reconstruction PASS
 ```
 
-## Trade-readiness convergence
+## Trade-readiness convergence and archive dependency
 
 The user-directed trade-ready goal is owned by `StegVerse-Labs/stegfin-governance`, not this SDK. Canonical continuation is `docs/STEGFIN_MIRROR_HANDOFF.md` and `task-state/STEGFIN-LIVE-ENTRY-003.json`.
 
@@ -180,15 +178,17 @@ credential authority: TV/TVC
 non-TV/TVC provider secret/token use: PROHIBITED
 wallet signing authority: USER_ONLY
 broadcast authority: USER_ONLY
+StegFin session_role: DISTINCT_VALIDATION_RECONCILIATION_SUPPORT
+StegFin thread_archive_ready: false
 ```
 
-No SDK or chat-session trade execution authority is inferred. Existing StegFin/TVC/.github workers own the live execution path and must not be duplicated.
+No SDK or chat-session trade execution authority is inferred. Existing StegFin/TVC/.github workers own the live execution path and must not be duplicated. However, the canonical StegFin handoff explicitly retains this user-directed session in a distinct validation/reconciliation support role until `WALLET_HANDOFF_READY` is observed or a later canonical record releases that support role. Therefore cross-repository session archival is not yet allowed even though the SDK implementation claim is released.
 
 ## Session consolidation
 
 Canonical cross-session inventory: `docs/SESSION_GOAL_INVENTORY_2026-08-14_AUTHORITY_BOUNDARY_LOCAL_RUNTIME.md`.
 
-All session-specific requirements are now either implemented/validated or bound to exact durable owners. The remaining incomplete operations are machine-owned or external-interpretation boundaries; no implementation claim remains with this chat session.
+All SDK-specific unique requirements are implemented/validated or bound to exact durable owners. No SDK implementation claim remains with this chat session.
 
 ## Remaining machine-owned/external work
 
@@ -203,9 +203,11 @@ public propagation after release: Site/Publisher/admissibility-wiki/stegguardian
 ## Archive condition
 
 ```text
-session_unique_implementation_claims_remaining: 0
-thread_archive_ready: true
-product_activation: INCOMPLETE_MACHINE_OWNED
+SDK implementation claims remaining: 0
+SDK source work archive-ready: true
+cross-repository session archive-ready: false
+blocking canonical handoff: StegVerse-Labs/stegfin-governance/docs/STEGFIN_MIRROR_HANDOFF.md
+release condition: WALLET_HANDOFF_READY observed OR later canonical StegFin record explicitly releases DISTINCT_VALIDATION_RECONCILIATION_SUPPORT
 ```
 
-This session no longer owns implementation, validation, integration, propagation, reconciliation, or observation work. Product activation is not complete, but every unfinished goal has a named durable continuation owner and machine-observable release condition. The complete session state is recoverable from this handoff, issue #25, the released claim, and the consolidated session inventory without relying on chat history.
+This handoff is sufficient to continue SDK and authority-boundary work without chat history. The current conversation must remain only for the distinct StegFin validation/reconciliation support role required by its canonical handoff, not for duplicate SDK/local-runtime implementation.
