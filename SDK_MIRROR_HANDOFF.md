@@ -21,7 +21,7 @@ SDK-PUBLIC-INSPECTION-GOVERNED-BINDING-002: COMPLETE_STATIC_VALIDATED_MERGED
 SDK-PUBLIC-INSPECTION-GOVERNED-TEST-004: SUPERSEDED_BY_CUSTODY_BACKED_RUNTIME
 SDK-PUBLIC-INSPECTION-CUSTODY-REPLAY-005: COMPLETE_SOVEREIGN_VALIDATION
 SDK-SOVEREIGN-PRODUCTION-VALIDATION-008: COMPLETE_VALIDATION_EVIDENCE_RETAINED
-SDK-AUTHORITY-BOUNDARY-PRESERVATION-001: ACTIVE_FIXTURE_IMPLEMENTED_PENDING_SOVEREIGN_RUN
+SDK-AUTHORITY-BOUNDARY-PRESERVATION-001: ACTIVE_FIXTURE_MERGED_PENDING_SOVEREIGN_RUN
 ```
 
 No person-specific evaluator route is canonical.
@@ -197,10 +197,11 @@ Protected runtime credentials remain under TV/TVC authority. The sovereign evalu
 ## Authority-boundary preservation extension
 
 Tracking issue: `#25`.
+Merged implementation: PR `#26`, merge commit `d2b2bee3d61f414d0908105b1afdef7533234649`.
 
-The next integration goal is a participant-neutral extension of `Manifest_and_Receipt_Governance_Boundary.md` that tests whether an explicit T0 authority boundary remains reconstructably intact across downstream acknowledgement, attempted endorsement inference, attempted attribution/public association, replay, and reconstruction.
+The active integration goal is a participant-neutral extension of `Manifest_and_Receipt_Governance_Boundary.md` that tests whether an explicit T0 authority boundary remains reconstructably intact across downstream acknowledgement, attempted endorsement inference, attempted attribution/public association, replay, and reconstruction.
 
-Implemented fixture surfaces on `feat/authority-boundary-preservation-experiment`:
+Implemented fixture surfaces on `main`:
 
 ```text
 experiments/authority_boundary_preservation/README.md
@@ -222,10 +223,11 @@ The experiment remains explicitly participant-neutral. No external reviewer/fram
 Completion boundary:
 
 ```text
-fixture/specification installed: COMPLETE
-repository test wrapper installed: COMPLETE
-branch/issue durable task state: COMPLETE
-fixture-only deterministic validation: PENDING_CI_OR_LOCAL_EXECUTION
+fixture/specification installed on main: COMPLETE
+repository test wrapper installed on main: COMPLETE
+durable issue/PR/handoff state: COMPLETE
+fixture deterministic validator implementation: COMPLETE
+GitHub-hosted validation run: NOT_OBSERVED_FOR_PR_26
 sovereign SDK manifested run: PENDING
 Master Records exact-run + route custody: PENDING
 replay operation custody: PENDING
@@ -233,7 +235,7 @@ reconstruction operation custody: PENDING
 independent reviewer interpretation: PENDING_EXTERNAL
 ```
 
-A fixture-only PASS must not be represented as a sovereign execution result. The goal completes only after the same boundary is submitted through the canonical sovereign SDK route and the resulting manifest, exact-run receipt, route transitions, replay operation receipts, reconstruction operation receipts, and final state are retained and independently inspectable.
+No PR-triggered workflow run was observed for PR #26. A fixture-only PASS or static inspection must not be represented as a sovereign execution result. The goal completes only after the same boundary is submitted through the canonical sovereign SDK route and the resulting manifest, exact-run receipt, route transitions, replay operation receipts, reconstruction operation receipts, and final state are retained and independently inspectable.
 
 ## Remaining work after evaluator handoff
 
