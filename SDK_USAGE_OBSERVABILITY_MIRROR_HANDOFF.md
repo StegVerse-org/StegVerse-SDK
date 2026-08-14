@@ -7,7 +7,9 @@ goal_id: SDK-USAGE-OBSERVABILITY-001
 repository: StegVerse-org/StegVerse-SDK
 branch: feat/sdk-usage-observability
 parent_handoff: SDK_MIRROR_HANDOFF.md
-implementation_state: INSTALLED_UNVALIDATED
+pull_request: #27
+implementation_state: INSTALLED_PARTIALLY_WIRED
+validation_state: HOSTED_TESTS_PASS
 release_state: NOT_RELEASED
 ```
 
@@ -44,6 +46,7 @@ stegverse/sdk_usage_observability.py
 stegverse/cli.py
 tests/test_sdk_usage_observability.py
 tests/test_cli_sdk_usage_observability.py
+.github/workflows/sdk-usage-observability.yml
 SDK_USAGE_OBSERVABILITY_MIRROR_HANDOFF.md
 ```
 
@@ -113,6 +116,10 @@ The outbox is intended for a TV/TVC-owned bridge. The SDK itself does not hold o
 
 Usage observation is intentionally non-authoritative. If its local ledger/outbox cannot be written or validated, the CLI emits an explicit warning but the governance-navigation operation is not converted into an authorization failure.
 
+## Hosted validation evidence
+
+PR #27 head `4ed7bedaa07163a8ddaf4cc998a127aa2454d470` completed `SDK Usage Observability Validation / validate` with `success` on 2026-08-14. The validation workflow materializes the public source anonymously with `permissions: {}`, asserts `GITHUB_TOKEN` and `GH_TOKEN` are absent, installs the branch, and executes the dedicated observability tests.
+
 ## Completion requirements
 
 ```text
@@ -125,8 +132,9 @@ Usage observation is intentionally non-authoritative. If its local ledger/outbox
 [done] local safe-notification outbox installed
 [done] payload/authority non-disclosure invariants installed
 [done] tests installed
-[pending] hosted/repository tests PASS
-[pending] open and merge implementation PR
+[done] hosted/repository observability tests PASS
+[done] implementation PR #27 open and mergeable
+[pending] merge PR #27
 [pending] wire actual option 0/1/2 governed execution call sites to `record_governed_operation`
 [pending] connect TV/TVC outbox consumer to StegCore repository-dispatch notification projection
 [pending] first real GitHub notification observed
@@ -136,4 +144,4 @@ Usage observation is intentionally non-authoritative. If its local ledger/outbox
 
 ## Activation boundary
 
-Menu-selection counting is installed on the feature branch. Full SDK usage observability is not ACTIVATED until the branch is merged/released, actual option `0`/`1`/`2` governed operations are instrumented at their canonical execution call sites, and a TV/TVC-owned bridge successfully projects a real event to the StegCore notification issue.
+Menu-selection counting is implemented and hosted-test validated on the feature branch. Full SDK usage observability is not ACTIVATED until the branch is merged/released, actual option `0`/`1`/`2` governed operations are instrumented at their canonical execution call sites, and a TV/TVC-owned bridge successfully projects a real event to the StegCore notification issue.
