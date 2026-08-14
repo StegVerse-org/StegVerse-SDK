@@ -8,6 +8,7 @@ This record transfers the current session's unique requirements into durable rep
 credential_authority: TV/TVC
 non-TV/TVC secret/token use: PROHIBITED
 GitHub token runtime authority: NONE
+session_unique_implementation_claims_remaining: 0
 ```
 
 ## Execution inventory
@@ -75,4 +76,4 @@ public propagation:
 
 ## Session consolidation
 
-All unique requirements identified in this session are either implemented/validated or transferred to a named canonical owner. Product activation remains incomplete in several machine-owned lanes, but no duplicate chat-session implementation authority follows from that incompleteness. The session may be archived once this inventory and the corresponding SDK handoff/issue state are verified current and no new user-specific requirement remains only in chat.
+All unique requirements identified in this session are either implemented/validated or transferred to a named canonical owner. Product activation remains incomplete in several machine-owned lanes, but no duplicate chat-session implementation authority follows from that incompleteness. Canonical continuation is `SDK_MIRROR_HANDOFF.md`, issue #25, the released claim, the micro-node runtime handoff, `.github#60`, and the StegFin handoff/task state. The complete thread is no longer required for project execution.
