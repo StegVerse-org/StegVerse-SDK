@@ -21,6 +21,7 @@ SDK-PUBLIC-INSPECTION-GOVERNED-BINDING-002: COMPLETE_STATIC_VALIDATED_MERGED
 SDK-PUBLIC-INSPECTION-GOVERNED-TEST-004: SUPERSEDED_BY_CUSTODY_BACKED_RUNTIME
 SDK-PUBLIC-INSPECTION-CUSTODY-REPLAY-005: COMPLETE_SOVEREIGN_VALIDATION
 SDK-SOVEREIGN-PRODUCTION-VALIDATION-008: COMPLETE_VALIDATION_EVIDENCE_RETAINED
+SDK-AUTHORITY-BOUNDARY-PRESERVATION-001: ACTIVE_FIXTURE_IMPLEMENTED_PENDING_SOVEREIGN_RUN
 ```
 
 No person-specific evaluator route is canonical.
@@ -193,11 +194,53 @@ The previous hosted-deployment gate is superseded. Hosted StegCore remains usefu
 
 Protected runtime credentials remain under TV/TVC authority. The sovereign evaluator run does not require a public caller to manage Master Records bearer credentials and does not use GitHub credentials as StegVerse authority.
 
-## Remaining work after evaluator handoff
+## Authority-boundary preservation extension
 
-Evaluator handoff is no longer blocked. Remaining tasks are general hardening rather than prerequisites for the frozen evaluation:
+Tracking issue: `#25`.
+
+The next integration goal is a participant-neutral extension of `Manifest_and_Receipt_Governance_Boundary.md` that tests whether an explicit T0 authority boundary remains reconstructably intact across downstream acknowledgement, attempted endorsement inference, attempted attribution/public association, replay, and reconstruction.
+
+Implemented fixture surfaces on `feat/authority-boundary-preservation-experiment`:
 
 ```text
+experiments/authority_boundary_preservation/README.md
+experiments/authority_boundary_preservation/fixture.json
+experiments/authority_boundary_preservation/validate_fixture.py
+tests/test_authority_boundary_preservation_experiment.py
+```
+
+Current fixture invariant:
+
+```text
+UNDERSTANDING=true does not imply agreement, validation, endorsement, acceptance,
+claim authority, publication authority, attribution authority,
+public-association authority, or delegation authority.
+```
+
+The experiment remains explicitly participant-neutral. No external reviewer/framework identity, endorsement, compatibility, interoperability, attribution permission, or public association is encoded.
+
+Completion boundary:
+
+```text
+fixture/specification installed: COMPLETE
+repository test wrapper installed: COMPLETE
+branch/issue durable task state: COMPLETE
+fixture-only deterministic validation: PENDING_CI_OR_LOCAL_EXECUTION
+sovereign SDK manifested run: PENDING
+Master Records exact-run + route custody: PENDING
+replay operation custody: PENDING
+reconstruction operation custody: PENDING
+independent reviewer interpretation: PENDING_EXTERNAL
+```
+
+A fixture-only PASS must not be represented as a sovereign execution result. The goal completes only after the same boundary is submitted through the canonical sovereign SDK route and the resulting manifest, exact-run receipt, route transitions, replay operation receipts, reconstruction operation receipts, and final state are retained and independently inspectable.
+
+## Remaining work after evaluator handoff
+
+Evaluator handoff is no longer blocked. Remaining tasks are general hardening plus the active authority-boundary preservation extension:
+
+```text
+authority-boundary preservation sovereign run (#25)
 operation retry/idempotency
 explicit failed-operation terminal state custody
 portable custody import/export CI execution
