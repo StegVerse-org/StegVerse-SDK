@@ -31,7 +31,7 @@ def test_all_five_canonical_choices_are_counted(tmp_path):
         assert rows[code]["choice_label"] == CHOICE_LABELS[code]
         assert rows[code]["lifetime_invocations"] == 1
         assert rows[code]["trailing_30_day_invocations"] == 1
-        assert rows[code]["percent_of_total"] == pytest.approx(20.0)
+        assert rows[code]["percent_of_total"] == 20.0
         assert rows[code]["menu_selections"] == 1
 
 
