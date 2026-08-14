@@ -4,12 +4,22 @@
   "parent_goal": "SDK-USAGE-OBSERVABILITY-001",
   "originating_goal": "Count actual canonical SDK governed option 0/1/2 operations separately from menu selections and project only disclosure-safe observations through TV/TVC.",
   "repository": "StegVerse-org/StegVerse-SDK",
-  "branch": "feat/sdk-governed-operation-wiring",
+  "branch": "main",
   "owner": "StegVerse-org/StegVerse-SDK",
-  "role": "IMPLEMENTATION_AND_INTEGRATION",
-  "claim_state": "CLAIMED_FOR_IMPLEMENTATION",
+  "role": "INTEGRATION",
+  "claim_state": "BLOCKED",
+  "implementation_claim": "RELEASED",
   "claim_created_at": "2026-08-14T15:26:00-05:00",
-  "claim_release_condition": "GovernedOperations adapter/tests merged and canonical StegCore/Master Records provider transport is bound to the SDK adapter with one option 0, 1, and 2 integration proof.",
+  "implementation_released_at": "2026-08-14T15:38:00-05:00",
+  "implementation_release_evidence": {
+    "pull_request": 28,
+    "merge_commit": "94342b56c022ee2710b17981c95a311a978d333f",
+    "validated_head": "d4b98a543142275431e770f19addf2aa437d57a8",
+    "workflow_run": 31838717711,
+    "workflow_result": "SUCCESS",
+    "dedicated_tests": "16 passed"
+  },
+  "claim_release_condition": "Canonical StegCore/Master Records admitted transport is bound to the SDK adapter and one option 0, 1, and 2 integration proof is retained.",
   "collision_boundaries": [
     "Do not create a second manifest_receipt_id algorithm",
     "Do not create local custody authority",
@@ -29,9 +39,15 @@
     "master-records/orchestration canonical manifest-receipt custody transport",
     "StegVerse-Labs/TVC/tasks/TVC-SDK-USAGE-NOTIFICATION-RELAY-001.json"
   ],
-  "source_state": "ADAPTER_AND_TESTS_IMPLEMENTED_PENDING_HOSTED_VALIDATION",
-  "validation_state": "PENDING_HOSTED_TEST",
-  "integration_state": "PENDING_CANONICAL_PROVIDER_TRANSPORT_BINDING",
-  "next_action": "Run repository validation for tests/test_governed_operations.py, merge adapter, then bind the admitted StegCore/Master Records provider transport when STEGCORE-MANIFEST-RECEIPT-ID-001 releases its integration boundary.",
+  "source_state": "COMPLETE_VALIDATED_MERGED",
+  "validation_state": "HOSTED_PASS_16_OF_16",
+  "integration_state": "BLOCKED_ON_CANONICAL_PROVIDER_TRANSPORT",
+  "blocker": {
+    "owner": "StegVerse-Labs/StegCore + master-records/orchestration",
+    "evidence": "StegVerse-Labs/StegCore/docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md + issue #85",
+    "release_condition": "admitted manifest-receipt transport proves immutable submit/resolve/replay/reconstruct contract and is exposed to SDK callers",
+    "next_action": "bind that released provider transport to GovernedOperations and retain one option 0/1/2 end-to-end usage observation proof"
+  },
+  "next_action": "Observe StegCore #85 release; do not duplicate its transport/custody work. On release, bind the canonical provider to GovernedOperations and execute the bounded integration proof.",
   "non_tv_tvc_secret_or_token_used": false
 }
