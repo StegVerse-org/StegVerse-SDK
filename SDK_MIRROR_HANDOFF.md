@@ -56,26 +56,6 @@ non-TV/TVC secret or runtime token required: FALSE
 
 `000` and `00` are optional human inspection surfaces and are not prerequisites for machine-to-machine evaluation.
 
-## Production-validation provenance
-
-The evaluator validation lane is explicitly manifested as:
-
-```text
-lane_class: PRODUCTION_VALIDATION
-routing_surface: CANONICAL_PRODUCTION
-containment: PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE
-external_consequence_enabled: false
-```
-
-A sovereign execution additionally records:
-
-```text
-execution_host_class: SOVEREIGN_LOCAL
-third_party_host_required: false
-```
-
-This is intentionally distinct from `ENCLOSED_DEMO_TEST`, which remains on demo/test repository surfaces. Lane provenance is transaction data and is retained with the manifest and receipt history.
-
 ## Canonical sovereign route
 
 The default public-inspection runtime is sovereign/local. Hosted HTTP is optional transport, never a prerequisite.
@@ -92,44 +72,9 @@ SDK entry
 -> SDK return
 ```
 
-Every successful frozen case produced this 10-transition route:
+A sovereign production-validation execution is required to retain ten ordered route transitions before advancement. Replay and reconstruction are separately recorded four-transition operations and do not re-execute the original consequence.
 
-```text
-MANIFEST_ESTABLISHED
-SDK_ENTERED
-INGESTION_ENTERED
-CGE_ADMITTED
-CGE_ROUTED
-MODULE_ENTERED
-MODULE_RESULT
-CGE_RETURN_INGESTED
-ROUTE_CLEARED
-RETURNED
-```
-
-A transition that is not `RECORDED` cannot clear advancement.
-
-Canonical component bindings:
-
-```text
-StegCore manifested validation / transaction identity: 083557adec1bdbace09ebd10fb0765eb8e9a9d08
-Core-Lite manifest route carrier: 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
-Master Records sovereign/portable custody: 6626c6a7f1df6bf531940c165b2f4db374e08b92
-```
-
-SDK optional `governed-test` dependencies pin those canonical implementations. The SDK does not embed a parallel evaluator or Master Records algorithm.
-
-## Frozen evaluator validation
-
-Retained validation evidence: `validation/SOVEREIGN_FROZEN_EVALUATOR_VALIDATION_2026-08-13.md`.
-
-```text
-T0   420 USD original state -> ALLOW
-T1-A 420 USD materially changed current policy -> DENY
-T1-B 4200 USD candidate retaining earlier 420 approval bind -> DENY
-```
-
-Assertions retained as PASS include StegCore receipt-chain verification, exact-run Master Records custody, ten ordered MRR transitions per run, one transaction identity per route, production-validation provenance, four replay MRO transitions, four reconstruction MRO transitions, and no consequence re-execution by replay/reconstruction. The portable custody snapshot is retained in `master-records/orchestration/validation/evaluator-frozen-sovereign-custody-2026-08-13.zlib.b64`.
+Canonical component bindings remain pinned to the retained sovereign evaluator validation. The SDK does not embed a parallel evaluator or Master Records algorithm.
 
 ## Authority-boundary preservation extension
 
@@ -257,4 +202,10 @@ public propagation after release: Site/Publisher/admissibility-wiki/stegguardian
 
 ## Archive condition
 
-This session no longer owns implementation, validation, integration, propagation, reconciliation, or observation work. Product activation is not complete, but every unfinished goal has a named durable continuation owner and machine-observable release condition. The complete session state is now recoverable from this handoff, issue #25, the released claim, and the consolidated session inventory without relying on chat history.
+```text
+session_unique_implementation_claims_remaining: 0
+thread_archive_ready: true
+product_activation: INCOMPLETE_MACHINE_OWNED
+```
+
+This session no longer owns implementation, validation, integration, propagation, reconciliation, or observation work. Product activation is not complete, but every unfinished goal has a named durable continuation owner and machine-observable release condition. The complete session state is recoverable from this handoff, issue #25, the released claim, and the consolidated session inventory without relying on chat history.
