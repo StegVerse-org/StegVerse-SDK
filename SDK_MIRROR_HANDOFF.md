@@ -121,63 +121,15 @@ SDK optional `governed-test` dependencies pin those canonical implementations. T
 
 ## Frozen evaluator validation
 
-Retained validation evidence:
+Retained validation evidence: `validation/SOVEREIGN_FROZEN_EVALUATOR_VALIDATION_2026-08-13.md`.
 
 ```text
-validation/SOVEREIGN_FROZEN_EVALUATOR_VALIDATION_2026-08-13.md
+T0   420 USD original state -> ALLOW
+T1-A 420 USD materially changed current policy -> DENY
+T1-B 4200 USD candidate retaining earlier 420 approval bind -> DENY
 ```
 
-Frozen cases:
-
-```text
-T0   original 420 USD state                                  -> ALLOW
-T1-A same 420 USD, materially changed current policy state   -> DENY
-T1-B 4200 USD candidate retaining earlier 420 approval bind  -> DENY
-```
-
-Genuine sovereign production-validation exact-run locators:
-
-```text
-T0   MR-2F21EC98FB60A78DD0135E580DD80B1FE6CEC9C62B905A4F758E5567F1C666E2
-T1-A MR-620DDEE41541E2F787BC2702FE56977F4BB298BC1CE34C4284203A429F5453C8
-T1-B MR-804AF43FC68949F0BBC4B89E4729CA1880AB5BFA4655185C171CE5D2332487B4
-```
-
-Assertions retained as PASS:
-
-```text
-all StegCore receipt chains verified
-all exact-run Master Records custody recorded
-all three routes contain 10 ordered MRR-* transitions
-one transaction identity preserved across each manifested route
-production-validation provenance retained
-third-party host required = false
-replay operation custody recorded, four MRO-* transitions per case
-reconstruction operation custody recorded, four MRO-* transitions per case
-replay/reconstruction consequence reexecution = false
-```
-
-The complete canonical custody snapshot is retained in `master-records/orchestration` at `validation/evaluator-frozen-sovereign-custody-2026-08-13.zlib.b64`. These identifiers supersede earlier local-ephemeral evaluator test IDs.
-
-## Replay and reconstruction
-
-Replay is non-mutating with respect to the original exact run, but its requested operation is new ecosystem history:
-
-```text
-REQUESTED -> SOURCE_RESOLVED -> EVALUATED -> RETURNED
-```
-
-Reconstruction does not re-execute the original consequence, but its operation trajectory is new ecosystem history:
-
-```text
-REQUESTED -> SOURCE_RESOLVED -> ARTIFACT_DERIVED -> RETURNED
-```
-
-Each state receives an `MRO-*` receipt before the operation artifact can be returned.
-
-## Third-party hosting and credential boundary
-
-Render, Vercel, GitHub Actions, or another hosted provider may be used as optional non-authorizing validation/transport. Their quota, availability, authentication, or deployment state cannot gate the sovereign route. Protected runtime credentials remain under TV/TVC authority. GitHub credentials are not StegVerse runtime authority.
+Assertions retained as PASS include StegCore receipt-chain verification, exact-run Master Records custody, ten ordered MRR transitions per run, one transaction identity per route, production-validation provenance, four replay MRO transitions, four reconstruction MRO transitions, and no consequence re-execution by replay/reconstruction. The portable custody snapshot is retained in `master-records/orchestration/validation/evaluator-frozen-sovereign-custody-2026-08-13.zlib.b64`.
 
 ## Authority-boundary preservation extension
 
@@ -197,6 +149,7 @@ tests/test_authority_boundary_preservation_experiment.py
 tests/test_authority_boundary_sovereign_runner.py
 .github/workflows/authority-boundary-source-validation.yml
 claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json
+docs/SESSION_GOAL_INVENTORY_2026-08-14_AUTHORITY_BOUNDARY_LOCAL_RUNTIME.md
 ```
 
 Invariant:
@@ -207,7 +160,7 @@ claim authority, publication authority, attribution authority,
 public-association authority, or delegation authority.
 ```
 
-The sovereign runner now prepares the exact fixture as canonical `PRODUCTION_VALIDATION` requests, requires ALLOW for acknowledgement and DENY for attempted authority widening, requires a ten-transition route and exact-run custody shape, then invokes replay and reconstruction and requires four operation receipts for each. It does not encode an external reviewer identity and requires no non-TV/TVC secret or token.
+The sovereign runner prepares the exact fixture as canonical `PRODUCTION_VALIDATION` requests, requires ALLOW for acknowledgement and DENY for attempted authority widening, requires a ten-transition route and exact-run custody shape, then invokes replay and reconstruction and requires four operation receipts for each. It does not encode an external reviewer identity and requires no non-TV/TVC secret or token.
 
 ### Source validation — COMPLETE
 
@@ -247,7 +200,7 @@ A source-validation PASS must not be represented as a sovereign execution result
 
 ## Local model/runtime convergence for this session
 
-The session requirements to replace descriptive local-runtime selection and formally develop the local model have already converged on a completed canonical owner and must not be duplicated here.
+The requirements to replace descriptive local-runtime selection and formally develop the local model have already converged on a completed canonical owner and must not be duplicated here.
 
 ```text
 MERGED INTO: StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
@@ -272,35 +225,36 @@ release condition: fresh authorized fence >20 + real private model observation +
 
 ## Trade-readiness convergence
 
-The user-directed trade-ready goal is owned by `StegVerse-Labs/stegfin-governance`, not this SDK. Canonical continuation is `docs/STEGFIN_MIRROR_HANDOFF.md` and `task-state/STEGFIN-LIVE-ENTRY-003.json`. Source readiness is complete; wallet signing and broadcast are USER_ONLY; TV/TVC owns credentials/provider operation. The live terminal `WALLET_HANDOFF_READY` receipt has not been observed. No SDK or chat-session trade execution authority is inferred.
+The user-directed trade-ready goal is owned by `StegVerse-Labs/stegfin-governance`, not this SDK. Canonical continuation is `docs/STEGFIN_MIRROR_HANDOFF.md` and `task-state/STEGFIN-LIVE-ENTRY-003.json`.
 
-## Remaining work
+```text
+trade-ready source deliverables: 7/8 complete
+trade-ready developed files: 24/24
+terminal machine execution to WALLET_HANDOFF_READY: PENDING
+credential authority: TV/TVC
+non-TV/TVC provider secret/token use: PROHIBITED
+wallet signing authority: USER_ONLY
+broadcast authority: USER_ONLY
+```
+
+No SDK or chat-session trade execution authority is inferred. Existing StegFin/TVC/.github workers own the live execution path and must not be duplicated.
+
+## Session consolidation
+
+Canonical cross-session inventory: `docs/SESSION_GOAL_INVENTORY_2026-08-14_AUTHORITY_BOUNDARY_LOCAL_RUNTIME.md`.
+
+All session-specific requirements are now either implemented/validated or bound to exact durable owners. The remaining incomplete operations are machine-owned or external-interpretation boundaries; no implementation claim remains with this chat session.
+
+## Remaining machine-owned/external work
 
 ```text
 authority-boundary sovereign execution/custody (#25): canonical sovereign SDK execution lane
 local-model live activation: MACHINE_OWNED StegVerse-Labs/.github#60 chain
 trade-ready wallet handoff: MACHINE_OWNED StegFin/TVC/.github continuation until WALLET_HANDOFF_READY; signing/broadcast USER_ONLY
-operation retry/idempotency: general SDK hardening
-explicit failed-operation terminal state custody: general SDK hardening
-portable custody import/export CI execution: general SDK hardening
-backup/replication automation: general SDK hardening
-LLM-adapter convergence on manifested/custody-before-return invariant: canonical adapter integration owner
-hosted transport activation: optional only
+independent authority-boundary interpretation: independent reviewer; no attribution implied
+public propagation after release: Site/Publisher/admissibility-wiki/stegguardian-wiki consumer release owners
 ```
 
-## Evaluator handoff state
+## Archive condition
 
-```text
-ordinary SDK route: READY
-frozen production-validation run: COMPLETE
-Master Records exact-run custody: COMPLETE
-manifested route custody: COMPLETE
-replay custody: COMPLETE
-reconstruction custody: COMPLETE
-third-party dependency: NONE
-three genuine frozen evaluator manifest_receipt_id values: READY_TO_SEND
-authority-boundary source runner: COMPLETE_VALIDATED
-authority-boundary exact sovereign run: PENDING_MACHINE_EXECUTION
-```
-
-Interpretation of the frozen cases and the future authority-boundary execution remains open to independent reviewers.
+This session no longer owns implementation, validation, integration, propagation, reconciliation, or observation work. Product activation is not complete, but every unfinished goal has a named durable continuation owner and machine-observable release condition. The complete session state is now recoverable from this handoff, issue #25, the released claim, and the consolidated session inventory without relying on chat history.
