@@ -1,0 +1,49 @@
+name: Authority Boundary Source Validation (Non-Authorizing)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/authority_boundary_preservation/**'
+      - 'tests/test_authority_boundary_sovereign_runner.py'
+      - 'claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json'
+      - '.github/workflows/authority-boundary-source-validation.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  source-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prove no repository credential is exposed to validation process
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          echo 'credential_authority=TV/TVC'
+          echo 'github_token_runtime_authority=NONE'
+          echo 'production_activation_role=NONE'
+      - name: Materialize public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Run participant-neutral fixture and runner contract tests
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m pip install --disable-pip-version-check -q pytest
+          python experiments/authority_boundary_preservation/validate_fixture.py
+          python -m pytest -q \
+            tests/test_authority_boundary_preservation_experiment.py \
+            tests/test_authority_boundary_sovereign_runner.py
+      - name: Reassert validation-only boundary
+        run: |
+          set -eu
+          echo 'This hosted job validates source only.'
+          echo 'It does not claim SOVEREIGN_LOCAL execution, TV/TVC ROUTE_ADMITTED, Master Records production custody, or governed activation.'
