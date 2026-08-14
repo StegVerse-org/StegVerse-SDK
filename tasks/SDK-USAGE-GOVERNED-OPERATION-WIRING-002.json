@@ -1,0 +1,37 @@
+{
+  "schema_version": "stegverse.task_state.v1",
+  "task_id": "SDK-USAGE-GOVERNED-OPERATION-WIRING-002",
+  "parent_goal": "SDK-USAGE-OBSERVABILITY-001",
+  "originating_goal": "Count actual canonical SDK governed option 0/1/2 operations separately from menu selections and project only disclosure-safe observations through TV/TVC.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "feat/sdk-governed-operation-wiring",
+  "owner": "StegVerse-org/StegVerse-SDK",
+  "role": "IMPLEMENTATION_AND_INTEGRATION",
+  "claim_state": "CLAIMED_FOR_IMPLEMENTATION",
+  "claim_created_at": "2026-08-14T15:26:00-05:00",
+  "claim_release_condition": "GovernedOperations adapter/tests merged and canonical StegCore/Master Records provider transport is bound to the SDK adapter with one option 0, 1, and 2 integration proof.",
+  "collision_boundaries": [
+    "Do not create a second manifest_receipt_id algorithm",
+    "Do not create local custody authority",
+    "Do not treat telemetry as governance authority",
+    "Do not add GitHub credentials to the SDK",
+    "Do not re-execute consequence during replay or reconstruction"
+  ],
+  "authoritative_files": [
+    "stegverse/governed_operations.py",
+    "stegverse/sdk_usage_observability.py",
+    "tests/test_governed_operations.py",
+    "SDK_USAGE_OBSERVABILITY_MIRROR_HANDOFF.md"
+  ],
+  "dependencies": [
+    "StegVerse-Labs/StegCore/docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md",
+    "StegVerse-Labs/StegCore#85",
+    "master-records/orchestration canonical manifest-receipt custody transport",
+    "StegVerse-Labs/TVC/tasks/TVC-SDK-USAGE-NOTIFICATION-RELAY-001.json"
+  ],
+  "source_state": "ADAPTER_AND_TESTS_IMPLEMENTED_PENDING_HOSTED_VALIDATION",
+  "validation_state": "PENDING_HOSTED_TEST",
+  "integration_state": "PENDING_CANONICAL_PROVIDER_TRANSPORT_BINDING",
+  "next_action": "Run repository validation for tests/test_governed_operations.py, merge adapter, then bind the admitted StegCore/Master Records provider transport when STEGCORE-MANIFEST-RECEIPT-ID-001 releases its integration boundary.",
+  "non_tv_tvc_secret_or_token_used": false
+}
