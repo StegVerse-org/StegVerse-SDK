@@ -3,14 +3,15 @@
   "originating_goal": "Run the participant-neutral authority-boundary preservation fixture through the canonical sovereign SDK path and retain run/replay/reconstruction proof without non-TV/TVC secrets or tokens.",
   "repository": "StegVerse-org/StegVerse-SDK",
   "branch": "main",
-  "role": "CLAIMED_FOR_IMPLEMENTATION",
+  "role": "COMPLETE_RELEASED_TO_MACHINE_EXECUTION",
   "claimant": "chat-session-2026-08-14-authority-boundary-integration",
   "claim_created_at": "2026-08-14T15:28:00-05:00",
-  "claim_release_condition": "Machine-executable sovereign experiment runner, no-token hosted source validation, and handoff/task state are merged; then runtime execution ownership transfers to the canonical sovereign execution lane until immutable MRR/MR/MRO evidence is retained.",
+  "claim_released_at": "2026-08-14T15:33:00-05:00",
+  "claim_release_condition": "Satisfied: machine-executable sovereign experiment runner, non-authorizing no-token hosted source validation, and durable claim state are installed on main; live sovereign execution remains separate and must be performed only by the canonical sovereign execution lane.",
   "collision_scope": [
     "experiments/authority_boundary_preservation/run_sovereign_experiment.py",
     "tests/test_authority_boundary_sovereign_runner.py",
-    ".github/workflows/authority-boundary-sovereign-source-validation.yml",
+    ".github/workflows/authority-boundary-source-validation.yml",
     "SDK_MIRROR_HANDOFF.md",
     "claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json"
   ],
@@ -23,13 +24,27 @@
   "credential_authority": "TV/TVC",
   "github_token_runtime_authority": "NONE",
   "non_tvtvc_secret_required": false,
-  "expected_evidence": [
-    "merged runner source",
-    "source-level test/validation result",
-    "later sovereign manifest_receipt_id",
-    "later 10-transition MRR route custody",
-    "later 4-transition replay MRO custody",
-    "later 4-transition reconstruction MRO custody"
+  "validation": {
+    "workflow": "Authority Boundary Source Validation (Non-Authorizing)",
+    "run_id": 31838347112,
+    "head_sha": "e629fa05f14a7b09a393417b179895e18095dcaf",
+    "conclusion": "SUCCESS",
+    "production_activation_role": "NONE"
+  },
+  "completed_evidence": [
+    "experiments/authority_boundary_preservation/run_sovereign_experiment.py",
+    "tests/test_authority_boundary_sovereign_runner.py",
+    ".github/workflows/authority-boundary-source-validation.yml",
+    "workflow run 31838347112 SUCCESS"
   ],
+  "remaining_machine_evidence": [
+    "sovereign manifest_receipt_id for the exact fixture",
+    "10-transition MRR route custody for each governed event",
+    "exact-run MR custody",
+    "4-transition replay MRO custody",
+    "4-transition reconstruction MRO custody",
+    "independent reviewer interpretation"
+  ],
+  "next_owner": "canonical sovereign SDK execution lane using stegverse.public_inspection_runtime with Master Records custody",
   "next_task_after_release": "Execute the merged runner in the canonical sovereign lane and retain immutable exact-run/replay/reconstruction evidence; independent review remains external interpretation only."
 }
