@@ -9,6 +9,7 @@ import argparse
 from importlib import resources
 import json
 from pathlib import Path
+import sys
 from typing import Any, Mapping
 
 from .sdk_surfaces import canonical_surface_name, get_sdk_surface, list_sdk_surfaces
@@ -67,6 +68,15 @@ def print_help_for_surface(name: str, _registry: dict[str, Any] | None = None) -
     return 0
 
 
+def _record_navigation_usage(selection: str) -> None:
+    """Best-effort usage observation that never becomes an authority dependency."""
+    try:
+        from .sdk_usage_observability import record_navigation_selection
+        record_navigation_selection(selection)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"WARNING: SDK usage observation unavailable: {exc}", file=sys.stderr)
+
+
 def _governance_guide(args: argparse.Namespace) -> int:
     from .governance_navigation import demo_output_manifest_shape, guidance_for, navigation_text
     print(navigation_text())
@@ -78,7 +88,10 @@ def _governance_guide(args: argparse.Namespace) -> int:
             print("\nUse: stegverse governance --select 000|00|0|1|2")
             return 2
     print()
-    print(guidance_for(selection))
+    # Validate through canonical guidance first, then observe the accepted selection.
+    guidance = guidance_for(selection)
+    _record_navigation_usage(selection)
+    print(guidance)
     key = selection.strip().upper()
     if key == "000":
         print("\nDEMO SELF-DESCRIBING OUTPUT SHAPE")
