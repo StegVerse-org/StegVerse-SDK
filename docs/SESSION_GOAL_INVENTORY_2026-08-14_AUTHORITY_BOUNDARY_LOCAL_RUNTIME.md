@@ -9,6 +9,10 @@ credential_authority: TV/TVC
 non-TV/TVC secret/token use: PROHIBITED
 GitHub token runtime authority: NONE
 session_unique_implementation_claims_remaining: 0
+session_role: DISTINCT_VALIDATION_RECONCILIATION_SUPPORT
+thread_archive_ready: false
+archive_blocker: StegVerse-Labs/stegfin-governance/docs/STEGFIN_MIRROR_HANDOFF.md
+release_condition: WALLET_HANDOFF_READY observed OR later canonical StegFin record explicitly releases the distinct support role
 ```
 
 ## Execution inventory
@@ -20,7 +24,7 @@ session_unique_implementation_claims_remaining: 0
 | SOVEREIGN-LOCAL-MODEL-001 | Remove descriptive “select a local model/runtime”; formally develop model locally | StegVerse-002/micro-node-runtime `docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md` | COMPLETE_RELEASED | Formal `stegverse-reference-lm-v1`, discovery, private launch, real inference, usage/proof; runs 31339534741 and 31384116055 SUCCESS | Live activation is separately machine-owned | Do not duplicate; observe `.github#60` continuation |
 | ECOSYSTEM-CHAT-SOVEREIGN-ACTIVATION | Activate finished local model/runtime through governed same-carrier path | StegVerse-Labs/.github issue #60 -> TVC -> LLM-adapter -> master-records/orchestration | MACHINE_OWNED | Source path complete; last directly observed heartbeat HB29 | Fresh fence >20, local process, TVC ROUTE_ADMITTED/NONE, exact adapter use, usage, same-exec reconstruction | Resident sovereign heartbeat executes canonical chain |
 | NO-NON-TVTVC-SECRETS-001 | Ensure no NON-TV/TVC secrets/tokens are used | TV/TVC authority handoffs plus SDK/runtime validation contracts | COMPLETE_POLICY / RUNTIME_EVIDENCE_BOUND | SDK source validation explicitly observed GITHUB_TOKEN and GH_TOKEN absent from process; runtime authority remains TV/TVC | Live runtime receipts must continue to prove credential requirement NONE / no GitHub token authority | Existing TV/TVC + worker invariants enforce boundary |
-| STEGFIN-TRADE-READY-WALLET-HANDOFF | Assist workers and make exact validation trade ready | StegVerse-Labs/stegfin-governance `docs/STEGFIN_MIRROR_HANDOFF.md`; `task-state/STEGFIN-LIVE-ENTRY-003.json` | MACHINE_OWNED_RUNTIME_OBSERVATION | Source readiness 7/8; developed files 24/24; live `WALLET_HANDOFF_READY` pending | TVC primary runtime observation -> machine continuity execution; signing/broadcast USER_ONLY | Existing StegFin/TVC/.github machine lane executes; this session must not compete |
+| STEGFIN-TRADE-READY-WALLET-HANDOFF | Assist workers and make exact validation trade ready | StegVerse-Labs/stegfin-governance `docs/STEGFIN_MIRROR_HANDOFF.md`; `task-state/STEGFIN-LIVE-ENTRY-003.json` | MACHINE_OWNED_RUNTIME_OBSERVATION | Source readiness 7/8; developed files 24/24; live `WALLET_HANDOFF_READY` pending | TVC primary runtime observation -> machine continuity execution; signing/broadcast USER_ONLY; this user-directed session remains distinct validation/reconciliation support | Existing StegFin/TVC/.github machine lane executes; session inspects/reconciles newly produced receipts without competing |
 | DOWNSTREAM-PROPAGATION-AFTER-ACTIVATION | Update public/release surfaces when activation/release criteria are met | Site, Publisher, admissibility-wiki, stegguardian-wiki under their release owners | MACHINE_OWNED_SUCCESSOR | Not authorized yet | Requires immutable activation/release evidence and consumer gates | Downstream consumers ingest only after release predicates pass |
 
 ## Collision / convergence decisions
@@ -29,6 +33,7 @@ session_unique_implementation_claims_remaining: 0
 - No second heartbeat, fence, TV/TVC route authority, LLM-adapter execution path, Master Records custody path, or StegFin live worker is authorized.
 - The authority-boundary source runner was the only unclaimed session-specific implementation gap found in this session. It was claimed, implemented, validated, and released to canonical machine execution.
 - GitHub-hosted validation is source validation only and has no production activation authority.
+- Although SDK/local-runtime source work is transferable without this thread, the canonical StegFin handoff explicitly retains the current user-directed session for distinct validation/reconciliation support until its release condition occurs.
 
 ## Validation evidence created in this session
 
@@ -67,7 +72,8 @@ local-model live activation:
 
 trade-ready wallet handoff:
   owner: StegFin continuity worker + TV/TVC; signing/broadcast USER_ONLY
-  release: WALLET_HANDOFF_READY with no non-TV/TVC secret/token, no provider secret export, signed=false, broadcast=false
+  session role: distinct validation/reconciliation support only
+  release: WALLET_HANDOFF_READY with no non-TV/TVC secret/token, no provider secret export, signed=false, broadcast=false OR later canonical support-role release
 
 public propagation:
   owner: downstream release consumers
@@ -76,4 +82,4 @@ public propagation:
 
 ## Session consolidation
 
-All unique requirements identified in this session are either implemented/validated or transferred to a named canonical owner. Product activation remains incomplete in several machine-owned lanes, but no duplicate chat-session implementation authority follows from that incompleteness. Canonical continuation is `SDK_MIRROR_HANDOFF.md`, issue #25, the released claim, the micro-node runtime handoff, `.github#60`, and the StegFin handoff/task state. The complete thread is no longer required for project execution.
+All unique implementation requirements identified in this session are either implemented/validated or transferred to a named canonical owner. Product activation remains incomplete in machine-owned lanes. Canonical continuation is `SDK_MIRROR_HANDOFF.md`, issue #25, the released claim, the micro-node runtime handoff, `.github#60`, and the StegFin handoff/task state. This thread is still required only for the exact distinct StegFin validation/reconciliation support role mandated by its current canonical handoff; it is not retained for duplicate implementation.
