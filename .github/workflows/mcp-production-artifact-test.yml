@@ -1,4 +1,4 @@
-name: MCP Production Artifact Test (Non-Authorizing)
+name: MCP Source Validation (Non-Authorizing)
 
 on:
   pull_request:
@@ -16,7 +16,7 @@ on:
 permissions: {}
 
 jobs:
-  validate-mcp-production-artifacts:
+  validate-mcp-source:
     runs-on: ubuntu-latest
     steps:
       - name: Materialize public source anonymously
@@ -32,26 +32,34 @@ jobs:
           mkdir /tmp/source
           tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
 
+      - name: Compile MCP source
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m compileall -q \
+            stegverse/mcp_reference_server.py \
+            stegverse/mcp_transport.py \
+            stegverse/mcp_governance.py \
+            stegverse/mcp_navigation.py \
+            stegverse/mcp_cli.py \
+            stegverse/sovereign_validation_runtime.py \
+            stegverse/sdk_surfaces.py \
+            tests/test_mcp_production_artifact.py
+
       - name: Run credential-free MCP unit tests
         run: |
           set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
           cd /tmp/source
           python -m unittest tests.test_mcp_production_artifact.MCPProductionArtifactUnitTests -v
 
-      - name: Install pinned governed-test production artifacts
+      - name: Preserve sovereign integration boundary
         run: |
           set -eu
           test -z "${GITHUB_TOKEN:-}"
           test -z "${GH_TOKEN:-}"
-          cd /tmp/source
-          python -m pip install --disable-pip-version-check -e '.[governed-test]'
-
-      - name: Run canonical MCP governed integration and Master Records custody test
-        run: |
-          set -eu
-          test -z "${GITHUB_TOKEN:-}"
-          test -z "${GH_TOKEN:-}"
-          cd /tmp/source
-          python -m unittest tests.test_mcp_production_artifact.MCPProductionArtifactGovernedIntegrationTests -v
-          echo 'MCP_PRODUCTION_ARTIFACT_TEST_PASS'
+          echo 'MCP_SOURCE_VALIDATION_PASS'
+          echo 'Canonical governed integration is assigned to tasks/SDK-MCP-CANONICAL-VALIDATION-009.json.'
+          echo 'The hosted runner must not receive a GitHub/private-repository token merely to materialize the private Master Records production package.'
           echo 'This validation job has no runtime, release, credential, or production activation authority.'
