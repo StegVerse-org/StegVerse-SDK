@@ -97,6 +97,62 @@ def _run_governance_fallback(args: argparse.Namespace) -> int:
     return 0
 
 
+def _canonical_governed_operations(args: argparse.Namespace):
+    """Bind ordinary options 0A/1/2 to the canonical sovereign runtime.
+
+    The SDK supplies no credential and creates no second evaluator. The existing
+    ``GovernedOperations`` adapter records only bounded usage observations after
+    canonical run identity/evidence has been returned.
+    """
+    from .governed_operations import GovernedOperations
+    from .sovereign_validation_runtime import (
+        reconstruct_sovereign,
+        replay_sovereign,
+        run_sovereign_validation,
+    )
+
+    def submit(request: Mapping[str, Any], **_kwargs: Any) -> Mapping[str, Any]:
+        return run_sovereign_validation(
+            request,
+            custody_db=args.custody_db,
+            host_identity=args.host_identity,
+        )
+
+    def replay(manifest_receipt_id: str, **_kwargs: Any) -> Mapping[str, Any]:
+        return replay_sovereign(manifest_receipt_id, custody_db=args.custody_db)
+
+    def reconstruct(manifest_receipt_id: str, **_kwargs: Any) -> Mapping[str, Any]:
+        result = dict(reconstruct_sovereign(manifest_receipt_id, custody_db=args.custody_db))
+        # Reconstruction is defined by the canonical runtime as non-consequential.
+        # Supply the adapter's explicit proof field without changing the retained
+        # reconstruction artifact or creating execution authority.
+        result.setdefault("manifest_receipt_id", manifest_receipt_id.strip().upper())
+        result.setdefault("consequence_reexecuted", False)
+        return result
+
+    return GovernedOperations(
+        submit_handler=submit,
+        replay_handler=replay,
+        reconstruct_handler=reconstruct,
+    )
+
+
+def _execute_selected_governance(args: argparse.Namespace, key: str) -> int | None:
+    """Execute ordinary 0A/1/2 when the user supplied the required operand."""
+    operations = _canonical_governed_operations(args)
+    if key == "0" and args.input:
+        from .public_inspection import load_public_inspection_request
+        result = operations.submit(load_public_inspection_request(args.input))
+    elif key == "1" and args.manifest_receipt_id:
+        result = operations.replay(args.manifest_receipt_id)
+    elif key == "2" and args.manifest_receipt_id:
+        result = operations.reconstruct(args.manifest_receipt_id)
+    else:
+        return None
+    print(json.dumps(dict(result), indent=2, sort_keys=True))
+    return 0
+
+
 def _governance_guide(args: argparse.Namespace) -> int:
     if args.fallback_operation:
         return _run_governance_fallback(args)
@@ -109,6 +165,9 @@ def _governance_guide(args: argparse.Namespace) -> int:
             selection = input("\nSelect an option: ").strip()
         except EOFError:
             print("\nUse: stegverse governance --select 000|00|0|1|2")
+            print("Execute 0A: stegverse governance --select 0 --input <public-inspection-request.json>")
+            print("Replay: stegverse governance --select 1 --manifest-receipt-id <MR-...>")
+            print("Reconstruct: stegverse governance --select 2 --manifest-receipt-id <MR-...>")
             print("Fallback: stegverse governance --fallback-operation run|replay|reconstruct --fallback-target <target>")
             return 2
     print()
@@ -117,6 +176,11 @@ def _governance_guide(args: argparse.Namespace) -> int:
     _record_navigation_usage(selection)
     print(guidance)
     key = selection.strip().upper()
+
+    executed = _execute_selected_governance(args, key)
+    if executed is not None:
+        return executed
+
     if key == "000":
         print("\nDEMO SELF-DESCRIBING OUTPUT SHAPE")
         print(json.dumps(demo_output_manifest_shape(), indent=2, sort_keys=True))
@@ -126,10 +190,14 @@ def _governance_guide(args: argparse.Namespace) -> int:
         print("Master Records custody remains independent of the user-return projection.")
     elif key == "0":
         print("Next: choose 0A for raw/user data or 0B for a preformatted machine manifest.")
+        print("Execute current canonical 0A request: stegverse governance --select 0 --input <public-inspection-request.json>")
+        print("0B execution remains fail-closed until the canonical stegverse.ingress-manifest.v1 binding is installed; no conversion is invented here.")
     elif key == "1":
         print("Next: provide the manifest_receipt_id returned by the original run.")
+        print("Execute: stegverse governance --select 1 --manifest-receipt-id <MR-...>")
     elif key == "2":
         print("Next: provide the manifest_receipt_id returned by the original run.")
+        print("Execute: stegverse governance --select 2 --manifest-receipt-id <MR-...>")
     return 0
 
 
@@ -227,10 +295,12 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("surfaces", help="list callable SDK surfaces")
     sub.add_parser("capabilities", help="print the user-facing surface registry as JSON")
     governance = sub.add_parser("governance", help="guided demo/parameter/submit/replay/reconstruct governance navigation")
-    governance.add_argument("--select", choices=("000", "00", "0", "1", "2"), help="show guidance for one canonical governance option")
+    governance.add_argument("--select", choices=("000", "00", "0", "1", "2"), help="show guidance or execute one canonical governance option")
+    governance.add_argument("--input", help="option 0A public-inspection request JSON to execute through the canonical sovereign runtime")
+    governance.add_argument("--manifest-receipt-id", help="canonical MR-* locator for option 1 replay or option 2 reconstruction")
     governance.add_argument("--fallback-operation", choices=("run", "replay", "reconstruct"), help="use the permanent canonical sovereign degraded-mode path")
     governance.add_argument("--fallback-target", help="request JSON path for fallback run, or manifest_receipt_id for replay/reconstruct")
-    governance.add_argument("--custody-db", default="./stegverse-master-records-validation.db", help="local canonical Master Records custody database for fallback execution")
+    governance.add_argument("--custody-db", default="./stegverse-master-records-validation.db", help="local canonical Master Records custody database")
     governance.add_argument("--host-identity", default="stegverse-sovereign-local", help="local sovereign execution host identity")
     help_parser = sub.add_parser("help-surface", help="show help for a named SDK surface")
     help_parser.add_argument("surface")
