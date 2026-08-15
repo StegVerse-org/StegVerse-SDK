@@ -106,7 +106,7 @@ def build_governed_request(packet: Mapping[str, Any]) -> dict[str, Any]:
             "sandbox_required": False,
             "sandbox_tier": "NONE",
             "origin_surface": "StegVerse-org/StegVerse-SDK:mcp-production-artifact-test",
-            "external_consequence_enabled": True,
+            "external_consequence_enabled": False,
         },
         "input": {
             "steggate_request": {
