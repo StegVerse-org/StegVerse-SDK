@@ -31,6 +31,17 @@ SECRET_FIELD_FRAGMENTS = (
     "secret",
     "token",
 )
+# These exact keys describe the *absence/location* of credential authority. Their
+# values are validated separately and they never carry credential material.
+SAFE_POLICY_METADATA_KEYS = frozenset(
+    {
+        "credential_authority",
+        "credential_fields_permitted",
+        "credential_required",
+        "github_token_required",
+        "github_token_runtime_authority",
+    }
+)
 REQUIRED_SCOPE = "demo:read"
 
 
@@ -63,11 +74,13 @@ class AdapterProbe:
 
 def _secret_shaped_key(key: str) -> bool:
     lowered = key.strip().lower().replace("-", "_")
+    if lowered in SAFE_POLICY_METADATA_KEYS:
+        return False
     return any(fragment in lowered for fragment in SECRET_FIELD_FRAGMENTS)
 
 
 def reject_secret_fields(value: Any, path: str = "$") -> None:
-    """Reject secret/token-shaped fields anywhere in a descriptor."""
+    """Reject secret/token-shaped fields while permitting exact policy metadata."""
     if isinstance(value, Mapping):
         for key, nested in value.items():
             text = str(key)
