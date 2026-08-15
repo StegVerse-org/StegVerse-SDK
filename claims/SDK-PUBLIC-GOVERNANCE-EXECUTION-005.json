@@ -4,38 +4,46 @@
   "repository": "StegVerse-org/StegVerse-SDK",
   "branch": "main",
   "canonical_issue": 16,
-  "role": "CLAIMED_FOR_INTEGRATION",
+  "role": "COMPLETE_SOURCE_INTEGRATION_VALIDATION_PENDING",
   "claimant": "chat-session-2026-08-15-sdk-public-execution",
   "claim_created_at": "2026-08-15T02:36:00-05:00",
-  "claim_release_condition": "Release after option 0A run and options 1/2 replay/reconstruct are wired to the canonical sovereign runtime through the existing GovernedOperations adapter, focused tests are committed/validated as available, and issue #16 plus handoffs contain continuation state.",
+  "claim_released_at": "2026-08-15T02:42:00-05:00",
+  "claim_release_condition": "Satisfied for the claimed integration slice: option 0A and options 1/2 are source-wired to the canonical sovereign runtime through GovernedOperations, focused tests are committed, issue #16 and the scoped handoff contain continuation state, and unavailable hosted execution is explicitly not claimed.",
   "collision_scope": [
     "stegverse/cli.py",
     "stegverse/governed_operations.py only if a compatibility correction is required",
     "tests/test_governance_public_execution.py",
-    "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
+    "docs/SDK_GOVERNANCE_SOVEREIGN_FALLBACK_MIRROR_HANDOFF.md",
     "StegVerse-org/StegVerse-SDK#16"
   ],
-  "must_not_modify": [
-    "StegVerse-Labs/StegCore governance authority",
-    "master-records/orchestration custody authority",
-    "StegVerse-Labs/TV or StegVerse-Labs/TVC credential authority",
-    "StegVerse-org/StegVerse-SDK/claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json machine-owned exact evidence lane"
-  ],
   "scope": {
-    "option_0A": "public-inspection request JSON -> canonical sovereign run",
-    "option_1": "manifest_receipt_id -> canonical sovereign replay",
-    "option_2": "manifest_receipt_id -> canonical sovereign reconstruct",
-    "option_0B": "not claimed here; preformatted stegverse.ingress-manifest.v1 execution requires its canonical manifest-to-public-inspection binding rather than an invented conversion",
-    "option_000": "not claimed here; runtime-bound demo processing remains separate issue #16 work"
+    "option_0A": "SOURCE_INTEGRATED: public-inspection request JSON -> GovernedOperations -> canonical sovereign run",
+    "option_1": "SOURCE_INTEGRATED: manifest_receipt_id -> canonical sovereign replay",
+    "option_2": "SOURCE_INTEGRATED: manifest_receipt_id -> canonical sovereign reconstruct",
+    "option_0B": "NOT_CLAIMED: canonical stegverse.ingress-manifest.v1 execution binding remains issue #16",
+    "option_000": "NOT_CLAIMED: runtime-bound demo processing remains issue #16"
   },
   "credential_authority": "TV/TVC",
   "github_token_runtime_authority": "NONE",
   "non_tvtvc_secret_required": false,
-  "expected_evidence": [
-    "ordinary `stegverse governance --select 0 --input <request>` executes canonical sovereign run",
-    "ordinary `--select 1/2 --manifest-receipt-id` executes canonical replay/reconstruct",
-    "canonical governance/replay/reconstruct result is returned unchanged",
-    "fallback flags remain available as degraded mode and do not override genuine results",
-    "focused deterministic tests"
-  ]
+  "completed_evidence": [
+    "39ec03c360ae126bf22437f05d4a32f9b4ec69f2: ordinary 0A/1/2 CLI execution wiring",
+    "cca135a31bf5db02377e6914c517b9b7d031f1ce: focused public execution tests",
+    "be71d9d8e29f511f52e4c65b396f791909d78d7c: scoped handoff updated",
+    "StegVerse-org/StegVerse-SDK#16 comment 5301192888: canonical continuation transfer"
+  ],
+  "validation": {
+    "focused_tests_committed": true,
+    "hosted_workflow_runs_for_test_head": 0,
+    "hosted_validation_claimed": false,
+    "exact_external_user_execution_observed": false
+  },
+  "remaining_work": [
+    "Issue #16: runtime-bind option 000.",
+    "Issue #16: install canonical 0B stegverse.ingress-manifest.v1 execution binding.",
+    "Machine/local validation lane: execute focused public-path tests without cost-amplifying paid Actions.",
+    "tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json: publish/verify corrected package under TV/TVC authority.",
+    "claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json: exact sovereign execution/custody evidence remains machine-owned."
+  ],
+  "next_owner": "StegVerse-org/StegVerse-SDK#16 for 000/0B continuation; TV/TVC-authorized release lane for package activation; existing machine-owned sovereign lane for exact execution/custody evidence."
 }
