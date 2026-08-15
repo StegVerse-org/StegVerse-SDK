@@ -162,7 +162,9 @@ def build_governed_request(packet: Mapping[str, Any]) -> dict[str, Any]:
                 "permission_present": False,
             },
             "input_data": {
-                "mcp_packet": dict(packet),
+                "mcp_contract_hash": contract_hash,
+                "mcp_call_hash": call_hash,
+                "tool_name": tool_name,
                 "phase": "mcp-production-artifact-test",
             },
         },
