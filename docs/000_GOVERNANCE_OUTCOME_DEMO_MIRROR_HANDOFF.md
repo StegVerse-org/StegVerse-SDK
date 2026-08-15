@@ -1,44 +1,33 @@
 # 000 Governance Outcome Demo Mirror Handoff
 
-## Authority
+## Canonical authority
 
 ```text
 goal_id: SDK-000-GOVERNANCE-OUTCOME-DEMO-001
 repository: StegVerse-org/StegVerse-SDK
 branch: main
 parent_handoff: docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md
-implementation_state: INSTALLED_UNVALIDATED
+canonical_issue: #16
+credential_authority: TV/TVC
+github_token_runtime_authority: NONE
+source_state: COMPLETE_SOURCE_UNVALIDATED_CURRENT_BINDING
 release_state: NOT_RELEASED
 ```
 
 ## Goal
 
-Option `000` is the SDK-owned teaching lane. It requires no user-supplied manifest and must teach both the complete manifest/receipt shape and the complete active governance outcome vocabulary before presenting the demo transaction input.
+Option `000` is the SDK-owned teaching lane. It must demonstrate the complete governance vocabulary without pretending that four mutually exclusive teaching examples are four decisions from one transaction, then optionally execute the entire SDK-owned dataset through the canonical sovereign StegGate/Master Records path.
 
-## Installed dataset
+## Dataset
 
 ```text
 stegverse/demo_data/manifest_000_governance_outcomes.json
-```
-
-Schema:
-
-```text
-stegverse.000-demo-dataset.v1
-```
-
-The dataset is strictly `000`-only:
-
-```text
+schema: stegverse.000-demo-dataset.v1
 demo_only: true
 accepted_as_user_manifest: false
 ```
 
-It intentionally places `governance_outcome_examples` before `demo_input`, so a human or LLM learns the governance outcome vocabulary before reading the example transaction.
-
-## Active outcome coverage
-
-Exactly one labeled teaching record is required for each active governance state:
+Exactly one teaching example exists for each active governance state:
 
 ```text
 ALLOW
@@ -47,66 +36,115 @@ REVIEW
 FAIL_CLOSED
 ```
 
-Every example declares:
+Every example remains non-authorizing data and implies no consequence.
+
+## Executable runtime binding installed
+
+Canonical source:
 
 ```text
-transition_class: governance
-receipt_class: governance-decision
-consequence_implied: false
-authority_granted_by_example: false
+stegverse/governance_ingress_runtime.py
+  build_000_public_request()
+  run_000_demo()
+
+stegverse/governance_ingress_cli.py
 ```
 
-These are explanatory records only. They are not persisted prior decisions, authority tokens, executable instructions, or substitutes for canonical runtime evaluation.
+`build_000_public_request()` now constructs a complete bounded canonical StegGate request with explicit candidate, judgment, signal, execution, capability, continuity, approval, permission, and declared-context state. The request is demo-only, uses the exact SDK-owned dataset hash as evidence/reference state, and declares external side effects disabled.
 
-## Installed output behavior
+It does not mint authority. It does not create a second evaluator. `run_000_demo()` delegates directly to `stegverse.sovereign_validation_runtime.run_sovereign_validation()`.
 
-`stegverse/governance_navigation.py` now loads and validates the SDK-owned dataset when `demo_output_manifest_shape()` is called. The demo output begins with:
+Executable entry:
+
+```bash
+python -m stegverse.governance_ingress_cli 000 --custody-db ./stegverse-master-records-validation.db
+```
+
+## Anti-false-processing invariant
+
+`demo_output_manifest_shape()` remains static/explanatory and therefore retains:
 
 ```text
-000_governance_outcome_dataset
+canonical_processing_status: PENDING_RUNTIME_BINDING
+do_not_claim_processed_until_receipts_exist: true
 ```
 
-before the canonical manifest example, labeled sections, process sequence, and reconstruction notes. The loader fails closed if the dataset is missing, malformed, not demo-only, or does not contain exactly one example of each active governance state in canonical order.
+Only `run_000_demo()` may replace that state, and only after the canonical runtime returns evidence. Its runtime-bound processing block is populated from the actual result:
 
-The canonical input example uses the dataset's `demo_input`, but the whole `000` dataset itself is not a valid `stegverse.ingress-manifest.v1` submission.
+```text
+manifest_receipt_id
+receipt_chain_head
+governance_state
+chain_verified
+master_records_custody_status
+external_side_effect
+third_party_host_required
+```
 
-## Tests installed
+The complete canonical runtime result is also retained in `canonical_runtime_result`. No placeholder receipt is generated.
+
+## Installed tests
 
 ```text
 tests/test_000_governance_outcome_demo.py
+tests/test_governance_ingress_runtime.py
 ```
 
-The tests require:
+The new binding tests require:
 
 ```text
-- the demo dataset is the first field in the self-describing output;
-- ALLOW / DENY / REVIEW / FAIL_CLOSED each occur exactly once;
-- every example is labeled as governance/governance-decision evidence;
-- every example is explicitly non-authorizing and does not imply consequence;
-- the dataset is demo-only and not accepted as a user manifest;
-- the dataset cannot pass normal external-manifest validation;
-- option 000 guidance names the complete active governance vocabulary.
+- 000 constructs complete bounded StegGate state;
+- authority_claim remains false;
+- external_consequence_enabled remains false;
+- static output remains PENDING_RUNTIME_BINDING;
+- runtime-bound output becomes PROCESSED_CANONICAL_RUNTIME only after a canonical result exists;
+- receipt/custody fields are copied from the canonical result rather than fabricated.
 ```
 
-## Installation commits
+## Current validation state
+
+Source is installed. Current focused tests are not claimed PASS because this session's container cannot resolve github.com for an anonymous checkout and GitHub reported no automatically triggered workflow for the latest source head. Missing execution evidence is explicitly retained as a validation gap.
+
+Prior dataset/navigation tests remain historical evidence only; they do not prove the newly installed runtime binding.
+
+## Continuation ownership
 
 ```text
-b02f663ad0c7e6e80e867fe359e787c417d400d1  SDK-owned 000 demo outcome dataset
-8c0ec2471529289eb2909d18a21cc59c529c0172  prepend and validate all active outcomes in 000 output
-e408b9e492d7e33b6625cbcf1d7ea64dd78199b6  governance outcome demo tests
+implementation claim: claims/SDK-INGRESS-RUNTIME-BINDING-006.json
+exact sovereign execution/custody evidence: pre-existing MACHINE_OWNED SDK authority-boundary lane
+release/package activation: tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json
 ```
 
-## Worker continuation boundary
+The session must not duplicate the exact machine-owned execution/custody lane or introduce credentials to obtain proof.
 
-Do not reuse this dataset as an ordinary submission fixture or authority source. Remaining work is bounded to:
+## Remaining acceptance evidence
+
+A fully activated 000 path requires one real credential-free canonical execution showing:
 
 ```text
-1. bind option 000 to an actual safe canonical manifested demo run;
-2. replace runtime placeholders with generated hashes, receipts, and exact-run locator;
-3. preserve the four outcome examples as a teaching prelude rather than pretending one run produced four mutually exclusive dispositions;
-4. derive the public transition/receipt class registry from actual canonical receipt vocabulary;
-5. prove a human/LLM can consume the 000 output and construct a fresh conforming manifest without copying demo outcomes as authority;
-6. run sovereign/local validation and retain inspectable PASS evidence.
+dataset SHA-256 == submitted payload SHA-256
+manifest_receipt_id present
+receipt chain head present
+chain_verified=true
+Master Records custody recorded
+external_side_effect=false
+third_party_host_required=false
+replay/reconstruction available from exact-run locator
 ```
 
-A single governed transaction still has one actual governance disposition at a given evaluated boundary. The four demo examples are deliberately separate teaching records prepended to the demo dataset so the complete vocabulary can be learned without falsifying transaction history.
+Until that evidence exists, source binding is complete but governed activation is not.
+
+## Completion accounting
+
+```text
+dataset/teaching vocabulary: 1/1 complete
+self-describing static contract: 1/1 complete
+complete canonical request builder: 1/1 complete
+canonical sovereign runtime delegator: 1/1 complete
+credential-free executable entry: 1/1 complete
+focused current-binding validation: 0/1 pending
+actual canonical 000 receipt: 0/1 pending machine evidence
+release/package inclusion: 0/1 pending TV/TVC release lane
+```
+
+Developed source files for this scoped goal: 4/4 complete; stubs 0. Goal activation is incomplete until the final three evidence gates pass.
