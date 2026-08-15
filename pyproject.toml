@@ -47,6 +47,7 @@ governed-test = [
 [project.scripts]
 stegverse = "stegverse.cli:main"
 stegverse-mcp-test = "stegverse.mcp_cli:main"
+stegverse-connect-llm = "stegverse.llm_connect_cli:main"
 
 [project.urls]
 Homepage = "https://github.com/StegVerse-org/StegVerse-SDK"
