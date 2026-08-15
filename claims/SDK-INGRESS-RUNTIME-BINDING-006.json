@@ -4,36 +4,44 @@
   "repository": "StegVerse-org/StegVerse-SDK",
   "branch": "main",
   "canonical_issue": 16,
-  "role": "CLAIMED_FOR_INTEGRATION",
+  "role": "MERGED_INTO_CANONICAL_WORKSTREAM",
   "claimant": "chat-session-2026-08-15-sdk-ingress-runtime-binding",
   "claim_created_at": "2026-08-15T02:50:00-05:00",
-  "claim_release_condition": "Release after 0B has an executable canonical binding that requires a complete StegGate governance_request and candidate identity match, option 000 has an executable safe canonical manifested demo path, focused sovereign/local validation evidence is durable, issue #16 and applicable mirror handoffs are updated, and release activation ownership is refreshed.",
-  "collision_scope": [
-    "stegverse/governance_navigation.py",
-    "stegverse/governance_ingress_runtime.py",
-    "stegverse/cli.py",
-    "tests/test_governance_ingress_runtime.py",
-    "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
-    "docs/000_GOVERNANCE_OUTCOME_DEMO_MIRROR_HANDOFF.md",
-    "tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json",
-    "StegVerse-org/StegVerse-SDK#16"
+  "claim_released_at": "2026-08-15T03:19:00-05:00",
+  "release_reason": "Source integration is installed and all unverified validation/activation/primary-CLI work is durably assigned to dependency-aware repository tasks; the chat claim must not compete with those lanes.",
+  "source_completion": {
+    "0B_executable_binding": "COMPLETE_SOURCE_UNVALIDATED",
+    "000_executable_binding": "COMPLETE_SOURCE_UNVALIDATED",
+    "credential_free_executable_entry": "COMPLETE_SOURCE_UNVALIDATED",
+    "focused_tests": "INSTALLED_NOT_EXECUTED",
+    "handoff_transfer": "COMPLETE",
+    "issue_transfer": "COMPLETE"
+  },
+  "completed_evidence": [
+    "27db574578b92638f82e7d8e06fb82c37a698a1e stegverse/governance_ingress_runtime.py",
+    "0ea923b93b2c1cbca72aebe60f0ccd69e5d67c66 tests/test_governance_ingress_runtime.py",
+    "2fceb484bb972ec9c63fd071c0a476c825facd76 stegverse/governance_ingress_cli.py",
+    "b48fdaa217cf1e613d7caa6667084fe07b00155e navigation handoff reconciliation",
+    "81d1d80cea7d27bb8fca0f08d1f226453d2cc5d5 000 handoff reconciliation",
+    "issue #16 comment 5301264240"
   ],
-  "must_not_modify_authority": [
-    "StegVerse-Labs/StegCore governance authority",
-    "master-records/orchestration custody authority",
-    "StegVerse-Labs/TV credential authority",
-    "StegVerse-Labs/TVC credential and route authority",
-    "machine-owned exact sovereign execution/custody claim"
+  "validation_gap": "The current 000/0B focused tests were not executed by this session. Anonymous container checkout failed because github.com DNS resolution was unavailable; GitHub showed zero automatically triggered workflow runs for the latest source head. No PASS is inferred.",
+  "merged_into": [
+    "tasks/SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007.json",
+    "tasks/SDK-PRIMARY-GOVERNANCE-UX-INTEGRATION-008.json",
+    "tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json",
+    "StegVerse-org/StegVerse-SDK#16",
+    "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md"
+  ],
+  "continuation_order": [
+    "SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007 validates current source and obtains exact 000/0B evidence",
+    "SDK-PRIMARY-GOVERNANCE-UX-INTEGRATION-008 unblocks only after task 007 COMPLETE and folds the validated bindings into primary stegverse governance UX",
+    "SDK-SOVEREIGN-RELEASE-ACTIVATION-004 publishes/verifies a TV/TVC-authorized distributed package",
+    "issue #16 consumes exact evaluator/user evidence and closes only when its acceptance criteria are proven"
   ],
   "credential_authority": "TV/TVC",
   "github_token_runtime_authority": "NONE",
   "non_tvtvc_secret_or_token_required": false,
-  "expected_evidence": [
-    "0B rejects executable submission when complete governance_request is absent",
-    "0B rejects candidate mismatch between ingress manifest and governance_request",
-    "0B preserves source framework, ingress profile/version, and canonical manifest hash in canonical transaction metadata",
-    "000 constructs a complete bounded demo governance_request and invokes the canonical sovereign runtime with external side effects disabled",
-    "focused deterministic local tests pass without GitHub or provider credentials"
-  ],
-  "next_task_after_release": "TV/TVC-authorized sovereign SDK release activation task publishes and verifies a corrected package; machine/evaluator lane produces exact external execution evidence."
+  "collision_boundary": "No chat/session should reclaim current 000/0B validation, exact custody evidence, primary CLI folding, or release publication while the named tasks own those surfaces.",
+  "archive_dependency": "No unique session implementation responsibility remains in this claim; continuation state is durable. Product activation remains incomplete and must be reported separately from session archival readiness."
 }
