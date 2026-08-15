@@ -30,20 +30,45 @@ The canonical priority order for worker assistance is:
 
 Cross-session convergence is coordination evidence only. It is not authority to redirect this session away from its originating goals.
 
+## Frozen evaluator run versus participant-neutral extension
+
+Two related but distinct authority-boundary lanes exist and MUST NOT be collapsed:
+
+```text
+ORIGINAL FROZEN EVALUATOR RUN
+  cases: T0 / T1-A / T1-B
+  canonical evidence owner: master-records/orchestration
+  handoff: MANIFEST_RECEIPT_CUSTODY_MIRROR_HANDOFF.md
+  current evidence state: sovereign exact-run + manifested-route + replay + reconstruction custody retained
+  third_party_host_required: false
+  remaining interpretation boundary: independent evaluator/reviewer interpretation
+
+PARTICIPANT-NEUTRAL AUTHORITY-BOUNDARY EXTENSION
+  task: SDK-AUTHORITY-BOUNDARY-PRESERVATION-001
+  canonical execution owner: StegVerse-org/StegVerse-SDK#25 + sovereign SDK/Master Records lane
+  fixture: experiments/authority_boundary_preservation/fixture.json
+  source state: COMPLETE_VALIDATED
+  sovereign execution of this exact extension fixture: PENDING
+```
+
+The original frozen evaluator run is therefore **not** to be reported as unexecuted merely because SDK issue #25 remains open. SDK issue #25 is a new participant-neutral extension with distinct acknowledgement, endorsement-inference, attribution/public-association, replay, and reconstruction transitions. Existing frozen T0/T1-A/T1-B custody evidence does not automatically satisfy that extension, and the extension does not reopen the frozen run.
+
 ## Execution inventory
 
 | Task ID | Originating goal | Canonical destination | Claim state | Completion / validation | Integration / archival dependency | Next executable action |
 |---|---|---|---|---|---|---|
-| SDK-AUTHORITY-BOUNDARY-PRESERVATION-001 | Extend the manifest/receipt experiment into an independently reconstructable authority-boundary test | StegVerse-org/StegVerse-SDK issue #25; `experiments/authority_boundary_preservation/`; `SDK_MIRROR_HANDOFF.md` | MACHINE_EXECUTION_PENDING / SESSION_SUPPORT | Fixture + validator + source runner complete; source validation run 31838347112 SUCCESS | Requires exact sovereign run, MR/MRR/MRO custody, then independent interpretation | Assist canonical sovereign SDK execution lane by resolving non-conflicting dependencies and validating retained evidence; do not create a second execution lane |
-| SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002 | Make the extension executable rather than descriptive | `claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json` | COMPLETE_RELEASED_TO_MACHINE_EXECUTION | Runner/test/workflow installed; run 31838347112 SUCCESS | Machine execution still must produce exact sovereign evidence | Observe and validate the released runner's eventual canonical execution evidence |
+| FROZEN-EVALUATOR-T0-T1A-T1B | Original authority/admissibility boundary qualification over the frozen T0/T1-A/T1-B cases | `master-records/orchestration/MANIFEST_RECEIPT_CUSTODY_MIRROR_HANDOFF.md`; retained sovereign custody bundle | EXECUTION_EVIDENCE_COMPLETE / INTERPRETATION_PENDING | Sovereign exact-run MR, route MRR, replay MRO, reconstruction MRO retained; third-party host not required | Independent evaluator/reviewer interpretation remains separate and must not be inferred by implementers | Preserve evidence and observe independent interpretation; do not rerun/rewrite frozen evidence unless canonical owner records a defect |
+| SDK-AUTHORITY-BOUNDARY-PRESERVATION-001 | Extend the manifest/receipt experiment into a participant-neutral independently reconstructable authority-boundary test | StegVerse-org/StegVerse-SDK issue #25; `experiments/authority_boundary_preservation/`; `SDK_MIRROR_HANDOFF.md` | MACHINE_EXECUTION_PENDING / SESSION_SUPPORT | Fixture + validator + source runner complete; source validation run 31838347112 SUCCESS | Requires sovereign execution of this exact extension fixture, MR/MRR/MRO custody, then independent interpretation | Assist canonical sovereign SDK execution lane by resolving non-conflicting dependencies and validating retained evidence; do not create a second execution lane |
+| SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002 | Make the participant-neutral extension executable rather than descriptive | `claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json` | COMPLETE_RELEASED_TO_MACHINE_EXECUTION | Runner/test/workflow installed; run 31838347112 SUCCESS | Machine execution still must produce exact sovereign evidence for the extension fixture | Observe and validate the released runner's eventual canonical execution evidence |
 | STEGCORE-MANIFEST-RECEIPT-ID-001 | Make submit/replay/reconstruct independently resolvable from immutable retained evidence | StegVerse-Labs/StegCore issue #85; `docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md` | CLAIMED_BY_CANONICAL_STEGCORE_INTEGRATION / SESSION_SUPPORT | Identifier/provider/shared-backing source installed; handoff remains INSTALLED_UNVALIDATED / NOT_RELEASED | Requires admitted Master Records transport, immutable resolve proof, replay/reconstruction proof, SDK/LLM caller binding, sovereign/local validation | Assist validation/integration without duplicating receipt-ID, custody, evaluator, or authority paths |
+| MASTER-RECORDS-MANIFESTED-OPERATION-HARDENING-031 | Harden MR/MRO idempotency and failed-operation terminal behavior supporting canonical replay/reconstruct custody | master-records/orchestration issue #31 / PR #32 / `MANIFESTED_OPERATION_CUSTODY_HARDENING_MIRROR_HANDOFF.md` | DISTINCT_OTHER_SESSION_VALIDATION_INTEGRATION_CLAIM | Source hardening installed on PR #32; hosted validation zero-step/unproven | Must not be taken over by this session; supports but does not own SDK #25 or frozen evaluator evidence | Reconcile only; do not merge or claim PASS until its canonical validation lane produces executable evidence |
 | SDK-USAGE-OBSERVABILITY-001 | Make SDK activity around 000/00/0/1/2 distinguishable and countable | StegVerse-org/StegVerse-SDK `SDK_USAGE_OBSERVABILITY_MIRROR_HANDOFF.md`; merged PRs #27/#28 | SOURCE_COMPLETE_VALIDATED_MERGED / INTEGRATION_PENDING | Five-choice menu telemetry and actual 0/1/2 GOVERNED_OPERATION adapter are merged and source-validated | Canonical provider binding plus TV/TVC notification relay and first StegCore #117 observation remain | Assist StegCore provider binding and TVC relay validation; preserve observed-only historical boundary |
 | TVC-SDK-USAGE-NOTIFICATION-RELAY-001 | Notify through GitHub without any SDK/non-TV/TVC credential and retain five-choice usage counts | StegVerse-Labs/TVC PR #24; `tasks/TVC-SDK-USAGE-NOTIFICATION-RELAY-001.json`; `docs/SDK_USAGE_NOTIFICATION_RELAY_MIRROR_HANDOFF.md` | IMPLEMENTATION_RELEASED / VALIDATION_BLOCKED | Source/control files complete; repeated hosted attempts failed before executable steps, not a source test failure | Exact PR source must execute relay tests and pass; then merge; then TV/TVC runtime dispatch must reach StegCore #117 | Assist exact no-credential validation when an authorized executable runner is available; never substitute connector/GitHub Actions credential for TV/TVC runtime authority |
 | TVC-GITHUB-REPOSITORY-OPERATION-BROKER-001 | Help Admissible-Existence/StegCore workers inspect/materialize bounded repository state without exposing a credential | StegVerse-Labs/TVC issue #19 / PR #20; `docs/GITHUB_REPOSITORY_OPERATION_BROKER_MIRROR_HANDOFF.md`; `tasks/TVC-GITHUB-REPOSITORY-OPERATION-BROKER-001.json` | SOURCE_COMPLETE_TRANSFERRED / TV_TVC_LOCAL_VALIDATION_PENDING | Broker, inspector, spool intake, schemas/tests and consumer integrations installed; 16/16 source/control files, 3/3 consumer integrations in current handoff | Requires TV/TVC-owned local validation receipt on exact PR #20 source before canonical admission | Assist validation/reconciliation only; do not introduce a GitHub-generated or other non-TV/TVC credential workaround |
 | SOVEREIGN-LOCAL-MODEL-001 | Remove descriptive “select a local model/runtime”; formally develop model locally | StegVerse-002/micro-node-runtime `docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md` | COMPLETE_RELEASED | Formal `stegverse-reference-lm-v1`, discovery, private launch, real inference, usage/proof complete; runs 31339534741 and 31384116055 SUCCESS | Live activation is separately machine-owned | Do not duplicate; assist only with distinct downstream validation/integration defects if surfaced |
 | ECOSYSTEM-CHAT-SOVEREIGN-ACTIVATION | Activate finished local model/runtime through governed same-carrier path | StegVerse-Labs/.github issue #60 -> TVC -> LLM-adapter -> master-records/orchestration | MACHINE_OWNED | Source path complete | Fresh machine-owned runtime/custody proof remains | Observe/reconcile evidence only; do not compete with resident heartbeat/fence |
 | NO-NON-TVTVC-SECRETS-001 | Ensure no NON-TV/TVC secrets/tokens are used | TV/TVC authority handoffs plus SDK/runtime validation contracts | COMPLETE_POLICY / RUNTIME_EVIDENCE_BOUND | Source validation proves non-authorizing/no-consumer-token paths where installed | Live runtime receipts must continue to preserve TV/TVC-only credential authority | Reject any workaround that places provider/GitHub/runtime credentials outside TV/TVC |
-| STEGFIN-TRADE-READY-WALLET-HANDOFF | Explicitly added adjacent goal: make the validation trade ready | StegVerse-Labs/stegfin-governance `docs/STEGFIN_MIRROR_HANDOFF.md`; TVC/.github machine continuation | MACHINE_OWNED_ADJACENT | Source readiness 7/8 in current StegFin handoff; terminal `WALLET_HANDOFF_READY` pending | This adjacent workstream must not replace the authority-boundary/SDK worker graph; signing/broadcast remain USER_ONLY | Existing StegFin/TVC/.github workers continue; this session assists only where a concrete dependency traces back to an explicit session goal and does not duplicate machine ownership |
+| STEGFIN-TRADE-READY-WALLET-HANDOFF | Explicitly added adjacent goal: make the validation trade ready | StegVerse-Labs/stegfin-governance `docs/STEGFIN_MIRROR_HANDOFF.md`; TVC/.github machine continuation | MACHINE_OWNED_ADJACENT | Source readiness 7/8; terminal `WALLET_HANDOFF_READY` pending | This adjacent workstream must not replace the authority-boundary/SDK worker graph; signing/broadcast remain USER_ONLY | Existing StegFin/TVC/.github workers continue; this session assists only where a concrete dependency traces back to an explicit session goal and does not duplicate machine ownership |
 | DOWNSTREAM-PROPAGATION-AFTER-ACTIVATION | Update public/release surfaces when activation/release criteria are met | Site, Publisher, admissibility-wiki, stegguardian-wiki under their release owners | MACHINE_OWNED_SUCCESSOR | Not authorized yet | Requires immutable activation/release evidence and consumer gates | Downstream consumers ingest only after release predicates pass |
 
 ## Current related worker graph
@@ -51,14 +76,22 @@ Cross-session convergence is coordination evidence only. It is not authority to 
 Workers related to this session are presently observable outside StegFin. The directly related active graph is:
 
 ```text
+Original frozen evaluator lane
+  -> master-records/orchestration retained T0/T1-A/T1-B sovereign custody evidence
+  -> independent interpretation only; do not reopen execution without canonical defect evidence
+
 StegVerse-org/StegVerse-SDK#25
-  -> canonical sovereign authority-boundary execution/custody
+  -> participant-neutral extension sovereign execution/custody
   -> independent interpretation
 
 StegVerse-Labs/StegCore#85
   -> admitted manifest-receipt provider transport
   -> immutable resolve/replay/reconstruction proof
   -> SDK/LLM caller integration
+
+master-records/orchestration#31 / PR #32
+  -> separate manifested-operation custody resilience hardening
+  -> active validation/integration claim belongs its canonical lane
 
 StegVerse-Labs/TVC#20
   -> bounded TV/TVC-owned repository inspection/materialization transport for AE/StegCore workers
@@ -70,22 +103,24 @@ StegVerse-Labs/TVC#24
   -> StegVerse-Labs/StegCore#117 observation
 ```
 
-These are valid `assist workers` targets because each traces to the authority-boundary, SDK evidence/observability, or TV/TVC credential goals of this session.
+These are valid `assist workers` targets only to the extent each traces to the authority-boundary, SDK evidence/observability, local-runtime, credential-boundary, or explicitly added trade-readiness goals. Existing claims remain authoritative; support does not authorize takeover.
 
 ## Collision / convergence decisions
 
+- Do not conflate the retained original frozen T0/T1-A/T1-B sovereign custody evidence with SDK issue #25's participant-neutral extension.
 - No second local model/runtime implementation is authorized. The source goal is merged into `StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md`.
 - No second heartbeat, fence, TV/TVC route authority, LLM-adapter execution path, Master Records custody path, receipt-ID algorithm, or StegFin live worker is authorized.
 - StegFin is an explicitly added adjacent goal, not the default interpretation of `assist workers`.
-- SDK issue #25 remains the canonical authority-boundary sovereign execution workstream; source completion does not close its execution/custody evidence gap.
+- SDK issue #25 remains the canonical participant-neutral extension sovereign execution workstream; source completion does not close its execution/custody evidence gap.
 - StegCore #85 remains the canonical manifest-receipt provider integration owner; the SDK must not create parallel custody/authority.
+- Master Records #31 / PR #32 is resilience hardening with its own validation/integration claim and must not be taken over by this session.
 - TVC PR #20 and PR #24 are related support lanes, each preserving TV/TVC credential authority and each requiring its own exact validation before admission/activation.
 - GitHub-hosted validation is non-authorizing validation only and may not be used as runtime/credential authority.
 
 ## Validation evidence created in this session
 
 ```text
-Authority Boundary Source Validation (Non-Authorizing)
+Authority Boundary Extension Source Validation (Non-Authorizing)
 run: 31838347112
 job: 94889598424
 head: e629fa05f14a7b09a393417b179895e18095dcaf
@@ -99,20 +134,31 @@ production activation role: NONE
 
 The preceding failed run `31838293770` is retained as diagnostic evidence: its only reported test failure was use of the repository compatibility runner's unsupported `monkeypatch` fixture. Commit `e629fa05f14a7b09a393417b179895e18095dcaf` removed that dependency and the successor run passed.
 
+Separately, the canonical Master Records custody handoff records retained sovereign evidence for the original frozen T0/T1-A/T1-B run. That evidence predates and is independent of this extension source-validation run.
+
 ## Exact remaining evidence, with owners
 
 ```text
-authority-boundary exact sovereign execution:
-  owner: canonical sovereign SDK execution lane / StegVerse-org/StegVerse-SDK#25
-  release: manifest_receipt_id + 10-transition route custody + exact-run MR custody
+original frozen evaluator independent interpretation:
+  owner: independent evaluator/reviewer
+  execution evidence: retained in canonical Master Records custody
+  release: independent determination from frozen evidence; no implementer inference
 
-authority-boundary replay/reconstruction:
+participant-neutral extension exact sovereign execution:
+  owner: canonical sovereign SDK execution lane / StegVerse-org/StegVerse-SDK#25
+  release: manifest_receipt_id + 10-transition route custody + exact-run MR custody for this exact extension fixture
+
+participant-neutral extension replay/reconstruction:
   owner: same SDK/Master Records lane
   release: four replay MRO + four reconstruction MRO receipts; no consequence re-execution
 
 manifest-receipt provider integration:
   owner: StegVerse-Labs/StegCore#85 + master-records/orchestration
   release: admitted transport + one-ID/one-immutable-run proof + projection invariants + replay/reconstruct proof + sovereign/local validation
+
+manifested-operation hardening:
+  owner: master-records/orchestration#31 / PR #32 canonical validation/integration lane
+  release: executable deterministic PASS then merge; persistent backup/restore remains separately governed
 
 SDK usage notification relay:
   owner: StegVerse-Labs/TVC#24 -> StegVerse-Labs/StegCore#117
@@ -121,9 +167,6 @@ SDK usage notification relay:
 AE/StegCore bounded repository-operation transport:
   owner: StegVerse-Labs/TVC#20 / TV/TVC-owned local validation carrier
   release: exact local dispatcher PASS then canonical PR admission
-
-independent authority-boundary interpretation:
-  owner: independent reviewer; no attribution/public association implied
 
 local-model live activation:
   owner: StegVerse-Labs/.github#60 -> TVC -> LLM-adapter -> Master Records
@@ -143,4 +186,4 @@ public propagation:
 
 All unique requirements identified so far are durably recorded, but this session is **not** archive-ready because multiple workers directly related to its originating authority-boundary/SDK goals remain active and this session has a distinct support role: inspect current evidence, resolve non-conflicting gaps, validate integrations, and reconcile durable state without taking over machine-owned execution.
 
-Canonical continuation is `SDK_MIRROR_HANDOFF.md`, issue #25, `docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md` / StegCore #85, TVC PR #20, TVC PR #24, the micro-node runtime handoff, and the relevant machine-owned `.github`/TVC continuation records. StegFin remains adjacent and must not erase this worker graph.
+Canonical continuation is the retained Master Records frozen-evaluator custody handoff, `SDK_MIRROR_HANDOFF.md`, SDK issue #25 for the participant-neutral extension, `docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md` / StegCore #85, master-records/orchestration #31 / PR #32 as a non-owned supporting hardening lane, TVC PR #20, TVC PR #24, the micro-node runtime handoff, and the relevant machine-owned `.github`/TVC continuation records. StegFin remains adjacent and must not erase this worker graph.
