@@ -1,0 +1,103 @@
+{
+  "schema": "stegverse.mcp-local-integration-diagnostic.v1",
+  "goal_id": "SDK-MCP-PORTABLE-AUTHORITY-001",
+  "task_id": "SDK-MCP-CANONICAL-VALIDATION-009",
+  "observed_at": "2026-08-15T09:18:00-05:00",
+  "evidence_strength": "SOURCE_EQUIVALENT_LOCAL_DIAGNOSTIC_NOT_CANONICAL_SOVEREIGN_PROOF",
+  "sdk_main": "e4733a41805bcb546b97ad079d9fa75d26ef266d",
+  "source_defect_fix": {
+    "pull_request": 32,
+    "merge": "8b7d2f81591a1388277ba55e5e64210de65dc877",
+    "validated_run": 31889450763,
+    "validated_job": 95023440401,
+    "tests": "9/9 PASS",
+    "defects_corrected": [
+      "MCP caller request incorrectly declared external_consequence_enabled=true and was rejected by canonical public inspection intake before production components loaded.",
+      "Full MCP packet was incorrectly placed inside public input_data; descriptor_name matched the canonical forbidden public-input fragment 'script'.",
+      "The request is now non-authorizing at intake and the inert public payload carries only exact contract/call hashes plus tool label; the full packet remains trusted bounded-consequence metadata."
+    ]
+  },
+  "acceptance_coverage_extension": {
+    "pull_request": 33,
+    "merge": "e4733a41805bcb546b97ad079d9fa75d26ef266d",
+    "validated_run": 31889542545,
+    "validated_job": 95023659790,
+    "source_validation": "PASS",
+    "assertions_added": [
+      "exact MCP contract hash retained in governed execution observation",
+      "exact MCP proposed-call hash retained in governed execution observation",
+      "replay consequence_reexecuted=false",
+      "reconstruction consequence_reexecuted=false",
+      "replay/reconstruction operation-transition custody receipt IDs retained",
+      "bounded write result is governed and retained"
+    ]
+  },
+  "credential_boundary": {
+    "validation_process_github_token_present": false,
+    "validation_process_gh_token_present": false,
+    "validation_process_pypi_api_token_present": false,
+    "local_diagnostic_forbidden_credential_env_keys": [],
+    "credential_authority": "TV/TVC",
+    "non_tv_tvc_secret_or_token_used": false
+  },
+  "production_source_refs_inspected": {
+    "stegcore": "083557adec1bdbace09ebd10fb0765eb8e9a9d08",
+    "core_lite": "72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8",
+    "master_records": "6626c6a7f1df6bf531940c165b2f4db374e08b92"
+  },
+  "local_diagnostic": {
+    "result": "PASS",
+    "host_identity": "local-source-equivalent-diagnostic",
+    "exact_artifact_execution_claimed": false,
+    "reason_not_exact": "The chat execution environment cannot materialize the private Master Records package through an authorized TV/TVC path. Relevant production source was inspected through the connected repository and a source-equivalent local execution copy was used only to exercise runtime behavior and find defects; this receipt does not replace the canonical sovereign exact-artifact run.",
+    "inspect_state": {
+      "governance_state": "ALLOW",
+      "master_records_custody_status": "RECORDED",
+      "transaction_identity_continuous": true,
+      "chain_verified": true,
+      "manifest_receipt_id": "MR-FDB9429255BC083C7DD399901E3650C1EC4E4A7A0C836747B78AA507651E8958",
+      "route_manifest_id": "MF-0BC636A6B65A3D65C6BFCA3D64184099CA671B41A1E12ACB07C8E7FC047E86B0",
+      "transaction_id": "TX-3E6A88FEB7304F84A289515D57BB557B",
+      "mcp_contract_hash": "sha256:2685e22b5e8599c40bcae3af4149085fdfdac654c16396e6dad207b81a20c6e2",
+      "mcp_call_hash": "sha256:261b38a5f14d1a849147d008defc0c2fedd977ca5651fcc0fb1e76f331765dae",
+      "route_transition_count": 10,
+      "route_event_types": [
+        "MANIFEST_ESTABLISHED",
+        "SDK_ENTERED",
+        "INGESTION_ENTERED",
+        "CGE_ADMITTED",
+        "CGE_ROUTED",
+        "MODULE_ENTERED",
+        "MODULE_RESULT",
+        "CGE_RETURN_INGESTED",
+        "ROUTE_CLEARED",
+        "RETURNED"
+      ],
+      "replay_consequence_reexecuted": false,
+      "reconstruction_consequence_reexecuted": false,
+      "replay_operation_transition_custody_status": "RECORDED",
+      "reconstruction_operation_transition_custody_status": "RECORDED"
+    },
+    "bounded_write": {
+      "governance_state": "ALLOW",
+      "master_records_custody_status": "RECORDED",
+      "transaction_identity_continuous": true,
+      "chain_verified": true,
+      "manifest_receipt_id": "MR-D247AE0CC321B59D96CDA3C210FC2B71F4F21578764B95D6C8466277F4D5134E",
+      "transaction_id": "TX-101A6916DF6B4892A3BDA0605E791B3E",
+      "mcp_contract_hash": "sha256:f7d65663bad72647ac235cb71320d5913fcddb71c6fd329830a0d8621eb9d1fb",
+      "mcp_call_hash": "sha256:cbcbae4ec5a4d99f44bd4d891de3a04b9b76c5b9ddfea6506a1a1e47ecd817f4",
+      "status": "UPDATED",
+      "bounded_value": 42,
+      "route_transition_count": 10
+    }
+  },
+  "canonical_completion_state": {
+    "source": "VALIDATED_MERGED_AFTER_DEFECT_CORRECTION",
+    "source_equivalent_runtime_diagnostic": "PASS",
+    "canonical_exact_sovereign_execution": "PENDING",
+    "release_tag_ready": false,
+    "goal_activation_complete": false,
+    "next_executable_action": "Execute tests/test_mcp_production_artifact.py MCPProductionArtifactGovernedIntegrationTests on an authorized sovereign/local environment where the exact declared StegCore, Core-Lite, and Master Records packages are already materialized without exposing any non-TV/TVC secret/token to the SDK. Retain exact MR/MRR/MRO evidence and then reconcile issue #30 and the handoff."
+  }
+}
