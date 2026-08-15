@@ -1,0 +1,9 @@
+{
+  "transport": "stdio",
+  "name": "my-inspectable-mcp",
+  "command": [
+    "python",
+    "-m",
+    "my_mcp_server"
+  ]
+}
