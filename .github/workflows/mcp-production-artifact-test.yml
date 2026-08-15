@@ -7,6 +7,7 @@ on:
       - 'stegverse/sovereign_validation_runtime.py'
       - 'stegverse/sdk_surfaces.py'
       - 'tests/test_mcp_production_artifact.py'
+      - 'tests/test_mcp_request_boundary.py'
       - 'inspection/examples/mcp-*.json'
       - 'docs/MCP_PRODUCTION_ARTIFACT_TESTS.md'
       - 'pyproject.toml'
@@ -44,7 +45,8 @@ jobs:
             stegverse/mcp_cli.py \
             stegverse/sovereign_validation_runtime.py \
             stegverse/sdk_surfaces.py \
-            tests/test_mcp_production_artifact.py
+            tests/test_mcp_production_artifact.py \
+            tests/test_mcp_request_boundary.py
 
       - name: Run credential-free MCP unit tests
         run: |
@@ -52,7 +54,9 @@ jobs:
           test -z "${GITHUB_TOKEN:-}"
           test -z "${GH_TOKEN:-}"
           cd /tmp/source
-          python -m unittest tests.test_mcp_production_artifact.MCPProductionArtifactUnitTests -v
+          python -m unittest \
+            tests.test_mcp_production_artifact.MCPProductionArtifactUnitTests \
+            tests.test_mcp_request_boundary.MCPRequestBoundaryTests -v
 
       - name: Preserve sovereign integration boundary
         run: |
