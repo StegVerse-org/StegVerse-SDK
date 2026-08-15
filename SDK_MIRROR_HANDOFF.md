@@ -27,6 +27,7 @@ SDK-SOVEREIGN-PRODUCTION-VALIDATION-008: COMPLETE_VALIDATION_EVIDENCE_RETAINED
 SDK-AUTHORITY-BOUNDARY-PRESERVATION-001: ACTIVE_RUNNER_SOURCE_VALIDATED_PENDING_SOVEREIGN_EXECUTION
 SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002: COMPLETE_RELEASED_TO_MACHINE_EXECUTION
 SDK-USAGE-GOVERNED-OPERATION-WIRING-002: COMPLETE_VALIDATED_MERGED
+SDK-MCP-PORTABLE-AUTHORITY-001: SOURCE_VALIDATED_DEFECTS_CORRECTED_EXACT_SOVEREIGN_ARTIFACT_RUN_PENDING
 ```
 
 No person-specific evaluator route is canonical.
@@ -73,6 +74,43 @@ SDK entry
 ```
 
 Replay and reconstruction are separately recorded operations and do not re-execute the original consequence.
+
+## MCP production-artifact testing
+
+Scoped source of truth:
+
+```text
+MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md
+tasks/SDK-MCP-CANONICAL-VALIDATION-009.json
+reports/mcp-production-artifact/local-integration-diagnostic-20260815.json
+StegVerse-org/StegVerse-SDK#30
+```
+
+The MCP lane is now source-complete and defect-corrected on main. Active testing found and corrected two actual canonical-intake defects rather than leaving the integration requirement descriptive:
+
+```text
+PR #32 merge: 8b7d2f81591a1388277ba55e5e64210de65dc877
+validation run/job: 31889450763 / 95023440401 SUCCESS
+focused tests: 9/9 PASS
+
+PR #33 merge/current tested source: e4733a41805bcb546b97ad079d9fa75d26ef266d
+validation run/job: 31889542545 / 95023659790 SUCCESS
+```
+
+The corrected authority boundary is:
+
+```text
+caller MCP request external_consequence_enabled=false
+caller authority_claim=false
+public input carries exact MCP contract/call hashes, tool label, and phase only
+full MCP packet is bounded-consequence metadata, not caller authority
+actual MCP tools/call is injected only as the canonical consequence executor
+StegCore invokes that executor only after StegGate ALLOW + commit-coherence ALLOW
+```
+
+A credential-sanitized source-equivalent local integration diagnostic traversed the full executable logic and produced ALLOW, verified transaction continuity, RECORDED MR/MRR/MRO-equivalent custody, replay/reconstruction no-reexecution, and a governed bounded-write `UPDATED / bounded_value=42` result. The process carried no GitHub/token/secret credential-like environment keys.
+
+That diagnostic is intentionally **not** promoted to canonical exact-artifact PASS because this chat execution surface did not materialize the private Master Records package through an authorized TV/TVC path. The exact sovereign run remains the final activation gate. No GitHub/private-repository token workaround is authorized.
 
 ## Authority-boundary preservation extension
 
@@ -163,34 +201,29 @@ current inventory: StegVerse-Labs/.github/control/session-goal-inventory-2026-08
 archive receipt: StegVerse-Labs/.github/receipts/session-consolidation/SESSION-ARCHIVE-TRANSFER-G08-MACHINE-CONTINUATION-20260815.json
 ```
 
-The v7 inventory defines the goals of the conversation as G01-G08, records local runtime/model source completion, TV/TVC-only credential authority, durable consolidation and worker assistance as complete/released, and transfers the incomplete G08 trade-ready product goal to named machine/authority owners.
+The v7 inventory defines the goals of that prior conversation as G01-G08, records local runtime/model source completion, TV/TVC-only credential authority, durable consolidation and worker assistance as complete/released, and transfers the incomplete G08 trade-ready product goal to named machine/authority owners.
 
-SDK #25, StegCore #85, TVC #20/#24, Master Records #31/#32, and other SDK-adjacent work remain legitimate repository work, but they are no longer treated as hidden chat-retention requirements for the superseded current-session scope. A later conversation may assist them only when a new user goal explicitly brings them into scope.
+The present MCP goal is separately scoped by `MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md` and must not be conflated with those older session workstreams.
 
 ## Session consolidation / archive condition
 
-```text
-SDK implementation claims remaining with current chat: 0
-unique current-session requirements existing only in chat: 0
-current-session unassigned requirements: 0
-current-session execution responsibility remaining: 0
-current-session archive state: READY
-product activation complete: false
-```
-
-Archive readiness does not claim product activation. It means all remaining execution is durably assigned and the conversation is not required to move it forward.
-
-Canonical current-session continuation is entirely repository/machine-owned:
+For the MCP workstream:
 
 ```text
-StegVerse-Labs/.github/handoffs/SHWP-DURABLE-RUNTIME-ACTIVATION.json
-StegVerse-Labs/.github/management/SHWP_RUNTIME_ACTIVATION_BLOCKER.json
-StegVerse-Labs/.github/docs/STEGFIN_CONTINUITY_MACHINE_EXECUTOR_MIRROR_HANDOFF.md
-StegVerse-Labs/.github/data/stegfin-continuity-machine-executor/task-state.json
-StegVerse-Labs/.github/handoffs/STEGFIN-CONTINUITY-CARRIER-007.json
-StegVerse-Labs/stegfin-governance/task-state/STEGFIN-CONTINUITY-CARRIER-007.json
-StegVerse-Labs/TVC/tasks/TVC-CAPABILITY-RUNTIME-002.json
-StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
+source implementation remaining: 0
+source defect fixes remaining: 0
+integration acceptance test implementation remaining: 0
+exact sovereign artifact execution evidence remaining: 1
+MCP activation complete: false
 ```
 
-Do not recreate completed local-runtime/model/bootstrap/bridge/session-consolidation work, do not create alternate claims or credential paths, and do not perform provider/wallet operations from chat.
+Canonical MCP continuation:
+
+```text
+MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md
+tasks/SDK-MCP-CANONICAL-VALIDATION-009.json
+reports/mcp-production-artifact/local-integration-diagnostic-20260815.json
+issue #30
+```
+
+Do not mark MCP activation complete until the exact declared production artifacts produce retained MR/MRR/MRO evidence. Do not use GitHub/private-repository credentials to manufacture that proof.
