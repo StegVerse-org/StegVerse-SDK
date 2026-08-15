@@ -25,6 +25,7 @@ tests/test_llm_connection.py
 docs/CONNECT_MY_LLM.md
 tasks/SDK-LLM-ADAPTER-CONNECTION-010.json
 claims/SDK-LLM-ADAPTER-CONNECTION-010.json
+.github/workflows/connect-llm-source-validation.yml
 ```
 
 Implementation commits:
@@ -36,6 +37,7 @@ d2c5f679d9878783a06eece2edf4c950cb53db34 adapter binding/discovery/descriptor/su
 3ce858df10461467556b60732d8916af22e521b9 SDK help/surface registry
 1e453dfce20bc2027e37e15d3922b4e821702c5d focused tests
 16bd42b9362279a4ee476f557af660c319aa258e user procedure
+41d59b9777078312d3118bc4438bbb00495a945c secret-policy metadata guard correction
 ```
 
 ## User path
@@ -63,22 +65,56 @@ MCP remains a separate capability/tool transport; it does not replace the LLM-ad
 
 ## Secret and authority boundary
 
-The SDK recursively rejects secret/token-shaped descriptor and payload fields. It accepts no provider API key, password, Authorization header, provider token, GitHub token, private key, or generic credential map. Protected credential authority remains TV/TVC.
+The SDK recursively rejects secret/token-shaped descriptor and payload fields while permitting only exact non-secret policy metadata keys whose values are separately validated. It accepts no provider API key, password, Authorization header, provider token, GitHub token, private key, or generic credential map. Protected credential authority remains TV/TVC.
 
 Connection success does not grant StegGate admission, provider execution, publication authority, Master Records custody, or product activation.
 
-## Validation state
+## Validation evidence
+
+First automatic credential-free validation:
+
+```text
+workflow_run: 31875260907
+job: 94989921596
+result: FAILED
+useful finding: over-strict secret-key guard rejected its own credential_authority policy metadata
+credential-empty assertion: PASS
+anonymous exact-source materialization: PASS
+compile: PASS
+```
+
+Corrective commit:
+
+```text
+41d59b9777078312d3118bc4438bbb00495a945c
+```
+
+Successful automatic credential-free validation:
+
+```text
+workflow_run: 31875380537
+job: 94990207643
+result: SUCCESS
+focused tests: 5/5 PASS
+help alias/binding check: PASS
+credential-empty assertions: GITHUB_TOKEN, GH_TOKEN, OPENAI_API_KEY, ANTHROPIC_API_KEY
+source materialization: anonymous exact-SHA archive
+marker: SDK_CONNECT_LLM_SOURCE_VALIDATION_PASS
+manual workflow dispatch: NO
+```
+
+Current state:
 
 ```text
 source installed on main: YES
 source inspection: COMPLETE
-focused tests installed: YES
-focused tests executed: NOT YET PROVEN
-hosted workflow run for implementation head: NONE OBSERVED
-exact cloned-SDK install/CLI/adapter handshake: PENDING
+focused source validation: COMPLETE
+source claim: RELEASED_COMPLETE_VALIDATED_SOURCE
+exact installed-package live adapter handshake: PENDING
+TV/TVC-authorized package/release containing this source: PENDING
 ```
 
-No workflow pass is claimed. The task remains `IMPLEMENTED_PENDING_EXECUTED_VALIDATION` until a credential-free machine lane runs `tests/test_llm_connection.py` and one exact CLI handshake against the adapter `/user-llm` surface.
+The connector is therefore source-complete and validated. This is not yet distributed/live activation evidence.
 
 ## Collision / ownership
 
@@ -87,22 +123,25 @@ The SDK owns only connection discovery, help/CLI, non-secret descriptor persiste
 ## Continuation
 
 ```text
-SDK validation/task: tasks/SDK-LLM-ADAPTER-CONNECTION-010.json
+source task: tasks/SDK-LLM-ADAPTER-CONNECTION-010.json
+source claim: claims/SDK-LLM-ADAPTER-CONNECTION-010.json
 adapter portable surface: StegVerse-org/LLM-adapter/llm_adapter/user_llm_service.py
-Ecosystem Chat runtime: StegVerse-org/LLM-adapter#18
+Ecosystem Chat runtime: StegVerse-org/LLM-adapter canonical Ecosystem runtime lane
 VACC runtime: StegVerse-org/LLM-adapter#90
 SDK release: tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json
 ```
 
-Release/package activation must include these commits and remain TV/TVC-authorized; GitHub Actions and GitHub tokens receive no release/runtime authority.
+Release/package activation must include this source and remain TV/TVC-authorized; GitHub Actions and GitHub tokens receive no release/runtime authority. After an authorized package is observable, the remaining connector activation proof is one exact installed-package `stegverse-connect-llm` handshake against an admitted `/user-llm` endpoint returning `CONNECTED`.
 
 ## Completion accounting
 
 ```text
-developed files: 8/8
+developed files: 9/9
 scaffolding/stubs: 0
 missing required files: 0
+source validation: 2/2 required source proofs
 source integration: COMPLETE
-executed validation: 0/2 required proofs
 package/release activation: PENDING
+exact live handshake: PENDING
+goal activation: PARTIAL
 ```
