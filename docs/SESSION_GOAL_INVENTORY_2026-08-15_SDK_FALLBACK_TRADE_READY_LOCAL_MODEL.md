@@ -1,10 +1,6 @@
 # Session Goal Inventory — 2026-08-15
 
-## Governing session objective
-
-Complete, consolidate, and durably transfer the session goals so repositories, claims, tasks, machine workers, receipts, and issues can continue without depending on chat history.
-
-Credential invariant for every goal:
+## Governing invariant
 
 ```text
 credential_authority: TV/TVC
@@ -16,20 +12,84 @@ broadcast authority where applicable: USER_ONLY
 
 ## Concrete execution inventory
 
-| Goal / task ID | Originating goal | Canonical location | Current owner / claim | Completion | Validation | Integration / activation | Evidence | Next executable action |
-|---|---|---|---|---|---|---|---|---|
-| `SDK-GOVERNANCE-SOVEREIGN-FALLBACK-003` | Fix StegGate/AdmittedCode SDK failure and retain permanent canonical fallback | `docs/SDK_GOVERNANCE_SOVEREIGN_FALLBACK_MIRROR_HANDOFF.md`, issue `#16` | claim released; canonical #16 continuation | source complete | fallback 4/4 local PASS; adapter 3/3 local PASS; hosted not claimed | source + explicit public fallback active on main; package/external execution not proven | commits `390989a`, `870bae6`, `ccb5730`, `bea7c81`, `e8ced03`, `0556129`, claim release `50d228f` | release/package activation task publishes verified corrected package under TV/TVC authority |
-| `SDK-PUBLIC-GOVERNANCE-EXECUTION-005` | Make announced ordinary SDK path execute canonical StegGate operations | `stegverse/cli.py`, `tests/test_governance_public_execution.py`, issue `#16` | integration claim released | 0A/1/2 source integrated | focused tests committed; Actions head had zero runs; external execution unobserved | 0A/1/2 source active on main; 000 and 0B remain | commits `39ec03c`, `cca135a`, claim release `2a20c77`, issue #16 comment `5301192888` | issue #16 runtime-binds 000 and installs canonical 0B binding; local/machine lane executes focused tests |
-| `SDK-SOVEREIGN-RELEASE-ACTIVATION-004` | Activate completed SDK correction for actual users | `tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json` | `MACHINE_OWNED` TV/TVC-authorized sovereign SDK release lane | task installed | release/package verification pending | NOT ACTIVATED: observed package version 1.0.13, tag v1.0.13, latest published release v1.0.12; correction newer than tag | commit `e194a33`; `.github/workflows/headless-release.yml` validation-only | resolve release candidate from canonical main; TV/TVC-authorized publish; verify distributed package contents; persist COMPLETE/BLOCKED/RETRY/REVIEW_REQUIRED/FAILED state |
-| `SDK-MANIFEST-RECEIPT-NAVIGATION-001` | Public 000/00/0/1/2 governed SDK experience | issue `#16`, `docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md` | canonical SDK workstream | partial | prior guidance tests + new source tests; end-to-end incomplete | 0A/1/2 source wired; 000 runtime binding + 0B binding remain | issue #16 + scoped fallback handoff | runtime-bind 000; install canonical `stegverse.ingress-manifest.v1` 0B execution binding; preserve fallback only before canonical governance exists |
-| `SOVEREIGN-LOCAL-MODEL-001` | Replace descriptive local-runtime selection with actual discovery/launch/proof; formally develop model | `StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md` | source `COMPLETE_RELEASED`; live activation `.github#60` machine-owned | complete source/model | runs `31339534741` and `31384116055` SUCCESS | source released; same-carrier live activation pending machine proof | micro-node handoff + work claim | resident heartbeat -> TVC -> LLM-adapter -> Master Records obtains fresh same-execution activation proof |
-| `STEGFIN-BASE-ROUNDTRIP-001` / `STEGFIN-CONTINUITY-CARRIER-007` | Assist workers and make StegFin trade-ready | `StegVerse-Labs/stegfin-governance/docs/STEGFIN_MIRROR_HANDOFF.md`, `.github/handoffs/STEGFIN-CONTINUITY-CARRIER-007.json` | `MACHINE_OWNED`, collision-safe execution claim | 7/8 trade-ready | 7/8 evidence complete | terminal machine run to `WALLET_HANDOFF_READY` pending; signing/broadcast USER_ONLY | StegFin handoff/task-state/.github handoff | worker uses same-host TV/TVC Unix broker when present, otherwise admitted HTTPS route, reaches `WALLET_HANDOFF_READY`, then STOP |
-| `TVC-CAPABILITY-RUNTIME-002` | Enforce TV/TVC-only credential authority supporting trade readiness | `StegVerse-Labs/TVC/tasks/TVC-CAPABILITY-RUNTIME-002.json` | repository-native observer `CLAIMED_FOR_VALIDATION` | source complete | observer active | HTTPS optional for StegFin when same-host broker absent | TVC task/handoff | TV/TVC authority persists ready provider-operation observation when applicable |
-| `SHWP-ECOSYSTEM-CHAT-INFERENCE-WORKER-001` | Activate completed local-model work without GitHub runtime authority | `StegVerse-Labs/.github#60` | `MACHINE_OWNED` | source prerequisites complete | activation evidence pending | not yet fully activated | `.github#60` + micro-node handoff | fresh fence >20 + real private model observation + TVC ROUTE_ADMITTED/credential NONE + exact adapter execution + measured usage + same-execution reconstruction PASS |
+| Goal / task | Canonical continuation | Owner / claim state | Completion / validation | Next executable action |
+|---|---|---|---|---|
+| `SDK-GOVERNANCE-SOVEREIGN-FALLBACK-003` | `docs/SDK_GOVERNANCE_SOVEREIGN_FALLBACK_MIRROR_HANDOFF.md`, issue #16 | source claim RELEASED | source complete; fallback 4/4 local PASS; adapter 3/3 local PASS | consume through current SDK validation/release chain |
+| `SDK-PUBLIC-GOVERNANCE-EXECUTION-005` | `stegverse/cli.py`, issue #16 | source claim RELEASED | 0A/1/2 source complete; focused tests committed, no hosted run observed | task 007 validates current surface; task 008 owns later primary CLI consolidation |
+| `SDK-INGRESS-RUNTIME-BINDING-006` | `stegverse/governance_ingress_runtime.py`, `stegverse/governance_ingress_cli.py`, navigation/000 handoffs | `MERGED_INTO_CANONICAL_WORKSTREAM` | 000 and 0B source complete; current focused tests installed but NOT EXECUTED | task 007 obtains credential-free PASS + exact 000/0B evidence |
+| `SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007` | `tasks/SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007.json` | `MACHINE_OWNED` canonical sovereign SDK execution lane; worker admission not yet proven | pending | task 009 obtains canonical worker admission; admitted worker runs focused tests and exact 000/0B run/replay/reconstruct evidence |
+| `SDK-PRIMARY-GOVERNANCE-UX-INTEGRATION-008` | `tasks/SDK-PRIMARY-GOVERNANCE-UX-INTEGRATION-008.json`, issue #16 | `BLOCKED` dependency-gated integration lane | source helper exists; primary `stegverse governance` fold pending | unblocks only after task 007 COMPLETE, then delegates primary CLI 000/0B to validated binding |
+| `SDK-GOVERNANCE-WORKER-ADMISSION-009` | `tasks/SDK-GOVERNANCE-WORKER-ADMISSION-009.json` + `StegVerse-Labs/.github/docs/ORG_MIRROR_HANDOFF.md` | `REVIEW_REQUIRED`, owner `.github` resident heartbeat / active-worker admission authority | task record complete; resident admission not proven | reuse exact existing worker capability or acquire authorized noncompeting `.github` implementation claim before registry mutation |
+| `SDK-SOVEREIGN-RELEASE-ACTIVATION-004` | `tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json` | `MACHINE_OWNED` TV/TVC-authorized sovereign release lane | package/release not activated; observed v1.0.13 tag/package state predates current source | after validation, publish/verify corrected package under TV/TVC authority only |
+| `SOVEREIGN-LOCAL-MODEL-001` | `StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md` | source `COMPLETE_RELEASED`; live activation `.github#60` MACHINE_OWNED | model/runtime source fully validated/released; live post-HB29 evidence pending | resident heartbeat -> TVC -> LLM-adapter -> Master Records activation proof |
+| `STEGFIN-BASE-ROUNDTRIP-001` / `STEGFIN-CONTINUITY-CARRIER-007` | `StegVerse-Labs/stegfin-governance/docs/STEGFIN_MIRROR_HANDOFF.md`, `.github/handoffs/STEGFIN-CONTINUITY-CARRIER-007.json` | MACHINE_OWNED | 7/8 trade-ready; 24/24 developed files; terminal `WALLET_HANDOFF_READY` not observed | canonical worker acquires claim, uses TV/TVC broker, reaches `WALLET_HANDOFF_READY`, STOP; signing/broadcast USER_ONLY |
+| `TVC-CAPABILITY-RUNTIME-002` | `StegVerse-Labs/TVC/tasks/TVC-CAPABILITY-RUNTIME-002.json` | repository-native validation observer | source complete; optional HTTPS observation pending where same-host broker absent | observer persists exact readiness evidence without exposing credentials |
+| `SHWP-ECOSYSTEM-CHAT-INFERENCE-WORKER-001` | `StegVerse-Labs/.github#60` | MACHINE_OWNED | local model prerequisites complete; live same-carrier activation incomplete | fresh fence/route/execution/usage/reconstruction evidence under resident heartbeat |
 
-## Original and adjacent goal preservation
+## What this session actually changed
 
-### Trade-ready goal
+SDK source installed on `main`:
+
+```text
+stegverse/governance_ingress_runtime.py
+  - 0B canonical binding using existing ingress extensions surface
+  - requires complete extensions.stegverse_governance_request
+  - exact candidate hash binding
+  - ingress source/profile/hash identity preserved as non-authorizing declared context
+  - no synthesized judgment/signal/execution evidence
+  - 000 complete bounded canonical request builder
+  - 000 canonical sovereign runtime delegator
+
+stegverse/governance_ingress_cli.py
+  - credential-free executable 000/0B entry
+
+tests/test_governance_ingress_runtime.py
+  - missing-evidence fail closed
+  - candidate mismatch fail closed
+  - ingress identity retention
+  - complete bounded 000 request
+  - no false PROCESSED state before canonical result
+```
+
+Source commits:
+
+```text
+27db574578b92638f82e7d8e06fb82c37a698a1e
+0ea923b93b2c1cbca72aebe60f0ccd69e5d67c66
+2fceb484bb972ec9c63fd071c0a476c825facd76
+```
+
+Control/transfer commits include:
+
+```text
+b48fdaa217cf1e613d7caa6667084fe07b00155e  navigation handoff
+81d1d80cea7d27bb8fca0f08d1f226453d2cc5d5  000 handoff
+7970412dce03d25485617a8a2da1931015a50b99  release activation refresh
+f6c8c1e051d141f56d1c0029599bca22993ab06e  sovereign validation task
+6e5449754c19e2d0dcae0fb8c47084a71f565549  primary UX integration task
+70fd3299bdcc7b7bb79fdb3e6f5caa3dc5a26e90  source claim release/merge
+c7e140f2e3625ec159946db20ac0ee04471c2dec  worker-admission boundary task
+```
+
+Issue #16 durable continuation comment: `5301264240`.
+
+## Validation truth
+
+Current 000/0B binding tests are **not claimed PASS**. The session attempted an anonymous local checkout; the execution environment could not resolve `github.com`. GitHub Actions query for the latest source head returned zero workflow runs. No paid hosted validation was manually triggered during the billing incident.
+
+The absence of execution is now represented as a real dependency chain rather than success:
+
+```text
+009 worker admission
+-> 007 credential-free sovereign validation + exact 000/0B evidence
+-> 008 primary CLI integration
+-> 004 TV/TVC-authorized release/package verification
+-> issue #16 external/evaluator evidence and closure
+```
+
+## Original goal preservation
+
+### Trade-ready
 
 MERGED INTO:
 
@@ -38,65 +98,45 @@ StegVerse-Labs/stegfin-governance/docs/STEGFIN_MIRROR_HANDOFF.md
 StegVerse-Labs/.github/handoffs/STEGFIN-CONTINUITY-CARRIER-007.json
 ```
 
-Transferred requirements: inventory-first continuity, 12.50 USDC -> WETH Base validation, TV/TVC-only provider authority, zero provider-secret export, no non-TV/TVC secret/token use, and USER_ONLY signing/broadcast.
+Live authoritative handoff still reports `ACTIVE_UNEXECUTED_LIVE_CYCLE`, 7/8 trade-ready, TV/TVC-only credential authority, no non-TV/TVC token use, provider-secret export prohibited, and USER_ONLY wallet signing/broadcast.
 
-### Local model/runtime goal
+### Local model/runtime
 
 MERGED INTO:
 
 ```text
 StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
-StegVerse-002/micro-node-runtime/work_claims/SOVEREIGN-LOCAL-MODEL-001.json
+StegVerse-Labs/.github#60
 ```
 
-The descriptive local-runtime step is superseded by executable discovery, private launch, real inference, measurement, proof, and the formally developed `stegverse-reference-lm-v1`. No duplicate implementation is authorized.
+The descriptive runtime-selection step is obsolete. The repository-developed language and visual-evidence model/runtime paths are complete/released. Live activation remains resident-heartbeat/TVC/consumer/Master Records work and must not be duplicated by chat.
 
-### SDK public-governance goal
+### SDK public governance
 
 MERGED INTO:
 
 ```text
 StegVerse-org/StegVerse-SDK#16
-StegVerse-org/StegVerse-SDK/docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md
-StegVerse-org/StegVerse-SDK/docs/SDK_GOVERNANCE_SOVEREIGN_FALLBACK_MIRROR_HANDOFF.md
-StegVerse-org/StegVerse-SDK/tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json
+docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md
+docs/000_GOVERNANCE_OUTCOME_DEMO_MIRROR_HANDOFF.md
+tasks/SDK-GOVERNANCE-WORKER-ADMISSION-009.json
+tasks/SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007.json
+tasks/SDK-PRIMARY-GOVERNANCE-UX-INTEGRATION-008.json
+tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json
 ```
 
-The incident-specific fallback and ordinary 0A/1/2 source integration are installed. Runtime-bound 000, canonical 0B binding, strongest non-cost-amplifying validation, and distributed package activation remain.
+## Collision / authority conclusions
 
-## Duplicate / convergence controls
+- No SDK task may create a second StegGate evaluator or Master Records registry.
+- No chat may inject a `.github` resident worker without an admitted organization claim; `.github/docs/ORG_MIRROR_HANDOFF.md` explicitly reserves one canonical heartbeat/registry and does not make organization implementation manually startable by default.
+- No GitHub/provider/wallet credential is accepted by the SDK validation path.
+- TV/TVC remains the only credential/release authority when credentials are required.
+- StegFin live provider/wallet execution remains machine/USER-owned and was not duplicated.
 
-- Existing PR #28 `GovernedOperations` was extended rather than replaced.
-- Duplicate fallback issue #29 was closed into canonical issue #16.
-- Exact SDK sovereign execution/custody remains owned by `claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json`.
-- Local model/runtime implementation remains canonical in `StegVerse-002/micro-node-runtime`.
-- StegFin terminal execution remains machine-owned; no provider operation, signing, or broadcast is duplicated here.
-- TVC observer owns its validation surface; HTTPS is not a universal StegFin prerequisite when the same-host broker exists.
-- GitHub Actions remains validation-only for SDK release boundary; publication authority is not transferred to GitHub.
+## Session role / archival dependency
 
-## Activation distinction
+Current session classification: `ACTIVE — DISTINCT SUPPORT ROLE`.
 
-```text
-SDK incident source correction: INSTALLED
-SDK permanent fallback selector: INSTALLED
-SDK ordinary 0A/1/2 source execution: INSTALLED
-SDK runtime-bound 000: PENDING
-SDK canonical 0B execution: PENDING
-SDK corrected distributed package/release: PENDING MACHINE_OWNED
-SDK external corrected-path execution proof: PENDING
-local model/runtime source + formal model: COMPLETE_RELEASED
-local model live same-carrier activation: PENDING MACHINE_OWNED
-StegFin trade-readiness source: 7/8
-StegFin WALLET_HANDOFF_READY: NOT YET OBSERVED
-wallet signing/broadcast: USER_ONLY / not performed
-```
+All unique source/design requirements are durable and the implementation claim is released. The session still has a distinct reconciliation role because SDK validation task 007 is not yet proven admitted to the canonical resident worker registry, and product-facing source has not passed current-binding sovereign validation. Task 009 preserves the exact admission requirement, but until an authorized `.github` lane consumes/supersedes it, there is no evidence that continuation is active rather than merely recorded.
 
-## Current session role
-
-`ACTIVE — DISTINCT SUPPORT ROLE`.
-
-No implementation claim from this session remains open. Distinct support remains for reconciliation/validation of the SDK public path and release activation while canonical issue #16 and machine-owned tasks continue. This role must not duplicate machine-owned StegFin or local-model execution.
-
-## Archive conditions
-
-Unique requirements are durably transferred, but the session should not yet be archived while this distinct SDK validation/reconciliation role remains useful and the newly installed source has not been verified in a distributed package or external corrected-path execution. Product activation must not be inferred from source installation.
+Archive only after worker admission/supersession is inspectably durable or another canonical active workstream assumes this exact admission/reconciliation responsibility. Archival must never be represented as SDK, local-model, or StegFin product activation.
