@@ -28,6 +28,19 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
         "documentation": "docs/DYNAMIC_ADMISSIBILITY.md",
         "authority_effect": "NONE",
     },
+    "connect-llm": {
+        "summary": "Connect a user-controlled LLM to StegVerse through the canonical credential-free LLM-adapter surface.",
+        "mode": "adapter-discovery-and-binding",
+        "input": "adapter URL or local discovery plus user/LLM/provider/model identity metadata; secrets and tokens are rejected",
+        "command": "stegverse-connect-llm [--adapter-url <url>] --user-id <id> --llm-id <id> --provider <runtime> --model <model>",
+        "module": "stegverse.llm_connect_cli.main",
+        "documentation": "docs/CONNECT_MY_LLM.md",
+        "authority_effect": "NONE",
+        "result_semantics": "A CONNECTED result proves only a credential-free handshake with the LLM-adapter user-LLM surface and binds all StegVerse submissions to the returned adapter submit endpoint; it does not grant execution, publication, custody, or provider authority.",
+        "repository_examples": [
+            "docs/CONNECT_MY_LLM.md"
+        ],
+    },
     "math-admissibility": {
         "summary": "Evaluate a math/formalism artifact under the SDK admissibility bridge.",
         "mode": "local",
@@ -100,6 +113,9 @@ ALIASES = {
     "admitted-code": "admittedcode",
     "admissibility-llm": "llm-admissibility",
     "admissibility-math": "math-admissibility",
+    "connect my llm": "connect-llm",
+    "connect-my-llm": "connect-llm",
+    "llm": "connect-llm",
     "mcp": "mcp-production-artifact-test",
     "mcp-test": "mcp-production-artifact-test",
 }
