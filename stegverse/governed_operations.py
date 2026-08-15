@@ -31,6 +31,15 @@ def _required_text(value: Mapping[str, Any], key: str) -> str:
     return result.strip()
 
 
+def _required_text_any(value: Mapping[str, Any], *keys: str) -> str:
+    result = _optional_text(value, *keys)
+    if result is None:
+        raise GovernedOperationError(
+            "governed operation result missing " + " or ".join(keys)
+        )
+    return result
+
+
 def _optional_text(value: Mapping[str, Any], *keys: str) -> str | None:
     for key in keys:
         result = value.get(key)
@@ -52,6 +61,12 @@ class GovernedOperations:
     Handlers are injected because transport/provider authority belongs outside
     the SDK. The default usage recorder is disclosure-safe and queues only the
     allowlisted observation projection for the TV/TVC relay.
+
+    Canonical local sovereign execution uses ``route_receipt_chain_head`` on the
+    submit result and ``manifest_receipt_id`` on replay. Hosted/provider-neutral
+    handlers may expose the historical aliases ``receipt_chain_head`` and
+    ``original_manifest_receipt_id``. Both vocabularies identify the same
+    canonical evidence and are accepted without rewriting the returned result.
     """
 
     submit_handler: OperationHandler
@@ -65,7 +80,9 @@ class GovernedOperations:
             result = _as_mapping(self.submit_handler(manifest_or_data, **kwargs))
             manifest_receipt_id = _required_text(result, "manifest_receipt_id")
             transaction_id = _required_text(result, "transaction_id")
-            receipt_chain_head = _required_text(result, "receipt_chain_head")
+            receipt_chain_head = _required_text_any(
+                result, "receipt_chain_head", "route_receipt_chain_head"
+            )
         except Exception:
             self.usage_recorder(
                 "0",
@@ -90,11 +107,18 @@ class GovernedOperations:
             raise ValueError("manifest_receipt_id is required")
         try:
             result = _as_mapping(self.replay_handler(locator, **kwargs))
-            returned_locator = _required_text(result, "original_manifest_receipt_id").upper()
+            returned_locator = _required_text_any(
+                result, "original_manifest_receipt_id", "manifest_receipt_id"
+            ).upper()
             if returned_locator != locator:
                 raise GovernedOperationError("replay result manifest_receipt_id mismatch")
             transaction_id = _optional_text(result, "original_transaction_id", "transaction_id")
-            receipt_chain_head = _optional_text(result, "original_receipt_chain_head", "receipt_chain_head")
+            receipt_chain_head = _optional_text(
+                result,
+                "original_receipt_chain_head",
+                "receipt_chain_head",
+                "route_receipt_chain_head",
+            )
             if result.get("consequence_reexecuted") is not False:
                 raise GovernedOperationError("replay result must prove consequence_reexecuted=false")
         except Exception:
@@ -124,11 +148,18 @@ class GovernedOperations:
             raise ValueError("manifest_receipt_id is required")
         try:
             result = _as_mapping(self.reconstruct_handler(locator, **kwargs))
-            returned_locator = _required_text(result, "original_manifest_receipt_id").upper()
+            returned_locator = _required_text_any(
+                result, "original_manifest_receipt_id", "manifest_receipt_id"
+            ).upper()
             if returned_locator != locator:
                 raise GovernedOperationError("reconstruction result manifest_receipt_id mismatch")
-            transaction_id = _optional_text(result, "transaction_id")
-            receipt_chain_head = _optional_text(result, "receipt_chain_head")
+            transaction_id = _optional_text(result, "original_transaction_id", "transaction_id")
+            receipt_chain_head = _optional_text(
+                result,
+                "original_receipt_chain_head",
+                "receipt_chain_head",
+                "route_receipt_chain_head",
+            )
             if result.get("consequence_reexecuted") is not False:
                 raise GovernedOperationError("reconstruction result must prove consequence_reexecuted=false")
         except Exception:
