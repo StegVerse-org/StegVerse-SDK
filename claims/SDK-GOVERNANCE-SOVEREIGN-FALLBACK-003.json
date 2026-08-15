@@ -1,0 +1,34 @@
+{
+  "task_id": "SDK-GOVERNANCE-SOVEREIGN-FALLBACK-003",
+  "originating_goal": "Make the public StegGate/AdmittedCode SDK test path capable now and retain the canonical sovereign/local path as the permanent fallback when the primary path fails before governance.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "main",
+  "role": "CLAIMED_FOR_IMPLEMENTATION",
+  "claimant": "chat-session-2026-08-15-sdk-p0-fallback",
+  "claim_created_at": "2026-08-15T02:24:00-05:00",
+  "claim_release_condition": "Release after canonical fallback source, CLI wiring, focused tests, issue #16 transfer, and mirror-handoff state are committed; validation may remain blocked only with directly inspectable evidence and a named continuation owner.",
+  "collision_scope": [
+    "stegverse/cli.py",
+    "stegverse/governance_fallback.py",
+    "tests/test_governance_fallback.py",
+    "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
+    "claims/SDK-GOVERNANCE-SOVEREIGN-FALLBACK-003.json",
+    "StegVerse-org/StegVerse-SDK#16"
+  ],
+  "must_not_modify": [
+    "StegVerse-Labs/StegCore governance authority",
+    "master-records/orchestration custody authority",
+    "StegVerse-Labs/TV or StegVerse-Labs/TVC credential authority",
+    "claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json machine-owned exact-run evidence lane"
+  ],
+  "credential_authority": "TV/TVC",
+  "github_token_runtime_authority": "NONE",
+  "non_tvtvc_secret_required": false,
+  "expected_evidence": [
+    "fallback invokes stegverse.sovereign_validation_runtime canonical run/replay/reconstruct functions",
+    "CLI exposes explicit degraded-mode invocation without changing a genuine governance disposition",
+    "focused unit tests prove dispatch and fail-closed error separation without hosted runtime",
+    "issue #16 and mirror handoff identify permanent fallback semantics"
+  ],
+  "next_task_after_release": "Canonical SDK navigation workstream #16 completes primary option 0/1/2 execution wiring and semantic-equivalence validation against this fallback; exact sovereign execution/custody remains machine-owned by the existing lane."
+}
