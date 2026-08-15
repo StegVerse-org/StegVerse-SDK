@@ -1,0 +1,70 @@
+name: Connect my LLM Source Validation
+
+on:
+  push:
+    paths:
+      - "stegverse/llm_connection.py"
+      - "stegverse/llm_connect_cli.py"
+      - "stegverse/sdk_surfaces.py"
+      - "pyproject.toml"
+      - "tests/test_llm_connection.py"
+      - "docs/CONNECT_MY_LLM.md"
+      - "docs/LLM_ADAPTER_CONNECTION_MIRROR_HANDOFF.md"
+      - "tasks/SDK-LLM-ADAPTER-CONNECTION-010.json"
+      - "claims/SDK-LLM-ADAPTER-CONNECTION-010.json"
+      - ".github/workflows/connect-llm-source-validation.yml"
+  pull_request:
+    paths:
+      - "stegverse/llm_connection.py"
+      - "stegverse/llm_connect_cli.py"
+      - "stegverse/sdk_surfaces.py"
+      - "pyproject.toml"
+      - "tests/test_llm_connection.py"
+      - ".github/workflows/connect-llm-source-validation.yml"
+
+permissions: {}
+
+jobs:
+  credential-free-connect-llm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Assert validation receives no credential
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          test -z "${OPENAI_API_KEY:-}"
+          test -z "${ANTHROPIC_API_KEY:-}"
+      - name: Materialize exact public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Compile connector source
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m py_compile \
+            stegverse/llm_connection.py \
+            stegverse/llm_connect_cli.py \
+            stegverse/sdk_surfaces.py \
+            tests/test_llm_connection.py
+      - name: Run focused connector tests and help binding check
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m unittest -q tests.test_llm_connection
+          python - <<'PY'
+          from stegverse.sdk_surfaces import get_sdk_surface
+          surface = get_sdk_surface("connect my llm")
+          assert surface is not None
+          assert surface["id"] == "connect-llm"
+          assert "stegverse-connect-llm" in surface["command"]
+          assert surface["authority_effect"] == "NONE"
+          print("SDK_CONNECT_LLM_SOURCE_VALIDATION_PASS")
+          PY
