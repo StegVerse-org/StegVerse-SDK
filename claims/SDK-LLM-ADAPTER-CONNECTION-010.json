@@ -1,0 +1,37 @@
+{
+  "schema_version": "STEGVERSE-WORK-CLAIM-v1",
+  "task_id": "SDK-LLM-ADAPTER-CONNECTION-010",
+  "originating_goal": "Make the cloned SDK expose a simple Connect my LLM workflow that forces connected LLM submissions through the canonical StegVerse LLM-adapter without accepting non-TV/TVC secrets or tokens.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "main",
+  "role": "CLAIMED_FOR_IMPLEMENTATION",
+  "claim_state": "CLAIMED_FOR_IMPLEMENTATION",
+  "claimant": "current-chat-distinct-integration-lane",
+  "claimed_at": "2026-08-15T08:30:00Z",
+  "release_condition": "Release after connector module, CLI/help surface, tests, documentation, task-state/handoff updates are committed and strongest available credential-free validation is recorded.",
+  "owned_paths": [
+    "stegverse/llm_connection.py",
+    "stegverse/cli.py",
+    "stegverse/sdk_surfaces.py",
+    "tests/test_llm_connection.py",
+    "docs/CONNECT_MY_LLM.md",
+    "docs/LLM_ADAPTER_CONNECTION_MIRROR_HANDOFF.md",
+    "tasks/SDK-LLM-ADAPTER-CONNECTION-010.json",
+    "claims/SDK-LLM-ADAPTER-CONNECTION-010.json"
+  ],
+  "canonical_adapter": "StegVerse-org/LLM-adapter",
+  "canonical_adapter_surface": "/user-llm",
+  "collision_boundaries": [
+    "Do not implement a second LLM evaluator, provider runtime, StegGate, TV/TVC credential broker, heartbeat, or Master Records custody authority.",
+    "Do not accept, store, print, forward, or require API keys, passwords, Authorization headers, provider tokens, GitHub tokens, or generic credential maps.",
+    "Do not modify StegVerse-org/LLM-adapter provider execution files from this claim.",
+    "Connection/probe success does not imply downstream execution, governance admission, custody, publication, or product activation."
+  ],
+  "expected_evidence": [
+    "credential-free descriptor validation",
+    "adapter health/readiness/capabilities/activation-proof probe validation",
+    "CLI help and connect-llm routing validation",
+    "explicit submission endpoint bound to canonical /user-llm/v1/user-llm/requests"
+  ],
+  "next_task_after_release": "Adapter/Site activation lanes consume the connector without changing their existing runtime authority boundaries."
+}
