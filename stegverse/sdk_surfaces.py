@@ -52,6 +52,21 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
             "examples/governed_llm_demo/admittedcode/admissibility_receipt.deny.json",
         ],
     },
+    "mcp-production-artifact-test": {
+        "summary": "Test MCP discovery and a proposed tools/call through canonical StegVerse production artifacts.",
+        "mode": "canonical-sovereign-production-test",
+        "input": "StegVerse General MCP or safe external stdio MCP descriptor, exact tool, JSON arguments",
+        "command": "stegverse-mcp-test --select 000|00|0|1|2",
+        "module": "stegverse.mcp_cli.main",
+        "documentation": "docs/MCP_PRODUCTION_ARTIFACT_TESTS.md",
+        "authority_effect": "NONE_UNTIL_CANONICAL_GOVERNANCE",
+        "result_semantics": "MCP discovery and portable packet binding are evidence only; the actual tools/call is reachable only as the bounded consequence of the canonical StegCore/StegGate transaction lifecycle.",
+        "repository_examples": [
+            "inspection/examples/mcp-reference-inspect-state-arguments.json",
+            "inspection/examples/mcp-reference-write-bounded-arguments.json",
+            "inspection/examples/mcp-external-stdio-descriptor.example.json",
+        ],
+    },
     "universal-entry": {
         "summary": "Route a universal-entry envelope against an explicitly supplied capability registry.",
         "mode": "local",
@@ -85,6 +100,8 @@ ALIASES = {
     "admitted-code": "admittedcode",
     "admissibility-llm": "llm-admissibility",
     "admissibility-math": "math-admissibility",
+    "mcp": "mcp-production-artifact-test",
+    "mcp-test": "mcp-production-artifact-test",
 }
 
 
