@@ -36,9 +36,12 @@ That mismatch allowed a real canonical StegGate run to be rejected by the SDK in
 ```text
 stegverse/governance_fallback.py
 stegverse/governed_operations.py
+stegverse/cli.py
 tests/test_governance_fallback.py
+tests/test_governance_fallback_cli.py
 tests/test_governed_operations.py
 claims/SDK-GOVERNANCE-SOVEREIGN-FALLBACK-003.json
+docs/SESSION_GOAL_INVENTORY_2026-08-15_SDK_FALLBACK_TRADE_READY_LOCAL_MODEL.md
 ```
 
 Commits:
@@ -49,19 +52,26 @@ Commits:
 870bae62ebd19adcfd0979a867cb78c56ad785ed   focused fallback tests
 ccb57309d74649590761263c2d596770a19100a9   accept canonical sovereign result aliases
 bea7c814c15fa196e6e1ad10648de5e0084397a9   canonical sovereign adapter tests
+e8ced0362f1b1ecb3ca968a8b0e4e1fd8063d5ca  expose fallback through `stegverse governance`
+0556129a3b0bb3406fbae2499d431d6a9c3d6d44  focused governance CLI fallback tests
+34e94e3f03d7f78abef1509fb3807a5458c6e821  consolidate session goal inventory
 ```
 
 ## Permanent fallback contract
 
-Direct degraded-mode entry:
+Direct degraded-mode entries:
 
 ```bash
 python -m stegverse.governance_fallback run <public-inspection-request.json>
 python -m stegverse.governance_fallback replay <manifest_receipt_id>
 python -m stegverse.governance_fallback reconstruct <manifest_receipt_id>
+
+stegverse governance --fallback-operation run --fallback-target <public-inspection-request.json>
+stegverse governance --fallback-operation replay --fallback-target <manifest_receipt_id>
+stegverse governance --fallback-operation reconstruct --fallback-target <manifest_receipt_id>
 ```
 
-The fallback delegates to `stegverse.sovereign_validation_runtime` and prints the canonical result unchanged. Fallback-selection metadata is emitted separately to stderr. Therefore fallback use cannot convert, wrap, reinterpret, or replace a genuine StegGate `ALLOW`, `DENY`, `REVIEW`, or `FAIL_CLOSED` disposition.
+The fallback delegates to `stegverse.sovereign_validation_runtime` and prints the canonical result unchanged. The CLI likewise emits the canonical result without wrapping or rewriting it. Therefore fallback use cannot convert, reinterpret, or replace a genuine StegGate `ALLOW`, `DENY`, `REVIEW`, or `FAIL_CLOSED` disposition.
 
 Failure states before a canonical governance result exists are separated as:
 
@@ -95,10 +105,10 @@ Local deterministic validation performed without network or GitHub credentials:
 ```text
 fallback focused unit validation: 4/4 PASS
 canonical sovereign adapter shaped-result validation: 3/3 PASS
-python syntax validation: PASS
+python syntax validation for fallback module: PASS
 ```
 
-GitHub Actions query for head `870bae62ebd19adcfd0979a867cb78c56ad785ed` returned zero workflow runs. Hosted validation therefore remains unclaimed; absence of a run is not represented as PASS.
+Focused CLI tests are committed but were not executed in a hosted workflow in this session. GitHub Actions query for head `0556129a3b0bb3406fbae2499d431d6a9c3d6d44` returned zero workflow runs. Hosted validation therefore remains unclaimed; absence of a run is not represented as PASS.
 
 ## Convergence / collision prevention
 
@@ -130,18 +140,19 @@ Canonical navigation issue #16 still owns the broader public UX contract:
 2   -> reconstruct UX
 ```
 
-The fallback is now installed as a permanent degraded-mode capability. The remaining navigation work must use the same canonical handlers and may automatically select this fallback only before a canonical governance result exists. It must never override a genuine governance disposition.
+The fallback is installed and publicly invokable as permanent degraded-mode behavior. Automatic selection when the future primary execution path fails before canonical governance remains an issue #16 integration task. It must never override a genuine governance disposition.
 
 ## Automation / continuation
 
 ```text
 owner: StegVerse-org/StegVerse-SDK#16
 trigger: primary SDK execution path unavailable or fails before canonical governance result
+degraded-mode selector: stegverse governance --fallback-operation ...
 fallback: stegverse.governance_fallback -> stegverse.sovereign_validation_runtime
 persistent state: canonical Master Records custody DB selected by sovereign runtime
 outputs: unchanged canonical run/replay/reconstruct result
 fail closed: yes
-next executable task: bind the public option 0/1/2 UX to GovernedOperations handlers and select the sovereign fallback only for pre-governance transport/runtime failure
+next executable task: bind the ordinary public option 0/1/2 UX to GovernedOperations handlers and automatically select the sovereign fallback only for pre-governance transport/runtime failure
 ```
 
 ## Completion accounting
@@ -149,18 +160,20 @@ next executable task: bind the public option 0/1/2 UX to GovernedOperations hand
 For `SDK-GOVERNANCE-SOVEREIGN-FALLBACK-003`:
 
 ```text
-required developed files: 4
-implemented: 4/4
+required developed files: 6
+implemented: 6/6
 scaffolding/stubs: 0
 missing files: 0
-focused validation gates: 2
-validated: 2/2 locally deterministic
-hosted workflow validation: NOT RUN / not required for source activation
+focused validation gates: 3
+1 fallback dispatch/error separation: PASS locally
+2 canonical sovereign adapter aliases: PASS locally
+3 CLI selector tests: committed, hosted execution not observed
 integration gates: 3
 1 adapter accepts canonical sovereign submit vocabulary: PASS
 2 adapter accepts canonical sovereign replay/reconstruct locator vocabulary: PASS
-3 public primary navigation automatically selects fallback on pre-governance failure: PENDING #16
-goal activation: 2/3
+3 public CLI exposes explicit fallback selector: PASS source-installed
+automatic primary-path failover: separate #16 continuation, not required for explicit fallback source activation
+goal activation: SOURCE_AND_PUBLIC_SELECTOR_ACTIVE; exact external user/runtime execution not observed in this session
 ```
 
 ## Session consolidation
@@ -173,6 +186,7 @@ same canonical governance/custody path: DURABLE HERE
 no non-TV/TVC secrets/tokens: DURABLE HERE
 never reinterpret governance disposition: DURABLE HERE
 separate infrastructure/runtime failure from governance result: DURABLE HERE
+trade-ready/local-model adjacent goals: DURABLE IN SESSION_GOAL_INVENTORY + canonical owner handoffs
 ```
 
-Archive dependency for this incident slice: the source/fallback requirement is durably transferred and implemented. The overall session is not archive-ready while it retains distinct support obligations across the canonical SDK navigation workstream or other goals not yet consolidated.
+The incident-specific implementation work is now durably transferred. Remaining ordinary navigation integration belongs to issue #16; exact sovereign execution/custody evidence belongs to the pre-existing machine-owned lane. This handoff does not claim full SDK product activation.
