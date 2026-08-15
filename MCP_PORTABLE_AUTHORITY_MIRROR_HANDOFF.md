@@ -8,8 +8,9 @@ repository: StegVerse-SDK
 canonical_branch: main
 goal_id: SDK-MCP-PORTABLE-AUTHORITY-001
 tracking_issue: #30
-implementation_branch: feat/mcp-portable-authority-test
-status: SOURCE_IMPLEMENTED_VALIDATION_PENDING
+implementation_pull_request: #31
+machine_validation_task: tasks/SDK-MCP-CANONICAL-VALIDATION-009.json
+status: SOURCE_VALIDATED_PENDING_SOVEREIGN_INTEGRATION
 ```
 
 Live repository state, committed evidence, applicable broader SDK handoffs, and this file supersede chat-only claims for this goal.
@@ -90,11 +91,11 @@ The StegVerse General MCP reference target is an ordinary inspectable MCP implem
 ## Implementation claim
 
 ```text
-owner: this session
-claim: SDK-MCP-PORTABLE-AUTHORITY-001
-created: 2026-08-15T02:48:00-05:00
-tracking_issue: StegVerse-org/StegVerse-SDK#30
-release condition: source installed + tests installed + canonical governed integration PASS + handoffs updated + merge
+source owner: this session through PR #31 merge
+sovereign validation owner: canonical sovereign SDK execution lane
+machine task: SDK-MCP-CANONICAL-VALIDATION-009
+source merge condition: source compile + focused token-free unit suite PASS
+activation/release condition: canonical production-artifact integration + MR/MRR custody + replay/reconstruction proof PASS
 ```
 
 ## Installed implementation
@@ -111,6 +112,7 @@ stegverse/mcp_transport.py
   MCP initialize/tools/list/tools/call client
   safe stdio descriptor parser
   caller secret/token/auth/env credential rejection
+  complete stdio process/pipe cleanup
 
 stegverse/mcp_governance.py
   deterministic discovered-tool contract hash
@@ -150,57 +152,78 @@ tests/test_mcp_production_artifact.py
 docs/MCP_PRODUCTION_ARTIFACT_TESTS.md
 ```
 
-## Validation requirements
-
-Installed tests target:
+## Source validation evidence
 
 ```text
-000 describes the production artifact route
-00 preserves caller projection semantics without suppressing custody
-reference MCP initialize -> tools/list -> tools/call works
-external safe stdio descriptor is accepted
-caller auth/token/secret/env credential material is rejected
-MCP tools/list discovery is captured into the governed candidate
-MCP tool/schema contract is deterministically hashed
-argument mutation changes the proposed-call hash
-schema/tool drift changes the contract hash
-actual MCP call is passed to canonical consequence execution rather than preexecuted
-candidate + exact arguments are evaluated through canonical sovereign runtime
-Master Records custody is RECORDED on successful governed evaluation
-1 replays by manifest_receipt_id without consequence reexecution
-2 reconstructs by manifest_receipt_id without consequence reexecution
+workflow: MCP Source Validation (Non-Authorizing)
+run: 31873378300
+job: 94985269686
+head: e6c02cd703860275cb67f2412274402f288a8d07
+result: SUCCESS
+compileall: PASS
+focused unit tests: 8/8 PASS
+process GITHUB_TOKEN present: false
+process GH_TOKEN present: false
+process PYPI_API_TOKEN present: false
+runtime authority: NONE
+production activation role: NONE
 ```
 
-## Evidence state
+The focused source suite proves:
 
 ```text
-source implementation: COMPLETE_ON_FEATURE_BRANCH
-unit tests: INSTALLED_NOT_YET_EXECUTED
-canonical governed integration test: INSTALLED_NOT_YET_EXECUTED
-Master Records live test custody: PENDING_VALIDATION_RUN
-merge: PENDING
+reference MCP is ordinary/inspectable
+initialize -> tools/list -> tools/call works
+portable contract hash is deterministic
+argument mutation changes call hash
+schema/tool drift changes contract hash
+ordinary StegGate request binding carries exact hashes
+caller auth/token/secret/env credential descriptor material is rejected
+000 explains tools/list -> canonical governance -> tools/call -> Master Records -> return ingestion/CGE
+MCP production-artifact test is discoverable from the generic SDK surface registry
+actual MCP call is handed to the canonical bounded consequence callback rather than preexecuted by the harness
+```
+
+A preceding hosted attempt successfully ran the focused unit suite but failed while pip attempted to clone the private `master-records/orchestration` production dependency. No GitHub/private-repository credential was added to bypass that boundary. The hosted workflow was corrected to remain source-only; canonical governed integration was transferred to the sovereign machine task.
+
+## Production-artifact integration evidence state
+
+```text
+canonical governed integration test: INSTALLED_NOT_YET_SOVEREIGN_EXECUTED
+Master Records exact-run MR custody: PENDING_MACHINE_TASK
+Master Records route MRR custody: PENDING_MACHINE_TASK
+reference MCP exact governed tools/call observation: PENDING_MACHINE_TASK
+replay no-reexecution proof: PENDING_MACHINE_TASK
+reconstruction no-reexecution proof: PENDING_MACHINE_TASK
+machine owner: tasks/SDK-MCP-CANONICAL-VALIDATION-009.json
+source merge: ELIGIBLE_AFTER_SOURCE_VALIDATION
 release/tag: NOT_READY
-activation: PENDING_VALIDATION_AND_MERGE
+activation: PENDING_SOVEREIGN_INTEGRATION
 ```
 
-The implementation has been checked against the pinned StegCore transaction lifecycle source: the canonical `governed_steggate_execute` invokes the supplied executor only after StegGate disposition ALLOW and independent commit-coherence ALLOW. The MCP lane relies on that existing production artifact rather than duplicating it.
+The implementation was checked against the pinned StegCore production transaction lifecycle. Its existing `governed_steggate_execute` reaches the supplied executor only after StegGate disposition `ALLOW` and independent commit-coherence `ALLOW`; the MCP lane injects `tools/call` at that existing consequence boundary rather than creating an MCP-specific evaluator.
 
 ## Remaining executable work
 
 ```text
-StegVerse-org/StegVerse-SDK:
-- execute tests/test_mcp_production_artifact.py with dev + governed-test dependencies
-- inspect exact Master Records MR/MRR custody evidence from the reference MCP run
-- execute replay and reconstruction proof from that same manifest_receipt_id
-- correct any runtime/interface defect found by the canonical run
-- merge feature branch only after validation passes
-- update SDK_MIRROR_HANDOFF.md with exact commit/run/evidence
-- decide release/tag only after merged source and retained validation evidence are complete
+StegVerse-org/StegVerse-SDK / canonical sovereign SDK execution lane:
+- acquire tasks/SDK-MCP-CANONICAL-VALIDATION-009.json
+- run focused unit + governed integration suites with already-materialized canonical production packages
+- run reference inspect_state through selected mode 0 and retain exact MR/MRR evidence
+- replay selected mode 1 from the exact manifest_receipt_id; prove consequence_reexecuted=false
+- reconstruct selected mode 2 from the exact manifest_receipt_id; prove consequence_reexecuted=false
+- run bounded write reference case and retain governed result
+- correct any runtime defect discovered by the sovereign run
+- update issue #30, this handoff, and SDK_MIRROR_HANDOFF.md with exact evidence
+- only then evaluate release/tag readiness
 
-Cross-repository publication:
-- do not propagate to Site/Publisher/admissibility-wiki/stegguardian-wiki before release criteria are met
+Cross-repository publication after release criteria are met:
+- StegVerse-Labs/Site (or canonical Site/Sit successor)
+- GCAT-BCAT-Engine/Publisher
+- admissibility-wiki
+- stegguardian-wiki
 ```
 
 ## Next executable action
 
-Run the strongest available canonical validation for the feature branch and retain the exact run evidence. If runtime execution capacity is unavailable, leave validation PENDING rather than converting source inspection into a PASS.
+Merge PR #31 once its source-validation check is green. The canonical sovereign SDK execution lane then acquires `SDK-MCP-CANONICAL-VALIDATION-009`; it must not use a GitHub-hosted runner or inject a private-repository/GitHub token merely to materialize Master Records.
