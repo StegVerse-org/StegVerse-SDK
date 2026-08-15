@@ -3,15 +3,19 @@
   "originating_goal": "Make the public StegGate/AdmittedCode SDK test path capable now and retain the canonical sovereign/local path as the permanent fallback when the primary path fails before governance.",
   "repository": "StegVerse-org/StegVerse-SDK",
   "branch": "main",
-  "role": "CLAIMED_FOR_IMPLEMENTATION",
+  "role": "COMPLETE_RELEASED_SOURCE_AND_PUBLIC_SELECTOR",
   "claimant": "chat-session-2026-08-15-sdk-p0-fallback",
   "claim_created_at": "2026-08-15T02:24:00-05:00",
-  "claim_release_condition": "Release after canonical fallback source, CLI wiring, focused tests, issue #16 transfer, and mirror-handoff state are committed; validation may remain blocked only with directly inspectable evidence and a named continuation owner.",
+  "claim_released_at": "2026-08-15T02:30:00-05:00",
+  "claim_release_condition": "Satisfied: permanent canonical fallback source, public governance CLI selector, governed-operation canonical-field compatibility, focused tests, issue #16 transfer, scoped mirror handoff, and session goal inventory are committed. Exact sovereign user-run/custody evidence remains separately machine-owned and hosted validation was not claimed.",
   "collision_scope": [
     "stegverse/cli.py",
     "stegverse/governance_fallback.py",
+    "stegverse/governed_operations.py",
     "tests/test_governance_fallback.py",
-    "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
+    "tests/test_governance_fallback_cli.py",
+    "tests/test_governed_operations.py",
+    "docs/SDK_GOVERNANCE_SOVEREIGN_FALLBACK_MIRROR_HANDOFF.md",
     "claims/SDK-GOVERNANCE-SOVEREIGN-FALLBACK-003.json",
     "StegVerse-org/StegVerse-SDK#16"
   ],
@@ -24,11 +28,29 @@
   "credential_authority": "TV/TVC",
   "github_token_runtime_authority": "NONE",
   "non_tvtvc_secret_required": false,
-  "expected_evidence": [
-    "fallback invokes stegverse.sovereign_validation_runtime canonical run/replay/reconstruct functions",
-    "CLI exposes explicit degraded-mode invocation without changing a genuine governance disposition",
-    "focused unit tests prove dispatch and fail-closed error separation without hosted runtime",
-    "issue #16 and mirror handoff identify permanent fallback semantics"
+  "completed_evidence": [
+    "390989aa590211c91331986bc51a80eaf670f1df: stegverse/governance_fallback.py",
+    "870bae62ebd19adcfd0979a867cb78c56ad785ed: tests/test_governance_fallback.py",
+    "ccb57309d74649590761263c2d596770a19100a9: canonical sovereign result aliases accepted",
+    "bea7c814c15fa196e6e1ad10648de5e0084397a9: adapter tests",
+    "e8ced0362f1b1ecb3ca968a8b0e4e1fd8063d5ca: public governance CLI fallback selector",
+    "0556129a3b0bb3406fbae2499d431d6a9c3d6d44: CLI fallback tests",
+    "bf22ef3dc4a502c3ff14283b27497e6276c82a04: finalized scoped mirror handoff",
+    "34e94e3f03d7f78abef1509fb3807a5458c6e821: session goal inventory",
+    "StegVerse-org/StegVerse-SDK#16 comment 5301166021: canonical continuation transfer"
   ],
-  "next_task_after_release": "Canonical SDK navigation workstream #16 completes primary option 0/1/2 execution wiring and semantic-equivalence validation against this fallback; exact sovereign execution/custody remains machine-owned by the existing lane."
+  "validation": {
+    "fallback_local_unit_checks": "PASS_4_OF_4",
+    "canonical_sovereign_adapter_checks": "PASS_3_OF_3",
+    "fallback_python_syntax": "PASS",
+    "cli_tests_committed": true,
+    "hosted_workflow_observed_for_cli_head": false,
+    "hosted_validation_claimed": false
+  },
+  "remaining_work": [
+    "Issue #16: bind ordinary public option 0/1/2 UX to canonical handlers and automatically select sovereign fallback only for pre-governance failure.",
+    "claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json: exact sovereign execution/custody evidence remains machine-owned."
+  ],
+  "next_owner": "StegVerse-org/StegVerse-SDK#16 for ordinary public navigation/execution integration; existing machine-owned sovereign execution lane for exact run/custody evidence.",
+  "next_task_after_release": "Issue #16 integrates ordinary option 0/1/2 execution with GovernedOperations and uses the installed sovereign fallback only before a canonical governance result exists."
 }
