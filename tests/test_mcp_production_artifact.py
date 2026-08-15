@@ -146,10 +146,16 @@ class MCPProductionArtifactUnitTests(unittest.TestCase):
         self.assertEqual("RECORDED", result["master_records_custody_status"])
         self.assertEqual("MCP_TOOL_RESULT_OBSERVED", captured["execution"]["status"])
         self.assertEqual("canonical-ingestion/CGE->SDK", result["return_path"])
+        self.assertNotIn("mcp_packet", captured["request"]["input"]["input_data"])
         self.assertEqual(
-            captured["request"]["input"]["input_data"]["mcp_packet"]["mcp_contract_hash"],
+            captured["request"]["input"]["input_data"]["mcp_contract_hash"],
             captured["execution"]["mcp_contract_hash"],
         )
+        self.assertEqual(
+            captured["kwargs"]["consequence_metadata"]["mcp_packet"]["mcp_contract_hash"],
+            captured["execution"]["mcp_contract_hash"],
+        )
+        self.assertEqual("TV/TVC_ONLY", captured["kwargs"]["consequence_metadata"]["credential_authority"])
 
 
 class MCPProductionArtifactGovernedIntegrationTests(unittest.TestCase):
