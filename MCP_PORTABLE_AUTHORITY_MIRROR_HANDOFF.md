@@ -16,10 +16,12 @@ integration_acceptance_pull_request: #33
 current_source_commit: e4733a41805bcb546b97ad079d9fa75d26ef266d
 validation_task: tasks/SDK-MCP-CANONICAL-VALIDATION-009.json
 latest_diagnostic: reports/mcp-production-artifact/local-integration-diagnostic-20260815.json
-status: SOURCE_VALIDATED_DEFECTS_CORRECTED_INTEGRATION_LOGIC_DIAGNOSTIC_PASS_EXACT_SOVEREIGN_ARTIFACT_RUN_PENDING
+machine_worker_handoff: StegVerse-Labs/.github/handoffs/SDK-MCP-CANONICAL-VALIDATION-009.json
+machine_worker_merge: StegVerse-Labs/.github@2694f3e8524595c7c0591d3fa7ebe5a32f92f70d
+status: SOURCE_VALIDATED_DEFECTS_CORRECTED_MACHINE_WORKER_REGISTERED_EXACT_SOVEREIGN_ARTIFACT_RUN_PENDING
 ```
 
-Live repository state, committed evidence, issue #30, the validation task, and this handoff supersede chat-only claims.
+Live repository state, committed evidence, issue #30, the validation task, the `.github` executable worker handoff, and this file supersede chat-only claims.
 
 ## Goal and canonical route
 
@@ -81,11 +83,13 @@ GitHub runtime authority: NONE
 external MCP credential authority: TV/TVC_ONLY
 replay consequence reexecution: FALSE
 reconstruction consequence reexecution: FALSE
+hosted exact-artifact execution: PROHIBITED
+manual competing worker claim: PROHIBITED
 ```
 
 The StegVerse General MCP remains ordinary MCP and contains no StegVerse admission logic.
 
-## Current merged implementation
+## Current merged SDK implementation
 
 ```text
 stegverse/mcp_reference_server.py
@@ -121,25 +125,23 @@ process GH_TOKEN: absent
 process PYPI_API_TOKEN: absent
 ```
 
-### Actual integration-boundary testing found two defects
+### Integration-boundary defects found and corrected
 
-Testing the merged path against the canonical public-inspection intake exposed defects that the original mocked consequence test did not catch:
+Testing the merged path against canonical public-inspection intake exposed two real defects:
 
 1. `build_governed_request()` declared `external_consequence_enabled=true`, but canonical public intake correctly prohibits a caller request from enabling an external consequence.
 2. The full MCP packet was placed in public `input_data`; the ordinary MCP field `descriptor_name` matched the canonical public-input forbidden fragment `script`.
-
-Both defects would have blocked the sovereign production route before StegCore/Core-Lite/Master Records execution.
 
 PR #32 corrected the design:
 
 ```text
 request external_consequence_enabled: false
 public input_data: exact contract hash + exact call hash + tool label + phase only
-full MCP packet: retained as trusted bounded-consequence metadata
-actual tools/call: still only the injected canonical consequence executor
+full MCP packet: trusted bounded-consequence metadata
+actual tools/call: injected canonical consequence executor only
 ```
 
-Validation evidence:
+Evidence:
 
 ```text
 PR: #32
@@ -152,9 +154,9 @@ tests: 9/9 PASS
 credential/token environment checks: PASS / absent
 ```
 
-### Integration acceptance coverage completed
+### Integration acceptance coverage
 
-PR #33 added explicit executable assertions for the remaining acceptance contract:
+PR #33 added executable assertions for:
 
 ```text
 exact MCP contract hash survives into governed execution observation
@@ -177,9 +179,7 @@ result: SUCCESS
 
 ## Local integration diagnostic
 
-A credential-sanitized local integration diagnostic was then run through the complete executable logic using the current MCP code plus production-source-equivalent StegCore/Master Records modules and the exact pinned Core-Lite route module. The process environment contained no GitHub/token/secret credential keys.
-
-Observed behavior:
+A credential-sanitized source-equivalent local diagnostic exercised the complete executable logic. Observed:
 
 ```text
 inspect_state:
@@ -188,7 +188,6 @@ inspect_state:
   transaction identity continuous: true
   StegCore receipt chain verified: true
   route transitions: 10
-  route: MANIFEST_ESTABLISHED -> SDK_ENTERED -> INGESTION_ENTERED -> CGE_ADMITTED -> CGE_ROUTED -> MODULE_ENTERED -> MODULE_RESULT -> CGE_RETURN_INGESTED -> ROUTE_CLEARED -> RETURNED
   contract/call hashes retained: true
   replay consequence_reexecuted: false
   replay MRO custody: RECORDED
@@ -210,11 +209,69 @@ Durable receipt:
 reports/mcp-production-artifact/local-integration-diagnostic-20260815.json
 ```
 
-**Evidence-strength boundary:** this diagnostic is deliberately recorded as `SOURCE_EQUIVALENT_LOCAL_DIAGNOSTIC_NOT_CANONICAL_SOVEREIGN_PROOF`. The chat execution surface cannot materialize the private `master-records/orchestration` package through an authorized TV/TVC path. No GitHub/private-repository token was introduced to make it do so.
+**Evidence-strength boundary:** the diagnostic remains `SOURCE_EQUIVALENT_LOCAL_DIAGNOSTIC_NOT_CANONICAL_SOVEREIGN_PROOF`. No GitHub/private-repository token was introduced to materialize private Master Records on a non-authorized surface.
+
+## Machine worker installation
+
+The prior task had a durable execution specification but no concrete StegVerse worker registration/adapter. That gap is now closed by merged `.github` PR #179.
+
+Canonical machine path:
+
+```text
+StegVerse-Labs/.github merge: 2694f3e8524595c7c0591d3fa7ebe5a32f92f70d
+handoff: handoffs/SDK-MCP-CANONICAL-VALIDATION-009.json
+registry: control/worker-registry.d/sdk-mcp-canonical-validation-009.json
+adapter: control/process-worker-adapters.d/sdk-mcp-canonical-validation-009.json
+worker: workers/sdk_mcp_canonical_validation_worker.py
+worker_id: sdk-mcp-canonical-validation-worker
+adapter_ref: process:sdk-mcp-canonical-validation-v1
+state: HANDOFF_READY
+worker: AVAILABLE
+claim: MACHINE_CLAIM_ON_EXECUTION
+manual execution: false
+hosted exact execution: false
+credential authority: TV/TVC
+GitHub token runtime authority: NONE
+non-TV/TVC secret/token allowed: false
+```
+
+The worker does not clone repositories or acquire credentials. It accepts four non-secret local locators to already-materialized source trees:
+
+```text
+STEGVERSE_SDK_SOURCE_ROOT
+STEGVERSE_STEGCORE_SOURCE_ROOT
+STEGVERSE_CORE_LITE_SOURCE_ROOT
+STEGVERSE_MASTER_RECORDS_SOURCE_ROOT
+```
+
+It fails closed on hosted execution, missing scheduler claim, missing exact source artifacts, skipped/failing governed integration, receipt/custody absence, re-execution during replay/reconstruction, or credential-boundary drift.
+
+Source validation of the worker installation:
+
+```text
+workflow: Heartbeat Worker Project - Validation Only / No GitHub Token Authority
+run: 31890771807
+job: 95026592450
+result: SUCCESS
+anonymous checkout: PASS
+no GitHub credential token: PASS
+compile runtime/workers/scripts: PASS
+canonical JSON parse: PASS
+executable handoff validation: PASS
+complete deterministic repository test suite: PASS
+new MCP worker tests: 7/7 PASS
+heartbeat dry-run non-persistence: PASS
+ephemeral projection rebuild: PASS
+workflow non-authorizing: PASS
+```
+
+A separate organization-control-plane workflow remains red because of pre-existing handoff ownership-partition defects in heartbeat documentation outside this MCP worker change. That unrelated workflow failure is not promoted to MCP validation failure; the changed MCP handoff passed the executable-handoff validator and the complete deterministic suite passed in run 31890771807.
 
 ## Exact production-artifact integration still required
 
-The canonical exact-artifact run remains the final activation gate:
+The final activation gate is now concretely machine-owned rather than merely described.
+
+Exact source identities:
 
 ```text
 SDK source: current main e4733a41805bcb546b97ad079d9fa75d26ef266d or declared successor
@@ -223,7 +280,7 @@ Core-Lite: 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8 or declared successor
 Master Records: 6626c6a7f1df6bf531940c165b2f4db374e08b92 or already-materialized declared successor
 ```
 
-The exact run must retain:
+The worker must retain:
 
 ```text
 canonical governed integration PASS
@@ -246,24 +303,28 @@ credential boundary proving no non-TV/TVC secret/token use
 source defect correction: COMPLETE_VALIDATED_MERGED
 integration acceptance test implementation: COMPLETE_VALIDATED_MERGED
 local source-equivalent integration diagnostic: PASS
-exact sovereign production-artifact execution: PENDING
-canonical task: tasks/SDK-MCP-CANONICAL-VALIDATION-009.json
+machine worker/registry/adapter/handoff: COMPLETE_VALIDATED_MERGED
+exact sovereign production-artifact execution: MACHINE_OWNED_PENDING
+canonical SDK task: tasks/SDK-MCP-CANONICAL-VALIDATION-009.json
+canonical machine handoff: StegVerse-Labs/.github/handoffs/SDK-MCP-CANONICAL-VALIDATION-009.json
 credential authority: TV/TVC
 GitHub/private token workaround: PROHIBITED
+manual competing claim: PROHIBITED
 release/tag: NOT_READY
 goal activation: INCOMPLETE
 ```
 
-Repository searches did not surface a separate executable SDK worker/worker-registry implementation for `SDK-MCP-CANONICAL-VALIDATION-009`; the durable task is the canonical execution specification. Do not describe the exact run as already active merely because the task file exists.
-
 ## Completion accounting
 
 ```text
-required developed MCP surfaces: 16
-complete developed MCP surfaces: 16
+required developed SDK MCP surfaces: 16
+complete developed SDK MCP surfaces: 16
+required worker integration surfaces: 5
+complete worker integration surfaces: 5
 scaffolding/stubs: 0
-missing required source/test surfaces: 0
+missing required source/test/worker surfaces: 0
 source validation gates: PASS
+worker registration validation: PASS
 local executable logic diagnostic: PASS
 exact sovereign artifact integration: PENDING
 release/tag: PENDING exact integration
@@ -271,4 +332,4 @@ release/tag: PENDING exact integration
 
 ## Next executable action
 
-Execute `MCPProductionArtifactGovernedIntegrationTests` on an authorized sovereign/local execution surface where the exact declared production packages are already materialized without exposing any non-TV/TVC secret/token to the SDK. Persist the exact MR/MRR/MRO result and update issue #30, this handoff, and `tasks/SDK-MCP-CANONICAL-VALIDATION-009.json`. If that run exposes another source defect, correct and revalidate it before activation.
+The canonical sovereign scheduler must assign a collision-safe claim to `sdk-mcp-canonical-validation-worker` on an eligible non-hosted StegVerse node where the four exact canonical source roots are already materialized. The worker executes the exact integration suite and governed reference MCP inspect/replay/reconstruct/bounded-write proof, then emits `~/.stegverse/receipts/sdk-mcp-canonical-validation-009.json`. Reconcile that receipt into issue #30, this handoff, and `tasks/SDK-MCP-CANONICAL-VALIDATION-009.json`. Chat/manual execution must not create a competing claim.
