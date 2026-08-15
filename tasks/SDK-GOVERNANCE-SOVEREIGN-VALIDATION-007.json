@@ -1,0 +1,60 @@
+{
+  "task_id": "SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007",
+  "originating_goal": "Validate and activate the completed public SDK governance source through the canonical sovereign runtime without GitHub or non-TV/TVC credentials.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "main",
+  "state": "MACHINE_OWNED",
+  "owner": "canonical sovereign SDK execution lane",
+  "canonical_issue": 16,
+  "source_claim": "claims/SDK-INGRESS-RUNTIME-BINDING-006.json",
+  "release_dependency": "tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json",
+  "credential_authority": "TV/TVC",
+  "credential_requirement": "NONE",
+  "github_token_runtime_authority": "NONE",
+  "non_tvtvc_secret_or_token_required": false,
+  "trigger": "canonical source contains executable 0A/0B/1/2/000/fallback bindings and the focused current-binding tests have not yet produced a sovereign/local PASS receipt",
+  "collision_scope": [
+    "focused SDK governance tests",
+    "canonical sovereign 000 and 0B run/replay/reconstruction evidence",
+    "validation receipts only; no StegCore, Master Records, TV, or TVC authority mutation"
+  ],
+  "deterministic_inputs": [
+    "canonical main source containing commit 2fceb484bb972ec9c63fd071c0a476c825facd76 or successor",
+    "tests/test_governance_ingress_runtime.py",
+    "tests/test_governance_public_execution.py",
+    "tests/test_governance_fallback.py",
+    "tests/test_governed_operations.py",
+    "SDK-owned stegverse.000-demo-dataset.v1",
+    "one valid 0B stegverse.ingress-manifest.v1 fixture carrying extensions.stegverse_governance_request"
+  ],
+  "execution_sequence": [
+    "acquire collision-safe machine claim for this task",
+    "verify credential environment contains no GitHub/provider/wallet release credential requirement",
+    "execute focused deterministic tests locally/sovereign before any hosted validation",
+    "execute option 000 through stegverse.governance_ingress_runtime.run_000_demo",
+    "verify exact dataset SHA-256 binding, manifest_receipt_id, receipt chain, chain_verified=true, Master Records custody recorded, external_side_effect=false and third_party_host_required=false",
+    "replay and reconstruct the exact 000 manifest_receipt_id without consequence re-execution",
+    "execute one valid option 0B manifest through run_external_manifest",
+    "verify source framework/profile/output ID/canonical manifest hash survive in exact-run governance request context and custody evidence",
+    "replay and reconstruct exact 0B run",
+    "persist immutable validation receipt and update issue #16 plus mirror handoff",
+    "release claim"
+  ],
+  "required_outputs": [
+    "focused test PASS/FAIL receipt",
+    "000 exact-run receipt with dataset hash binding",
+    "000 replay/reconstruction evidence",
+    "0B exact-run receipt with ingress identity binding",
+    "0B replay/reconstruction evidence",
+    "credential-boundary evidence",
+    "task-state receipt"
+  ],
+  "complete_condition": "All focused tests pass and both 000 and 0B produce canonical exact-run/replay/reconstruction evidence with credential_requirement NONE and no prohibited credential use.",
+  "blocked_condition": "Canonical StegCore/Core-Lite/Master Records packages or local custody runtime are not materialized in the sovereign execution environment.",
+  "blocked_release_condition": "Required canonical packages and local custody runtime become locally materialized without fetching or using prohibited credentials.",
+  "retry_condition": "Transient local runtime/custody failure occurs after dependencies are present.",
+  "review_required_condition": "Canonical source changes any governed request, receipt, custody, or ingress semantics before the task completes.",
+  "failed_condition": "Any test fails, evidence binding differs, governance/custody result is unverifiable, a non-TV/TVC secret/token is required, or a GitHub token is observed as runtime authority.",
+  "next_executable_action": "Canonical sovereign SDK execution lane acquires this task, runs the focused credential-free local suite, then produces 000 and 0B exact-run/replay/reconstruction receipts before release publication.",
+  "archive_dependency": "This task preserves all remaining SDK validation/execution work; a chat session must not duplicate it after the implementation claim is released."
+}
