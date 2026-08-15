@@ -183,19 +183,53 @@ class MCPProductionArtifactGovernedIntegrationTests(unittest.TestCase):
                 host_identity="mcp-production-artifact-test",
             )
             governed = result["governed_result"]
+            packet = result["portable_packet"]
+            execution = governed["execution_result"]
             self.assertEqual("RECORDED", governed["master_records_custody_status"])
             self.assertTrue(governed["chain_verified"])
             self.assertTrue(governed["transaction_identity_continuous"])
             self.assertTrue(governed["route_receipt_ids"])
             self.assertTrue(result["manifest_receipt_id"].startswith("MR-"))
-            self.assertEqual("MCP_TOOL_RESULT_OBSERVED", governed["execution_result"]["status"])
+            self.assertEqual("MCP_TOOL_RESULT_OBSERVED", execution["status"])
+            self.assertEqual(packet["mcp_contract_hash"], execution["mcp_contract_hash"])
+            self.assertEqual(packet["proposed_call_hash"], execution["mcp_call_hash"])
 
             from stegverse.sovereign_validation_runtime import reconstruct_sovereign, replay_sovereign
             replay = replay_sovereign(result["manifest_receipt_id"], custody_db=db)
             reconstruction = reconstruct_sovereign(result["manifest_receipt_id"], custody_db=db)
             self.assertFalse(replay["consequence_reexecuted"])
+            self.assertFalse(reconstruction["consequence_reexecuted"])
             self.assertEqual("RECORDED", replay["operation_transition_custody_status"])
             self.assertEqual("RECORDED", reconstruction["operation_transition_custody_status"])
+            self.assertTrue(replay["operation_receipt_ids"])
+            self.assertTrue(reconstruction["operation_receipt_ids"])
+
+    def test_reference_bounded_write_is_governed_and_retained(self):
+        if not self._governed_dependencies_available():
+            self.skipTest("install .[governed-test] to execute the canonical integration test")
+        with tempfile.TemporaryDirectory() as tmp:
+            db = str(Path(tmp) / "mcp-bounded-write-master-records.db")
+            result = run_mcp_governed_test(
+                source="reference",
+                descriptor_path=None,
+                tool_name="write_bounded_value",
+                arguments={"value": 42},
+                custody_db=db,
+                host_identity="mcp-production-artifact-test",
+            )
+            governed = result["governed_result"]
+            packet = result["portable_packet"]
+            execution = governed["execution_result"]
+            mcp_result = execution["mcp_result"]
+            self.assertEqual("RECORDED", governed["master_records_custody_status"])
+            self.assertTrue(governed["chain_verified"])
+            self.assertTrue(governed["transaction_identity_continuous"])
+            self.assertEqual("MCP_TOOL_RESULT_OBSERVED", execution["status"])
+            self.assertEqual(packet["mcp_contract_hash"], execution["mcp_contract_hash"])
+            self.assertEqual(packet["proposed_call_hash"], execution["mcp_call_hash"])
+            self.assertFalse(mcp_result["isError"])
+            self.assertEqual("UPDATED", mcp_result["structuredContent"]["status"])
+            self.assertEqual(42, mcp_result["structuredContent"]["bounded_value"])
 
 
 if __name__ == "__main__":
