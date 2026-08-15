@@ -1,0 +1,49 @@
+{
+  "task_id": "SDK-PRIMARY-GOVERNANCE-UX-INTEGRATION-008",
+  "originating_goal": "Expose validated option 000 and 0B execution through the existing primary `stegverse governance` UX without creating a second runtime or weakening fail-closed semantics.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "main",
+  "state": "BLOCKED",
+  "owner": "StegVerse-org/StegVerse-SDK issue #16 integration lane",
+  "canonical_issue": 16,
+  "dependency": "tasks/SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007.json",
+  "dependency_release_condition": "SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007 reaches COMPLETE with current-binding focused tests plus exact 000/0B canonical run/replay/reconstruction evidence.",
+  "credential_authority": "TV/TVC",
+  "credential_requirement": "NONE",
+  "github_token_runtime_authority": "NONE",
+  "non_tvtvc_secret_or_token_required": false,
+  "collision_scope": [
+    "stegverse/cli.py governance parser/dispatch only",
+    "primary governance CLI focused tests",
+    "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
+    "issue #16"
+  ],
+  "must_reuse": [
+    "stegverse.governance_ingress_runtime.run_000_demo",
+    "stegverse.governance_ingress_runtime.run_external_manifest",
+    "existing canonical 0A/1/2 GovernedOperations bindings",
+    "existing permanent governance fallback"
+  ],
+  "must_not_create": [
+    "second StegGate evaluator",
+    "second Master Records registry or receipt ID algorithm",
+    "new credential authority",
+    "GitHub-token runtime path",
+    "implicit defaults for missing 0B governance evidence"
+  ],
+  "required_behavior": [
+    "primary governance UX visibly distinguishes 0A raw/public-inspection input and 0B preformatted ingress manifest",
+    "option 000 can execute the validated canonical demo path and still display teaching guidance",
+    "0B missing complete governance request fails closed with actionable explanation",
+    "0B delegates to the exact validated canonical binding rather than reimplementing conversion",
+    "canonical governance dispositions are returned unchanged",
+    "fallback selection occurs only before a canonical governance result exists",
+    "manifest_receipt_id remains the user-facing exact-run locator"
+  ],
+  "complete_condition": "Primary `stegverse governance` command exposes validated 000 and 0B execution by reusing the canonical binding, focused CLI tests pass, handoff and issue #16 are updated, and no authority/credential invariant changes.",
+  "blocked_release_condition": "SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007 COMPLETE receipt is present for the source being integrated.",
+  "review_required_condition": "The primary CLI, ingress binding, sovereign runtime contract, or issue #16 acceptance contract changes before dependency release.",
+  "failed_condition": "Integration duplicates runtime authority, synthesizes evidence, changes a canonical disposition, or introduces a prohibited secret/token dependency.",
+  "next_executable_action": "Observe task 007. When it reaches COMPLETE for the current source, acquire an integration claim on stegverse/cli.py, wire 000/0B by delegation, run focused primary CLI tests, update issue #16/handoff, and release the claim.",
+  "archive_dependency": "This task durably owns the remaining primary-CLI integration; no chat session needs to retain it while dependency 007 is pending."
+}
