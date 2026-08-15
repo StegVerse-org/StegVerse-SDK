@@ -1,0 +1,39 @@
+{
+  "task_id": "SDK-INGRESS-RUNTIME-BINDING-006",
+  "originating_goal": "Complete the remaining public SDK 000/0B runtime binding without inventing governance evidence or introducing non-TV/TVC credential authority.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "main",
+  "canonical_issue": 16,
+  "role": "CLAIMED_FOR_INTEGRATION",
+  "claimant": "chat-session-2026-08-15-sdk-ingress-runtime-binding",
+  "claim_created_at": "2026-08-15T02:50:00-05:00",
+  "claim_release_condition": "Release after 0B has an executable canonical binding that requires a complete StegGate governance_request and candidate identity match, option 000 has an executable safe canonical manifested demo path, focused sovereign/local validation evidence is durable, issue #16 and applicable mirror handoffs are updated, and release activation ownership is refreshed.",
+  "collision_scope": [
+    "stegverse/governance_navigation.py",
+    "stegverse/governance_ingress_runtime.py",
+    "stegverse/cli.py",
+    "tests/test_governance_ingress_runtime.py",
+    "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
+    "docs/000_GOVERNANCE_OUTCOME_DEMO_MIRROR_HANDOFF.md",
+    "tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json",
+    "StegVerse-org/StegVerse-SDK#16"
+  ],
+  "must_not_modify_authority": [
+    "StegVerse-Labs/StegCore governance authority",
+    "master-records/orchestration custody authority",
+    "StegVerse-Labs/TV credential authority",
+    "StegVerse-Labs/TVC credential and route authority",
+    "machine-owned exact sovereign execution/custody claim"
+  ],
+  "credential_authority": "TV/TVC",
+  "github_token_runtime_authority": "NONE",
+  "non_tvtvc_secret_or_token_required": false,
+  "expected_evidence": [
+    "0B rejects executable submission when complete governance_request is absent",
+    "0B rejects candidate mismatch between ingress manifest and governance_request",
+    "0B preserves source framework, ingress profile/version, and canonical manifest hash in canonical transaction metadata",
+    "000 constructs a complete bounded demo governance_request and invokes the canonical sovereign runtime with external side effects disabled",
+    "focused deterministic local tests pass without GitHub or provider credentials"
+  ],
+  "next_task_after_release": "TV/TVC-authorized sovereign SDK release activation task publishes and verifies a corrected package; machine/evaluator lane produces exact external execution evidence."
+}
