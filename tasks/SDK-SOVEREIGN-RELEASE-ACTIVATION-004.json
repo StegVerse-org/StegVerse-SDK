@@ -1,11 +1,13 @@
 {
   "task_id": "SDK-SOVEREIGN-RELEASE-ACTIVATION-004",
-  "originating_goal": "Activate the completed StegGate/AdmittedCode SDK fallback correction for users without granting GitHub Actions or non-TV/TVC credentials release authority.",
+  "originating_goal": "Activate the completed SDK sovereign fallback and public governance execution corrections for users without granting GitHub Actions or non-TV/TVC credentials release authority.",
   "repository": "StegVerse-org/StegVerse-SDK",
   "branch": "main",
   "state": "MACHINE_OWNED",
   "owner": "TV/TVC-authorized sovereign SDK release lane",
-  "required_source_head_at_registration": "50d228fdccdc8cec79c4161b9f5c3aa391d059d3",
+  "required_source_commit": "2fceb484bb972ec9c63fd071c0a476c825facd76",
+  "required_test_commit": "0ea923b93b2c1cbca72aebe60f0ccd69e5d67c66",
+  "canonical_main_observed_during_refresh": "81d1d80cea7d27bb8fca0f08d1f226453d2cc5d5",
   "observed_repository_version": "1.0.13",
   "observed_latest_tag": "v1.0.13",
   "observed_latest_github_release": "v1.0.12",
@@ -13,9 +15,17 @@
   "github_actions_release_authority": "NONE",
   "github_token_runtime_authority": "NONE",
   "non_tvtvc_secret_or_token_required": false,
-  "trigger": "canonical main contains a completed release-worthy SDK correction that is not yet present in an observable published release/package",
+  "required_surfaces": [
+    "stegverse/governance_fallback.py",
+    "stegverse/governed_operations.py canonical sovereign result aliases",
+    "stegverse/cli.py ordinary 0A/1/2 execution",
+    "stegverse/governance_ingress_runtime.py executable 000/0B binding",
+    "stegverse/governance_ingress_cli.py credential-free 000/0B entry"
+  ],
+  "trigger": "canonical main contains release-worthy SDK corrections that are not yet present in an observable verified distributed package",
   "deterministic_inputs": [
     "current canonical main SHA",
+    "required_source_commit ancestry",
     "current package version",
     "latest tag and target SHA",
     "latest published release tag and target SHA",
@@ -23,31 +33,33 @@
     "TV/TVC release authorization evidence"
   ],
   "required_outputs": [
-    "release tag whose source contains the required correction head or its canonical successor",
-    "published release/package whose contents include the permanent sovereign fallback and canonical result-alias correction",
-    "package verification receipt proving those files/behaviors are present",
+    "release source containing required_source_commit or a canonical successor",
+    "published release/package containing every required_surface",
+    "package verification receipt proving corrected 0A/0B/1/2/000/fallback surfaces are present",
+    "credential-boundary receipt showing release authority remained TV/TVC and GitHub token production authority remained NONE",
     "task-state transition receipt"
   ],
-  "completion_condition": "A TV/TVC-authorized release/package is observable, its source contains the required correction commit(s), the distributed package is verified to contain the corrected fallback/adapter/CLI surfaces, and the task records COMPLETE evidence.",
+  "completion_condition": "A TV/TVC-authorized release/package is observable, its source contains required_source_commit, the distributed package is verified to contain every required surface, and the task records COMPLETE evidence.",
   "blocked_condition": "TV/TVC release authorization or sovereign release executor is unavailable.",
   "blocked_release_condition": "Machine-observable TV/TVC release authorization/executor becomes available.",
   "retry_condition": "An authorized release is initiated but release/package observability or package verification is not yet complete.",
-  "review_required_condition": "Canonical main advances after the registered required head; recompute the release candidate so no later required SDK correction is omitted.",
-  "failed_condition": "Published release/tag/package evidence is inconsistent or does not contain the required correction; fail closed and do not represent the SDK fix as user-activated.",
+  "review_required_condition": "Canonical main gains a later release-worthy SDK correction after this refresh; recompute the candidate so no required correction is omitted.",
+  "failed_condition": "Published release/tag/package evidence is inconsistent, omits required_source_commit ancestry or any required surface, or uses a prohibited credential authority; fail closed and do not represent the SDK correction as user-activated.",
   "collision_boundaries": [
     "Do not grant GitHub Actions tag, release, push, PyPI, or credential authority.",
     "Do not use GitHub token as runtime or production release authority.",
     "Do not use non-TV/TVC secrets or tokens.",
-    "Do not overwrite a newer canonical SDK release task without reconciling its evidence.",
+    "Do not publish an unvalidated newer candidate silently; move to REVIEW_REQUIRED when release-worthy main changes.",
     "Do not represent source-on-main as distributed user activation."
   ],
   "current_evidence": [
-    ".github/workflows/headless-release.yml is validation-only and states actual release execution belongs to sovereign/local TV/TVC tooling",
+    ".github/workflows/headless-release.yml is validation-only and assigns actual release execution to sovereign/local TV/TVC tooling",
     "repository package version observed as 1.0.13",
     "tag v1.0.13 observed",
     "latest published GitHub release observed as v1.0.12",
-    "SDK fallback correction commits are newer than v1.0.13 tag"
+    "public fallback, canonical result-alias correction, ordinary 0A/1/2 execution, and executable 000/0B source are newer than v1.0.13",
+    "latest 000/0B focused tests are committed but not yet claimed PASS"
   ],
-  "next_executable_action": "TV/TVC-authorized sovereign SDK release lane resolves the current release candidate from canonical main, publishes through the approved release authority, verifies distributed package contents, and updates this task to COMPLETE or a precise BLOCKED/RETRY/REVIEW_REQUIRED/FAILED state.",
-  "archive_dependency": "The chat does not need to retain release credentials or unpublished implementation knowledge once this task and the canonical handoffs preserve the activation boundary; product activation remains incomplete until this task is COMPLETE."
+  "next_executable_action": "Credential-free sovereign SDK validation lane executes the current focused tests; after PASS evidence, TV/TVC-authorized sovereign release lane resolves the release candidate from canonical main, publishes through approved authority, verifies distributed package contents, and updates this task to COMPLETE or a precise BLOCKED/RETRY/REVIEW_REQUIRED/FAILED state.",
+  "archive_dependency": "Release credentials and activation execution are machine-owned and do not need to remain in chat. Product activation remains incomplete until this task reaches COMPLETE with package verification."
 }
