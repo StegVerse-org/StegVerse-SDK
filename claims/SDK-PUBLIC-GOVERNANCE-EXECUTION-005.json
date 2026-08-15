@@ -1,0 +1,41 @@
+{
+  "task_id": "SDK-PUBLIC-GOVERNANCE-EXECUTION-005",
+  "originating_goal": "Make the announced public SDK governance path actually execute canonical StegGate operations while preserving the permanent sovereign fallback.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "main",
+  "canonical_issue": 16,
+  "role": "CLAIMED_FOR_INTEGRATION",
+  "claimant": "chat-session-2026-08-15-sdk-public-execution",
+  "claim_created_at": "2026-08-15T02:36:00-05:00",
+  "claim_release_condition": "Release after option 0A run and options 1/2 replay/reconstruct are wired to the canonical sovereign runtime through the existing GovernedOperations adapter, focused tests are committed/validated as available, and issue #16 plus handoffs contain continuation state.",
+  "collision_scope": [
+    "stegverse/cli.py",
+    "stegverse/governed_operations.py only if a compatibility correction is required",
+    "tests/test_governance_public_execution.py",
+    "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
+    "StegVerse-org/StegVerse-SDK#16"
+  ],
+  "must_not_modify": [
+    "StegVerse-Labs/StegCore governance authority",
+    "master-records/orchestration custody authority",
+    "StegVerse-Labs/TV or StegVerse-Labs/TVC credential authority",
+    "StegVerse-org/StegVerse-SDK/claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json machine-owned exact evidence lane"
+  ],
+  "scope": {
+    "option_0A": "public-inspection request JSON -> canonical sovereign run",
+    "option_1": "manifest_receipt_id -> canonical sovereign replay",
+    "option_2": "manifest_receipt_id -> canonical sovereign reconstruct",
+    "option_0B": "not claimed here; preformatted stegverse.ingress-manifest.v1 execution requires its canonical manifest-to-public-inspection binding rather than an invented conversion",
+    "option_000": "not claimed here; runtime-bound demo processing remains separate issue #16 work"
+  },
+  "credential_authority": "TV/TVC",
+  "github_token_runtime_authority": "NONE",
+  "non_tvtvc_secret_required": false,
+  "expected_evidence": [
+    "ordinary `stegverse governance --select 0 --input <request>` executes canonical sovereign run",
+    "ordinary `--select 1/2 --manifest-receipt-id` executes canonical replay/reconstruct",
+    "canonical governance/replay/reconstruct result is returned unchanged",
+    "fallback flags remain available as degraded mode and do not override genuine results",
+    "focused deterministic tests"
+  ]
+}
