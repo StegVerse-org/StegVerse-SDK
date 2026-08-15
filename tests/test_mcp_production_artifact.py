@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -12,6 +11,7 @@ from stegverse.mcp_governance import build_governed_request, build_portable_pack
 from stegverse.mcp_navigation import guidance_for
 from stegverse.mcp_reference_server import tool_definitions
 from stegverse.mcp_transport import MCPTransportError, StdioMCPClient, reference_descriptor, validate_descriptor
+from stegverse.sdk_surfaces import get_sdk_surface
 
 
 class MCPProductionArtifactUnitTests(unittest.TestCase):
@@ -110,6 +110,14 @@ class MCPProductionArtifactUnitTests(unittest.TestCase):
         self.assertIn("return ingestion/CGE", text)
         self.assertIn("tools/call", text)
 
+    def test_mcp_test_is_discoverable_from_generic_sdk_surfaces(self):
+        surface = get_sdk_surface("mcp")
+        self.assertIsNotNone(surface)
+        assert surface is not None
+        self.assertEqual("mcp-production-artifact-test", surface["id"])
+        self.assertIn("stegverse-mcp-test", surface["command"])
+        self.assertEqual("NONE_UNTIL_CANONICAL_GOVERNANCE", surface["authority_effect"])
+
     def test_mcp_call_is_passed_as_bounded_consequence_not_preexecuted(self):
         captured = {}
 
@@ -117,8 +125,6 @@ class MCPProductionArtifactUnitTests(unittest.TestCase):
             captured["request"] = request
             captured["kwargs"] = kwargs
             self.assertIn("consequence_executor", kwargs)
-            # The MCP call has not yet been made by run_mcp_governed_test. The
-            # canonical runtime owns invocation of this callback.
             result = kwargs["consequence_executor"]()
             captured["execution"] = result
             return {
