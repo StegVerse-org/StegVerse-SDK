@@ -8,13 +8,51 @@
   "initial_source_merge_commit": "79656e42aeff0ce0eeba101523854706df198b00",
   "current_source_commit": "e4733a41805bcb546b97ad079d9fa75d26ef266d",
   "canonical_issue": 30,
-  "state": "ACTIVE_VALIDATION_EXACT_SOVEREIGN_ARTIFACT_RUN_PENDING_AFTER_DEFECT_CORRECTION",
-  "owner": "canonical sovereign SDK execution lane",
+  "state": "MACHINE_OWNED_EXACT_SOVEREIGN_ARTIFACT_RUN_PENDING",
+  "owner": "sdk-mcp-canonical-validation-worker via StegVerse-Labs/.github canonical sovereign scheduler",
   "credential_authority": "TV/TVC",
   "github_token_runtime_authority": "NONE",
   "non_tvtvc_secret_or_token_required": false,
   "source_handoff": "MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md",
   "latest_diagnostic_receipt": "reports/mcp-production-artifact/local-integration-diagnostic-20260815.json",
+  "machine_worker_binding": {
+    "repository": "StegVerse-Labs/.github",
+    "merge_commit": "2694f3e8524595c7c0591d3fa7ebe5a32f92f70d",
+    "pull_request": 179,
+    "worker_id": "sdk-mcp-canonical-validation-worker",
+    "worker_source": "workers/sdk_mcp_canonical_validation_worker.py",
+    "worker_registry": "control/worker-registry.d/sdk-mcp-canonical-validation-009.json",
+    "process_adapter": "control/process-worker-adapters.d/sdk-mcp-canonical-validation-009.json",
+    "executable_handoff": "handoffs/SDK-MCP-CANONICAL-VALIDATION-009.json",
+    "adapter_ref": "process:sdk-mcp-canonical-validation-v1",
+    "task_state": "HANDOFF_READY",
+    "worker_state": "AVAILABLE",
+    "claim_state": "MACHINE_CLAIM_ON_EXECUTION",
+    "manual_execution_allowed": false,
+    "hosted_execution_allowed": false,
+    "required_local_locators": [
+      "STEGVERSE_SDK_SOURCE_ROOT",
+      "STEGVERSE_STEGCORE_SOURCE_ROOT",
+      "STEGVERSE_CORE_LITE_SOURCE_ROOT",
+      "STEGVERSE_MASTER_RECORDS_SOURCE_ROOT"
+    ],
+    "locator_semantics": "NON_SECRET_ALREADY_MATERIALIZED_LOCAL_SOURCE_PATHS_ONLY",
+    "validation_workflow": {
+      "repository": "StegVerse-Labs/.github",
+      "workflow": "Heartbeat Worker Project - Validation Only / No GitHub Token Authority",
+      "run": 31890771807,
+      "job": 95026592450,
+      "result": "SUCCESS",
+      "anonymous_checkout": "PASS",
+      "no_github_credential_token": "PASS",
+      "compile": "PASS",
+      "canonical_json": "PASS",
+      "executable_handoff_validation": "PASS",
+      "complete_deterministic_repository_test_suite": "PASS",
+      "worker_tests": "7/7 PASS",
+      "workflow_authority": "VALIDATION_ONLY"
+    }
+  },
   "completed_source_testing": {
     "initial_source_validation_run": 31873378300,
     "initial_source_validation_job": 94985269686,
@@ -33,13 +71,15 @@
   "defects_found_and_corrected": [
     "Caller request declared external_consequence_enabled=true even though canonical public inspection intake requires false; corrected so the request remains non-authorizing and the MCP call stays solely in the canonical bounded consequence executor.",
     "Full MCP packet was placed in public input_data and descriptor_name matched a canonical forbidden public-input fragment; corrected so public intake carries exact contract/call hashes plus tool label while the full packet remains trusted bounded-consequence metadata.",
-    "Governed integration acceptance coverage was incomplete for exact hash retention, reconstruction no-reexecution, operation-transition custody, and bounded write; explicit tests are now merged."
+    "Governed integration acceptance coverage was incomplete for exact hash retention, reconstruction no-reexecution, operation-transition custody, and bounded write; explicit tests are now merged.",
+    "The exact-artifact task had a durable task record but no concrete StegVerse worker registration/process adapter; .github PR #179 installed and validated the non-hosted sovereign worker binding."
   ],
   "collision_scope": [
     "merged-main canonical governed integration validation",
     "MCP reference-server exact-run/replay/reconstruction evidence",
     "Master Records MR/MRR/MRO custody evidence",
-    "no source mutation outside defect correction required by the validation run"
+    "machine worker owns exact execution after scheduler claim",
+    "chat/manual execution must not compete with the worker or mutate its claim/fence"
   ],
   "deterministic_inputs": [
     "StegVerse-org/StegVerse-SDK main at e4733a41805bcb546b97ad079d9fa75d26ef266d or declared canonical successor",
@@ -52,22 +92,16 @@
     "pinned master-records/orchestration commit 6626c6a7f1df6bf531940c165b2f4db374e08b92 or already-materialized canonical successor declared by SDK"
   ],
   "execution_sequence": [
-    "acquire collision-safe execution claim for SDK-MCP-CANONICAL-VALIDATION-009 on an authorized sovereign/local execution surface",
-    "verify canonical StegCore, Core-Lite, and Master Records production packages are already materialized or materializable through TV/TVC-controlled authority without exposing credentials to the SDK",
-    "verify GITHUB_TOKEN, GH_TOKEN, provider tokens, wallet credentials, and other non-TV/TVC runtime secrets are absent from the MCP test process",
-    "run python -m unittest tests.test_mcp_production_artifact.MCPProductionArtifactUnitTests tests.test_mcp_request_boundary.MCPRequestBoundaryTests -v",
-    "run python -m unittest tests.test_mcp_production_artifact.MCPProductionArtifactGovernedIntegrationTests -v",
-    "run stegverse-mcp-test --select 0 --mcp-source reference --tool inspect_state --arguments inspection/examples/mcp-reference-inspect-state-arguments.json against a fresh canonical custody database",
-    "verify exact MCP contract and proposed-call hashes are retained in governed execution observation",
-    "verify tools/call occurs only after canonical StegGate ALLOW and independent commit-coherence ALLOW",
-    "verify route receipt chain contains SDK/ingestion-CGE, Master Records checkpoint custody, StegCore/StegGate, exact-run custody, return ingestion/CGE, return custody, and SDK return under continuous transaction identity",
-    "capture manifest_receipt_id and verify exact Master Records custody RECORDED",
-    "execute selected mode 1 replay and prove consequence_reexecuted=false with MRO custody",
-    "execute selected mode 2 reconstruction and prove consequence_reexecuted=false with MRO custody",
-    "run bounded write reference case and retain governed UPDATED value result",
-    "record immutable exact-artifact validation receipt with MR/MRR/MRO identifiers, source/package identities, and credential-boundary proof",
-    "update issue #30, MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md, and this task state",
-    "release execution claim"
+    "canonical sovereign scheduler assigns a collision-safe claim to sdk-mcp-canonical-validation-worker on a declared non-hosted StegVerse node",
+    "worker verifies the SDK/StegCore/Core-Lite/Master Records local source roots are already materialized; it performs no repository checkout",
+    "worker launches a scrubbed child process environment containing no GitHub/provider/wallet credentials and no non-TV/TVC runtime secret/token",
+    "worker runs MCPProductionArtifactGovernedIntegrationTests and fails closed if the suite skips or fails",
+    "worker executes inspect_state through the canonical governed path against fresh Master Records custody",
+    "worker proves exact contract/call hashes, ALLOW + commit-coherence-gated tools/call, continuous transaction identity, MR/MRR custody and verified chain",
+    "worker replays and reconstructs the exact MR and proves consequence_reexecuted=false with MRO custody",
+    "worker executes write_bounded_value(42) and retains UPDATED=42 through the governed result",
+    "worker writes ~/.stegverse/receipts/sdk-mcp-canonical-validation-009.json and returns SDK_MCP_CANONICAL_VALIDATION_COMPLETE only if every predicate passes",
+    "canonical task/handoff/issue are reconciled to the exact worker receipt and execution claim is released"
   ],
   "required_outputs": [
     "unit-suite PASS receipt",
@@ -89,12 +123,13 @@
     "reconstruction_no_reexecution_diagnostic": true,
     "bounded_write_diagnostic": true,
     "credential_boundary_source_and_local_diagnostic": true,
+    "machine_worker_registration_and_validation": true,
     "exact_artifact_task_state_receipt": false
   },
-  "complete_condition": "The current merged-main reference MCP test traverses the canonical exact production-artifact route with continuous transaction identity, exact-run and route-transition Master Records custody, governed MCP execution observation, replay/reconstruction no-reexecution proof, bounded-write proof, and no prohibited credential use.",
-  "blocked_condition": "The exact private Master Records/StegCore/Core-Lite production packages are not locally materialized on an authorized sovereign execution surface without prohibited credential use.",
-  "blocked_release_condition": "The required exact canonical packages/runtime are locally materialized through existing TV/TVC-governed authority without exposing credentials to the SDK/test process.",
+  "complete_condition": "The current merged-main reference MCP test traverses the canonical exact production-artifact route under the registered sovereign worker with continuous transaction identity, exact-run and route-transition Master Records custody, governed MCP execution observation, replay/reconstruction no-reexecution proof, bounded-write proof, and no prohibited credential use.",
+  "blocked_condition": "No eligible declared non-hosted StegVerse node currently presents all four exact canonical local source roots to the registered worker without prohibited credential use.",
+  "blocked_release_condition": "The canonical scheduler observes an eligible sovereign node with all four required already-materialized local source roots and assigns the worker a collision-safe claim; or an exact worker BLOCKED receipt identifies a narrower machine-observable missing-artifact condition.",
   "failed_condition": "Any MCP call occurs before canonical governance/commit coherence, any required exact receipt/custody evidence is absent, transaction identity is discontinuous, replay/reconstruction reexecutes the consequence, contract/call binding cannot be proven, or prohibited credential material is required/observed.",
-  "next_executable_action": "Run MCPProductionArtifactGovernedIntegrationTests on an authorized sovereign/local execution surface with the exact declared packages already materialized. The chat/container diagnostic has exercised the full logic and corrected two intake defects, but it is intentionally not promoted to exact-artifact PASS because the private Master Records package was not materialized through TV/TVC on this execution surface.",
-  "archive_dependency": "Exact-artifact MCP activation is still incomplete; the task now contains the corrected source identity, explicit executable acceptance coverage, diagnostic evidence, and machine-observable release condition."
+  "next_executable_action": "The canonical sovereign scheduler executes StegVerse-Labs/.github handoffs/SDK-MCP-CANONICAL-VALIDATION-009.json through sdk-mcp-canonical-validation-worker when an eligible non-hosted node exposes the four non-secret already-materialized local source-root locators. Chat/manual execution is observation/reconciliation only and must not create a competing claim.",
+  "archive_dependency": "Exact-artifact MCP activation remains incomplete, but executable continuation is now concretely machine-owned and registered; chat need only remain active while it has distinct unreconciled support work."
 }
