@@ -1,0 +1,34 @@
+{
+  "task_id": "SDK-GOVERNANCE-WORKER-ADMISSION-009",
+  "originating_goal": "Ensure SDK governance validation/activation continuation is consumed by the canonical resident worker system rather than remaining a passive task file or chat responsibility.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "main",
+  "state": "REVIEW_REQUIRED",
+  "owner": "StegVerse-Labs/.github resident heartbeat / active-worker admission authority",
+  "source_task": "tasks/SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007.json",
+  "downstream_task": "tasks/SDK-PRIMARY-GOVERNANCE-UX-INTEGRATION-008.json",
+  "authority_reference": "StegVerse-Labs/.github/docs/ORG_MIRROR_HANDOFF.md",
+  "credential_authority": "TV/TVC",
+  "credential_requirement": "NONE",
+  "github_token_runtime_authority": "NONE",
+  "non_tvtvc_secret_or_token_required": false,
+  "reason": "The canonical organization handoff permits one heartbeat/worker registry and states organization-level implementation is not manually startable by default. This session has no admitted .github implementation claim and therefore must not inject a worker registry entry directly.",
+  "required_admission_result": [
+    "an authorized existing worker/process adapter is proven able to consume SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007 without credential or authority expansion",
+    "or an admitted exact .github worker implementation claim installs a bounded SDK validation adapter/worker/registry fragment",
+    "or the organization control plane explicitly supersedes task 007 into another canonical worker with equivalent deterministic inputs/outputs"
+  ],
+  "required_worker_properties": [
+    "local already-materialized SDK/StegCore/Master Records inputs only",
+    "no network source checkout requirement",
+    "no GitHub/provider/wallet secret environment",
+    "writes only SDK governance validation receipts or returned task-state evidence",
+    "COMPLETE/RETRY/REVIEW_REQUIRED/FAILED semantics",
+    "collision-safe claim and release",
+    "fail closed when required local repositories/runtime are absent"
+  ],
+  "release_condition": "A canonical .github worker registry/handoff or supersession record names the admitted executor for SDK-GOVERNANCE-SOVEREIGN-VALIDATION-007 with machine-observable claim/release behavior.",
+  "next_executable_action": "At the next authorized .github validation/reconciliation admission opportunity, inspect existing worker capabilities first; reuse an admissible worker if exact capability matches, otherwise acquire a noncompeting exact .github implementation claim before installing any worker/adapter/registry fragment.",
+  "collision_boundary": "Do not create a second heartbeat, bypass .github active-worker admission policy, or treat this SDK task file itself as proof that a resident worker is active.",
+  "archive_dependency": "This record preserves the worker-admission gap durably; product activation remains incomplete until admitted execution evidence exists."
+}
