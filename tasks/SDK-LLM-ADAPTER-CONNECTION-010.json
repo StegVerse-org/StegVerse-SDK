@@ -1,0 +1,64 @@
+{
+  "schema_version": "STEGVERSE-TASK-v1",
+  "task_id": "SDK-LLM-ADAPTER-CONNECTION-010",
+  "title": "Connect cloned SDK LLMs through canonical LLM-adapter",
+  "originating_goal": "Expose a simple Connect my LLM workflow in the cloned SDK and require every StegVerse submission from that connected LLM to enter through StegVerse-org/LLM-adapter.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "main",
+  "canonical_adapter": "StegVerse-org/LLM-adapter",
+  "canonical_adapter_surface": "/user-llm",
+  "state": "IMPLEMENTED_PENDING_EXECUTED_VALIDATION",
+  "claim_state": "CLAIMED_FOR_VALIDATION",
+  "implementation_owner": "released source lane",
+  "validation_owner": "SDK repository-native validation / next available credential-free machine lane",
+  "installed_paths": [
+    "stegverse/llm_connection.py",
+    "stegverse/llm_connect_cli.py",
+    "stegverse/sdk_surfaces.py",
+    "pyproject.toml",
+    "tests/test_llm_connection.py",
+    "docs/CONNECT_MY_LLM.md",
+    "docs/LLM_ADAPTER_CONNECTION_MIRROR_HANDOFF.md",
+    "claims/SDK-LLM-ADAPTER-CONNECTION-010.json"
+  ],
+  "implementation_commits": [
+    "d2c5f679d9878783a06eece2edf4c950cb53db34",
+    "8fbc16dfbfbed9e299765de9ed7c55d11f3d0465",
+    "4b8c77d983ecd509b5f14920db4cc1252871fac5",
+    "3ce858df10461467556b60732d8916af22e521b9",
+    "1e453dfce20bc2027e37e15d3922b4e821702c5d",
+    "16bd42b9362279a4ee476f557af660c319aa258e"
+  ],
+  "credential_boundary": {
+    "credential_authority": "TV/TVC",
+    "non_tv_tvc_secret_or_token_required": false,
+    "github_token_runtime_authority": "NONE",
+    "sdk_accepts_provider_secrets": false,
+    "sdk_accepts_authorization_header": false
+  },
+  "functional_contract": {
+    "discovery": [
+      "http://127.0.0.1:8080",
+      "http://127.0.0.1:8000/user-llm",
+      "http://127.0.0.1:18080/user-llm"
+    ],
+    "probe_endpoints": ["/healthz", "/readyz", "/v1/user-llm/capabilities", "/v1/user-llm/activation-proof"],
+    "submission_endpoint": "/v1/user-llm/requests",
+    "submission_invariant": "ALL_LLM_SUBMISSIONS_ENTER_STEGVERSE_THROUGH_LLM_ADAPTER"
+  },
+  "validation_state": {
+    "source_inspection": "COMPLETE",
+    "focused_test_file": "INSTALLED_NOT_EXECUTED",
+    "hosted_run_at_implementation_head": "NONE_OBSERVED",
+    "exact_clone_install_and_cli_probe": "PENDING"
+  },
+  "machine_observable_release_condition": "A credential-free validation lane executes tests/test_llm_connection.py and a CLI help/probe test against an LLM-adapter /user-llm surface, with zero secret/token fields accepted and the returned submission endpoint ending in /v1/user-llm/requests.",
+  "next_executable_action": "Execute focused tests and one adapter handshake; then transition this task to COMPLETE_VALIDATED and include it in the next TV/TVC-authorized SDK package release.",
+  "collision_boundaries": [
+    "No second evaluator/provider runtime/StegGate/TVC/heartbeat/Master Records authority.",
+    "Do not treat connection success as provider execution or product activation.",
+    "Do not introduce any non-TV/TVC secret/token path."
+  ],
+  "authority_effect": false,
+  "activation_effect": false
+}
