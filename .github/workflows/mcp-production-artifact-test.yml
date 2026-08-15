@@ -1,0 +1,57 @@
+name: MCP Production Artifact Test (Non-Authorizing)
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/mcp_*.py'
+      - 'stegverse/sovereign_validation_runtime.py'
+      - 'stegverse/sdk_surfaces.py'
+      - 'tests/test_mcp_production_artifact.py'
+      - 'inspection/examples/mcp-*.json'
+      - 'docs/MCP_PRODUCTION_ARTIFACT_TESTS.md'
+      - 'pyproject.toml'
+      - '.github/workflows/mcp-production-artifact-test.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate-mcp-production-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          test -z "${PYPI_API_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+
+      - name: Run credential-free MCP unit tests
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m unittest tests.test_mcp_production_artifact.MCPProductionArtifactUnitTests -v
+
+      - name: Install pinned governed-test production artifacts
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          cd /tmp/source
+          python -m pip install --disable-pip-version-check -e '.[governed-test]'
+
+      - name: Run canonical MCP governed integration and Master Records custody test
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          cd /tmp/source
+          python -m unittest tests.test_mcp_production_artifact.MCPProductionArtifactGovernedIntegrationTests -v
+          echo 'MCP_PRODUCTION_ARTIFACT_TEST_PASS'
+          echo 'This validation job has no runtime, release, credential, or production activation authority.'
