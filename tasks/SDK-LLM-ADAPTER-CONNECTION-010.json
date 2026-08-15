@@ -7,10 +7,10 @@
   "branch": "main",
   "canonical_adapter": "StegVerse-org/LLM-adapter",
   "canonical_adapter_surface": "/user-llm",
-  "state": "IMPLEMENTED_PENDING_EXECUTED_VALIDATION",
-  "claim_state": "CLAIMED_FOR_VALIDATION",
+  "state": "COMPLETE_VALIDATED_SOURCE_PENDING_PACKAGE_AND_LIVE_HANDSHAKE",
+  "claim_state": "RELEASED",
   "implementation_owner": "released source lane",
-  "validation_owner": "SDK repository-native validation / next available credential-free machine lane",
+  "validation_owner": "released credential-free validation lane",
   "installed_paths": [
     "stegverse/llm_connection.py",
     "stegverse/llm_connect_cli.py",
@@ -19,7 +19,8 @@
     "tests/test_llm_connection.py",
     "docs/CONNECT_MY_LLM.md",
     "docs/LLM_ADAPTER_CONNECTION_MIRROR_HANDOFF.md",
-    "claims/SDK-LLM-ADAPTER-CONNECTION-010.json"
+    "claims/SDK-LLM-ADAPTER-CONNECTION-010.json",
+    ".github/workflows/connect-llm-source-validation.yml"
   ],
   "implementation_commits": [
     "d2c5f679d9878783a06eece2edf4c950cb53db34",
@@ -27,7 +28,8 @@
     "4b8c77d983ecd509b5f14920db4cc1252871fac5",
     "3ce858df10461467556b60732d8916af22e521b9",
     "1e453dfce20bc2027e37e15d3922b4e821702c5d",
-    "16bd42b9362279a4ee476f557af660c319aa258e"
+    "16bd42b9362279a4ee476f557af660c319aa258e",
+    "41d59b9777078312d3118bc4438bbb00495a945c"
   ],
   "credential_boundary": {
     "credential_authority": "TV/TVC",
@@ -48,15 +50,22 @@
   },
   "validation_state": {
     "source_inspection": "COMPLETE",
-    "focused_test_file": "INSTALLED_NOT_EXECUTED",
-    "hosted_run_at_implementation_head": "NONE_OBSERVED",
-    "exact_clone_install_and_cli_probe": "PENDING"
+    "focused_tests": "5/5 PASS",
+    "help_binding_check": "PASS",
+    "workflow_run": 31875380537,
+    "workflow_job": 94990207643,
+    "workflow_result": "SUCCESS",
+    "source_materialization": "ANONYMOUS_ARCHIVE",
+    "credential_environment_assertions": "PASS_EMPTY_GITHUB_GH_OPENAI_ANTHROPIC",
+    "first_run": "31875260907 FAILURE_DETECTED_OVERSTRICT_POLICY_METADATA_GUARD",
+    "corrective_commit": "41d59b9777078312d3118bc4438bbb00495a945c",
+    "exact_live_adapter_handshake": "PENDING"
   },
-  "machine_observable_release_condition": "A credential-free validation lane executes tests/test_llm_connection.py and a CLI help/probe test against an LLM-adapter /user-llm surface, with zero secret/token fields accepted and the returned submission endpoint ending in /v1/user-llm/requests.",
-  "next_executable_action": "Execute focused tests and one adapter handshake; then transition this task to COMPLETE_VALIDATED and include it in the next TV/TVC-authorized SDK package release.",
+  "machine_observable_release_condition": "Source validation is satisfied. Final activation requires the TV/TVC-authorized SDK package/release to contain this source plus one exact cloned-package handshake against an admitted LLM-adapter /user-llm endpoint returning CONNECTED.",
+  "next_executable_action": "tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json publishes/verifies a TV/TVC-authorized SDK package containing this source; then a credential-free machine lane executes one exact installed-package adapter handshake.",
   "collision_boundaries": [
     "No second evaluator/provider runtime/StegGate/TVC/heartbeat/Master Records authority.",
-    "Do not treat connection success as provider execution or product activation.",
+    "Do not treat source validation or connection success as provider execution or product activation.",
     "Do not introduce any non-TV/TVC secret/token path."
   ],
   "authority_effect": false,
