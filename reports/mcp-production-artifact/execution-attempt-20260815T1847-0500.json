@@ -1,0 +1,45 @@
+{
+  "schema": "stegverse.sdk-mcp-exact-sovereign-execution-attempt/v1",
+  "attempt_id": "SDK-MCP-CANONICAL-VALIDATION-009-20260815T1847-0500",
+  "goal_id": "SDK-MCP-PORTABLE-AUTHORITY-001",
+  "task_id": "SDK-MCP-CANONICAL-VALIDATION-009",
+  "requested_at": "2026-08-15T18:47:00-05:00",
+  "requested_action": "EXECUTE_EXACT_SOVEREIGN_PRODUCTION_ARTIFACT_RUN",
+  "result": "BLOCKED_BEFORE_WORKER_INVOCATION",
+  "reason": "CANONICAL_SOVEREIGN_SCHEDULER_HAS_NOT_ADMITTED_OR_INVOKED_THE_REGISTERED_MCP_WORKER",
+  "observations": {
+    "mcp_worker_fragment_state": "HANDOFF_READY",
+    "mcp_worker_status": "AVAILABLE",
+    "mcp_worker_last_seen_at": null,
+    "mcp_task_present_in_live_worker_registry": false,
+    "canonical_heartbeat_epoch": 29,
+    "canonical_heartbeat_generation": 29,
+    "canonical_heartbeat_last_cycle_at": "2026-08-10T20:51:11Z",
+    "exact_worker_receipt_present": false,
+    "exact_artifact_integration_pass_present": false
+  },
+  "canonical_worker": {
+    "repository": "StegVerse-Labs/.github",
+    "worker_id": "sdk-mcp-canonical-validation-worker",
+    "handoff": "handoffs/SDK-MCP-CANONICAL-VALIDATION-009.json",
+    "registry_fragment": "control/worker-registry.d/sdk-mcp-canonical-validation-009.json",
+    "process_adapter": "control/process-worker-adapters.d/sdk-mcp-canonical-validation-009.json",
+    "expected_receipt": "~/.stegverse/receipts/sdk-mcp-canonical-validation-009.json"
+  },
+  "required_exact_local_roots": [
+    "STEGVERSE_SDK_SOURCE_ROOT",
+    "STEGVERSE_STEGCORE_SOURCE_ROOT",
+    "STEGVERSE_CORE_LITE_SOURCE_ROOT",
+    "STEGVERSE_MASTER_RECORDS_SOURCE_ROOT"
+  ],
+  "authority_boundary": {
+    "credential_authority": "TV/TVC",
+    "github_token_runtime_authority": "NONE",
+    "non_tv_tvc_secret_or_token_allowed": false,
+    "hosted_exact_execution_allowed": false,
+    "manual_chat_competing_claim_allowed": false
+  },
+  "release_condition": "A canonical sovereign heartbeat/scheduler cycle on an eligible non-hosted StegVerse node applies the MCP registry fragment, assigns a collision-safe claim to sdk-mcp-canonical-validation-worker, presents all four already-materialized exact local roots, and the worker emits SDK_MCP_CANONICAL_VALIDATION_COMPLETE with MR/MRR/MRO custody, post-ALLOW tools/call, replay/reconstruction consequence_reexecuted=false, continuous transaction identity, and bounded write UPDATED=42.",
+  "next_action": "Resume or execute the canonical StegVerse sovereign scheduler on an eligible node; do not substitute GitHub-hosted execution or non-TV/TVC repository/runtime credentials.",
+  "authority_effect": "NONE_OBSERVATION_ONLY"
+}
