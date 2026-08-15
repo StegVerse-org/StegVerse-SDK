@@ -4,34 +4,36 @@
   "originating_goal": "Make the cloned SDK expose a simple Connect my LLM workflow that forces connected LLM submissions through the canonical StegVerse LLM-adapter without accepting non-TV/TVC secrets or tokens.",
   "repository": "StegVerse-org/StegVerse-SDK",
   "branch": "main",
-  "role": "CLAIMED_FOR_IMPLEMENTATION",
-  "claim_state": "CLAIMED_FOR_IMPLEMENTATION",
-  "claimant": "current-chat-distinct-integration-lane",
+  "role": "MERGED_INTO_CANONICAL_WORKSTREAM",
+  "claim_state": "RELEASED_COMPLETE_VALIDATED_SOURCE",
+  "claimant": null,
   "claimed_at": "2026-08-15T08:30:00Z",
-  "release_condition": "Release after connector module, CLI/help surface, tests, documentation, task-state/handoff updates are committed and strongest available credential-free validation is recorded.",
+  "released_at": "2026-08-15T08:48:15Z",
   "owned_paths": [
     "stegverse/llm_connection.py",
-    "stegverse/cli.py",
+    "stegverse/llm_connect_cli.py",
     "stegverse/sdk_surfaces.py",
+    "pyproject.toml",
     "tests/test_llm_connection.py",
     "docs/CONNECT_MY_LLM.md",
     "docs/LLM_ADAPTER_CONNECTION_MIRROR_HANDOFF.md",
     "tasks/SDK-LLM-ADAPTER-CONNECTION-010.json",
-    "claims/SDK-LLM-ADAPTER-CONNECTION-010.json"
+    ".github/workflows/connect-llm-source-validation.yml"
   ],
   "canonical_adapter": "StegVerse-org/LLM-adapter",
   "canonical_adapter_surface": "/user-llm",
+  "validation_evidence": {
+    "workflow_run": 31875380537,
+    "job": 94990207643,
+    "focused_tests": "5/5 PASS",
+    "help_binding": "PASS",
+    "credential_assertions": "GITHUB_TOKEN/GH_TOKEN/OPENAI_API_KEY/ANTHROPIC_API_KEY empty",
+    "source_materialization": "anonymous exact-SHA archive"
+  },
   "collision_boundaries": [
-    "Do not implement a second LLM evaluator, provider runtime, StegGate, TV/TVC credential broker, heartbeat, or Master Records custody authority.",
-    "Do not accept, store, print, forward, or require API keys, passwords, Authorization headers, provider tokens, GitHub tokens, or generic credential maps.",
-    "Do not modify StegVerse-org/LLM-adapter provider execution files from this claim.",
+    "No second LLM evaluator, provider runtime, StegGate, TV/TVC credential broker, heartbeat, or Master Records custody authority was created.",
+    "No provider API key, password, Authorization header, provider token, GitHub token, or generic credential map is accepted by the SDK connector.",
     "Connection/probe success does not imply downstream execution, governance admission, custody, publication, or product activation."
   ],
-  "expected_evidence": [
-    "credential-free descriptor validation",
-    "adapter health/readiness/capabilities/activation-proof probe validation",
-    "CLI help and connect-llm routing validation",
-    "explicit submission endpoint bound to canonical /user-llm/v1/user-llm/requests"
-  ],
-  "next_task_after_release": "Adapter/Site activation lanes consume the connector without changing their existing runtime authority boundaries."
+  "next_task_after_release": "MERGED INTO: StegVerse-org/StegVerse-SDK/tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json for TV/TVC-authorized package publication, followed by exact installed-package handshake evidence against the canonical LLM-adapter /user-llm surface."
 }
