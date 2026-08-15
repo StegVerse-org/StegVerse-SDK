@@ -125,6 +125,16 @@ class StdioMCPClient:
             proc.wait(timeout=1)
         except Exception:
             proc.kill()
+            try:
+                proc.wait(timeout=1)
+            except Exception:
+                pass
+        for stream in (proc.stdout, proc.stderr):
+            if stream:
+                try:
+                    stream.close()
+                except OSError:
+                    pass
 
     def _send(self, payload: Mapping[str, Any]) -> None:
         if not self._proc or not self._proc.stdin:
