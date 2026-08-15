@@ -33,6 +33,26 @@ def test_submit_records_only_after_run_identity_is_present():
     assert call["receipt_chain_head"] == result["receipt_chain_head"]
 
 
+def test_submit_accepts_canonical_sovereign_route_receipt_chain_head_unchanged():
+    recorder = Recorder()
+    result = {
+        "manifest_receipt_id": "MR-ABCDEF0123456789",
+        "transaction_id": "TX-1",
+        "route_receipt_chain_head": "sha256:route-head",
+        "governance_state": "ALLOW",
+    }
+    operations = GovernedOperations(
+        submit_handler=lambda value: result,
+        replay_handler=lambda value: {},
+        reconstruct_handler=lambda value: {},
+        usage_recorder=recorder,
+    )
+    returned = operations.submit({"payload": "x"})
+    assert returned is result
+    assert returned["governance_state"] == "ALLOW"
+    assert recorder.calls[-1][1]["receipt_chain_head"] == "sha256:route-head"
+
+
 def test_submit_failure_is_not_counted_as_completed():
     recorder = Recorder()
     operations = GovernedOperations(
@@ -67,6 +87,26 @@ def test_replay_requires_same_locator_and_no_consequence_reexecution():
     assert call["phase"] == "COMPLETED"
     assert call["manifest_receipt_id"] == locator
     assert call["consequence_reexecuted"] is False
+
+
+def test_replay_accepts_canonical_sovereign_manifest_receipt_id_unchanged():
+    recorder = Recorder()
+    locator = "MR-ABCDEF0123456789"
+    replay_result = {
+        "manifest_receipt_id": locator,
+        "replay_disposition": "DENY",
+        "consequence_reexecuted": False,
+    }
+    operations = GovernedOperations(
+        submit_handler=lambda value: {},
+        replay_handler=lambda value: replay_result,
+        reconstruct_handler=lambda value: {},
+        usage_recorder=recorder,
+    )
+    returned = operations.replay(locator)
+    assert returned is replay_result
+    assert returned["replay_disposition"] == "DENY"
+    assert recorder.calls[-1][1]["phase"] == "COMPLETED"
 
 
 def test_replay_mismatch_fails_and_records_failed_only():
@@ -105,6 +145,24 @@ def test_reconstruction_requires_non_reexecution_proof():
     assert recorder.calls[-1][0] == "2"
     assert recorder.calls[-1][1]["phase"] == "COMPLETED"
     assert recorder.calls[-1][1]["consequence_reexecuted"] is False
+
+
+def test_reconstruction_accepts_canonical_manifest_receipt_id_alias():
+    recorder = Recorder()
+    locator = "MR-ABCDEF0123456789"
+    result = {
+        "manifest_receipt_id": locator,
+        "transaction_id": "TX-1",
+        "consequence_reexecuted": False,
+    }
+    operations = GovernedOperations(
+        submit_handler=lambda value: {},
+        replay_handler=lambda value: {},
+        reconstruct_handler=lambda value: result,
+        usage_recorder=recorder,
+    )
+    assert operations.reconstruct(locator) is result
+    assert recorder.calls[-1][1]["phase"] == "COMPLETED"
 
 
 def test_reconstruction_claiming_side_effect_reexecution_fails_closed():
