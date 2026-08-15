@@ -77,7 +77,30 @@ def _record_navigation_usage(selection: str) -> None:
         print(f"WARNING: SDK usage observation unavailable: {exc}", file=sys.stderr)
 
 
+def _run_governance_fallback(args: argparse.Namespace) -> int:
+    """Run the permanent degraded-mode path without rewriting its canonical result."""
+    from .governance_fallback import GovernanceFallbackError, execute_fallback
+
+    if not args.fallback_target:
+        raise ValueError("--fallback-target is required with --fallback-operation")
+    try:
+        result = execute_fallback(
+            args.fallback_operation,
+            args.fallback_target,
+            custody_db=args.custody_db,
+            host_identity=args.host_identity,
+        )
+    except GovernanceFallbackError as exc:
+        print(json.dumps(exc.as_dict(), indent=2, sort_keys=True))
+        return 2
+    print(json.dumps(dict(result), indent=2, sort_keys=True))
+    return 0
+
+
 def _governance_guide(args: argparse.Namespace) -> int:
+    if args.fallback_operation:
+        return _run_governance_fallback(args)
+
     from .governance_navigation import demo_output_manifest_shape, guidance_for, navigation_text
     print(navigation_text())
     selection = args.select
@@ -86,6 +109,7 @@ def _governance_guide(args: argparse.Namespace) -> int:
             selection = input("\nSelect an option: ").strip()
         except EOFError:
             print("\nUse: stegverse governance --select 000|00|0|1|2")
+            print("Fallback: stegverse governance --fallback-operation run|replay|reconstruct --fallback-target <target>")
             return 2
     print()
     # Validate through canonical guidance first, then observe the accepted selection.
@@ -204,6 +228,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("capabilities", help="print the user-facing surface registry as JSON")
     governance = sub.add_parser("governance", help="guided demo/parameter/submit/replay/reconstruct governance navigation")
     governance.add_argument("--select", choices=("000", "00", "0", "1", "2"), help="show guidance for one canonical governance option")
+    governance.add_argument("--fallback-operation", choices=("run", "replay", "reconstruct"), help="use the permanent canonical sovereign degraded-mode path")
+    governance.add_argument("--fallback-target", help="request JSON path for fallback run, or manifest_receipt_id for replay/reconstruct")
+    governance.add_argument("--custody-db", default="./stegverse-master-records-validation.db", help="local canonical Master Records custody database for fallback execution")
+    governance.add_argument("--host-identity", default="stegverse-sovereign-local", help="local sovereign execution host identity")
     help_parser = sub.add_parser("help-surface", help="show help for a named SDK surface")
     help_parser.add_argument("surface")
     demo_parser = sub.add_parser("demo", help="run a bundled, credential-free demonstration")
