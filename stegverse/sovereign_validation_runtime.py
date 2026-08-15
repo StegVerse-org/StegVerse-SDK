@@ -5,7 +5,7 @@ import argparse
 import json
 import uuid
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 from .public_inspection import load_public_inspection_request, validate_public_inspection_request
 
@@ -45,8 +45,23 @@ def _prov(request: Mapping[str, Any], host_identity: str) -> dict[str, Any]:
     return value
 
 
-def run_sovereign_validation(request: Mapping[str, Any], *, custody_db: str | Path,
-                              host_identity: str = "stegverse-sovereign-local") -> dict[str, Any]:
+def run_sovereign_validation(
+    request: Mapping[str, Any],
+    *,
+    custody_db: str | Path,
+    host_identity: str = "stegverse-sovereign-local",
+    consequence_executor: Callable[[], Mapping[str, Any]] | None = None,
+    consequence_metadata: Mapping[str, Any] | None = None,
+    route_source: str = "StegVerse-SDK:sovereign-validation",
+    route_purpose: str = "production-lane-evaluator-validation",
+) -> dict[str, Any]:
+    """Run the canonical manifested transaction and custody path.
+
+    ``consequence_executor`` is an optional bounded operation supplied by an SDK
+    integration test. It is invoked only by the canonical StegCore transaction
+    lifecycle when the governance disposition permits execution. The SDK does not
+    introduce a second evaluator, receipt authority, or custody path.
+    """
     normalized = validate_public_inspection_request(request)
     input_block = normalized.get("input")
     if not isinstance(input_block, Mapping) or not isinstance(input_block.get("steggate_request"), Mapping):
@@ -59,9 +74,9 @@ def run_sovereign_validation(request: Mapping[str, Any], *, custody_db: str | Pa
     request_model = Request.model_validate(input_block["steggate_request"])
     input_data = input_block.get("input_data", {})
     route_manifest = build_route(execution_provenance=provenance, route=default_route(),
-                                 source="StegVerse-SDK:sovereign-validation",
-                                 purpose="production-lane-evaluator-validation")
+                                 source=route_source, purpose=route_purpose)
     state: dict[str, Any] = {}
+    consequence_enabled = consequence_executor is not None
 
     def sink(event: dict[str, Any]) -> Mapping[str, Any]:
         body = dict(event)
@@ -70,27 +85,39 @@ def run_sovereign_validation(request: Mapping[str, Any], *, custody_db: str | Pa
         return {"custody_status": "RECORDED", "event": recorded}
 
     def executor() -> dict[str, Any]:
-        return {"status": "SIMULATED_TEST_CONSEQUENCE", "external_side_effect": False,
-                "request_id": normalized["request_id"]}
+        if consequence_executor is None:
+            return {"status": "SIMULATED_TEST_CONSEQUENCE", "external_side_effect": False,
+                    "request_id": normalized["request_id"]}
+        produced = consequence_executor()
+        if not isinstance(produced, Mapping):
+            raise SovereignValidationError("bounded consequence executor must return a mapping")
+        result = dict(produced)
+        result.setdefault("external_side_effect", True)
+        result.setdefault("request_id", normalized["request_id"])
+        return result
 
     def steggate_handler(active_manifest: dict[str, Any], _payload: Any) -> dict[str, Any]:
+        metadata = {
+            "public_inspection_request_id": normalized["request_id"],
+            "case_profile": normalized["case_profile"],
+            "execution_provenance": provenance,
+            "route_manifest_id": active_manifest["route_manifest_id"],
+            "route_receipt_chain_head_at_stegcore_entry": active_manifest.get("receipt_chain_head"),
+            "governance_request": request_model.model_dump(mode="json", exclude_none=False),
+            "test_mode": True,
+            "external_side_effects_enabled": consequence_enabled,
+        }
+        if consequence_metadata:
+            metadata["bounded_consequence"] = dict(consequence_metadata)
         result = run_tx(
             request_model, executor, input_data=input_data,
             source="stegverse-sdk:sovereign-production-validation",
             subject=f"public-inspection:{normalized['request_id']}", ledger=ledger,
             transaction_id=active_manifest["transaction_id"],
-            metadata={
-                "public_inspection_request_id": normalized["request_id"],
-                "case_profile": normalized["case_profile"],
-                "execution_provenance": provenance,
-                "route_manifest_id": active_manifest["route_manifest_id"],
-                "route_receipt_chain_head_at_stegcore_entry": active_manifest.get("receipt_chain_head"),
-                "governance_request": request_model.model_dump(mode="json", exclude_none=False),
-                "test_mode": True,
-                "external_side_effects_enabled": False,
-            },
+            metadata=metadata,
             capability_surface={"actions_exposed": [request_model.candidate.action],
-                                "execution_mode": "manual", "requires_governed_commit": True},
+                                "execution_mode": "governed" if consequence_enabled else "manual",
+                                "requires_governed_commit": True},
             authority_resolution={"status": "approved", "basis_invalidated_by_action": False},
         )
         record = registry.register(result)
@@ -104,11 +131,14 @@ def run_sovereign_validation(request: Mapping[str, Any], *, custody_db: str | Pa
         submission = build_submission(record, evidence)
         retained = custody.register(submission["evidence_package"])
         state.update(result=result, record=record, retained=retained)
-        return {"governance_state": result.execution_observation["evaluation"]["disposition"],
+        observation = result.execution_observation or {}
+        execution_result = observation.get("result") if isinstance(observation, Mapping) else None
+        external_effect = bool(execution_result.get("external_side_effect")) if isinstance(execution_result, Mapping) else False
+        return {"governance_state": observation["evaluation"]["disposition"],
                 "manifest_receipt_id": record.manifest_receipt_id,
                 "transaction_id": record.transaction_id,
                 "stegcore_chain_verified": result.chain_verified,
-                "exact_run_custody_status": "RECORDED", "external_side_effect": False}
+                "exact_run_custody_status": "RECORDED", "external_side_effect": external_effect}
 
     route_result = Carrier(route_manifest, sink).run(
         {"request_id": normalized["request_id"], "input_data": input_data},
@@ -116,7 +146,10 @@ def run_sovereign_validation(request: Mapping[str, Any], *, custody_db: str | Pa
     )
     result, record = state["result"], state["record"]
     trace = custody.route_events(route_result["route_manifest_id"])
-    return {
+    observation = result.execution_observation or {}
+    execution_result = observation.get("result") if isinstance(observation, Mapping) else None
+    external_effect = bool(execution_result.get("external_side_effect")) if isinstance(execution_result, Mapping) else False
+    output = {
         "schema": "stegverse.sovereign-production-validation-result.v1",
         "request_id": normalized["request_id"], "case_profile": normalized["case_profile"],
         "execution_provenance": provenance,
@@ -126,13 +159,16 @@ def run_sovereign_validation(request: Mapping[str, Any], *, custody_db: str | Pa
         "route_transition_count": len(trace),
         "route_receipt_chain_head": route_result["receipt_chain_head"],
         "manifest_receipt_id": record.manifest_receipt_id,
-        "governance_state": result.execution_observation["evaluation"]["disposition"],
+        "governance_state": observation["evaluation"]["disposition"],
         "chain_verified": bool(result.chain_verified),
         "transaction_identity_continuous": record.transaction_id == route_result["transaction_id"] == result.transaction_id,
         "master_records_custody_status": "RECORDED",
-        "external_side_effect": False,
+        "external_side_effect": external_effect,
         "third_party_host_required": False,
     }
+    if isinstance(execution_result, Mapping):
+        output["execution_result"] = dict(execution_result)
+    return output
 
 
 def replay_sovereign(manifest_receipt_id: str, *, custody_db: str | Path) -> dict[str, Any]:
