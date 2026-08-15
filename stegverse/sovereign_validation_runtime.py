@@ -132,7 +132,7 @@ def run_sovereign_validation(
         retained = custody.register(submission["evidence_package"])
         state.update(result=result, record=record, retained=retained)
         observation = result.execution_observation or {}
-        execution_result = observation.get("execution_result") if isinstance(observation, Mapping) else None
+        execution_result = observation.get("result") if isinstance(observation, Mapping) else None
         external_effect = bool(execution_result.get("external_side_effect")) if isinstance(execution_result, Mapping) else False
         return {"governance_state": observation["evaluation"]["disposition"],
                 "manifest_receipt_id": record.manifest_receipt_id,
@@ -147,7 +147,7 @@ def run_sovereign_validation(
     result, record = state["result"], state["record"]
     trace = custody.route_events(route_result["route_manifest_id"])
     observation = result.execution_observation or {}
-    execution_result = observation.get("execution_result") if isinstance(observation, Mapping) else None
+    execution_result = observation.get("result") if isinstance(observation, Mapping) else None
     external_effect = bool(execution_result.get("external_side_effect")) if isinstance(execution_result, Mapping) else False
     output = {
         "schema": "stegverse.sovereign-production-validation-result.v1",
