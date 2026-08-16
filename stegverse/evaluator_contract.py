@@ -75,14 +75,46 @@ def evaluator_contract_schema() -> dict[str, Any]:
                     "external_consequence_enabled",
                 ],
                 "properties": {
-                    "lane_class": {"type": "string", "enum": ["PRODUCTION_VALIDATION", "ENCLOSED_DEMO_TEST"]},
-                    "routing_surface": {"type": "string", "enum": ["CANONICAL_PRODUCTION", "DEMO_TEST_REPOSITORY"]},
-                    "containment": {"type": "string", "enum": ["PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE", "DEMO_REPOSITORY_CONTAINED"]},
+                    "lane_class": {
+                        "type": "string",
+                        "enum": ["PRODUCTION_VALIDATION", "ENCLOSED_DEMO_TEST"],
+                    },
+                    "routing_surface": {
+                        "type": "string",
+                        "enum": ["CANONICAL_PRODUCTION", "DEMO_TEST_REPOSITORY"],
+                    },
+                    "containment": {
+                        "type": "string",
+                        "enum": ["PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE", "DEMO_REPOSITORY_CONTAINED"],
+                    },
                     "sandbox_required": {"type": "boolean"},
                     "sandbox_tier": {"type": "string", "maxLength": 120},
                     "origin_surface": {"type": "string", "maxLength": 200},
-                    "external_consequence_enabled": {"const": False},
+                    "external_consequence_enabled": {"type": "boolean"},
                 },
+                "allOf": [
+                    {
+                        "if": {"properties": {"lane_class": {"const": "PRODUCTION_VALIDATION"}}},
+                        "then": {
+                            "properties": {
+                                "routing_surface": {"const": "CANONICAL_PRODUCTION"},
+                                "containment": {"const": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE"},
+                                "external_consequence_enabled": {"const": False},
+                            }
+                        },
+                    },
+                    {
+                        "if": {"properties": {"lane_class": {"const": "ENCLOSED_DEMO_TEST"}}},
+                        "then": {
+                            "properties": {
+                                "routing_surface": {"const": "DEMO_TEST_REPOSITORY"},
+                                "containment": {"const": "DEMO_REPOSITORY_CONTAINED"},
+                                "sandbox_required": {"const": True},
+                                "external_consequence_enabled": {"const": False},
+                            }
+                        },
+                    },
+                ],
             },
             "input": {"type": "object", "maxProperties": 50},
             "return_projection": {"type": "string", "enum": sorted(RETURN_PROJECTIONS)},
@@ -198,7 +230,10 @@ def evaluator_contract_summary() -> dict[str, Any]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="stegverse contract", description="Inspect the public evaluator request contract")
+    parser = argparse.ArgumentParser(
+        prog="stegverse contract",
+        description="Inspect the public evaluator request contract",
+    )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--schema", action="store_true", help="print the machine-readable request JSON Schema")
     mode.add_argument("--example", action="store_true", help="print a ready-to-edit evaluator request example")
