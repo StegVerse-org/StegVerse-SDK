@@ -18,6 +18,49 @@
     "request_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{3,80}$"},
     "requester_label": {"type": "string", "maxLength": 120},
     "case_profile": {"type": "string", "enum": ["ordinary", "longitudinal-boundary", "custom-declarative"]},
+    "evaluation_declaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["what", "how", "why"],
+      "properties": {
+        "what": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "how": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "why": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "expected_observation": {"type": "string", "maxLength": 1000},
+        "requested_capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 5,
+          "items": {
+            "type": "string",
+            "enum": [
+              "commit_time_admissibility",
+              "bounded_consequence",
+              "master_records_custody",
+              "replay",
+              "reconstruction"
+            ]
+          }
+        },
+        "requested_evidence": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 7,
+          "items": {
+            "type": "string",
+            "enum": [
+              "governance_decision",
+              "execution_observation",
+              "manifest_receipt",
+              "route_receipts",
+              "exact_run_custody",
+              "replay",
+              "reconstruction"
+            ]
+          }
+        }
+      }
+    },
     "execution_provenance": {
       "type": "object",
       "additionalProperties": false,
