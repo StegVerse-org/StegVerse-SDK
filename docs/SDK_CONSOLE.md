@@ -36,6 +36,51 @@ stegverse governance --select 2
 
 `000` and `00` are optional. Machines that already understand the canonical manifest profile can use ordinary governed ingress directly.
 
+## Evaluator-defined testing boundary
+
+The SDK public-inspection manifest supports an optional `evaluation_declaration` that lets an evaluator record the experiment's WHAT, HOW, and WHY at submission time. This is intentionally separate from the canonical StegGate decision input under `input.steggate_request`.
+
+```text
+evaluator declares experiment
+-> SDK validates only published capability/evidence identifiers
+-> canonical route remains unchanged
+-> StegGate evaluates submitted governing inputs
+-> Master Records retains exact-run evidence
+-> replay/reconstruction remain separately callable by receipt locator
+```
+
+The declaration may include:
+
+```text
+what
+how
+why
+expected_observation
+requested_capabilities
+requested_evidence
+```
+
+Published evaluator capability identifiers are currently:
+
+```text
+commit_time_admissibility
+bounded_consequence
+master_records_custody
+replay
+reconstruction
+```
+
+The contract is **configuration, not augmentation**. A manifest cannot install a missing capability, hot-patch the route, or change semantics for a particular evaluator. Unknown requested capabilities are rejected before execution. Evaluator identity and `expected_observation` are retained as declaration/evidence context but are not StegGate decision inputs.
+
+The sovereign runtime returns SHA-256 bindings for the normalized submitted manifest, the exact StegGate request, and the returned result. The manifest and governance-request hashes are also placed in retained transaction metadata before exact-run custody.
+
+See:
+
+```text
+inspection/request.schema.json
+inspection/examples/governed-test-request.json
+```
+
 ## Portable S / NS ecosystem packages
 
 SDK early access is the initial distribution surface for portable StegVerse Micro-Ecosystems.
@@ -185,7 +230,7 @@ python scripts/validate_public_inspection_request.py inspection/examples/example
 python -m stegverse.public_inspection inspection/examples/example-request.json
 ```
 
-Preparation does not claim a governed run or produce a receipt locator.
+Preparation does not claim a governed run or produce a receipt locator. The standalone validation script delegates to the same manifest validator used by the SDK runtime so the documented preflight contract does not drift from executable validation.
 
 ## Authority boundary
 
@@ -199,6 +244,9 @@ package verification != StegGate ALLOW
 replay != historical rewrite
 reconstruction != consequence re-execution
 provider output != authority
+configuration != route augmentation
+evaluator identity != decision input
+expected observation != decision input
 GitHub != StegVerse runtime authority
 ```
 
