@@ -1,0 +1,65 @@
+name: Portable Package Source Validation - No Credential Authority
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/portable_packages.py'
+      - 'tests/test_portable_packages.py'
+      - 'pyproject.toml'
+      - 'docs/SDK_PORTABLE_PACKAGE_CONSOLE_MIRROR_HANDOFF.md'
+      - 'docs/SDK_CONSOLE.md'
+      - '.github/workflows/portable-package-source-validation.yml'
+
+permissions: {}
+
+jobs:
+  portable-package-source-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert no runtime credential authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+
+      - name: Materialize exact public PR source anonymously
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/StegVerse-org/StegVerse-SDK.git
+          env -u GITHUB_TOKEN -u GH_TOKEN git fetch --depth=1 origin "refs/pull/${PR_NUMBER}/merge"
+          git checkout --detach FETCH_HEAD
+
+      - name: Install focused test dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install pytest
+
+      - name: Run portable package tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest tests/test_portable_packages.py -q
+
+      - name: Prove console is non-authorizing
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m stegverse.portable_packages inspect --deployment-class NS > /tmp/ns.json
+          python - <<'PY'
+          import json
+          data = json.load(open('/tmp/ns.json', encoding='utf-8'))
+          assert data['deployment_class'] == 'NS'
+          assert data['installation_creates_node_membership'] is False
+          assert data['authority_effect'] == 'NONE'
+          assert data['download_active'] is False
+          PY
+          if python -m stegverse.portable_packages download --deployment-class NS --output /tmp/ns.zip; then
+            echo 'download unexpectedly succeeded without governed artifact' >&2
+            exit 1
+          fi
