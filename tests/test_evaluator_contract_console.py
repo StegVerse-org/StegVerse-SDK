@@ -1,4 +1,8 @@
+import copy
 import json
+
+import jsonschema
+import pytest
 
 from stegverse import evaluator_console
 from stegverse.evaluator_contract import evaluator_contract_example, evaluator_contract_schema
@@ -11,11 +15,21 @@ def test_contract_schema_matches_public_request_version():
     assert "input" in schema["properties"]
 
 
-def test_contract_example_is_non_authorizing():
+def test_contract_example_is_non_authorizing_and_schema_valid():
+    schema = evaluator_contract_schema()
     example = evaluator_contract_example()
     assert example["authority_claim"] is False
     assert example["execution_provenance"]["external_consequence_enabled"] is False
     assert "steggate_request" in example["input"]
+    jsonschema.Draft202012Validator(schema).validate(example)
+
+
+def test_contract_schema_rejects_cross_lane_provenance():
+    schema = evaluator_contract_schema()
+    invalid = copy.deepcopy(evaluator_contract_example())
+    invalid["execution_provenance"]["routing_surface"] = "DEMO_TEST_REPOSITORY"
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.Draft202012Validator(schema).validate(invalid)
 
 
 def test_console_contract_summary(capsys):
