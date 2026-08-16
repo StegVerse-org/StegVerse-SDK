@@ -77,6 +77,69 @@ third_party_host_required: false
 
 The governance and custody transitions are real TEST evidence; the test does not perform the proposed external consequence.
 
+## Evaluator-defined manifests, fixed testing route
+
+A tester or evaluator does not need to disclose a proposed test to a StegVerse developer so the developer can construct a special route. If the published SDK already exposes the required capability, the evaluator can declare the experiment in the request manifest and submit it through the same canonical route used by other evaluators.
+
+The optional `evaluation_declaration` records the evaluator's **WHAT / HOW / WHY** before execution:
+
+```json
+{
+  "evaluation_declaration": {
+    "what": "Evaluate commit-time admissibility after a declared state change.",
+    "how": "Use the published canonical route and retained exact-run evidence.",
+    "why": "Determine what the resulting evidence can establish.",
+    "expected_observation": "A stale authorization does not establish current admissibility.",
+    "requested_capabilities": [
+      "commit_time_admissibility",
+      "master_records_custody",
+      "replay",
+      "reconstruction"
+    ],
+    "requested_evidence": [
+      "governance_decision",
+      "manifest_receipt",
+      "route_receipts",
+      "exact_run_custody"
+    ]
+  }
+}
+```
+
+The actual governed candidate and state are supplied under `input.steggate_request`. The declaration is retained as evidence metadata; `requester_label`, `why`, and `expected_observation` are **not** passed into the StegGate decision model. They cannot alter the disposition.
+
+The public testing contract is:
+
+```text
+configuration != augmentation
+same manifest + same governing inputs + same published runtime semantics -> same evaluation semantics
+evaluator identity is not a decision input
+expected outcome is not a decision input
+manifest submission cannot hot-patch or add a route
+unsupported requested capability -> reject before execution
+```
+
+Currently published evaluator-facing capability identifiers are:
+
+```text
+commit_time_admissibility
+bounded_consequence
+master_records_custody
+replay
+reconstruction
+```
+
+`requested_capabilities` declares which already-published capabilities the evaluator intends to exercise; it does not dynamically install them or rewrite their semantics. `replay` and `reconstruction` remain separately invoked operations using option `1` or `2` after an exact-run `manifest_receipt_id` exists.
+
+The sovereign run binds the normalized submitted manifest and the exact StegGate request with SHA-256 values in retained transaction metadata and returns `submitted_manifest_hash`, `governance_request_hash`, and a `result_binding_hash`. This makes the submitted experiment inspectable without converting its declared purpose or expectation into authority.
+
+Schema and worked example:
+
+```text
+inspection/request.schema.json
+inspection/examples/governed-test-request.json
+```
+
 ## No caller-managed protected runtime credentials
 
 The sovereign evaluator path requires no GitHub token and no caller-managed protected Master Records credential.
@@ -231,6 +294,9 @@ public PR != runtime authority
 replay != historical rewrite
 reconstruction != consequence re-execution
 provider output != authority
+configuration != route augmentation
+evaluator identity != decision input
+expected observation != decision input
 GitHub != runtime authority
 ```
 
