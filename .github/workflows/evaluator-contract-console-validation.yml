@@ -11,6 +11,17 @@ on:
       - 'tests/test_evaluator_contract_console.py'
       - '.github/workflows/evaluator-contract-console-validation.yml'
       - 'validation/EVALUATOR_CONTRACT_CONSOLE_VALIDATION_TRIGGER_2026-08-16.md'
+  push:
+    branches: [main]
+    paths:
+      - 'stegverse/evaluator_contract.py'
+      - 'stegverse/evaluator_console.py'
+      - 'stegverse/__main__.py'
+      - 'pyproject.toml'
+      - 'README.md'
+      - 'tests/test_evaluator_contract_console.py'
+      - '.github/workflows/evaluator-contract-console-validation.yml'
+      - 'validation/EVALUATOR_CONTRACT_CONSOLE_VALIDATION_TRIGGER_2026-08-16.md'
 
 permissions: {}
 
@@ -21,7 +32,7 @@ jobs:
       - name: Materialize public source anonymously
         env:
           SOURCE_REPO: ${{ github.repository }}
-          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          SOURCE_SHA: ${{ github.sha }}
         run: |
           set -eu
           test -z "${GITHUB_TOKEN:-}"
