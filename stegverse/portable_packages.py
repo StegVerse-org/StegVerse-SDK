@@ -26,6 +26,7 @@ CATALOG_SCHEMA = "stegverse.sdk.portable-console-catalog.v1"
 INSTALL_RECEIPT_SCHEMA = "stegverse.sdk.portable-installation-receipt.v1"
 PACKAGE_RECEIPT_SCHEMAS = {
     "stegverse.sdk.portable-package-receipt.v2",
+    "stegverse.sdk.portable-package-receipt.v3",
 }
 DEPLOYMENT_CLASSES = ("S", "NS")
 ARCHIVE_FORMATS = ("zip", "tar.gz")
@@ -378,7 +379,7 @@ def build_parser() -> argparse.ArgumentParser:
     install_cmd.add_argument("--archive", type=Path, required=True)
     install_cmd.add_argument("--destination", type=Path, required=True)
     download_cmd = sub.add_parser("download")
-    download_cmd.add_argument("--deployment-class", choices=DEPLOYMENT_CLASSES, required=True)
+    download_cmd.add_argument("--deployment-class", choices=DEPLOYMENT_CLASSES)
     download_cmd.add_argument("--format", choices=ARCHIVE_FORMATS)
     download_cmd.add_argument("--output", type=Path, required=True)
     return parser
