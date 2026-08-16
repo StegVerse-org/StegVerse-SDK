@@ -49,7 +49,7 @@ jobs:
         run: |
           set -eu
           cd /tmp/source
-          python -m unittest tests.test_evaluator_contract_console
+          pytest -q tests/test_evaluator_contract_console.py
           stegverse contract > /tmp/contract-summary.json
           stegverse contract --schema > /tmp/contract-schema.json
           stegverse contract --example > /tmp/contract-example.json
