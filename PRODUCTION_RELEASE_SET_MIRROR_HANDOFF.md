@@ -73,8 +73,6 @@ replay/reconstruction never rewrites original release-set evidence
 
 ## Current release gap
 
-At handoff creation:
-
 ```text
 StegVerse SDK latest published release: v1.0.12
 StegVerse SDK source package version: 1.0.13
@@ -85,9 +83,32 @@ Master Records evaluator-runtime candidate: no release yet
 
 The existing StegCore `stegcore-v1.0-constitution` release is not the runtime candidate pinned by the governed evaluator lane.
 
-## Cross-repo release tasks
+## Validation evidence
 
-Durable release-control handoffs are installed at:
+```text
+workflow: Evaluator Contract Console Validation
+run: 31963202570
+head: fe6e0896d70b3a17e6add9d5691ee1d2d7f798c2
+result: SUCCESS
+```
+
+The run exercised:
+
+```text
+pytest -q tests/test_evaluator_contract_console.py tests/test_production_release_set.py
+stegverse contract
+stegverse contract --schema
+stegverse contract --example
+stegverse test-procedure --offline
+stegverse production-releases installed
+python -m stegverse contract --all
+```
+
+and verified the production release-set schema, historical retention declaration, replay comparison declaration, and existing evaluator contract invariants.
+
+## Cross-repo worker tasks
+
+Durable release-control handoffs:
 
 ```text
 StegVerse-Labs/StegCore/PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
@@ -95,17 +116,26 @@ Data-Continuation/core-lite/PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
 master-records/orchestration/PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
 ```
 
-Each instructs the StegVerse/TV-TVC release worker to release the exact validated candidate, publish a changelog, and propagate the resulting tag/commit/release metadata back to the SDK.
+Durable worker issues:
+
+```text
+StegVerse-Labs/StegCore#140
+Data-Continuation/core-lite#15
+master-records/orchestration#35
+StegVerse-org/StegVerse-SDK#41
+```
+
+These tasks require the TV/TVC-governed release workers to mint releases for the exact validated candidates, publish accessible changelogs, and propagate the resulting release identity back to the SDK.
 
 ## Remaining executable work
 
 ```text
-1. Complete SDK source validation for release-set/procedure surfaces.
-2. Freeze final SDK 1.0.13 candidate head after validation.
-3. TV/TVC release workers validate and mint releases for the three pinned dependency commits.
-4. Publish SDK v1.0.13 from the final validated SDK candidate.
-5. Replace governed-test dependency commit references with the corresponding immutable release tags only after those tags exist and validate the tagged installation.
-6. Record completed release set in evaluator-facing catalog and release notes.
+1. Freeze final SDK 1.0.13 candidate head after release-set documentation is complete.
+2. TV/TVC release workers validate and mint releases for the three pinned dependency commits.
+3. Replace governed-test dependency commit references with the corresponding immutable release tags only after those tags exist.
+4. Validate the tag-based installation and release-set packet evidence.
+5. Publish SDK v1.0.13 from the final validated candidate.
+6. Record completed release set in evaluator-facing release catalog/release notes.
 7. Continue subsequent development on new/moving branches without altering released tags.
 8. Verify release/changelog propagation to StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki, and stegguardian-wiki.
 ```
@@ -113,7 +143,7 @@ Each instructs the StegVerse/TV-TVC release worker to release the exact validate
 ## Status
 
 ```text
-SDK-PRODUCTION-RELEASE-SET-001: IMPLEMENTED_SOURCE_VALIDATION_RUNNING
-CROSS_REPO_RELEASE_ACTIVATION: ASSIGNED_TO_TV_TVC_RELEASE_WORKERS
+SDK-PRODUCTION-RELEASE-SET-001: IMPLEMENTED_SOURCE_VALIDATED
+CROSS_REPO_RELEASE_ACTIVATION: DURABLY_ASSIGNED_TO_TV_TVC_RELEASE_WORKERS
 ALL_COMPONENTS_RELEASE_TAG_BOUND: FALSE_UNTIL_RELEASES_EXIST
 ```
