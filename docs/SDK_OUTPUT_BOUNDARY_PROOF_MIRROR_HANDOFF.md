@@ -1,6 +1,6 @@
 # SDK Output-Boundary Proof Mirror Handoff
 
-Status: **SOURCE IMPLEMENTED — HOSTED VALIDATION ACTIVE — PRODUCTION PACKAGE RELEASE BINDING STILL SEPARATE**
+Status: **SOURCE IMPLEMENTED — HOSTED VALIDATION PASS — PRODUCTION PACKAGE RELEASE BINDING STILL SEPARATE**
 
 ## Source of truth
 
@@ -135,42 +135,43 @@ This allows the seven-lane experiment to serve as both an economic comparison an
 Hosted validation:
 
 ```text
-.github/workflows/output-boundary-proof.yml
+workflow: .github/workflows/output-boundary-proof.yml
+run: 31918218958
+job: 95093589837
+head: 7ece12b052156149d7da796addbf0fbcbb396602
+conclusion: SUCCESS
 ```
 
-It:
+Passed steps:
 
-1. materializes public source anonymously;
-2. asserts no GitHub token is present;
-3. rejects provider-key dependencies in the proof modules;
-4. compiles the implementation;
-5. runs focused S/NS proof tests;
-6. verifies the public CLI and SDK surface registration.
+1. anonymous public-source materialization;
+2. provider credential-dependency rejection;
+3. proof-surface compilation;
+4. focused S/NS proof tests;
+5. public CLI and SDK surface registration verification.
 
 ## Completion state
 
 ```text
-proof_module: IMPLEMENTED
-proof_cli: IMPLEMENTED
-sdk_surface_registration: IMPLEMENTED
-S_support: IMPLEMENTED
-NS_profile_support: IMPLEMENTED
-provider_key_transfer_rejection: IMPLEMENTED
-admissibility_receipt_reference: IMPLEMENTED
-local_replay_proof: IMPLEMENTED
-semantic_reconstruction_proof: IMPLEMENTED
-focused_tests: INSTALLED
-hosted_validation: ACTIVE
+proof_module: COMPLETE
+proof_cli: COMPLETE
+sdk_surface_registration: COMPLETE
+S_support: COMPLETE
+NS_profile_support: COMPLETE
+provider_key_transfer_rejection: COMPLETE
+admissibility_receipt_reference: COMPLETE
+local_replay_proof: COMPLETE
+semantic_reconstruction_proof: COMPLETE
+focused_tests: PASS
+hosted_validation: PASS
 immutable_S_NS_package_binding: PENDING_PARENT_WORKSTREAM
 remote_portable_download: PENDING_PARENT_WORKSTREAM
-canonical_Master_Records_receipt_upgrade_for_arbitrary_provider_output: FUTURE_INTEGRATION_CANDIDATE
+canonical_Master_Records_receipt_upgrade_for_arbitrary_provider_output: NEXT_INTEGRATION_GOAL
 ```
 
 ## Next integration goal
 
 `SDK-OUTPUT-BOUNDARY-CANONICAL-004`
-
-Candidate next step after hosted source validation passes:
 
 1. bind an arbitrary provider-output candidate into the canonical sovereign transaction lifecycle;
 2. retain a canonical `manifest_receipt_id`;
@@ -192,9 +193,9 @@ NS profile != Node Sovereign membership
 ## Current claim
 
 ```yaml
-active_goal: SDK-OUTPUT-BOUNDARY-PROOF-003
-state: SOURCE_IMPLEMENTED_HOSTED_VALIDATION_ACTIVE
+completed_goal: SDK-OUTPUT-BOUNDARY-PROOF-003
+state: COMPLETE_VALIDATED
 provider_credential_required: false
 node_membership_granted: false
-next_goal: SDK-OUTPUT-BOUNDARY-CANONICAL-004
+active_successor_goal: SDK-OUTPUT-BOUNDARY-CANONICAL-004
 ```
