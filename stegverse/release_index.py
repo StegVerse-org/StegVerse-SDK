@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import re
 from typing import Any
@@ -106,3 +107,26 @@ def fetch_versions(*, timeout: int = 15) -> dict[str, Any]:
         "latest_complete_version": next((row["version"] for row in versions if row["complete_dual_format_release"]), None),
         "authority_effect": "NONE",
     }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="stegverse-versions",
+        description="Show versioned portable StegVerse releases discoverable from the canonical public GitHub release index.",
+    )
+    parser.add_argument("--complete-only", action="store_true", help="show only releases containing S and NS in both ZIP and TAR.GZ formats")
+    args = parser.parse_args(argv)
+    try:
+        result = fetch_versions()
+    except ReleaseIndexError as exc:
+        print(json.dumps({"state": "FAIL_CLOSED", "error": str(exc), "authority_effect": "NONE"}, indent=2, sort_keys=True))
+        return 2
+    if args.complete_only:
+        result = dict(result)
+        result["versions"] = [row for row in result["versions"] if row["complete_dual_format_release"]]
+    print(json.dumps(result, indent=2, sort_keys=True))
+    return 0 if result["state"] in {"PASS", "UNAVAILABLE_NON_AUTHORIZING"} else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
