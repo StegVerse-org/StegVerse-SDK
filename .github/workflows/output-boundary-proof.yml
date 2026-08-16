@@ -1,0 +1,87 @@
+name: SDK Output-Boundary Proof Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'stegverse/output_boundary_proof.py'
+      - 'stegverse/output_boundary_cli.py'
+      - 'stegverse/sdk_surfaces.py'
+      - 'tests/test_output_boundary_proof.py'
+      - 'docs/OUTPUT_BOUNDARY_PROOF.md'
+      - 'pyproject.toml'
+      - '.github/workflows/output-boundary-proof.yml'
+  pull_request:
+    paths:
+      - 'stegverse/output_boundary_proof.py'
+      - 'stegverse/output_boundary_cli.py'
+      - 'stegverse/sdk_surfaces.py'
+      - 'tests/test_output_boundary_proof.py'
+      - 'docs/OUTPUT_BOUNDARY_PROOF.md'
+      - 'pyproject.toml'
+      - '.github/workflows/output-boundary-proof.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate-output-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+
+      - name: Reject provider credential dependencies
+        run: |
+          set -eu
+          cd /tmp/source
+          python - <<'PY'
+          from pathlib import Path
+          paths = [Path('stegverse/output_boundary_proof.py'), Path('stegverse/output_boundary_cli.py')]
+          forbidden = ('OPENAI_' + 'API_KEY', 'ANTHROPIC_' + 'API_KEY', 'DEEPSEEK_' + 'API_KEY')
+          for path in paths:
+              text = path.read_text()
+              for marker in forbidden:
+                  assert marker not in text, f'{marker} forbidden in {path}'
+          print('OUTPUT_BOUNDARY_PROVIDER_CREDENTIAL_DEPENDENCY_NONE')
+          PY
+
+      - name: Compile proof surface
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m py_compile \
+            stegverse/output_boundary_proof.py \
+            stegverse/output_boundary_cli.py \
+            stegverse/sdk_surfaces.py \
+            tests/test_output_boundary_proof.py
+
+      - name: Run focused proof tests
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m unittest tests.test_output_boundary_proof -v
+
+      - name: Verify CLI registration
+        run: |
+          set -eu
+          cd /tmp/source
+          python - <<'PY'
+          import pathlib
+          text = pathlib.Path('pyproject.toml').read_text()
+          assert 'stegverse-output-proof = "stegverse.output_boundary_cli:main"' in text
+          from stegverse.sdk_surfaces import get_sdk_surface
+          surface = get_sdk_surface('output-boundary-proof')
+          assert surface is not None
+          assert surface['authority_effect'] == 'NONE'
+          print('OUTPUT_BOUNDARY_SDK_SURFACE_REGISTERED')
+          PY
