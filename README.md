@@ -335,7 +335,7 @@ python scripts/validate_public_inspection_request.py inspection/examples/governe
 python -m unittest tests.test_public_inspection_request
 python -m unittest tests.test_public_inspection_governed_binding
 python -m unittest tests.test_public_inspection_runtime
-python -m unittest tests.test_evaluator_contract_console
+pytest -q tests/test_evaluator_contract_console.py
 ```
 
 Full console documentation: `docs/SDK_CONSOLE.md`.
