@@ -1,4 +1,6 @@
+import contextlib
 import hashlib
+import io
 import json
 from pathlib import Path
 import zipfile
@@ -121,9 +123,11 @@ def test_download_fails_closed_until_exact_release_is_bound(tmp_path):
         download_package("S", tmp_path / "package.zip")
 
 
-def test_console_command_reports_fail_closed_download(tmp_path, capsys):
-    code = main(["download", "--deployment-class", "NS", "--output", str(tmp_path / "ns.zip")])
+def test_console_command_reports_fail_closed_download(tmp_path):
+    stream = io.StringIO()
+    with contextlib.redirect_stdout(stream):
+        code = main(["download", "--deployment-class", "NS", "--output", str(tmp_path / "ns.zip")])
     assert code == 2
-    output = json.loads(capsys.readouterr().out)
+    output = json.loads(stream.getvalue())
     assert output["state"] == "FAIL_CLOSED"
     assert output["authority_effect"] == "NONE"
