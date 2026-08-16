@@ -28,6 +28,7 @@ SDK-AUTHORITY-BOUNDARY-PRESERVATION-001: ACTIVE_RUNNER_SOURCE_VALIDATED_PENDING_
 SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002: COMPLETE_RELEASED_TO_MACHINE_EXECUTION
 SDK-USAGE-GOVERNED-OPERATION-WIRING-002: COMPLETE_VALIDATED_MERGED
 SDK-MCP-PORTABLE-AUTHORITY-001: SOURCE_VALIDATED_DEFECTS_CORRECTED_EXACT_SOVEREIGN_ARTIFACT_RUN_PENDING
+SDK-README-PUBLIC-SHARE-001: COMPLETE_VERIFIED_MERGED
 ```
 
 No person-specific evaluator route is canonical.
@@ -204,6 +205,29 @@ archive receipt: StegVerse-Labs/.github/receipts/session-consolidation/SESSION-A
 The v7 inventory defines the goals of that prior conversation as G01-G08, records local runtime/model source completion, TV/TVC-only credential authority, durable consolidation and worker assistance as complete/released, and transfers the incomplete G08 trade-ready product goal to named machine/authority owners.
 
 The present MCP goal is separately scoped by `MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md` and must not be conflated with those older session workstreams.
+
+## README public-share verification — 2026-08-16
+
+Canonical evidence:
+
+```text
+validation/README_PUBLIC_SHARE_VERIFICATION_2026-08-16.md
+README correction commit: bff85fe5323fc6c5ab772f0f1456e8a449d8c701
+verification retention commit: b9847be00423a8b49ff5099b95875ae3d938dd32
+status: PASS_AFTER_CORRECTION
+share_readiness: READY
+```
+
+The audit found one material mismatch: README language implied a machine could directly use the preformatted `stegverse.ingress-manifest.v1` path while the live CLI intentionally keeps `0B` fail-closed until the canonical binding is installed. The README was corrected to distinguish the available public-inspection/`0A` machine path from unavailable `0B` execution.
+
+Relevant remaining SDK installation:
+
+```text
+0B canonical stegverse.ingress-manifest.v1 execution binding: NOT INSTALLED
+public README disclosure of that state: COMPLETE
+```
+
+This missing optional/future binding does not block README public sharing because no currently unavailable route is represented as available.
 
 ## Session consolidation / archive condition
 
