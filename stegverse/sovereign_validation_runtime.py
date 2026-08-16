@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import uuid
 from pathlib import Path
@@ -12,6 +13,14 @@ from .public_inspection import load_public_inspection_request, validate_public_i
 
 class SovereignValidationError(RuntimeError):
     pass
+
+
+TESTING_CONTRACT_VERSION = "stegverse.sdk-testing-noninterference.v1"
+
+
+def _canonical_sha256(value: Any) -> str:
+    body = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return "sha256:" + hashlib.sha256(body).hexdigest()
 
 
 def _components():
@@ -61,6 +70,11 @@ def run_sovereign_validation(
     integration test. It is invoked only by the canonical StegCore transaction
     lifecycle when the governance disposition permits execution. The SDK does not
     introduce a second evaluator, receipt authority, or custody path.
+
+    Evaluator WHAT/HOW/WHY declarations are retained as evidence metadata but are
+    never inputs to the StegGate decision model. A submitted manifest configures
+    already-published inputs and evidence requests; it cannot augment or hot-patch
+    this route for a specific evaluator or expected outcome.
     """
     normalized = validate_public_inspection_request(request)
     input_block = normalized.get("input")
@@ -73,6 +87,9 @@ def run_sovereign_validation(
     registry, ledger = Registry(), Ledger()
     request_model = Request.model_validate(input_block["steggate_request"])
     input_data = input_block.get("input_data", {})
+    evaluation_declaration = normalized.get("evaluation_declaration")
+    manifest_binding_hash = _canonical_sha256(normalized)
+    governance_request_hash = _canonical_sha256(request_model.model_dump(mode="json", exclude_none=False))
     route_manifest = build_route(execution_provenance=provenance, route=default_route(),
                                  source=route_source, purpose=route_purpose)
     state: dict[str, Any] = {}
@@ -100,6 +117,15 @@ def run_sovereign_validation(
         metadata = {
             "public_inspection_request_id": normalized["request_id"],
             "case_profile": normalized["case_profile"],
+            "evaluation_declaration": evaluation_declaration,
+            "evaluation_declaration_is_decision_input": False,
+            "requester_label_is_decision_input": False,
+            "testing_contract_version": TESTING_CONTRACT_VERSION,
+            "configuration_not_augmentation": True,
+            "route_augmentation_permitted": False,
+            "unsupported_capability_behavior": "REJECT_BEFORE_EXECUTION",
+            "submitted_manifest_hash": manifest_binding_hash,
+            "governance_request_hash": governance_request_hash,
             "execution_provenance": provenance,
             "route_manifest_id": active_manifest["route_manifest_id"],
             "route_receipt_chain_head_at_stegcore_entry": active_manifest.get("receipt_chain_head"),
@@ -152,6 +178,15 @@ def run_sovereign_validation(
     output = {
         "schema": "stegverse.sovereign-production-validation-result.v1",
         "request_id": normalized["request_id"], "case_profile": normalized["case_profile"],
+        "evaluation_declaration": evaluation_declaration,
+        "testing_contract_version": TESTING_CONTRACT_VERSION,
+        "configuration_not_augmentation": True,
+        "route_augmentation_permitted": False,
+        "evaluator_identity_is_decision_input": False,
+        "declared_expected_observation_is_decision_input": False,
+        "unsupported_capability_behavior": "REJECT_BEFORE_EXECUTION",
+        "submitted_manifest_hash": manifest_binding_hash,
+        "governance_request_hash": governance_request_hash,
         "execution_provenance": provenance,
         "transaction_id": record.transaction_id,
         "route_manifest_id": route_result["route_manifest_id"],
@@ -168,6 +203,7 @@ def run_sovereign_validation(
     }
     if isinstance(execution_result, Mapping):
         output["execution_result"] = dict(execution_result)
+    output["result_binding_hash"] = _canonical_sha256(output)
     return output
 
 
