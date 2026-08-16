@@ -2,6 +2,28 @@
   "schema_version": "1.0",
   "request_id": "governed-test-001",
   "case_profile": "ordinary",
+  "evaluation_declaration": {
+    "what": "Evaluate whether this declared candidate is admissible under the governing state supplied at the execution boundary.",
+    "how": "Use the published canonical production-validation route with bounded consequence, exact-run custody, and independently callable replay/reconstruction.",
+    "why": "Demonstrate evaluator-defined testing over a pre-existing route without evaluator-specific runtime augmentation.",
+    "expected_observation": "The disposition follows the submitted governing state rather than the evaluator identity or declared expectation.",
+    "requested_capabilities": [
+      "commit_time_admissibility",
+      "bounded_consequence",
+      "master_records_custody",
+      "replay",
+      "reconstruction"
+    ],
+    "requested_evidence": [
+      "governance_decision",
+      "execution_observation",
+      "manifest_receipt",
+      "route_receipts",
+      "exact_run_custody",
+      "replay",
+      "reconstruction"
+    ]
+  },
   "execution_provenance": {
     "lane_class": "PRODUCTION_VALIDATION",
     "routing_surface": "CANONICAL_PRODUCTION",
@@ -69,5 +91,5 @@
   "return_projection": "ALL",
   "manifest_labels": true,
   "authority_claim": false,
-  "notes": "Production-lane validation test. Uses canonical production-capable routing/governance/custody lanes with external consequence disabled; distinct from enclosed StegGhost/demo testing surfaces."
+  "notes": "Production-lane validation test. The declaration records evaluator intent but does not modify StegGate decision semantics or authorize a new test route."
 }
