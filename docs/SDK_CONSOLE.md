@@ -36,6 +36,72 @@ stegverse governance --select 2
 
 `000` and `00` are optional. Machines that already understand the canonical manifest profile can use ordinary governed ingress directly.
 
+## Portable S / NS ecosystem packages
+
+SDK early access is the initial distribution surface for portable StegVerse Micro-Ecosystems.
+
+The user explicitly chooses one deployment class:
+
+```text
+S  = StegVerse S Ecosystem / isolated Sovereign deployment
+NS = StegVerse NS Ecosystem / Node Sovereign profile
+```
+
+There is no default. Installing an NS package does not create Node Sovereign membership.
+
+Discover the package choices:
+
+```bash
+stegverse-portable list
+stegverse-portable inspect --deployment-class S
+stegverse-portable inspect --deployment-class NS
+```
+
+Verify a downloaded or otherwise supplied package before installation:
+
+```bash
+stegverse-portable verify --archive ./stegverse-sdk-s-micro-ecosystem-v0.zip
+```
+
+Install a verified package without executing it:
+
+```bash
+stegverse-portable install \
+  --archive ./stegverse-sdk-s-micro-ecosystem-v0.zip \
+  --destination ./portable-ecosystems
+```
+
+Installation produces `INSTALLATION_RECEIPT.json` and reports `INSTALLED_NOT_ACTIVATED`.
+
+Remote download is already represented in the console contract:
+
+```bash
+stegverse-portable download \
+  --deployment-class S \
+  --output ./stegverse-sdk-s-micro-ecosystem-v0.zip
+```
+
+Until an exact governed release artifact and expected archive SHA-256 are bound in the SDK catalog, this command deliberately fails closed with:
+
+```text
+NO_GOVERNED_RELEASE_ARTIFACT
+```
+
+The console never guesses a mutable `latest` URL or treats GitHub hosting as runtime authority.
+
+Package verification requires an inspectable `PACKAGE_RECEIPT.json`, verifies every declared file hash and size, rejects undeclared files and unsafe paths, prohibits provider-account/non-TV/TVC-secret requirements, and rejects any NS package that claims installation itself confers node membership.
+
+The portable-product lifecycle is intentionally staged:
+
+```text
+SDK_EARLY_ACCESS
+-> SDK_COMMUNITY
+-> APP_PRODUCT_CANDIDATE
+-> PAID_PRODUCT_CANDIDATE
+```
+
+The transition timing is governed by actual reliability, security, recovery, usage, community, and support evidence rather than a hard-coded date.
+
 ## Run the sovereign governed TEST
 
 Install the pinned canonical test components:
@@ -127,6 +193,9 @@ Preparation does not claim a governed run or produce a receipt locator.
 submission != execution
 validation != authority
 receipt locator != authority
+SDK package install != activation
+NS package install != Node Sovereign membership
+package verification != StegGate ALLOW
 replay != historical rewrite
 reconstruction != consequence re-execution
 provider output != authority
