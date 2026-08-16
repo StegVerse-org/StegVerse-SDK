@@ -1,0 +1,51 @@
+name: Evaluator Manifest Source Validation (Non-Authorizing)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - inspection/request.schema.json
+      - inspection/examples/governed-test-request.json
+      - stegverse/public_inspection.py
+      - stegverse/sovereign_validation_runtime.py
+      - scripts/validate_public_inspection_request.py
+      - tests/test_public_inspection_request.py
+      - README.md
+      - docs/SDK_CONSOLE.md
+      - .github/workflows/evaluator-manifest-source-validation.yml
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          test -z "${PYPI_API_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Validate public inspection manifests
+        run: |
+          set -eu
+          cd /tmp/source
+          python scripts/validate_public_inspection_request.py inspection/examples/example-request.json
+          python scripts/validate_public_inspection_request.py inspection/examples/governed-test-request.json
+          python -m unittest tests.test_public_inspection_request
+      - name: Compile changed runtime modules
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m py_compile stegverse/public_inspection.py stegverse/sovereign_validation_runtime.py scripts/validate_public_inspection_request.py
+      - name: Record source-only boundary
+        run: |
+          echo 'EVALUATOR_MANIFEST_SOURCE_VALIDATION_PASS'
+          echo 'This job validates source/schema behavior only; it grants no runtime, release, custody, or evaluator authority.'
