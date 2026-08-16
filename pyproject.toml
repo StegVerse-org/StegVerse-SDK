@@ -45,7 +45,7 @@ governed-test = [
 ]
 
 [project.scripts]
-stegverse = "stegverse.cli:main"
+stegverse = "stegverse.evaluator_console:main"
 stegverse-portable = "stegverse.portable_packages:main"
 stegverse-versions = "stegverse.release_index:main"
 stegverse-mcp-test = "stegverse.mcp_cli:main"
