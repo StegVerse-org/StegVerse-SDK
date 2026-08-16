@@ -28,6 +28,16 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
         "documentation": "docs/DYNAMIC_ADMISSIBILITY.md",
         "authority_effect": "NONE",
     },
+    "output-boundary-proof": {
+        "summary": "Test an externally generated provider output through StegVerse S/NS governance proof without giving StegVerse the provider API key.",
+        "mode": "credentialless-local-proof",
+        "input": "JSON candidate with deployment_class S|NS, provider, model, prompt, output, and provider_api_key_transferred_to_stegverse=false",
+        "command": "stegverse run output-boundary-proof --input <candidate.json>",
+        "module": "stegverse.output_boundary_proof.evaluate_output_boundary_proof",
+        "documentation": "docs/OUTPUT_BOUNDARY_PROOF.md",
+        "authority_effect": "NONE",
+        "result_semantics": "Produces candidate binding, admissibility receipt reference, preserved-packet replay proof, semantic reconstruction proof, and credential-nonpossession evidence; NS selection does not grant Node Sovereign membership.",
+    },
     "connect-llm": {
         "summary": "Connect a user-controlled LLM to StegVerse through the canonical credential-free LLM-adapter surface.",
         "mode": "adapter-discovery-and-binding",
@@ -116,6 +126,8 @@ ALIASES = {
     "connect my llm": "connect-llm",
     "connect-my-llm": "connect-llm",
     "llm": "connect-llm",
+    "output-proof": "output-boundary-proof",
+    "provider-output-proof": "output-boundary-proof",
     "mcp": "mcp-production-artifact-test",
     "mcp-test": "mcp-production-artifact-test",
 }
