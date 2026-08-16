@@ -1,6 +1,15 @@
 name: Portable Package Source Validation - No Credential Authority
 
 on:
+  push:
+    paths:
+      - 'stegverse/portable_packages.py'
+      - 'tests/test_portable_packages.py'
+      - 'tests/test_portable_dual_archive.py'
+      - 'pyproject.toml'
+      - 'docs/SDK_PORTABLE_PACKAGE_CONSOLE_MIRROR_HANDOFF.md'
+      - 'docs/SDK_CONSOLE.md'
+      - '.github/workflows/portable-package-source-validation.yml'
   pull_request:
     paths:
       - 'stegverse/portable_packages.py'
@@ -24,7 +33,7 @@ jobs:
           test -z "${GITHUB_TOKEN:-}"
           test -z "${GH_TOKEN:-}"
 
-      - name: Materialize exact public PR source anonymously
+      - name: Materialize exact public source anonymously
         shell: bash
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -32,8 +41,14 @@ jobs:
           set -euo pipefail
           git init .
           git remote add origin https://github.com/StegVerse-org/StegVerse-SDK.git
-          env -u GITHUB_TOKEN -u GH_TOKEN git fetch --depth=1 origin "refs/pull/${PR_NUMBER}/merge"
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            SOURCE_REF="refs/pull/${PR_NUMBER}/merge"
+          else
+            SOURCE_REF="${GITHUB_SHA}"
+          fi
+          env -u GITHUB_TOKEN -u GH_TOKEN git fetch --depth=1 origin "${SOURCE_REF}"
           git checkout --detach FETCH_HEAD
+          test -z "$(git config --local --get-regexp 'extraheader|credential' || true)"
 
       - name: Install focused test dependency
         shell: bash
@@ -47,7 +62,7 @@ jobs:
           set -euo pipefail
           python -m pytest tests/test_portable_packages.py tests/test_portable_dual_archive.py -q
 
-      - name: Prove console is non-authorizing
+      - name: Prove console is non-authorizing and single-host sovereign
         shell: bash
         run: |
           set -euo pipefail
@@ -60,6 +75,17 @@ jobs:
           assert data['installation_creates_node_membership'] is False
           assert data['authority_effect'] == 'NONE'
           assert data['download_active'] is False
+          sovereignty = data['single_host_sovereignty']
+          assert sovereignty['physical_host_topology'] == 'ONE_SOVEREIGN_PHYSICAL_HOST'
+          assert sovereignty['additional_physical_machine_required'] is False
+          assert sovereignty['third_party_machine_required'] is False
+          assert sovereignty['third_party_process_host_required'] is False
+          assert sovereignty['third_party_scheduler_required'] is False
+          assert sovereignty['third_party_state_host_required'] is False
+          assert sovereignty['third_party_control_plane_executor_required'] is False
+          assert sovereignty['independent_validation_mechanism'] == 'SAME_HOST_ISOLATED_LOGICAL_BOUNDARIES'
+          assert sovereignty['credential_authority'] == 'TV/TVC'
+          assert sovereignty['non_tv_tvc_secret_or_token_allowed'] is False
           PY
           if python -m stegverse.portable_packages download --deployment-class NS --format tar.gz --output /tmp/ns.tar.gz; then
             echo 'download unexpectedly succeeded without governed artifact' >&2
