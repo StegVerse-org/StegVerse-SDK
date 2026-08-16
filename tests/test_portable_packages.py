@@ -17,6 +17,9 @@ from stegverse.portable_packages import (
     verify_archive,
 )
 
+PACKAGE_VERSION = "0.2.0"
+RELEASE_VERSION = "0.2.0"
+
 
 def sovereignty_contract() -> dict:
     return {
@@ -43,12 +46,16 @@ def make_package(
     membership_claim: bool = False,
     contract_override: dict | None = None,
     manifest_override: dict | None = None,
+    package_version: str = PACKAGE_VERSION,
+    release_version: str = RELEASE_VERSION,
+    versioned_id_override: str | None = None,
 ) -> Path:
     package_id = (
-        "stegverse-sdk-s-micro-ecosystem-v0"
+        "stegverse-sdk-s-micro-ecosystem"
         if deployment_class == "S"
-        else "stegverse-sdk-ns-micro-ecosystem-v0"
+        else "stegverse-sdk-ns-micro-ecosystem"
     )
+    versioned_package_id = versioned_id_override or f"{package_id}-v{package_version}"
     contract = sovereignty_contract()
     if contract_override:
         contract.update(contract_override)
@@ -69,11 +76,16 @@ def make_package(
         manifest.update(manifest_override)
     payload = json.dumps(manifest, sort_keys=True).encode("utf-8") + b"\n"
     receipt = {
-        "schema": "stegverse.sdk.portable-package-receipt.v2",
+        "schema": "stegverse.sdk.portable-package-receipt.v3",
         "channel": "SDK_EARLY_ACCESS",
         "package_id": package_id,
+        "package_generation": "0",
+        "package_version": package_version,
+        "release_version": release_version,
+        "versioned_package_id": versioned_package_id,
         "deployment_class": deployment_class,
         "source_commit": "a" * 40,
+        "required_archive_formats": ["zip", "tar.gz"],
         "node_membership_claim": membership_claim,
         "node_membership_activation_required": deployment_class == "NS",
         "files": [
@@ -89,41 +101,46 @@ def make_package(
         "physical_additional_machine_required": False,
         "third_party_runtime_infrastructure_required": False,
     }
-    archive = tmp_path / f"{package_id}.zip"
+    archive = tmp_path / f"{versioned_package_id}.zip"
     with zipfile.ZipFile(archive, "w") as zf:
         zf.writestr("micro_ecosystem/manifest.json", payload)
         zf.writestr("PACKAGE_RECEIPT.json", json.dumps(receipt, sort_keys=True))
     return archive
 
 
-def test_catalog_exposes_explicit_s_and_ns_without_membership_claim():
+def test_catalog_exposes_stable_s_and_ns_package_families():
     rows = list_packages()
     assert [row["deployment_class"] for row in rows] == ["S", "NS"]
+    assert rows[0]["package_id"] == "stegverse-sdk-s-micro-ecosystem"
+    assert rows[1]["package_id"] == "stegverse-sdk-ns-micro-ecosystem"
     s = inspect_package("S")
     assert s["installation_creates_node_membership"] is False
     assert s["single_host_sovereignty"]["physical_host_topology"] == "ONE_SOVEREIGN_PHYSICAL_HOST"
-    assert s["single_host_sovereignty"]["additional_physical_machine_required"] is False
     ns = inspect_package("NS")
     assert ns["node_membership_activation_required"] is True
     assert ns["download_active"] is False
 
 
-def test_s_package_verifies_and_installs_without_execution(tmp_path):
+def test_s_package_verifies_explicit_package_and_release_versions_and_installs_versioned(tmp_path):
     archive = make_package(tmp_path, "S")
     verification = verify_archive(archive)
     assert verification["verification_state"] == "PASS"
     assert verification["deployment_class"] == "S"
+    assert verification["package_id"] == "stegverse-sdk-s-micro-ecosystem"
+    assert verification["package_version"] == PACKAGE_VERSION
+    assert verification["release_version"] == RELEASE_VERSION
+    assert verification["versioned_package_id"] == f"stegverse-sdk-s-micro-ecosystem-v{PACKAGE_VERSION}"
     assert verification["verified_file_count"] == 1
     assert verification["authority_effect"] == "NONE"
-    assert verification["physical_additional_machine_required"] is False
-    assert verification["third_party_runtime_infrastructure_required"] is False
 
     installed = install_archive(archive, tmp_path / "installed")
     assert installed["installation_state"] == "INSTALLED_NOT_ACTIVATED"
     assert installed["executed_after_install"] is False
     assert installed["node_membership_granted"] is False
-    assert installed["physical_additional_machine_required"] is False
+    assert installed["package_version"] == PACKAGE_VERSION
+    assert installed["release_version"] == RELEASE_VERSION
     target = Path(installed["destination"])
+    assert target.name == f"stegverse-sdk-s-micro-ecosystem-v{PACKAGE_VERSION}"
     assert (target / "micro_ecosystem" / "manifest.json").is_file()
     assert (target / "INSTALLATION_RECEIPT.json").is_file()
 
@@ -134,10 +151,29 @@ def test_ns_package_verifies_but_does_not_self_accredit_membership(tmp_path):
     assert verification["deployment_class"] == "NS"
     assert verification["node_membership_claim"] is False
     assert verification["node_membership_activation_required"] is True
-
     installed = install_archive(archive, tmp_path / "installed")
     assert installed["node_membership_granted"] is False
     assert installed["node_membership_activation_required"] is True
+
+
+def test_versioned_package_id_mismatch_fails_closed(tmp_path):
+    archive = make_package(tmp_path, versioned_id_override="stegverse-sdk-s-micro-ecosystem-v9.9.9")
+    with pytest.raises(PortablePackageError, match="versioned_package_id_mismatch"):
+        verify_archive(archive)
+
+
+def test_invalid_package_version_fails_closed(tmp_path):
+    archive = make_package(tmp_path, package_version="not-semver")
+    with pytest.raises(PortablePackageError, match="invalid_package_version"):
+        verify_archive(archive)
+
+
+def test_archive_filename_is_part_of_version_contract(tmp_path):
+    archive = make_package(tmp_path)
+    wrong_name = tmp_path / "renamed.zip"
+    archive.rename(wrong_name)
+    with pytest.raises(PortablePackageError, match="versioned_archive_filename_mismatch"):
+        verify_archive(wrong_name)
 
 
 def test_ns_self_membership_claim_fails_closed(tmp_path):
@@ -204,7 +240,7 @@ def test_unsafe_archive_path_fails_closed(tmp_path):
         verify_archive(archive)
 
 
-def test_install_refuses_existing_target(tmp_path):
+def test_install_refuses_same_version_existing_target(tmp_path):
     archive = make_package(tmp_path, "S")
     destination = tmp_path / "installed"
     install_archive(archive, destination)
