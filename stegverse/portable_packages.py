@@ -4,6 +4,7 @@ Package verification is non-authorizing. ZIP and TAR.GZ are equivalent transport
 formats over the same declared payload. Installation never executes the package
 and never grants Node Sovereign membership.
 
+Package family identity is stable while package and release versions are explicit.
 A valid portable package must be independently operable within its declared local
 scope on one sovereign physical host. Required third-party machines, schedulers,
 process/state hosts, control-plane executors, or additional validation computers
@@ -15,6 +16,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
+import re
 import shutil
 import tarfile
 import tempfile
@@ -23,13 +25,11 @@ from urllib.request import urlopen
 import zipfile
 
 CATALOG_SCHEMA = "stegverse.sdk.portable-console-catalog.v1"
-INSTALL_RECEIPT_SCHEMA = "stegverse.sdk.portable-installation-receipt.v1"
-PACKAGE_RECEIPT_SCHEMAS = {
-    "stegverse.sdk.portable-package-receipt.v2",
-    "stegverse.sdk.portable-package-receipt.v3",
-}
+INSTALL_RECEIPT_SCHEMA = "stegverse.sdk.portable-installation-receipt.v2"
+PACKAGE_RECEIPT_SCHEMAS = {"stegverse.sdk.portable-package-receipt.v3"}
 DEPLOYMENT_CLASSES = ("S", "NS")
 ARCHIVE_FORMATS = ("zip", "tar.gz")
+SEMVER_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$")
 SINGLE_HOST_TOPOLOGY = "ONE_SOVEREIGN_PHYSICAL_HOST"
 SINGLE_HOST_VALIDATION = "SAME_HOST_ISOLATED_LOGICAL_BOUNDARIES"
 SOVEREIGN_FALSE_FIELDS = (
@@ -67,7 +67,7 @@ CATALOG: dict[str, Any] = {
     },
     "packages": {
         "S": {
-            "package_id": "stegverse-sdk-s-micro-ecosystem-v0",
+            "package_id": "stegverse-sdk-s-micro-ecosystem",
             "display_name": "StegVerse S Micro-Ecosystem",
             "deployment_class": "S",
             "sovereignty_class": "Sovereign",
@@ -75,7 +75,7 @@ CATALOG: dict[str, Any] = {
             "artifacts": {fmt: {"release_url": None, "archive_sha256": None} for fmt in ARCHIVE_FORMATS},
         },
         "NS": {
-            "package_id": "stegverse-sdk-ns-micro-ecosystem-v0",
+            "package_id": "stegverse-sdk-ns-micro-ecosystem",
             "display_name": "StegVerse NS Micro-Ecosystem",
             "deployment_class": "NS",
             "sovereignty_class": "Node Sovereign",
@@ -100,6 +100,13 @@ def _sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _validate_semver(value: Any, field: str) -> str:
+    text = str(value or "")
+    if not SEMVER_RE.fullmatch(text):
+        raise PortablePackageError(f"invalid_{field}")
+    return text
 
 
 def _validate_single_host_sovereignty(value: Any, *, source: str) -> dict[str, Any]:
@@ -157,6 +164,10 @@ def _archive_format(path: Path) -> str:
     if lower.endswith(".zip"):
         return "zip"
     raise PortablePackageError("unsupported_archive_format")
+
+
+def _archive_filename(versioned_package_id: str, archive_format: str) -> str:
+    return f"{versioned_package_id}.{archive_format}"
 
 
 def _read_archive(path: Path) -> tuple[str, dict[str, bytes]]:
@@ -220,8 +231,18 @@ def verify_archive(archive: Path) -> dict[str, Any]:
     if deployment_class not in DEPLOYMENT_CLASSES:
         raise PortablePackageError("unsupported_deployment_class")
     expected = CATALOG["packages"][deployment_class]
-    if receipt.get("package_id") != expected["package_id"]:
+    package_id = str(receipt.get("package_id") or "")
+    if package_id != expected["package_id"]:
         raise PortablePackageError("package_id_mismatch")
+    package_version = _validate_semver(receipt.get("package_version"), "package_version")
+    release_version = _validate_semver(receipt.get("release_version"), "release_version")
+    versioned_package_id = str(receipt.get("versioned_package_id") or "")
+    expected_versioned_id = f"{package_id}-v{package_version}"
+    if versioned_package_id != expected_versioned_id:
+        raise PortablePackageError("versioned_package_id_mismatch")
+    if archive.name != _archive_filename(versioned_package_id, archive_format):
+        raise PortablePackageError("versioned_archive_filename_mismatch")
+
     if receipt.get("requires_provider_account") is not False:
         raise PortablePackageError("provider_account_requirement_prohibited")
     if receipt.get("requires_non_tv_tvc_secret") is not False:
@@ -232,11 +253,7 @@ def verify_archive(archive: Path) -> dict[str, Any]:
         raise PortablePackageError("third_party_runtime_infrastructure_prohibited")
     receipt_sovereignty = _validate_single_host_sovereignty(receipt.get("single_host_sovereignty"), source="package_receipt")
 
-    micro_manifest = _load_member_json(
-        members,
-        "micro_ecosystem/manifest.json",
-        "micro_ecosystem_manifest_missing",
-    )
+    micro_manifest = _load_member_json(members, "micro_ecosystem/manifest.json", "micro_ecosystem_manifest_missing")
     manifest_sovereignty = _validate_single_host_sovereignty(
         micro_manifest.get("single_host_sovereignty"), source="micro_ecosystem_manifest"
     )
@@ -257,7 +274,7 @@ def verify_archive(archive: Path) -> dict[str, Any]:
     if deployment_class == "NS" and receipt.get("node_membership_activation_required") is not True:
         raise PortablePackageError("ns_membership_activation_boundary_missing")
     declared_formats = receipt.get("required_archive_formats")
-    if declared_formats is not None and declared_formats != list(ARCHIVE_FORMATS):
+    if declared_formats != list(ARCHIVE_FORMATS):
         raise PortablePackageError("required_archive_formats_mismatch")
 
     file_rows = receipt.get("files")
@@ -286,12 +303,15 @@ def verify_archive(archive: Path) -> dict[str, Any]:
         raise PortablePackageError("undeclared_archive_members:" + ",".join(sorted(extras)))
 
     return {
-        "schema": "stegverse.sdk.portable-package-verification.v2",
+        "schema": "stegverse.sdk.portable-package-verification.v3",
         "verification_state": "PASS",
         "archive": str(archive),
         "archive_format": archive_format,
         "archive_sha256": archive_sha256,
-        "package_id": receipt["package_id"],
+        "package_id": package_id,
+        "package_version": package_version,
+        "release_version": release_version,
+        "versioned_package_id": versioned_package_id,
         "deployment_class": deployment_class,
         "source_commit": receipt.get("source_commit"),
         "verified_file_count": len(verified_files),
@@ -308,13 +328,13 @@ def verify_archive(archive: Path) -> dict[str, Any]:
 def install_archive(archive: Path, destination: Path) -> dict[str, Any]:
     verification = verify_archive(archive)
     _, members = _read_archive(archive)
-    package_id = verification["package_id"]
-    target = destination / package_id
+    versioned_package_id = verification["versioned_package_id"]
+    target = destination / versioned_package_id
     if target.exists():
         raise PortablePackageError("installation_target_exists")
     destination.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=destination) as temp_dir:
-        stage = Path(temp_dir) / package_id
+        stage = Path(temp_dir) / versioned_package_id
         stage.mkdir()
         for name, data in members.items():
             target_path = stage / PurePosixPath(name)
@@ -324,7 +344,10 @@ def install_archive(archive: Path, destination: Path) -> dict[str, Any]:
     install_receipt = {
         "schema": INSTALL_RECEIPT_SCHEMA,
         "installation_state": "INSTALLED_NOT_ACTIVATED",
-        "package_id": package_id,
+        "package_id": verification["package_id"],
+        "package_version": verification["package_version"],
+        "release_version": verification["release_version"],
+        "versioned_package_id": versioned_package_id,
         "deployment_class": verification["deployment_class"],
         "archive_format": verification["archive_format"],
         "archive_sha256": verification["archive_sha256"],
@@ -379,7 +402,7 @@ def build_parser() -> argparse.ArgumentParser:
     install_cmd.add_argument("--archive", type=Path, required=True)
     install_cmd.add_argument("--destination", type=Path, required=True)
     download_cmd = sub.add_parser("download")
-    download_cmd.add_argument("--deployment-class", choices=DEPLOYMENT_CLASSES)
+    download_cmd.add_argument("--deployment-class", choices=DEPLOYMENT_CLASSES, required=True)
     download_cmd.add_argument("--format", choices=ARCHIVE_FORMATS)
     download_cmd.add_argument("--output", type=Path, required=True)
     return parser
