@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from scripts.validate_public_inspection_request import validate
+from stegverse.public_inspection import prepare_public_inspection_submission
 
 
 class PublicInspectionRequestTests(unittest.TestCase):
@@ -12,6 +13,14 @@ class PublicInspectionRequestTests(unittest.TestCase):
             "request_id": "case-001",
             "requester_label": "public-evaluator",
             "case_profile": "ordinary",
+            "evaluation_declaration": {
+                "what": "Evaluate commit-time admissibility for the submitted candidate.",
+                "how": "Use the published canonical route without runtime augmentation.",
+                "why": "Test the declared proposition independently of evaluator identity.",
+                "expected_observation": "Disposition follows current governing state.",
+                "requested_capabilities": ["commit_time_admissibility", "master_records_custody"],
+                "requested_evidence": ["governance_decision", "manifest_receipt", "exact_run_custody"],
+            },
             "execution_provenance": {
                 "lane_class": "PRODUCTION_VALIDATION",
                 "routing_surface": "CANONICAL_PRODUCTION",
@@ -32,10 +41,36 @@ class PublicInspectionRequestTests(unittest.TestCase):
         path = Path("inspection/examples/example-request.json")
         validate(json.loads(path.read_text(encoding="utf-8")))
 
+    def test_governed_example_file_is_valid(self):
+        path = Path("inspection/examples/governed-test-request.json")
+        validate(json.loads(path.read_text(encoding="utf-8")))
+
     def test_personal_name_is_not_required(self):
         payload = self.example()
         payload.pop("requester_label")
         validate(payload)
+
+    def test_evaluation_declaration_is_evidence_not_authority(self):
+        payload = self.example()
+        prepared = prepare_public_inspection_submission(payload)
+        self.assertEqual(payload["evaluation_declaration"]["what"], prepared["evaluation_declaration"]["what"])
+        self.assertTrue(prepared["testing_contract"]["configuration_not_augmentation"])
+        self.assertFalse(prepared["testing_contract"]["route_augmentation_permitted"])
+        self.assertFalse(prepared["testing_contract"]["evaluator_identity_is_decision_input"])
+        self.assertFalse(prepared["testing_contract"]["declared_expected_observation_is_decision_input"])
+        self.assertEqual("REJECT_BEFORE_EXECUTION", prepared["testing_contract"]["unsupported_capability_behavior"])
+
+    def test_unsupported_capability_is_rejected_before_execution(self):
+        payload = self.example()
+        payload["evaluation_declaration"]["requested_capabilities"] = ["custom_hot_patch"]
+        with self.assertRaises(ValueError):
+            validate(payload)
+
+    def test_declaration_requires_what_how_why_when_present(self):
+        payload = self.example()
+        payload["evaluation_declaration"].pop("why")
+        with self.assertRaises(ValueError):
+            validate(payload)
 
     def test_authority_claim_must_be_false(self):
         payload = self.example()
