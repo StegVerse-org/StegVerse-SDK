@@ -33,6 +33,31 @@ stegverse governance --select 1
 stegverse governance --select 2
 ```
 
+### Pull up the evaluator contract from the console
+
+An evaluator does not need to browse the repository or ask a StegVerse developer for the accepted testing contract. The installed SDK exposes it directly:
+
+```bash
+stegverse contract             # summary, supported capabilities, evidence classes, submission commands
+stegverse contract --schema    # machine-readable public-inspection JSON Schema
+stegverse contract --example   # ready-to-edit evaluator request JSON
+stegverse contract --all       # summary + schema + example
+```
+
+The same commands are available through `python -m stegverse contract ...`.
+
+An evaluator may author the resulting JSON anywhere, by hand or programmatically, and submit it with:
+
+```bash
+stegverse governance --select 0 --input my-test.json
+```
+
+or directly through the canonical runtime:
+
+```bash
+python -m stegverse.public_inspection_runtime run my-test.json
+```
+
 `000` and `00` are optional human/LLM transparency surfaces. Machines can use the published public-inspection request contract directly through option `0A` / `stegverse.public_inspection_runtime` without first disclosing a proposed test to a StegVerse developer. The separate `0B` path for a preformatted `stegverse.ingress-manifest.v1` is intentionally fail-closed until its canonical binding is installed; the SDK does not invent that conversion.
 
 ## Run the canonical governed TEST locally
@@ -133,7 +158,7 @@ reconstruction
 
 The sovereign run binds the normalized submitted manifest and the exact StegGate request with SHA-256 values in retained transaction metadata and returns `submitted_manifest_hash`, `governance_request_hash`, and a `result_binding_hash`. This makes the submitted experiment inspectable without converting its declared purpose or expectation into authority.
 
-Schema and worked example:
+Schema and worked example are also retained in the repository:
 
 ```text
 inspection/request.schema.json
@@ -310,6 +335,7 @@ python scripts/validate_public_inspection_request.py inspection/examples/governe
 python -m unittest tests.test_public_inspection_request
 python -m unittest tests.test_public_inspection_governed_binding
 python -m unittest tests.test_public_inspection_runtime
+python -m unittest tests.test_evaluator_contract_console
 ```
 
 Full console documentation: `docs/SDK_CONSOLE.md`.
