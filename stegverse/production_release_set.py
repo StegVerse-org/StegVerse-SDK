@@ -1,7 +1,7 @@
 """Production release-set provenance for governed evaluator runs.
 
-A release set is evidence, not authority.  The immutable run snapshot records the
-installed components that actually participated.  A separate public catalog may
+A release set is evidence, not authority. The immutable run snapshot records the
+installed components that actually participated. A separate public catalog may
 be refreshed later so replay/reconstruction can distinguish historical runtime
 state from the ecosystem's current released state.
 """
@@ -11,35 +11,22 @@ import argparse
 import hashlib
 import importlib.metadata as metadata
 import json
+import re
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
+from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 SCHEMA = "stegverse.production-release-set.v1"
 CATALOG_SCHEMA = "stegverse.production-release-catalog.v1"
+_HEX_SHA = re.compile(r"^[0-9a-fA-F]{7,64}$")
 
 COMPONENTS = (
-    {
-        "role": "sdk_entry",
-        "distribution": "stegverse-sdk",
-        "repository": "StegVerse-org/StegVerse-SDK",
-    },
-    {
-        "role": "governance_runtime",
-        "distribution": "stegcore",
-        "repository": "StegVerse-Labs/StegCore",
-    },
-    {
-        "role": "manifest_route_carrier",
-        "distribution": "stegverse-core-lite",
-        "repository": "Data-Continuation/core-lite",
-    },
-    {
-        "role": "exact_run_custody",
-        "distribution": "stegverse-master-records",
-        "repository": "master-records/orchestration",
-    },
+    {"role": "sdk_entry", "distribution": "stegverse-sdk", "repository": "StegVerse-org/StegVerse-SDK"},
+    {"role": "governance_runtime", "distribution": "stegcore", "repository": "StegVerse-Labs/StegCore"},
+    {"role": "manifest_route_carrier", "distribution": "stegverse-core-lite", "repository": "Data-Continuation/core-lite"},
+    {"role": "exact_run_custody", "distribution": "stegverse-master-records", "repository": "master-records/orchestration"},
 )
 
 
@@ -57,28 +44,55 @@ def _direct_url(dist: metadata.Distribution) -> dict[str, Any]:
         return {}
 
 
+def _release_tag_from_revision(revision: Any, commit_sha: Any) -> str | None:
+    if not isinstance(revision, str) or not revision.strip():
+        return None
+    value = revision.strip()
+    if value == commit_sha or _HEX_SHA.fullmatch(value):
+        return None
+    return value
+
+
 def _installed_component(spec: dict[str, str]) -> dict[str, Any]:
     name = spec["distribution"]
+    repo = spec["repository"]
     row: dict[str, Any] = {
         "role": spec["role"],
         "distribution": name,
-        "repository": spec["repository"],
-        "release_url": f"https://github.com/{spec['repository']}/releases",
-        "changelog_url": f"https://github.com/{spec['repository']}/releases",
+        "repository": repo,
+        "release_index_url": f"https://github.com/{repo}/releases",
         "authority_effect": "NONE",
     }
     try:
         dist = metadata.distribution(name)
     except metadata.PackageNotFoundError:
-        row.update({"installed": False, "version": None, "commit_sha": None, "source_url": None})
+        row.update({
+            "installed": False,
+            "version": None,
+            "commit_sha": None,
+            "requested_revision": None,
+            "release_tag": None,
+            "release_binding_status": "NOT_INSTALLED",
+            "release_url": None,
+            "changelog_url": None,
+            "source_url": None,
+        })
         return row
     direct = _direct_url(dist)
     vcs = direct.get("vcs_info") if isinstance(direct.get("vcs_info"), dict) else {}
+    commit_sha = vcs.get("commit_id")
+    revision = vcs.get("requested_revision")
+    release_tag = _release_tag_from_revision(revision, commit_sha)
+    release_url = f"https://github.com/{repo}/releases/tag/{quote(release_tag, safe='')}" if release_tag else None
     row.update({
         "installed": True,
         "version": dist.version,
-        "commit_sha": vcs.get("commit_id"),
-        "requested_revision": vcs.get("requested_revision"),
+        "commit_sha": commit_sha,
+        "requested_revision": revision,
+        "release_tag": release_tag,
+        "release_binding_status": "RELEASE_TAG_BOUND" if release_tag else "COMMIT_OR_PACKAGE_ONLY",
+        "release_url": release_url,
+        "changelog_url": release_url,
         "source_url": direct.get("url"),
     })
     return row
@@ -92,6 +106,7 @@ def installed_release_set() -> dict[str, Any]:
         "components": components,
         "all_components_installed": all(row["installed"] for row in components),
         "all_components_commit_bound": all(bool(row.get("commit_sha")) for row in components),
+        "all_components_release_tag_bound": all(row.get("release_binding_status") == "RELEASE_TAG_BOUND" for row in components),
         "historical_snapshot": True,
         "mutable_by_future_release": False,
         "authority_effect": "NONE",
@@ -107,7 +122,7 @@ def _fetch_json(url: str, timeout: int) -> Any:
 
 
 def public_release_catalog(*, timeout: int = 15) -> dict[str, Any]:
-    """Return current public releases for every canonical production component."""
+    """Return current public releases and release changelogs for every production component."""
     rows: list[dict[str, Any]] = []
     for spec in COMPONENTS:
         repo = spec["repository"]
@@ -122,7 +137,6 @@ def public_release_catalog(*, timeout: int = 15) -> dict[str, Any]:
                     "name": item.get("name") or item.get("tag_name"),
                     "published_at": item.get("published_at"),
                     "prerelease": bool(item.get("prerelease")),
-                    "draft": bool(item.get("draft")),
                     "release_url": item.get("html_url"),
                     "changelog": item.get("body") or "",
                 }
@@ -135,6 +149,7 @@ def public_release_catalog(*, timeout: int = 15) -> dict[str, Any]:
                 "repository": repo,
                 "state": "PASS",
                 "latest_release": normalized[0] if normalized else None,
+                "release_count": len(normalized),
                 "releases": normalized,
             })
         except (OSError, HTTPError, URLError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
@@ -145,6 +160,7 @@ def public_release_catalog(*, timeout: int = 15) -> dict[str, Any]:
                 "state": "UNAVAILABLE_NON_AUTHORIZING",
                 "error": type(exc).__name__,
                 "latest_release": None,
+                "release_count": 0,
                 "releases": [],
             })
     payload: dict[str, Any] = {
@@ -163,13 +179,14 @@ def compare_release_sets(original: dict[str, Any] | None, current: dict[str, Any
         "original_release_set_hash": original_hash,
         "current_release_set_hash": current.get("release_set_hash"),
         "same_installed_release_set": bool(original_hash) and original_hash == current.get("release_set_hash"),
+        "release_set_changed_since_original_run": bool(original_hash) and original_hash != current.get("release_set_hash"),
         "historical_record_mutated": False,
         "authority_effect": "NONE",
     }
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="stegverse-production-releases", description="Inspect historical/runtime production release sets and the current public release catalog")
+    parser = argparse.ArgumentParser(prog="stegverse production-releases", description="Inspect the installed production release set or current public release catalog")
     parser.add_argument("mode", nargs="?", choices=("installed", "catalog"), default="catalog")
     parser.add_argument("--output", help="optional JSON output path")
     args = parser.parse_args(argv)
