@@ -6,15 +6,11 @@ import sys
 from . import cli
 from . import evaluator_contract
 from . import production_release_set
+from . import test_procedure
 
 
 def _install_versioned_governance_wrapper() -> None:
-    """Route canonical CLI imports through release-set-aware wrappers.
-
-    This does not replace the underlying governance engine. The wrapper retains
-    production component provenance with new runs and compares it later during
-    replay/reconstruction.
-    """
+    """Route canonical CLI imports through release-set-aware wrappers."""
     from . import sovereign_validation_runtime as canonical
     from . import versioned_sovereign_runtime as versioned
     canonical.run_sovereign_validation = versioned.run_sovereign_validation
@@ -28,14 +24,17 @@ def main(argv: list[str] | None = None) -> int:
         return evaluator_contract.main(args[1:])
     if args and args[0] in {"production-releases", "release-set"}:
         return production_release_set.main(args[1:])
+    if args and args[0] in {"test-procedure", "procedure"}:
+        return test_procedure.main(args[1:])
     if args and args[0] == "governance":
         _install_versioned_governance_wrapper()
     result = cli.main(args)
     if not args:
-        print("Evaluator contract:   stegverse contract")
-        print("Contract schema:      stegverse contract --schema")
-        print("Worked example:       stegverse contract --example")
-        print("Current releases:     stegverse production-releases catalog")
+        print("Evaluator contract:    stegverse contract")
+        print("Test procedure:        stegverse test-procedure")
+        print("Contract schema:       stegverse contract --schema")
+        print("Worked example:        stegverse contract --example")
+        print("Current releases:      stegverse production-releases catalog")
         print("Installed release set: stegverse production-releases installed")
     return result
 
