@@ -1,7 +1,7 @@
 """Release-set-aware wrapper around the canonical sovereign validation runtime.
 
 The underlying governance, route, receipt, and custody implementations are not
-replaced.  This wrapper only binds immutable production component provenance into
+replaced. This wrapper only binds immutable production component provenance into
 new run evidence and reports historical-vs-current release-set differences during
 replay and reconstruction.
 """
@@ -17,6 +17,10 @@ from .public_inspection import load_public_inspection_request
 from . import sovereign_validation_runtime as canonical
 
 RELEASE_SET_METADATA_KEY = "production_release_set"
+_CANONICAL_RUN = canonical.run_sovereign_validation
+_CANONICAL_REPLAY = canonical.replay_sovereign
+_CANONICAL_RECONSTRUCT = canonical.reconstruct_sovereign
+_CANONICAL_COMPONENTS = canonical._components
 
 
 def _merged_consequence_metadata(
@@ -40,7 +44,7 @@ def run_sovereign_validation(
     route_purpose: str = "production-lane-evaluator-validation",
 ) -> dict[str, Any]:
     release_set = installed_release_set()
-    result = dict(canonical.run_sovereign_validation(
+    result = dict(_CANONICAL_RUN(
         request,
         custody_db=custody_db,
         host_identity=host_identity,
@@ -56,7 +60,7 @@ def run_sovereign_validation(
 
 
 def _historical_release_set(manifest_receipt_id: str, custody_db: str | Path) -> dict[str, Any] | None:
-    (_Carrier, _build, _route, Custody, _submit, _Registry, _Request, _eval, _Ledger, _run) = canonical._components()
+    (_Carrier, _build, _route, Custody, _submit, _Registry, _Request, _eval, _Ledger, _run) = _CANONICAL_COMPONENTS()
     custody = Custody(custody_db)
     rid = manifest_receipt_id.strip().upper()
     package = custody.evidence_package(rid)["evidence_package"]
@@ -71,7 +75,7 @@ def _historical_release_set(manifest_receipt_id: str, custody_db: str | Path) ->
 def replay_sovereign(manifest_receipt_id: str, *, custody_db: str | Path) -> dict[str, Any]:
     original_release_set = _historical_release_set(manifest_receipt_id, custody_db)
     current_release_set = installed_release_set()
-    artifact = dict(canonical.replay_sovereign(manifest_receipt_id, custody_db=custody_db))
+    artifact = dict(_CANONICAL_REPLAY(manifest_receipt_id, custody_db=custody_db))
     artifact["original_production_release_set"] = original_release_set
     artifact["current_production_release_set"] = current_release_set
     artifact["production_release_set_comparison"] = compare_release_sets(original_release_set, current_release_set)
@@ -82,7 +86,7 @@ def replay_sovereign(manifest_receipt_id: str, *, custody_db: str | Path) -> dic
 def reconstruct_sovereign(manifest_receipt_id: str, *, custody_db: str | Path) -> dict[str, Any]:
     original_release_set = _historical_release_set(manifest_receipt_id, custody_db)
     current_release_set = installed_release_set()
-    artifact = dict(canonical.reconstruct_sovereign(manifest_receipt_id, custody_db=custody_db))
+    artifact = dict(_CANONICAL_RECONSTRUCT(manifest_receipt_id, custody_db=custody_db))
     artifact["original_production_release_set"] = original_release_set
     artifact["current_production_release_set"] = current_release_set
     artifact["production_release_set_comparison"] = compare_release_sets(original_release_set, current_release_set)
