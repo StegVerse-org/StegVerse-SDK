@@ -40,6 +40,7 @@ def make_package(
     tmp_path: Path,
     deployment_class: str = "S",
     *,
+    receipt_schema: str = "stegverse.sdk.portable-package-receipt.v3",
     membership_claim: bool = False,
     contract_override: dict | None = None,
     manifest_override: dict | None = None,
@@ -69,7 +70,7 @@ def make_package(
         manifest.update(manifest_override)
     payload = json.dumps(manifest, sort_keys=True).encode("utf-8") + b"\n"
     receipt = {
-        "schema": "stegverse.sdk.portable-package-receipt.v2",
+        "schema": receipt_schema,
         "channel": "SDK_EARLY_ACCESS",
         "package_id": package_id,
         "deployment_class": deployment_class,
@@ -89,6 +90,15 @@ def make_package(
         "physical_additional_machine_required": False,
         "third_party_runtime_infrastructure_required": False,
     }
+    if receipt_schema.endswith(".v3"):
+        receipt.update(
+            {
+                "package_generation": 0,
+                "package_version": "0.3.0",
+                "release_version": "0.3.0",
+                "versioned_package_id": f"{package_id}-v0.3.0",
+            }
+        )
     archive = tmp_path / f"{package_id}.zip"
     with zipfile.ZipFile(archive, "w") as zf:
         zf.writestr("micro_ecosystem/manifest.json", payload)
@@ -108,8 +118,12 @@ def test_catalog_exposes_explicit_s_and_ns_without_membership_claim():
     assert ns["download_active"] is False
 
 
-def test_s_package_verifies_and_installs_without_execution(tmp_path):
-    archive = make_package(tmp_path, "S")
+@pytest.mark.parametrize(
+    "receipt_schema",
+    ["stegverse.sdk.portable-package-receipt.v2", "stegverse.sdk.portable-package-receipt.v3"],
+)
+def test_s_package_v2_and_v3_verify_and_install_without_execution(tmp_path, receipt_schema):
+    archive = make_package(tmp_path, "S", receipt_schema=receipt_schema)
     verification = verify_archive(archive)
     assert verification["verification_state"] == "PASS"
     assert verification["deployment_class"] == "S"
@@ -118,7 +132,7 @@ def test_s_package_verifies_and_installs_without_execution(tmp_path):
     assert verification["physical_additional_machine_required"] is False
     assert verification["third_party_runtime_infrastructure_required"] is False
 
-    installed = install_archive(archive, tmp_path / "installed")
+    installed = install_archive(archive, tmp_path / f"installed-{receipt_schema.rsplit('.', 1)[-1]}")
     assert installed["installation_state"] == "INSTALLED_NOT_ACTIVATED"
     assert installed["executed_after_install"] is False
     assert installed["node_membership_granted"] is False
