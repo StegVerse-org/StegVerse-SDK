@@ -33,7 +33,7 @@ stegverse governance --select 1
 stegverse governance --select 2
 ```
 
-`000` and `00` are optional human/LLM transparency surfaces. A machine that already understands `stegverse.ingress-manifest.v1` can construct an ordinary governed submission directly.
+`000` and `00` are optional human/LLM transparency surfaces. Machines can use the published public-inspection request contract directly through option `0A` / `stegverse.public_inspection_runtime` without first disclosing a proposed test to a StegVerse developer. The separate `0B` path for a preformatted `stegverse.ingress-manifest.v1` is intentionally fail-closed until its canonical binding is installed; the SDK does not invent that conversion.
 
 ## Run the canonical governed TEST locally
 
