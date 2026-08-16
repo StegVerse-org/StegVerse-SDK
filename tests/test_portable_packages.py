@@ -18,15 +18,58 @@ from stegverse.portable_packages import (
 )
 
 
-def make_package(tmp_path: Path, deployment_class: str = "S", *, membership_claim: bool = False) -> Path:
+def sovereignty_contract() -> dict:
+    return {
+        "physical_host_topology": "ONE_SOVEREIGN_PHYSICAL_HOST",
+        "additional_physical_machine_required": False,
+        "third_party_machine_required": False,
+        "third_party_process_host_required": False,
+        "third_party_scheduler_required": False,
+        "third_party_state_host_required": False,
+        "third_party_control_plane_executor_required": False,
+        "third_party_platform_availability_may_block_local_operation": False,
+        "independent_validation_mechanism": "SAME_HOST_ISOLATED_LOGICAL_BOUNDARIES",
+        "local_governance_replay_reconstruction_survive_third_party_absence": True,
+        "external_participants_may_be_optional_inputs_not_runtime_dependencies": True,
+        "credential_authority": "TV/TVC",
+        "non_tv_tvc_secret_or_token_allowed": False,
+    }
+
+
+def make_package(
+    tmp_path: Path,
+    deployment_class: str = "S",
+    *,
+    membership_claim: bool = False,
+    contract_override: dict | None = None,
+    manifest_override: dict | None = None,
+) -> Path:
     package_id = (
         "stegverse-sdk-s-micro-ecosystem-v0"
         if deployment_class == "S"
         else "stegverse-sdk-ns-micro-ecosystem-v0"
     )
-    payload = b'{"fixture":"portable"}\n'
+    contract = sovereignty_contract()
+    if contract_override:
+        contract.update(contract_override)
+    manifest = {
+        "schema": "stegverse.micro-ecosystem.manifest.v3",
+        "micro_ecosystem_id": "stegverse:micro-ecosystem:steggate-admittedcode:v0",
+        "single_host_sovereignty": dict(contract),
+        "authority_boundaries": {
+            "requires_external_host": False,
+            "requires_provider_account": False,
+            "requires_non_tv_tvc_secret": False,
+            "requires_additional_physical_machine": False,
+            "requires_third_party_runtime_infrastructure": False,
+            "ns_selection_creates_node_membership": False,
+        },
+    }
+    if manifest_override:
+        manifest.update(manifest_override)
+    payload = json.dumps(manifest, sort_keys=True).encode("utf-8") + b"\n"
     receipt = {
-        "schema": "stegverse.sdk.portable-package-receipt.v1",
+        "schema": "stegverse.sdk.portable-package-receipt.v2",
         "channel": "SDK_EARLY_ACCESS",
         "package_id": package_id,
         "deployment_class": deployment_class,
@@ -35,17 +78,20 @@ def make_package(tmp_path: Path, deployment_class: str = "S", *, membership_clai
         "node_membership_activation_required": deployment_class == "NS",
         "files": [
             {
-                "path": "micro_ecosystem/fixture.json",
+                "path": "micro_ecosystem/manifest.json",
                 "sha256": hashlib.sha256(payload).hexdigest(),
                 "size": len(payload),
             }
         ],
         "requires_provider_account": False,
         "requires_non_tv_tvc_secret": False,
+        "single_host_sovereignty": dict(contract),
+        "physical_additional_machine_required": False,
+        "third_party_runtime_infrastructure_required": False,
     }
     archive = tmp_path / f"{package_id}.zip"
     with zipfile.ZipFile(archive, "w") as zf:
-        zf.writestr("micro_ecosystem/fixture.json", payload)
+        zf.writestr("micro_ecosystem/manifest.json", payload)
         zf.writestr("PACKAGE_RECEIPT.json", json.dumps(receipt, sort_keys=True))
     return archive
 
@@ -53,7 +99,10 @@ def make_package(tmp_path: Path, deployment_class: str = "S", *, membership_clai
 def test_catalog_exposes_explicit_s_and_ns_without_membership_claim():
     rows = list_packages()
     assert [row["deployment_class"] for row in rows] == ["S", "NS"]
-    assert inspect_package("S")["installation_creates_node_membership"] is False
+    s = inspect_package("S")
+    assert s["installation_creates_node_membership"] is False
+    assert s["single_host_sovereignty"]["physical_host_topology"] == "ONE_SOVEREIGN_PHYSICAL_HOST"
+    assert s["single_host_sovereignty"]["additional_physical_machine_required"] is False
     ns = inspect_package("NS")
     assert ns["node_membership_activation_required"] is True
     assert ns["download_active"] is False
@@ -66,13 +115,16 @@ def test_s_package_verifies_and_installs_without_execution(tmp_path):
     assert verification["deployment_class"] == "S"
     assert verification["verified_file_count"] == 1
     assert verification["authority_effect"] == "NONE"
+    assert verification["physical_additional_machine_required"] is False
+    assert verification["third_party_runtime_infrastructure_required"] is False
 
     installed = install_archive(archive, tmp_path / "installed")
     assert installed["installation_state"] == "INSTALLED_NOT_ACTIVATED"
     assert installed["executed_after_install"] is False
     assert installed["node_membership_granted"] is False
+    assert installed["physical_additional_machine_required"] is False
     target = Path(installed["destination"])
-    assert (target / "micro_ecosystem" / "fixture.json").is_file()
+    assert (target / "micro_ecosystem" / "manifest.json").is_file()
     assert (target / "INSTALLATION_RECEIPT.json").is_file()
 
 
@@ -94,10 +146,52 @@ def test_ns_self_membership_claim_fails_closed(tmp_path):
         verify_archive(archive)
 
 
+@pytest.mark.parametrize(
+    "field",
+    [
+        "additional_physical_machine_required",
+        "third_party_machine_required",
+        "third_party_process_host_required",
+        "third_party_scheduler_required",
+        "third_party_state_host_required",
+        "third_party_control_plane_executor_required",
+        "third_party_platform_availability_may_block_local_operation",
+        "non_tv_tvc_secret_or_token_allowed",
+    ],
+)
+def test_any_required_non_sovereign_dependency_fails_closed(tmp_path, field):
+    archive = make_package(tmp_path, "S", contract_override={field: True})
+    with pytest.raises(PortablePackageError, match="prohibited_sovereignty_dependency"):
+        verify_archive(archive)
+
+
+def test_receipt_and_manifest_sovereignty_must_match(tmp_path):
+    archive = make_package(
+        tmp_path,
+        "S",
+        manifest_override={"single_host_sovereignty": {**sovereignty_contract(), "credential_authority": "OTHER"}},
+    )
+    with pytest.raises(PortablePackageError, match="credential_authority_mismatch"):
+        verify_archive(archive)
+
+
+def test_missing_single_host_contract_fails_closed(tmp_path):
+    archive = make_package(tmp_path, "S")
+    with zipfile.ZipFile(archive, "r") as zf:
+        members = {name: zf.read(name) for name in zf.namelist()}
+    receipt = json.loads(members["PACKAGE_RECEIPT.json"])
+    del receipt["single_host_sovereignty"]
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("micro_ecosystem/manifest.json", members["micro_ecosystem/manifest.json"])
+        zf.writestr("PACKAGE_RECEIPT.json", json.dumps(receipt, sort_keys=True))
+    with pytest.raises(PortablePackageError, match="single_host_sovereignty_missing"):
+        verify_archive(archive)
+
+
 def test_tampered_payload_fails_closed(tmp_path):
     archive = make_package(tmp_path, "S")
     with zipfile.ZipFile(archive, "a") as zf:
-        zf.writestr("micro_ecosystem/fixture.json", b"tampered")
+        zf.writestr("micro_ecosystem/manifest.json", b"tampered")
     with pytest.raises(PortablePackageError):
         verify_archive(archive)
 
