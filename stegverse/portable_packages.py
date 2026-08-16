@@ -3,6 +3,11 @@
 Package verification is non-authorizing. ZIP and TAR.GZ are equivalent transport
 formats over the same declared payload. Installation never executes the package
 and never grants Node Sovereign membership.
+
+A valid portable package must be independently operable within its declared local
+scope on one sovereign physical host. Required third-party machines, schedulers,
+process/state hosts, control-plane executors, or additional validation computers
+are prohibited. Independent proof uses isolated logical boundaries on that host.
 """
 from __future__ import annotations
 
@@ -19,9 +24,23 @@ import zipfile
 
 CATALOG_SCHEMA = "stegverse.sdk.portable-console-catalog.v1"
 INSTALL_RECEIPT_SCHEMA = "stegverse.sdk.portable-installation-receipt.v1"
-PACKAGE_RECEIPT_SCHEMA = "stegverse.sdk.portable-package-receipt.v1"
+PACKAGE_RECEIPT_SCHEMAS = {
+    "stegverse.sdk.portable-package-receipt.v2",
+}
 DEPLOYMENT_CLASSES = ("S", "NS")
 ARCHIVE_FORMATS = ("zip", "tar.gz")
+SINGLE_HOST_TOPOLOGY = "ONE_SOVEREIGN_PHYSICAL_HOST"
+SINGLE_HOST_VALIDATION = "SAME_HOST_ISOLATED_LOGICAL_BOUNDARIES"
+SOVEREIGN_FALSE_FIELDS = (
+    "additional_physical_machine_required",
+    "third_party_machine_required",
+    "third_party_process_host_required",
+    "third_party_scheduler_required",
+    "third_party_state_host_required",
+    "third_party_control_plane_executor_required",
+    "third_party_platform_availability_may_block_local_operation",
+    "non_tv_tvc_secret_or_token_allowed",
+)
 
 CATALOG: dict[str, Any] = {
     "schema": CATALOG_SCHEMA,
@@ -31,6 +50,20 @@ CATALOG: dict[str, Any] = {
     "requires_provider_account": False,
     "requires_non_tv_tvc_secret": False,
     "required_archive_formats": list(ARCHIVE_FORMATS),
+    "single_host_sovereignty": {
+        "physical_host_topology": SINGLE_HOST_TOPOLOGY,
+        "additional_physical_machine_required": False,
+        "third_party_machine_required": False,
+        "third_party_process_host_required": False,
+        "third_party_scheduler_required": False,
+        "third_party_state_host_required": False,
+        "third_party_control_plane_executor_required": False,
+        "third_party_platform_availability_may_block_local_operation": False,
+        "independent_validation_mechanism": SINGLE_HOST_VALIDATION,
+        "local_governance_replay_reconstruction_survive_third_party_absence": True,
+        "credential_authority": "TV/TVC",
+        "non_tv_tvc_secret_or_token_allowed": False,
+    },
     "packages": {
         "S": {
             "package_id": "stegverse-sdk-s-micro-ecosystem-v0",
@@ -68,6 +101,24 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _validate_single_host_sovereignty(value: Any, *, source: str) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise PortablePackageError(f"single_host_sovereignty_missing:{source}")
+    contract = dict(value)
+    if contract.get("physical_host_topology") != SINGLE_HOST_TOPOLOGY:
+        raise PortablePackageError(f"single_host_topology_invalid:{source}")
+    if contract.get("independent_validation_mechanism") != SINGLE_HOST_VALIDATION:
+        raise PortablePackageError(f"single_host_validation_boundary_invalid:{source}")
+    if contract.get("credential_authority") != "TV/TVC":
+        raise PortablePackageError(f"credential_authority_mismatch:{source}")
+    for name in SOVEREIGN_FALSE_FIELDS:
+        if contract.get(name) is not False:
+            raise PortablePackageError(f"prohibited_sovereignty_dependency:{source}:{name}")
+    if contract.get("local_governance_replay_reconstruction_survive_third_party_absence") is not True:
+        raise PortablePackageError(f"local_sovereign_operation_not_proven:{source}")
+    return contract
+
+
 def list_packages() -> list[dict[str, Any]]:
     return [dict(CATALOG["packages"][key]) for key in DEPLOYMENT_CLASSES]
 
@@ -81,6 +132,7 @@ def inspect_package(deployment_class: str) -> dict[str, Any]:
         {
             "channel": CATALOG["channel"],
             "required_archive_formats": list(ARCHIVE_FORMATS),
+            "single_host_sovereignty": dict(CATALOG["single_host_sovereignty"]),
             "download_active": all(
                 package["artifacts"][fmt].get("release_url") and package["artifacts"][fmt].get("archive_sha256")
                 for fmt in ARCHIVE_FORMATS
@@ -142,20 +194,25 @@ def _read_archive(path: Path) -> tuple[str, dict[str, bytes]]:
     return fmt, members
 
 
+def _load_member_json(members: Mapping[str, bytes], name: str, error: str) -> Mapping[str, Any]:
+    if name not in members:
+        raise PortablePackageError(error)
+    try:
+        value = json.loads(members[name].decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise PortablePackageError(error) from exc
+    if not isinstance(value, Mapping):
+        raise PortablePackageError(error)
+    return value
+
+
 def verify_archive(archive: Path) -> dict[str, Any]:
     if not archive.is_file():
         raise PortablePackageError("archive_not_found")
     archive_sha256 = _sha256_file(archive)
     archive_format, members = _read_archive(archive)
-    if "PACKAGE_RECEIPT.json" not in members:
-        raise PortablePackageError("package_receipt_missing")
-    try:
-        receipt = json.loads(members["PACKAGE_RECEIPT.json"].decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise PortablePackageError("invalid_package_receipt") from exc
-    if not isinstance(receipt, Mapping):
-        raise PortablePackageError("invalid_package_receipt")
-    if receipt.get("schema") != PACKAGE_RECEIPT_SCHEMA:
+    receipt = _load_member_json(members, "PACKAGE_RECEIPT.json", "package_receipt_missing")
+    if receipt.get("schema") not in PACKAGE_RECEIPT_SCHEMAS:
         raise PortablePackageError("unsupported_package_receipt_schema")
 
     deployment_class = str(receipt.get("deployment_class", "")).upper()
@@ -168,6 +225,32 @@ def verify_archive(archive: Path) -> dict[str, Any]:
         raise PortablePackageError("provider_account_requirement_prohibited")
     if receipt.get("requires_non_tv_tvc_secret") is not False:
         raise PortablePackageError("non_tv_tvc_secret_requirement_prohibited")
+    if receipt.get("physical_additional_machine_required") is not False:
+        raise PortablePackageError("additional_physical_machine_requirement_prohibited")
+    if receipt.get("third_party_runtime_infrastructure_required") is not False:
+        raise PortablePackageError("third_party_runtime_infrastructure_prohibited")
+    receipt_sovereignty = _validate_single_host_sovereignty(receipt.get("single_host_sovereignty"), source="package_receipt")
+
+    micro_manifest = _load_member_json(
+        members,
+        "micro_ecosystem/manifest.json",
+        "micro_ecosystem_manifest_missing",
+    )
+    manifest_sovereignty = _validate_single_host_sovereignty(
+        micro_manifest.get("single_host_sovereignty"), source="micro_ecosystem_manifest"
+    )
+    if manifest_sovereignty != receipt_sovereignty:
+        raise PortablePackageError("single_host_sovereignty_contract_mismatch")
+    boundaries = micro_manifest.get("authority_boundaries")
+    if not isinstance(boundaries, Mapping):
+        raise PortablePackageError("authority_boundaries_missing")
+    if boundaries.get("requires_external_host") is not False:
+        raise PortablePackageError("external_host_requirement_prohibited")
+    if boundaries.get("requires_additional_physical_machine") is not False:
+        raise PortablePackageError("additional_physical_machine_requirement_prohibited")
+    if boundaries.get("requires_third_party_runtime_infrastructure") is not False:
+        raise PortablePackageError("third_party_runtime_infrastructure_prohibited")
+
     if receipt.get("node_membership_claim") is not False:
         raise PortablePackageError("node_membership_self_accreditation_prohibited")
     if deployment_class == "NS" and receipt.get("node_membership_activation_required") is not True:
@@ -202,7 +285,7 @@ def verify_archive(archive: Path) -> dict[str, Any]:
         raise PortablePackageError("undeclared_archive_members:" + ",".join(sorted(extras)))
 
     return {
-        "schema": "stegverse.sdk.portable-package-verification.v1",
+        "schema": "stegverse.sdk.portable-package-verification.v2",
         "verification_state": "PASS",
         "archive": str(archive),
         "archive_format": archive_format,
@@ -212,6 +295,9 @@ def verify_archive(archive: Path) -> dict[str, Any]:
         "source_commit": receipt.get("source_commit"),
         "verified_file_count": len(verified_files),
         "verified_files": verified_files,
+        "single_host_sovereignty": receipt_sovereignty,
+        "physical_additional_machine_required": False,
+        "third_party_runtime_infrastructure_required": False,
         "node_membership_claim": False,
         "node_membership_activation_required": deployment_class == "NS",
         "authority_effect": "NONE",
@@ -243,6 +329,9 @@ def install_archive(archive: Path, destination: Path) -> dict[str, Any]:
         "archive_sha256": verification["archive_sha256"],
         "source_commit": verification.get("source_commit"),
         "destination": str(target),
+        "single_host_sovereignty": verification["single_host_sovereignty"],
+        "physical_additional_machine_required": False,
+        "third_party_runtime_infrastructure_required": False,
         "executed_after_install": False,
         "node_membership_granted": False,
         "node_membership_activation_required": verification["deployment_class"] == "NS",
@@ -299,7 +388,13 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         if args.command == "list":
-            result: Any = {"schema": CATALOG_SCHEMA, "channel": CATALOG["channel"], "required_archive_formats": list(ARCHIVE_FORMATS), "packages": list_packages()}
+            result: Any = {
+                "schema": CATALOG_SCHEMA,
+                "channel": CATALOG["channel"],
+                "required_archive_formats": list(ARCHIVE_FORMATS),
+                "single_host_sovereignty": dict(CATALOG["single_host_sovereignty"]),
+                "packages": list_packages(),
+            }
         elif args.command == "inspect":
             result = inspect_package(args.deployment_class)
         elif args.command == "verify":
