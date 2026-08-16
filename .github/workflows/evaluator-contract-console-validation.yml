@@ -5,10 +5,15 @@ on:
     paths:
       - 'stegverse/evaluator_contract.py'
       - 'stegverse/evaluator_console.py'
+      - 'stegverse/test_procedure.py'
+      - 'stegverse/production_release_set.py'
+      - 'stegverse/versioned_sovereign_runtime.py'
+      - 'stegverse/public_inspection_runtime.py'
       - 'stegverse/__main__.py'
       - 'pyproject.toml'
       - 'README.md'
       - 'tests/test_evaluator_contract_console.py'
+      - 'tests/test_production_release_set.py'
       - '.github/workflows/evaluator-contract-console-validation.yml'
       - 'validation/EVALUATOR_CONTRACT_CONSOLE_VALIDATION_TRIGGER_2026-08-16.md'
   push:
@@ -16,10 +21,15 @@ on:
     paths:
       - 'stegverse/evaluator_contract.py'
       - 'stegverse/evaluator_console.py'
+      - 'stegverse/test_procedure.py'
+      - 'stegverse/production_release_set.py'
+      - 'stegverse/versioned_sovereign_runtime.py'
+      - 'stegverse/public_inspection_runtime.py'
       - 'stegverse/__main__.py'
       - 'pyproject.toml'
       - 'README.md'
       - 'tests/test_evaluator_contract_console.py'
+      - 'tests/test_production_release_set.py'
       - '.github/workflows/evaluator-contract-console-validation.yml'
       - 'validation/EVALUATOR_CONTRACT_CONSOLE_VALIDATION_TRIGGER_2026-08-16.md'
 
@@ -45,24 +55,31 @@ jobs:
           set -eu
           cd /tmp/source
           python -m pip install -e '.[dev]'
-      - name: Validate evaluator contract console
+      - name: Validate evaluator contract and release-set console
         run: |
           set -eu
           cd /tmp/source
-          pytest -q tests/test_evaluator_contract_console.py
+          pytest -q tests/test_evaluator_contract_console.py tests/test_production_release_set.py
           stegverse contract > /tmp/contract-summary.json
           stegverse contract --schema > /tmp/contract-schema.json
           stegverse contract --example > /tmp/contract-example.json
+          stegverse test-procedure --offline > /tmp/test-procedure.json
+          stegverse production-releases installed > /tmp/installed-release-set.json
           python -m stegverse contract --all > /tmp/contract-all.json
           python - <<'PY'
           import json
           summary = json.load(open('/tmp/contract-summary.json'))
           schema = json.load(open('/tmp/contract-schema.json'))
           example = json.load(open('/tmp/contract-example.json'))
+          procedure = json.load(open('/tmp/test-procedure.json'))
+          release_set = json.load(open('/tmp/installed-release-set.json'))
           all_payload = json.load(open('/tmp/contract-all.json'))
           assert summary['contract'] == 'stegverse.public-inspection-request.v1'
           assert schema['title'] == 'StegVerse Public Inspection Request'
           assert example['authority_claim'] is False
+          assert procedure['historical_run_release_set_is_retained'] is True
+          assert procedure['replay_compares_original_and_current_release_sets'] is True
+          assert release_set['schema'] == 'stegverse.production-release-set.v1'
           assert all_payload['summary']['submission'] == 'stegverse governance --select 0 --input <request.json>'
-          print('EVALUATOR_CONTRACT_CONSOLE_VALIDATION_PASS')
+          print('EVALUATOR_CONTRACT_RELEASE_SET_VALIDATION_PASS')
           PY
