@@ -54,6 +54,7 @@ stegverse/sovereign_validation_runtime.py
 
 scripts/validate_public_inspection_request.py
   delegates to runtime's canonical manifest validator
+  remains directly executable from repository checkout
 
 inspection/examples/governed-test-request.json
   public evaluator-defined WHAT/HOW/WHY example
@@ -101,30 +102,50 @@ The first two are also included in exact-run transaction metadata before Master 
 
 The existing StegCore evaluator-reference handoff explicitly prohibits demo-specific and parallel evaluators and preserves participant-neutral evaluation. This SDK change strengthens that boundary at manifest submission rather than creating another evaluator.
 
-Master Records already retains arbitrary exact-run evidence-package metadata through the canonical custody path used by the SDK; no new custody authority or separate storage route is introduced here.
+Master Records already retains exact-run evidence-package metadata through the canonical custody path used by the SDK; no new custody authority or separate storage route is introduced here.
 
 ## Validation
 
+The initial source-validation run exposed a real public-command defect: invoking `python scripts/validate_public_inspection_request.py ...` from a clean repository materialization did not place the repository root on `sys.path`. That defect was corrected rather than waived.
+
 ```text
-source validation workflow: .github/workflows/evaluator-manifest-source-validation.yml
-run: 31931876666
-head: 9250cac8c0223a5e0990ddc5e6496358239e7711
-state: QUEUED at handoff creation
+initial run: 31931876666
+initial job: 95127854449
+initial head: 9250cac8c0223a5e0990ddc5e6496358239e7711
+initial result: FAILURE
+failure: ModuleNotFoundError for stegverse from standalone documented validator command
+
+corrective commit: a15a122895c5368558bfe7d6434de5db47ab0f82
+validation run: 31931907941
+validation job: 95127927823
+validation result: SUCCESS
+manifest validation step: SUCCESS
+runtime-module compile step: SUCCESS
+source-only boundary step: SUCCESS
 runtime authority granted by workflow: FALSE
 protected credentials required: FALSE
 ```
 
-Do not promote this scoped goal to COMPLETE_VALIDATED until the source validation run succeeds. Exact sovereign runtime execution is not manufactured by this source-validation lane and remains governed by the existing SDK/Master Records runtime handoffs.
+This is source/schema validation, not a newly invented runtime-activation proof. The implementation deliberately uses the already-canonical sovereign SDK -> Core-Lite -> StegCore/StegGate -> Master Records route governed by existing handoffs.
 
-## Remaining work
+## Completion
 
 ```text
-1. source validation run completion
-2. if validation fails, correct source and re-run via the same credential-free source lane
-3. after source validation succeeds, update this handoff with the retained run/job result
-4. no release/tag until repository-wide release authority and existing activation gates permit it
+scoped source implementation remaining: 0
+scoped source validation remaining: 0
+public documentation synchronization remaining: 0
+new StegCore evaluator required: FALSE
+new Master Records custody route required: FALSE
+new evaluator-specific testing route required: FALSE
+scoped state: COMPLETE_SOURCE_VALIDATED
 ```
+
+No product tag/release is created by this scoped change because repository-wide release authority and unrelated existing activation gates remain governed by their owning handoffs.
 
 ## Cross-repository propagation
 
-This implementation is an SDK source/documentation improvement, not yet a product release. Therefore it does not yet trigger release propagation to Site/Publisher/admissibility-wiki/stegguardian-wiki. At the next authorized SDK release, verify that those public surfaces describe evaluator-defined manifests as configuration of published routes, not evaluator-specific custom code.
+This implementation is an SDK source/documentation improvement, not a new authorized product release. It therefore does not itself trigger release propagation to Site/Publisher/admissibility-wiki/stegguardian-wiki. At the next authorized SDK release, verify that those public surfaces describe evaluator-defined manifests as configuration of published routes, not evaluator-specific custom code.
+
+## Durable continuation
+
+For this scoped goal, no executable implementation work remains. Any future request for a capability not listed in the published manifest contract must be handled as a separate versioned capability-development goal available generally, not as a private augmentation for one evaluator.
