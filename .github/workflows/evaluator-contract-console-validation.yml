@@ -1,0 +1,57 @@
+name: Evaluator Contract Console Validation
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/evaluator_contract.py'
+      - 'stegverse/evaluator_console.py'
+      - 'stegverse/__main__.py'
+      - 'pyproject.toml'
+      - 'README.md'
+      - 'tests/test_evaluator_contract_console.py'
+      - '.github/workflows/evaluator-contract-console-validation.yml'
+      - 'validation/EVALUATOR_CONTRACT_CONSOLE_VALIDATION_TRIGGER_2026-08-16.md'
+
+permissions: {}
+
+jobs:
+  contract-console:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Install public SDK test dependencies
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m pip install -e '.[dev]'
+      - name: Validate evaluator contract console
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m unittest tests.test_evaluator_contract_console
+          stegverse contract > /tmp/contract-summary.json
+          stegverse contract --schema > /tmp/contract-schema.json
+          stegverse contract --example > /tmp/contract-example.json
+          python -m stegverse contract --all > /tmp/contract-all.json
+          python - <<'PY'
+          import json
+          summary = json.load(open('/tmp/contract-summary.json'))
+          schema = json.load(open('/tmp/contract-schema.json'))
+          example = json.load(open('/tmp/contract-example.json'))
+          all_payload = json.load(open('/tmp/contract-all.json'))
+          assert summary['contract'] == 'stegverse.public-inspection-request.v1'
+          assert schema['title'] == 'StegVerse Public Inspection Request'
+          assert example['authority_claim'] is False
+          assert all_payload['summary']['submission'] == 'stegverse governance --select 0 --input <request.json>'
+          print('EVALUATOR_CONTRACT_CONSOLE_VALIDATION_PASS')
+          PY
