@@ -11,6 +11,22 @@ REQUEST_SCHEMA_VERSION = "1.0"
 REQUEST_PROFILES = {"ordinary", "longitudinal-boundary", "custom-declarative"}
 RETURN_PROJECTIONS = {"ALL", "SELECTED", "NONE"}
 LANE_CLASSES = {"PRODUCTION_VALIDATION", "ENCLOSED_DEMO_TEST"}
+SUPPORTED_EVALUATION_CAPABILITIES = {
+    "commit_time_admissibility",
+    "bounded_consequence",
+    "master_records_custody",
+    "replay",
+    "reconstruction",
+}
+SUPPORTED_EVIDENCE_CLASSES = {
+    "governance_decision",
+    "execution_observation",
+    "manifest_receipt",
+    "route_receipts",
+    "exact_run_custody",
+    "replay",
+    "reconstruction",
+}
 FORBIDDEN_KEY_FRAGMENTS = {
     "token", "secret", "password", "private_key", "privatekey", "bearer",
     "credential", "api_key", "apikey", "github_token", "tvc_identity",
@@ -18,8 +34,8 @@ FORBIDDEN_KEY_FRAGMENTS = {
 }
 ALLOWED_TOP_LEVEL = {
     "schema_version", "request_id", "requester_label", "case_profile",
-    "execution_provenance", "input", "return_projection", "manifest_labels",
-    "authority_claim", "notes",
+    "evaluation_declaration", "execution_provenance", "input", "return_projection",
+    "manifest_labels", "authority_claim", "notes",
 }
 
 
@@ -40,6 +56,64 @@ def _walk(value: Any, path: str = "$") -> None:
     elif isinstance(value, str):
         if "-----BEGIN " in value or value.lower().startswith("bearer "):
             raise PublicInspectionRequestError(f"credential-like value at {path}")
+
+
+def _bounded_text(value: Any, field: str, maximum: int, *, required: bool = False) -> str | None:
+    if value is None and not required:
+        return None
+    if not isinstance(value, str) or (required and not value.strip()) or len(value) > maximum:
+        raise PublicInspectionRequestError(f"invalid {field}")
+    return value
+
+
+def _validate_string_set(value: Any, field: str, supported: set[str], maximum: int) -> list[str]:
+    if value is None:
+        return []
+    if not isinstance(value, list) or len(value) > maximum or len(value) != len(set(value)):
+        raise PublicInspectionRequestError(f"invalid {field}")
+    unsupported = [item for item in value if not isinstance(item, str) or item not in supported]
+    if unsupported:
+        raise PublicInspectionRequestError(
+            f"unsupported {field}: " + ", ".join(str(item) for item in unsupported)
+        )
+    return list(value)
+
+
+def _validate_evaluation_declaration(value: Any) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    if not isinstance(value, Mapping):
+        raise PublicInspectionRequestError("evaluation_declaration must be an object")
+    allowed = {
+        "what", "how", "why", "expected_observation", "requested_capabilities",
+        "requested_evidence",
+    }
+    unknown = sorted(set(value) - allowed)
+    if unknown:
+        raise PublicInspectionRequestError("unknown evaluation_declaration fields: " + ", ".join(unknown))
+    missing = sorted({"what", "how", "why"} - set(value))
+    if missing:
+        raise PublicInspectionRequestError("missing evaluation_declaration fields: " + ", ".join(missing))
+    return {
+        "what": _bounded_text(value.get("what"), "evaluation_declaration.what", 1000, required=True),
+        "how": _bounded_text(value.get("how"), "evaluation_declaration.how", 1000, required=True),
+        "why": _bounded_text(value.get("why"), "evaluation_declaration.why", 1000, required=True),
+        "expected_observation": _bounded_text(
+            value.get("expected_observation"), "evaluation_declaration.expected_observation", 1000
+        ),
+        "requested_capabilities": _validate_string_set(
+            value.get("requested_capabilities"),
+            "evaluation_declaration.requested_capabilities",
+            SUPPORTED_EVALUATION_CAPABILITIES,
+            5,
+        ),
+        "requested_evidence": _validate_string_set(
+            value.get("requested_evidence"),
+            "evaluation_declaration.requested_evidence",
+            SUPPORTED_EVIDENCE_CLASSES,
+            7,
+        ),
+    }
 
 
 def _validate_execution_provenance(value: Any) -> dict[str, Any]:
@@ -100,6 +174,7 @@ def validate_public_inspection_request(request: Mapping[str, Any]) -> dict[str, 
         raise PublicInspectionRequestError("invalid requester_label")
     if request.get("case_profile") not in REQUEST_PROFILES:
         raise PublicInspectionRequestError("unsupported case_profile")
+    declaration = _validate_evaluation_declaration(request.get("evaluation_declaration"))
     provenance = _validate_execution_provenance(request.get("execution_provenance"))
     input_data = request.get("input")
     if not isinstance(input_data, Mapping):
@@ -118,6 +193,7 @@ def validate_public_inspection_request(request: Mapping[str, Any]) -> dict[str, 
         raise PublicInspectionRequestError("invalid notes")
     _walk(request)
     normalized = dict(request)
+    normalized["evaluation_declaration"] = declaration
     normalized["execution_provenance"] = provenance
     normalized.setdefault("manifest_labels", False)
     normalized.setdefault("requester_label", None)
@@ -139,11 +215,19 @@ def prepare_public_inspection_submission(request: Mapping[str, Any]) -> dict[str
         "request_id": request_id,
         "requester_label": normalized["requester_label"],
         "case_profile": normalized["case_profile"],
+        "evaluation_declaration": normalized["evaluation_declaration"],
         "execution_provenance": normalized["execution_provenance"],
         "ordinary_governance_option": "0A",
         "submission_descriptor": descriptor,
         "payload": dict(normalized["input"]),
         "notes": normalized["notes"],
+        "testing_contract": {
+            "configuration_not_augmentation": True,
+            "route_augmentation_permitted": False,
+            "evaluator_identity_is_decision_input": False,
+            "declared_expected_observation_is_decision_input": False,
+            "unsupported_capability_behavior": "REJECT_BEFORE_EXECUTION",
+        },
         "public_pr_is_submission_record_only": True,
         "trusted_processor_required": True,
         "runtime_processing_status": "NOT_RUN",
