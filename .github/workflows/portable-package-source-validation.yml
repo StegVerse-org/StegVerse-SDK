@@ -5,6 +5,7 @@ on:
     paths:
       - 'stegverse/portable_packages.py'
       - 'tests/test_portable_packages.py'
+      - 'tests/test_portable_dual_archive.py'
       - 'pyproject.toml'
       - 'docs/SDK_PORTABLE_PACKAGE_CONSOLE_MIRROR_HANDOFF.md'
       - 'docs/SDK_CONSOLE.md'
@@ -44,7 +45,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pytest tests/test_portable_packages.py -q
+          python -m pytest tests/test_portable_packages.py tests/test_portable_dual_archive.py -q
 
       - name: Prove console is non-authorizing
         shell: bash
@@ -55,11 +56,12 @@ jobs:
           import json
           data = json.load(open('/tmp/ns.json', encoding='utf-8'))
           assert data['deployment_class'] == 'NS'
+          assert data['required_archive_formats'] == ['zip', 'tar.gz']
           assert data['installation_creates_node_membership'] is False
           assert data['authority_effect'] == 'NONE'
           assert data['download_active'] is False
           PY
-          if python -m stegverse.portable_packages download --deployment-class NS --output /tmp/ns.zip; then
+          if python -m stegverse.portable_packages download --deployment-class NS --format tar.gz --output /tmp/ns.tar.gz; then
             echo 'download unexpectedly succeeded without governed artifact' >&2
             exit 1
           fi
