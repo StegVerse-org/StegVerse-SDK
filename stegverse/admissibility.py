@@ -4,6 +4,12 @@ This module provides a small dependency-free evaluator for the packet family
 used by the StegVerse Site dynamic demo. It is intentionally conservative:
 it classifies posture and allowed next state, but does not certify domain
 correctness or create proof authority.
+
+The SDK also exposes the maturity of the relation used to reach a disposition.
+An intentional research-note posture is distinct from an unresolved
+high-consequence relation. Unresolved consequential relations fail closed; they
+are retained as under-development relation evidence rather than being silently
+mapped to a permissive research-note default.
 """
 
 from __future__ import annotations
@@ -13,7 +19,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import re
-from typing import Any, Dict, Iterable, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping
 
 TESTER_OUTPUT_SCHEMA = "stegverse.governed_admissibility.tester_output.v1"
 DYNAMIC_RESULT_SCHEMA = "stegverse.governed_admissibility.dynamic_demo_result.v1"
@@ -99,7 +105,10 @@ def validate_tester_packet(packet: Mapping[str, Any]) -> List[str]:
         if key not in packet:
             errors.append(f"missing required field: {key}")
 
-    if packet.get("schema") not in {TESTER_OUTPUT_SCHEMA, "stegverse.governed_admissibility.dynamic_demo_input.v1"}:
+    if packet.get("schema") not in {
+        TESTER_OUTPUT_SCHEMA,
+        "stegverse.governed_admissibility.dynamic_demo_input.v1",
+    }:
         errors.append("unexpected schema for tester packet")
 
     tester = packet.get("tester") or {}
@@ -122,11 +131,66 @@ def validate_tester_packet(packet: Mapping[str, Any]) -> List[str]:
     if not isinstance(classification, Mapping):
         errors.append("classification must be an object")
     else:
-        for key in ["declared_intent", "evidence_posture", "replay_posture", "consequence_level", "claim_limit"]:
+        for key in [
+            "declared_intent",
+            "evidence_posture",
+            "replay_posture",
+            "consequence_level",
+            "claim_limit",
+        ]:
             if key not in classification:
                 errors.append(f"classification missing field: {key}")
 
     return errors
+
+
+def _relation_descriptor(
+    *,
+    decision: str,
+    allowed_next_state: str,
+    high_consequence: bool,
+    unresolved_consequential_relation: bool,
+) -> Dict[str, Any]:
+    """Describe whether the evaluator used a known or unresolved relation.
+
+    This descriptor does not create authority. It makes evaluator maturity
+    inspectable so an intentional research-note disposition cannot be confused
+    with a consequential relation for which the matrix has no explicit rule.
+    """
+    if unresolved_consequential_relation:
+        return {
+            "status": "unresolved",
+            "maturity_class": "under_development",
+            "execution_posture": "non_authorizing_fail_closed",
+            "basis": "no_explicit_high_consequence_admissibility_relation",
+        }
+    if decision == "ALLOW_AS_NOTE" and allowed_next_state == "research_note":
+        return {
+            "status": "resolved",
+            "maturity_class": "research_only",
+            "execution_posture": "non_consequential_note_only",
+            "basis": "explicit_research_note_posture",
+        }
+    if decision == "ALLOW_WITH_POSTURE":
+        return {
+            "status": "resolved",
+            "maturity_class": "known_admissible_with_posture",
+            "execution_posture": "bounded_by_declared_posture",
+            "basis": "authority_evidence_replay_relation",
+        }
+    if decision == "FAIL_CLOSED":
+        return {
+            "status": "resolved",
+            "maturity_class": "known_guard",
+            "execution_posture": "non_authorizing_fail_closed",
+            "basis": "required_admissibility_precondition_missing",
+        }
+    return {
+        "status": "resolved",
+        "maturity_class": "known_conditional",
+        "execution_posture": "non_authorizing_pending_requirement",
+        "basis": "additional_evidence_or_review_required",
+    }
 
 
 def evaluate_admissibility_packet(packet: Mapping[str, Any], *, strict: bool = False) -> Dict[str, Any]:
@@ -134,6 +198,10 @@ def evaluate_admissibility_packet(packet: Mapping[str, Any], *, strict: bool = F
 
     The evaluator mirrors the public Site demo logic while returning an SDK-shaped
     result packet. It is local and side-effect free.
+
+    A high-consequence packet with authority, receipt-backed evidence, and replay
+    but without an explicit high-consequence admissibility relation is not a
+    research note. It is an unresolved relation and fails closed.
     """
     errors = validate_tester_packet(packet)
     if strict and errors:
@@ -145,13 +213,18 @@ def evaluate_admissibility_packet(packet: Mapping[str, Any], *, strict: bool = F
     classification = packet.get("classification") if isinstance(packet.get("classification"), Mapping) else {}
 
     discipline = _as_str(tester.get("discipline_id"), "unknown")
-    recommended_route = _list(route_obj.get("recommended_route")) or DEFAULT_ROUTES.get(discipline, ["governance_filter", "fail_closed"])
+    recommended_route = _list(route_obj.get("recommended_route")) or DEFAULT_ROUTES.get(
+        discipline, ["governance_filter", "fail_closed"]
+    )
 
     consequence = _as_str(classification.get("consequence_level"), "medium").lower()
     authority_source = classification.get("authority_source")
     evidence = _as_str(classification.get("evidence_posture"), "none").lower()
     replay = _as_str(classification.get("replay_posture"), "not_replayable").lower()
-    declared_intent = _as_str(classification.get("declared_intent"), _as_str(test_object.get("object_type"), "unknown")).lower()
+    declared_intent = _as_str(
+        classification.get("declared_intent"),
+        _as_str(test_object.get("object_type"), "unknown"),
+    ).lower()
 
     high_consequence = (
         consequence in {"high", "critical"}
@@ -162,6 +235,7 @@ def evaluate_admissibility_packet(packet: Mapping[str, Any], *, strict: bool = F
     decision = "ALLOW_AS_NOTE"
     allowed_next_state = "research_note"
     required_follow_up: List[str] = []
+    unresolved_consequential_relation = False
 
     if errors:
         decision = "REQUIRE_REVIEW"
@@ -180,17 +254,47 @@ def evaluate_admissibility_packet(packet: Mapping[str, Any], *, strict: bool = F
     if evidence in {"none", "draft"} and decision != "FAIL_CLOSED":
         decision = "REQUIRE_RECEIPT" if high_consequence else "ALLOW_AS_NOTE"
         allowed_next_state = "hold" if high_consequence else "research_note"
-        required_follow_up.append("Attach evidence, source, receipt, or review before public claim posture.")
+        required_follow_up.append(
+            "Attach evidence, source, receipt, or review before public claim posture."
+        )
 
-    if replay in {"not_replayable", "none"} and evidence in {"source_backed", "receipt_backed"} and decision != "FAIL_CLOSED":
+    if (
+        replay in {"not_replayable", "none"}
+        and evidence in {"source_backed", "receipt_backed"}
+        and decision != "FAIL_CLOSED"
+    ):
         decision = "REQUIRE_REPLAY"
         allowed_next_state = "hold"
         required_follow_up.append("Add replay path before promotion beyond research note.")
 
-    if authority_source and evidence == "receipt_backed" and replay == "receipt_backed" and not high_consequence and not errors:
+    complete_relation_inputs = (
+        bool(authority_source)
+        and evidence == "receipt_backed"
+        and replay == "receipt_backed"
+        and not errors
+    )
+
+    if complete_relation_inputs and high_consequence:
+        unresolved_consequential_relation = True
+        decision = "FAIL_CLOSED"
+        allowed_next_state = "fail_closed"
+        required_follow_up.append(
+            "No explicit high-consequence admissibility relation is established for this state; "
+            "retain the observation as RELATION_UNRESOLVED and require governed relation development "
+            "before consequential movement."
+        )
+    elif complete_relation_inputs:
         decision = "ALLOW_WITH_POSTURE"
         allowed_next_state = "receipt_backed_claim"
         required_follow_up.append("Keep receipt reference attached to any publication or action.")
+
+    relation = _relation_descriptor(
+        decision=decision,
+        allowed_next_state=allowed_next_state,
+        high_consequence=high_consequence,
+        unresolved_consequential_relation=unresolved_consequential_relation,
+    )
+    relation["high_consequence"] = high_consequence
 
     result: Dict[str, Any] = {
         "schema": DYNAMIC_RESULT_SCHEMA,
@@ -205,17 +309,23 @@ def evaluate_admissibility_packet(packet: Mapping[str, Any], *, strict: bool = F
             "evidence_posture": evidence,
             "replay_posture": replay,
             "consequence_level": consequence,
-            "claim_limit": classification.get("claim_limit", "No claim beyond research-note posture without review."),
+            "claim_limit": classification.get(
+                "claim_limit",
+                "No claim beyond research-note posture without review.",
+            ),
             "decision": decision,
             "allowed_next_state": allowed_next_state,
             "required_follow_up": required_follow_up,
         },
+        "relation": relation,
         "boundary": {
             "does_not_certify_domain_correctness": True,
             "does_not_replace_domain_review": True,
             "does_not_create_proof_authority": True,
         },
-        "receipt_posture": "receipt_backed" if replay == "receipt_backed" else "sdk_local_not_receipt_backed",
+        "receipt_posture": "receipt_backed"
+        if replay == "receipt_backed"
+        else "sdk_local_not_receipt_backed",
     }
     result["local_receipt_hash"] = stable_hash(result)
     return result
