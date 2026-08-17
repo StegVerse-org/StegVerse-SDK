@@ -1,0 +1,47 @@
+{
+  "schema": "stegverse.task/v1",
+  "task_id": "SDK-PUBLIC-DISTRIBUTION-PRIVACY-001",
+  "goal_id": "REPOSITORY-VISIBILITY-BOUNDARY-001",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "main",
+  "owner": "StegVerse-org/StegVerse-SDK consumer lane",
+  "upstream_owner": "StegVerse-Labs/TVC/tasks/TVC-PORTABLE-ARTIFACT-PUBLICATION-001.json",
+  "state": "BLOCKED",
+  "claim_state": "CLAIMED_FOR_INTEGRATION",
+  "collision_scope": [
+    "SDK governed-test dependency acquisition",
+    "portable artifact public locator binding",
+    "anonymous clean-install verification"
+  ],
+  "credential_authority": "TV/TVC",
+  "non_tv_tvc_secret_or_token_allowed": false,
+  "github_token_runtime_authority": "NONE",
+  "inputs": [
+    "pyproject.toml",
+    "SDK_MIRROR_HANDOFF.md",
+    "SDK_PUBLIC_DISTRIBUTION_PRIVACY_MIRROR_HANDOFF.md",
+    "docs/SDK_PORTABLE_PACKAGE_CONSOLE_MIRROR_HANDOFF.md",
+    "verified TVC immutable publication receipt"
+  ],
+  "observed_dependency_state": {
+    "StegVerse-Labs/StegCore": "public direct git dependency",
+    "Data-Continuation/core-lite": "public direct git dependency",
+    "master-records/orchestration": "private direct git dependency"
+  },
+  "blocked_reason": "TVC immutable public publication/binding required before repository-source visibility can be removed from the public SDK acquisition contract.",
+  "release_condition": "Verified immutable TVC publication exists for required governed runtime artifacts and the SDK can acquire/install them without repository credentials or source-repo visibility.",
+  "next_executable_action": "On publication receipt, replace direct repository-source acquisition with exact immutable artifact/package locators and hashes, then run anonymous clean-environment install + governed-test + replay/reconstruction verification.",
+  "fail_closed": true,
+  "terminal_success": {
+    "state": "COMPLETE",
+    "requires": [
+      "no direct private git dependency in public acquisition path",
+      "no non-TV/TVC secret/token",
+      "anonymous clean install PASS",
+      "governed-test PASS",
+      "replay PASS",
+      "reconstruction PASS",
+      "post-privatization regression PASS"
+    ]
+  }
+}
