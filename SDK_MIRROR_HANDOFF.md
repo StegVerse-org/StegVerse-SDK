@@ -29,6 +29,8 @@ SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002: COMPLETE_RELEASED_TO_MACHINE_EXECUTION
 SDK-USAGE-GOVERNED-OPERATION-WIRING-002: COMPLETE_VALIDATED_MERGED
 SDK-MCP-PORTABLE-AUTHORITY-001: SOURCE_VALIDATED_DEFECTS_CORRECTED_EXACT_SOVEREIGN_ARTIFACT_RUN_PENDING
 SDK-README-PUBLIC-SHARE-001: COMPLETE_VERIFIED_MERGED
+SDK-ADMISSIBILITY-MATRIX-MATURITY-001: COMPLETE_VALIDATED_MERGED_CONSOLIDATED
+SDK-ADMISSIBILITY-COMPOSITION-002: COMPLETE_VALIDATED_MERGED_CONSOLIDATED
 ```
 
 No person-specific evaluator route is canonical.
@@ -177,20 +179,80 @@ StegVerse-Labs/.github/handoffs/STEGFIN-CONTINUITY-CARRIER-007.json
 StegVerse-Labs/TVC/tasks/TVC-CAPABILITY-RUNTIME-002.json
 ```
 
-Current product truth remains:
+Current product truth remains governed by those canonical owners. Wallet signing and broadcast authority remain `USER_ONLY`; TV/TVC remains credential authority. This SDK/session must not introduce a non-TV/TVC provider secret or token and must not sign or broadcast a wallet transaction.
+
+## Admissibility relation maturity and composition — 2026-08-17
+
+Two session-specific admissibility findings are now implemented, validated, merged, propagated where pertinent, and consolidated.
+
+### Matrix maturity
 
 ```text
-trade task completion: 7/8
-trade-ready developed files: 24/24
-WALLET_HANDOFF_READY observed: false
-credential authority: TV/TVC
-non-TV/TVC provider secret/token use: PROHIBITED
-wallet signing authority: USER_ONLY
-broadcast authority: USER_ONLY
-product activation: incomplete
+task: SDK-ADMISSIBILITY-MATRIX-MATURITY-001
+handoff: ADMISSIBILITY_MATRIX_MATURITY_MIRROR_HANDOFF.md
+PR: #42
+merge: 7008d9702dec6318752e0f136f519a2102099f29
+validation run/job: 32072609323 / 95518918887
+focused tests: 29/29 PASS
+claim: RELEASED_COMPLETE
 ```
 
-That unfinished product work is already machine/authority-owned and is not a reason to retain a chat session with no remaining execution responsibility.
+The SDK now distinguishes an intentional `research_only` note from an unresolved consequential relation. An otherwise-complete high-consequence relation with no explicit relation coverage is `under_development` and `FAIL_CLOSED`; it no longer silently falls back to `ALLOW_AS_NOTE / research_note`.
+
+### Composition / non-separability
+
+```text
+task: SDK-ADMISSIBILITY-COMPOSITION-002
+handoff: ADMISSIBILITY_COMPOSITION_MIRROR_HANDOFF.md
+PR: #43
+merge: 3b0ded7a4966d52390f4623c0867721dbd84cf0f
+validation run/job: 32073057367 / 95520275236
+focused tests: 25/25 PASS
+claim: RELEASED_COMPLETE
+```
+
+Formal invariant:
+
+```text
+Adm(A)=true
+Adm(B)=true
+DOES NOT IMPLY Adm(A composed_with B)=true
+```
+
+Component receipt integrity is checked before composition reasoning, component ALLOW dispositions are never lifted automatically, and absent explicit joint-relation coverage is represented as unresolved/under-development and fails closed. A validated joint-relation positive control remains non-authorizing.
+
+Credential boundary for both validation lanes:
+
+```text
+GITHUB_TOKEN absent
+GH_TOKEN absent
+TV_IDENTITY_KEY absent
+TVC_SECRET absent
+credential authority: TV/TVC
+GitHub runtime authority: NONE
+```
+
+### Downstream propagation assessment
+
+Canonical handoffs were inspected before mutation decisions:
+
+```text
+StegVerse-Labs/Site/PWC002_MIRROR_HANDOFF.md -> VERIFIED_NO_CHANGE
+GCAT-BCAT-Engine/Publisher/PWC002_MIRROR_HANDOFF.md -> VERIFIED_NO_CHANGE
+StegVerse-Labs/admissibility-wiki/ADMISSIBILITY_WIKI_MIRROR_HANDOFF.md + orchestration state + issue #50 -> TRANSFERRED_TO_CANONICAL_WORKSTREAM via issue #50 comment 5320865381
+StegVerse-002/stegguardian-wiki/STEGGUARDIAN_WIKI_MIRROR_HANDOFF.md -> VERIFIED_NO_CHANGE
+master-records/core-lite/MASTER_RECORDS_MIRROR_HANDOFF.md -> VERIFIED_NO_CHANGE
+```
+
+Only admissibility-wiki directly required semantic transfer. The evaluator was not duplicated there. Site/Publisher do not currently establish direct consumption of the changed SDK relation contract; Guardian is downstream of bounded admissibility interpretation; Master Records custody/reconstruction contracts were not changed by this goal.
+
+Archive-purpose session source of truth:
+
+```text
+docs/SESSION_CONSOLIDATION_2026-08-17_ADMISSIBILITY_RUNTIME_TRADE_MIRROR_HANDOFF.md
+```
+
+That record preserves the local-runtime/model convergence, trade-readiness ownership boundary, both admissibility implementations, validation evidence, downstream decisions, claim releases, and archive determination.
 
 ## Current-session scope supersession
 
@@ -204,7 +266,7 @@ archive receipt: StegVerse-Labs/.github/receipts/session-consolidation/SESSION-A
 
 The v7 inventory defines the goals of that prior conversation as G01-G08, records local runtime/model source completion, TV/TVC-only credential authority, durable consolidation and worker assistance as complete/released, and transfers the incomplete G08 trade-ready product goal to named machine/authority owners.
 
-The present MCP goal is separately scoped by `MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md` and must not be conflated with those older session workstreams.
+The present MCP goal is separately scoped by `MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md` and must not be conflated with those older session workstreams or with the completed 2026-08-17 admissibility session consolidation.
 
 ## README public-share verification — 2026-08-16
 
@@ -231,17 +293,29 @@ This missing optional/future binding does not block README public sharing becaus
 
 ## Session consolidation / archive condition
 
-For the MCP workstream:
+For the 2026-08-17 admissibility/runtime/trade session:
 
 ```text
-source implementation remaining: 0
-source defect fixes remaining: 0
-integration acceptance test implementation remaining: 0
-exact sovereign artifact execution evidence remaining: 1
-MCP activation complete: false
+unique session goals durable: 5/5
+session-owned active claims: 0
+unassigned session work: 0
+propagation targets assessed: 5/5
+chat-only requirements remaining: 0
+canonical continuation recorded: true
+archive state: COMPLETE_ARCHIVE_READY
 ```
 
-Canonical MCP continuation:
+Canonical archive-purpose continuation:
+
+```text
+docs/SESSION_CONSOLIDATION_2026-08-17_ADMISSIBILITY_RUNTIME_TRADE_MIRROR_HANDOFF.md
+ADMISSIBILITY_MATRIX_MATURITY_MIRROR_HANDOFF.md
+ADMISSIBILITY_COMPOSITION_MIRROR_HANDOFF.md
+tasks/SDK-ADMISSIBILITY-MATRIX-MATURITY-001.json
+tasks/SDK-ADMISSIBILITY-COMPOSITION-002.json
+```
+
+Separately existing SDK exact MCP artifact execution remains owned by:
 
 ```text
 MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md
@@ -250,4 +324,4 @@ reports/mcp-production-artifact/local-integration-diagnostic-20260815.json
 issue #30
 ```
 
-Do not mark MCP activation complete until the exact declared production artifacts produce retained MR/MRR/MRO evidence. Do not use GitHub/private-repository credentials to manufacture that proof.
+Do not mark MCP activation complete until the exact declared production artifacts produce retained MR/MRR/MRO evidence. Do not use GitHub/private-repository credentials to manufacture that proof. That separate machine/authority-owned workstream is not an archive dependency of the completed 2026-08-17 session.
