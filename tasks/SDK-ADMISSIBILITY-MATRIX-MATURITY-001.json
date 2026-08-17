@@ -1,0 +1,43 @@
+{
+  "schema": "stegverse.task-state.v1",
+  "task_id": "SDK-ADMISSIBILITY-MATRIX-MATURITY-001",
+  "goal": "Distinguish intentional research-note posture from unresolved consequential relations and fail closed on unresolved consequential movement.",
+  "originating_session_goal": "Determine whether the admissibility matrix is early-stage or mature after research_note appeared as the next state in the n=1 continuing-admissibility probe.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "feat/admissibility-matrix-maturity-001",
+  "owner": "current-session-admissibility-maturity",
+  "claim_state": "CLAIMED_FOR_IMPLEMENTATION_AND_VALIDATION",
+  "claim_created_at": "2026-08-17T16:40:00-05:00",
+  "claim_release_condition": "Validated implementation merged to main or explicitly superseded by a canonical nonconflicting owner with durable evidence.",
+  "credential_authority": "TV/TVC",
+  "non_tv_tvc_secret_or_token_allowed": false,
+  "github_runtime_authority": "NONE",
+  "render_required": false,
+  "surfaces": [
+    "stegverse/admissibility.py",
+    "tests/test_dynamic_admissibility.py",
+    ".github/workflows/admissibility-matrix-maturity-validation.yml",
+    "ADMISSIBILITY_MATRIX_MATURITY_MIRROR_HANDOFF.md"
+  ],
+  "deliverables": [
+    {"id": "research-note-explicit", "state": "IMPLEMENTED_PENDING_VALIDATION"},
+    {"id": "relation-unresolved-metadata", "state": "IMPLEMENTED_PENDING_VALIDATION"},
+    {"id": "unresolved-consequence-fail-closed", "state": "IMPLEMENTED_PENDING_VALIDATION"},
+    {"id": "relation-maturity-classes", "state": "IMPLEMENTED_PENDING_VALIDATION"},
+    {"id": "n1-regression-proof", "state": "IMPLEMENTED_PENDING_VALIDATION"}
+  ],
+  "validation": {
+    "focused_tests": "PENDING",
+    "hosted_credential_clean_run": "PENDING",
+    "required_absent_environment_keys": ["GITHUB_TOKEN", "GH_TOKEN", "TV_IDENTITY_KEY", "TVC_SECRET"]
+  },
+  "integration": {
+    "merge_to_main": "PENDING",
+    "parent_handoff_update": "PENDING",
+    "consumer_propagation_assessment": "PENDING_AFTER_MERGE"
+  },
+  "canonical_handoff": "ADMISSIBILITY_MATRIX_MATURITY_MIRROR_HANDOFF.md",
+  "parent_handoff": "SDK_MIRROR_HANDOFF.md",
+  "next_executable_action": "Run focused credential-clean validation, correct regressions, merge, release claim, and assess handoff-governed propagation.",
+  "archive_dependency": true
+}
