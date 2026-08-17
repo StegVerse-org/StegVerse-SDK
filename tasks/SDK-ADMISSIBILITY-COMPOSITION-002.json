@@ -1,0 +1,43 @@
+{
+  "schema": "stegverse.task-state.v1",
+  "task_id": "SDK-ADMISSIBILITY-COMPOSITION-002",
+  "goal": "Prove n>1 non-separability: individually admissible components must not imply composition admissibility.",
+  "originating_session_goal": "Extend the n=1 continuing-admissibility and matrix-maturity findings into the first composition/manifold falsification case.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "feat/admissibility-composition-002",
+  "owner": "current-session-admissibility-composition",
+  "claim_state": "CLAIMED_FOR_IMPLEMENTATION_AND_VALIDATION",
+  "claim_created_at": "2026-08-17T17:00:00-05:00",
+  "claim_release_condition": "Validated implementation merged to main or explicitly superseded by a canonical nonconflicting owner with durable evidence.",
+  "credential_authority": "TV/TVC",
+  "non_tv_tvc_secret_or_token_allowed": false,
+  "github_runtime_authority": "NONE",
+  "render_required": false,
+  "surfaces": [
+    "stegverse/admissibility_composition.py",
+    "tests/test_admissibility_composition.py",
+    ".github/workflows/admissibility-composition-validation.yml",
+    "ADMISSIBILITY_COMPOSITION_MIRROR_HANDOFF.md"
+  ],
+  "deliverables": [
+    {"id": "deterministic-composition-evaluator", "state": "IMPLEMENTED_PENDING_VALIDATION"},
+    {"id": "component-receipt-integrity", "state": "IMPLEMENTED_PENDING_VALIDATION"},
+    {"id": "no-separability-lift", "state": "IMPLEMENTED_PENDING_VALIDATION"},
+    {"id": "unresolved-composition-fail-closed", "state": "IMPLEMENTED_PENDING_VALIDATION"},
+    {"id": "n2-negative-and-positive-controls", "state": "IMPLEMENTED_PENDING_VALIDATION"}
+  ],
+  "validation": {
+    "focused_tests": "PENDING",
+    "hosted_credential_clean_run": "PENDING",
+    "required_absent_environment_keys": ["GITHUB_TOKEN", "GH_TOKEN", "TV_IDENTITY_KEY", "TVC_SECRET"]
+  },
+  "integration": {
+    "merge_to_main": "PENDING",
+    "parent_handoff_update": "PENDING",
+    "consumer_propagation_assessment": "PENDING_AFTER_MERGE"
+  },
+  "canonical_handoff": "ADMISSIBILITY_COMPOSITION_MIRROR_HANDOFF.md",
+  "parent_handoff": "SDK_MIRROR_HANDOFF.md",
+  "next_executable_action": "Run focused credential-clean validation, correct regressions, merge, then assess canonical consumers without duplicating authority.",
+  "archive_dependency": true
+}
