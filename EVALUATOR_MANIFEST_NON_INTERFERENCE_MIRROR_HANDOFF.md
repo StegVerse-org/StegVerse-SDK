@@ -243,29 +243,59 @@ execution task: StegVerse-org/StegVerse-SDK#47
 
 Later documentation/evidence commits do not silently move this candidate. A different candidate requires an explicit new source receipt and task-state update.
 
+### Mandatory evaluator ingress and exposure boundary
+
+The first ODA3 experiment must begin at the evaluator-facing SDK submission surface:
+
+```text
+external evaluator
+-> StegVerse SDK manifested submission / normalization / binding
+-> Core-Lite manifested route carrier
+-> StegCore / canonical StegGate
+-> Master Records custody
+-> governed result returned through the manifested route
+```
+
+For this primary experiment, direct evaluator submission/injection to Core-Lite, StegCore, or StegGate is not authorized and does not satisfy the proposition under test. Those remain downstream governed/internal surfaces. An evaluator-accessible alternate route around SDK ingress is itself a boundary violation and must be unavailable or rejected.
+
+### Aggregate production release-set gate
+
+The exact run is additionally bound to aggregate release set:
+
+```text
+release_set_id: ODA3-EVALUATOR-PATH-2026-08-18-R1
+manifest: evidence/oda3/aggregate-release-set-candidate-2026-08-18.json
+SDK:            v1.0.13 -> 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
+Core-Lite:      v0.9.0  -> 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+StegCore:       v0.2.0  -> 083557adec1bdbace09ebd10fb0765eb8e9a9d08
+Master Records: v0.1.0  -> 6626c6a7f1df6bf531940c165b2f4db374e08b92
+```
+
+Prepared release notes and release-control handoffs now exist in all four repositories. The tags themselves must be published by TV/TVC-governed release authority and must resolve exactly to the candidate commits above. GitHub Actions must not be promoted into runtime/control-plane authority to manufacture this state.
+
 ### ODA3 activation/evidence boundary
 
-Completed source milestones:
+Completed source/release-preparation milestones:
 
 ```text
 1. focused PR opened against main: COMPLETE (#44)
 2. credential-free source-validation passes on exact PR head: COMPLETE (run 32166517959)
 3. implementation merged to main: COMPLETE (976d1953385ac4ef903fc2cd969f5b20ef311d39)
 4. exact-commit artifact manifest generated and durably retained: COMPLETE
-   - final source validation: run 32166903844 / job 95808521073
-   - frozen candidate: 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
-   - source receipt committed at 5a3da835e3b2f62e50e9d7a73c5371b6a54b4b46
+5. aggregate release set frozen with release notes/target tags across all four repos: COMPLETE_SOURCE_PREP
 ```
 
 Remaining activation/evidence milestones:
 
 ```text
-5. exact governed boundary run executed through canonical route
-6. representative route receipts + manifest receipt + Master Records custody retained
-7. replay/reconstruction evidence retained where requested
-8. independent unmodified verification PASS retained
-9. manifest/governance-result tamper verification FAIL evidence retained
-10. ODA3 independently reproduces or receives a complete evidence packet
+6. TV/TVC-governed release tags published for all four exact candidates
+7. tag resolutions verified and SDK release catalog reports all_components_release_tag_bound=true
+8. exact governed boundary run executed from evaluator -> SDK through canonical manifested route
+9. representative route receipts + manifest receipt + Master Records custody retained
+10. replay/reconstruction evidence retained where requested
+11. independent unmodified verification PASS retained
+12. manifest/governance-result tamper verification FAIL evidence retained
+13. ODA3 independently reproduces or receives a complete evidence packet
 ```
 
 GitHub CI proves source/schema/binding behavior and exact source-file identity only. It does not prove exact governed activation and must not become production/runtime/control-plane authority.
@@ -275,6 +305,7 @@ GitHub CI proves source/schema/binding behavior and exact source-file identity o
 Destination `StegVerse-org/StegVerse-SDK` / issue `#47`:
 
 ```text
+PENDING: TV/TVC-published/verified aggregate release tags
 PENDING: exact normalized ODA3 valid manifest used for governed run
 PENDING: exact sovereign result JSON
 PENDING: exact route receipt chain / manifest receipt evidence
@@ -303,9 +334,7 @@ The later authority-state experiment additionally requires a separately identifi
 
 ## Release and propagation
 
-The original implementation and this ODA3 follow-on are SDK source/evidence work and do not independently authorize a product tag. Repository-wide release authority and unrelated activation gates remain governed by their owning handoffs.
-
-When the SDK next reaches an authorized tag/release state, verify propagation to:
+Release-set preparation is now explicit. Actual tag/release publication remains TV/TVC-governed. After all four fixed tags exist and are verified against their exact candidate commits, validate tag-based installation and propagate release/changelog identities to:
 
 ```text
 StegVerse-Labs/Site
@@ -324,6 +353,8 @@ ODA3 deliberate boundary-test source implementation: MERGED_SOURCE_VALIDATED
 ODA3 exact source artifact manifest: COMPLETE
 ODA3 source receipt: COMPLETE
 ODA3 frozen governed-run candidate: 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
+ODA3 aggregate release-set preparation: COMPLETE_SOURCE_PREP
+ODA3 aggregate tag publication: PENDING_TV_TVC_RELEASE_AUTHORITY
 ODA3 exact governed run: PENDING (#47)
 ODA3 exact-run evidence packet: PENDING (#47)
 ODA3 independent reproduction: PENDING (#47)
@@ -335,4 +366,4 @@ scoped state: ACTIVE_DISTINCT_SUPPORT
 
 ## Durable continuation
 
-Continue from this handoff, `docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md`, source receipt `evidence/oda3/evaluation-boundary-source-receipt-2026-08-18.json`, and issue `#47`. Do not create a second evaluator-specific mirror handoff for the same workstream. Any requested capability outside the published registry remains a separate generally versioned capability-development goal rather than a private ODA3 augmentation.
+Continue from this handoff, `PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md`, `docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md`, aggregate release manifest `evidence/oda3/aggregate-release-set-candidate-2026-08-18.json`, source receipt `evidence/oda3/evaluation-boundary-source-receipt-2026-08-18.json`, and issue `#47`. Do not create a second evaluator-specific mirror handoff for the same workstream. Any requested capability outside the published registry remains a separate generally versioned capability-development goal rather than a private ODA3 augmentation.
