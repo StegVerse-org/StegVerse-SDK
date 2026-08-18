@@ -12,10 +12,11 @@
       "repository": "StegVerse-org/StegVerse-SDK",
       "package": "stegverse-sdk",
       "package_version": "1.0.13",
-      "target_release_tag": "v1.0.13",
+      "target_release_tag": "v1.0.13-oda3-r1",
       "candidate_commit": "16c99037a42e4d667b9df4a7a5efbaae9dd7184c",
       "candidate_tree": "d238131690fdc3833cc861b69b0760e570e2b55a",
-      "candidate_reason": "Frozen ODA3 source-validated evaluator-boundary candidate; later evidence/documentation commits do not silently move it."
+      "candidate_reason": "Frozen ODA3 source-validated evaluator-boundary candidate; later evidence/documentation commits do not silently move it.",
+      "tag_conflict_note": "Existing v1.0.13 resolves to historical commit f219afa17dcb020dc1e13b72f859a86627c5644b and MUST NOT be moved or reused."
     },
     {
       "role": "manifest_route_carrier",
@@ -56,7 +57,7 @@
     "required": true,
     "authority": "TV/TVC-governed release authority",
     "required_tags": [
-      "StegVerse-org/StegVerse-SDK@v1.0.13",
+      "StegVerse-org/StegVerse-SDK@v1.0.13-oda3-r1",
       "Data-Continuation/core-lite@v0.9.0",
       "StegVerse-Labs/StegCore@v0.2.0",
       "master-records/orchestration@v0.1.0"
