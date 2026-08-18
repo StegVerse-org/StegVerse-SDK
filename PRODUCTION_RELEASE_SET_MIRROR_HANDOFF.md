@@ -14,24 +14,51 @@ non-TV/TVC release credential permitted: false
 
 Every production-lane evaluator run must identify the exact released component set that participated, retain that set with exact-run custody, and distinguish it from whatever releases are current when replay/reconstruction occurs later.
 
-## Canonical production component set
+## Canonical ODA3 aggregate release set
 
 ```text
-sdk_entry              StegVerse-org/StegVerse-SDK
-                       package stegverse-sdk
+release_set_id: ODA3-EVALUATOR-PATH-2026-08-18-R1
+aggregate_manifest: evidence/oda3/aggregate-release-set-candidate-2026-08-18.json
 
-governance_runtime     StegVerse-Labs/StegCore
-                       package stegcore
-                       validated governed-test pin 083557adec1bdbace09ebd10fb0765eb8e9a9d08
+sdk_entry              StegVerse-org/StegVerse-SDK
+                       package stegverse-sdk 1.0.13
+                       target tag v1.0.13
+                       frozen candidate 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
+                       frozen tree d238131690fdc3833cc861b69b0760e570e2b55a
+                       release notes RELEASE_NOTES_EVALUATOR_PATH_1.0.13.md
 
 manifest_route_carrier Data-Continuation/core-lite
-                       package stegverse-core-lite
-                       validated governed-test pin 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+                       package stegverse-core-lite 0.9.0
+                       target tag v0.9.0
+                       validated candidate 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+                       release notes RELEASE_NOTES_EVALUATOR_PATH_0.9.0.md
+
+governance_runtime     StegVerse-Labs/StegCore
+                       package stegcore 0.2.0
+                       target tag v0.2.0
+                       validated candidate 083557adec1bdbace09ebd10fb0765eb8e9a9d08
+                       runtime identity stegverse:steggate:canonical:three-layer:v1
+                       release notes RELEASE_NOTES_EVALUATOR_PATH_0.2.0.md
 
 exact_run_custody      master-records/orchestration
-                       package stegverse-master-records
-                       validated governed-test pin 6626c6a7f1df6bf531940c165b2f4db374e08b92
+                       package stegverse-master-records 0.1.0
+                       target tag v0.1.0
+                       validated candidate 6626c6a7f1df6bf531940c165b2f4db374e08b92
+                       release notes RELEASE_NOTES_EVALUATOR_PATH_0.1.0.md
 ```
+
+The SDK candidate is the already-frozen ODA3 source-validated candidate. Later receipt/documentation commits do not silently move that candidate. A replacement candidate requires a new source receipt and explicit release-set revision.
+
+## External evaluator surface invariant
+
+```text
+evaluator submission surface: StegVerse SDK
+direct evaluator Core-Lite submission: not authorized
+direct evaluator StegCore submission: not authorized
+direct evaluator StegGate submission: not authorized
+```
+
+The external evaluator enters through the controlled manifested SDK path. Core-Lite, StegCore, and StegGate remain downstream governed/internal surfaces for this experiment.
 
 ## Implemented SDK surfaces
 
@@ -71,17 +98,18 @@ replay/reconstruction never rewrites original release-set evidence
 
 `all_components_release_tag_bound` is true only when every installed production component can prove a tag-based source revision. A commit-only or untagged package is reported as `COMMIT_OR_PACKAGE_ONLY` rather than being represented as a release.
 
-## Current release gap
+## Release readiness
+
+The three dependency release handoffs now have fixed target tags and prepared release notes bound to the already-validated historical candidates. The SDK aggregate manifest fixes the SDK candidate and target tag as well.
 
 ```text
-StegVerse SDK latest published release: v1.0.12
-StegVerse SDK source package version: 1.0.13
-StegCore evaluator-runtime candidate: no matching release yet
-Core-Lite evaluator-runtime candidate: no release yet
-Master Records evaluator-runtime candidate: no release yet
+StegVerse SDK target: v1.0.13 -> 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
+Core-Lite target:     v0.9.0  -> 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+StegCore target:      v0.2.0  -> 083557adec1bdbace09ebd10fb0765eb8e9a9d08
+Master Records target:v0.1.0  -> 6626c6a7f1df6bf531940c165b2f4db374e08b92
 ```
 
-The existing StegCore `stegcore-v1.0-constitution` release is not the runtime candidate pinned by the governed evaluator lane.
+Actual tag/release publication remains a TV/TVC-governed release-authority action. GitHub Actions must not become runtime/control-plane authority and no non-TV/TVC release credential is permitted.
 
 ## Validation evidence
 
@@ -90,21 +118,18 @@ workflow: Evaluator Contract Console Validation
 run: 31963202570
 head: fe6e0896d70b3a17e6add9d5691ee1d2d7f798c2
 result: SUCCESS
+
+ODA3 source/boundary validation:
+run: 32166903844
+job: 95808521073
+validated head: d4d615bb63d02894b2e26497285d259892112739
+validated tree: d238131690fdc3833cc861b69b0760e570e2b55a
+merged frozen candidate: 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
+24 source/boundary tests: PASS
+17 exact artifacts hashed; missing artifacts: []
 ```
 
-The run exercised:
-
-```text
-pytest -q tests/test_evaluator_contract_console.py tests/test_production_release_set.py
-stegverse contract
-stegverse contract --schema
-stegverse contract --example
-stegverse test-procedure --offline
-stegverse production-releases installed
-python -m stegverse contract --all
-```
-
-and verified the production release-set schema, historical retention declaration, replay comparison declaration, and existing evaluator contract invariants.
+The ODA3 validated PR head and frozen SDK candidate share the exact same Git tree.
 
 ## Cross-repo worker tasks
 
@@ -125,18 +150,16 @@ master-records/orchestration#35
 StegVerse-org/StegVerse-SDK#41
 ```
 
-These tasks require the TV/TVC-governed release workers to mint releases for the exact validated candidates, publish accessible changelogs, and propagate the resulting release identity back to the SDK.
-
 ## Remaining executable work
 
 ```text
-1. Freeze final SDK 1.0.13 candidate head after release-set documentation is complete.
-2. TV/TVC release workers validate and mint releases for the three pinned dependency commits.
-3. Replace governed-test dependency commit references with the corresponding immutable release tags only after those tags exist.
-4. Validate the tag-based installation and release-set packet evidence.
-5. Publish SDK v1.0.13 from the final validated candidate.
-6. Record completed release set in evaluator-facing release catalog/release notes.
-7. Continue subsequent development on new/moving branches without altering released tags.
+1. TV/TVC release authority publishes the four fixed tags against the exact candidates.
+2. Publish/attach the prepared accessible release notes/changelogs.
+3. Verify each tag resolves to the exact recorded candidate commit.
+4. Update the aggregate manifest/catalog from tag-publication-pending to tag-bound.
+5. Validate tag-based installation and release-set packet evidence.
+6. Execute ODA3 issue #47 through evaluator -> SDK -> Core-Lite -> StegCore/StegGate -> Master Records.
+7. Record the completed release set in exact-run custody and the evaluator-facing packet.
 8. Verify release/changelog propagation to StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki, and stegguardian-wiki.
 ```
 
@@ -144,6 +167,9 @@ These tasks require the TV/TVC-governed release workers to mint releases for the
 
 ```text
 SDK-PRODUCTION-RELEASE-SET-001: IMPLEMENTED_SOURCE_VALIDATED
-CROSS_REPO_RELEASE_ACTIVATION: DURABLY_ASSIGNED_TO_TV_TVC_RELEASE_WORKERS
+ODA3_AGGREGATE_RELEASE_SET: FROZEN_RELEASE_READY
+RELEASE_NOTES_ALL_COMPONENTS: PREPARED
+TARGET_TAGS_ALL_COMPONENTS: FIXED
+TAG_PUBLICATION: PENDING_TV_TVC_RELEASE_AUTHORITY
 ALL_COMPONENTS_RELEASE_TAG_BOUND: FALSE_UNTIL_RELEASES_EXIST
 ```
