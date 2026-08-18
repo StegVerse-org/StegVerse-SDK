@@ -138,7 +138,7 @@ Canonical task document:
 docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md
 ```
 
-New implementation installed on branch `chatgpt/oda3-evaluation-boundary-handoff-20260818`:
+Implementation merged to `main` by PR `#44`, squash commit `976d1953385ac4ef903fc2cd969f5b20ef311d39`:
 
 ```text
 stegverse/evaluation_boundary_verifier.py
@@ -182,6 +182,9 @@ docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md
   anonymous source materialization retained
   permissions remain empty
   no runtime, signing, release, custody, or evaluator authority
+
+tests/test_public_inspection_governed_binding.py
+  stale fixture corrected to include required execution provenance
 ```
 
 The SDK governed-test dependency set remains pinned by `pyproject.toml`:
@@ -194,14 +197,42 @@ master-records/orchestration @ 6626c6a7f1df6bf531940c165b2f4db374e08b92
 
 At the pinned StegCore revision, the applicable runtime identity contract identifies portable product `0.2.0`, contract `stegverse.steggate.runtime-identity.v1`, and runtime identity `stegverse:steggate:canonical:three-layer:v1`.
 
-### ODA3 activation/evidence boundary
+### ODA3 PR validation receipt
 
-The follow-on is **not complete merely because the source files exist**. Completion requires the strongest available evidence chain:
+The first PR validation run failed because adding the previously unexecuted `tests.test_public_inspection_governed_binding` suite exposed a stale fixture that lacked the now-required `execution_provenance`. The defect was corrected rather than dropping the test.
 
 ```text
-1. focused PR opened against main
-2. credential-free source-validation workflow passes on the exact PR head
-3. changes merged to main through normal repository authority
+PR: 44
+initial PR head: 19a1027a83544741075bd14e1ec16096928c184d
+initial workflow run: 32166464795
+initial job: 95807092273
+initial result: FAILURE
+failure: PublicInspectionRequestError: missing required fields: execution_provenance
+
+corrective commit: 91a4d4569749524259d2685a215c503a154d9fba
+corrected workflow run: 32166517959
+corrected result: SUCCESS
+PR mergeable after validation: TRUE
+merged: TRUE
+merge method: SQUASH
+main commit: 976d1953385ac4ef903fc2cd969f5b20ef311d39
+```
+
+The workflow remains source-only evidence. It does not activate a sovereign governed transaction.
+
+### ODA3 activation/evidence boundary
+
+Completed source milestones:
+
+```text
+1. focused PR opened against main: COMPLETE (#44)
+2. credential-free source-validation passes on exact PR head: COMPLETE (run 32166517959)
+3. changes merged to main through repository authority: COMPLETE (976d1953385ac4ef903fc2cd969f5b20ef311d39)
+```
+
+Remaining activation/evidence milestones:
+
+```text
 4. clean exact-commit artifact manifest generated
 5. exact governed boundary run executed through canonical route
 6. representative route receipts + manifest receipt + Master Records custody retained
@@ -218,8 +249,6 @@ GitHub CI can prove only source behavior in this lane. It cannot prove exact gov
 Destination `StegVerse-org/StegVerse-SDK`:
 
 ```text
-PENDING: PR creation and source-validation result for current branch
-PENDING: merge commit on main
 PENDING: exact clean-checkout evaluation-boundary-artifacts.json
 PENDING: exact normalized ODA3 valid manifest used for governed run
 PENDING: exact sovereign result JSON
@@ -265,9 +294,9 @@ Those surfaces should describe evaluator-defined manifests as configuration of p
 
 ```text
 original evaluator-manifest source implementation: COMPLETE_SOURCE_VALIDATED
-ODA3 deliberate boundary-test source implementation: INSTALLED_ON_BRANCH
-ODA3 PR validation: PENDING
-ODA3 merge to main: PENDING
+ODA3 deliberate boundary-test source implementation: MERGED_SOURCE_VALIDATED
+ODA3 PR validation: SUCCESS
+ODA3 merge to main: COMPLETE
 ODA3 exact governed run: PENDING
 ODA3 exact-run evidence packet: PENDING
 ODA3 independent reproduction: PENDING
