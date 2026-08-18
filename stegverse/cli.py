@@ -72,7 +72,8 @@ def _record_navigation_usage(selection: str) -> None:
     """Best-effort usage observation that never becomes an authority dependency."""
     try:
         from .sdk_usage_observability import record_navigation_selection
-        record_navigation_selection(selection)
+        key = selection.strip().upper()
+        record_navigation_selection("0" if key in {"0A", "0B"} else selection)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"WARNING: SDK usage observation unavailable: {exc}", file=sys.stderr)
 
