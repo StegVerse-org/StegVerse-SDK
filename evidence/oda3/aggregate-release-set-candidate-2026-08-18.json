@@ -4,8 +4,12 @@
   "purpose": "Freeze the evaluator-facing released component set for the first ODA3 boundary experiment before the exact governed run.",
   "credential_authority": "TV/TVC",
   "github_runtime_authority": "NONE",
+  "github_release_authority": "NONE",
   "all_components_release_tag_bound": false,
-  "state": "RELEASE_READY_AWAITING_TV_TVC_TAG_PUBLICATION",
+  "state": "BLOCKED_DEPENDENCY_MACHINE_OWNED",
+  "machine_owner": "StegVerse-Labs/TVC/tasks/TVC-ODA3-AGGREGATE-RELEASE-027.json",
+  "machine_issue": "StegVerse-Labs/TVC#78",
+  "blocker": "TVC_MANAGED_EPHEMERAL_RELEASE_PUBLICATION_CAPABILITY_NOT_YET_OBSERVED",
   "components": [
     {
       "role": "sdk_entry",
@@ -16,7 +20,11 @@
       "candidate_commit": "16c99037a42e4d667b9df4a7a5efbaae9dd7184c",
       "candidate_tree": "d238131690fdc3833cc861b69b0760e570e2b55a",
       "candidate_reason": "Frozen ODA3 source-validated evaluator-boundary candidate; later evidence/documentation commits do not silently move it.",
-      "tag_conflict_note": "Existing v1.0.13 resolves to historical commit f219afa17dcb020dc1e13b72f859a86627c5644b and MUST NOT be moved or reused."
+      "historical_tag_collision": {
+        "tag": "v1.0.13",
+        "resolves_to": "f219afa17dcb020dc1e13b72f859a86627c5644b",
+        "must_not_move_or_reuse": true
+      }
     },
     {
       "role": "manifest_route_carrier",
@@ -51,7 +59,10 @@
     "direct_evaluator_steggate_access_authorized": false,
     "release_tag_may_move": false,
     "moving_main_may_substitute_historical_candidate": false,
-    "later_release_may_rewrite_original_exact_run_release_set": false
+    "later_release_may_rewrite_original_exact_run_release_set": false,
+    "handoff_or_assignment_counts_as_completion": false,
+    "machine_owned_counts_as_completion": false,
+    "release_ready_counts_as_released": false
   },
   "publication_gate": {
     "required": true,
@@ -62,6 +73,11 @@
       "StegVerse-Labs/StegCore@v0.2.0",
       "master-records/orchestration@v0.1.0"
     ],
-    "complete_when": "Each required tag exists, resolves exactly to its candidate commit, accessible release notes/changelog are published, and the SDK catalog reports all_components_release_tag_bound=true."
+    "complete_when": "Each required tag exists, resolves exactly to its candidate commit, accessible release notes/changelog are published, a stegverse.tvc.aggregate-release-receipt.v1 is retained, and the SDK catalog reports all_components_release_tag_bound=true."
+  },
+  "downstream_gate": {
+    "task": "StegVerse-org/StegVerse-SDK#47",
+    "run_before_verified_set": false,
+    "state": "BLOCKED_UNTIL_AGGREGATE_RELEASE_RECEIPT"
   }
 }
