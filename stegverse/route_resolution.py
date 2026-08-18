@@ -21,6 +21,7 @@ _ROUTE_FIELDS = (
     "sandbox_required",
     "external_consequence_enabled",
 )
+_ROUTE_MATCH_FIELDS = tuple(field for field in _ROUTE_FIELDS if field != "route_id")
 
 PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
     CANONICAL_PRODUCTION_ROUTE_ID: {
@@ -65,7 +66,7 @@ def governance_state_hash(request: Mapping[str, Any]) -> str:
 
 
 def resolve_route_declaration(declaration: Any) -> dict[str, Any]:
-    """Resolve one manifest route declaration without inventing semantics."""
+    """Resolve one explicit manifest route declaration without inventing semantics."""
     if not isinstance(declaration, Mapping):
         raise ValueError(
             f"manifest requires extensions.{ROUTE_DECLARATION_EXTENSION} declaring a published route"
@@ -105,11 +106,30 @@ def route_from_manifest(canonical_manifest: Mapping[str, Any]) -> dict[str, Any]
     return resolve_route_declaration(extensions.get(ROUTE_DECLARATION_EXTENSION))
 
 
+def _route_id_from_legacy_tuple(provenance: Mapping[str, Any]) -> str:
+    matches = []
+    for route_id, published in PUBLISHED_ROUTES.items():
+        if all(provenance.get(field) == published[field] for field in _ROUTE_MATCH_FIELDS):
+            matches.append(route_id)
+    if len(matches) != 1:
+        raise ValueError("execution_provenance does not identify exactly one published route")
+    return matches[0]
+
+
 def validate_runtime_provenance(provenance: Any) -> dict[str, Any]:
-    """Re-resolve runtime provenance and prove it identifies one installed route."""
+    """Re-resolve runtime provenance and prove it identifies one installed route.
+
+    Older 0A requests may omit ``route_id`` but already declare the full route
+    tuple. They are accepted only when that tuple maps uniquely to one published
+    route. 0B manifests are required to carry an explicit route_id.
+    """
     if not isinstance(provenance, Mapping):
         raise ValueError("execution_provenance must be an object")
-    declaration = {field: provenance.get(field) for field in _ROUTE_FIELDS}
+    route_id = provenance.get("route_id")
+    if route_id is None:
+        route_id = _route_id_from_legacy_tuple(provenance)
+    declaration = {"route_id": route_id}
+    declaration.update({field: provenance.get(field) for field in _ROUTE_MATCH_FIELDS})
     resolved = resolve_route_declaration(declaration)
     supplied_hash = provenance.get("route_declaration_hash")
     if supplied_hash is not None and supplied_hash != resolved["route_declaration_hash"]:
