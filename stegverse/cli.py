@@ -138,11 +138,18 @@ def _canonical_governed_operations(args: argparse.Namespace):
 
 
 def _execute_selected_governance(args: argparse.Namespace, key: str) -> int | None:
-    """Execute ordinary 0A/1/2 when the user supplied the required operand."""
+    """Execute ordinary 0A/0B/1/2 when the caller supplied the required operand."""
     operations = _canonical_governed_operations(args)
-    if key == "0" and args.input:
+    if key in {"0", "0A"} and args.input:
         from .public_inspection import load_public_inspection_request
         result = operations.submit(load_public_inspection_request(args.input))
+    elif key == "0B" and args.manifest:
+        from .governance_ingress_runtime import run_external_manifest
+        result = run_external_manifest(
+            _load_json(args.manifest, "ingress manifest"),
+            custody_db=args.custody_db,
+            host_identity=args.host_identity,
+        )
     elif key == "1" and args.manifest_receipt_id:
         result = operations.replay(args.manifest_receipt_id)
     elif key == "2" and args.manifest_receipt_id:
@@ -164,8 +171,9 @@ def _governance_guide(args: argparse.Namespace) -> int:
         try:
             selection = input("\nSelect an option: ").strip()
         except EOFError:
-            print("\nUse: stegverse governance --select 000|00|0|1|2")
-            print("Execute 0A: stegverse governance --select 0 --input <public-inspection-request.json>")
+            print("\nUse: stegverse governance --select 000|00|0|0A|0B|1|2")
+            print("Execute 0A: stegverse governance --select 0A --input <public-inspection-request.json>")
+            print("Execute 0B: stegverse governance --select 0B --manifest <stegverse.ingress-manifest.v1.json>")
             print("Replay: stegverse governance --select 1 --manifest-receipt-id <MR-...>")
             print("Reconstruct: stegverse governance --select 2 --manifest-receipt-id <MR-...>")
             print("Fallback: stegverse governance --fallback-operation run|replay|reconstruct --fallback-target <target>")
@@ -190,8 +198,12 @@ def _governance_guide(args: argparse.Namespace) -> int:
         print("Master Records custody remains independent of the user-return projection.")
     elif key == "0":
         print("Next: choose 0A for raw/user data or 0B for a preformatted machine manifest.")
-        print("Execute current canonical 0A request: stegverse governance --select 0 --input <public-inspection-request.json>")
-        print("0B execution remains fail-closed until the canonical stegverse.ingress-manifest.v1 binding is installed; no conversion is invented here.")
+        print("Execute 0A: stegverse governance --select 0A --input <public-inspection-request.json>")
+        print("Execute 0B: stegverse governance --select 0B --manifest <stegverse.ingress-manifest.v1.json>")
+    elif key == "0A":
+        print("Provide --input <public-inspection-request.json> to execute option 0A.")
+    elif key == "0B":
+        print("Provide --manifest <stegverse.ingress-manifest.v1.json> to validate, canonicalize, and execute option 0B.")
     elif key == "1":
         print("Next: provide the manifest_receipt_id returned by the original run.")
         print("Execute: stegverse governance --select 1 --manifest-receipt-id <MR-...>")
@@ -295,8 +307,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("surfaces", help="list callable SDK surfaces")
     sub.add_parser("capabilities", help="print the user-facing surface registry as JSON")
     governance = sub.add_parser("governance", help="guided demo/parameter/submit/replay/reconstruct governance navigation")
-    governance.add_argument("--select", choices=("000", "00", "0", "1", "2"), help="show guidance or execute one canonical governance option")
+    governance.add_argument("--select", choices=("000", "00", "0", "0A", "0B", "1", "2"), help="show guidance or execute one canonical governance option")
     governance.add_argument("--input", help="option 0A public-inspection request JSON to execute through the canonical sovereign runtime")
+    governance.add_argument("--manifest", help="option 0B stegverse.ingress-manifest.v1 JSON to validate/canonicalize and execute through the canonical sovereign runtime")
     governance.add_argument("--manifest-receipt-id", help="canonical MR-* locator for option 1 replay or option 2 reconstruction")
     governance.add_argument("--fallback-operation", choices=("run", "replay", "reconstruct"), help="use the permanent canonical sovereign degraded-mode path")
     governance.add_argument("--fallback-target", help="request JSON path for fallback run, or manifest_receipt_id for replay/reconstruct")
