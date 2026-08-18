@@ -8,11 +8,17 @@ on:
       - inspection/examples/governed-test-request.json
       - stegverse/public_inspection.py
       - stegverse/sovereign_validation_runtime.py
+      - stegverse/governance_navigation.py
+      - stegverse/governance_ingress_runtime.py
+      - stegverse/governance_ingress_cli.py
+      - stegverse/cli.py
       - stegverse/evaluation_boundary_verifier.py
       - scripts/validate_public_inspection_request.py
       - scripts/build_evaluation_boundary_artifact_manifest.py
       - tests/test_public_inspection_request.py
       - tests/test_public_inspection_governed_binding.py
+      - tests/test_governance_ingress_runtime.py
+      - tests/test_cli_preformatted_manifest.py
       - tests/test_evaluation_boundary_contract.py
       - EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md
       - docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md
@@ -26,11 +32,17 @@ on:
       - inspection/examples/governed-test-request.json
       - stegverse/public_inspection.py
       - stegverse/sovereign_validation_runtime.py
+      - stegverse/governance_navigation.py
+      - stegverse/governance_ingress_runtime.py
+      - stegverse/governance_ingress_cli.py
+      - stegverse/cli.py
       - stegverse/evaluation_boundary_verifier.py
       - scripts/validate_public_inspection_request.py
       - scripts/build_evaluation_boundary_artifact_manifest.py
       - tests/test_public_inspection_request.py
       - tests/test_public_inspection_governed_binding.py
+      - tests/test_governance_ingress_runtime.py
+      - tests/test_cli_preformatted_manifest.py
       - tests/test_evaluation_boundary_contract.py
       - EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md
       - docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md
@@ -57,7 +69,7 @@ jobs:
           curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
           mkdir /tmp/source
           tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
-      - name: Validate public inspection manifests
+      - name: Validate public inspection and generic manifest ingress
         run: |
           set -eu
           cd /tmp/source
@@ -65,14 +77,20 @@ jobs:
           python scripts/validate_public_inspection_request.py inspection/examples/governed-test-request.json
           python -m unittest tests.test_public_inspection_request
           python -m unittest tests.test_public_inspection_governed_binding
+          python -m unittest tests.test_governance_ingress_runtime
+          python -m unittest tests.test_cli_preformatted_manifest
           python -m unittest tests.test_evaluation_boundary_contract
-      - name: Compile evaluator-boundary modules
+      - name: Compile evaluator-boundary and ingress modules
         run: |
           set -eu
           cd /tmp/source
           python -m py_compile \
             stegverse/public_inspection.py \
             stegverse/sovereign_validation_runtime.py \
+            stegverse/governance_navigation.py \
+            stegverse/governance_ingress_runtime.py \
+            stegverse/governance_ingress_cli.py \
+            stegverse/cli.py \
             stegverse/evaluation_boundary_verifier.py \
             scripts/validate_public_inspection_request.py \
             scripts/build_evaluation_boundary_artifact_manifest.py
