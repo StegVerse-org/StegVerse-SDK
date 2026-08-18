@@ -1,0 +1,66 @@
+{
+  "schema": "stegverse.oda3.aggregate-release-set.v1",
+  "release_set_id": "ODA3-EVALUATOR-PATH-2026-08-18-R1",
+  "purpose": "Freeze the evaluator-facing released component set for the first ODA3 boundary experiment before the exact governed run.",
+  "credential_authority": "TV/TVC",
+  "github_runtime_authority": "NONE",
+  "all_components_release_tag_bound": false,
+  "state": "RELEASE_READY_AWAITING_TV_TVC_TAG_PUBLICATION",
+  "components": [
+    {
+      "role": "sdk_entry",
+      "repository": "StegVerse-org/StegVerse-SDK",
+      "package": "stegverse-sdk",
+      "package_version": "1.0.13",
+      "target_release_tag": "v1.0.13",
+      "candidate_commit": "16c99037a42e4d667b9df4a7a5efbaae9dd7184c",
+      "candidate_tree": "d238131690fdc3833cc861b69b0760e570e2b55a",
+      "candidate_reason": "Frozen ODA3 source-validated evaluator-boundary candidate; later evidence/documentation commits do not silently move it."
+    },
+    {
+      "role": "manifest_route_carrier",
+      "repository": "Data-Continuation/core-lite",
+      "package": "stegverse-core-lite",
+      "package_version": "0.9.0",
+      "target_release_tag": "v0.9.0",
+      "candidate_commit": "72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8"
+    },
+    {
+      "role": "governance_runtime",
+      "repository": "StegVerse-Labs/StegCore",
+      "package": "stegcore",
+      "package_version": "0.2.0",
+      "target_release_tag": "v0.2.0",
+      "candidate_commit": "083557adec1bdbace09ebd10fb0765eb8e9a9d08",
+      "runtime_identity": "stegverse:steggate:canonical:three-layer:v1"
+    },
+    {
+      "role": "exact_run_custody",
+      "repository": "master-records/orchestration",
+      "package": "stegverse-master-records",
+      "package_version": "0.1.0",
+      "target_release_tag": "v0.1.0",
+      "candidate_commit": "6626c6a7f1df6bf531940c165b2f4db374e08b92"
+    }
+  ],
+  "invariants": {
+    "external_evaluator_ingress": "StegVerse SDK only",
+    "direct_evaluator_core_lite_access_authorized": false,
+    "direct_evaluator_stegcore_access_authorized": false,
+    "direct_evaluator_steggate_access_authorized": false,
+    "release_tag_may_move": false,
+    "moving_main_may_substitute_historical_candidate": false,
+    "later_release_may_rewrite_original_exact_run_release_set": false
+  },
+  "publication_gate": {
+    "required": true,
+    "authority": "TV/TVC-governed release authority",
+    "required_tags": [
+      "StegVerse-org/StegVerse-SDK@v1.0.13",
+      "Data-Continuation/core-lite@v0.9.0",
+      "StegVerse-Labs/StegCore@v0.2.0",
+      "master-records/orchestration@v0.1.0"
+    ],
+    "complete_when": "Each required tag exists, resolves exactly to its candidate commit, accessible release notes/changelog are published, and the SDK catalog reports all_components_release_tag_bound=true."
+  }
+}
