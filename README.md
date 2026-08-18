@@ -29,6 +29,8 @@ Direct help is also available:
 stegverse governance --select 000
 stegverse governance --select 00
 stegverse governance --select 0
+stegverse governance --select 0A
+stegverse governance --select 0B
 stegverse governance --select 1
 stegverse governance --select 2
 ```
@@ -49,7 +51,7 @@ The same commands are available through `python -m stegverse contract ...`.
 An evaluator may author the resulting JSON anywhere, by hand or programmatically, and submit it with:
 
 ```bash
-stegverse governance --select 0 --input my-test.json
+stegverse governance --select 0A --input my-test.json
 ```
 
 or directly through the canonical runtime:
@@ -58,7 +60,19 @@ or directly through the canonical runtime:
 python -m stegverse.public_inspection_runtime run my-test.json
 ```
 
-`000` and `00` are optional human/LLM transparency surfaces. Machines can use the published public-inspection request contract directly through option `0A` / `stegverse.public_inspection_runtime` without first disclosing a proposed test to a StegVerse developer. The separate `0B` path for a preformatted `stegverse.ingress-manifest.v1` is intentionally fail-closed until its canonical binding is installed; the SDK does not invent that conversion.
+A caller that already has a preformatted `stegverse.ingress-manifest.v1` can submit that manifest through the same primary governance console:
+
+```bash
+stegverse governance --select 0B --manifest my-manifest.json
+```
+
+The equivalent credential-free module entry remains available:
+
+```bash
+python -m stegverse.governance_ingress_cli 0B my-manifest.json
+```
+
+`000` and `00` are optional human/LLM transparency surfaces. Option `0A` manifests raw/user request data through the SDK. Option `0B` validates and canonicalizes a supplied ingress manifest, verifies its bound governance request and candidate identity, and then delegates the accepted request to the canonical sovereign runtime. Invalid, incomplete, conflicting, or unsupported manifests fail closed rather than being converted by invented semantics.
 
 ## Run the canonical governed TEST locally
 
@@ -104,7 +118,7 @@ The governance and custody transitions are real TEST evidence; the test does not
 
 ## Evaluator-defined manifests, fixed testing route
 
-A tester or evaluator does not need to disclose a proposed test to a StegVerse developer so the developer can construct a special route. If the published SDK already exposes the required capability, the evaluator can declare the experiment in the request manifest and submit it through the same canonical route used by other evaluators.
+A tester or evaluator does not need to disclose a proposed test to a StegVerse developer so the developer can construct a special route. If the published SDK already exposes the required capability, the evaluator can declare the experiment in the request manifest and submit it through the published governed routing contract.
 
 The optional `evaluation_declaration` records the evaluator's **WHAT / HOW / WHY** before execution:
 
@@ -335,6 +349,8 @@ python scripts/validate_public_inspection_request.py inspection/examples/governe
 python -m unittest tests.test_public_inspection_request
 python -m unittest tests.test_public_inspection_governed_binding
 python -m unittest tests.test_public_inspection_runtime
+python -m unittest tests.test_governance_ingress_runtime
+python -m unittest tests.test_cli_preformatted_manifest
 pytest -q tests/test_evaluator_contract_console.py
 ```
 
