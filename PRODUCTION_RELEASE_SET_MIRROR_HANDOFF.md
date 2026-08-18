@@ -22,7 +22,7 @@ aggregate_manifest: evidence/oda3/aggregate-release-set-candidate-2026-08-18.jso
 
 sdk_entry              StegVerse-org/StegVerse-SDK
                        package stegverse-sdk 1.0.13
-                       target tag v1.0.13
+                       target tag v1.0.13-oda3-r1
                        frozen candidate 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
                        frozen tree d238131690fdc3833cc861b69b0760e570e2b55a
                        release notes RELEASE_NOTES_EVALUATOR_PATH_1.0.13.md
@@ -47,6 +47,12 @@ exact_run_custody      master-records/orchestration
                        release notes RELEASE_NOTES_EVALUATOR_PATH_0.1.0.md
 ```
 
+## SDK historical-tag collision correction — 2026-08-18
+
+Live tag resolution found that pre-existing `v1.0.13` resolves to historical commit `f219afa17dcb020dc1e13b72f859a86627c5644b`, 1242 commits behind the frozen ODA3 candidate. The tag must not be moved or reused. The aggregate set therefore uses `v1.0.13-oda3-r1` for the frozen ODA3 candidate while the package version remains `1.0.13`.
+
+The new tag name was checked before assignment and does not currently resolve to an existing commit.
+
 The SDK candidate is the already-frozen ODA3 source-validated candidate. Later receipt/documentation commits do not silently move that candidate. A replacement candidate requires a new source receipt and explicit release-set revision.
 
 ## External evaluator surface invariant
@@ -60,37 +66,13 @@ direct evaluator StegGate submission: not authorized
 
 The external evaluator enters through the controlled manifested SDK path. Core-Lite, StegCore, and StegGate remain downstream governed/internal surfaces for this experiment.
 
-## Implemented SDK surfaces
-
-```text
-stegverse test-procedure
-stegverse test-procedure --offline
-stegverse production-releases catalog
-stegverse production-releases installed
-```
-
-New governed runs through both:
-
-```text
-stegverse governance --select 0 --input <request.json>
-python -m stegverse.public_inspection_runtime run <request.json>
-```
-
-bind `production_release_set` into exact-run evidence. Replay and reconstruction return:
-
-```text
-original_production_release_set
-current_production_release_set
-production_release_set_comparison
-historical_release_set_available
-```
-
 ## Release semantics
 
 ```text
 moving branch != release identity
 commit pin != release tag
 release tag must resolve to immutable candidate commit
+existing tag must never be retargeted
 release notes/changelog are part of evaluator-facing release metadata
 future release != historical runtime substitution
 replay/reconstruction never rewrites original release-set evidence
@@ -100,13 +82,11 @@ replay/reconstruction never rewrites original release-set evidence
 
 ## Release readiness
 
-The three dependency release handoffs now have fixed target tags and prepared release notes bound to the already-validated historical candidates. The SDK aggregate manifest fixes the SDK candidate and target tag as well.
-
 ```text
-StegVerse SDK target: v1.0.13 -> 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
-Core-Lite target:     v0.9.0  -> 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
-StegCore target:      v0.2.0  -> 083557adec1bdbace09ebd10fb0765eb8e9a9d08
-Master Records target:v0.1.0  -> 6626c6a7f1df6bf531940c165b2f4db374e08b92
+StegVerse SDK target: v1.0.13-oda3-r1 -> 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
+Core-Lite target:     v0.9.0          -> 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+StegCore target:      v0.2.0          -> 083557adec1bdbace09ebd10fb0765eb8e9a9d08
+Master Records target:v0.1.0          -> 6626c6a7f1df6bf531940c165b2f4db374e08b92
 ```
 
 Actual tag/release publication remains a TV/TVC-governed release-authority action. GitHub Actions must not become runtime/control-plane authority and no non-TV/TVC release credential is permitted.
@@ -127,33 +107,28 @@ validated tree: d238131690fdc3833cc861b69b0760e570e2b55a
 merged frozen candidate: 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
 24 source/boundary tests: PASS
 17 exact artifacts hashed; missing artifacts: []
+
+SDK tag collision verification:
+existing v1.0.13 -> f219afa17dcb020dc1e13b72f859a86627c5644b
+candidate compared from v1.0.13: 1242 commits ahead
+v1.0.13-oda3-r1 pre-publication lookup: NOT FOUND
 ```
 
-The ODA3 validated PR head and frozen SDK candidate share the exact same Git tree.
-
 ## Cross-repo worker tasks
-
-Durable release-control handoffs:
 
 ```text
 StegVerse-Labs/StegCore/PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
 Data-Continuation/core-lite/PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
 master-records/orchestration/PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
-```
-
-Durable worker issues:
-
-```text
-StegVerse-Labs/StegCore#140
-Data-Continuation/core-lite#15
-master-records/orchestration#35
-StegVerse-org/StegVerse-SDK#41
+StegVerse-Labs/TVC/tasks/TVC-ODA3-AGGREGATE-RELEASE-027.json
+StegVerse-Labs/TVC#78
+StegVerse-org/StegVerse-SDK#47
 ```
 
 ## Remaining executable work
 
 ```text
-1. TV/TVC release authority publishes the four fixed tags against the exact candidates.
+1. TV/TVC release authority publishes the four fixed nonconflicting tags against the exact candidates.
 2. Publish/attach the prepared accessible release notes/changelogs.
 3. Verify each tag resolves to the exact recorded candidate commit.
 4. Update the aggregate manifest/catalog from tag-publication-pending to tag-bound.
@@ -168,8 +143,9 @@ StegVerse-org/StegVerse-SDK#41
 ```text
 SDK-PRODUCTION-RELEASE-SET-001: IMPLEMENTED_SOURCE_VALIDATED
 ODA3_AGGREGATE_RELEASE_SET: FROZEN_RELEASE_READY
+SDK_HISTORICAL_TAG_COLLISION: DETECTED_AND_CORRECTED
 RELEASE_NOTES_ALL_COMPONENTS: PREPARED
-TARGET_TAGS_ALL_COMPONENTS: FIXED
+TARGET_TAGS_ALL_COMPONENTS: FIXED_NONCONFLICTING
 TAG_PUBLICATION: PENDING_TV_TVC_RELEASE_AUTHORITY
 ALL_COMPONENTS_RELEASE_TAG_BOUND: FALSE_UNTIL_RELEASES_EXIST
 ```
