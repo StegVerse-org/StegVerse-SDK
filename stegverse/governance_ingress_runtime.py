@@ -17,21 +17,43 @@ from .governance_navigation import (
     demo_output_manifest_shape,
     validate_external_manifest,
 )
+from .route_resolution import (
+    CANONICAL_PRODUCTION_ROUTE_ID,
+    governance_state_hash,
+    resolve_route_declaration,
+    route_from_manifest,
+)
 
 GOVERNANCE_REQUEST_EXTENSION = "stegverse_governance_request"
 
 
-def _production_provenance(origin_surface: str) -> dict[str, Any]:
-    return {
+def _execution_provenance(resolved_route: Mapping[str, Any], origin_surface: str, state_hash: str | None = None) -> dict[str, Any]:
+    value = {
+        "route_id": resolved_route["route_id"],
+        "route_declaration_hash": resolved_route["route_declaration_hash"],
+        "lane_class": resolved_route["lane_class"],
+        "routing_surface": resolved_route["routing_surface"],
+        "containment": resolved_route["containment"],
+        "sandbox_required": resolved_route["sandbox_required"],
+        "sandbox_tier": "NONE",
+        "origin_surface": origin_surface,
+        "external_consequence_enabled": resolved_route["external_consequence_enabled"],
+        "third_party_host_required": False,
+    }
+    if state_hash is not None:
+        value["state_binding_hash"] = state_hash
+    return value
+
+
+def _canonical_production_route() -> dict[str, Any]:
+    return resolve_route_declaration({
+        "route_id": CANONICAL_PRODUCTION_ROUTE_ID,
         "lane_class": "PRODUCTION_VALIDATION",
         "routing_surface": "CANONICAL_PRODUCTION",
         "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
         "sandbox_required": False,
-        "sandbox_tier": "NONE",
-        "origin_surface": origin_surface,
         "external_consequence_enabled": False,
-        "third_party_host_required": False,
-    }
+    })
 
 
 def _bounded_request_id(prefix: str, source_output_id: str, digest: str) -> str:
@@ -41,7 +63,9 @@ def _bounded_request_id(prefix: str, source_output_id: str, digest: str) -> str:
     return value[:80]
 
 
-def _governance_request_from_manifest(canonical: Mapping[str, Any]) -> dict[str, Any]:
+def _governance_request_from_manifest(
+    canonical: Mapping[str, Any], resolved_route: Mapping[str, Any]
+) -> tuple[dict[str, Any], str]:
     extensions = canonical.get("extensions")
     if not isinstance(extensions, Mapping):
         raise ValueError("0B executable manifest requires extensions to be an object")
@@ -58,6 +82,7 @@ def _governance_request_from_manifest(canonical: Mapping[str, Any]) -> dict[str,
     if canonical_sha256(candidate) != canonical_sha256(canonical["candidate"]):
         raise ValueError("0B manifest candidate does not match governance_request candidate")
 
+    state_hash = governance_state_hash(request)
     identity = {
         "manifest_profile": canonical["manifest_profile"],
         "manifest_profile_version": canonical["manifest_profile_version"],
@@ -68,6 +93,12 @@ def _governance_request_from_manifest(canonical: Mapping[str, Any]) -> dict[str,
         "ingress_mode": "external_manifest",
         "authority_effect": "NONE",
     }
+    route_binding = {
+        "route_id": resolved_route["route_id"],
+        "route_declaration_hash": resolved_route["route_declaration_hash"],
+        "state_binding_hash": state_hash,
+        "route_substitution_permitted": False,
+    }
     context = request.get("declared_context")
     if context is None:
         context = {}
@@ -77,23 +108,31 @@ def _governance_request_from_manifest(canonical: Mapping[str, Any]) -> dict[str,
     existing = context.get("sdk_ingress_manifest_identity")
     if existing is not None and existing != identity:
         raise ValueError("governance_request contains conflicting sdk_ingress_manifest_identity")
+    existing_route = context.get("sdk_route_binding")
+    if existing_route is not None and existing_route != route_binding:
+        raise ValueError("governance_request contains conflicting sdk_route_binding")
     context["sdk_ingress_manifest_identity"] = identity
+    context["sdk_route_binding"] = route_binding
     request["declared_context"] = context
-    return request
+    return request, state_hash
 
 
 def external_manifest_to_public_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
-    """Bind a conforming 0B ingress manifest to canonical sovereign execution.
+    """Bind a conforming 0B manifest to the route it explicitly declares.
 
     Structural validity is not enough: executable 0B input must carry the full
-    canonical StegGate request in the profile's existing ``extensions`` surface.
-    This prevents the SDK from fabricating judgment/signal/execution evidence.
+    canonical StegGate request and a published route declaration in ``extensions``.
+    The SDK resolves that declaration, binds the governance-relevant state to it,
+    and rejects unknown/conflicting routes instead of silently substituting a
+    default route.
     """
     canonical = validate_external_manifest(manifest)
-    governance_request = _governance_request_from_manifest(canonical)
+    resolved_route = route_from_manifest(canonical)
+    governance_request, state_hash = _governance_request_from_manifest(canonical, resolved_route)
     digest = canonical["canonical_manifest_sha256"]
     input_data: dict[str, Any] = {
         "ingress_manifest_identity": governance_request["declared_context"]["sdk_ingress_manifest_identity"],
+        "route_binding": governance_request["declared_context"]["sdk_route_binding"],
     }
     if canonical.get("payload") is not None:
         input_data["payload"] = canonical["payload"]
@@ -105,16 +144,21 @@ def external_manifest_to_public_request(manifest: Mapping[str, Any]) -> dict[str
         "request_id": _bounded_request_id("sdk-0b", canonical["source_output_id"], digest),
         "requester_label": canonical["source_framework"],
         "case_profile": "ordinary",
-        "execution_provenance": _production_provenance("StegVerse-org/StegVerse-SDK:governance-0B"),
+        "execution_provenance": _execution_provenance(
+            resolved_route,
+            "StegVerse-org/StegVerse-SDK:governance-0B",
+            state_hash,
+        ),
         "input": {
             "steggate_request": governance_request,
             "input_data": input_data,
             "ingress_manifest_identity": input_data["ingress_manifest_identity"],
+            "route_binding": input_data["route_binding"],
         },
         "return_projection": canonical["return_projection"]["mode"],
         "manifest_labels": canonical["manifest_labels"]["mode"] != "NONE",
         "authority_claim": False,
-        "notes": f"0B canonical ingress manifest {digest}; validation does not grant authority",
+        "notes": f"0B manifest {digest}; declared route resolved without substitution; validation does not grant authority",
     }
 
 
@@ -133,58 +177,65 @@ def build_000_public_request() -> dict[str, Any]:
         "scope": "demo",
         "parameters": {"dataset_sha256": dataset_hash, "external_side_effect": False},
     }
+    steggate_request = {
+        "candidate": candidate,
+        "judgment": {
+            "refusal_available": True,
+            "operator_recoverability": "available",
+            "workload_state": "supported",
+            "time_pressure": "normal",
+            "isolation_state": "supported",
+            "evidence_refs": [f"sdk-demo-dataset:{dataset_hash}"],
+        },
+        "signal": {
+            "admitted_signal_refs": [f"sdk-demo-dataset:{dataset_hash}"],
+            "excluded_signal_refs": [],
+            "transformations": [],
+            "missing_inputs": [],
+            "uncertainty_state": "bounded",
+            "reference_state_hash": dataset_hash,
+            "expected_reference_state_hash": dataset_hash,
+            "reconstruction_available": True,
+            "transformation_provenance_complete": True,
+        },
+        "execution": {
+            "actor_authority_current": True,
+            "policy_current": True,
+            "delegation_current": True,
+            "evidence_current": True,
+            "affected_entity_conditions_represented": True,
+            "recoverability_profile": "recoverable",
+            "validity_window_open": True,
+            "policy_ref": "stegverse-sdk-demo:no-external-side-effect",
+            "delegation_ref": "stegverse-sdk-demo:simulation-only",
+            "evidence_refs": [f"sdk-demo-dataset:{dataset_hash}"],
+        },
+        "capability": {"allowed": True},
+        "continuity": {"required": False},
+        "approval": {"required": False},
+        "permission_present": True,
+        "declared_context": {
+            "demo_only": True,
+            "dataset_schema": DEMO_DATASET_PROFILE,
+            "dataset_sha256": dataset_hash,
+            "external_side_effect": False,
+            "authority_effect": "NONE",
+        },
+    }
+    resolved_route = _canonical_production_route()
+    state_hash = governance_state_hash(steggate_request)
     return {
         "schema_version": "1.0",
         "request_id": f"sdk-000-{dataset_hash[:16]}",
         "requester_label": "StegVerse SDK option 000",
         "case_profile": "ordinary",
-        "execution_provenance": _production_provenance("StegVerse-org/StegVerse-SDK:governance-000"),
+        "execution_provenance": _execution_provenance(
+            resolved_route,
+            "StegVerse-org/StegVerse-SDK:governance-000",
+            state_hash,
+        ),
         "input": {
-            "steggate_request": {
-                "candidate": candidate,
-                "judgment": {
-                    "refusal_available": True,
-                    "operator_recoverability": "available",
-                    "workload_state": "supported",
-                    "time_pressure": "normal",
-                    "isolation_state": "supported",
-                    "evidence_refs": [f"sdk-demo-dataset:{dataset_hash}"],
-                },
-                "signal": {
-                    "admitted_signal_refs": [f"sdk-demo-dataset:{dataset_hash}"],
-                    "excluded_signal_refs": [],
-                    "transformations": [],
-                    "missing_inputs": [],
-                    "uncertainty_state": "bounded",
-                    "reference_state_hash": dataset_hash,
-                    "expected_reference_state_hash": dataset_hash,
-                    "reconstruction_available": True,
-                    "transformation_provenance_complete": True,
-                },
-                "execution": {
-                    "actor_authority_current": True,
-                    "policy_current": True,
-                    "delegation_current": True,
-                    "evidence_current": True,
-                    "affected_entity_conditions_represented": True,
-                    "recoverability_profile": "recoverable",
-                    "validity_window_open": True,
-                    "policy_ref": "stegverse-sdk-demo:no-external-side-effect",
-                    "delegation_ref": "stegverse-sdk-demo:simulation-only",
-                    "evidence_refs": [f"sdk-demo-dataset:{dataset_hash}"],
-                },
-                "capability": {"allowed": True},
-                "continuity": {"required": False},
-                "approval": {"required": False},
-                "permission_present": True,
-                "declared_context": {
-                    "demo_only": True,
-                    "dataset_schema": DEMO_DATASET_PROFILE,
-                    "dataset_sha256": dataset_hash,
-                    "external_side_effect": False,
-                    "authority_effect": "NONE",
-                },
-            },
+            "steggate_request": steggate_request,
             "input_data": {
                 "payload": dataset,
                 "demo_dataset_sha256": dataset_hash,
