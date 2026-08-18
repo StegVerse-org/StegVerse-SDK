@@ -8,8 +8,32 @@ on:
       - inspection/examples/governed-test-request.json
       - stegverse/public_inspection.py
       - stegverse/sovereign_validation_runtime.py
+      - stegverse/evaluation_boundary_verifier.py
       - scripts/validate_public_inspection_request.py
+      - scripts/build_evaluation_boundary_artifact_manifest.py
       - tests/test_public_inspection_request.py
+      - tests/test_public_inspection_governed_binding.py
+      - tests/test_evaluation_boundary_contract.py
+      - EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md
+      - docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md
+      - README.md
+      - docs/SDK_CONSOLE.md
+      - .github/workflows/evaluator-manifest-source-validation.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - inspection/request.schema.json
+      - inspection/examples/governed-test-request.json
+      - stegverse/public_inspection.py
+      - stegverse/sovereign_validation_runtime.py
+      - stegverse/evaluation_boundary_verifier.py
+      - scripts/validate_public_inspection_request.py
+      - scripts/build_evaluation_boundary_artifact_manifest.py
+      - tests/test_public_inspection_request.py
+      - tests/test_public_inspection_governed_binding.py
+      - tests/test_evaluation_boundary_contract.py
+      - EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md
+      - docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md
       - README.md
       - docs/SDK_CONSOLE.md
       - .github/workflows/evaluator-manifest-source-validation.yml
@@ -24,7 +48,7 @@ jobs:
       - name: Materialize public source anonymously
         env:
           SOURCE_REPO: ${{ github.repository }}
-          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -eu
           test -z "${GITHUB_TOKEN:-}"
@@ -40,12 +64,19 @@ jobs:
           python scripts/validate_public_inspection_request.py inspection/examples/example-request.json
           python scripts/validate_public_inspection_request.py inspection/examples/governed-test-request.json
           python -m unittest tests.test_public_inspection_request
-      - name: Compile changed runtime modules
+          python -m unittest tests.test_public_inspection_governed_binding
+          python -m unittest tests.test_evaluation_boundary_contract
+      - name: Compile evaluator-boundary modules
         run: |
           set -eu
           cd /tmp/source
-          python -m py_compile stegverse/public_inspection.py stegverse/sovereign_validation_runtime.py scripts/validate_public_inspection_request.py
+          python -m py_compile \
+            stegverse/public_inspection.py \
+            stegverse/sovereign_validation_runtime.py \
+            stegverse/evaluation_boundary_verifier.py \
+            scripts/validate_public_inspection_request.py \
+            scripts/build_evaluation_boundary_artifact_manifest.py
       - name: Record source-only boundary
         run: |
           echo 'EVALUATOR_MANIFEST_SOURCE_VALIDATION_PASS'
-          echo 'This job validates source/schema behavior only; it grants no runtime, release, custody, or evaluator authority.'
+          echo 'This job validates source/schema/binding behavior only; it grants no runtime, release, custody, signing, or evaluator authority.'

@@ -5,12 +5,24 @@ import unittest
 from stegverse.public_inspection import PublicInspectionRequestError, prepare_public_inspection_submission, validate_public_inspection_request
 
 
+PROVENANCE = {
+    "lane_class": "PRODUCTION_VALIDATION",
+    "routing_surface": "CANONICAL_PRODUCTION",
+    "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
+    "sandbox_required": False,
+    "sandbox_tier": "NONE",
+    "origin_surface": "StegVerse-org/StegVerse-SDK:public-inspection",
+    "external_consequence_enabled": False,
+}
+
+
 class PublicInspectionGovernedBindingTests(unittest.TestCase):
     def request(self):
         return {
             "schema_version": "1.0",
             "request_id": "inspection-001",
             "case_profile": "ordinary",
+            "execution_provenance": dict(PROVENANCE),
             "input": {"candidate": {"action": "inspect"}, "value": 420},
             "return_projection": "ALL",
             "manifest_labels": True,
