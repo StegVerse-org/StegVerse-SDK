@@ -116,10 +116,19 @@ def _validate_evaluation_declaration(value: Any) -> dict[str, Any] | None:
     }
 
 
+def _validate_sha256_hex(value: Any, field: str) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str) or len(value) != 64 or any(ch not in "0123456789abcdef" for ch in value.lower()):
+        raise PublicInspectionRequestError(f"invalid {field}")
+    return value.lower()
+
+
 def _validate_execution_provenance(value: Any) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         raise PublicInspectionRequestError("execution_provenance must be an object")
     allowed = {
+        "route_id", "route_declaration_hash", "state_binding_hash",
         "lane_class", "routing_surface", "containment", "sandbox_required",
         "sandbox_tier", "origin_surface", "external_consequence_enabled",
         "execution_host_class", "execution_host_identity", "third_party_host_required",
@@ -134,6 +143,11 @@ def _validate_execution_provenance(value: Any) -> dict[str, Any]:
     lane = value.get("lane_class")
     if lane not in LANE_CLASSES:
         raise PublicInspectionRequestError("unsupported execution_provenance.lane_class")
+    route_id = value.get("route_id")
+    if route_id is not None and (not isinstance(route_id, str) or not route_id.strip() or len(route_id) > 200):
+        raise PublicInspectionRequestError("invalid execution_provenance.route_id")
+    _validate_sha256_hex(value.get("route_declaration_hash"), "execution_provenance.route_declaration_hash")
+    _validate_sha256_hex(value.get("state_binding_hash"), "execution_provenance.state_binding_hash")
     if not isinstance(value.get("sandbox_required"), bool) or not isinstance(value.get("external_consequence_enabled"), bool):
         raise PublicInspectionRequestError("execution_provenance boolean fields are invalid")
     if value.get("external_consequence_enabled") is not False:
@@ -148,7 +162,12 @@ def _validate_execution_provenance(value: Any) -> dict[str, Any]:
             raise PublicInspectionRequestError("ENCLOSED_DEMO_TEST requires DEMO_TEST_REPOSITORY routing")
         if value.get("containment") != "DEMO_REPOSITORY_CONTAINED" or value.get("sandbox_required") is not True:
             raise PublicInspectionRequestError("ENCLOSED_DEMO_TEST containment is invalid")
-    return dict(value)
+    normalized = dict(value)
+    if normalized.get("route_declaration_hash") is not None:
+        normalized["route_declaration_hash"] = str(normalized["route_declaration_hash"]).lower()
+    if normalized.get("state_binding_hash") is not None:
+        normalized["state_binding_hash"] = str(normalized["state_binding_hash"]).lower()
+    return normalized
 
 
 def validate_public_inspection_request(request: Mapping[str, Any]) -> dict[str, Any]:
