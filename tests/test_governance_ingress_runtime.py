@@ -10,6 +10,11 @@ from stegverse.governance_ingress_runtime import (
     run_000_demo,
 )
 from stegverse.governance_navigation import canonical_sha256, demo_output_manifest_shape
+from stegverse.route_resolution import (
+    CANONICAL_PRODUCTION_ROUTE_ID,
+    ROUTE_DECLARATION_EXTENSION,
+    governance_state_hash,
+)
 
 
 def governance_request(candidate):
@@ -54,7 +59,18 @@ def governance_request(candidate):
     }
 
 
-def external_manifest(*, include_governance=True, mismatched=False):
+def production_route():
+    return {
+        "route_id": CANONICAL_PRODUCTION_ROUTE_ID,
+        "lane_class": "PRODUCTION_VALIDATION",
+        "routing_surface": "CANONICAL_PRODUCTION",
+        "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
+        "sandbox_required": False,
+        "external_consequence_enabled": False,
+    }
+
+
+def external_manifest(*, include_governance=True, include_route=True, mismatched=False, route=None):
     payload = {"value": 1}
     candidate = {
         "actor_class": "external_system",
@@ -69,6 +85,8 @@ def external_manifest(*, include_governance=True, mismatched=False):
     extensions = {}
     if include_governance:
         extensions[GOVERNANCE_REQUEST_EXTENSION] = governance_request(request_candidate)
+    if include_route:
+        extensions[ROUTE_DECLARATION_EXTENSION] = dict(route or production_route())
     return {
         "manifest_profile": "stegverse.ingress-manifest.v1",
         "manifest_profile_version": "1",
@@ -99,14 +117,35 @@ class Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "complete canonical StegGate request"):
             external_manifest_to_public_request(external_manifest(include_governance=False))
 
+    def test_0b_requires_explicit_published_route(self):
+        with self.assertRaisesRegex(ValueError, "declaring a published route"):
+            external_manifest_to_public_request(external_manifest(include_route=False))
+
+    def test_0b_rejects_unknown_route_instead_of_substituting_default(self):
+        bad = production_route()
+        bad["route_id"] = "stegverse.route.unknown.v1"
+        with self.assertRaisesRegex(ValueError, "unsupported manifest route"):
+            external_manifest_to_public_request(external_manifest(route=bad))
+
+    def test_0b_rejects_route_tuple_conflict(self):
+        bad = production_route()
+        bad["routing_surface"] = "DEMO_TEST_REPOSITORY"
+        with self.assertRaisesRegex(ValueError, "conflicts with published routing_surface"):
+            external_manifest_to_public_request(external_manifest(route=bad))
+
     def test_0b_fails_closed_on_candidate_identity_mismatch(self):
         with self.assertRaisesRegex(ValueError, "does not match"):
             external_manifest_to_public_request(external_manifest(mismatched=True))
 
-    def test_0b_preserves_manifest_identity_without_granting_authority(self):
-        request = external_manifest_to_public_request(external_manifest())
+    def test_0b_preserves_manifest_identity_route_and_state_binding_without_granting_authority(self):
+        manifest = external_manifest()
+        original_state = manifest["extensions"][GOVERNANCE_REQUEST_EXTENSION]
+        request = external_manifest_to_public_request(manifest)
         self.assertFalse(request["authority_claim"])
-        self.assertFalse(request["execution_provenance"]["external_consequence_enabled"])
+        provenance = request["execution_provenance"]
+        self.assertFalse(provenance["external_consequence_enabled"])
+        self.assertEqual(CANONICAL_PRODUCTION_ROUTE_ID, provenance["route_id"])
+        self.assertEqual(governance_state_hash(original_state), provenance["state_binding_hash"])
         identity = request["input"]["ingress_manifest_identity"]
         self.assertEqual("stegverse.ingress-manifest.v1", identity["manifest_profile"])
         self.assertEqual("fixture-framework", identity["source_framework"])
@@ -116,6 +155,11 @@ class Tests(unittest.TestCase):
             identity,
             request["input"]["steggate_request"]["declared_context"]["sdk_ingress_manifest_identity"],
         )
+        route_binding = request["input"]["route_binding"]
+        self.assertEqual(CANONICAL_PRODUCTION_ROUTE_ID, route_binding["route_id"])
+        self.assertEqual(provenance["route_declaration_hash"], route_binding["route_declaration_hash"])
+        self.assertEqual(provenance["state_binding_hash"], route_binding["state_binding_hash"])
+        self.assertFalse(route_binding["route_substitution_permitted"])
 
     def test_000_builds_complete_bounded_canonical_request(self):
         request = build_000_public_request()
@@ -128,6 +172,7 @@ class Tests(unittest.TestCase):
         self.assertFalse(gate["continuity"]["required"])
         self.assertFalse(gate["approval"]["required"])
         self.assertFalse(request["execution_provenance"]["external_consequence_enabled"])
+        self.assertEqual(CANONICAL_PRODUCTION_ROUTE_ID, request["execution_provenance"]["route_id"])
         self.assertFalse(request["authority_claim"])
 
     @patch("stegverse.sovereign_validation_runtime.run_sovereign_validation")
