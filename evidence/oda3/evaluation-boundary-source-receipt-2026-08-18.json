@@ -1,0 +1,74 @@
+{
+  "schema": "stegverse.oda3-evaluation-boundary-source-receipt.v1",
+  "generated_date": "2026-08-18",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "claim_scope": "source/schema/non-interference/tamper-verifier evidence only",
+  "authority_granted": false,
+  "governed_runtime_activation_claimed": false,
+  "exact_run_receipt_claimed": false,
+  "validated_pull_request": 46,
+  "validated_head_commit": "d4d615bb63d02894b2e26497285d259892112739",
+  "validated_tree_sha": "d238131690fdc3833cc861b69b0760e570e2b55a",
+  "merged_main_commit": "16c99037a42e4d667b9df4a7a5efbaae9dd7184c",
+  "merged_main_tree_sha": "d238131690fdc3833cc861b69b0760e570e2b55a",
+  "tree_equivalent_after_squash_merge": true,
+  "workflow": {
+    "name": "Evaluator Manifest Source Validation (Non-Authorizing)",
+    "run_id": 32166903844,
+    "job_id": 95808521073,
+    "conclusion": "success",
+    "workflow_permissions": "{}",
+    "step_environment_credentials_checked_absent": [
+      "GITHUB_TOKEN",
+      "GH_TOKEN",
+      "PYPI_API_TOKEN"
+    ],
+    "public_source_materialization": "https commit archive fetched anonymously",
+    "tests": {
+      "tests.test_public_inspection_request": 11,
+      "tests.test_public_inspection_governed_binding": 4,
+      "tests.test_evaluation_boundary_contract": 9,
+      "total": 24,
+      "result": "PASS"
+    },
+    "compile_result": "PASS",
+    "artifact_manifest_result": "PASS"
+  },
+  "artifact_manifest": {
+    "schema": "stegverse.evaluation-boundary-artifact-manifest.v1",
+    "source_binding_method": "IMMUTABLE_GITHUB_COMMIT_ARCHIVE",
+    "source_commit": "d4d615bb63d02894b2e26497285d259892112739",
+    "artifact_count": 17,
+    "missing_expected_artifacts": [],
+    "artifacts": [
+      {"path": "pyproject.toml", "bytes": 2332, "sha256": "sha256:7bb97e7d966fd5f8ded1f84aff28c80297bb53d7a506dcc0aaedb2bbde97f143"},
+      {"path": "inspection/request.schema.json", "bytes": 4113, "sha256": "sha256:04cc526d840cbe519b1564cc2b83810fb262f0e402aa06fbd82dfe420b189666"},
+      {"path": "inspection/examples/governed-test-request.json", "bytes": 3389, "sha256": "sha256:75bd043219d833806c10519d9eb80a6a084c9668ac58cf270e5dcb9a4da51276"},
+      {"path": "stegverse/public_inspection.py", "bytes": 12471, "sha256": "sha256:c49b3394b1914cddc61c299c6d0c67a12bfb136b8021934e99354e92f788c91e"},
+      {"path": "stegverse/sovereign_validation_runtime.py", "bytes": 15225, "sha256": "sha256:5a9b1eabd956770fadee18e2b76d9d2ec76224ab2efc96f941318966ffd80a37"},
+      {"path": "stegverse/evaluation_boundary_verifier.py", "bytes": 4685, "sha256": "sha256:8b96e7ecbffcca667021f9b03b1713c88ad7cc3b521a3e1680dc3e1395284877"},
+      {"path": "scripts/validate_public_inspection_request.py", "bytes": 809, "sha256": "sha256:1ff105e7907132e4d48abf1ca516fa1fca2d6506203af4deee62ad507db3134c"},
+      {"path": "scripts/build_evaluation_boundary_artifact_manifest.py", "bytes": 5138, "sha256": "sha256:8fa6f130cd2adf9f8a7fbe533bb426986743c1f57c173464e600d00005a93c78"},
+      {"path": "tests/test_public_inspection_request.py", "bytes": 5097, "sha256": "sha256:3616717dfd377ddec3112f37ebd05a75fe08e029381d71b4d74877600112f6e0"},
+      {"path": "tests/test_public_inspection_governed_binding.py", "bytes": 2197, "sha256": "sha256:dcb2435d944eec8f7f599d5e9a4fdaaaea8ecacc3065f98c90396e68bd6c99eb"},
+      {"path": "tests/test_public_inspection_runtime.py", "bytes": 8044, "sha256": "sha256:43e29b4242bf2ba5c70616dfcf17e66bd433caef9626bc92b3e735f7b88bb585"},
+      {"path": "tests/test_evaluation_boundary_contract.py", "bytes": 7522, "sha256": "sha256:597b6c3b1824c2e45d208997aef8b7eb7b16ab0b80921d6a89c1798a9ad52b2b"},
+      {"path": ".github/workflows/evaluator-manifest-source-validation.yml", "bytes": 4100, "sha256": "sha256:de107b4d7cd6a8ef9cf68f297c00d5fea06f101ecc775345c3a33c271496d123"},
+      {"path": "EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md", "bytes": 12901, "sha256": "sha256:d9d64d5bac15afff74635b5eebda65a75108b301390ca48876d79c8cb452233f"},
+      {"path": "docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md", "bytes": 11232, "sha256": "sha256:1542fc826c1b86875d8c0d3c4b6ca5c451d0abce667f2f2f969cd5f07d670c80"},
+      {"path": "README.md", "bytes": 12608, "sha256": "sha256:3c4f1320fd9cb33da000b121ec5f7516bae4d2dcc666eadf967e99c9479a4bcc"},
+      {"path": "LICENSE", "bytes": 1066, "sha256": "sha256:2a727d99b6eac49c1eb0df6a07606d4f24d4f4fbe1211e1ff4cc9fc7c7ab5f45"}
+    ]
+  },
+  "remaining_activation_evidence": [
+    "exact normalized ODA3 manifest used in a canonical governed run",
+    "exact sovereign governed result",
+    "route receipt chain and manifest receipt",
+    "Master Records exact-run custody evidence",
+    "reconstruction output",
+    "replay output if requested",
+    "independent unmodified binding verification PASS",
+    "independent manifest/governance/result tamper verification FAIL reports",
+    "ODA3 independent reproduction or completed evidence packet review"
+  ]
+}
