@@ -138,7 +138,7 @@ Canonical task document:
 docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md
 ```
 
-Implementation merged to `main` by PR `#44`, squash commit `976d1953385ac4ef903fc2cd969f5b20ef311d39`:
+Core implementation merged to `main` by PR `#44`, squash commit `976d1953385ac4ef903fc2cd969f5b20ef311d39`:
 
 ```text
 stegverse/evaluation_boundary_verifier.py
@@ -162,9 +162,10 @@ tests/test_evaluation_boundary_contract.py
 
 scripts/build_evaluation_boundary_artifact_manifest.py
   exact local Git source-commit capture
-  source branch + dirty-tree capture
+  immutable commit-archive source binding
+  source branch + dirty-tree/archive-state capture
   SHA-256 and byte size for applicable artifacts
-  non-zero exit on dirty/unbound/incomplete source state
+  self-binds the builder, validator, tests, workflow, handoff, and plan
 
 docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md
   exact artifact/request mapping
@@ -180,12 +181,44 @@ docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md
   pull-request validation added
   new boundary tests and verifier compile included
   anonymous source materialization retained
+  exact-commit SHA-256 artifact manifest emitted in logs
   permissions remain empty
   no runtime, signing, release, custody, or evaluator authority
 
 tests/test_public_inspection_governed_binding.py
   stale fixture corrected to include required execution provenance
 ```
+
+Artifact-manifest follow-ons:
+
+```text
+PR #45 -> 5420a4153567cf264b5d7cd384f25a68b33a674e
+  immutable commit-archive binding added
+  workflow emits exact-commit artifact manifest
+  validation run 32166774317: SUCCESS
+
+PR #46 -> 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
+  artifact manifest self-binds methodology + workflow + governed-binding tests
+  validation run 32166903844: SUCCESS
+  validation job 95808521073: SUCCESS
+  24 source/boundary tests: PASS
+  17 expected artifacts hashed
+  missing artifacts: []
+```
+
+The validated PR head `d4d615bb63d02894b2e26497285d259892112739` and squash-merged candidate `16c99037a42e4d667b9df4a7a5efbaae9dd7184c` have the identical Git tree:
+
+```text
+d238131690fdc3833cc861b69b0760e570e2b55a
+```
+
+Durable source receipt:
+
+```text
+evidence/oda3/evaluation-boundary-source-receipt-2026-08-18.json
+```
+
+The receipt records the 17 SHA-256 artifact hashes, exact validation run/job, test counts, source-binding method, validated/merged tree equivalence, and the explicit boundary that governed runtime activation is not claimed.
 
 The SDK governed-test dependency set remains pinned by `pyproject.toml`:
 
@@ -197,28 +230,18 @@ master-records/orchestration @ 6626c6a7f1df6bf531940c165b2f4db374e08b92
 
 At the pinned StegCore revision, the applicable runtime identity contract identifies portable product `0.2.0`, contract `stegverse.steggate.runtime-identity.v1`, and runtime identity `stegverse:steggate:canonical:three-layer:v1`.
 
-### ODA3 PR validation receipt
+### Frozen first governed-run candidate
 
-The first PR validation run failed because adding the previously unexecuted `tests.test_public_inspection_governed_binding` suite exposed a stale fixture that lacked the now-required `execution_provenance`. The defect was corrected rather than dropping the test.
+The first ODA3 governed evaluation-boundary run is frozen to:
 
 ```text
-PR: 44
-initial PR head: 19a1027a83544741075bd14e1ec16096928c184d
-initial workflow run: 32166464795
-initial job: 95807092273
-initial result: FAILURE
-failure: PublicInspectionRequestError: missing required fields: execution_provenance
-
-corrective commit: 91a4d4569749524259d2685a215c503a154d9fba
-corrected workflow run: 32166517959
-corrected result: SUCCESS
-PR mergeable after validation: TRUE
-merged: TRUE
-merge method: SQUASH
-main commit: 976d1953385ac4ef903fc2cd969f5b20ef311d39
+SDK candidate commit: 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
+SDK candidate tree: d238131690fdc3833cc861b69b0760e570e2b55a
+source receipt: evidence/oda3/evaluation-boundary-source-receipt-2026-08-18.json
+execution task: StegVerse-org/StegVerse-SDK#47
 ```
 
-The workflow remains source-only evidence. It does not activate a sovereign governed transaction.
+Later documentation/evidence commits do not silently move this candidate. A different candidate requires an explicit new source receipt and task-state update.
 
 ### ODA3 activation/evidence boundary
 
@@ -227,13 +250,16 @@ Completed source milestones:
 ```text
 1. focused PR opened against main: COMPLETE (#44)
 2. credential-free source-validation passes on exact PR head: COMPLETE (run 32166517959)
-3. changes merged to main through repository authority: COMPLETE (976d1953385ac4ef903fc2cd969f5b20ef311d39)
+3. implementation merged to main: COMPLETE (976d1953385ac4ef903fc2cd969f5b20ef311d39)
+4. exact-commit artifact manifest generated and durably retained: COMPLETE
+   - final source validation: run 32166903844 / job 95808521073
+   - frozen candidate: 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
+   - source receipt committed at 5a3da835e3b2f62e50e9d7a73c5371b6a54b4b46
 ```
 
 Remaining activation/evidence milestones:
 
 ```text
-4. clean exact-commit artifact manifest generated
 5. exact governed boundary run executed through canonical route
 6. representative route receipts + manifest receipt + Master Records custody retained
 7. replay/reconstruction evidence retained where requested
@@ -242,14 +268,13 @@ Remaining activation/evidence milestones:
 10. ODA3 independently reproduces or receives a complete evidence packet
 ```
 
-GitHub CI can prove only source behavior in this lane. It cannot prove exact governed activation.
+GitHub CI proves source/schema/binding behavior and exact source-file identity only. It does not prove exact governed activation and must not become production/runtime/control-plane authority.
 
 ### Files/modules still required for this follow-on
 
-Destination `StegVerse-org/StegVerse-SDK`:
+Destination `StegVerse-org/StegVerse-SDK` / issue `#47`:
 
 ```text
-PENDING: exact clean-checkout evaluation-boundary-artifacts.json
 PENDING: exact normalized ODA3 valid manifest used for governed run
 PENDING: exact sovereign result JSON
 PENDING: exact route receipt chain / manifest receipt evidence
@@ -257,6 +282,7 @@ PENDING: reconstruction artifact
 PENDING: replay artifact if ODA3 requests replay in the first packet
 PENDING: independent PASS verification report
 PENDING: independent tamper FAIL reports
+PENDING: complete ODA3 evidence packet / independent reproduction record
 ```
 
 Destination `StegVerse-Labs/StegCore`:
@@ -295,11 +321,12 @@ Those surfaces should describe evaluator-defined manifests as configuration of p
 ```text
 original evaluator-manifest source implementation: COMPLETE_SOURCE_VALIDATED
 ODA3 deliberate boundary-test source implementation: MERGED_SOURCE_VALIDATED
-ODA3 PR validation: SUCCESS
-ODA3 merge to main: COMPLETE
-ODA3 exact governed run: PENDING
-ODA3 exact-run evidence packet: PENDING
-ODA3 independent reproduction: PENDING
+ODA3 exact source artifact manifest: COMPLETE
+ODA3 source receipt: COMPLETE
+ODA3 frozen governed-run candidate: 16c99037a42e4d667b9df4a7a5efbaae9dd7184c
+ODA3 exact governed run: PENDING (#47)
+ODA3 exact-run evidence packet: PENDING (#47)
+ODA3 independent reproduction: PENDING (#47)
 new StegCore evaluator required: FALSE
 new Master Records custody route required: FALSE
 new evaluator-specific route required: FALSE
@@ -308,4 +335,4 @@ scoped state: ACTIVE_DISTINCT_SUPPORT
 
 ## Durable continuation
 
-Continue from this handoff and `docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md`. Do not create a second evaluator-specific mirror handoff for the same workstream. Any requested capability outside the published registry remains a separate generally versioned capability-development goal rather than a private ODA3 augmentation.
+Continue from this handoff, `docs/ODA3_EVALUATION_BOUNDARY_TEST_PLAN.md`, source receipt `evidence/oda3/evaluation-boundary-source-receipt-2026-08-18.json`, and issue `#47`. Do not create a second evaluator-specific mirror handoff for the same workstream. Any requested capability outside the published registry remains a separate generally versioned capability-development goal rather than a private ODA3 augmentation.
