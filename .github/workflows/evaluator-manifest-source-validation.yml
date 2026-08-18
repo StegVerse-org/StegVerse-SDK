@@ -76,7 +76,20 @@ jobs:
             stegverse/evaluation_boundary_verifier.py \
             scripts/validate_public_inspection_request.py \
             scripts/build_evaluation_boundary_artifact_manifest.py
+      - name: Build exact-commit artifact manifest
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          SOURCE_REF: ${{ github.head_ref || github.ref_name }}
+        run: |
+          set -eu
+          cd /tmp/source
+          python scripts/build_evaluation_boundary_artifact_manifest.py \
+            --archive-source \
+            --source-commit "${SOURCE_SHA}" \
+            --source-branch "${SOURCE_REF}" \
+            --output /tmp/evaluation-boundary-artifacts.json
+          cat /tmp/evaluation-boundary-artifacts.json
       - name: Record source-only boundary
         run: |
           echo 'EVALUATOR_MANIFEST_SOURCE_VALIDATION_PASS'
-          echo 'This job validates source/schema/binding behavior only; it grants no runtime, release, custody, signing, or evaluator authority.'
+          echo 'This job validates source/schema/binding behavior and emits an exact-commit file-hash manifest only; it grants no runtime, release, custody, signing, or evaluator authority.'
