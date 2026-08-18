@@ -4,7 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from stegverse.cli import main
 
@@ -46,14 +46,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(0, rc)
 
     def test_primary_cli_accepts_explicit_0a_selector(self):
-        with patch("stegverse.public_inspection.load_public_inspection_request") as load:
-            with patch("stegverse.sovereign_validation_runtime.run_sovereign_validation") as run:
+        operations = Mock()
+        operations.submit.return_value = {"manifest_receipt_id": "MR-" + "B" * 64}
+        with patch("stegverse.cli._canonical_governed_operations", return_value=operations):
+            with patch("stegverse.public_inspection.load_public_inspection_request") as load:
                 load.return_value = {"request_id": "fixture"}
-                run.return_value = {"manifest_receipt_id": "MR-" + "B" * 64}
                 rc = main(["governance", "--select", "0A", "--input", "fixture.json"])
         self.assertEqual(0, rc)
         load.assert_called_once_with("fixture.json")
-        run.assert_called_once()
+        operations.submit.assert_called_once_with({"request_id": "fixture"})
 
 
 if __name__ == "__main__":
