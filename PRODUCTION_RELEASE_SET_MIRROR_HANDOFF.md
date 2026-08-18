@@ -12,9 +12,25 @@ non-TV/TVC release credential permitted: false
 
 ## Goal
 
-Every production-lane evaluator run must identify the exact released component set that participated, retain that set with exact-run custody, and distinguish it from whatever releases are current when replay/reconstruction occurs later.
+Every governed evaluator run must identify the exact released component set that participated, retain that set with exact-run custody, and distinguish it from whatever releases are current when replay/reconstruction occurs later.
 
-## Canonical ODA3 aggregate release set
+The release-set mechanism is evaluator-neutral. A named study may freeze a particular release-set instance, but that does not create a study-specific SDK execution lane.
+
+## Generalized testing-surface invariant
+
+```text
+SDK testing surface: generalized
+evaluator/test package: configuration + evidence request
+named evaluator/study: instance, not architecture
+custom evaluator SDK lane: prohibited
+custom evaluator StegGate semantics: prohibited
+unsupported capability: reject before execution
+new capability needed by one study: develop/version/publish generally before use
+```
+
+ODA3 is one test instance submitted through the same generalized SDK manifest surface available to other evaluators. Its frozen release set exists only to make that experiment reproducible and reconstructable; it does not specialize the SDK route.
+
+## Canonical ODA3 aggregate release-set instance
 
 ```text
 release_set_id: ODA3-EVALUATOR-PATH-2026-08-18-R1
@@ -53,18 +69,19 @@ Live tag resolution found that pre-existing `v1.0.13` resolves to historical com
 
 The new tag name was checked before assignment and does not currently resolve to an existing commit.
 
-The SDK candidate is the already-frozen ODA3 source-validated candidate. Later receipt/documentation commits do not silently move that candidate. A replacement candidate requires a new source receipt and explicit release-set revision.
+The SDK candidate is the already-frozen source-validated candidate. Later receipt/documentation commits do not silently move that candidate. A replacement candidate requires a new source receipt and explicit release-set revision.
 
 ## External evaluator surface invariant
 
 ```text
-evaluator submission surface: StegVerse SDK
+generalized evaluator submission surface: StegVerse SDK 0B / manifest contract
 direct evaluator Core-Lite submission: not authorized
 direct evaluator StegCore submission: not authorized
 direct evaluator StegGate submission: not authorized
+ODA3-specific SDK execution route: not authorized
 ```
 
-The external evaluator enters through the controlled manifested SDK path. Core-Lite, StegCore, and StegGate remain downstream governed/internal surfaces for this experiment.
+All external evaluators enter through the same controlled manifested SDK path. Core-Lite, StegCore, and StegGate remain downstream governed/internal surfaces. ODA3 differs only in the manifest/test package and frozen evidence/release instance it supplies.
 
 ## Release semantics
 
@@ -76,6 +93,7 @@ existing tag must never be retargeted
 release notes/changelog are part of evaluator-facing release metadata
 future release != historical runtime substitution
 replay/reconstruction never rewrites original release-set evidence
+frozen study release set != custom study runtime
 ```
 
 `all_components_release_tag_bound` is true only when every installed production component can prove a tag-based source revision. A commit-only or untagged package is reported as `COMMIT_OR_PACKAGE_ONLY` rather than being represented as a release.
@@ -125,6 +143,8 @@ StegVerse-Labs/TVC#78
 StegVerse-org/StegVerse-SDK#47
 ```
 
+These are release/evidence coordination surfaces for this frozen experiment instance. They do not define a separate SDK testing architecture.
+
 ## Remaining executable work
 
 ```text
@@ -133,7 +153,7 @@ StegVerse-org/StegVerse-SDK#47
 3. Verify each tag resolves to the exact recorded candidate commit.
 4. Update the aggregate manifest/catalog from tag-publication-pending to tag-bound.
 5. Validate tag-based installation and release-set packet evidence.
-6. Execute ODA3 issue #47 through evaluator -> SDK -> Core-Lite -> StegCore/StegGate -> Master Records.
+6. Submit the ODA3 test package through the ordinary generalized SDK 0B manifest surface and canonical governed route.
 7. Record the completed release set in exact-run custody and the evaluator-facing packet.
 8. Verify release/changelog propagation to StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki, and stegguardian-wiki.
 ```
@@ -141,8 +161,11 @@ StegVerse-org/StegVerse-SDK#47
 ## Status
 
 ```text
+SDK_GENERALIZED_TESTING_SURFACE: IMPLEMENTED_SOURCE_VALIDATED_MERGED
+SDK_EVALUATOR_SPECIFIC_ROUTE_REQUIRED: FALSE
+ODA3_ROLE: TEST_INSTANCE_ONLY
 SDK-PRODUCTION-RELEASE-SET-001: IMPLEMENTED_SOURCE_VALIDATED
-ODA3_AGGREGATE_RELEASE_SET: FROZEN_RELEASE_READY
+ODA3_AGGREGATE_RELEASE_SET_INSTANCE: FROZEN_RELEASE_READY
 SDK_HISTORICAL_TAG_COLLISION: DETECTED_AND_CORRECTED
 RELEASE_NOTES_ALL_COMPONENTS: PREPARED
 TARGET_TAGS_ALL_COMPONENTS: FIXED_NONCONFLICTING
