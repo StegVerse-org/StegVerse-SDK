@@ -24,6 +24,7 @@ SDK-PUBLIC-INSPECTION-GOVERNED-BINDING-002: COMPLETE_STATIC_VALIDATED_MERGED
 SDK-PUBLIC-INSPECTION-GOVERNED-TEST-004: SUPERSEDED_BY_CUSTODY_BACKED_RUNTIME
 SDK-PUBLIC-INSPECTION-CUSTODY-REPLAY-005: COMPLETE_SOVEREIGN_VALIDATION
 SDK-SOVEREIGN-PRODUCTION-VALIDATION-008: COMPLETE_VALIDATION_EVIDENCE_RETAINED
+SDK-PREFORMATTED-MANIFEST-INGRESS-0B: COMPLETE_SOURCE_VALIDATED_MERGED_PRIMARY_CLI
 SDK-AUTHORITY-BOUNDARY-PRESERVATION-001: ACTIVE_RUNNER_SOURCE_VALIDATED_PENDING_SOVEREIGN_EXECUTION
 SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002: COMPLETE_RELEASED_TO_MACHINE_EXECUTION
 SDK-USAGE-GOVERNED-OPERATION-WIRING-002: COMPLETE_VALIDATED_MERGED
@@ -55,12 +56,28 @@ credential authority: TV/TVC
 ```text
 000 -> optional worked transparency/demo
 00  -> optional return/explanation configuration
-0   -> ordinary governed submission
+0   -> ordinary governed submission selector
+0A  -> raw/user request manifested by SDK
+0B  -> preformatted stegverse.ingress-manifest.v1 validation/canonicalization/execution
 1   -> replay by manifest_receipt_id
 2   -> reconstruction by manifest_receipt_id
 ```
 
 `000` and `00` are optional human inspection surfaces and are not prerequisites for machine-to-machine evaluation.
+
+Primary executable 0B entry after PR #48:
+
+```bash
+stegverse governance --select 0B --manifest <stegverse.ingress-manifest.v1.json>
+```
+
+The existing standalone executable entry remains:
+
+```bash
+python -m stegverse.governance_ingress_cli 0B <manifest.json>
+```
+
+0B reuses the existing evaluator-neutral manifest validator and canonical sovereign runtime binding. It does not create a second evaluator, route implementation, governance engine, credential authority, or custody path. A supplied manifest is validated/canonicalized when representable; invalid, incomplete, conflicting, or unsupported input fails closed.
 
 ## Sovereign SDK route
 
@@ -157,7 +174,9 @@ No SDK/chat implementation claim remains for that source work. Live activation i
 
 ## SDK usage observability
 
-Actual governed option `0`/`1`/`2` observation wiring is validated and merged. Canonical continuation remains:
+Actual governed option `0`/`1`/`2` observation wiring is validated and merged. Explicit primary-console `0A` and `0B` selections normalize to the existing option-`0` navigation observation code; actual governed operation identity remains determined by returned canonical evidence rather than menu selection.
+
+Canonical continuation remains:
 
 ```text
 SDK_USAGE_OBSERVABILITY_MIRROR_HANDOFF.md
@@ -268,28 +287,54 @@ The v7 inventory defines the goals of that prior conversation as G01-G08, record
 
 The present MCP goal is separately scoped by `MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md` and must not be conflated with those older session workstreams or with the completed 2026-08-17 admissibility session consolidation.
 
-## README public-share verification — 2026-08-16
+## Preformatted manifest ingress reconciliation — 2026-08-18
 
-Canonical evidence:
+The older README public-share audit correctly described the state that existed at the audit checkpoint, but that historical statement was later stale relative to live source. Repository history proves the generic 0B binding was installed on 2026-08-15 and subsequently exposed through its standalone executable entry:
+
+```text
+27db574578b92638f82e7d8e06fb82c37a698a1e  Install canonical 0B and 000 sovereign runtime binding
+0ea923b93b2c1cbca72aebe60f0ccd69e5d67c66  Test canonical 0B and 000 sovereign runtime binding
+2fceb484bb972ec9c63fd071c0a476c825facd76  Expose executable SDK 000 and 0B canonical runtime entry
+b48fdaa217cf1e613d7caa6667084fe07b00155e  Reconcile SDK navigation handoff with executable 000 and 0B binding
+```
+
+PR #48 then completed the remaining primary-console integration and removed the stale public claim that 0B was unavailable:
+
+```text
+PR: #48
+merge: 2e290522cc0f588308d647b8a11140316bbb8bd8
+Evaluator Manifest Source Validation: 32188709072 SUCCESS
+Evaluator Contract Console Validation: 32188708980 SUCCESS
+SDK Usage Observability Validation: 32188708972 SUCCESS
+```
+
+The evaluator-manifest source validation explicitly exercised the existing public-inspection tests, existing 0B runtime tests, new primary-CLI 0B tests, and evaluator-boundary tests without granting runtime or release authority.
+
+Current truth:
+
+```text
+0B canonical stegverse.ingress-manifest.v1 validation/canonicalization: INSTALLED
+0B canonical sovereign runtime binding: INSTALLED
+0B standalone executable module entry: INSTALLED
+0B primary stegverse governance CLI entry: VALIDATED_MERGED
+README 0B availability disclosure: CORRECTED
+person-specific evaluator route introduced: FALSE
+```
+
+Scoped continuation: `docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md`.
+
+## README public-share verification — historical checkpoint 2026-08-16
+
+Canonical historical evidence remains:
 
 ```text
 validation/README_PUBLIC_SHARE_VERIFICATION_2026-08-16.md
 README correction commit: bff85fe5323fc6c5ab772f0f1456e8a449d8c701
 verification retention commit: b9847be00423a8b49ff5099b95875ae3d938dd32
-status: PASS_AFTER_CORRECTION
-share_readiness: READY
+status_at_checkpoint: PASS_AFTER_CORRECTION
 ```
 
-The audit found one material mismatch: README language implied a machine could directly use the preformatted `stegverse.ingress-manifest.v1` path while the live CLI intentionally keeps `0B` fail-closed until the canonical binding is installed. The README was corrected to distinguish the available public-inspection/`0A` machine path from unavailable `0B` execution.
-
-Relevant remaining SDK installation:
-
-```text
-0B canonical stegverse.ingress-manifest.v1 execution binding: NOT INSTALLED
-public README disclosure of that state: COMPLETE
-```
-
-This missing optional/future binding does not block README public sharing because no currently unavailable route is represented as available.
+Its statement that 0B was not installed is retained as historical evidence of that audit checkpoint only and is superseded for current product status by the 2026-08-15 implementation commits and PR #48 reconciliation above.
 
 ## Session consolidation / archive condition
 
