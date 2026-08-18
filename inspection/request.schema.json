@@ -72,6 +72,9 @@
         "external_consequence_enabled"
       ],
       "properties": {
+        "route_id": {"type": "string", "minLength": 1, "maxLength": 200},
+        "route_declaration_hash": {"type": "string", "pattern": "^[0-9a-fA-F]{64}$"},
+        "state_binding_hash": {"type": "string", "pattern": "^[0-9a-fA-F]{64}$"},
         "lane_class": {
           "type": "string",
           "enum": ["PRODUCTION_VALIDATION", "ENCLOSED_DEMO_TEST"]
@@ -87,7 +90,10 @@
         "sandbox_required": {"type": "boolean"},
         "sandbox_tier": {"type": "string", "maxLength": 120},
         "origin_surface": {"type": "string", "maxLength": 200},
-        "external_consequence_enabled": {"type": "boolean"}
+        "external_consequence_enabled": {"type": "boolean"},
+        "execution_host_class": {"type": "string", "maxLength": 120},
+        "execution_host_identity": {"type": "string", "maxLength": 200},
+        "third_party_host_required": {"type": "boolean"}
       },
       "allOf": [
         {
