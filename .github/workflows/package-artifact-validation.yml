@@ -6,6 +6,7 @@ on:
       - 'pyproject.toml'
       - 'setup.py'
       - 'stegverse/**'
+      - 'tests/test_package_version_identity.py'
       - '.github/workflows/package-artifact-validation.yml'
   workflow_dispatch:
 
