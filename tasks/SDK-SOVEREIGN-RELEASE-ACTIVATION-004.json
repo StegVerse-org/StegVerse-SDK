@@ -2,8 +2,8 @@
   "task_id": "SDK-SOVEREIGN-RELEASE-ACTIVATION-004",
   "repository": "StegVerse-org/StegVerse-SDK",
   "branch": "main",
-  "state": "REVIEW_REQUIRED_VERSION_IDENTITY_REPAIR",
-  "owner": "TV/TVC generalized aggregate-release executor after successor candidate validation",
+  "state": "AWAITING_TVC_SUCCESSOR_RELEASE_SET_REISSUE",
+  "owner": "TV/TVC generalized aggregate-release executor",
   "release_authority": "TV/TVC",
   "github_actions_release_authority": "NONE",
   "github_token_runtime_authority": "NONE",
@@ -20,13 +20,18 @@
     "historical_commit_date": "2026-04-29",
     "modern_source_was_still_declaring": "1.0.13",
     "legacy_setup_py_was_declaring": "2.1.0",
-    "resolution": "Use pyproject.toml as the sole package metadata source and advance the modern public SDK package to 1.1.0 before any TV/TVC publication."
+    "resolution": "pyproject.toml is now the sole package metadata source and the modern public SDK advances to 1.1.0."
   },
   "successor_package_version": "1.1.0",
   "successor_target_tag": "v1.1.0",
-  "successor_candidate_commit": "PENDING_MERGE_AND_VALIDATION",
-  "successor_release_set_id": "PENDING_TVC_REISSUE_AFTER_1_1_0_CANDIDATE_FREEZE",
-  "successor_release_task": "PENDING_TVC_REISSUE_AFTER_1_1_0_CANDIDATE_FREEZE",
+  "successor_candidate_commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
+  "successor_candidate_tree": "d9ddda3dbe942324c921051d89ec19eec3970b16",
+  "validated_pr_head": "2d70d6e2279aecc3195d52086e6b259a4629d620",
+  "validated_pr_head_tree": "d9ddda3dbe942324c921051d89ec19eec3970b16",
+  "package_artifact_validation_run": 32251339936,
+  "package_artifact_validation_result": "SUCCESS",
+  "successor_release_set_id": "PENDING_TVC_REISSUE_FROM_SUPERSEDED_R2",
+  "successor_release_task": "PENDING_TVC_REISSUE_FROM_SUPERSEDED_R2",
   "required_surfaces": [
     "stegverse/governance_fallback.py",
     "stegverse/governed_operations.py",
@@ -36,29 +41,30 @@
     "stegverse/route_resolution.py",
     "stegverse/sovereign_validation_runtime.py"
   ],
-  "completion_condition": "A validated successor candidate declaring package version 1.1.0 is frozen; TV/TVC publishes immutable tag v1.1.0 and the 1.1.0 package from that exact candidate; the aggregate receipt verifies; the distributed package contains every required surface; and this task records COMPLETE evidence.",
-  "blocked_condition": "The successor source candidate has not yet passed package/build/source validation, or TV/TVC-managed publication capability is unavailable after the candidate is frozen.",
-  "blocked_release_condition": "Do not publish the superseded v1.0.13-evaluation-r2 coordinates. Publication may resume only from an exact validated 1.1.0 successor candidate under TV/TVC authority.",
-  "review_required_condition": "Any release-worthy correction after the 1.1.0 candidate freeze requires a new candidate and exact release-set revision rather than moving an existing tag.",
+  "validation_evidence": [
+    "SDK package artifact validation run 32251339936 completed SUCCESS on PR head 2d70d6e2279aecc3195d52086e6b259a4629d620.",
+    "The validation built exactly one wheel and one source distribution.",
+    "Wheel metadata verified Name stegverse-sdk, Version 1.1.0, Requires-Python >=3.9, canonical dependencies, and all declared console entry points.",
+    "python setup.py --name and --version resolved through canonical metadata as stegverse-sdk and 1.1.0.",
+    "The exact wheel installed in an isolated virtual environment, imported stegverse, reported installed distribution version 1.1.0, and passed the stegverse --help console smoke test.",
+    "Validation asserted GITHUB_TOKEN, GH_TOKEN, and PYPI_API_TOKEN absent and carried no release authority.",
+    "Squash merge commit 922d6c5235229e854c36e1a194dc99ed15a31b51 has the exact same Git tree d9ddda3dbe942324c921051d89ec19eec3970b16 as the validated PR head; therefore the artifact proof applies to the frozen merge source tree."
+  ],
+  "completion_condition": "TVC reissues the aggregate release set against exact SDK candidate 922d6c5235229e854c36e1a194dc99ed15a31b51, TV/TVC publishes immutable v1.1.0 and stegverse-sdk 1.1.0 from that candidate, the aggregate receipt verifies, the distributed package contains every required surface, and this task records COMPLETE evidence.",
+  "blocked_condition": "The TVC successor aggregate release set has not yet been reissued and/or TVC-managed publication capability is unavailable after reissue.",
+  "blocked_release_condition": "Do not publish superseded 1.0.13-derived coordinates. Publication may resume only from exact candidate 922d6c5235229e854c36e1a194dc99ed15a31b51 under a reissued TVC aggregate release set.",
+  "review_required_condition": "Any release-worthy source correction after this freeze requires a new package-artifact proof, new candidate, and exact release-set revision rather than moving v1.1.0.",
   "collision_boundaries": [
     "Do not move or reuse historical v1.0.13.",
     "Do not publish modern SDK source as package version 1.0.13.",
-    "Do not publish v1.0.13-evaluation-r2 after this supersession record.",
+    "Do not publish v1.0.13-evaluation-r2 after its supersession.",
     "Do not allow setup.py and pyproject.toml to advertise different package metadata.",
     "Do not use GitHub Actions as release/runtime authority.",
     "Do not use GITHUB_TOKEN, GH_TOKEN, or any non-TV/TVC secret/token as release authority.",
-    "Do not substitute moving main for a frozen validated candidate.",
-    "Do not treat source validation as runtime, release, deployment, or activation."
+    "Do not substitute moving main for frozen candidate 922d6c5235229e854c36e1a194dc99ed15a31b51.",
+    "Do not treat source or artifact validation as release, runtime, deployment, or activation."
   ],
-  "current_evidence": [
-    "historical v1.0.13 resolves to f219afa17dcb020dc1e13b72f859a86627c5644b with commit message Bump to 1.0.13 dated 2026-04-29",
-    "modern frozen candidate 16c99037a42e4d667b9df4a7a5efbaae9dd7184c is 1242 commits ahead of historical v1.0.13",
-    "current pyproject.toml before repair declared already-consumed version 1.0.13",
-    "current setup.py before repair independently declared version 2.1.0 and conflicting dependencies, Python requirement, and console entry point",
-    "manifest-declared route resolution merged and prior source validation succeeded",
-    "actual corrected 1.1.0 package/tag/release has not yet been published"
-  ],
-  "next_executable_action": "Validate the 1.1.0 metadata reconciliation branch with package build, wheel metadata inspection, wheel install/import/console smoke tests, and existing SDK source tests. Merge only after PASS. Then freeze the exact 1.1.0 successor candidate, reissue the TVC aggregate release task/set against that candidate, publish under TV/TVC authority, verify PyPI/GitHub/tag identity, and execute the governed SDK-ingress evidence run.",
+  "next_executable_action": "Reissue the TVC generalized aggregate release configuration/task as a successor of EVALUATION-BOUNDARY-2026-08-18-R2 with StegVerse-org/StegVerse-SDK@v1.1.0 bound exactly to 922d6c5235229e854c36e1a194dc99ed15a31b51. Validate the reissued TVC policy/source, then invoke TVC readiness; publish and verify only if TVC-managed release authority is present.",
   "archive_dependency": true,
   "activation_effect": false
 }
