@@ -1,0 +1,118 @@
+name: SDK Package Artifact Validation (Non-Authorizing)
+
+on:
+  pull_request:
+    paths:
+      - 'pyproject.toml'
+      - 'setup.py'
+      - 'stegverse/**'
+      - '.github/workflows/package-artifact-validation.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  package-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert no release credential authority
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          test -z "${PYPI_API_TOKEN:-}"
+          echo 'PACKAGE_VALIDATION_CREDENTIAL_BOUNDARY_PASS'
+
+      - name: Materialize exact public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+
+      - name: Install build and inspection tooling
+        run: |
+          python -m pip install --disable-pip-version-check --no-input build wheel
+
+      - name: Build wheel and source distribution
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m build
+          test "$(find dist -maxdepth 1 -name '*.whl' | wc -l)" -eq 1
+          test "$(find dist -maxdepth 1 -name '*.tar.gz' | wc -l)" -eq 1
+
+      - name: Verify canonical wheel metadata
+        run: |
+          set -eu
+          cd /tmp/source
+          python - <<'PY'
+          import email
+          import pathlib
+          import zipfile
+
+          wheels = list(pathlib.Path('dist').glob('*.whl'))
+          if len(wheels) != 1:
+              raise SystemExit(f'EXPECTED_ONE_WHEEL:{wheels!r}')
+          wheel = wheels[0]
+          with zipfile.ZipFile(wheel) as zf:
+              metadata_name = next(n for n in zf.namelist() if n.endswith('.dist-info/METADATA'))
+              entry_name = next(n for n in zf.namelist() if n.endswith('.dist-info/entry_points.txt'))
+              metadata = email.message_from_bytes(zf.read(metadata_name))
+              entries = zf.read(entry_name).decode('utf-8')
+
+          assert metadata['Name'] == 'stegverse-sdk', metadata['Name']
+          assert metadata['Version'] == '1.1.0', metadata['Version']
+          assert metadata['Requires-Python'] == '>=3.9', metadata['Requires-Python']
+          requires = metadata.get_all('Requires-Dist') or []
+          required_fragments = ('requests>=2.28.0', 'pyyaml>=6.0', 'python-dotenv>=0.19.0')
+          compact = [r.replace(' ', '') for r in requires]
+          for expected in required_fragments:
+              if not any(expected in r for r in compact):
+                  raise SystemExit(f'MISSING_REQUIRES_DIST:{expected}:{requires!r}')
+          required_scripts = (
+              'stegverse = stegverse.evaluator_console:main',
+              'stegverse-portable = stegverse.portable_packages:main',
+              'stegverse-versions = stegverse.release_index:main',
+              'stegverse-mcp-test = stegverse.mcp_cli:main',
+              'stegverse-connect-llm = stegverse.llm_connect_cli:main',
+              'stegverse-output-proof = stegverse.output_boundary_cli:main',
+          )
+          for script in required_scripts:
+              if script not in entries:
+                  raise SystemExit(f'MISSING_ENTRY_POINT:{script}')
+          print('SDK_WHEEL_METADATA_1_1_0_PASS')
+          PY
+
+      - name: Verify legacy setuptools invocation resolves canonical metadata
+        run: |
+          set -eu
+          cd /tmp/source
+          test "$(python setup.py --name)" = "stegverse-sdk"
+          test "$(python setup.py --version)" = "1.1.0"
+          echo 'SETUP_PY_CANONICAL_METADATA_PASS'
+
+      - name: Install exact wheel into isolated environment and smoke test
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m venv /tmp/sdk-wheel-venv
+          /tmp/sdk-wheel-venv/bin/python -m pip install --disable-pip-version-check --no-input dist/*.whl
+          /tmp/sdk-wheel-venv/bin/python - <<'PY'
+          import importlib.metadata
+          import stegverse
+          assert importlib.metadata.version('stegverse-sdk') == '1.1.0'
+          print('SDK_WHEEL_IMPORT_1_1_0_PASS')
+          PY
+          /tmp/sdk-wheel-venv/bin/stegverse --help >/tmp/stegverse-help.txt
+          test -s /tmp/stegverse-help.txt
+          echo 'SDK_WHEEL_CONSOLE_SMOKE_PASS'
+
+      - name: Record non-authorizing boundary
+        run: |
+          echo 'PACKAGE_ARTIFACT_VALIDATION_PASS'
+          echo 'This workflow validates source-built artifacts only.'
+          echo 'It cannot tag, publish, create a release, push repository state, request OIDC, or receive TV/TVC credentials.'
