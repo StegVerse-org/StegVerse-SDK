@@ -18,7 +18,7 @@ credential_authority: TV/TVC
 non_TV_TVC_secret_or_token_allowed: false
 GitHub_runtime_authority: NONE
 Render_required: false
-status: COMPLETE_VALIDATED_MERGED_PENDING_CANONICAL_PRODUCTION_TEST
+status: READY_FOR_BOUNDED_PRODUCTION_TEST
 ```
 
 This scoped handoff is subordinate to `SDK_MIRROR_HANDOFF.md`.
@@ -45,6 +45,7 @@ tests/test_execution_boundary.py
 stegverse/__init__.py public export
 .github/workflows/execution-boundary-evidence-validation.yml
 tasks/SDK-EXECUTION-BOUNDARY-EVIDENCE-003.json
+docs/EXECUTION_BOUNDARY_PRODUCTION_TEST.md
 ```
 
 Public API:
@@ -148,6 +149,42 @@ PR discussion blockers: none observed
 
 The implementation and package validation both succeeded before merge. No non-TV/TVC runtime authority was introduced.
 
+## Production test guide
+
+Canonical run instructions and evidence requirements are published at:
+
+```text
+docs/EXECUTION_BOUNDARY_PRODUCTION_TEST.md
+```
+
+That guide is sufficient to describe the next bounded production / qualified-client test externally without exposing or transferring execution authority.
+
+## Cross-repository propagation assessment
+
+```text
+StegVerse-Labs/Site
+  VERIFIED_NO_DIRECT_CHANGE for this SDK-local n=1 evidence surface.
+  Existing Site PWC-002 handoff remains publication-gated and is not reopened.
+
+GCAT-BCAT-Engine/Publisher
+  VERIFIED_NO_DIRECT_CHANGE for this SDK-local n=1 evidence surface.
+  Existing Publisher PWC-002 handoff remains acceptance-gated and is not reopened.
+
+StegVerse-Labs/admissibility-wiki
+  PERTINENT_SEMANTIC_TRANSFER_COMPLETE.
+  Existing canonical workstream: issue #50.
+  Transfer comment: 5374679609.
+  Invariant transferred without duplicating the evaluator.
+
+StegVerse-002/stegguardian-wiki
+  VERIFIED_NO_DIRECT_CHANGE.
+  Guardian remains downstream of bounded admissibility interpretation and must not infer enforcement authority from SDK evidence.
+
+master-records/core-lite
+  VERIFIED_NO_SCHEMA_CHANGE from this SDK-local helper.
+  Canonical production run still requires MR/MRR/MRO custody/replay/reconstruction evidence; existing Master Records authority remains unchanged.
+```
+
 ## Authority boundary
 
 The helper remains side-effect free and non-authorizing.
@@ -173,7 +210,7 @@ SDK entry
 -> SDK return
 ```
 
-Source merge is not equivalent to production activation. A qualified-client/production test still requires binding the SDK evidence packet into an actual canonical consequential path and retaining MR/MRR/MRO evidence.
+Source merge and external run-readiness are not equivalent to production activation. Production activation requires an actual qualified-client or bounded production trajectory with retained MR/MRR/MRO evidence.
 
 ## Completion denominator
 
@@ -183,17 +220,18 @@ public API export: 1/1 installed
 focused tests: 7/7 authored and hosted validation passed
 hosted validation: 2/2 required workflows SUCCESS
 merge to main: COMPLETE
-canonical runtime production test: PENDING ACTIVATION
-cross-repository propagation assessment: PENDING
+production test guide: COMPLETE
+cross-repository propagation assessment: COMPLETE
+canonical runtime production test: PENDING EXTERNAL/QUALIFIED-CLIENT TRAJECTORY
 ```
 
 ## Remaining work
 
-1. Publish a concrete SDK run guide for the minimum n=1 production test.
-2. Assess propagation to StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, StegVerse-Labs/admissibility-wiki, StegVerse-002/stegguardian-wiki, and master-records/core-lite.
-3. Select a bounded production or qualified-client trajectory and route the case through canonical 0B/StegCore/StegGate/Master Records custody.
-4. Preserve execution-boundary, replay, reconstruction, and consequence evidence before claiming production activation.
+1. Select the bounded production or qualified-client trajectory with the external participant.
+2. Route the case through canonical 0B/StegCore/StegGate/Master Records custody.
+3. Preserve execution-boundary, replay, reconstruction, and consequence evidence.
+4. Only after that evidence exists may production activation be claimed.
 
 ## Archive condition
 
-SDK source implementation/validation/merge is complete. Do not archive the production-test activation goal until the canonical bounded run and evidence retention are complete or durably transferred to an active owner.
+SDK implementation/validation/merge/run-instructions/propagation assessment are complete. The remaining goal is the actual bounded production test and evidence retention; it is not satisfied by source readiness alone.
