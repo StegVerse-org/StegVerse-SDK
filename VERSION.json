@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0.0",
+  "component_id": "STEGVERSE-SDK",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "component_version": "1.1.0",
+  "version_stage": "RELEASE_CANDIDATE",
+  "release": {
+    "tag": null,
+    "commit": null,
+    "release_evidence": []
+  },
+  "release_candidate": {
+    "target_tag": "v1.1.0",
+    "frozen_commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
+    "frozen_tree": "d9ddda3dbe942324c921051d89ec19eec3970b16",
+    "artifact_validation_run": 32251339936,
+    "artifact_validation_state": "PASS",
+    "tag_publication": "NOT_YET_AUTHORIZED",
+    "package_publication": "NOT_YET_PUBLISHED"
+  },
+  "validated_capabilities": [
+    {
+      "capability_id": "SDK-PACKAGE-ARTIFACT-VALIDATION-1.1.0",
+      "state": "PASS",
+      "validated_pr_head": "2d70d6e2279aecc3195d52086e6b259a4629d620",
+      "merge_commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
+      "validated_tree": "d9ddda3dbe942324c921051d89ec19eec3970b16"
+    }
+  ],
+  "runtime": {
+    "state": "PENDING",
+    "evidence": [
+      "PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md"
+    ],
+    "next_required_state": "TVC_SUCCESSOR_AGGREGATE_RELEASE_VERIFIED_THEN_EXACT_GOVERNED_RUN"
+  },
+  "activation": {
+    "state": "PENDING",
+    "evidence": [
+      "PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md"
+    ],
+    "current_projection": "EXACT_GOVERNED_RUN_PROHIBITED_UNTIL_AGGREGATE_RELEASE_VERIFIED"
+  },
+  "superseded_release_candidates": [
+    "v1.0.13-oda3-r1",
+    "v1.0.13-evaluation-r2"
+  ],
+  "source_of_truth": "PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md",
+  "version_contract": "StegVerse-Labs/Site:docs/ECOSYSTEM_COMPONENT_VERSION_CONTRACT.md",
+  "credential_authority": "TV/TVC",
+  "release_authority": "TV/TVC",
+  "non_tv_tvc_release_credential_permitted": false,
+  "authority_effect": "NONE"
+}
