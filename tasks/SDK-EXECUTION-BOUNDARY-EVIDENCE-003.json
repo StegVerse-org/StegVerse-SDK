@@ -2,7 +2,7 @@
   "task_id": "SDK-EXECUTION-BOUNDARY-EVIDENCE-003",
   "repository": "StegVerse-org/StegVerse-SDK",
   "branch": "feat/execution-boundary-evidence-003",
-  "status": "COMPLETE_VALIDATED_MERGED_PENDING_CANONICAL_PRODUCTION_TEST",
+  "status": "READY_FOR_BOUNDED_PRODUCTION_TEST",
   "credential_authority": "TV/TVC",
   "github_runtime_authority": false,
   "non_tv_tvc_secret_or_token_allowed": false,
@@ -22,11 +22,13 @@
     "public_sdk_export": "installed_main",
     "focused_tests": "validated_7",
     "credential_clean_validation_workflow": "success",
-    "mirror_handoff": "updated_after_merge",
+    "mirror_handoff": "ready_for_bounded_production_test",
+    "production_test_guide": "docs/EXECUTION_BOUNDARY_PRODUCTION_TEST.md",
     "hosted_validation": "complete_success",
     "merge": "complete",
-    "cross_repo_propagation_assessment": "pending",
-    "canonical_runtime_production_test": "pending_activation"
+    "cross_repo_propagation_assessment": "complete",
+    "admissibility_wiki_transfer": "issue_50_comment_5374679609",
+    "canonical_runtime_production_test": "pending_external_or_qualified_client_trajectory"
   },
   "authority_boundary": {
     "sdk_helper_side_effect_free": true,
