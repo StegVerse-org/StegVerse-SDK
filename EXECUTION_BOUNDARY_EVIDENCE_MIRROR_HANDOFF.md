@@ -9,7 +9,7 @@ goal_id: SDK-EXECUTION-BOUNDARY-EVIDENCE-003
 originating_goal: make the minimum consequential n=1 falsification test executable through the SDK
 repository: StegVerse-org/StegVerse-SDK
 canonical_branch: main
-implementation_branch: feat/execution-boundary-evidence-003
+implementation_branch: feat/execution-boundary-evidence-003 (MERGED)
 parent_handoff: SDK_MIRROR_HANDOFF.md
 predecessor_handoffs:
   - ADMISSIBILITY_MATRIX_MATURITY_MIRROR_HANDOFF.md
@@ -18,14 +18,14 @@ credential_authority: TV/TVC
 non_TV_TVC_secret_or_token_allowed: false
 GitHub_runtime_authority: NONE
 Render_required: false
-status: IMPLEMENTED_PENDING_VALIDATION_AND_MERGE
+status: COMPLETE_VALIDATED_MERGED_PENDING_CANONICAL_PRODUCTION_TEST
 ```
 
 This scoped handoff is subordinate to `SDK_MIRROR_HANDOFF.md`.
 
-## Gap found
+## Gap closed
 
-The SDK already had point-in-time dynamic admissibility, receipt references, replay/bundle verification, matrix maturity, n>1 composition non-separability, and canonical 0B sovereign runtime binding. It did **not** have one SDK API that represented the production falsification case where:
+The SDK already had point-in-time dynamic admissibility, receipt references, replay/bundle verification, matrix maturity, n>1 composition non-separability, and canonical 0B sovereign runtime binding. It did not previously expose one SDK API for the bounded production falsification case where:
 
 1. a candidate transition is initially admissible;
 2. the original authority remains constant;
@@ -35,7 +35,7 @@ The SDK already had point-in-time dynamic admissibility, receipt references, rep
 6. historical authorization is distinguished from continuing admissibility; and
 7. the observed consequence is checked against the resulting boundary disposition.
 
-`ADMISSIBILITY_COMPOSITION_MIRROR_HANDOFF.md` explicitly states that its composition helper is non-authorizing relation evidence and does not substitute for execution-boundary evaluation/custody. The new SDK surface closes the SDK-local evidence-model gap without moving canonical execution authority into the SDK.
+That SDK-local evidence-model gap is now closed on `main` without moving canonical execution authority into the SDK.
 
 ## Installed implementation
 
@@ -43,6 +43,8 @@ The SDK already had point-in-time dynamic admissibility, receipt references, rep
 stegverse/execution_boundary.py
 tests/test_execution_boundary.py
 stegverse/__init__.py public export
+.github/workflows/execution-boundary-evidence-validation.yml
+tasks/SDK-EXECUTION-BOUNDARY-EVIDENCE-003.json
 ```
 
 Public API:
@@ -132,6 +134,20 @@ FAIL_CONSEQUENCE_NONCONFORMANCE
 INDETERMINATE_EVIDENCE_BOUNDARY
 ```
 
+## Validation and merge evidence
+
+```text
+PR: #53
+PR head: 45bb788e1bd6a030f07053b1c2401c3d43eaecd1
+merge commit: 3a17d9e04b3457914d752684d43cd57c2ab1a361
+Execution Boundary Evidence Validation run: 32507900821 SUCCESS
+SDK Package Artifact Validation (Non-Authorizing) run: 32507900887 SUCCESS
+PR review blockers: none observed
+PR discussion blockers: none observed
+```
+
+The implementation and package validation both succeeded before merge. No non-TV/TVC runtime authority was introduced.
+
 ## Authority boundary
 
 The helper remains side-effect free and non-authorizing.
@@ -157,25 +173,27 @@ SDK entry
 -> SDK return
 ```
 
-Therefore source completion of this goal is not equivalent to production activation. A qualified-client/production test still requires binding the new SDK evidence packet into an actual canonical consequential path and retaining MR/MRR/MRO evidence.
+Source merge is not equivalent to production activation. A qualified-client/production test still requires binding the SDK evidence packet into an actual canonical consequential path and retaining MR/MRR/MRO evidence.
 
-## Validation denominator
+## Completion denominator
 
 ```text
 implementation surface: 1/1 installed
 public API export: 1/1 installed
-focused tests authored: 7/7
-hosted validation: pending
-merge to main: pending
-canonical runtime production test: pending separate activation step
-cross-repository propagation assessment: pending after validation/merge
+focused tests: 7/7 authored and hosted validation passed
+hosted validation: 2/2 required workflows SUCCESS
+merge to main: COMPLETE
+canonical runtime production test: PENDING ACTIVATION
+cross-repository propagation assessment: PENDING
 ```
 
 ## Remaining work
 
-1. Run focused and relevant regression tests in hosted validation.
-2. Correct any defects found by validation.
-3. Merge only after validation succeeds.
-4. Assess propagation to StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, StegVerse-Labs/admissibility-wiki, StegVerse-002/stegguardian-wiki, and master-records/core-lite.
-5. Select a bounded production or qualified-client trajectory and route the case through canonical 0B/StegCore/StegGate/Master Records custody.
-6. Preserve execution-boundary, replay, reconstruction, and consequence evidence before claiming production activation.
+1. Publish a concrete SDK run guide for the minimum n=1 production test.
+2. Assess propagation to StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, StegVerse-Labs/admissibility-wiki, StegVerse-002/stegguardian-wiki, and master-records/core-lite.
+3. Select a bounded production or qualified-client trajectory and route the case through canonical 0B/StegCore/StegGate/Master Records custody.
+4. Preserve execution-boundary, replay, reconstruction, and consequence evidence before claiming production activation.
+
+## Archive condition
+
+SDK source implementation/validation/merge is complete. Do not archive the production-test activation goal until the canonical bounded run and evidence retention are complete or durably transferred to an active owner.
