@@ -121,6 +121,13 @@ from .admissibility import (
     validate_tester_packet,
 )
 
+# --- Consequential execution-boundary evidence ---
+from .execution_boundary import (
+    EXECUTION_BOUNDARY_CASE_SCHEMA,
+    EXECUTION_BOUNDARY_RESULT_SCHEMA,
+    evaluate_execution_boundary_case,
+)
+
 # --- Universal transition-table intake ---
 from .universal_transition_table_intake import (
     UniversalTransitionTableIntakeError,
@@ -243,6 +250,9 @@ __all__ = [
     "stable_hash",
     "to_dict",
     "validate_tester_packet",
+    "EXECUTION_BOUNDARY_CASE_SCHEMA",
+    "EXECUTION_BOUNDARY_RESULT_SCHEMA",
+    "evaluate_execution_boundary_case",
     "UniversalTransitionTableIntakeError",
     "handle_universal_transition_table_package",
     "validate_commitment_candidate",
