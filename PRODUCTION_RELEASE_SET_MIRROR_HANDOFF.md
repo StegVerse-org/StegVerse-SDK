@@ -1,5 +1,7 @@
 # Production Release Set Mirror Handoff
 
+Updated: 2026-08-22
+
 ## Source of truth
 
 ```text
@@ -13,19 +15,20 @@ current_public_tag_candidate: v1.1.0
 historical_v1.0.13_mutable: false
 frozen_sdk_candidate: 922d6c5235229e854c36e1a194dc99ed15a31b51
 frozen_sdk_tree: d9ddda3dbe942324c921051d89ec19eec3970b16
+active_release_set_id: EVALUATION-BOUNDARY-2026-08-19-R3
+active_tvc_task: TVC-EVALUATION-BOUNDARY-AGGREGATE-RELEASE-029
+active_tvc_issue: StegVerse-Labs/TVC#78
 ```
 
-## Governing goal
+## Governing rule
 
-Every governed evaluator run must identify the exact immutable released component set that participated, retain that set with exact-run custody, and distinguish it from both moving source branches and later releases used during replay/reconstruction.
+Every governed evaluator run must identify the exact immutable released component set that participated, retain that set with exact-run custody, and distinguish it from moving source branches and later releases used during replay/reconstruction.
 
-The release-set mechanism is evaluator-neutral. A named evaluation supplies configuration and evidence requirements through the generalized SDK surface; it does not create a custom SDK route or custom StegGate semantics.
+The release-set mechanism is evaluator-neutral. ODA3 is one experiment instance using the generalized SDK testing surface. No evaluator-specific SDK route, StegGate semantic, custody route, or release executor is authorized.
 
-## Package/version identity reconciliation
+## SDK package/version reconciliation
 
-Historical `v1.0.13` resolves to `f219afa17dcb020dc1e13b72f859a86627c5644b` (`Bump to 1.0.13`, 2026-04-29). Modern SDK source had continued declaring package `1.0.13`, while legacy `setup.py` independently declared `2.1.0` with conflicting dependency, Python, and console metadata.
-
-PR #50 repaired that split:
+Historical `v1.0.13` resolves to historical April 2026 source and remains immutable. Modern source had continued to declare package `1.0.13` while legacy `setup.py` separately declared `2.1.0`. PR #50 repaired the split:
 
 ```text
 PR #50 merge: 459e88f640c36805ae2e24484604f3976809b69f
@@ -35,11 +38,9 @@ legacy setup.py: metadata-free compatibility shim
 target public SDK tag: v1.1.0
 ```
 
-`v1.0.13` is immutable historical evidence and MUST NOT be moved or reused. Modern SDK source MUST NOT be published to PyPI as `1.0.13`. The unpublished `v1.0.13-oda3-r1` and `v1.0.13-evaluation-r2` candidates are superseded and MUST NOT be published.
+Modern source must not be published as `1.0.13`. Superseded unpublished `v1.0.13-oda3-r1` and `v1.0.13-evaluation-r2` coordinates must not be published.
 
-## Exact 1.1.0 artifact proof and candidate freeze
-
-A dedicated non-authorizing package-artifact gate was installed in PR #51 and exercised by PR #52.
+## Exact SDK 1.1.0 artifact proof
 
 ```text
 validation workflow: SDK Package Artifact Validation (Non-Authorizing)
@@ -47,69 +48,73 @@ validation run: 32251339936
 validated PR head: 2d70d6e2279aecc3195d52086e6b259a4629d620
 validated tree: d9ddda3dbe942324c921051d89ec19eec3970b16
 result: SUCCESS
-PR #52 squash merge: 922d6c5235229e854c36e1a194dc99ed15a31b51
-merge tree: d9ddda3dbe942324c921051d89ec19eec3970b16
-```
-
-The validated PR head and squash-merge candidate have the exact same Git tree. The artifact proof therefore applies to the frozen merge source tree without substituting moving `main`.
-
-The successful gate proved:
-
-```text
-python -m build: PASS
-exactly one wheel + one sdist: PASS
-wheel Name: stegverse-sdk
-wheel Version: 1.1.0
-wheel Requires-Python: >=3.9
-canonical dependencies from pyproject.toml: PASS
-canonical console entry points from pyproject.toml: PASS
-python setup.py --name: stegverse-sdk
-python setup.py --version: 1.1.0
-fresh virtualenv wheel install: PASS
-import stegverse: PASS
-installed distribution version: 1.1.0
-stegverse --help smoke: PASS
-GITHUB_TOKEN/GH_TOKEN/PYPI_API_TOKEN during validation: ABSENT
-release authority from validation: NONE
-```
-
-Candidate freeze:
-
-```text
-SDK 1.1.0 frozen candidate: 922d6c5235229e854c36e1a194dc99ed15a31b51
-SDK 1.1.0 frozen tree: d9ddda3dbe942324c921051d89ec19eec3970b16
+frozen squash-merge candidate: 922d6c5235229e854c36e1a194dc99ed15a31b51
+frozen candidate tree: d9ddda3dbe942324c921051d89ec19eec3970b16
 target tag: v1.1.0
-candidate state: ARTIFACT_VALIDATED_FROZEN_AWAITING_TVC_RELEASE_SET_REISSUE
 ```
 
-Later task/handoff commits do not alter this frozen candidate. Any release-worthy source change after the freeze requires a new artifact proof and new release-set revision.
+The proof covered wheel/sdist construction, canonical wheel metadata/dependencies/entry points, setup.py convergence, isolated wheel install/import, installed distribution version `1.1.0`, console smoke, and absence of release credentials. Artifact validation does not grant release/runtime authority.
 
-## Superseded R2 and successor requirement
+## Active immutable release set — R3
 
 ```text
-superseded release_set_id: EVALUATION-BOUNDARY-2026-08-18-R2
-superseded SDK coordinate: StegVerse-org/StegVerse-SDK@v1.0.13-evaluation-r2
-superseded SDK commit: cfd6069823cc35d263ce0128fb0e6c0125d8bb64
-state: SUPERSEDED_DO_NOT_PUBLISH
+StegVerse-org/StegVerse-SDK@v1.1.0
+  -> 922d6c5235229e854c36e1a194dc99ed15a31b51
+
+Data-Continuation/core-lite@v0.9.0
+  -> 018e608018a793ee6dc62f4fdea59a3415e6e80e
+  executable parent -> 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+
+StegVerse-Labs/StegCore@v0.2.0
+  -> 23b388ce23b08097593b5b5593eb4061e0ff5242
+  executable parent -> 083557adec1bdbace09ebd10fb0765eb8e9a9d08
+  runtime identity -> stegverse:steggate:canonical:three-layer:v1
+
+master-records/orchestration@v0.1.0
+  -> 4826f753641cc82bbb885f919494a6c1318fbae4
+  executable parent -> 6626c6a7f1df6bf531940c165b2f4db374e08b92
 ```
 
-TVC must reissue the generalized aggregate release set as a new immutable revision with `StegVerse-org/StegVerse-SDK@v1.1.0` bound exactly to `922d6c5235229e854c36e1a194dc99ed15a31b51`. Reissue preserves the superseded R2 evidence rather than rewriting it.
+R2 is retained only for reconstruction and is `SUPERSEDED_DO_NOT_EXECUTE`. R3 is the sole active publication set for this evaluation-boundary experiment.
 
-Downstream source lineage retained from R2 pending revalidation in the successor set:
+## TVC guarded publication path
+
+Active TVC dispatcher sequence:
 
 ```text
-Data-Continuation/core-lite
-  release candidate: 018e608018a793ee6dc62f4fdea59a3415e6e80e
-  executable parent: 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+tvc.release.aggregate.evaluation_boundary_r3.source_validate
+tvc.release.aggregate.evaluation_boundary_r3.readiness
+tvc.release.aggregate.evaluation_boundary_r3.execute
+tvc.release.aggregate.evaluation_boundary_r3.verify
+```
 
-StegVerse-Labs/StegCore
-  release candidate: 23b388ce23b08097593b5b5593eb4061e0ff5242
-  executable parent: 083557adec1bdbace09ebd10fb0765eb8e9a9d08
-  runtime identity: stegverse:steggate:canonical:three-layer:v1
+Generalized implementation:
 
-master-records/orchestration
-  release candidate: 4826f753641cc82bbb885f919494a6c1318fbae4
-  executable parent: 6626c6a7f1df6bf531940c165b2f4db374e08b92
+```text
+source-validation/publication guard: tasks/aggregate_release_guarded.py
+publication executor: tasks/aggregate_release.py
+R3 instance policy: config/evaluation_boundary_aggregate_release_r3.json
+R3 instance catalog: config/task_catalog.d/evaluation_boundary_release_r3.json
+```
+
+The release may not mutate until the retained exact R3 source-validation report matches the active release-set ID, policy hash, non-authorizing credential boundary, and exact current TVC source commit. Publication additionally requires the TVC-managed ephemeral publication capability. Heartbeat advancement and WorkerCoordinator assignment are not release prerequisites.
+
+On 2026-08-22 an immediate TV/TVC execution request was durably recorded in TVC task `TVC-EVALUATION-BOUNDARY-AGGREGATE-RELEASE-029` at TVC commit `cafb77cd902f4ebcc4045bbc4138c1c8da002276`. This request is not completion evidence.
+
+## Required R3 release evidence
+
+```text
+reports/aggregate_release/EVALUATION-BOUNDARY-2026-08-19-R3/source-validation.json
+receipts/aggregate_release/EVALUATION-BOUNDARY-2026-08-19-R3.json
+reports/aggregate_release/EVALUATION-BOUNDARY-2026-08-19-R3/latest.json
+four immutable tags
+four GitHub release objects
+four exact tag-to-commit bindings
+all declared source-parent lineage checks
+accessible release notes
+SDK 1.1.0 distribution identity matching frozen candidate
+credential authority = TV/TVC
+non-TV/TVC credential used = false
 ```
 
 ## Release semantics
@@ -128,38 +133,36 @@ existing tag must never be retargeted
 replay/reconstruction never rewrites original release-set evidence
 ```
 
-## TV/TVC boundary
+Actual tag, GitHub Release, and package publication remains TV/TVC-governed release-authority work. GitHub Actions is validation/transport only and must not become release/runtime authority. No generic GitHub credential or non-TV/TVC credential may substitute for TV/TVC publication authority.
 
-Actual tag, GitHub Release, and package publication remains a TV/TVC-governed release-authority action. GitHub Actions is validation-only and must not become production/runtime/control-plane/release authority. No non-TV/TVC release credential is permitted.
+## Downstream exact-run gate
 
-## Cross-repo coordination
+Only after the R3 aggregate receipt verifies may SDK issue #47 execute the exact evaluator-facing run:
+
+```text
+external evaluator
+-> generalized SDK 0B manifested ingress
+-> Core-Lite manifested route
+-> StegCore / canonical StegGate
+-> Master Records exact-run custody
+-> SDK return
+```
+
+The exact-run packet must retain normalized manifest, exact governance request, sovereign result, three binding hashes, manifest/route receipts, Master Records custody, reconstruction/replay evidence, independent unmodified PASS, deliberate manifest/request/result tamper FAIL evidence, runtime identity confirmation, and reproduction instructions.
+
+## Cross-repository coordination
 
 ```text
 StegVerse-org/StegVerse-SDK#47
-StegVerse-Labs/TVC/TVC_MIRROR_HANDOFF.md
+StegVerse-Labs/TVC#78
+StegVerse-Labs/TVC/tasks/TVC-EVALUATION-BOUNDARY-AGGREGATE-RELEASE-029.json
 StegVerse-Labs/TVC/docs/AGGREGATE_RELEASE_MIRROR_HANDOFF.md
-StegVerse-Labs/TVC successor aggregate-release task: REQUIRED
 Data-Continuation/core-lite/PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
 StegVerse-Labs/StegCore/PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
 master-records/orchestration/PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
 ```
 
-## Remaining executable work
-
-```text
-1. Reissue the TVC aggregate release configuration/catalog/task with v1.1.0 -> 922d6c5235229e854c36e1a194dc99ed15a31b51.
-2. Disable the superseded R2 publication entrypoints so the old SDK coordinate cannot execute accidentally.
-3. Run exact TVC source validation for the successor policy in an admitted TVC source environment.
-4. Invoke successor readiness; remain blocked if TVC-managed ephemeral publication capability is absent.
-5. TV/TVC publishes/verifies all immutable tags/releases and stegverse-sdk 1.1.0 only when READY.
-6. Verify PyPI artifact identity, GitHub tag resolution, GitHub Release identity, and clean-install behavior agree with the frozen candidate.
-7. Retain and verify the TVC aggregate-release receipt and update release catalog to tag-bound.
-8. Execute the exact governed evaluator submission beginning at ordinary SDK manifest ingress.
-9. Retain manifest/result/route receipts/Master Records custody/reconstruction/replay/independent verification evidence.
-10. Verify release/changelog propagation to StegVerse-Labs/Site (or canonical successor if renamed), GCAT-BCAT-Engine/Publisher, admissibility-wiki, and stegguardian-wiki.
-```
-
-## Status
+## Current status
 
 ```text
 SDK_GENERALIZED_TESTING_SURFACE: IMPLEMENTED_SOURCE_VALIDATED_MERGED
@@ -168,11 +171,12 @@ SDK_METADATA_SPLIT: REPAIRED
 SDK_CANONICAL_PACKAGE_VERSION: 1.1.0
 SDK_1_1_0_ARTIFACT_VALIDATION: PASS
 SDK_1_1_0_FROZEN_CANDIDATE: 922d6c5235229e854c36e1a194dc99ed15a31b51
-OLD_V1_0_13_DERIVED_CANDIDATES: SUPERSEDED_DO_NOT_PUBLISH
-AGGREGATE_RELEASE_SET_SUCCESSOR: REQUIRED_TVC_REISSUE
-TAG_PUBLICATION: NOT_YET_AUTHORIZED
-PYPI_1_1_0_PUBLICATION: NOT_YET_PUBLISHED
-ALL_COMPONENTS_RELEASE_TAG_BOUND: FALSE
-EXACT_GOVERNED_RUN: PROHIBITED_UNTIL_AGGREGATE_RELEASE_VERIFIED
+R2: SUPERSEDED_DO_NOT_EXECUTE
+R3: ACTIVE
+R3_TVC_SOURCE_VALIDATION: PENDING
+R3_TAG_PUBLICATION: NOT_RELEASED
+R3_AGGREGATE_RECEIPT: NOT_PRESENT
+EXACT_GOVERNED_RUN: PROHIBITED_UNTIL_R3_VERIFIED
+OWNER_EVIDENCE_PACKET: PENDING_EXACT_RUN
 ARCHIVE_ELIGIBILITY: FALSE
 ```
