@@ -51,6 +51,7 @@ stegverse-versions = "stegverse.release_index:main"
 stegverse-mcp-test = "stegverse.mcp_cli:main"
 stegverse-connect-llm = "stegverse.llm_connect_cli:main"
 stegverse-output-proof = "stegverse.output_boundary_cli:main"
+stegverse-comm-demo = "stegverse.communication_edge_cli:main"
 
 [project.urls]
 Homepage = "https://github.com/StegVerse-org/StegVerse-SDK"
