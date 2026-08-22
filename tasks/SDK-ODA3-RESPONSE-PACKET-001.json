@@ -1,0 +1,70 @@
+{
+  "schema_version": "STEGVERSE-TASK-v1",
+  "task_id": "SDK-ODA3-RESPONSE-PACKET-001",
+  "goal_id": "SDK-ODA3-RESPONSE-PACKET-001",
+  "title": "Build complete ODA3 evaluation-boundary reviewer packet",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "main",
+  "canonical_handoff": "docs/ODA3_RESPONSE_PACKET_MIRROR_HANDOFF.md",
+  "state": "AWAITING_VERIFIED_R3_RELEASE_AND_EXACT_RUN_EVIDENCE",
+  "owner": "StegVerse SDK continuation",
+  "activation_request": {
+    "requested": true,
+    "priority": "IMMEDIATE_AFTER_UPSTREAM_EVIDENCE",
+    "upstream_release_task": "StegVerse-Labs/TVC/tasks/TVC-EVALUATION-BOUNDARY-AGGREGATE-RELEASE-029.json",
+    "upstream_release_issue": "StegVerse-Labs/TVC#78",
+    "governed_run_issue": "StegVerse-org/StegVerse-SDK#47",
+    "packet_builder": "scripts/build_oda3_response_packet.py"
+  },
+  "required_inputs": [
+    "verified stegverse.tvc.aggregate-release-receipt.v1 for EVALUATION-BOUNDARY-2026-08-19-R3",
+    "exact normalized-manifest.json from canonical SDK-ingress run",
+    "exact governance-request.json retained for the run",
+    "exact governed-result.json returned by the run",
+    "route/manifest/Master Records custody evidence",
+    "reconstruction evidence",
+    "replay evidence when requested"
+  ],
+  "execution": {
+    "command_template": "python scripts/build_oda3_response_packet.py --release-receipt <R3-receipt.json> --run-dir <exact-run-evidence-dir> --output-dir <oda3-evaluation-boundary-r3>",
+    "must_begin_from_ordinary_sdk_ingress": true,
+    "direct_evaluator_injection_to_core_lite_stegcore_or_steggate_allowed": false,
+    "moving_main_substitution_allowed": false,
+    "synthetic_runtime_evidence_allowed": false,
+    "source_only_proof_may_satisfy_runtime_proof": false
+  },
+  "required_outputs": [
+    "RELEASE_SET.json",
+    "FILE_MANIFEST.sha256.json",
+    "run/normalized-manifest.json",
+    "run/governance-request.json",
+    "run/governed-result.json",
+    "verify/independent-pass.json",
+    "verify/manifest-tamper-fail.json",
+    "verify/governance-request-tamper-fail.json",
+    "verify/result-tamper-fail.json"
+  ],
+  "verification_requirements": {
+    "release_receipt_exact_r3_coordinates": true,
+    "release_receipt_tvtvc_authority": true,
+    "release_receipt_non_tvtvc_credential_used": false,
+    "release_receipt_generic_source_suite_pass": true,
+    "release_receipt_guard_suite_pass": true,
+    "independent_unmodified_tuple_pass": true,
+    "manifest_tamper_binding_fail": true,
+    "governance_request_tamper_binding_fail": true,
+    "result_tamper_binding_fail": true,
+    "file_manifest_sha256_and_bytes": true
+  },
+  "completion_condition": "The verified immutable R3 release exists, the exact ordinary-SDK-ingress governed run and custody evidence exist, the packet builder completes successfully against those real artifacts, all independent/tamper verification requirements are retained, and the reviewer packet location plus hashes are recorded in issue #47 and governing handoffs.",
+  "blocked_condition": "Any verified R3 release receipt or required exact-run/custody artifact is absent.",
+  "collision_boundaries": [
+    "Do not manufacture runtime evidence from fixtures.",
+    "Do not treat source tests, workflow success, readiness, assignment, or release preparation as the governed run.",
+    "Do not introduce an ODA3-specific evaluator, runtime route, StegGate semantic override, or credential path.",
+    "Do not reply with experiment-complete language until this task completion condition is actually satisfied."
+  ],
+  "authority_effect": false,
+  "activation_effect": false,
+  "archive_dependency": true
+}
