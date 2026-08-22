@@ -8,6 +8,7 @@ on:
       - "examples/communication_edge_demo.json"
       - "tests/test_communication_edge_demo.py"
       - "scripts/run_communication_edge_demo.py"
+      - "scripts/run_pinned_communication_source_integration.py"
       - "docs/COMMUNICATION_EDGE_SDK_DEMO.md"
       - "COMMUNICATION_EDGE_SDK_DEMO_MIRROR_HANDOFF.md"
       - ".github/workflows/communication-edge-demo-validation.yml"
@@ -17,6 +18,7 @@ on:
       - "examples/communication_edge_demo.json"
       - "tests/test_communication_edge_demo.py"
       - "scripts/run_communication_edge_demo.py"
+      - "scripts/run_pinned_communication_source_integration.py"
       - "docs/COMMUNICATION_EDGE_SDK_DEMO.md"
       - "COMMUNICATION_EDGE_SDK_DEMO_MIRROR_HANDOFF.md"
       - ".github/workflows/communication-edge-demo-validation.yml"
@@ -39,7 +41,7 @@ jobs:
       - name: Install SDK test requirements
         run: python -m pip install -e . pytest
       - name: Compile communication-edge demo
-        run: python -m py_compile stegverse/communication_edge_demo.py scripts/run_communication_edge_demo.py tests/test_communication_edge_demo.py
+        run: python -m py_compile stegverse/communication_edge_demo.py scripts/run_communication_edge_demo.py scripts/run_pinned_communication_source_integration.py tests/test_communication_edge_demo.py
       - name: Run communication-edge conformance tests
         run: python -m pytest tests/test_communication_edge_demo.py -q
       - name: Execute demonstration packet
@@ -56,4 +58,35 @@ jobs:
           assert p['recovery_scenarios']['ambiguous_after_dispatch']['action'] == 'VERIFY_EXTERNALLY'
           assert p['recovery_scenarios']['confirmed_pre_side_effect_failure']['action'] == 'TRY_FALLBACK'
           print(p['demo_sha256'])
+          PY
+      - name: Checkout pinned public StegTalk source without credentials
+        run: |
+          git clone --no-checkout https://github.com/StegVerse-Labs/StegTalk.git /tmp/StegTalk
+          git -C /tmp/StegTalk checkout 2361d13ea09818f17aef5239ebf4771a161a0dc7
+      - name: Checkout pinned public KnowledgeVault source without credentials
+        run: |
+          git clone --no-checkout https://github.com/StegVerse-Labs/continuity-vault-kit.git /tmp/continuity-vault-kit
+          git -C /tmp/continuity-vault-kit checkout 35e6d7ad881e0dea60ba191c49dfd4fba86e3fd7
+      - name: Execute pinned live-source integration proof
+        run: |
+          python scripts/run_pinned_communication_source_integration.py \
+            --stegtalk-repo /tmp/StegTalk \
+            --kv-repo /tmp/continuity-vault-kit \
+            > /tmp/pinned-source-integration.json
+      - name: Verify pinned source integration proof
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/pinned-source-integration.json'))
+          assert p['stegtalk_source_loaded'] is True
+          assert p['knowledgevault_source_loaded'] is True
+          assert p['selected_bearer'] == 'stegtalk-ip'
+          assert p['fallback_edge_id'] == 'source-integration:phone'
+          assert p['ambiguous_action'] == 'VERIFY_EXTERNALLY'
+          assert p['confirmed_failure_action'] == 'TRY_FALLBACK'
+          assert p['kv_receipt_reconstructed_after_restart'] is True
+          assert p['kv_lease_reconstructed_after_restart'] is True
+          assert p['runtime_execution_performed'] is False
+          assert p['physical_transport_proven'] is False
+          print(p['selection_sha256'])
           PY
