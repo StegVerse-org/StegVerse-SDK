@@ -6,12 +6,12 @@ import argparse
 import json
 from importlib import resources
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from .communication_edge_demo import run_demo
 
 
-def _load_packet(path: str | None) -> Dict[str, Any]:
+def _load_packet(path: Optional[str]) -> Dict[str, Any]:
     if path:
         return json.loads(Path(path).read_text(encoding="utf-8"))
     text = resources.files("stegverse.demo_data").joinpath("communication_edge_demo.json").read_text(encoding="utf-8")
