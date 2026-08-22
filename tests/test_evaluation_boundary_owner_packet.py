@@ -1,4 +1,6 @@
 import json
+import tempfile
+import unittest
 from pathlib import Path
 
 from scripts.build_evaluation_boundary_owner_packet import (
@@ -66,42 +68,48 @@ def _paths(tmp_path: Path) -> dict[str, Path]:
     return {name: _write(tmp_path / f"{name}.json", value) for name, value in values.items()}
 
 
-def test_complete_owner_packet_requires_exact_release_and_falsification_evidence(tmp_path):
-    packet = build_owner_packet(_paths(tmp_path), replay_required=True)
-    assert packet["complete"] is True
-    assert packet["errors"] == []
-    assert packet["release_set_id"] == RELEASE_SET_ID
-    assert packet["sdk_version"] == "1.1.0"
-    assert packet["artifact_count"] == 13
-    assert packet["authority_granted"] is False
-    assert packet["non_tv_tvc_credential_required"] is False
-    assert packet["packet_manifest_sha256"].startswith("sha256:")
+class EvaluationBoundaryOwnerPacketTests(unittest.TestCase):
+    def test_complete_owner_packet_requires_exact_release_and_falsification_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            packet = build_owner_packet(_paths(Path(tmp)), replay_required=True)
+        self.assertTrue(packet["complete"])
+        self.assertEqual(packet["errors"], [])
+        self.assertEqual(packet["release_set_id"], RELEASE_SET_ID)
+        self.assertEqual(packet["sdk_version"], "1.1.0")
+        self.assertEqual(packet["artifact_count"], 13)
+        self.assertFalse(packet["authority_granted"])
+        self.assertFalse(packet["non_tv_tvc_credential_required"])
+        self.assertTrue(packet["packet_manifest_sha256"].startswith("sha256:"))
+
+    def test_packet_fails_closed_when_release_binding_is_wrong(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = _paths(Path(tmp))
+            receipt = json.loads(paths["aggregate_release_receipt"].read_text())
+            receipt["components"][0]["commit"] = "0" * 40
+            _write(paths["aggregate_release_receipt"], receipt)
+            packet = build_owner_packet(paths, replay_required=False)
+        self.assertFalse(packet["complete"])
+        self.assertIn("aggregate_release_exact_binding_mismatch", packet["errors"])
+
+    def test_packet_fails_closed_when_expected_tamper_is_not_detected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = _paths(Path(tmp))
+            _write(paths["tamper_result"], _verification())
+            packet = build_owner_packet(paths, replay_required=False)
+        self.assertFalse(packet["complete"])
+        self.assertIn("tamper_result_expected_fail_not_observed", packet["errors"])
+        self.assertIn("tamper_result_unexpected_verified_true", packet["errors"])
+
+    def test_packet_requires_replay_only_when_requested(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = _paths(Path(tmp))
+            paths.pop("replay")
+            optional = build_owner_packet(paths, replay_required=False)
+            required = build_owner_packet(paths, replay_required=True)
+        self.assertTrue(optional["complete"])
+        self.assertFalse(required["complete"])
+        self.assertIn("missing_argument:replay", required["errors"])
 
 
-def test_packet_fails_closed_when_release_binding_is_wrong(tmp_path):
-    paths = _paths(tmp_path)
-    receipt = json.loads(paths["aggregate_release_receipt"].read_text())
-    receipt["components"][0]["commit"] = "0" * 40
-    _write(paths["aggregate_release_receipt"], receipt)
-    packet = build_owner_packet(paths, replay_required=False)
-    assert packet["complete"] is False
-    assert "aggregate_release_exact_binding_mismatch" in packet["errors"]
-
-
-def test_packet_fails_closed_when_expected_tamper_is_not_detected(tmp_path):
-    paths = _paths(tmp_path)
-    _write(paths["tamper_result"], _verification())
-    packet = build_owner_packet(paths, replay_required=False)
-    assert packet["complete"] is False
-    assert "tamper_result_expected_fail_not_observed" in packet["errors"]
-    assert "tamper_result_unexpected_verified_true" in packet["errors"]
-
-
-def test_packet_requires_replay_only_when_requested(tmp_path):
-    paths = _paths(tmp_path)
-    paths.pop("replay")
-    optional = build_owner_packet(paths, replay_required=False)
-    assert optional["complete"] is True
-    required = build_owner_packet(paths, replay_required=True)
-    assert required["complete"] is False
-    assert "missing_argument:replay" in required["errors"]
+if __name__ == "__main__":
+    unittest.main()
