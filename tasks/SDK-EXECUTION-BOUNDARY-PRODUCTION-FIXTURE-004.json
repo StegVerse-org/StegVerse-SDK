@@ -1,0 +1,38 @@
+{
+  "task_id": "SDK-EXECUTION-BOUNDARY-PRODUCTION-FIXTURE-004",
+  "goal_id": "SDK-EXECUTION-BOUNDARY-EVIDENCE-003",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "status": "ACTIVE_EXTERNAL_FREEZE_PENDING",
+  "source_of_truth": "EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md",
+  "fixture": "docs/EXECUTION_BOUNDARY_CONTROLLED_PRODUCTION_FIXTURE.md",
+  "examination_packet": "docs/EXECUTION_BOUNDARY_EXAMINATION_PACKET.md",
+  "credential_authority": "TV/TVC",
+  "github_runtime_authority": "NONE",
+  "non_tv_tvc_secret_or_token_allowed": false,
+  "selected_trajectory": {
+    "candidate_id": "T-CANDIDATE-001",
+    "action": "append one predetermined harmless test record",
+    "target": "dedicated controlled-production test namespace",
+    "authority_constant": true,
+    "material_state_variable": "target_write_state",
+    "initial_state": "WRITE_ENABLED",
+    "boundary_state": "WRITE_DISABLED",
+    "concurrency": false,
+    "consequence_alterable_at_boundary": true
+  },
+  "completion_requirements": [
+    "external examiner accepts the frozen fixture definition",
+    "evidence interfaces are confirmed before execution",
+    "candidate, payload hash, target, authority, criteria, and boundary definition are frozen",
+    "canonical 0B/StegCore/StegGate/Master Records route is used",
+    "initial and boundary admissibility receipts are retained",
+    "material transition and causal continuity evidence are retained",
+    "MR/MRR/MRO custody references are retained",
+    "actual consequence observation is retained",
+    "replay completes without reexecution",
+    "independent reconstruction establishes the material sequence and determination",
+    "final result is evidence-determined and not predeclared"
+  ],
+  "remaining_external_action": "send the selected trajectory and evidence interface packet to the examiner and freeze the examination scope",
+  "production_activation_claim_allowed": false
+}
