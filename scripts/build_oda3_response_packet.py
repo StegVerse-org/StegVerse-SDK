@@ -9,6 +9,7 @@ from typing import Any
 
 from stegverse.evaluation_boundary_verifier import canonical_sha256, verify_evaluation_boundary_result
 
+ROOT = Path(__file__).resolve().parents[1]
 RELEASE_SET_ID = "EVALUATION-BOUNDARY-2026-08-19-R3"
 EXPECTED_COMPONENTS = {
     "StegVerse-org/StegVerse-SDK": ("v1.1.0", "922d6c5235229e854c36e1a194dc99ed15a31b51"),
@@ -21,6 +22,12 @@ REQUIRED_RUN_FILES = {
     "normalized-manifest.json": "run/normalized-manifest.json",
     "governance-request.json": "run/governance-request.json",
     "governed-result.json": "run/governed-result.json",
+}
+REQUIRED_EVIDENCE_DIRS = ("route-receipts", "master-records", "reconstruction")
+OPTIONAL_EVIDENCE_DIRS = ("replay",)
+STATIC_PACKET_FILES = {
+    ROOT / "docs" / "ODA3_PACKET_README_REPRODUCE.md": "README_REPRODUCE.md",
+    ROOT / "docs" / "ODA3_LICENSE_ACCESS_NOTES.md": "LICENSE_ACCESS_NOTES.md",
 }
 
 
@@ -105,15 +112,29 @@ def _write_json(path: Path, value: Any) -> None:
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def _nonempty_files(directory: Path) -> list[Path]:
+    if not directory.is_dir():
+        return []
+    return [path for path in directory.rglob("*") if path.is_file() and path.stat().st_size > 0]
+
+
 def build_packet(*, release_receipt_path: Path, run_dir: Path, output_dir: Path) -> dict[str, Any]:
     release_receipt = _load_object(release_receipt_path)
     release_check = verify_release_receipt(release_receipt)
     if not release_check["verified"]:
         raise RuntimeError("release_receipt_not_verified:" + ",".join(release_check["reasons"]))
 
-    missing = [name for name in REQUIRED_RUN_FILES if not (run_dir / name).is_file()]
-    if missing:
-        raise RuntimeError("runtime_evidence_missing:" + ",".join(sorted(missing)))
+    missing_files = [name for name in REQUIRED_RUN_FILES if not (run_dir / name).is_file()]
+    if missing_files:
+        raise RuntimeError("runtime_evidence_missing:" + ",".join(sorted(missing_files)))
+
+    missing_dirs = [name for name in REQUIRED_EVIDENCE_DIRS if not _nonempty_files(run_dir / name)]
+    if missing_dirs:
+        raise RuntimeError("custody_or_route_evidence_missing:" + ",".join(sorted(missing_dirs)))
+
+    missing_static = [str(path.relative_to(ROOT)) for path in STATIC_PACKET_FILES if not path.is_file()]
+    if missing_static:
+        raise RuntimeError("reviewer_static_material_missing:" + ",".join(sorted(missing_static)))
 
     manifest = _load_object(run_dir / "normalized-manifest.json")
     governance_request = _load_object(run_dir / "governance-request.json")
@@ -160,12 +181,14 @@ def build_packet(*, release_receipt_path: Path, run_dir: Path, output_dir: Path)
     output_dir.mkdir(parents=True)
 
     shutil.copy2(release_receipt_path, output_dir / "RELEASE_SET.json")
+    for source, destination in STATIC_PACKET_FILES.items():
+        shutil.copy2(source, output_dir / destination)
     for source_name, destination in REQUIRED_RUN_FILES.items():
         destination_path = output_dir / destination
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(run_dir / source_name, destination_path)
 
-    for directory in ("route-receipts", "master-records", "reconstruction", "replay"):
+    for directory in REQUIRED_EVIDENCE_DIRS + OPTIONAL_EVIDENCE_DIRS:
         source = run_dir / directory
         if source.is_dir():
             shutil.copytree(source, output_dir / "run" / directory)
@@ -189,6 +212,7 @@ def build_packet(*, release_receipt_path: Path, run_dir: Path, output_dir: Path)
         "release_set_id": RELEASE_SET_ID,
         "files": files,
         "packet_complete_for_binding_review": True,
+        "required_route_custody_evidence_present": True,
         "authority_granted": False,
     }
     _write_json(output_dir / "FILE_MANIFEST.sha256.json", file_manifest)
@@ -197,6 +221,7 @@ def build_packet(*, release_receipt_path: Path, run_dir: Path, output_dir: Path)
         "status": "ok",
         "release_set_id": RELEASE_SET_ID,
         "release_receipt_verified": True,
+        "route_custody_evidence_present": True,
         "independent_verification_pass": True,
         "tamper_failures": expected_failures,
         "output_dir": str(output_dir),
