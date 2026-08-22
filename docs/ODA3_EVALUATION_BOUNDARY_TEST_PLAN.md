@@ -1,49 +1,84 @@
 # ODA3 Evaluation-Boundary Test Plan
 
-Status: **SOURCE TEST CANDIDATE — exact governed run not yet claimed**  
+Status: **R3 FROZEN TEST INSTANCE — RELEASE + EXACT GOVERNED RUN PENDING**  
 Repository: `StegVerse-org/StegVerse-SDK`  
+Canonical SDK surface: generalized evaluator/testing manifest ingress  
 Canonical handoff: `EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md`  
+Release-set handoff: `PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md`  
 Testing-contract version: `stegverse.sdk-testing-noninterference.v1`
+
+## Architectural rule
+
+ODA3 is one evaluator/test instance submitted through the generalized SDK testing surface. It does not own a dedicated SDK lane, evaluator-specific route, evaluator-specific StegGate semantics, or evaluator-specific release executor.
+
+```text
+external evaluator
+-> generalized StegVerse SDK manifest surface
+-> Core-Lite manifested route carrier
+-> StegCore / canonical StegGate
+-> Master Records custody
+-> governed result returned through the manifested route
+```
+
+Evaluator-defined WHAT/HOW/WHY, identity, rationale, and expected observation are retained as experiment/evidence metadata. They do not become StegGate decision inputs. A capability not already published must be developed, versioned, and published generally before this or any other evaluator can request it.
 
 ## Research claim under test
 
-For a fixed, versioned StegVerse implementation and governed state, evaluator-supplied experimental metadata may select and compose already-published capabilities, but it cannot add a capability, alter the canonical route or StegGate decision semantics, or influence the governance result. The declared experiment, exact governance request, and returned result must remain independently distinguishable and verifiable as one bounded transaction.
+For a fixed, versioned StegVerse implementation and governed state, evaluator-supplied experimental metadata may select and compose already-published capabilities, but it cannot add a capability, alter the canonical route or StegGate decision semantics, silently introduce an alternate execution path, or influence the governance result. The declared experiment, exact governance request, returned result, route/custody evidence, replay/reconstruction evidence, and independent verification must remain distinguishable and reconstructable as one bounded transaction.
 
-This plan tests the evaluation boundary itself before any later authority-state-change experiment.
+## Active immutable release set — R3
 
-## Fixed implementation surfaces
+The historical `1.0.13`-derived experiment coordinates are superseded and must not be published. The active frozen release set is:
 
-The SDK package currently declares version `1.0.13`. The reproducible governed-test dependency set is pinned in `pyproject.toml`:
+```text
+release_set_id: EVALUATION-BOUNDARY-2026-08-19-R3
 
-- `StegVerse-Labs/StegCore` @ `083557adec1bdbace09ebd10fb0765eb8e9a9d08`
-- `Data-Continuation/core-lite` @ `72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8`
-- `master-records/orchestration` @ `6626c6a7f1df6bf531940c165b2f4db374e08b92`
+StegVerse-org/StegVerse-SDK@v1.1.0
+  -> 922d6c5235229e854c36e1a194dc99ed15a31b51
+  validated tree: d9ddda3dbe942324c921051d89ec19eec3970b16
 
-At the pinned StegCore revision, the StegGate portable product version is `0.2.0`, the runtime-identity contract is `stegverse.steggate.runtime-identity.v1`, and the canonical runtime identity is `stegverse:steggate:canonical:three-layer:v1`.
+Data-Continuation/core-lite@v0.9.0
+  -> 018e608018a793ee6dc62f4fdea59a3415e6e80e
+  executable parent -> 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
 
-An evaluator must identify the exact SDK Git commit used for a run. `scripts/build_evaluation_boundary_artifact_manifest.py` records the checkout commit, branch, working-tree state, file sizes, and SHA-256 hashes for the applicable artifacts. A dirty checkout, an unresolved source commit, or a missing expected artifact returns a non-zero status.
+StegVerse-Labs/StegCore@v0.2.0
+  -> 23b388ce23b08097593b5b5593eb4061e0ff5242
+  executable parent -> 083557adec1bdbace09ebd10fb0765eb8e9a9d08
 
-## Published evaluator capability registry
+master-records/orchestration@v0.1.0
+  -> 4826f753641cc82bbb885f919494a6c1318fbae4
+  executable parent -> 6626c6a7f1df6bf531940c165b2f4db374e08b92
+```
 
-The public-inspection manifest may request only these currently published evaluator capabilities:
+SDK package-artifact validation run `32251339936` succeeded against PR head `2d70d6e2279aecc3195d52086e6b259a4629d620`, tree `d9ddda3dbe942324c921051d89ec19eec3970b16`. Frozen SDK candidate `922d6c5235229e854c36e1a194dc99ed15a31b51` has that exact tree. The validation covered wheel/sdist build, canonical metadata, setup.py metadata convergence, clean wheel install/import, installed version `1.1.0`, console smoke, and absence of release credentials. This is artifact/source evidence, not publication or runtime evidence.
 
-- `commit_time_admissibility`
-- `bounded_consequence`
-- `master_records_custody`
-- `replay`
-- `reconstruction`
+Historical tag `v1.0.13` remains immutable at its historical source. `v1.0.13-evaluation-r2` and all earlier unpublished ODA3-derived coordinates are superseded and must not be published.
 
-The public evidence classes are:
+## Published evaluator capabilities
 
-- `governance_decision`
-- `execution_observation`
-- `manifest_receipt`
-- `route_receipts`
-- `exact_run_custody`
-- `replay`
-- `reconstruction`
+The generalized public-inspection/evaluator manifest may request only published capabilities, including:
 
-A request outside these registries is rejected before execution.
+```text
+commit_time_admissibility
+bounded_consequence
+master_records_custody
+replay
+reconstruction
+```
+
+Representative evidence classes include:
+
+```text
+governance_decision
+execution_observation
+manifest_receipt
+route_receipts
+exact_run_custody
+replay
+reconstruction
+```
+
+Unknown or unsupported requested capabilities and evaluator attempts to alter production routing/semantic fields fail before execution.
 
 ## Manifest fields and decision influence
 
@@ -56,135 +91,137 @@ A request outside these registries is rejected before execution.
 - `requested_capabilities`
 - `requested_evidence`
 
-Evaluator identity (`requester_label`), rationale, and expected observation are evidence metadata. They are not fields of the validated `steggate_request` model passed to the canonical StegGate decision route.
+Evaluator identity (`requester_label`), rationale, and expected observation are evidence metadata. The governed request is derived from `input.steggate_request`; the evaluator declaration is not inserted into the canonical StegGate decision model.
 
-The governed request is taken from `input.steggate_request`. The sovereign runtime validates it through the pinned StegCore `AdmissibilityRequest` model and sends that model through the canonical manifested transaction lifecycle. The evaluator declaration is retained in metadata with explicit non-interference flags but is not inserted into that decision model.
-
-## Canonical route boundary
-
-`stegverse/public_inspection.py` constrains production validation to:
-
-- lane: `PRODUCTION_VALIDATION`
-- routing surface: `CANONICAL_PRODUCTION`
-- containment: `PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE`
-
-The public manifest has no accepted field for selecting an evaluator-private canonical route or StegGate semantic version. Unknown top-level fields are rejected. Enclosed demo tests use a separately declared `ENCLOSED_DEMO_TEST` / `DEMO_TEST_REPOSITORY` provenance and cannot be relabeled as canonical production validation.
-
-The sovereign route imports the canonical Core-Lite route carrier, Master Records custody implementation, StegCore manifest receipt implementation, StegGate admissibility model/evaluator, and transaction lifecycle. It does not supply a parallel evaluator.
-
-## Binding and canonicalization specification
-
-Binding hashes use SHA-256 over UTF-8 JSON generated by this fixed profile:
-
-- object keys sorted lexicographically by Python `json.dumps(sort_keys=True)`;
-- separators exactly `,` and `:` with no insignificant whitespace;
-- `ensure_ascii=False`;
-- bytes encoded as UTF-8.
-
-The profile identifier introduced for independent verification is `stegverse.sdk-canonical-json.v1`. It is **not** represented as RFC 8785/JCS.
+## Canonicalization and independent binding
 
 The sovereign runtime binds:
 
-1. the normalized submitted manifest as `submitted_manifest_hash`;
-2. the exact normalized StegGate request as `governance_request_hash`;
-3. the returned sovereign result, before insertion of its own binding field, as `result_binding_hash`.
+1. normalized submitted manifest -> `submitted_manifest_hash`;
+2. exact normalized governance request -> `governance_request_hash`;
+3. returned sovereign result -> `result_binding_hash`.
 
-`stegverse/evaluation_boundary_verifier.py` independently recomputes these bindings and reports each check as `PASS`, `FAIL`, or `NOT_PROVIDED`. Verification grants no execution or governance authority.
+The independent verifier recomputes these bindings and reports `PASS`, `FAIL`, or `NOT_PROVIDED`. Verification grants no execution or governance authority.
 
-## ODA3 boundary-violation matrix
+Canonical profile remains `stegverse.sdk-canonical-json.v1`: SHA-256 over UTF-8 JSON with lexicographically sorted object keys, separators `,` and `:`, no insignificant whitespace, and `ensure_ascii=False`.
 
-The deterministic source test `tests/test_evaluation_boundary_contract.py` maps the requested conditions directly:
+## Boundary-violation matrix
 
-1. **Valid manifest / published capabilities** — accepted.
-2. **Changed evaluator identity, rationale, expected observation** — normalized manifest binding changes while the unchanged governance request binding remains identical.
-3. **Unavailable or undeclared capability** — rejected before execution.
-4. **Attempted canonical-route or StegGate-semantic alteration** — evaluator override fields are rejected as unknown manifest fields.
-5. **Attempted alternate execution path** — production provenance with a private routing surface is rejected.
-6. **Post-normalization manifest modification** — independent submitted-manifest binding verification fails.
-7. **Post-execution governance-request or returned-result modification** — governance-request or result binding verification fails.
-8. **Independent verification** — a complete unmodified tuple reports all binding checks `PASS` and explicitly grants no authority.
+The first bounded test exercises the generalized contract through this R3 instance:
 
-The test also asserts that the independent verifier's canonical hash profile produces the same hash as the sovereign runtime implementation.
+1. valid manifest using published capabilities -> accepted;
+2. changed evaluator identity/rationale/expected observation -> submitted-manifest binding changes while an unchanged governance request remains unchanged;
+3. unavailable/undeclared capability -> rejected before execution;
+4. attempted canonical-route or StegGate-semantic override -> rejected;
+5. attempted alternate evaluator execution path -> rejected/unavailable;
+6. post-normalization manifest modification -> independent submitted-manifest binding FAIL;
+7. post-execution governance-request or returned-result modification -> corresponding binding FAIL;
+8. complete unmodified tuple -> independent verification PASS with no authority grant.
 
-## Runnable source-validation commands
+## TVC release gate
 
-From a clean checkout of the exact candidate commit:
+Active TVC task:
 
-```bash
-python -m unittest tests.test_public_inspection_request
-python -m unittest tests.test_public_inspection_governed_binding
-python -m unittest tests.test_evaluation_boundary_contract
-python scripts/build_evaluation_boundary_artifact_manifest.py --output evaluation-boundary-artifacts.json
+```text
+StegVerse-Labs/TVC/tasks/TVC-EVALUATION-BOUNDARY-AGGREGATE-RELEASE-029.json
+StegVerse-Labs/TVC#78
 ```
 
-Independent binding verification after a governed run:
+Active dispatcher sequence:
 
-```bash
-python -m stegverse.evaluation_boundary_verifier \
-  sovereign-result.json \
-  --manifest normalized-manifest.json \
-  --governance-request exact-governance-request.json
+```text
+tvc.release.aggregate.evaluation_boundary_r3.source_validate
+tvc.release.aggregate.evaluation_boundary_r3.readiness
+tvc.release.aggregate.evaluation_boundary_r3.execute
+tvc.release.aggregate.evaluation_boundary_r3.verify
 ```
 
-The source-validation workflow may run these unit tests on GitHub-hosted CI because they require no production credential and grant no runtime authority. CI success is source evidence only; it is not evidence that the sovereign governed route was activated.
+The TVC guard requires a retained exact R3 source-validation report bound to the active policy and exact current TVC source before readiness can become `READY` or release mutation can occur. Publication additionally requires the TVC-managed ephemeral publication capability. Heartbeat state and WorkerCoordinator assignment are not release prerequisites. GitHub Actions is not release/runtime authority. No generic GitHub credential or non-TV/TVC credential may substitute for TV/TVC publication authority.
 
-## Execution arrangement
+Required release records:
 
-Two execution arrangements must remain distinguishable:
+```text
+reports/aggregate_release/EVALUATION-BOUNDARY-2026-08-19-R3/source-validation.json
+receipts/aggregate_release/EVALUATION-BOUNDARY-2026-08-19-R3.json
+reports/aggregate_release/EVALUATION-BOUNDARY-2026-08-19-R3/latest.json
+```
 
-### Independent source/binding verification
+The aggregate receipt must prove all four immutable tag-to-commit bindings, declared source-parent lineages, release objects, accessible release notes, TV/TVC credential authority, and `non_tv_tvc_credential_used=false`.
 
-ODA3 can independently clone the exact commit, install the pinned governed-test dependencies, validate manifests, execute the source-level violation matrix, build the file-hash manifest, and verify a supplied result tuple. No StegVerse signing key or production credential is required for those verification activities.
+## Exact governed execution
 
-### Canonical governed execution
+The experiment may start only after R3 verifies. Mandatory ingress:
 
-A claim that a real governed transition traversed the canonical route requires the canonical StegCore/Core-Lite/Master Records implementations and retained route/custody evidence. The sovereign local validation path records `execution_host_class=SOVEREIGN_LOCAL` and `third_party_host_required=False`. The deployed production-validation path separately performs runtime-identity and Master Records preflight checks.
+```text
+external evaluator
+-> `stegverse governance --select 0B --manifest <manifest.json>`
+-> generalized SDK validation/canonicalization/binding
+-> canonical manifested route
+-> StegGate evaluation
+-> Master Records custody
+-> SDK return
+```
 
-GitHub, evaluator metadata, and this test plan do not control signing keys, governed state, or runtime authority. TV/TVC remains the credential authority for StegVerse operational credentials. Exact-run custody belongs to the canonical Master Records path.
+Direct evaluator injection/submission to Core-Lite, StegCore, or StegGate does not satisfy the proposition and is not an authorized alternate test route.
 
-A reviewer distinguishes an SDK-prepared request from an executed governed result by requiring execution evidence: transaction identity, route manifest and route receipts, StegCore chain verification, manifest receipt identifier, Master Records custody status, canonical runtime identity where applicable, and the three binding hashes. An SDK descriptor with `runtime_processing_status=NOT_RUN` is not execution evidence.
+The exact run must retain:
 
-## Representative evidence required for the external packet
-
-A publishable ODA3 packet is not complete until an exact candidate commit has produced and retained:
-
-- `evaluation-boundary-artifacts.json` from a clean checkout;
-- normalized valid manifest;
-- changed-metadata manifest;
-- unsupported-capability negative case;
-- route/semantic-override negative case;
-- alternate-path negative case;
+- normalized submitted manifest;
+- exact governance request;
 - sovereign governed result;
-- manifest receipt and route receipt chain;
-- reconstruction artifact;
-- replay artifact when requested;
-- independent verification report for the unmodified tuple;
-- independent verification reports showing manifest, governance-request, and returned-result tampering are detected;
-- exact test commands and exit status.
+- submitted-manifest, governance-request, and result binding hashes;
+- manifest receipt identifier;
+- route receipt chain;
+- Master Records exact-run custody evidence;
+- reconstruction output;
+- replay output when requested;
+- canonical StegGate runtime identity `stegverse:steggate:canonical:three-layer:v1`;
+- independent unmodified verification PASS;
+- modified-manifest binding FAIL;
+- modified-governance-request binding FAIL;
+- modified-returned-result binding FAIL;
+- exact commands, versions, release identities, and exit status.
 
-Source tests or generated examples must not be mislabeled as representative exact-run receipts.
+Source tests/examples must not be mislabeled as exact-run runtime receipts.
 
-## Licensing and access
+## External evidence packet / owner handoff
 
-The SDK package metadata declares the project under the MIT license. The governed-test dependency repositories are separately version-pinned and their own repository access/licensing terms remain independently applicable. This plan does not broaden access rights or disclose credentials.
+The owner-facing package is complete only when it contains:
 
-## Autonomous-system actor for the later experiment
+```text
+R3 exact release-set receipt
+SDK 1.1.0 artifact/release identity
+normalized experiment manifest
+canonical governed result
+route + manifest receipts
+Master Records custody evidence
+reconstruction/replay evidence
+independent PASS verifier output
+three deliberate tamper FAIL outputs
+runtime identity confirmation
+reproduction instructions
+```
 
-The evaluation-boundary exercise does not need to presume which autonomous actor will perform the later consequential transition. Before the second experiment, the manifest/evidence packet must identify:
+A favorable result, refusal, negative result, or inconclusive result is an admissible research record if it is preserved truthfully. The package must not imply that source validation, tag readiness, issue assignment, task assignment, or release readiness equals governed execution.
 
-- actor implementation and owner;
-- exact actor/model version;
-- proposed consequential action;
-- state/authority/delegation inputs relevant to that action;
-- exact StegVerse enforcement point where the action may be permitted, refused, or deferred;
-- executor that would carry out the consequence after an admissible disposition.
+## Later authority-state experiment
 
-This actor identity must not be substituted with the governance SDK itself unless the SDK is genuinely the proposing/executing actor in that experiment.
-
-## Second experiment gate
-
-Only after the evaluation-boundary claim is supported by the bounded exercise should the research sequence advance to revocation, expiry, changed delegation, stale authorization, unavailable governing state, or another authority-state transition. Favorable, refusal, negative, and inconclusive outcomes all remain valid research records.
+Only after this evaluation-boundary exercise is supported by retained exact-run evidence should the research sequence advance to revocation, expiry, changed delegation, stale authorization, unavailable governing state, or another authority-state transition. The later experiment must separately identify the autonomous actor/model version, consequential action, governing inputs, exact StegVerse enforcement point, and consequence executor. The SDK must not be assumed to be that actor unless it genuinely proposes/executes the action.
 
 ## Current completion boundary
 
-Installed source work can establish the deterministic boundary contract and independent tamper verification. It does **not** by itself establish that an exact governed run has been executed for ODA3, that a release/tag has been published for this experiment, or that ODA3 has independently reproduced the result. Those remain activation/evidence tasks.
+```text
+generalized SDK testing surface: IMPLEMENTED / SOURCE-VALIDATED / MERGED
+ODA3-specific SDK lane required: FALSE
+active release set: R3 / SDK 1.1.0
+SDK 1.1.0 artifact proof: PASS
+R3 exact TVC source-validation receipt: PENDING
+R3 immutable tag/release publication: PENDING
+R3 aggregate receipt: PENDING
+exact SDK-ingress governed run: PENDING
+exact-run custody/reconstruction/replay evidence: PENDING
+independent PASS + tamper FAIL evidence: PENDING
+owner-facing evidence packet: PENDING
+```
+
+Do not archive or present this test as completed until the immutable R3 release set verifies and the exact governed run plus its retained evidence packet exist.
