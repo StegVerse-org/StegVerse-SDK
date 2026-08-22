@@ -1,6 +1,6 @@
 # Communication Edge SDK Demo Mirror Handoff
 
-Status: VALIDATED
+Status: VALIDATED / PUBLIC GUIDE VALIDATION PENDING
 Repository: StegVerse-org/StegVerse-SDK
 Date: 2026-08-22
 
@@ -15,7 +15,25 @@ Provide a public SDK conformance demonstration of the KnowledgeVault-hosted Steg
 - `tests/test_communication_edge_demo.py`
 - `scripts/run_communication_edge_demo.py`
 - `scripts/run_pinned_communication_source_integration.py`
+- `docs/COMMUNICATION_EDGE_SDK_DEMO.md`
 - `.github/workflows/communication-edge-demo-validation.yml`
+
+## Public evaluator guide
+
+`docs/COMMUNICATION_EDGE_SDK_DEMO.md` is now implemented as the human-facing entry for this demo. It documents:
+
+1. a 60-second install/run path;
+2. the default fixture and expected best-path behavior;
+3. the dedicated conformance-test command;
+4. custom capability-packet execution;
+5. recipient KNOWN/UNKNOWN/UNREACHABLE semantics;
+6. remote-edge and multipath policy inputs;
+7. the multidimensional capability vector;
+8. ambiguity-safe fallback rules;
+9. reproduction of the pinned real StegTalk + KnowledgeVault source proof;
+10. the exact SDK-vs-runtime authority boundary and what remains unproven physically.
+
+The guide itself is included in the communication-edge workflow path filters so changes to the public instructions re-run the executable demo/test lane.
 
 ## SDK-only validation evidence
 
@@ -79,7 +97,7 @@ The tested integration performs no physical bearer transmission and grants no ex
 
 ## Remaining activation boundary
 
-The source/software integration and SDK demonstrator are now tested. Remaining work is runtime/physical proof:
+The source/software integration and SDK demonstrator are tested. Remaining work is runtime/physical proof:
 
 - feed an actual StegWhisper v0.2 posture from a running messenger surface;
 - persist a real runtime selection/lease into the connected personal KnowledgeVault rather than a temporary test vault;
@@ -90,3 +108,7 @@ The source/software integration and SDK demonstrator are now tested. Remaining w
 - exercise the ST-029 modem/SIM path for actual SMS proof.
 
 These runtime/physical items remain outside the SDK's authority and are not claimed complete by this validation.
+
+## Current continuation
+
+Validate the newly committed public evaluator guide through the existing Python 3.9/3.11/3.12 communication-edge workflow. Only after observed success should this handoff mark the public guide validation complete.
