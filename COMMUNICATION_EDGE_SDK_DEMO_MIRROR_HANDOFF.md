@@ -1,8 +1,8 @@
 # Communication Edge SDK Demo Mirror Handoff
 
-Status: VALIDATION_PENDING
+Status: VALIDATED
 Repository: StegVerse-org/StegVerse-SDK
-Branch under validation: test/communication-edge-sdk-demo
+Validation branch: test/communication-edge-sdk-demo
 Date: 2026-08-22
 
 ## Purpose
@@ -30,9 +30,34 @@ Provide a public SDK conformance demonstration of the KnowledgeVault-hosted Steg
 - confirmed no-side-effect failure may advance exactly once to the first ordered fallback;
 - identical packets produce identical selection receipts and hashes.
 
-## Validation lane
+## Observed validation evidence
 
-`Communication Edge SDK Demo Validation` runs on Python 3.9, 3.11, and 3.12. It compiles the demo, runs the dedicated pytest file, executes the sample packet, and checks that the produced artifact remains explicitly non-authorizing.
+Pull request: `#54` — `Validate communication edge SDK demo`
+Validated head: `5fa91a81d78b5325445466b2c3a1d183bd9f5dff`
+Workflow: `Communication Edge SDK Demo Validation`
+Workflow run: `32602726148`
+
+Observed jobs:
+
+```text
+validate (3.9)  -> SUCCESS
+validate (3.11) -> SUCCESS
+validate (3.12) -> SUCCESS
+```
+
+Every matrix job successfully completed:
+
+```text
+checkout
+Python setup
+SDK/test dependency installation
+communication-edge module/test compilation
+pytest tests/test_communication_edge_demo.py
+execution of examples/communication_edge_demo.json
+non-authorizing output verification
+```
+
+The executed demonstration verified that the preferred sample route is `stegtalk-ip`, an ambiguous post-dispatch outcome resolves to `VERIFY_EXTERNALLY`, a confirmed pre-side-effect failure resolves to `TRY_FALLBACK`, and the demo remains explicitly non-authorizing.
 
 ## Authority boundary
 
@@ -46,11 +71,8 @@ Edge device = ephemeral execution capability
 
 A successful SDK demo is not production activation. It proves public package behavior and invariants only.
 
-## Completion condition
+## Completion state
 
-1. PR validation lane passes on all configured Python versions.
-2. The runnable demonstration packet executes successfully.
-3. No authority-boundary regression is introduced.
-4. This handoff is merged to main with exact observed validation evidence.
+The SDK demonstration source and its dedicated validation lane are implemented and observed passing on all configured Python versions. This handoff may be merged to main as durable validation evidence.
 
-Until those conditions are observed, state remains VALIDATION_PENDING.
+Remaining work belongs to the live integration boundary, not this SDK demo: real StegWhisper posture input, live ST-031 selection/lease, actual KnowledgeVault receipt persistence/reconstruction, real admitted edges, and physical bearer execution.
