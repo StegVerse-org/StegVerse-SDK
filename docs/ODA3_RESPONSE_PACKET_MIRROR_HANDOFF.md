@@ -10,6 +10,7 @@ repository: StegVerse-org/StegVerse-SDK
 branch: main
 credential_authority: TV/TVC
 GitHub token runtime authority: NONE
+canonical task: tasks/SDK-ODA3-RESPONSE-PACKET-001.json
 ```
 
 ## Goal
@@ -121,6 +122,54 @@ external evaluator
 
 Direct evaluator submission to Core-Lite, StegCore, or StegGate does not satisfy this experiment and an evaluator-accessible bypass is itself a boundary violation.
 
+## Fail-closed packet builder — installed 2026-08-22
+
+The reviewer packet no longer requires a manual assembly step after runtime evidence arrives.
+
+```text
+builder: scripts/build_oda3_response_packet.py
+regression suite: tests/test_oda3_response_packet.py
+task: tasks/SDK-ODA3-RESPONSE-PACKET-001.json
+builder install commit: 9ee63248049c9c7989979e51a0bae4bccd5cf51c
+builder test install commit: b1f19975734bf6326977aae82c43767209360d62
+```
+
+The builder refuses to produce a complete packet unless it receives:
+
+```text
+verified stegverse.tvc.aggregate-release-receipt.v1
+release_set_id == EVALUATION-BOUNDARY-2026-08-19-R3
+exact four R3 repository/tag/commit bindings
+credential_authority == TV/TVC
+non_tv_tvc_credential_used == false
+source_validation.verified == true
+source_validation.tests_passed == true
+source_validation.guard_tests_passed == true
+real normalized-manifest.json
+real governance-request.json
+real governed-result.json
+complete independent unmodified tuple verification PASS
+```
+
+It then deterministically creates copied tamper variants and requires all three expected failures before completion:
+
+```text
+normalized manifest mutation -> submitted_manifest_binding FAIL
+governance request mutation -> governance_request_binding FAIL
+governed result mutation -> result_binding FAIL
+```
+
+It also emits `FILE_MANIFEST.sha256.json` with path, SHA-256 and byte size for every retained packet file. It does not create or synthesize any governed-runtime evidence; missing runtime inputs fail closed.
+
+Canonical invocation after real release/run evidence exists:
+
+```text
+python scripts/build_oda3_response_packet.py \
+  --release-receipt <verified-r3-aggregate-receipt.json> \
+  --run-dir <exact-sdk-ingress-run-evidence-dir> \
+  --output-dir <oda3-evaluation-boundary-r3>
+```
+
 ## Autonomous-actor second experiment gate
 
 Do not infer an AI/autonomous actor from the governance SDK. A later authority-state-change experiment requires a separately identified:
@@ -163,12 +212,13 @@ Once the verified aggregate receipt exists, continue without a new planning phas
 5 retain exact submitted manifest + governance request + result
 6 retain route/manifest/MR custody chain
 7 retain reconstruction and requested replay
-8 run independent verifier -> PASS
-9 generate three deliberate tamper copies -> expected FAIL x3
-10 build reviewer-facing file/hash manifest
-11 package independent reproduction commands and access/license notes
-12 update issue #47 and all governing handoffs with receipt IDs and packet location
-13 propagate pertinent release/evaluation semantics to Site, Publisher, admissibility-wiki and stegguardian-wiki
+8 run scripts/build_oda3_response_packet.py against the real release/run evidence
+9 builder independently verifies unmodified tuple -> PASS
+10 builder generates three deliberate tamper copies -> expected FAIL x3
+11 builder emits reviewer-facing file/hash manifest
+12 finalize reproduction commands and access/license notes
+13 update issue #47 and all governing handoffs with receipt IDs and packet location
+14 propagate pertinent release/evaluation semantics to Site, Publisher, admissibility-wiki and stegguardian-wiki
 ```
 
 ## Completion condition
@@ -178,6 +228,8 @@ source implementation complete: TRUE
 boundary test implementation complete: TRUE
 independent verifier implemented: TRUE
 reviewer request mapped: TRUE
+packet builder implemented: TRUE
+packet completion task installed: TRUE
 aggregate release proof complete: FALSE
 exact governed runtime run complete: FALSE
 complete evidence packet retained: FALSE
