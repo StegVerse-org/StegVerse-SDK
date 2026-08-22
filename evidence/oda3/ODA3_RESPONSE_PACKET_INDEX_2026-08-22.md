@@ -20,6 +20,10 @@ This index enumerates the exact evidence classes required for the first ODA3 eva
 | boundary source tests | yes | COMPLETE |
 | independent verifier implementation | yes | COMPLETE |
 | source artifact manifest + hashes | yes | COMPLETE |
+| fail-closed reviewer packet builder | yes | COMPLETE_SOURCE / `scripts/build_oda3_response_packet.py` |
+| packet completion task | yes | ACTIVE / `tasks/SDK-ODA3-RESPONSE-PACKET-001.json` |
+| packet builder regression coverage | yes | COMPLETE_SOURCE / `tests/test_oda3_response_packet.py` |
+| packet-builder hosted source validation | yes | PENDING OBSERVATION after workflow binding |
 | four immutable release tag bindings | yes | PENDING TV/TVC |
 | R3 aggregate release receipt | yes | PENDING TV/TVC |
 | published SDK 1.1.0 artifact verification | yes | PENDING TV/TVC release |
@@ -30,13 +34,28 @@ This index enumerates the exact evidence classes required for the first ODA3 eva
 | Master Records exact-run custody | yes | PENDING exact run |
 | reconstruction evidence | yes | PENDING exact run |
 | replay evidence | conditional/requested | PENDING |
-| independent unmodified verification PASS | yes | PENDING exact run |
-| normalized-manifest tamper FAIL | yes | PENDING exact run |
-| governance-request tamper FAIL | yes | PENDING exact run |
-| result-binding tamper FAIL | yes | PENDING exact run |
+| independent unmodified verification PASS | yes | PENDING exact run; builder requires it |
+| normalized-manifest tamper FAIL | yes | PENDING exact run; builder derives/verifies from real tuple |
+| governance-request tamper FAIL | yes | PENDING exact run; builder derives/verifies from real tuple |
+| result-binding tamper FAIL | yes | PENDING exact run; builder derives/verifies from real tuple |
 | runtime/source correspondence report | yes | PENDING release + exact run |
 | access/license note | yes | PARTIAL / finalize with packet |
-| independent reproduction procedure | yes | PENDING final packet |
+| independent reproduction procedure | yes | SOURCE PROCEDURE COMPLETE; finalize concrete release/run coordinates |
+
+## Automated completion gate
+
+After genuine release and runtime evidence exists, the packet is assembled through:
+
+```text
+python scripts/build_oda3_response_packet.py \
+  --release-receipt <verified-r3-aggregate-receipt.json> \
+  --run-dir <exact-sdk-ingress-run-evidence-dir> \
+  --output-dir <oda3-evaluation-boundary-r3>
+```
+
+The builder fails closed unless the R3 aggregate receipt has the exact four release coordinates, TV/TVC credential authority, no non-TV/TVC credential use, and retained PASS for both the generic aggregate-release suite and guarded one-shot continuation suite. It then requires the real normalized manifest, exact governance request and governed result, independently verifies the unmodified tuple, generates copied deliberate tamper cases, requires all three binding failures, and emits a SHA-256/byte-size file manifest.
+
+It does not synthesize runtime, custody, release, replay or reconstruction evidence.
 
 ## Expected final packet structure
 
@@ -68,4 +87,4 @@ The names above define the reviewer-facing packet shape; they do not assert that
 
 ## Next trigger
 
-Consume a verified `stegverse.tvc.aggregate-release-receipt.v1` for R3 from the canonical TV/TVC workstream, then proceed immediately with release verification and the exact SDK-ingress governed run. Do not substitute moving branch heads, source-only CI, or an evaluator-specific path.
+Consume a verified `stegverse.tvc.aggregate-release-receipt.v1` for R3 from the canonical TV/TVC workstream, then proceed immediately with release verification and the exact SDK-ingress governed run. The packet builder is already installed so no manual packet-assembly design phase remains after those genuine artifacts arrive. Do not substitute moving branch heads, source-only CI, fixtures, or an evaluator-specific path.
