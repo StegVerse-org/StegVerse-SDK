@@ -20,10 +20,20 @@
     "concurrency": false,
     "consequence_alterable_at_boundary": true
   },
+  "machine_freeze_integrity": {
+    "module": "stegverse/execution_boundary_fixture.py",
+    "tests": "tests/test_execution_boundary_fixture.py",
+    "workflow": ".github/workflows/execution-boundary-validation.yml",
+    "schema": "stegverse.governed_admissibility.execution_boundary_fixture.v1",
+    "post_freeze_drift_detection": true,
+    "candidate_target_authority_payload_predicates_boundary_and_interfaces_hash_bound": true,
+    "hosted_validation": "PENDING_BRANCH_RUN"
+  },
   "completion_requirements": [
     "external examiner accepts the frozen fixture definition",
     "evidence interfaces are confirmed before execution",
     "candidate, payload hash, target, authority, criteria, and boundary definition are frozen",
+    "the agreed frozen fixture validates to one stable fixture hash before execution",
     "canonical 0B/StegCore/StegGate/Master Records route is used",
     "initial and boundary admissibility receipts are retained",
     "material transition and causal continuity evidence are retained",
