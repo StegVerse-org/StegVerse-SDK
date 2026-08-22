@@ -1,6 +1,6 @@
 # StegVerse SDK Mirror Handoff
 
-Updated: 2026-08-09
+Updated: 2026-08-22
 
 ## Current source of truth
 
@@ -14,7 +14,7 @@ default branch: main
 role: user-facing, non-authorizing intake and compatibility boundary
 ```
 
-SDK validation, compatibility, submission, aggregation, ingestion, device discovery, or capability declaration are not execution, authority, admissibility, standing, commit-time validation, publication, deployment, or Master-Records custody.
+SDK validation, compatibility, submission, aggregation, ingestion, device discovery, capability declaration, or communication demonstration are not execution, authority, admissibility, standing, commit-time validation, publication, deployment, bearer delivery, or Master-Records custody.
 
 ## Completed goals retained
 
@@ -25,6 +25,8 @@ Goal 6 entry-point role and transition-usage contracts: COMPLETE
 Goal 6 coordinate-navigation consumption: COMPLETE
 Goal 6 aggregate session-usage receipt: COMPLETE
 Goal 7 governed edge-cell source consumer: COMPLETE
+Communication edge SDK demonstrator: VALIDATED
+Installed communication demo command: VALIDATED
 ```
 
 Existing invariants remain binding:
@@ -39,8 +41,91 @@ usage_event_is_authority == false
 usage_event_is_admissibility == false
 session_receipt_is_master_record_custody == false
 aggregation_is_universal_cost_claim == false
+sdk_communication_demo_is_execution == false
+sdk_communication_demo_grants_authority == false
 returned_to_origin == true
 ```
+
+## Communication edge SDK demonstrator — VALIDATED
+
+Task-specific source of truth: `COMMUNICATION_EDGE_SDK_DEMO_MIRROR_HANDOFF.md`.
+Human-facing instructions: `docs/COMMUNICATION_EDGE_SDK_DEMO.md`.
+
+Installed evaluator command:
+
+```bash
+stegverse-comm-demo
+stegverse-comm-demo --compact
+stegverse-comm-demo /path/to/custom-packet.json
+```
+
+Implemented surfaces:
+
+```text
+stegverse/communication_edge_demo.py
+stegverse/communication_edge_cli.py
+stegverse/demo_data/communication_edge_demo.json
+examples/communication_edge_demo.json
+tests/test_communication_edge_demo.py
+scripts/run_communication_edge_demo.py
+scripts/run_pinned_communication_source_integration.py
+docs/COMMUNICATION_EDGE_SDK_DEMO.md
+.github/workflows/communication-edge-demo-validation.yml
+COMMUNICATION_EDGE_SDK_DEMO_MIRROR_HANDOFF.md
+```
+
+The SDK package now carries its deterministic demonstration packet as package data, so the installed command does not depend on a repository-relative `examples/` path.
+
+Observed validation evidence:
+
+```text
+PR #54 / run 32602726148:
+  SDK-only conformance demo
+  Python 3.9 / 3.11 / 3.12 -> SUCCESS
+
+PR #55 / run 32602863793:
+  pinned real StegTalk + KnowledgeVault source integration
+  Python 3.9 / 3.11 / 3.12 -> SUCCESS
+
+StegWhisper PR #15 / run 32602979304:
+  real StegWhisper v0.2 -> pinned real StegTalk ST-031 -> pinned real KnowledgeVault
+  SUCCESS
+
+PR #57 / runs 32605995150 and 32606024322:
+  public evaluator guide present while full communication lane executes
+  Python 3.9 / 3.11 / 3.12 -> SUCCESS
+
+PR #58 / runs 32606159922 and 32606199291:
+  installed stegverse-comm-demo command
+  packaged deterministic fixture
+  installed/source JSON parity
+  full pinned-source integration revalidation
+  Python 3.9 / 3.11 / 3.12 -> SUCCESS
+```
+
+Pinned real source exercised by the SDK source-integration proof:
+
+```text
+StegVerse-Labs/StegTalk
+2361d13ea09818f17aef5239ebf4771a161a0dc7
+
+StegVerse-Labs/continuity-vault-kit
+35e6d7ad881e0dea60ba191c49dfd4fba86e3fd7
+```
+
+The proof executes the real ST-031 resolver and KnowledgeVault execution store, selects the higher-capability `stegtalk-ip` path over SMS under AUTO, retains SMS as ordered fallback, persists selection/lease state, reconstructs that state from a fresh KV store instance after restart, blocks automatic fallback after ambiguous post-dispatch state, and allows the exact ordered fallback only after confirmed absence of side effects.
+
+Authority boundary remains:
+
+```text
+SDK = non-authorizing compatibility/conformance demonstration
+StegWhisper = messenger posture + consent/presentation constraints
+StegTalk ST-031 = real bearer admissibility/scoring/selection/fallback authority
+KnowledgeVault = durable attempt/receipt/recovery continuity authority
+Edge device = ephemeral execution capability
+```
+
+The communication demo does not prove a physical/network bearer was executed, a real recipient received a message, or ST-029 modem/SIM activation. Those runtime/physical goals remain open in the StegTalk/StegWhisper/KnowledgeVault handoffs and task registries.
 
 ## New machine-owned continuation — `BIOINTERFACE-SDK-001`
 
@@ -98,7 +183,7 @@ Canonical source binding:
 
 ```text
 profile: stegverse.edge-cell.governed.v1@1.0.0
-profile hash: 0a31dabd5ba8e8f5e526a087b4194eccca1456c693546c742ccf9b2fab945ab1
+profile hash: 0a31dabd5ba8e8f5e526a087b4194eccca1456c693546c7428ef165ae212419
 activation-input hash: a90a33fb74205e947146f2098e020a299c9e29a50ddf2c8a9cafad759646ea2c
 activation-receipt hash: c546a4addf80eebead9cc17324fad7580d6d5050c5347e86969c91d8d9cf7299
 ```
@@ -135,6 +220,8 @@ Inspected Python 3.11 log historically recorded 406 tests collected, 10 edge-cel
 
 Existing SDK pull-request/main workflows remain the validation owner. `BIOINTERFACE-SDK-001` must integrate into those workflows rather than create an isolated parallel validation authority unless technically required and explicitly recorded.
 
+The communication-edge demo remains owned by `Communication Edge SDK Demo Validation`; its successful conformance runs do not grant runtime communication authority.
+
 Missing implementation remains fail-closed as incomplete; issue presence or architecture documentation does not equal SDK implementation.
 
 ## Cross-repository continuation
@@ -145,6 +232,11 @@ physiological device profiles: StegVerse-Labs/StegHealth
 neural device profiles: StegVerse-Labs/StegNeuro
 admissibility/consequence: StegVerse-Labs/StegCore
 reconstruction resolution: master-records/core-lite#31
+
+communication posture surface: StegVerse-Labs/StegWhisper
+communication bearer/admissibility selection: StegVerse-Labs/StegTalk
+communication continuity/recovery host: StegVerse-Labs/continuity-vault-kit
+communication public conformance surface: StegVerse-org/StegVerse-SDK
 ```
 
 Existing Goal-7 source/destination relationships remain preserved and are not reopened.
@@ -153,7 +245,19 @@ Existing Goal-7 source/destination relationships remain preserved and are not re
 
 Completed Goal-7 slice remains 6/6 developed, 4/4 validation, 3/3 integration.
 
-New `BIOINTERFACE-SDK-001` denominator resets independently:
+Communication-edge SDK slice:
+
+```text
+human-facing guide: complete + validated
+SDK simulator: complete + validated
+installed command: complete + validated
+packaged deterministic fixture: complete + validated
+pinned StegTalk/KV source proof: complete + validated
+full StegWhisper->StegTalk->KV source proof: complete + validated
+physical bearer execution: outside SDK / not claimed
+```
+
+New `BIOINTERFACE-SDK-001` denominator remains independent:
 
 ```text
 architecture transfer: 1/1 complete
@@ -166,4 +270,6 @@ claim: MACHINE_OWNED / no active implementation claimant
 
 ## Session consolidation
 
-The shared Health/Neuro device-substrate requirement and whole-nervous-system profile scope are now durable in `docs/BIOINTERFACE_DEVICE_SDK_CONVERGENCE.md` and issue #13. The originating chat does not need to remain open merely to preserve that architecture; future implementation must proceed from the issue and this handoff.
+The communication-edge SDK work is durable in its source, package command, public guide, workflow, task-specific handoff, and observed validation runs. Future communication runtime activation must continue from StegTalk/StegWhisper/KnowledgeVault rather than treating SDK conformance as physical execution.
+
+The shared Health/Neuro device-substrate requirement and whole-nervous-system profile scope remain durable in `docs/BIOINTERFACE_DEVICE_SDK_CONVERGENCE.md` and issue #13. Future implementation must proceed from the issue and this handoff.
