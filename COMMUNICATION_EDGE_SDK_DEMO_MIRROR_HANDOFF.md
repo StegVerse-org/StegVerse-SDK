@@ -1,15 +1,15 @@
 # Communication Edge SDK Demo Mirror Handoff
 
-Status: VALIDATED
+Status: PINNED_SOURCE_VALIDATION_PENDING
 Repository: StegVerse-org/StegVerse-SDK
-Validation branch: test/communication-edge-sdk-demo
+Validation branch: test/pinned-communication-source-integration
 Date: 2026-08-22
 
 ## Purpose
 
 Provide a public SDK conformance demonstration of the KnowledgeVault-hosted StegWhisper -> StegTalk ST-031 -> ephemeral-edge communication flow without moving execution, admissibility, bearer-selection, or continuity authority into the SDK.
 
-## Implemented source
+## Implemented SDK demo
 
 - `stegverse/communication_edge_demo.py`
 - `examples/communication_edge_demo.json`
@@ -17,62 +17,49 @@ Provide a public SDK conformance demonstration of the KnowledgeVault-hosted Steg
 - `scripts/run_communication_edge_demo.py`
 - `.github/workflows/communication-edge-demo-validation.yml`
 
-## Demonstrated invariants
+## Already observed SDK-only validation
 
-- SDK output is always `sdk_simulation_only=true`;
-- SDK output grants no authority and performs no transport execution;
-- a higher-capability native StegTalk path can outrank SMS under `AUTO`;
-- unattested or expired edges fail closed;
-- UNKNOWN recipient state can use only explicit safe fallback bearers;
-- remote-edge denial keeps execution selection on the declared current edge;
-- single primary edge is selected by default;
-- ambiguous post-dispatch state produces `VERIFY_EXTERNALLY`, never automatic fallback;
-- confirmed no-side-effect failure may advance exactly once to the first ordered fallback;
-- identical packets produce identical selection receipts and hashes.
+Pull request `#54` validated the SDK simulator on Python 3.9, 3.11, and 3.12. Workflow run `32602726148` completed all three matrix jobs successfully, including compilation, dedicated pytest coverage, execution of the sample packet, and non-authorizing boundary checks.
 
-## Observed validation evidence
+## Pinned live-source integration proof
 
-Pull request: `#54` — `Validate communication edge SDK demo`
-Validated head: `5fa91a81d78b5325445466b2c3a1d183bd9f5dff`
-Workflow: `Communication Edge SDK Demo Validation`
-Workflow run: `32602726148`
+The validation lane is now extended with `scripts/run_pinned_communication_source_integration.py`.
 
-Observed jobs:
+It anonymously checks out these exact public source commits:
 
 ```text
-validate (3.9)  -> SUCCESS
-validate (3.11) -> SUCCESS
-validate (3.12) -> SUCCESS
+StegVerse-Labs/StegTalk
+2361d13ea09818f17aef5239ebf4771a161a0dc7
+
+StegVerse-Labs/continuity-vault-kit
+35e6d7ad881e0dea60ba191c49dfd4fba86e3fd7
 ```
 
-Every matrix job successfully completed:
+The integration proof imports and executes the real `stegtalk.cross_edge_resolver` and real `execution.vault_store` from those pinned sources. It must prove:
 
-```text
-checkout
-Python setup
-SDK/test dependency installation
-communication-edge module/test compilation
-pytest tests/test_communication_edge_demo.py
-execution of examples/communication_edge_demo.json
-non-authorizing output verification
-```
-
-The executed demonstration verified that the preferred sample route is `stegtalk-ip`, an ambiguous post-dispatch outcome resolves to `VERIFY_EXTERNALLY`, a confirmed pre-side-effect failure resolves to `TRY_FALLBACK`, and the demo remains explicitly non-authorizing.
+1. ST-031 chooses the more capable `stegtalk-ip` edge over SMS under AUTO;
+2. the ordered SMS fallback is retained;
+3. an execution lease binds the attempt to the selected edge;
+4. ambiguous post-dispatch state produces `VERIFY_EXTERNALLY`;
+5. confirmed no-side-effect failure produces `TRY_FALLBACK` to the exact ordered edge;
+6. the actual ST-031 selection receipt is persisted through `KnowledgeVaultExecutionStore.append_receipt()`;
+7. lease/attempt state is persisted through `append_attempt()`;
+8. a fresh `KnowledgeVaultExecutionStore` instance reconstructs both receipt and lease state after restart;
+9. no physical transport execution or production-authority claim is inferred from the proof.
 
 ## Authority boundary
 
 ```text
 SDK demo = compatibility/conformance simulation only
+Pinned source integration = source-level executable integration proof
 StegWhisper = messenger posture + constraints
 StegTalk ST-031 = real admissibility + scoring + edge/bearer selection
 KnowledgeVault = durable attempt/receipt/recovery truth
 Edge device = ephemeral execution capability
 ```
 
-A successful SDK demo is not production activation. It proves public package behavior and invariants only.
+A successful pinned-source proof closes the source integration and restart/reconstruction test boundary. It still does not prove physical bearer execution or production activation.
 
-## Completion state
+## Completion condition
 
-The SDK demonstration source and its dedicated validation lane are implemented and observed passing on all configured Python versions. This handoff may be merged to main as durable validation evidence.
-
-Remaining work belongs to the live integration boundary, not this SDK demo: real StegWhisper posture input, live ST-031 selection/lease, actual KnowledgeVault receipt persistence/reconstruction, real admitted edges, and physical bearer execution.
+The pinned-source validation branch must pass the expanded Python 3.9/3.11/3.12 matrix and execute the actual StegTalk + KnowledgeVault integration proof successfully. Exact workflow evidence will replace this pending state before merge.
