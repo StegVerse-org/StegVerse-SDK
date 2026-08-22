@@ -39,7 +39,7 @@ def _release_receipt() -> dict:
     }
 
 
-def _runtime_tuple(run_dir: Path) -> None:
+def _runtime_tuple(run_dir: Path, *, with_custody: bool = True) -> None:
     manifest = {"schema_version": "1.0", "request_id": "oda3-r3-t1", "authority_claim": False}
     governance_request = {"candidate": {"action": "bounded-test"}, "permission_present": False}
     result_body = {
@@ -53,6 +53,10 @@ def _runtime_tuple(run_dir: Path) -> None:
     _write(run_dir / "normalized-manifest.json", manifest)
     _write(run_dir / "governance-request.json", governance_request)
     _write(run_dir / "governed-result.json", result)
+    if with_custody:
+        _write(run_dir / "route-receipts" / "route.json", {"schema": "test.route-receipt", "recorded": True})
+        _write(run_dir / "master-records" / "custody.json", {"schema": "test.master-record", "recorded": True})
+        _write(run_dir / "reconstruction" / "reconstruction.json", {"schema": "test.reconstruction", "verified": True})
 
 
 def test_packet_builder_fails_when_runtime_evidence_is_missing(tmp_path: Path):
@@ -72,6 +76,15 @@ def test_packet_builder_rejects_release_receipt_without_guard_suite_pass(tmp_pat
         build_packet(release_receipt_path=receipt_path, run_dir=tmp_path / "run", output_dir=tmp_path / "packet")
 
 
+def test_packet_builder_fails_without_route_custody_and_reconstruction_evidence(tmp_path: Path):
+    receipt_path = tmp_path / "receipt.json"
+    run_dir = tmp_path / "run"
+    _write(receipt_path, _release_receipt())
+    _runtime_tuple(run_dir, with_custody=False)
+    with pytest.raises(RuntimeError, match="custody_or_route_evidence_missing"):
+        build_packet(release_receipt_path=receipt_path, run_dir=run_dir, output_dir=tmp_path / "packet")
+
+
 def test_packet_builder_emits_independent_pass_tamper_fails_and_file_manifest(tmp_path: Path):
     receipt_path = tmp_path / "receipt.json"
     run_dir = tmp_path / "run"
@@ -83,12 +96,19 @@ def test_packet_builder_emits_independent_pass_tamper_fails_and_file_manifest(tm
 
     assert result["status"] == "ok"
     assert result["release_receipt_verified"] is True
+    assert result["route_custody_evidence_present"] is True
     assert result["independent_verification_pass"] is True
     assert result["tamper_failures"] == {"manifest": True, "governance_request": True, "result": True}
+    assert (packet_dir / "README_REPRODUCE.md").is_file()
+    assert (packet_dir / "LICENSE_ACCESS_NOTES.md").is_file()
+    assert (packet_dir / "run" / "route-receipts" / "route.json").is_file()
+    assert (packet_dir / "run" / "master-records" / "custody.json").is_file()
+    assert (packet_dir / "run" / "reconstruction" / "reconstruction.json").is_file()
     assert (packet_dir / "verify" / "independent-pass.json").is_file()
     assert (packet_dir / "verify" / "manifest-tamper-fail.json").is_file()
     assert (packet_dir / "verify" / "governance-request-tamper-fail.json").is_file()
     assert (packet_dir / "verify" / "result-tamper-fail.json").is_file()
     file_manifest = json.loads((packet_dir / "FILE_MANIFEST.sha256.json").read_text(encoding="utf-8"))
     assert file_manifest["packet_complete_for_binding_review"] is True
+    assert file_manifest["required_route_custody_evidence_present"] is True
     assert file_manifest["authority_granted"] is False
