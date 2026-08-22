@@ -4,7 +4,10 @@ on:
   push:
     branches: ["main"]
     paths:
+      - "pyproject.toml"
       - "stegverse/communication_edge_demo.py"
+      - "stegverse/communication_edge_cli.py"
+      - "stegverse/demo_data/communication_edge_demo.json"
       - "examples/communication_edge_demo.json"
       - "tests/test_communication_edge_demo.py"
       - "scripts/run_communication_edge_demo.py"
@@ -14,7 +17,10 @@ on:
       - ".github/workflows/communication-edge-demo-validation.yml"
   pull_request:
     paths:
+      - "pyproject.toml"
       - "stegverse/communication_edge_demo.py"
+      - "stegverse/communication_edge_cli.py"
+      - "stegverse/demo_data/communication_edge_demo.json"
       - "examples/communication_edge_demo.json"
       - "tests/test_communication_edge_demo.py"
       - "scripts/run_communication_edge_demo.py"
@@ -41,23 +47,27 @@ jobs:
       - name: Install SDK test requirements
         run: python -m pip install -e . pytest
       - name: Compile communication-edge demo
-        run: python -m py_compile stegverse/communication_edge_demo.py scripts/run_communication_edge_demo.py scripts/run_pinned_communication_source_integration.py tests/test_communication_edge_demo.py
+        run: python -m py_compile stegverse/communication_edge_demo.py stegverse/communication_edge_cli.py scripts/run_communication_edge_demo.py scripts/run_pinned_communication_source_integration.py tests/test_communication_edge_demo.py
       - name: Run communication-edge conformance tests
         run: python -m pytest tests/test_communication_edge_demo.py -q
-      - name: Execute demonstration packet
+      - name: Execute repository demonstration packet
         run: python scripts/run_communication_edge_demo.py examples/communication_edge_demo.json > /tmp/communication-edge-demo.json
-      - name: Verify demonstration remains non-authorizing
+      - name: Execute installed SDK command
+        run: stegverse-comm-demo > /tmp/communication-edge-installed.json
+      - name: Verify installed command matches repository demo and remains non-authorizing
         run: |
           python - <<'PY'
           import json
-          p=json.load(open('/tmp/communication-edge-demo.json'))
-          assert p['sdk_simulation_only'] is True
-          assert p['authority_granted'] is False
-          assert p['execution_performed'] is False
-          assert p['selection']['selected_bearer'] == 'stegtalk-ip'
-          assert p['recovery_scenarios']['ambiguous_after_dispatch']['action'] == 'VERIFY_EXTERNALLY'
-          assert p['recovery_scenarios']['confirmed_pre_side_effect_failure']['action'] == 'TRY_FALLBACK'
-          print(p['demo_sha256'])
+          repo=json.load(open('/tmp/communication-edge-demo.json'))
+          installed=json.load(open('/tmp/communication-edge-installed.json'))
+          assert installed == repo
+          assert installed['sdk_simulation_only'] is True
+          assert installed['authority_granted'] is False
+          assert installed['execution_performed'] is False
+          assert installed['selection']['selected_bearer'] == 'stegtalk-ip'
+          assert installed['recovery_scenarios']['ambiguous_after_dispatch']['action'] == 'VERIFY_EXTERNALLY'
+          assert installed['recovery_scenarios']['confirmed_pre_side_effect_failure']['action'] == 'TRY_FALLBACK'
+          print(installed['demo_sha256'])
           PY
       - name: Checkout pinned public StegTalk source without credentials
         run: |
