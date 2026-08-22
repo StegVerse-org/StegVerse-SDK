@@ -1,0 +1,69 @@
+{
+  "attempt_id": "sdk-demo:communication-edge:001",
+  "posture": "AUTO",
+  "recipient": {
+    "state": "KNOWN",
+    "accepted_bearers": ["stegtalk-ip", "sms"]
+  },
+  "constraints": {
+    "remote_edge_execution_authorized": true,
+    "multipath_authorized": false,
+    "relay_permission": "allowed",
+    "allow_store_and_forward": true,
+    "bearer_preference": ["stegtalk-ip", "sms"]
+  },
+  "edges": [
+    {
+      "edge_id": "sdk-demo:gateway",
+      "advertisement_id": "adv:sdk-demo:gateway:1",
+      "attested": true,
+      "expired": false,
+      "available_bearers": ["stegtalk-ip"],
+      "capabilities": {
+        "local_bearers": [],
+        "requires_relay": false,
+        "store_and_forward": false
+      },
+      "metrics": {
+        "security": 0.98,
+        "privacy": 0.96,
+        "recipient_compatibility": 1.0,
+        "reliability": 0.94,
+        "receipt_quality": 0.96,
+        "bidirectionality": 1.0,
+        "resilience": 0.86,
+        "latency": 0.91,
+        "bandwidth": 0.94,
+        "cost": 0.88,
+        "energy": 0.82,
+        "metadata_minimization": 0.96
+      }
+    },
+    {
+      "edge_id": "sdk-demo:phone",
+      "advertisement_id": "adv:sdk-demo:phone:1",
+      "attested": true,
+      "expired": false,
+      "available_bearers": ["sms"],
+      "capabilities": {
+        "local_bearers": [],
+        "requires_relay": false,
+        "store_and_forward": false
+      },
+      "metrics": {
+        "security": 0.45,
+        "privacy": 0.34,
+        "recipient_compatibility": 1.0,
+        "reliability": 0.78,
+        "receipt_quality": 0.62,
+        "bidirectionality": 0.82,
+        "resilience": 0.84,
+        "latency": 0.72,
+        "bandwidth": 0.20,
+        "cost": 0.62,
+        "energy": 0.70,
+        "metadata_minimization": 0.30
+      }
+    }
+  ]
+}
