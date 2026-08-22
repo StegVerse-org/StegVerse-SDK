@@ -5,21 +5,32 @@ on:
     paths:
       - 'stegverse/admissibility.py'
       - 'stegverse/execution_boundary.py'
+      - 'stegverse/execution_boundary_fixture.py'
       - 'stegverse/__init__.py'
       - 'tests/test_execution_boundary.py'
+      - 'tests/test_execution_boundary_fixture.py'
       - 'EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md'
+      - 'docs/EXECUTION_BOUNDARY_CONTROLLED_PRODUCTION_FIXTURE.md'
+      - 'docs/EXECUTION_BOUNDARY_EXAMINATION_PACKET.md'
       - 'tasks/SDK-EXECUTION-BOUNDARY-EVIDENCE-003.json'
+      - 'tasks/SDK-EXECUTION-BOUNDARY-PRODUCTION-FIXTURE-004.json'
       - '.github/workflows/execution-boundary-validation.yml'
   push:
     branches:
       - 'feat/execution-boundary-evidence-003'
+      - 'feat/execution-boundary-production-fixture-004'
     paths:
       - 'stegverse/admissibility.py'
       - 'stegverse/execution_boundary.py'
+      - 'stegverse/execution_boundary_fixture.py'
       - 'stegverse/__init__.py'
       - 'tests/test_execution_boundary.py'
+      - 'tests/test_execution_boundary_fixture.py'
       - 'EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md'
+      - 'docs/EXECUTION_BOUNDARY_CONTROLLED_PRODUCTION_FIXTURE.md'
+      - 'docs/EXECUTION_BOUNDARY_EXAMINATION_PACKET.md'
       - 'tasks/SDK-EXECUTION-BOUNDARY-EVIDENCE-003.json'
+      - 'tasks/SDK-EXECUTION-BOUNDARY-PRODUCTION-FIXTURE-004.json'
       - '.github/workflows/execution-boundary-validation.yml'
 
 permissions: {}
@@ -56,10 +67,16 @@ jobs:
           cd /tmp/source
           pytest -q \
             tests/test_execution_boundary.py \
+            tests/test_execution_boundary_fixture.py \
             tests/test_dynamic_admissibility.py \
             tests/test_admissibility_composition.py
           python - <<'PY'
           from stegverse import EXECUTION_BOUNDARY_CASE_SCHEMA, evaluate_admissibility_packet, evaluate_execution_boundary_case
+          from stegverse.execution_boundary_fixture import (
+              EXECUTION_BOUNDARY_FIXTURE_SCHEMA,
+              freeze_execution_boundary_fixture,
+              verify_frozen_execution_boundary_fixture,
+          )
 
           def point(high=False):
               return evaluate_admissibility_packet({
@@ -94,6 +111,33 @@ jobs:
                   },
               }, strict=True)
 
+          frozen = freeze_execution_boundary_fixture({
+              'schema': EXECUTION_BOUNDARY_FIXTURE_SCHEMA,
+              'fixture_id': 'SDK-EXECUTION-BOUNDARY-PRODUCTION-FIXTURE-004',
+              'candidate_id': 'T-CANDIDATE-001',
+              'candidate_action_type': 'append_controlled_test_record',
+              'payload_hash': 'sha256:' + ('a' * 64),
+              'target_id': 'controlled-production-test-namespace',
+              'authority_source_id': 'AUTH-001',
+              'frozen_admissibility_predicates': {
+                  'candidate_identity_matches': True,
+                  'authority_source_matches': True,
+                  'target_identity_matches': True,
+                  'payload_hash_matches': True,
+                  'target_write_state_required': 'WRITE_ENABLED',
+                  'boundary_evidence_complete': True,
+              },
+              'material_state_variable': 'target_write_state',
+              'initial_required_state': 'WRITE_ENABLED',
+              'intervening_state': 'WRITE_DISABLED',
+              'state_transition_method': 'controlled target write-state toggle',
+              'execution_boundary_definition': 'immediately before actuator commit',
+              'evidence_interfaces': [f'E{i}' for i in range(1, 10)],
+              'independent_reconstruction_required': True,
+              'concurrency_prohibited': True,
+          })
+          assert verify_frozen_execution_boundary_fixture(frozen) is True
+
           case = {
               'schema': EXECUTION_BOUNDARY_CASE_SCHEMA,
               'case_id': 'CI-N1-001',
@@ -118,4 +162,5 @@ jobs:
           assert result['evidence_standard']['independently_reconstructable'] is True
           assert result['boundary']['does_not_grant_execution_authority'] is True
           print('EXECUTION_BOUNDARY_N1_FALSIFICATION_PASS')
+          print('EXECUTION_BOUNDARY_FIXTURE_FREEZE_PASS')
           PY
