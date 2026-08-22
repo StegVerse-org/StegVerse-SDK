@@ -1,6 +1,6 @@
 # Communication Edge SDK Demo Mirror Handoff
 
-Status: VALIDATED / PUBLIC GUIDE VALIDATION PENDING
+Status: VALIDATED
 Repository: StegVerse-org/StegVerse-SDK
 Date: 2026-08-22
 
@@ -20,7 +20,7 @@ Provide a public SDK conformance demonstration of the KnowledgeVault-hosted Steg
 
 ## Public evaluator guide
 
-`docs/COMMUNICATION_EDGE_SDK_DEMO.md` is now implemented as the human-facing entry for this demo. It documents:
+`docs/COMMUNICATION_EDGE_SDK_DEMO.md` is the human-facing entry for this demo. It documents:
 
 1. a 60-second install/run path;
 2. the default fixture and expected best-path behavior;
@@ -33,9 +33,26 @@ Provide a public SDK conformance demonstration of the KnowledgeVault-hosted Steg
 9. reproduction of the pinned real StegTalk + KnowledgeVault source proof;
 10. the exact SDK-vs-runtime authority boundary and what remains unproven physically.
 
-The guide itself is included in the communication-edge workflow path filters so changes to the public instructions re-run the executable demo/test lane.
+The guide is included in the communication-edge workflow path filters so changes to the public instructions re-run the executable demo/test lane.
 
-## SDK-only validation evidence
+### Public-guide validation evidence
+
+Pull request `#57` — `Validate public communication edge demo guide`
+Validated head: `dbfae75dd55733f847ba252d89d5cba37c9e5a15`
+Workflow: `Communication Edge SDK Demo Validation`
+Workflow run: `32605995150`
+
+Observed jobs:
+
+```text
+validate (3.9)  -> SUCCESS
+validate (3.11) -> SUCCESS
+validate (3.12) -> SUCCESS
+```
+
+All three jobs successfully completed the full lane with the public guide present: SDK installation, compilation, dedicated conformance tests, execution of the sample packet, non-authorizing boundary verification, anonymous pinned StegTalk checkout, anonymous pinned KnowledgeVault checkout, real pinned source-integration execution, selection/lease persistence, restart reconstruction, and fallback-safety verification.
+
+## Earlier SDK-only validation evidence
 
 Pull request `#54` validated the SDK simulator on Python 3.9, 3.11, and 3.12. Workflow run `32602726148` completed all three matrix jobs successfully, including compilation, dedicated pytest coverage, execution of the sample packet, and non-authorizing boundary checks.
 
@@ -97,7 +114,7 @@ The tested integration performs no physical bearer transmission and grants no ex
 
 ## Remaining activation boundary
 
-The source/software integration and SDK demonstrator are tested. Remaining work is runtime/physical proof:
+The source/software integration, SDK demonstrator, and public evaluator guide are tested. Remaining work is runtime/physical proof:
 
 - feed an actual StegWhisper v0.2 posture from a running messenger surface;
 - persist a real runtime selection/lease into the connected personal KnowledgeVault rather than a temporary test vault;
@@ -108,7 +125,3 @@ The source/software integration and SDK demonstrator are tested. Remaining work 
 - exercise the ST-029 modem/SIM path for actual SMS proof.
 
 These runtime/physical items remain outside the SDK's authority and are not claimed complete by this validation.
-
-## Current continuation
-
-Validate the newly committed public evaluator guide through the existing Python 3.9/3.11/3.12 communication-edge workflow. Only after observed success should this handoff mark the public guide validation complete.
