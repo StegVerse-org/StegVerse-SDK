@@ -34,6 +34,8 @@
   "successor_release_task": "StegVerse-Labs/TVC:tasks/TVC-EVALUATION-BOUNDARY-AGGREGATE-RELEASE-029.json",
   "successor_release_issue": "StegVerse-Labs/TVC#78",
   "successor_release_install_commit": "9f98fd68b0ba68d9f3e9939901fb41c55c6b7936",
+  "successor_release_primary_entrypoint": "tvc.release.aggregate.evaluation_boundary_r3.continue",
+  "successor_release_one_shot_semantics": "source_validate -> readiness -> execute_if_READY -> verify_if_executed; retain source validation before blocking on absent TVC publication capability",
   "required_surfaces": [
     "stegverse/governance_fallback.py",
     "stegverse/governed_operations.py",
@@ -51,10 +53,10 @@
     "The exact wheel installed in an isolated virtual environment, imported stegverse, reported installed distribution version 1.1.0, and passed the stegverse --help console smoke test.",
     "Validation asserted GITHUB_TOKEN, GH_TOKEN, and PYPI_API_TOKEN absent and carried no release authority.",
     "Squash merge commit 922d6c5235229e854c36e1a194dc99ed15a31b51 has exact validated tree d9ddda3dbe942324c921051d89ec19eec3970b16.",
-    "TVC PR #83 merged as 9f98fd68b0ba68d9f3e9939901fb41c55c6b7936, installing R3 policy/catalog/task, disabling superseded R2 dispatch, and updating the bounded aggregate-release handoff."
+    "TVC R3 remains generalized and configuration-bound; the preferred TVC execution path is now one guarded continuation entrypoint rather than four separately scheduled calls."
   ],
   "completion_condition": "Exact admitted TVC R3 source validation passes and is retained; TV/TVC publishes immutable v1.1.0 and stegverse-sdk 1.1.0 from exact candidate 922d6c5235229e854c36e1a194dc99ed15a31b51; the complete R3 aggregate receipt verifies; the distributed package contains every required surface; and this task records COMPLETE evidence.",
-  "blocked_condition": "Exact R3 TVC source validation has not yet been retained and/or TVC-managed publication capability is unavailable after validation.",
+  "blocked_condition": "The one-shot TVC R3 continuation has not yet retained exact admitted source validation and/or the TVC-managed publication capability is unavailable after validation.",
   "blocked_release_condition": "Do not publish superseded 1.0.13-derived coordinates. Publication may proceed only through EVALUATION-BOUNDARY-2026-08-19-R3 after exact admitted TVC source validation passes and TVC readiness is READY.",
   "review_required_condition": "Any release-worthy source correction after the frozen SDK 1.1.0 candidate requires a new artifact proof, new candidate, and exact release-set revision rather than moving v1.1.0.",
   "collision_boundaries": [
@@ -67,7 +69,7 @@
     "Do not substitute moving main for frozen candidate 922d6c5235229e854c36e1a194dc99ed15a31b51.",
     "Do not treat source or artifact validation as release, runtime, deployment, propagation, or activation."
   ],
-  "next_executable_action": "Invoke tvc.release.aggregate.evaluation_boundary_r3.source_validate in an admitted TVC source environment. If PASS is retained, invoke R3 readiness immediately. If READY, execute and verify the R3 release under TV/TVC authority, verify published stegverse-sdk 1.1.0 against the frozen candidate, propagate the aggregate receipt to SDK issue #47, and continue the exact governed SDK-ingress run. If the TVC-managed publication capability is absent, remain blocked on that capability after retaining source-validation evidence.",
+  "next_executable_action": "Invoke tvc.release.aggregate.evaluation_boundary_r3.continue in the admitted TVC source environment. The single call must retain exact source validation, stop truthfully if the TVC-managed release capability is absent, or otherwise publish and verify R3. After the verified aggregate receipt exists, verify published stegverse-sdk 1.1.0 against the frozen candidate, propagate the receipt to SDK issue #47, and continue the exact governed SDK-ingress run.",
   "archive_dependency": true,
   "activation_effect": false
 }
