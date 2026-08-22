@@ -11,36 +11,34 @@ Provide a public SDK conformance demonstration of the KnowledgeVault-hosted Steg
 ## Implemented SDK demo
 
 - `stegverse/communication_edge_demo.py`
+- `stegverse/communication_edge_cli.py`
+- `stegverse/demo_data/communication_edge_demo.json`
 - `examples/communication_edge_demo.json`
 - `tests/test_communication_edge_demo.py`
 - `scripts/run_communication_edge_demo.py`
 - `scripts/run_pinned_communication_source_integration.py`
 - `docs/COMMUNICATION_EDGE_SDK_DEMO.md`
 - `.github/workflows/communication-edge-demo-validation.yml`
+- installed console command: `stegverse-comm-demo`
 
-## Public evaluator guide
+## Installed evaluator command
 
-`docs/COMMUNICATION_EDGE_SDK_DEMO.md` is the human-facing entry for this demo. It documents:
+The SDK package now exposes:
 
-1. a 60-second install/run path;
-2. the default fixture and expected best-path behavior;
-3. the dedicated conformance-test command;
-4. custom capability-packet execution;
-5. recipient KNOWN/UNKNOWN/UNREACHABLE semantics;
-6. remote-edge and multipath policy inputs;
-7. the multidimensional capability vector;
-8. ambiguity-safe fallback rules;
-9. reproduction of the pinned real StegTalk + KnowledgeVault source proof;
-10. the exact SDK-vs-runtime authority boundary and what remains unproven physically.
+```bash
+stegverse-comm-demo
+stegverse-comm-demo --compact
+stegverse-comm-demo /path/to/custom-packet.json
+```
 
-The guide is included in the communication-edge workflow path filters so changes to the public instructions re-run the executable demo/test lane.
+When no packet path is supplied, the CLI loads the deterministic packet from packaged `stegverse.demo_data`, so the evaluator does not depend on a repository-relative `examples/` path after installation.
 
-### Public-guide validation evidence
+### Installed-command validation evidence
 
-Pull request `#57` — `Validate public communication edge demo guide`
-Validated head: `dbfae75dd55733f847ba252d89d5cba37c9e5a15`
+Pull request `#58` — `Validate installed communication edge SDK command`
+Validated head: `0845ce5387a8c3877249d900c2ab176615d22aa9`
 Workflow: `Communication Edge SDK Demo Validation`
-Workflow run: `32605995150`
+Workflow run: `32606159922`
 
 Observed jobs:
 
@@ -50,17 +48,47 @@ validate (3.11) -> SUCCESS
 validate (3.12) -> SUCCESS
 ```
 
-All three jobs successfully completed the full lane with the public guide present: SDK installation, compilation, dedicated conformance tests, execution of the sample packet, non-authorizing boundary verification, anonymous pinned StegTalk checkout, anonymous pinned KnowledgeVault checkout, real pinned source-integration execution, selection/lease persistence, restart reconstruction, and fallback-safety verification.
+Every configured Python version successfully:
+
+1. installed the SDK;
+2. compiled the communication-edge simulator and installed CLI;
+3. ran the conformance tests;
+4. ran the repository demo fixture;
+5. ran `stegverse-comm-demo` using packaged demo data;
+6. required installed-command JSON to equal repository-runner JSON exactly;
+7. re-verified `sdk_simulation_only=true`, `authority_granted=false`, and `execution_performed=false`;
+8. anonymously checked out pinned StegTalk and KnowledgeVault sources;
+9. executed the real pinned ST-031 + KnowledgeVault integration proof;
+10. re-verified selection, lease persistence, restart reconstruction, ambiguity suppression, and confirmed-safe fallback.
+
+The CLI was corrected before validation to avoid Python 3.10-only union syntax; Python 3.9 is observed passing.
+
+## Public evaluator guide
+
+`docs/COMMUNICATION_EDGE_SDK_DEMO.md` is the human-facing entry for this demo. It now makes `stegverse-comm-demo` the primary demonstration path and documents the repository runner as an equivalent source-level path. It also documents conformance tests, custom packets, recipient states, cross-edge policy, capability dimensions, fallback safety, pinned-source reproduction, and the physical/runtime claim boundary.
+
+### Public-guide validation evidence
+
+Pull request `#57` — `Validate public communication edge demo guide`
+Workflow runs `32605995150` and `32606024322`
+Python 3.9 / 3.11 / 3.12: SUCCESS
+
+The full SDK demo and pinned-source integration lane remained green with the public guide and final evidence handoff present.
 
 ## Earlier SDK-only validation evidence
 
-Pull request `#54` validated the SDK simulator on Python 3.9, 3.11, and 3.12. Workflow run `32602726148` completed all three matrix jobs successfully, including compilation, dedicated pytest coverage, execution of the sample packet, and non-authorizing boundary checks.
+Pull request `#54`
+Workflow run `32602726148`
+Python 3.9 / 3.11 / 3.12: SUCCESS
 
-## Pinned live-source integration evidence
+This validated the SDK simulator, dedicated conformance tests, default packet, and non-authorizing boundary.
 
-Pull request `#55` merged the pinned-source integration proof.
+## Pinned real-source integration evidence
+
+Pull request `#55`
 Merged commit: `a0654a0b58779cb254371e7c5a3505dfc4a94239`
-Validation workflow run: `32602863793`
+Workflow run: `32602863793`
+Python 3.9 / 3.11 / 3.12: SUCCESS
 
 Exact public source commits exercised:
 
@@ -72,37 +100,13 @@ StegVerse-Labs/continuity-vault-kit
 35e6d7ad881e0dea60ba191c49dfd4fba86e3fd7
 ```
 
-Observed matrix result:
-
-```text
-validate (3.9)  -> SUCCESS
-validate (3.11) -> SUCCESS
-validate (3.12) -> SUCCESS
-```
-
-Every matrix job successfully:
-
-1. compiled the SDK communication demo and integration script;
-2. ran the SDK conformance tests;
-3. executed the SDK demo packet;
-4. verified the SDK remained non-authorizing;
-5. anonymously checked out the exact pinned StegTalk source;
-6. anonymously checked out the exact pinned KnowledgeVault source;
-7. imported and executed the real `stegtalk.cross_edge_resolver`;
-8. imported and executed the real `execution.vault_store`;
-9. selected the higher-capability `stegtalk-ip` edge over SMS under AUTO;
-10. retained SMS as the ordered fallback;
-11. issued an execution lease bound to the selected edge;
-12. proved ambiguous post-dispatch state produces `VERIFY_EXTERNALLY`;
-13. proved confirmed no-side-effect failure produces `TRY_FALLBACK` to the exact ordered edge;
-14. persisted the actual ST-031 selection receipt through `KnowledgeVaultExecutionStore.append_receipt()`;
-15. persisted lease/attempt state through `append_attempt()`;
-16. reopened the KnowledgeVault store from a fresh instance and reconstructed both selection receipt and lease state successfully.
+The workflow imported and executed the real `stegtalk.cross_edge_resolver` and `execution.vault_store`, selected `stegtalk-ip` over SMS under AUTO, retained SMS as ordered fallback, issued an execution lease, persisted the actual selection receipt and attempt/lease state, reopened a fresh KnowledgeVault store, reconstructed both after restart, produced `VERIFY_EXTERNALLY` for ambiguous post-dispatch state, and produced `TRY_FALLBACK` only after confirmed no-side-effect failure.
 
 ## Authority boundary
 
 ```text
 SDK demo = compatibility/conformance simulation only
+Installed SDK command = public non-authorizing demo entry
 Pinned source integration = executable source-integration proof
 StegWhisper = messenger posture + constraints
 StegTalk ST-031 = real admissibility + scoring + edge/bearer selection
@@ -110,18 +114,18 @@ KnowledgeVault = durable attempt/receipt/recovery truth
 Edge device = ephemeral execution capability
 ```
 
-The tested integration performs no physical bearer transmission and grants no execution authority to the SDK. It proves that the current StegTalk ST-031 and KnowledgeVault source interoperate, persist the correct selection/lease evidence, reconstruct after restart, and preserve safe fallback semantics.
+The validated SDK paths perform no physical bearer transmission and grant no execution authority to the SDK.
 
 ## Remaining activation boundary
 
-The source/software integration, SDK demonstrator, and public evaluator guide are tested. Remaining work is runtime/physical proof:
+The source/software integration, installed SDK demonstrator, public evaluator guide, and pinned-source restart/fallback proof are tested. Remaining work is runtime/physical proof:
 
 - feed an actual StegWhisper v0.2 posture from a running messenger surface;
-- persist a real runtime selection/lease into the connected personal KnowledgeVault rather than a temporary test vault;
+- persist a real runtime selection/lease into the connected personal KnowledgeVault;
 - advertise at least two actual admitted device edges;
 - execute through the selected physical/network bearer;
 - observe delivery evidence returning to KnowledgeVault;
-- restart/replace the selected edge and prove recovery against the connected vault;
+- restart/replace the selected edge and prove connected-vault recovery without duplicate dispatch;
 - exercise the ST-029 modem/SIM path for actual SMS proof.
 
 These runtime/physical items remain outside the SDK's authority and are not claimed complete by this validation.
