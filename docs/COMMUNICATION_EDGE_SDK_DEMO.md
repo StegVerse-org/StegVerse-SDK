@@ -16,16 +16,23 @@ A successful demo or test does **not** prove physical transport execution, produ
 
 ## 60-second demo
 
-From a clone of `StegVerse-org/StegVerse-SDK`:
+Install the SDK from a clone:
 
 ```bash
 git clone https://github.com/StegVerse-org/StegVerse-SDK.git
 cd StegVerse-SDK
 python -m pip install -e ".[dev]"
-python scripts/run_communication_edge_demo.py
 ```
 
-The default packet is:
+Then run the installed SDK command:
+
+```bash
+stegverse-comm-demo
+```
+
+No packet path is required. The command loads the deterministic packet packaged inside `stegverse.demo_data`, so the demo remains available through an installed SDK instead of depending on the repository `examples/` directory.
+
+The repository copy remains at:
 
 ```text
 examples/communication_edge_demo.json
@@ -47,6 +54,20 @@ sdk_simulation_only = true
 authority_granted = false
 execution_performed = false
 ```
+
+For compact machine-oriented JSON:
+
+```bash
+stegverse-comm-demo --compact
+```
+
+The repository runner is retained as a source-level equivalent:
+
+```bash
+python scripts/run_communication_edge_demo.py examples/communication_edge_demo.json
+```
+
+CI verifies that the installed command and repository runner produce the same result.
 
 ## Run the conformance tests
 
@@ -73,10 +94,10 @@ Copy the sample packet and edit it:
 cp examples/communication_edge_demo.json /tmp/my-communication-edge.json
 ```
 
-Then run:
+Then run it through the installed SDK command:
 
 ```bash
-python scripts/run_communication_edge_demo.py /tmp/my-communication-edge.json
+stegverse-comm-demo /tmp/my-communication-edge.json
 ```
 
 A packet supplies:
@@ -184,7 +205,7 @@ physical_transport_proven = false
 
 ## CI validation
 
-`.github/workflows/communication-edge-demo-validation.yml` runs the SDK demo and pinned source-integration proof on:
+`.github/workflows/communication-edge-demo-validation.yml` runs the installed command, repository runner, and pinned source-integration proof on:
 
 ```text
 Python 3.9
@@ -192,7 +213,7 @@ Python 3.11
 Python 3.12
 ```
 
-The workflow compiles the demo, runs the conformance suite, executes the default demonstration packet, verifies the SDK authority boundary, checks out the pinned real sources, executes the source-integration proof, and verifies restart/fallback invariants.
+The workflow installs the SDK, compiles the demo and CLI, runs the conformance suite, executes both demo entry points, requires their JSON results to be identical, verifies the SDK authority boundary, checks out the pinned real sources, executes the source-integration proof, and verifies restart/fallback invariants.
 
 Observed validation is recorded in `COMMUNICATION_EDGE_SDK_DEMO_MIRROR_HANDOFF.md`.
 
@@ -200,6 +221,7 @@ Observed validation is recorded in `COMMUNICATION_EDGE_SDK_DEMO_MIRROR_HANDOFF.m
 
 | Surface | Demonstrated here? |
 |---|---|
+| Installed SDK command works independently of `examples/` path | Yes, when validation is green |
 | Messenger posture/cross-edge semantics | Yes |
 | Deterministic best-admissible selection behavior | Yes |
 | Ordered fallback and ambiguity suppression | Yes |
