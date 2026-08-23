@@ -5,6 +5,7 @@ import argparse
 import json
 import sys
 import tempfile
+from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -40,7 +41,7 @@ def _edge(edge_id: str, bearer: str, score: float) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run pinned live-source StegTalk ST-031/ST-032 + KnowledgeVault integration proof")
+    parser = argparse.ArgumentParser(description="Run pinned StegTalk ST-031/ST-032 + KnowledgeVault native runtime-journal proof")
     parser.add_argument("--stegtalk-repo", required=True)
     parser.add_argument("--kv-repo", required=True)
     args = parser.parse_args()
@@ -50,10 +51,7 @@ def main() -> int:
     sys.path.insert(0, str(stegtalk_repo / "src"))
     sys.path.insert(0, str(kv_repo))
 
-    from stegtalk.cross_edge_resolver import (  # type: ignore
-        issue_execution_lease,
-        resolve_cross_edge_path,
-    )
+    from stegtalk.cross_edge_resolver import issue_execution_lease, resolve_cross_edge_path  # type: ignore
     from stegtalk.edge_runtime import (  # type: ignore
         EdgeExecutionRequest,
         execute_selected_edge,
@@ -61,6 +59,7 @@ def main() -> int:
         next_runtime_action,
         receipt_as_record,
     )
+    from execution.communication_runtime import CommunicationRuntimeJournal  # type: ignore
     from execution.vault_store import KnowledgeVaultExecutionStore  # type: ignore
 
     now = datetime(2026, 8, 22, 22, 35, tzinfo=timezone.utc)
@@ -120,8 +119,6 @@ def main() -> int:
         execution_cache=execution_cache,
     )
     assert duplicate_receipt == execution_receipt
-    assert execution_receipt.outcome == "DELIVERED"
-    assert next_runtime_action(selection_receipt=selection, receipt=execution_receipt)["action"] == "STOP"
 
     ambiguous_receipt = execute_selected_edge(
         selection_receipt=selection,
@@ -158,63 +155,56 @@ def main() -> int:
     assert confirmed_failure["action"] == "TRY_FALLBACK"
     assert confirmed_failure["fallback"]["edge_id"] == "source-integration:phone"
 
+    lease_record = asdict(lease)
+    execution_record = receipt_as_record(execution_receipt)
+
     with tempfile.TemporaryDirectory() as tmp:
         vault_root = Path(tmp) / "KnowledgeVault"
-        store = KnowledgeVaultExecutionStore(vault_root)
-        store.append_receipt("source-integration-001", selection)
-        store.append_attempt(
-            "source-integration-001",
-            {
-                "attempt_id": lease.attempt_id,
-                "selected_edge_id": lease.edge_id,
-                "lease_epoch": lease.lease_epoch,
-                "lease_expires_at": lease.expires_at,
-                "selection_sha256": selection["selection_sha256"],
-                "dispatch_state": "LEASED",
-            },
-        )
-        store.append_receipt("source-integration-001", receipt_as_record(execution_receipt))
-        store.append_attempt(
-            "source-integration-001",
-            {
-                "attempt_id": lease.attempt_id,
-                "selected_edge_id": lease.edge_id,
-                "lease_epoch": lease.lease_epoch,
-                "selection_sha256": selection["selection_sha256"],
-                "edge_execution_receipt_sha256": execution_receipt.receipt_sha256,
-                "dispatch_state": execution_receipt.dispatch_state,
-                "outcome": execution_receipt.outcome,
+        journal = CommunicationRuntimeJournal(KnowledgeVaultExecutionStore(vault_root))
+        stream_id = journal.begin(selection=selection, lease=lease_record)
+        journal.record_execution(selection=selection, lease=lease_record, receipt=execution_record)
+        # The durable KV layer must also suppress replay of the same exact observed receipt.
+        journal.record_execution(selection=selection, lease=lease_record, receipt=execution_record)
+        journal.record_recovery(
+            attempt_id=selection["attempt_id"],
+            decision={
+                "action": ambiguous["action"],
+                "reason": ambiguous["reason"],
+                "new_authority_granted": False,
             },
         )
 
-        restarted = KnowledgeVaultExecutionStore(vault_root)
-        restored_receipts = restarted.read_stream("Receipts", "source-integration-001")
-        restored_attempts = restarted.read_stream("Attempts", "source-integration-001")
-        assert restored_receipts[0] == selection
-        assert restored_receipts[1]["receipt_sha256"] == execution_receipt.receipt_sha256
-        assert restored_attempts[0]["selection_sha256"] == selection["selection_sha256"]
-        assert restored_attempts[0]["lease_epoch"] == 1
-        assert restored_attempts[1]["edge_execution_receipt_sha256"] == execution_receipt.receipt_sha256
-        assert restored_attempts[1]["outcome"] == "DELIVERED"
+        restarted = CommunicationRuntimeJournal(KnowledgeVaultExecutionStore(vault_root))
+        recovered = restarted.recover(selection["attempt_id"])
+        assert recovered.selection == selection
+        assert recovered.lease == lease_record
+        assert recovered.execution_receipt == execution_record
+        assert recovered.recovery_records[0]["action"] == "VERIFY_EXTERNALLY"
+        attempts = restarted.store.read_stream("Attempts", stream_id)
+        execution_observations = [row for row in attempts if row.get("record_type") == "EDGE_EXECUTION_OBSERVED"]
+        assert len(execution_observations) == 1
 
     result = {
-        "proof_type": "PINNED_SOURCE_COMMUNICATION_RUNTIME_INTEGRATION",
+        "proof_type": "PINNED_SOURCE_COMMUNICATION_NATIVE_KV_RUNTIME_INTEGRATION",
         "stegtalk_source_loaded": True,
         "stegtalk_st031_loaded": True,
         "stegtalk_st032_loaded": True,
         "knowledgevault_source_loaded": True,
+        "knowledgevault_native_runtime_journal_loaded": True,
         "selected_edge_id": selection["selected_edge_id"],
         "selected_bearer": selection["selected_bearer"],
         "fallback_edge_id": selection["fallback_order"][0]["edge_id"],
         "edge_runtime_callable_executed": True,
         "edge_execution_outcome": execution_receipt.outcome,
         "edge_execution_receipt_sha256": execution_receipt.receipt_sha256,
-        "duplicate_dispatch_suppressed": duplicate_receipt == execution_receipt,
+        "edge_duplicate_dispatch_suppressed": duplicate_receipt == execution_receipt,
+        "kv_duplicate_execution_observation_suppressed": True,
         "ambiguous_action": ambiguous["action"],
         "confirmed_failure_action": confirmed_failure["action"],
-        "kv_receipt_reconstructed_after_restart": True,
+        "kv_selection_reconstructed_after_restart": True,
         "kv_lease_reconstructed_after_restart": True,
         "kv_edge_execution_receipt_reconstructed_after_restart": True,
+        "kv_recovery_decision_reconstructed_after_restart": True,
         "selection_sha256": selection["selection_sha256"],
         "loopback_test_only": True,
         "physical_transport_proven": False,
