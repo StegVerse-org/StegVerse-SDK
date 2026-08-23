@@ -175,6 +175,8 @@ regression suite: tests/test_oda3_r3_run_harness.py
 harness install commit: 07a97033306d6bee61d42d33d4ce771cad3d9e05
 harness test install commit: e0afa02ed46d0995be03f1a9aa7af614b439a483
 workflow integration commit: bf3beab7d1744df627b8dfa52770bb5916e3170c
+exact governance-request retention repair: be54722610a3edf8d90503fde460bef850ab43f5
+binding regression repair: bac544e8a8d040d95c20ef1d033325e807b821d2
 ```
 
 The harness first verifies the immutable R3 aggregate receipt. It refuses to execute the governed route if release proof is absent or invalid. Once release proof verifies, it:
@@ -182,15 +184,21 @@ The harness first verifies the immutable R3 aggregate receipt. It refuses to exe
 ```text
 validates and normalizes the evaluator manifest
 retains normalized-manifest.json
-retains governance-request.json
+normalizes the StegGate request through the same AdmissibilityRequest model used by the frozen runtime
+retains that exact model-dumped governance-request.json rather than the pre-model input
 calls the canonical run_sovereign_validation runtime
-retains governed-result.json
+requires submitted_manifest_hash to equal the retained normalized manifest hash
+requires governance_request_hash to equal the retained exact model-dumped request hash
+independently verifies the full unmodified binding tuple before claiming harness success
+retains governed-result.json and independent-binding-verification.json
 exports actual route receipt events from Master Records custody
 exports the exact retained Master Records evidence package
 runs canonical reconstruction and retains its operation-custody evidence
 runs canonical replay by default and retains its operation-custody evidence
 optionally invokes the fail-closed response-packet builder
 ```
+
+A real evidence-integrity defect was corrected here before execution: the first harness version retained the request object immediately after SDK manifest normalization, while the frozen sovereign runtime binds the `AdmissibilityRequest.model_dump(mode="json", exclude_none=False)` representation after StegCore model validation. Defaults/null fields can make those bytewise canonical objects different even though they describe the same request. That would have caused the independent governance-request binding check to fail against honest runtime evidence. The harness now retains the exact same canonical model representation the runtime hashes and fails before custody export if either manifest or governance-request binding diverges.
 
 The harness does not define a new evaluator, route, StegGate decision model, custody implementation, or credential path. It calls the already-canonical frozen runtime and existing Master Records interfaces. Source-level harness tests use monkeypatched fixtures only to prove fail-closed sequencing; fixtures are prohibited as experiment runtime evidence.
 
@@ -252,15 +260,16 @@ Once the verified aggregate receipt exists, continue without a new planning phas
 2 verify published stegverse-sdk 1.1.0 artifact identity and clean install
 3 freeze exact normalized boundary-test manifest
 4 invoke scripts/run_oda3_evaluation_boundary_r3.py via ordinary SDK ingress only
-5 harness retains exact submitted manifest + governance request + governed result
-6 harness exports route/Master Records custody chain
-7 harness retains reconstruction and requested replay
-8 harness invokes scripts/build_oda3_response_packet.py against real release/run evidence
-9 builder independently verifies unmodified tuple -> PASS
-10 builder generates three deliberate tamper copies -> expected FAIL x3
-11 builder emits reviewer-facing file/hash manifest and static reproduction/access materials
-12 update issue #47 and governing handoffs with receipt IDs and packet location
-13 propagate pertinent release/evaluation semantics to Site, Publisher, admissibility-wiki and stegguardian-wiki
+5 harness retains exact submitted manifest + exact model-normalized governance request + governed result
+6 harness verifies retained manifest/request hashes against the runtime bindings and independently verifies the unmodified tuple
+7 harness exports route/Master Records custody chain
+8 harness retains reconstruction and requested replay
+9 harness invokes scripts/build_oda3_response_packet.py against real release/run evidence
+10 builder independently verifies unmodified tuple -> PASS
+11 builder generates three deliberate tamper copies -> expected FAIL x3
+12 builder emits reviewer-facing file/hash manifest and static reproduction/access materials
+13 update issue #47 and governing handoffs with receipt IDs and packet location
+14 propagate pertinent release/evaluation semantics to Site, Publisher, admissibility-wiki and stegguardian-wiki
 ```
 
 ## Completion condition
@@ -272,6 +281,8 @@ independent verifier implemented: TRUE
 reviewer request mapped: TRUE
 packet builder implemented: TRUE
 exact-run evidence harness implemented: TRUE
+exact governance-request retention aligned to frozen runtime: TRUE
+pre-custody independent binding check implemented: TRUE
 packet completion task installed: TRUE
 aggregate release proof complete: FALSE
 exact governed runtime run complete: FALSE
