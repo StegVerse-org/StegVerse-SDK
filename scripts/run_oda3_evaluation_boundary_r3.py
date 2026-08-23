@@ -4,9 +4,10 @@ import argparse
 import json
 import shutil
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 from scripts.build_oda3_response_packet import build_packet, verify_release_receipt
+from stegverse.evaluation_boundary_verifier import canonical_sha256, verify_evaluation_boundary_result
 from stegverse.public_inspection import load_public_inspection_request, validate_public_inspection_request
 from stegverse.sovereign_validation_runtime import (
     _components,
@@ -26,6 +27,20 @@ def _load_object(path: Path) -> dict[str, Any]:
 def _write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def _canonical_governance_request(raw: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the exact StegGate request representation hashed by the frozen runtime.
+
+    The sovereign runtime validates the submitted request through StegCore's
+    ``AdmissibilityRequest`` model and hashes ``model_dump(mode='json',
+    exclude_none=False)``. Retaining the pre-model input here would create an
+    apparently plausible evidence file whose hash can differ from the runtime's
+    actual governance-request binding because defaults/null fields are resolved by
+    the model. This helper intentionally uses the same canonical model boundary.
+    """
+    (_Carrier, _build, _route, _Custody, _submit, _Registry, Request, _eval, _Ledger, _run) = _components()
+    return Request.model_validate(raw).model_dump(mode="json", exclude_none=False)
 
 
 def _export_custody(*, custody_db: Path, governed_result: dict[str, Any], run_dir: Path) -> None:
@@ -77,9 +92,10 @@ def run_exact_r3(
     request = load_public_inspection_request(manifest_path)
     normalized = validate_public_inspection_request(request)
     input_block = normalized.get("input") or {}
-    governance_request = input_block.get("steggate_request")
-    if not isinstance(governance_request, dict):
+    raw_governance_request = input_block.get("steggate_request")
+    if not isinstance(raw_governance_request, Mapping):
         raise RuntimeError("normalized_manifest_missing_governance_request")
+    governance_request = _canonical_governance_request(raw_governance_request)
 
     if run_dir.exists():
         shutil.rmtree(run_dir)
@@ -94,7 +110,24 @@ def run_exact_r3(
         custody_db=custody_db,
         host_identity=host_identity,
     )
+
+    expected_manifest_hash = canonical_sha256(normalized)
+    expected_governance_hash = canonical_sha256(governance_request)
+    if governed_result.get("submitted_manifest_hash") != expected_manifest_hash:
+        raise RuntimeError("runtime_submitted_manifest_binding_mismatch")
+    if governed_result.get("governance_request_hash") != expected_governance_hash:
+        raise RuntimeError("runtime_governance_request_binding_mismatch")
+
+    independent = verify_evaluation_boundary_result(
+        governed_result,
+        normalized_manifest=normalized,
+        governance_request=governance_request,
+    )
+    if independent.get("verification_complete") is not True or independent.get("verified") is not True:
+        raise RuntimeError("runtime_binding_tuple_independent_verification_failed")
+
     _write_json(run_dir / "governed-result.json", governed_result)
+    _write_json(run_dir / "independent-binding-verification.json", independent)
     _export_custody(custody_db=custody_db, governed_result=governed_result, run_dir=run_dir)
 
     manifest_receipt_id = str(governed_result["manifest_receipt_id"])
@@ -122,6 +155,7 @@ def run_exact_r3(
         "route_manifest_id": governed_result.get("route_manifest_id"),
         "route_transition_count": governed_result.get("route_transition_count"),
         "master_records_custody_status": governed_result.get("master_records_custody_status"),
+        "independent_binding_verification_pass": True,
         "reconstruction_retained": True,
         "replay_retained": replay is not None,
         "packet": packet_result,
