@@ -8,7 +8,12 @@ on:
       - 'stegverse/**'
       - 'tests/test_package_version_identity.py'
       - 'tests/test_pypi_trusted_publishing_contract.py'
+      - 'tests/test_portable_governance_verifier.py'
+      - 'tests/test_portable_governance_verifier_cli.py'
+      - 'tests/test_portable_governance_exchange.py'
       - 'docs/PYPI_TRUSTED_PUBLISHING_MIRROR_HANDOFF.md'
+      - 'docs/PORTABLE_GOVERNANCE_VERIFIER_MIRROR_HANDOFF.md'
+      - 'docs/PORTABLE_GOVERNANCE_EVIDENCE_EXCHANGE_MIRROR_HANDOFF.md'
       - '.github/workflows/release.yml'
       - '.github/workflows/package-artifact-validation.yml'
   workflow_dispatch:
@@ -39,13 +44,22 @@ jobs:
 
       - name: Install build and inspection tooling
         run: |
-          python -m pip install --disable-pip-version-check --no-input build wheel
+          python -m pip install --disable-pip-version-check --no-input build wheel pytest
 
       - name: Validate Trusted Publisher authority contract
         run: |
           set -eu
           cd /tmp/source
           python -m unittest -v tests.test_pypi_trusted_publishing_contract
+
+      - name: Validate portable governance verifier and exchange
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m pytest -q \
+            tests/test_portable_governance_verifier.py \
+            tests/test_portable_governance_verifier_cli.py \
+            tests/test_portable_governance_exchange.py
 
       - name: Build wheel and source distribution
         run: |
@@ -137,6 +151,8 @@ jobs:
           test -s /tmp/stegverse-help.txt
           /tmp/sdk-wheel-venv/bin/stegverse-verify-governance --help >/tmp/stegverse-verify-help.txt
           test -s /tmp/stegverse-verify-help.txt
+          /tmp/sdk-wheel-venv/bin/stegverse-governance-exchange --help >/tmp/stegverse-exchange-help.txt
+          test -s /tmp/stegverse-exchange-help.txt
           echo 'SDK_WHEEL_CONSOLE_SMOKE_PASS'
 
       - name: Record non-authorizing boundary
