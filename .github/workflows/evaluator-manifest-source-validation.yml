@@ -6,6 +6,7 @@ on:
     paths:
       - inspection/request.schema.json
       - inspection/examples/governed-test-request.json
+      - evidence/oda3/R3_EXACT_EVALUATION_MANIFEST.json
       - stegverse/public_inspection.py
       - stegverse/sovereign_validation_runtime.py
       - stegverse/route_resolution.py
@@ -42,6 +43,7 @@ on:
     paths:
       - inspection/request.schema.json
       - inspection/examples/governed-test-request.json
+      - evidence/oda3/R3_EXACT_EVALUATION_MANIFEST.json
       - stegverse/public_inspection.py
       - stegverse/sovereign_validation_runtime.py
       - stegverse/route_resolution.py
@@ -93,12 +95,13 @@ jobs:
           curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
           mkdir /tmp/source
           tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
-      - name: Validate public inspection, generic manifest ingress, and response packet tooling
+      - name: Validate public inspection, frozen ODA3 manifest, generic manifest ingress, and response packet tooling
         run: |
           set -eu
           cd /tmp/source
           python scripts/validate_public_inspection_request.py inspection/examples/example-request.json
           python scripts/validate_public_inspection_request.py inspection/examples/governed-test-request.json
+          python scripts/validate_public_inspection_request.py evidence/oda3/R3_EXACT_EVALUATION_MANIFEST.json
           python -m unittest tests.test_public_inspection_request
           python -m unittest tests.test_public_inspection_governed_binding
           python -m unittest tests.test_governance_ingress_runtime
@@ -141,4 +144,4 @@ jobs:
       - name: Record source-only boundary
         run: |
           echo 'EVALUATOR_MANIFEST_SOURCE_VALIDATION_PASS'
-          echo 'This job validates source/schema/binding behavior and owner/ODA3 packet/run-harness completeness tooling, and emits an exact-commit file-hash manifest only; it grants no runtime, release, custody, signing, or evaluator authority.'
+          echo 'This job validates source/schema/binding behavior, the frozen evaluator input, and owner/ODA3 packet/run-harness completeness tooling, and emits an exact-commit file-hash manifest only; it grants no runtime, release, custody, signing, or evaluator authority.'
