@@ -106,8 +106,8 @@ jobs:
         run: |
           set -euo pipefail
           cd /tmp/source
-          sha256sum dist/* | sort | tee dist/SHA256SUMS
-          test "$(wc -l < dist/SHA256SUMS)" -eq 2
+          sha256sum dist/* | sort | tee /tmp/SHA256SUMS
+          test "$(wc -l < /tmp/SHA256SUMS)" -eq 2
           echo RELEASE_ARTIFACT_HASH_SET_PASS
 
       - name: Stage exact distributions for isolated publisher
@@ -117,7 +117,7 @@ jobs:
           path: |
             /tmp/source/dist/*.whl
             /tmp/source/dist/*.tar.gz
-            /tmp/source/dist/SHA256SUMS
+            /tmp/SHA256SUMS
           if-no-files-found: error
           retention-days: 7
 
@@ -134,15 +134,23 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: pypi-distributions-${{ needs.build-and-verify.outputs.version }}
-          path: dist
+          path: publish-input
 
-      - name: Verify publisher receives only expected artifact set
+      - name: Verify publisher receives exact artifact set
         run: |
           set -euo pipefail
-          test "$(find dist -maxdepth 1 -type f -name '*.whl' | wc -l)" -eq 1
-          test "$(find dist -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 1
-          test -f dist/SHA256SUMS
+          test "$(find publish-input -type f -name '*.whl' | wc -l)" -eq 1
+          test "$(find publish-input -type f -name '*.tar.gz' | wc -l)" -eq 1
+          checksum="$(find publish-input -type f -name SHA256SUMS -print -quit)"
+          test -n "$checksum"
+          wheel="$(find publish-input -type f -name '*.whl' -print -quit)"
+          sdist="$(find publish-input -type f -name '*.tar.gz' -print -quit)"
+          mkdir dist
+          cp "$wheel" "$sdist" dist/
+          cp "$checksum" dist/SHA256SUMS
           (cd dist && sha256sum -c SHA256SUMS)
+          rm dist/SHA256SUMS
+          test "$(find dist -maxdepth 1 -type f | wc -l)" -eq 2
           echo PUBLISHER_ARTIFACT_SET_VERIFIED
 
       - name: Publish to PyPI using Trusted Publishing
