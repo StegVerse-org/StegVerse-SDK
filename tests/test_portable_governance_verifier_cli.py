@@ -1,18 +1,21 @@
+import io
 import json
+from contextlib import redirect_stderr
 from pathlib import Path
 
 from stegverse.portable_governance_verifier_cli import main
 
 
-def test_cli_fails_closed_on_invalid_bundle(tmp_path: Path, capsys):
+def test_cli_fails_closed_on_invalid_bundle(tmp_path: Path):
     path = tmp_path / "invalid.json"
     path.write_text(json.dumps({"schema": "wrong"}), encoding="utf-8")
+    stderr = io.StringIO()
 
-    rc = main([str(path)])
+    with redirect_stderr(stderr):
+        rc = main([str(path)])
 
-    captured = capsys.readouterr()
     assert rc == 2
-    report = json.loads(captured.err)
+    report = json.loads(stderr.getvalue())
     assert report["status"] == "FAIL_CLOSED"
     assert report["authority"] == {
         "verification_authority": "NONE",
@@ -23,14 +26,15 @@ def test_cli_fails_closed_on_invalid_bundle(tmp_path: Path, capsys):
     }
 
 
-def test_cli_fails_closed_on_non_object_json(tmp_path: Path, capsys):
+def test_cli_fails_closed_on_non_object_json(tmp_path: Path):
     path = tmp_path / "list.json"
     path.write_text("[]", encoding="utf-8")
+    stderr = io.StringIO()
 
-    rc = main([str(path)])
+    with redirect_stderr(stderr):
+        rc = main([str(path)])
 
-    captured = capsys.readouterr()
     assert rc == 2
-    report = json.loads(captured.err)
+    report = json.loads(stderr.getvalue())
     assert report["status"] == "FAIL_CLOSED"
     assert "root must be an object" in report["error"]
