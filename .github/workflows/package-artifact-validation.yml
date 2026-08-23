@@ -7,6 +7,9 @@ on:
       - 'setup.py'
       - 'stegverse/**'
       - 'tests/test_package_version_identity.py'
+      - 'tests/test_pypi_trusted_publishing_contract.py'
+      - 'docs/PYPI_TRUSTED_PUBLISHING_MIRROR_HANDOFF.md'
+      - '.github/workflows/release.yml'
       - '.github/workflows/package-artifact-validation.yml'
   workflow_dispatch:
 
@@ -37,6 +40,12 @@ jobs:
       - name: Install build and inspection tooling
         run: |
           python -m pip install --disable-pip-version-check --no-input build wheel
+
+      - name: Validate Trusted Publisher authority contract
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m unittest -v tests.test_pypi_trusted_publishing_contract
 
       - name: Build wheel and source distribution
         run: |
