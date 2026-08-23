@@ -58,11 +58,12 @@ class PyPITrustedPublishingContractTests(unittest.TestCase):
 
     def test_exact_artifact_set_is_verified_before_publish(self) -> None:
         self.assertIn("python -m twine check dist/*", self.text)
-        self.assertIn("sha256sum dist/* | sort | tee dist/SHA256SUMS", self.text)
+        self.assertIn("sha256sum dist/* | sort | tee /tmp/SHA256SUMS", self.text)
         self.assertIn("sha256sum -c SHA256SUMS", self.text)
         self.assertIn("rm dist/SHA256SUMS", self.text)
         self.assertIn("find dist -maxdepth 1 -type f -name '*.whl'", self.text)
         self.assertIn("find dist -maxdepth 1 -type f -name '*.tar.gz'", self.text)
+        self.assertIn("test \"$(find dist -maxdepth 1 -type f | wc -l)\" -eq 2", self.text)
 
     def test_no_stegverse_runtime_authority_is_introduced(self) -> None:
         prohibited_runtime_markers = (
@@ -78,8 +79,6 @@ class PyPITrustedPublishingContractTests(unittest.TestCase):
         self.assertIn("StegVerse runtime authority -> NONE", self.handoff)
 
     def test_workflow_does_not_accept_manual_or_push_release_trigger(self) -> None:
-        # Publication must follow an already-published exact release; source pushes
-        # and workflow_dispatch are validation/administrative surfaces, not publish authority.
         on_block = self.text.split("permissions:", 1)[0]
         self.assertNotRegex(on_block, re.compile(r"(?m)^\s*push:"))
         self.assertNotIn("workflow_dispatch:", on_block)
