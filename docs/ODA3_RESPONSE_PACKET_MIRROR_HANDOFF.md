@@ -41,6 +41,8 @@ SDK tag: v1.1.0
 
 The experiment is one instance of the generalized evaluator surface. It receives no ODA3-specific route, evaluator, StegGate semantics, or release executor.
 
+The canonical sovereign runtime module used by the exact run is unchanged between the frozen SDK candidate and current tooling source: `stegverse/sovereign_validation_runtime.py` has blob `130d4813f9f0b5973d1c9ac23ffd029af5fec7e6` at both the frozen commit and current `main`. Post-freeze tooling described below orchestrates and exports evidence; it does not alter the frozen runtime semantics.
+
 ## Reviewer-request mapping
 
 The final packet MUST include or point to the following exact materials:
@@ -122,16 +124,12 @@ external evaluator
 
 Direct evaluator submission to Core-Lite, StegCore, or StegGate does not satisfy this experiment and an evaluator-accessible bypass is itself a boundary violation.
 
-## Fail-closed packet builder — installed 2026-08-22
-
-The reviewer packet no longer requires a manual assembly step after runtime evidence arrives.
+## Fail-closed packet builder
 
 ```text
 builder: scripts/build_oda3_response_packet.py
 regression suite: tests/test_oda3_response_packet.py
 task: tasks/SDK-ODA3-RESPONSE-PACKET-001.json
-builder install commit: 9ee63248049c9c7989979e51a0bae4bccd5cf51c
-builder test install commit: b1f19975734bf6326977aae82c43767209360d62
 ```
 
 The builder refuses to produce a complete packet unless it receives:
@@ -145,13 +143,17 @@ non_tv_tvc_credential_used == false
 source_validation.verified == true
 source_validation.tests_passed == true
 source_validation.guard_tests_passed == true
+source_validation.dispatcher_tests_passed == true
 real normalized-manifest.json
 real governance-request.json
 real governed-result.json
+non-empty route-receipts evidence
+non-empty Master Records exact-run evidence
+non-empty reconstruction evidence
 complete independent unmodified tuple verification PASS
 ```
 
-It then deterministically creates copied tamper variants and requires all three expected failures before completion:
+It deterministically creates copied tamper variants and requires all three expected failures before completion:
 
 ```text
 normalized manifest mutation -> submitted_manifest_binding FAIL
@@ -159,15 +161,48 @@ governance request mutation -> governance_request_binding FAIL
 governed result mutation -> result_binding FAIL
 ```
 
-It also emits `FILE_MANIFEST.sha256.json` with path, SHA-256 and byte size for every retained packet file. It does not create or synthesize any governed-runtime evidence; missing runtime inputs fail closed.
+It also emits `FILE_MANIFEST.sha256.json` with path, SHA-256 and byte size for every retained packet file. It does not create or synthesize governed-runtime evidence; missing runtime inputs fail closed.
 
-Canonical invocation after real release/run evidence exists:
+The dispatcher-suite receipt check was added after TVC corrected its control-plane state semantics so a blocked dependency is preserved as `BLOCKED` rather than falsified as `FAILED`. The ODA3 packet therefore rejects any R3 receipt that does not carry `dispatcher_tests_passed=true`.
+
+## Exact-run evidence harness — installed 2026-08-22
+
+The post-release execution/capture chain is now executable as one fail-closed SDK-side command rather than a manual series of evidence-copy steps.
 
 ```text
-python scripts/build_oda3_response_packet.py \
+harness: scripts/run_oda3_evaluation_boundary_r3.py
+regression suite: tests/test_oda3_r3_run_harness.py
+harness install commit: 07a97033306d6bee61d42d33d4ce771cad3d9e05
+harness test install commit: e0afa02ed46d0995be03f1a9aa7af614b439a483
+workflow integration commit: bf3beab7d1744df627b8dfa52770bb5916e3170c
+```
+
+The harness first verifies the immutable R3 aggregate receipt. It refuses to execute the governed route if release proof is absent or invalid. Once release proof verifies, it:
+
+```text
+validates and normalizes the evaluator manifest
+retains normalized-manifest.json
+retains governance-request.json
+calls the canonical run_sovereign_validation runtime
+retains governed-result.json
+exports actual route receipt events from Master Records custody
+exports the exact retained Master Records evidence package
+runs canonical reconstruction and retains its operation-custody evidence
+runs canonical replay by default and retains its operation-custody evidence
+optionally invokes the fail-closed response-packet builder
+```
+
+The harness does not define a new evaluator, route, StegGate decision model, custody implementation, or credential path. It calls the already-canonical frozen runtime and existing Master Records interfaces. Source-level harness tests use monkeypatched fixtures only to prove fail-closed sequencing; fixtures are prohibited as experiment runtime evidence.
+
+Preferred post-release invocation:
+
+```text
+python scripts/run_oda3_evaluation_boundary_r3.py \
   --release-receipt <verified-r3-aggregate-receipt.json> \
-  --run-dir <exact-sdk-ingress-run-evidence-dir> \
-  --output-dir <oda3-evaluation-boundary-r3>
+  --manifest <frozen-boundary-manifest.json> \
+  --custody-db <exact-r3-custody.db> \
+  --run-dir <exact-run-evidence-dir> \
+  --packet-dir <oda3-evaluation-boundary-r3>
 ```
 
 ## Autonomous-actor second experiment gate
@@ -190,7 +225,15 @@ That second experiment begins only after the evaluation-boundary packet is compl
 
 The next required upstream result is the verified TV/TVC R3 aggregate-release continuation and receipt. The canonical continuation is owned by `StegVerse-Labs/TVC` task `TVC-EVALUATION-BOUNDARY-AGGREGATE-RELEASE-029` / issue `#78`.
 
-Until that result exists:
+Current upstream source contract now requires three source suites:
+
+```text
+tests_passed=true
+guard_tests_passed=true
+dispatcher_tests_passed=true
+```
+
+Until the verified aggregate receipt exists:
 
 ```text
 SDK v1.1.0 release proof: PENDING
@@ -205,20 +248,19 @@ independent full-packet reproduction: PENDING
 Once the verified aggregate receipt exists, continue without a new planning phase:
 
 ```text
-1 verify all four immutable tag -> commit bindings
+1 verify all four immutable tag -> commit bindings and all three source-suite PASS fields
 2 verify published stegverse-sdk 1.1.0 artifact identity and clean install
 3 freeze exact normalized boundary-test manifest
-4 execute via ordinary SDK ingress only
-5 retain exact submitted manifest + governance request + result
-6 retain route/manifest/MR custody chain
-7 retain reconstruction and requested replay
-8 run scripts/build_oda3_response_packet.py against the real release/run evidence
+4 invoke scripts/run_oda3_evaluation_boundary_r3.py via ordinary SDK ingress only
+5 harness retains exact submitted manifest + governance request + governed result
+6 harness exports route/Master Records custody chain
+7 harness retains reconstruction and requested replay
+8 harness invokes scripts/build_oda3_response_packet.py against real release/run evidence
 9 builder independently verifies unmodified tuple -> PASS
 10 builder generates three deliberate tamper copies -> expected FAIL x3
-11 builder emits reviewer-facing file/hash manifest
-12 finalize reproduction commands and access/license notes
-13 update issue #47 and all governing handoffs with receipt IDs and packet location
-14 propagate pertinent release/evaluation semantics to Site, Publisher, admissibility-wiki and stegguardian-wiki
+11 builder emits reviewer-facing file/hash manifest and static reproduction/access materials
+12 update issue #47 and governing handoffs with receipt IDs and packet location
+13 propagate pertinent release/evaluation semantics to Site, Publisher, admissibility-wiki and stegguardian-wiki
 ```
 
 ## Completion condition
@@ -229,6 +271,7 @@ boundary test implementation complete: TRUE
 independent verifier implemented: TRUE
 reviewer request mapped: TRUE
 packet builder implemented: TRUE
+exact-run evidence harness implemented: TRUE
 packet completion task installed: TRUE
 aggregate release proof complete: FALSE
 exact governed runtime run complete: FALSE
