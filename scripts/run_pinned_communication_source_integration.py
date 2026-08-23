@@ -40,7 +40,7 @@ def _edge(edge_id: str, bearer: str, score: float) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run pinned live-source StegTalk + KnowledgeVault integration proof")
+    parser = argparse.ArgumentParser(description="Run pinned live-source StegTalk ST-031/ST-032 + KnowledgeVault integration proof")
     parser.add_argument("--stegtalk-repo", required=True)
     parser.add_argument("--kv-repo", required=True)
     args = parser.parse_args()
@@ -51,9 +51,15 @@ def main() -> int:
     sys.path.insert(0, str(kv_repo))
 
     from stegtalk.cross_edge_resolver import (  # type: ignore
-        fallback_action,
         issue_execution_lease,
         resolve_cross_edge_path,
+    )
+    from stegtalk.edge_runtime import (  # type: ignore
+        EdgeExecutionRequest,
+        execute_selected_edge,
+        loopback_test_executor,
+        next_runtime_action,
+        receipt_as_record,
     )
     from execution.vault_store import KnowledgeVaultExecutionStore  # type: ignore
 
@@ -89,13 +95,66 @@ def main() -> int:
     )
     assert lease.edge_id == selection["selected_edge_id"]
 
-    ambiguous = fallback_action(outcome="TIMEOUT_AFTER_DISPATCH", selection_receipt=selection)
-    assert ambiguous["action"] == "VERIFY_EXTERNALLY"
-    confirmed_failure = fallback_action(
-        outcome="FAILED",
-        selection_receipt=selection,
-        side_effect_absence_confirmed=True,
+    request = EdgeExecutionRequest(
+        attempt_id=selection["attempt_id"],
+        selection_sha256=selection["selection_sha256"],
+        edge_id=selection["selected_edge_id"],
+        bearer=selection["selected_bearer"],
+        payload_ref="kv://source-integration/payload/001",
+        idempotency_key="source-integration:001:dispatch:1",
+        lease_epoch=lease.lease_epoch,
     )
+    execution_cache = {}
+    execution_receipt = execute_selected_edge(
+        selection_receipt=selection,
+        lease=lease,
+        request=request,
+        executors={selection["selected_edge_id"]: loopback_test_executor(outcome="DELIVERED")},
+        execution_cache=execution_cache,
+    )
+    duplicate_receipt = execute_selected_edge(
+        selection_receipt=selection,
+        lease=lease,
+        request=request,
+        executors={selection["selected_edge_id"]: loopback_test_executor(outcome="FAILED", side_effect_absence_confirmed=True)},
+        execution_cache=execution_cache,
+    )
+    assert duplicate_receipt == execution_receipt
+    assert execution_receipt.outcome == "DELIVERED"
+    assert next_runtime_action(selection_receipt=selection, receipt=execution_receipt)["action"] == "STOP"
+
+    ambiguous_receipt = execute_selected_edge(
+        selection_receipt=selection,
+        lease=lease,
+        request=EdgeExecutionRequest(
+            attempt_id=selection["attempt_id"],
+            selection_sha256=selection["selection_sha256"],
+            edge_id=selection["selected_edge_id"],
+            bearer=selection["selected_bearer"],
+            payload_ref="kv://source-integration/payload/001",
+            idempotency_key="source-integration:001:dispatch:ambiguous",
+            lease_epoch=lease.lease_epoch,
+        ),
+        executors={selection["selected_edge_id"]: loopback_test_executor(outcome="TIMEOUT_AFTER_DISPATCH")},
+    )
+    ambiguous = next_runtime_action(selection_receipt=selection, receipt=ambiguous_receipt)
+    assert ambiguous["action"] == "VERIFY_EXTERNALLY"
+
+    failed_receipt = execute_selected_edge(
+        selection_receipt=selection,
+        lease=lease,
+        request=EdgeExecutionRequest(
+            attempt_id=selection["attempt_id"],
+            selection_sha256=selection["selection_sha256"],
+            edge_id=selection["selected_edge_id"],
+            bearer=selection["selected_bearer"],
+            payload_ref="kv://source-integration/payload/001",
+            idempotency_key="source-integration:001:dispatch:failed",
+            lease_epoch=lease.lease_epoch,
+        ),
+        executors={selection["selected_edge_id"]: loopback_test_executor(outcome="FAILED", side_effect_absence_confirmed=True)},
+    )
+    confirmed_failure = next_runtime_action(selection_receipt=selection, receipt=failed_receipt)
     assert confirmed_failure["action"] == "TRY_FALLBACK"
     assert confirmed_failure["fallback"]["edge_id"] == "source-integration:phone"
 
@@ -111,30 +170,55 @@ def main() -> int:
                 "lease_epoch": lease.lease_epoch,
                 "lease_expires_at": lease.expires_at,
                 "selection_sha256": selection["selection_sha256"],
+                "dispatch_state": "LEASED",
+            },
+        )
+        store.append_receipt("source-integration-001", receipt_as_record(execution_receipt))
+        store.append_attempt(
+            "source-integration-001",
+            {
+                "attempt_id": lease.attempt_id,
+                "selected_edge_id": lease.edge_id,
+                "lease_epoch": lease.lease_epoch,
+                "selection_sha256": selection["selection_sha256"],
+                "edge_execution_receipt_sha256": execution_receipt.receipt_sha256,
+                "dispatch_state": execution_receipt.dispatch_state,
+                "outcome": execution_receipt.outcome,
             },
         )
 
         restarted = KnowledgeVaultExecutionStore(vault_root)
         restored_receipts = restarted.read_stream("Receipts", "source-integration-001")
         restored_attempts = restarted.read_stream("Attempts", "source-integration-001")
-        assert restored_receipts == [selection]
+        assert restored_receipts[0] == selection
+        assert restored_receipts[1]["receipt_sha256"] == execution_receipt.receipt_sha256
         assert restored_attempts[0]["selection_sha256"] == selection["selection_sha256"]
         assert restored_attempts[0]["lease_epoch"] == 1
+        assert restored_attempts[1]["edge_execution_receipt_sha256"] == execution_receipt.receipt_sha256
+        assert restored_attempts[1]["outcome"] == "DELIVERED"
 
     result = {
-        "proof_type": "PINNED_SOURCE_COMMUNICATION_INTEGRATION",
+        "proof_type": "PINNED_SOURCE_COMMUNICATION_RUNTIME_INTEGRATION",
         "stegtalk_source_loaded": True,
+        "stegtalk_st031_loaded": True,
+        "stegtalk_st032_loaded": True,
         "knowledgevault_source_loaded": True,
         "selected_edge_id": selection["selected_edge_id"],
         "selected_bearer": selection["selected_bearer"],
         "fallback_edge_id": selection["fallback_order"][0]["edge_id"],
+        "edge_runtime_callable_executed": True,
+        "edge_execution_outcome": execution_receipt.outcome,
+        "edge_execution_receipt_sha256": execution_receipt.receipt_sha256,
+        "duplicate_dispatch_suppressed": duplicate_receipt == execution_receipt,
         "ambiguous_action": ambiguous["action"],
         "confirmed_failure_action": confirmed_failure["action"],
         "kv_receipt_reconstructed_after_restart": True,
         "kv_lease_reconstructed_after_restart": True,
+        "kv_edge_execution_receipt_reconstructed_after_restart": True,
         "selection_sha256": selection["selection_sha256"],
-        "runtime_execution_performed": False,
+        "loopback_test_only": True,
         "physical_transport_proven": False,
+        "production_activation_proven": False,
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
