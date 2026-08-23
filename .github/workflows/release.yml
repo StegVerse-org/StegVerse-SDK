@@ -1,0 +1,160 @@
+name: Publish SDK to PyPI (Trusted Publisher)
+
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+jobs:
+  build-and-verify:
+    name: Build and verify exact tagged SDK artifacts
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      version: ${{ steps.identity.outputs.version }}
+      tag: ${{ steps.identity.outputs.tag }}
+    steps:
+      - name: Validate release tag identity
+        id: identity
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'
+          version="${RELEASE_TAG#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "EXACT_RELEASE_TAG_IDENTITY_PASS tag=$RELEASE_TAG version=$version"
+
+      - name: Materialize exact tag anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          test -z "${PYPI_API_TOKEN:-}"
+          test -z "${PYPI_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/refs/tags/${RELEASE_TAG}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+          test -f /tmp/source/pyproject.toml
+          echo EXACT_TAG_SOURCE_MATERIALIZED
+
+      - name: Verify tag equals package version
+        env:
+          EXPECTED_VERSION: ${{ steps.identity.outputs.version }}
+        run: |
+          set -euo pipefail
+          cd /tmp/source
+          observed="$(python - <<'PY'
+          import pathlib, tomllib
+          value=tomllib.loads(pathlib.Path('pyproject.toml').read_text(encoding='utf-8'))
+          print(value['project']['version'])
+          PY
+          )"
+          test "$observed" = "$EXPECTED_VERSION"
+          echo "TAG_PACKAGE_VERSION_MATCH version=$observed"
+
+      - name: Install build verification tooling
+        run: python -m pip install --disable-pip-version-check --no-input build twine
+
+      - name: Build exactly one wheel and one source distribution
+        run: |
+          set -euo pipefail
+          cd /tmp/source
+          python -m build
+          test "$(find dist -maxdepth 1 -type f -name '*.whl' | wc -l)" -eq 1
+          test "$(find dist -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 1
+          python -m twine check dist/*
+          echo EXACT_DISTRIBUTION_SET_PASS
+
+      - name: Verify wheel metadata and console install
+        env:
+          EXPECTED_VERSION: ${{ steps.identity.outputs.version }}
+        run: |
+          set -euo pipefail
+          cd /tmp/source
+          python - <<'PY'
+          import email
+          import os
+          import pathlib
+          import zipfile
+
+          expected = os.environ['EXPECTED_VERSION']
+          wheels = list(pathlib.Path('dist').glob('*.whl'))
+          assert len(wheels) == 1, wheels
+          with zipfile.ZipFile(wheels[0]) as zf:
+              metadata_name = next(name for name in zf.namelist() if name.endswith('.dist-info/METADATA'))
+              metadata = email.message_from_bytes(zf.read(metadata_name))
+          assert metadata['Name'] == 'stegverse-sdk', metadata['Name']
+          assert metadata['Version'] == expected, (metadata['Version'], expected)
+          assert metadata['Requires-Python'] == '>=3.9', metadata['Requires-Python']
+          print('WHEEL_IDENTITY_PASS', expected)
+          PY
+          python -m venv /tmp/release-wheel-venv
+          /tmp/release-wheel-venv/bin/python -m pip install --disable-pip-version-check --no-input dist/*.whl
+          /tmp/release-wheel-venv/bin/stegverse --help >/tmp/stegverse-help.txt
+          test -s /tmp/stegverse-help.txt
+          /tmp/release-wheel-venv/bin/stegverse contract >/tmp/stegverse-contract.json
+          test -s /tmp/stegverse-contract.json
+          echo RELEASE_WHEEL_INSTALL_SMOKE_PASS
+
+      - name: Record immutable artifact hashes
+        run: |
+          set -euo pipefail
+          cd /tmp/source
+          sha256sum dist/* | sort | tee /tmp/SHA256SUMS
+          test "$(wc -l < /tmp/SHA256SUMS)" -eq 2
+          echo RELEASE_ARTIFACT_HASH_SET_PASS
+
+      - name: Stage exact distributions for isolated publisher
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-distributions-${{ steps.identity.outputs.version }}
+          path: |
+            /tmp/source/dist/*.whl
+            /tmp/source/dist/*.tar.gz
+            /tmp/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-pypi:
+    name: Publish exact artifacts to PyPI
+    needs: build-and-verify
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Retrieve verified distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: pypi-distributions-${{ needs.build-and-verify.outputs.version }}
+          path: publish-input
+
+      - name: Verify publisher receives exact artifact set
+        run: |
+          set -euo pipefail
+          test "$(find publish-input -type f -name '*.whl' | wc -l)" -eq 1
+          test "$(find publish-input -type f -name '*.tar.gz' | wc -l)" -eq 1
+          checksum="$(find publish-input -type f -name SHA256SUMS -print -quit)"
+          test -n "$checksum"
+          wheel="$(find publish-input -type f -name '*.whl' -print -quit)"
+          sdist="$(find publish-input -type f -name '*.tar.gz' -print -quit)"
+          mkdir dist
+          cp "$wheel" "$sdist" dist/
+          cp "$checksum" dist/SHA256SUMS
+          (cd dist && sha256sum -c SHA256SUMS)
+          rm dist/SHA256SUMS
+          test "$(find dist -maxdepth 1 -type f | wc -l)" -eq 2
+          echo PUBLISHER_ARTIFACT_SET_VERIFIED
+
+      - name: Publish to PyPI using Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          verbose: true
