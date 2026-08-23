@@ -17,6 +17,28 @@ validation_claim: COMPLETE_RELEASED
 
 Allow any evaluator or developer to state through the SDK exactly what they care to evaluate without recipient-specific packages, directories, repository knowledge, privileged source access, or direct access to broader StegVerse services.
 
+## Independent evaluator validation surface
+
+The SDK is the canonical independent-evaluator validation surface for StegVerse governance behavior.
+
+An evaluator does not need a privileged examiner role, recipient-specific fixture, StegVerse repository access, production authority, or a paid certification relationship in order to test a governance proposition. The evaluator supplies the proposition, constraints, and inputs they genuinely care to examine; the SDK binds those inputs to the ordinary governed path and returns portable evidence sufficient for verification, replay, and reconstruction where the admitted capability supports them.
+
+The intended relationship is cooperative but non-authorizing:
+
+```text
+independent evaluator interest
+-> evaluator-defined governance proposition / restrictions
+-> identity-neutral SDK admission
+-> governed execution or explicit fail-closed/unavailable result
+-> portable receipts + evidence
+-> replay / reconstruction where applicable
+-> evaluator reaches their own conclusion
+```
+
+The evaluator's conclusion is external to StegVerse authority. StegVerse does not require an evaluator to purchase an opinion, certification, or proprietary examination in order to validate the system. Likewise, the SDK does not grant special standing merely because an evaluator charges for a report. Any commercial, accreditation, certification, or consulting relationship an evaluator separately offers is outside the SDK trust model and is not a prerequisite for independent validation.
+
+A cooperative agreement may define mutually useful test boundaries, disclosure constraints, or consequence limits, but it must not make the evaluator a governance authority or substitute evaluator reputation for the underlying evidence.
+
 ## Required sequence
 
 ```text
