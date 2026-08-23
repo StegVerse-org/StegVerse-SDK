@@ -32,6 +32,7 @@ def _release_receipt() -> dict:
             "verified": True,
             "tests_passed": True,
             "guard_tests_passed": True,
+            "dispatcher_tests_passed": True,
             "non_tv_tvc_credential_used": False,
             "release_authority": False,
             "runtime_authority": False,
@@ -73,6 +74,16 @@ def test_packet_builder_rejects_release_receipt_without_guard_suite_pass(tmp_pat
     _write(receipt_path, receipt)
     _runtime_tuple(tmp_path / "run")
     with pytest.raises(RuntimeError, match="aggregate_receipt_guard_tests_not_passed"):
+        build_packet(release_receipt_path=receipt_path, run_dir=tmp_path / "run", output_dir=tmp_path / "packet")
+
+
+def test_packet_builder_rejects_release_receipt_without_dispatcher_suite_pass(tmp_path: Path):
+    receipt = _release_receipt()
+    receipt["source_validation"].pop("dispatcher_tests_passed")
+    receipt_path = tmp_path / "receipt.json"
+    _write(receipt_path, receipt)
+    _runtime_tuple(tmp_path / "run")
+    with pytest.raises(RuntimeError, match="aggregate_receipt_dispatcher_tests_not_passed"):
         build_packet(release_receipt_path=receipt_path, run_dir=tmp_path / "run", output_dir=tmp_path / "packet")
 
 
