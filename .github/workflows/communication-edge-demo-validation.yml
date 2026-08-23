@@ -69,34 +69,49 @@ jobs:
           assert installed['recovery_scenarios']['confirmed_pre_side_effect_failure']['action'] == 'TRY_FALLBACK'
           print(installed['demo_sha256'])
           PY
-      - name: Checkout pinned public StegTalk source without credentials
+      - name: Note StegTalk runtime Python boundary
+        if: matrix.python-version == '3.9'
+        run: echo "SDK demo supports Python 3.9; current StegTalk runtime source declares Python >=3.11, so live-source ST-031/ST-032 proof is intentionally skipped on 3.9."
+      - name: Checkout pinned current StegTalk source without credentials
+        if: matrix.python-version != '3.9'
         run: |
           git clone --no-checkout https://github.com/StegVerse-Labs/StegTalk.git /tmp/StegTalk
-          git -C /tmp/StegTalk checkout 2361d13ea09818f17aef5239ebf4771a161a0dc7
+          git -C /tmp/StegTalk checkout 72947c052467af2ba5850378dc53f7589c473d35
       - name: Checkout pinned public KnowledgeVault source without credentials
+        if: matrix.python-version != '3.9'
         run: |
           git clone --no-checkout https://github.com/StegVerse-Labs/continuity-vault-kit.git /tmp/continuity-vault-kit
           git -C /tmp/continuity-vault-kit checkout 35e6d7ad881e0dea60ba191c49dfd4fba86e3fd7
-      - name: Execute pinned live-source integration proof
+      - name: Execute pinned ST-031/ST-032 runtime integration proof
+        if: matrix.python-version != '3.9'
         run: |
           python scripts/run_pinned_communication_source_integration.py \
             --stegtalk-repo /tmp/StegTalk \
             --kv-repo /tmp/continuity-vault-kit \
             > /tmp/pinned-source-integration.json
-      - name: Verify pinned source integration proof
+      - name: Verify pinned ST-031/ST-032 runtime integration proof
+        if: matrix.python-version != '3.9'
         run: |
           python - <<'PY'
           import json
           p=json.load(open('/tmp/pinned-source-integration.json'))
           assert p['stegtalk_source_loaded'] is True
+          assert p['stegtalk_st031_loaded'] is True
+          assert p['stegtalk_st032_loaded'] is True
           assert p['knowledgevault_source_loaded'] is True
           assert p['selected_bearer'] == 'stegtalk-ip'
           assert p['fallback_edge_id'] == 'source-integration:phone'
+          assert p['edge_runtime_callable_executed'] is True
+          assert p['edge_execution_outcome'] == 'DELIVERED'
+          assert p['duplicate_dispatch_suppressed'] is True
           assert p['ambiguous_action'] == 'VERIFY_EXTERNALLY'
           assert p['confirmed_failure_action'] == 'TRY_FALLBACK'
           assert p['kv_receipt_reconstructed_after_restart'] is True
           assert p['kv_lease_reconstructed_after_restart'] is True
-          assert p['runtime_execution_performed'] is False
+          assert p['kv_edge_execution_receipt_reconstructed_after_restart'] is True
+          assert p['loopback_test_only'] is True
           assert p['physical_transport_proven'] is False
+          assert p['production_activation_proven'] is False
           print(p['selection_sha256'])
+          print(p['edge_execution_receipt_sha256'])
           PY
