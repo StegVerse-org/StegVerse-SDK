@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/governed_application_spine.v1.schema.json",
+  "title": "StegVerse Governed Application Spine v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "package_id", "transition_id", "run_id", "source", "candidate", "standing", "admissibility", "execution", "continuity", "authority"],
+  "properties": {
+    "schema": {"const": "stegverse.governed-application-spine.v1"},
+    "package_id": {"type": "string", "minLength": 1},
+    "transition_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "source": {"type": "object", "additionalProperties": true, "required": ["origin_class", "source_hash"], "properties": {"origin_class": {"type": "string", "minLength": 1}, "source_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}, "artifact_refs": {"type": "array", "items": {"type": "string"}}}},
+    "candidate": {"type": "object", "additionalProperties": true, "required": ["candidate_hash", "authorizing"], "properties": {"candidate_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}, "authorizing": {"const": false}, "model_output_authority": {"const": "NONE"}}},
+    "standing": {"type": "object", "additionalProperties": false, "required": ["state", "receipt_hash", "execution_authorized"], "properties": {"state": {"enum": ["PENDING", "ALLOW", "DENY", "FAIL_CLOSED"]}, "receipt_hash": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"}, "execution_authorized": {"const": false}, "standing_current": {"type": ["boolean", "null"]}, "validity_window": {"type": ["object", "null"]}}},
+    "admissibility": {"type": "object", "additionalProperties": false, "required": ["runtime_identity", "state", "commit_time_validity", "commit_coherence"], "properties": {"runtime_identity": {"const": "stegverse:steggate:canonical:three-layer:v1"}, "request_hash": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"}, "state": {"enum": ["PENDING", "ALLOW", "DENY", "REVIEW", "FAIL_CLOSED"]}, "commit_time_validity": {"enum": ["PENDING", "CURRENT", "STALE", "INVALID", "NOT_APPLICABLE"]}, "commit_coherence": {"enum": ["PENDING", "ALLOW", "DENY", "FAIL_CLOSED"]}}},
+    "execution": {"type": "object", "additionalProperties": false, "required": ["performed", "executor_ref"], "properties": {"performed": {"type": "boolean"}, "executor_ref": {"type": ["string", "null"]}, "result_hash": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"}}},
+    "continuity": {"type": "object", "additionalProperties": true, "required": ["return_ingested", "reconstruction_state"], "properties": {"return_ingested": {"type": "boolean"}, "receipt_chain_head": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"}, "reconstruction_state": {"enum": ["PENDING", "PASS", "FAIL"]}, "discovery_ref": {"type": ["string", "null"]}, "custody_ref": {"type": ["string", "null"]}}},
+    "authority": {"type": "object", "additionalProperties": false, "required": ["sdk_authority", "spe_execution_authority", "model_output_authority"], "properties": {"sdk_authority": {"const": "NONE"}, "spe_execution_authority": {"const": "NONE"}, "model_output_authority": {"const": "NONE"}, "custody_authority": {"enum": ["NONE", "SEPARATELY_ADMITTED"]}}}
+  },
+  "allOf": [{"if": {"properties": {"execution": {"properties": {"performed": {"const": true}}}}}, "then": {"properties": {"standing": {"properties": {"state": {"const": "ALLOW"}, "standing_current": {"const": true}}}, "admissibility": {"properties": {"state": {"const": "ALLOW"}, "commit_time_validity": {"const": "CURRENT"}, "commit_coherence": {"const": "ALLOW"}}}}}}]
+}
