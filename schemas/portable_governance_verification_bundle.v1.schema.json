@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/portable_governance_verification_bundle.v1.schema.json",
+  "title": "StegVerse Portable Governance Verification Bundle v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "stage", "package_id", "transition_id", "run_id", "ingress_interlock", "spe_envelope", "spe_receipt", "steggate_bridge", "interlock_return"],
+  "properties": {
+    "schema": {"const": "stegverse.portable-governance-verification-bundle.v1"},
+    "stage": {"enum": ["PRE_STEGGATE", "POST_RETURN"]},
+    "package_id": {"type": "string", "minLength": 1},
+    "transition_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "ingress_interlock": {"type": "object"},
+    "spe_envelope": {"type": "object"},
+    "spe_receipt": {"type": "object"},
+    "steggate_bridge": {"type": "object"},
+    "interlock_return": {"type": ["object", "null"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"stage": {"const": "POST_RETURN"}}},
+      "then": {"properties": {"interlock_return": {"type": "object"}}}
+    },
+    {
+      "if": {"properties": {"stage": {"const": "PRE_STEGGATE"}}},
+      "then": {"properties": {"interlock_return": {"type": "null"}}}
+    }
+  ]
+}
