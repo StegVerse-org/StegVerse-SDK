@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/interlock_transition.v1.schema.json",
+  "title": "StegVerse Interlock Transition v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "package_id", "transition_id", "run_id", "connection", "manifest", "governance", "manifold", "boundary", "authority", "reconstruction"],
+  "properties": {
+    "schema": {"const": "stegverse.interlock-transition.v1"},
+    "package_id": {"type": "string", "minLength": 1},
+    "transition_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "connection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "direction", "participant_id"],
+      "properties": {
+        "class": {"enum": ["ADAPTER", "INTERLOCK"]},
+        "direction": {"enum": ["INGRESS", "EGRESS"]},
+        "participant_id": {"type": "string", "minLength": 1},
+        "participant_boundary_receipt_hash": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"},
+        "participant_binding_hash": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"}
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest_hash", "source_state_hash", "canonicalization", "predecessor_receipts"],
+      "properties": {
+        "manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "source_state_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "canonicalization": {"const": "JCS_RFC8785_NFC"},
+        "predecessor_receipts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/receiptRef"}
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "profiles"],
+      "properties": {
+        "mode": {"enum": ["PROVIDED", "DEFAULT_STEGVERSE", "COMPOSED"]},
+        "profiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/governanceProfile"}
+        }
+      }
+    },
+    "manifold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["predecessors", "successors", "relationships"],
+      "properties": {
+        "predecessors": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/stateRef"}},
+        "successors": {"type": "array", "items": {"$ref": "#/$defs/stateRef"}},
+        "relationships": {"type": "array", "items": {"$ref": "#/$defs/relationship"}}
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "original_manifest_hash", "repaired_manifest_hash"],
+      "properties": {
+        "state": {"enum": ["PRESENTED", "ACCEPT", "REPAIR", "DENY", "REVIEW"]},
+        "original_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "repaired_manifest_hash": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"}
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sdk_authority", "participant_truth_assumed", "interlock_transfers_authority", "master_records_custody_claimed", "execution_authorized"],
+      "properties": {
+        "sdk_authority": {"const": "NONE"},
+        "participant_truth_assumed": {"const": false},
+        "interlock_transfers_authority": {"const": false},
+        "master_records_custody_claimed": {"const": false},
+        "execution_authorized": {"const": false}
+      }
+    },
+    "reconstruction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "replay_scope", "linear_chain_is_special_case"],
+      "properties": {
+        "required": {"const": true},
+        "replay_scope": {"const": "MATERIAL_CAUSAL_CLOSURE"},
+        "linear_chain_is_special_case": {"const": true}
+      }
+    }
+  },
+  "$defs": {
+    "receiptRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["receipt_id", "issuer", "receipt_hash"],
+      "properties": {
+        "receipt_id": {"type": "string", "minLength": 1},
+        "issuer": {"type": "string", "minLength": 1},
+        "receipt_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+      }
+    },
+    "governanceProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "issuer", "profile_hash", "source"],
+      "properties": {
+        "profile_id": {"type": "string", "minLength": 1},
+        "issuer": {"type": "string", "minLength": 1},
+        "profile_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "source": {"enum": ["PARTICIPANT", "STEGVERSE"]}
+      }
+    },
+    "stateRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state_id", "state_hash"],
+      "properties": {
+        "state_id": {"type": "string", "minLength": 1},
+        "state_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from_state_id", "to_state_id", "type"],
+      "properties": {
+        "from_state_id": {"type": "string", "minLength": 1},
+        "to_state_id": {"type": "string", "minLength": 1},
+        "type": {"enum": ["CAUSE", "DEPENDENCY", "EVIDENCE", "AUTHORITY", "CORROBORATION", "CONFLICT", "SUPERSEDES", "OBSERVED_WITHOUT_DEPENDENCY"]}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"connection": {"properties": {"class": {"const": "INTERLOCK"}}}}},
+      "then": {
+        "properties": {
+          "connection": {"required": ["participant_boundary_receipt_hash", "participant_binding_hash"]},
+          "manifest": {"properties": {"predecessor_receipts": {"minItems": 1}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"boundary": {"properties": {"state": {"const": "REPAIR"}}}}},
+      "then": {"properties": {"boundary": {"properties": {"repaired_manifest_hash": {"type": "string"}}}}}
+    }
+  ]
+}
