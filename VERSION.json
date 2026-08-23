@@ -18,6 +18,14 @@
     "tag_publication": "NOT_YET_AUTHORIZED",
     "package_publication": "NOT_YET_PUBLISHED"
   },
+  "development_line": {
+    "version": "1.2.0.dev0",
+    "base_release_candidate": "1.1.0",
+    "base_frozen_commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
+    "moving_branch": "main",
+    "release_identity": false,
+    "note": "Post-freeze main development must not be represented as the frozen 1.1.0 candidate."
+  },
   "validated_capabilities": [
     {
       "capability_id": "SDK-PACKAGE-ARTIFACT-VALIDATION-1.1.0",
