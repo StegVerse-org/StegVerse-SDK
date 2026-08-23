@@ -81,7 +81,7 @@ jobs:
         if: matrix.python-version != '3.9'
         run: |
           git clone --no-checkout https://github.com/StegVerse-Labs/continuity-vault-kit.git /tmp/continuity-vault-kit
-          git -C /tmp/continuity-vault-kit checkout 7371d58c8b952a912a5160903025336d5e849b16
+          git -C /tmp/continuity-vault-kit checkout 6752c30209ea629afc43659da5ea094d067db983
       - name: Execute pinned ST-031/ST-032 + native KV runtime journal proof
         if: matrix.python-version != '3.9'
         run: |
