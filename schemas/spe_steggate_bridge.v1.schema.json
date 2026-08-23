@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/spe_steggate_bridge.v1.schema.json",
+  "title": "StegVerse SDK SPE to StegGate Bridge v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "package_id", "transition_id", "run_id", "interlock", "standing_binding", "admissibility_candidate", "authority", "bridge_hash"],
+  "properties": {
+    "schema": {"const": "stegverse.sdk.spe-steggate-bridge.v1"},
+    "package_id": {"type": "string", "minLength": 1},
+    "transition_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "interlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ingress_interlock_hash", "participant_id"],
+      "properties": {
+        "ingress_interlock_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "participant_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "standing_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["receipt_hash", "candidate_hash", "envelope_hash", "standing_result", "standing_current", "observed_at", "execution_authorized"],
+      "properties": {
+        "receipt_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "candidate_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "envelope_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "standing_result": {"const": "ALLOW"},
+        "standing_current": {"const": true},
+        "observed_at": {"type": "string", "minLength": 1},
+        "execution_authorized": {"const": false}
+      }
+    },
+    "admissibility_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_identity", "permission_contract", "permission_predicates", "three_layer_request", "three_layer_request_hash", "decision"],
+      "properties": {
+        "runtime_identity": {"const": "stegverse:steggate:canonical:three-layer:v1"},
+        "permission_contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["contract_id", "version"],
+          "properties": {
+            "contract_id": {"const": "PA-001"},
+            "version": {"const": "1.0.0"}
+          }
+        },
+        "permission_predicates": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["authority_current", "consent_or_standing_required", "consent_or_standing_current", "continuity_current", "governing_conditions_current", "consequence_attributable", "consequence_reconstructable"],
+          "properties": {
+            "authority_current": {"type": "boolean"},
+            "consent_or_standing_required": {"const": true},
+            "consent_or_standing_current": {"const": true},
+            "continuity_current": {"type": "boolean"},
+            "governing_conditions_current": {"type": "boolean"},
+            "consequence_attributable": {"type": "boolean"},
+            "consequence_reconstructable": {"type": "boolean"}
+          }
+        },
+        "three_layer_request": {"type": "object"},
+        "three_layer_request_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "decision": {"const": "PENDING"}
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sdk_authority", "spe_execution_authority", "steggate_decision_authority", "execution_authorized", "master_records_custody_claimed"],
+      "properties": {
+        "sdk_authority": {"const": "NONE"},
+        "spe_execution_authority": {"const": "NONE"},
+        "steggate_decision_authority": {"const": "CANONICAL_RUNTIME_ONLY"},
+        "execution_authorized": {"const": false},
+        "master_records_custody_claimed": {"const": false}
+      }
+    },
+    "bridge_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
