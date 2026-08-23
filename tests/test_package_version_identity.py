@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 import re
 import unittest
 
@@ -7,11 +8,25 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PackageVersionIdentityTests(unittest.TestCase):
-    def test_pyproject_owns_current_public_version(self):
+    def test_pyproject_owns_post_freeze_development_version(self):
         text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
         self.assertRegex(text, r"(?m)^name\s*=\s*[\"']stegverse-sdk[\"']\s*$")
-        self.assertRegex(text, r"(?m)^version\s*=\s*[\"']1\.1\.0[\"']\s*$")
+        self.assertRegex(text, r"(?m)^version\s*=\s*[\"']1\.2\.0\.dev0[\"']\s*$")
+        self.assertNotRegex(text, r"(?m)^version\s*=\s*[\"']1\.1\.0[\"']\s*$")
         self.assertNotRegex(text, r"(?m)^version\s*=\s*[\"']1\.0\.13[\"']\s*$")
+
+    def test_frozen_1_1_0_release_candidate_identity_remains_immutable(self):
+        version = json.loads((ROOT / "VERSION.json").read_text(encoding="utf-8"))
+        self.assertEqual(version["component_version"], "1.1.0")
+        self.assertEqual(version["version_stage"], "RELEASE_CANDIDATE")
+        self.assertEqual(
+            version["release_candidate"]["frozen_commit"],
+            "922d6c5235229e854c36e1a194dc99ed15a31b51",
+        )
+        self.assertEqual(
+            version["release_candidate"]["frozen_tree"],
+            "d9ddda3dbe942324c921051d89ec19eec3970b16",
+        )
 
     def test_setup_py_contains_no_independent_distribution_metadata(self):
         text = (ROOT / "setup.py").read_text(encoding="utf-8")
