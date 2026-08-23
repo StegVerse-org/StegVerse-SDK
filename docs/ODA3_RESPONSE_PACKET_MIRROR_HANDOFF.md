@@ -37,6 +37,8 @@ SDK package: stegverse-sdk 1.1.0
 SDK commit: 922d6c5235229e854c36e1a194dc99ed15a31b51
 SDK tree: d9ddda3dbe942324c921051d89ec19eec3970b16
 SDK tag: v1.1.0
+frozen evaluator input: evidence/oda3/R3_EXACT_EVALUATION_MANIFEST.json
+frozen evaluator input commit: 5f8644f7f2daa05793d09c4c505b02dca5b30672
 ```
 
 The experiment is one instance of the generalized evaluator surface. It receives no ODA3-specific route, evaluator, StegGate semantics, or release executor.
@@ -177,12 +179,14 @@ harness test install commit: e0afa02ed46d0995be03f1a9aa7af614b439a483
 workflow integration commit: bf3beab7d1744df627b8dfa52770bb5916e3170c
 exact governance-request retention repair: be54722610a3edf8d90503fde460bef850ab43f5
 binding regression repair: bac544e8a8d040d95c20ef1d033325e807b821d2
+frozen evaluator input install: 5f8644f7f2daa05793d09c4c505b02dca5b30672
+frozen evaluator input workflow validation binding: 03131f0239b2793ece9d069468b59ff577e33b2d
 ```
 
 The harness first verifies the immutable R3 aggregate receipt. It refuses to execute the governed route if release proof is absent or invalid. Once release proof verifies, it:
 
 ```text
-validates and normalizes the evaluator manifest
+validates and normalizes the frozen evaluator manifest
 retains normalized-manifest.json
 normalizes the StegGate request through the same AdmissibilityRequest model used by the frozen runtime
 retains that exact model-dumped governance-request.json rather than the pre-model input
@@ -200,6 +204,8 @@ optionally invokes the fail-closed response-packet builder
 
 A real evidence-integrity defect was corrected here before execution: the first harness version retained the request object immediately after SDK manifest normalization, while the frozen sovereign runtime binds the `AdmissibilityRequest.model_dump(mode="json", exclude_none=False)` representation after StegCore model validation. Defaults/null fields can make those bytewise canonical objects different even though they describe the same request. That would have caused the independent governance-request binding check to fail against honest runtime evidence. The harness now retains the exact same canonical model representation the runtime hashes and fails before custody export if either manifest or governance-request binding diverges.
 
+The exact evaluator input is now frozen as a repository artifact rather than a command placeholder. The non-authorizing source workflow validates `evidence/oda3/R3_EXACT_EVALUATION_MANIFEST.json` through the public validator. This freezes the evaluator proposition without claiming the normalized runtime artifact, which still must be produced by the exact released SDK at execution time.
+
 The harness does not define a new evaluator, route, StegGate decision model, custody implementation, or credential path. It calls the already-canonical frozen runtime and existing Master Records interfaces. Source-level harness tests use monkeypatched fixtures only to prove fail-closed sequencing; fixtures are prohibited as experiment runtime evidence.
 
 Preferred post-release invocation:
@@ -207,7 +213,7 @@ Preferred post-release invocation:
 ```text
 python scripts/run_oda3_evaluation_boundary_r3.py \
   --release-receipt <verified-r3-aggregate-receipt.json> \
-  --manifest <frozen-boundary-manifest.json> \
+  --manifest evidence/oda3/R3_EXACT_EVALUATION_MANIFEST.json \
   --custody-db <exact-r3-custody.db> \
   --run-dir <exact-run-evidence-dir> \
   --packet-dir <oda3-evaluation-boundary-r3>
@@ -258,9 +264,9 @@ Once the verified aggregate receipt exists, continue without a new planning phas
 ```text
 1 verify all four immutable tag -> commit bindings and all three source-suite PASS fields
 2 verify published stegverse-sdk 1.1.0 artifact identity and clean install
-3 freeze exact normalized boundary-test manifest
+3 use frozen evaluator input evidence/oda3/R3_EXACT_EVALUATION_MANIFEST.json
 4 invoke scripts/run_oda3_evaluation_boundary_r3.py via ordinary SDK ingress only
-5 harness retains exact submitted manifest + exact model-normalized governance request + governed result
+5 harness retains exact normalized manifest + exact model-normalized governance request + governed result
 6 harness verifies retained manifest/request hashes against the runtime bindings and independently verifies the unmodified tuple
 7 harness exports route/Master Records custody chain
 8 harness retains reconstruction and requested replay
@@ -283,6 +289,7 @@ packet builder implemented: TRUE
 exact-run evidence harness implemented: TRUE
 exact governance-request retention aligned to frozen runtime: TRUE
 pre-custody independent binding check implemented: TRUE
+frozen evaluator input installed: TRUE
 packet completion task installed: TRUE
 aggregate release proof complete: FALSE
 exact governed runtime run complete: FALSE
