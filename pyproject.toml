@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stegverse-sdk"
-version = '1.1.0'
+version = '1.2.0.dev0'
 description = "StegVerse SDK for governed AI testing, admissibility evaluation, receipt verification, and bounded routing"
 readme = "README.md"
 license = {text = "MIT"}
@@ -52,6 +52,7 @@ stegverse-mcp-test = "stegverse.mcp_cli:main"
 stegverse-connect-llm = "stegverse.llm_connect_cli:main"
 stegverse-output-proof = "stegverse.output_boundary_cli:main"
 stegverse-comm-demo = "stegverse.communication_edge_cli:main"
+stegverse-verify-governance = "stegverse.portable_governance_verifier_cli:main"
 
 [project.urls]
 Homepage = "https://github.com/StegVerse-org/StegVerse-SDK"
