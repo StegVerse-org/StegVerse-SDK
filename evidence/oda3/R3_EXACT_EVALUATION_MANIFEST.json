@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0",
+  "request_id": "oda3-evaluation-boundary-r3-t1",
+  "case_profile": "ordinary",
+  "evaluation_declaration": {
+    "what": "Evaluate whether this declared candidate is admissible under the governing state supplied at the execution boundary.",
+    "how": "Use the published canonical production-validation route with bounded consequence, exact-run custody, and independently callable replay/reconstruction.",
+    "why": "Demonstrate evaluator-defined testing over a pre-existing route without evaluator-specific runtime augmentation.",
+    "expected_observation": "The disposition follows the submitted governing state rather than evaluator identity, rationale, or declared expectation.",
+    "requested_capabilities": [
+      "commit_time_admissibility",
+      "bounded_consequence",
+      "master_records_custody",
+      "replay",
+      "reconstruction"
+    ],
+    "requested_evidence": [
+      "governance_decision",
+      "execution_observation",
+      "manifest_receipt",
+      "route_receipts",
+      "exact_run_custody",
+      "replay",
+      "reconstruction"
+    ]
+  },
+  "execution_provenance": {
+    "lane_class": "PRODUCTION_VALIDATION",
+    "routing_surface": "CANONICAL_PRODUCTION",
+    "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
+    "sandbox_required": false,
+    "sandbox_tier": "NONE",
+    "origin_surface": "StegVerse-org/StegVerse-SDK:public-inspection",
+    "external_consequence_enabled": false
+  },
+  "input": {
+    "steggate_request": {
+      "candidate": {
+        "actor_class": "ai",
+        "action": "publish_candidate",
+        "target": "oda3-evaluation-boundary-r3-record",
+        "scope": "evaluation-boundary",
+        "parameters": {
+          "record_id": "oda3-r3-1"
+        }
+      },
+      "judgment": {
+        "refusal_available": true,
+        "operator_recoverability": "available",
+        "workload_state": "supported",
+        "time_pressure": "normal",
+        "isolation_state": "supported",
+        "evidence_refs": [
+          "judgment:oda3-r3-1"
+        ]
+      },
+      "signal": {
+        "admitted_signal_refs": [
+          "signal:oda3-r3-1"
+        ],
+        "transformations": [
+          "canonicalize:v1"
+        ],
+        "missing_inputs": [],
+        "uncertainty_state": "bounded",
+        "reference_state_hash": "state:oda3-r3-1",
+        "expected_reference_state_hash": "state:oda3-r3-1",
+        "reconstruction_available": true,
+        "transformation_provenance_complete": true
+      },
+      "execution": {
+        "actor_authority_current": true,
+        "policy_current": true,
+        "delegation_current": true,
+        "evidence_current": true,
+        "affected_entity_conditions_represented": true,
+        "recoverability_profile": "recoverable",
+        "validity_window_open": true,
+        "policy_ref": "policy:oda3-r3-1",
+        "delegation_ref": "delegation:oda3-r3-1",
+        "evidence_refs": [
+          "execution:oda3-r3-1"
+        ]
+      },
+      "capability": {
+        "allowed": true
+      },
+      "continuity": {
+        "required": true,
+        "previous_receipt_verified": true,
+        "previous_receipt_hash": "receipt:oda3-r3-predecessor"
+      },
+      "approval": {
+        "required": false
+      },
+      "permission_present": false
+    },
+    "input_data": {
+      "record_id": "oda3-r3-1",
+      "phase": "evaluation-boundary-r3"
+    }
+  },
+  "return_projection": "ALL",
+  "manifest_labels": true,
+  "authority_claim": false,
+  "notes": "Frozen evaluator input for ODA3 evaluation-boundary R3 T1. This declaration records evaluator intent but does not modify StegGate decision semantics, authorize a new route, or grant execution authority."
+}
