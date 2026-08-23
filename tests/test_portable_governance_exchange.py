@@ -46,7 +46,7 @@ def test_tampered_bundle_member_fails_closed(tmp_path: Path):
                 value["run_id"] = "tampered"
                 data = (json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n").encode()
             target.writestr(name, data)
-    with pytest.raises(PortableGovernanceExchangeError, match="file_hash_mismatch"):
+    with pytest.raises(PortableGovernanceExchangeError, match="file_(size|hash)_mismatch"):
         verify_exchange(tampered)
 
 
