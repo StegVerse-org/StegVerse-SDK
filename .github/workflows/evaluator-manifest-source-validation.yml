@@ -18,6 +18,7 @@ on:
       - scripts/build_evaluation_boundary_artifact_manifest.py
       - scripts/build_evaluation_boundary_owner_packet.py
       - scripts/build_oda3_response_packet.py
+      - scripts/run_oda3_evaluation_boundary_r3.py
       - tests/test_public_inspection_request.py
       - tests/test_public_inspection_governed_binding.py
       - tests/test_governance_ingress_runtime.py
@@ -26,6 +27,7 @@ on:
       - tests/test_evaluation_boundary_contract.py
       - tests/test_evaluation_boundary_owner_packet.py
       - tests/test_oda3_response_packet.py
+      - tests/test_oda3_r3_run_harness.py
       - tasks/SDK-ODA3-RESPONSE-PACKET-001.json
       - EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md
       - PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
@@ -52,6 +54,7 @@ on:
       - scripts/build_evaluation_boundary_artifact_manifest.py
       - scripts/build_evaluation_boundary_owner_packet.py
       - scripts/build_oda3_response_packet.py
+      - scripts/run_oda3_evaluation_boundary_r3.py
       - tests/test_public_inspection_request.py
       - tests/test_public_inspection_governed_binding.py
       - tests/test_governance_ingress_runtime.py
@@ -60,6 +63,7 @@ on:
       - tests/test_evaluation_boundary_contract.py
       - tests/test_evaluation_boundary_owner_packet.py
       - tests/test_oda3_response_packet.py
+      - tests/test_oda3_r3_run_harness.py
       - tasks/SDK-ODA3-RESPONSE-PACKET-001.json
       - EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md
       - PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
@@ -102,8 +106,8 @@ jobs:
           python -m unittest tests.test_cli_preformatted_manifest
           python -m unittest tests.test_evaluation_boundary_contract
           python -m unittest tests.test_evaluation_boundary_owner_packet
-          python -m pytest -q tests/test_oda3_response_packet.py
-      - name: Compile evaluator-boundary, ingress, and packet modules
+          python -m pytest -q tests/test_oda3_response_packet.py tests/test_oda3_r3_run_harness.py
+      - name: Compile evaluator-boundary, ingress, packet, and run-harness modules
         run: |
           set -eu
           cd /tmp/source
@@ -119,7 +123,8 @@ jobs:
             scripts/validate_public_inspection_request.py \
             scripts/build_evaluation_boundary_artifact_manifest.py \
             scripts/build_evaluation_boundary_owner_packet.py \
-            scripts/build_oda3_response_packet.py
+            scripts/build_oda3_response_packet.py \
+            scripts/run_oda3_evaluation_boundary_r3.py
       - name: Build exact-commit artifact manifest
         env:
           SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -136,4 +141,4 @@ jobs:
       - name: Record source-only boundary
         run: |
           echo 'EVALUATOR_MANIFEST_SOURCE_VALIDATION_PASS'
-          echo 'This job validates source/schema/binding behavior and owner/ODA3 packet completeness tooling, and emits an exact-commit file-hash manifest only; it grants no runtime, release, custody, signing, or evaluator authority.'
+          echo 'This job validates source/schema/binding behavior and owner/ODA3 packet/run-harness completeness tooling, and emits an exact-commit file-hash manifest only; it grants no runtime, release, custody, signing, or evaluator authority.'
