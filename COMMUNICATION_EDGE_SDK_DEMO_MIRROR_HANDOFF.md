@@ -6,126 +6,138 @@ Date: 2026-08-22
 
 ## Purpose
 
-Provide a public SDK conformance demonstration of the KnowledgeVault-hosted StegWhisper -> StegTalk ST-031 -> ephemeral-edge communication flow without moving execution, admissibility, bearer-selection, or continuity authority into the SDK.
+Provide a public, non-authorizing SDK demonstration and executable source-integration proof for the KnowledgeVault-hosted StegWhisper -> StegTalk ST-031 -> ST-032 -> ephemeral-edge communication flow.
 
-## Implemented SDK demo
+## Public SDK surface
 
-- `stegverse/communication_edge_demo.py`
-- `stegverse/communication_edge_cli.py`
-- `stegverse/demo_data/communication_edge_demo.json`
-- `examples/communication_edge_demo.json`
-- `tests/test_communication_edge_demo.py`
-- `scripts/run_communication_edge_demo.py`
-- `scripts/run_pinned_communication_source_integration.py`
-- `docs/COMMUNICATION_EDGE_SDK_DEMO.md`
-- `.github/workflows/communication-edge-demo-validation.yml`
-- installed console command: `stegverse-comm-demo`
-
-## Installed evaluator command
-
-The SDK package now exposes:
-
-```bash
-stegverse-comm-demo
-stegverse-comm-demo --compact
-stegverse-comm-demo /path/to/custom-packet.json
-```
-
-When no packet path is supplied, the CLI loads the deterministic packet from packaged `stegverse.demo_data`, so the evaluator does not depend on a repository-relative `examples/` path after installation.
-
-### Installed-command validation evidence
-
-Pull request `#58` — `Validate installed communication edge SDK command`
-Validated head: `0845ce5387a8c3877249d900c2ab176615d22aa9`
-Workflow: `Communication Edge SDK Demo Validation`
-Workflow run: `32606159922`
-
-Observed jobs:
+Implemented and validated:
 
 ```text
-validate (3.9)  -> SUCCESS
-validate (3.11) -> SUCCESS
-validate (3.12) -> SUCCESS
+stegverse/communication_edge_demo.py
+stegverse/communication_edge_cli.py
+stegverse/demo_data/communication_edge_demo.json
+examples/communication_edge_demo.json
+tests/test_communication_edge_demo.py
+scripts/run_communication_edge_demo.py
+scripts/run_pinned_communication_source_integration.py
+docs/COMMUNICATION_EDGE_SDK_DEMO.md
+.github/workflows/communication-edge-demo-validation.yml
+installed command: stegverse-comm-demo
 ```
 
-Every configured Python version successfully:
+The installed command remains a conformance simulation only:
 
-1. installed the SDK;
-2. compiled the communication-edge simulator and installed CLI;
-3. ran the conformance tests;
-4. ran the repository demo fixture;
-5. ran `stegverse-comm-demo` using packaged demo data;
-6. required installed-command JSON to equal repository-runner JSON exactly;
-7. re-verified `sdk_simulation_only=true`, `authority_granted=false`, and `execution_performed=false`;
-8. anonymously checked out pinned StegTalk and KnowledgeVault sources;
-9. executed the real pinned ST-031 + KnowledgeVault integration proof;
-10. re-verified selection, lease persistence, restart reconstruction, ambiguity suppression, and confirmed-safe fallback.
+```text
+sdk_simulation_only = true
+authority_granted = false
+execution_performed = false
+```
 
-The CLI was corrected before validation to avoid Python 3.10-only union syntax; Python 3.9 is observed passing.
+## Current ST-031 + ST-032 + KnowledgeVault proof
 
-## Public evaluator guide
+Pull request: `#59` — `Extend communication proof through ST-032 runtime`
+Workflow: `Communication Edge SDK Demo Validation`
+Workflow run: `32608268105`
 
-`docs/COMMUNICATION_EDGE_SDK_DEMO.md` is the human-facing entry for this demo. It now makes `stegverse-comm-demo` the primary demonstration path and documents the repository runner as an equivalent source-level path. It also documents conformance tests, custom packets, recipient states, cross-edge policy, capability dimensions, fallback safety, pinned-source reproduction, and the physical/runtime claim boundary.
-
-### Public-guide validation evidence
-
-Pull request `#57` — `Validate public communication edge demo guide`
-Workflow runs `32605995150` and `32606024322`
-Python 3.9 / 3.11 / 3.12: SUCCESS
-
-The full SDK demo and pinned-source integration lane remained green with the public guide and final evidence handoff present.
-
-## Earlier SDK-only validation evidence
-
-Pull request `#54`
-Workflow run `32602726148`
-Python 3.9 / 3.11 / 3.12: SUCCESS
-
-This validated the SDK simulator, dedicated conformance tests, default packet, and non-authorizing boundary.
-
-## Pinned real-source integration evidence
-
-Pull request `#55`
-Merged commit: `a0654a0b58779cb254371e7c5a3505dfc4a94239`
-Workflow run: `32602863793`
-Python 3.9 / 3.11 / 3.12: SUCCESS
-
-Exact public source commits exercised:
+Current pinned sources exercised:
 
 ```text
 StegVerse-Labs/StegTalk
-2361d13ea09818f17aef5239ebf4771a161a0dc7
+72947c052467af2ba5850378dc53f7589c473d35
 
 StegVerse-Labs/continuity-vault-kit
 35e6d7ad881e0dea60ba191c49dfd4fba86e3fd7
 ```
 
-The workflow imported and executed the real `stegtalk.cross_edge_resolver` and `execution.vault_store`, selected `stegtalk-ip` over SMS under AUTO, retained SMS as ordered fallback, issued an execution lease, persisted the actual selection receipt and attempt/lease state, reopened a fresh KnowledgeVault store, reconstructed both after restart, produced `VERIFY_EXTERNALLY` for ambiguous post-dispatch state, and produced `TRY_FALLBACK` only after confirmed no-side-effect failure.
+Observed validation boundary:
+
+```text
+Python 3.9:
+  SDK demo/install/conformance -> SUCCESS
+  current StegTalk ST-031/ST-032 runtime proof -> intentionally SKIPPED
+  reason: current StegTalk package declares Python >=3.11
+
+Python 3.11:
+  SDK demo/install/conformance -> SUCCESS
+  current ST-031 + ST-032 + KnowledgeVault runtime-source proof -> SUCCESS
+
+Python 3.12:
+  SDK demo/install/conformance -> SUCCESS
+  current ST-031 + ST-032 + KnowledgeVault runtime-source proof -> SUCCESS
+```
+
+The 3.11 and 3.12 jobs executed the real current source chain and proved:
+
+1. ST-031 selected the higher-capability `stegtalk-ip` edge over SMS under AUTO;
+2. SMS remained the exact ordered fallback;
+3. ST-031 issued the execution lease;
+4. ST-032 accepted only the exact selection hash, attempt, selected edge, selected bearer, and lease epoch;
+5. ST-032 executed a real callable `LOOPBACK_TEST` edge executor;
+6. ST-032 produced a hash-bound edge execution receipt with `DELIVERED` outcome;
+7. reusing the same idempotency key and exact binding returned the cached receipt rather than redispatching;
+8. ambiguous post-dispatch execution produced `VERIFY_EXTERNALLY`;
+9. confirmed no-side-effect failure produced `TRY_FALLBACK` to the exact SMS fallback;
+10. the real `KnowledgeVaultExecutionStore` persisted the selection receipt, lease/attempt state, edge execution receipt, and execution outcome;
+11. a fresh KnowledgeVault store reconstructed the selection, lease, and edge execution receipt after restart.
+
+The proof output explicitly retains:
+
+```text
+edge_runtime_callable_executed = true
+duplicate_dispatch_suppressed = true
+kv_edge_execution_receipt_reconstructed_after_restart = true
+loopback_test_only = true
+physical_transport_proven = false
+production_activation_proven = false
+```
+
+## Earlier retained validation
+
+```text
+PR #54 / run 32602726148
+  SDK-only conformance demo
+  Python 3.9 / 3.11 / 3.12 SUCCESS
+
+PR #55 / run 32602863793
+  earlier pinned ST-031 + KnowledgeVault source integration
+  Python 3.9 / 3.11 / 3.12 SUCCESS for that historical source pin
+
+StegWhisper PR #15 / run 32602979304
+  real StegWhisper v0.2 -> ST-031 -> KnowledgeVault source integration
+  SUCCESS
+
+PR #57 / runs 32605995150 and 32606024322
+  public evaluator guide validation
+  Python 3.9 / 3.11 / 3.12 SUCCESS
+
+PR #58 / runs 32606159922 and 32606199291
+  installed stegverse-comm-demo + packaged fixture + source/installed parity
+  Python 3.9 / 3.11 / 3.12 SUCCESS
+```
 
 ## Authority boundary
 
 ```text
 SDK demo = compatibility/conformance simulation only
-Installed SDK command = public non-authorizing demo entry
+Installed SDK command = non-authorizing public demo entry
 Pinned source integration = executable source-integration proof
 StegWhisper = messenger posture + constraints
-StegTalk ST-031 = real admissibility + scoring + edge/bearer selection
+StegTalk ST-031 = admissibility + scoring + edge/bearer selection
+StegTalk ST-032 = bounded execution of the already-selected edge
 KnowledgeVault = durable attempt/receipt/recovery truth
 Edge device = ephemeral execution capability
 ```
 
-The validated SDK paths perform no physical bearer transmission and grant no execution authority to the SDK.
+`LOOPBACK_TEST` proves runtime dispatch plumbing; it is not a physical/network bearer and cannot establish recipient delivery or production activation.
 
 ## Remaining activation boundary
 
-The source/software integration, installed SDK demonstrator, public evaluator guide, and pinned-source restart/fallback proof are tested. Remaining work is runtime/physical proof:
+Source/software selection-to-execution-to-KV persistence is now validated. Remaining work belongs to the running system:
 
-- feed an actual StegWhisper v0.2 posture from a running messenger surface;
-- persist a real runtime selection/lease into the connected personal KnowledgeVault;
+- persist an actual bearer-generated attempt into the connected personal KnowledgeVault;
 - advertise at least two actual admitted device edges;
-- execute through the selected physical/network bearer;
-- observe delivery evidence returning to KnowledgeVault;
-- restart/replace the selected edge and prove connected-vault recovery without duplicate dispatch;
-- exercise the ST-029 modem/SIM path for actual SMS proof.
-
-These runtime/physical items remain outside the SDK's authority and are not claimed complete by this validation.
+- execute a selected physical/network bearer;
+- append observed delivery evidence into connected KV;
+- restart/replace the selected physical edge and reconstruct without duplicate dispatch;
+- exercise ST-029 modem/SIM outbound, +CDS delivery report, inbound correlation, and multipart partial-failure handling;
+- only then claim runtime/production activation as applicable.
