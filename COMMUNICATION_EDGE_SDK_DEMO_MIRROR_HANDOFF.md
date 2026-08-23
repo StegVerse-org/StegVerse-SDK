@@ -6,7 +6,7 @@ Date: 2026-08-22
 
 ## Purpose
 
-Provide a public, non-authorizing SDK demonstration and executable source-integration proof for the KnowledgeVault-hosted StegWhisper -> StegTalk ST-031 -> ST-032 -> ephemeral-edge communication flow.
+Provide a public, non-authorizing SDK demonstration and executable source-integration proof for the KnowledgeVault-hosted StegWhisper -> StegTalk ST-031 -> ST-032 -> KnowledgeVault communication flow.
 
 ## Public SDK surface
 
@@ -33,86 +33,120 @@ authority_granted = false
 execution_performed = false
 ```
 
-## Current ST-031 + ST-032 + KnowledgeVault proof
+## Current native KnowledgeVault runtime-journal proof
 
-Pull request: `#59` — `Extend communication proof through ST-032 runtime`
+Pull request: `#60` — `Validate ST-032 against KnowledgeVault native runtime journal`
 Workflow: `Communication Edge SDK Demo Validation`
-Workflow run: `32608268105`
+Validated workflow run: `32608918326`
 
-Current pinned sources exercised:
+Exact source pins:
 
 ```text
 StegVerse-Labs/StegTalk
 72947c052467af2ba5850378dc53f7589c473d35
 
 StegVerse-Labs/continuity-vault-kit
-35e6d7ad881e0dea60ba191c49dfd4fba86e3fd7
+2f2070f94c26eed99ea87553f31579e60033eb1b
 ```
 
-Observed validation boundary:
+Observed matrix boundary:
 
 ```text
 Python 3.9:
-  SDK demo/install/conformance -> SUCCESS
-  current StegTalk ST-031/ST-032 runtime proof -> intentionally SKIPPED
-  reason: current StegTalk package declares Python >=3.11
+  installed SDK demo + conformance -> SUCCESS
+  current StegTalk runtime proof -> intentionally skipped
+  reason: current StegTalk requires Python >=3.11
 
 Python 3.11:
-  SDK demo/install/conformance -> SUCCESS
-  current ST-031 + ST-032 + KnowledgeVault runtime-source proof -> SUCCESS
+  installed SDK demo + conformance -> SUCCESS
+  ST-031 -> ST-032 -> native KV runtime journal -> SUCCESS
 
 Python 3.12:
-  SDK demo/install/conformance -> SUCCESS
-  current ST-031 + ST-032 + KnowledgeVault runtime-source proof -> SUCCESS
+  installed SDK demo + conformance -> SUCCESS
+  ST-031 -> ST-032 -> native KV runtime journal -> SUCCESS
 ```
 
-The 3.11 and 3.12 jobs executed the real current source chain and proved:
+The real 3.11/3.12 source chain proves:
 
-1. ST-031 selected the higher-capability `stegtalk-ip` edge over SMS under AUTO;
-2. SMS remained the exact ordered fallback;
-3. ST-031 issued the execution lease;
-4. ST-032 accepted only the exact selection hash, attempt, selected edge, selected bearer, and lease epoch;
-5. ST-032 executed a real callable `LOOPBACK_TEST` edge executor;
-6. ST-032 produced a hash-bound edge execution receipt with `DELIVERED` outcome;
-7. reusing the same idempotency key and exact binding returned the cached receipt rather than redispatching;
-8. ambiguous post-dispatch execution produced `VERIFY_EXTERNALLY`;
-9. confirmed no-side-effect failure produced `TRY_FALLBACK` to the exact SMS fallback;
-10. the real `KnowledgeVaultExecutionStore` persisted the selection receipt, lease/attempt state, edge execution receipt, and execution outcome;
-11. a fresh KnowledgeVault store reconstructed the selection, lease, and edge execution receipt after restart.
+1. ST-031 selects the higher-capability `stegtalk-ip` edge and retains SMS as ordered fallback;
+2. ST-031 issues the execution lease;
+3. ST-032 accepts only the exact selection/attempt/edge/bearer/lease binding;
+4. ST-032 executes a callable `LOOPBACK_TEST` executor and emits a hash-bound edge-execution receipt;
+5. the edge cache suppresses duplicate dispatch for the same idempotency binding;
+6. ambiguous post-dispatch state produces `VERIFY_EXTERNALLY`;
+7. confirmed no-side-effect failure produces the exact ordered `TRY_FALLBACK`;
+8. merged KnowledgeVault `CommunicationRuntimeJournal` durably persists selection, lease, execution receipt and recovery decision;
+9. durable KV semantics suppress a duplicate observation of the same execution receipt;
+10. a fresh journal/store instance reconstructs selection, lease, execution receipt and recovery decision after restart.
 
-The proof output explicitly retains:
+Proof output retains:
 
 ```text
 edge_runtime_callable_executed = true
-duplicate_dispatch_suppressed = true
+edge_duplicate_dispatch_suppressed = true
+kv_duplicate_execution_observation_suppressed = true
+kv_selection_reconstructed_after_restart = true
+kv_lease_reconstructed_after_restart = true
 kv_edge_execution_receipt_reconstructed_after_restart = true
+kv_recovery_decision_reconstructed_after_restart = true
 loopback_test_only = true
 physical_transport_proven = false
 production_activation_proven = false
 ```
 
-## Earlier retained validation
+## Contract defects found and repaired by this proof
+
+PR #60 initially failed at the real cross-repository boundary instead of being weakened to pass.
+
+### Hash-profile defect 1
+
+KnowledgeVault initially re-hashed StegTalk evidence under KV's generic action-envelope profile. StegTalk communication evidence uses UTF-8 canonical JSON with `ensure_ascii=false` and producer-specific SHA-256 representations.
+
+Fixed in `continuity-vault-kit` PR #48, merge commit:
 
 ```text
-PR #54 / run 32602726148
-  SDK-only conformance demo
-  Python 3.9 / 3.11 / 3.12 SUCCESS
+6752c30209ea629afc43659da5ea094d067db983
+```
 
-PR #55 / run 32602863793
-  earlier pinned ST-031 + KnowledgeVault source integration
-  Python 3.9 / 3.11 / 3.12 SUCCESS for that historical source pin
+### Hash-profile defect 2
+
+The rerun exposed that ST-031 and ST-032 deliberately expose two representations:
+
+```text
+ST-031 portable selection_sha256 -> raw 64 lowercase hex
+ST-032 edge receipt_sha256        -> sha256:<64 hex>
+```
+
+KnowledgeVault now verifies each producer contract separately rather than coercing both to one representation.
+
+Fixed in `continuity-vault-kit` PR #49, merge commit:
+
+```text
+2f2070f94c26eed99ea87553f31579e60033eb1b
+```
+
+All KV recovery, security, guardrail, diagnostics and governed-action lanes passed on that fix before merge.
+
+## Retained earlier validation
+
+```text
+SDK PR #54 / run 32602726148
+  SDK-only communication conformance, Python 3.9/3.11/3.12 SUCCESS
+
+SDK PR #55 / run 32602863793
+  earlier ST-031 + KV pinned source proof SUCCESS
 
 StegWhisper PR #15 / run 32602979304
-  real StegWhisper v0.2 -> ST-031 -> KnowledgeVault source integration
-  SUCCESS
+  StegWhisper v0.2 -> ST-031 -> KV source integration SUCCESS
 
-PR #57 / runs 32605995150 and 32606024322
-  public evaluator guide validation
-  Python 3.9 / 3.11 / 3.12 SUCCESS
+SDK PR #57 / runs 32605995150, 32606024322
+  public evaluator guide SUCCESS
 
-PR #58 / runs 32606159922 and 32606199291
-  installed stegverse-comm-demo + packaged fixture + source/installed parity
-  Python 3.9 / 3.11 / 3.12 SUCCESS
+SDK PR #58 / runs 32606159922, 32606199291
+  installed stegverse-comm-demo and source/installed parity SUCCESS
+
+SDK PR #59 / runs 32608268105, 32608335253
+  current ST-031 -> ST-032 -> raw KV store proof SUCCESS
 ```
 
 ## Authority boundary
@@ -124,17 +158,17 @@ Pinned source integration = executable source-integration proof
 StegWhisper = messenger posture + constraints
 StegTalk ST-031 = admissibility + scoring + edge/bearer selection
 StegTalk ST-032 = bounded execution of the already-selected edge
-KnowledgeVault = durable attempt/receipt/recovery truth
+KnowledgeVault CommunicationRuntimeJournal = durable selection/lease/execution/recovery persistence
 Edge device = ephemeral execution capability
 ```
 
-`LOOPBACK_TEST` proves runtime dispatch plumbing; it is not a physical/network bearer and cannot establish recipient delivery or production activation.
+`LOOPBACK_TEST` proves actual source/runtime dispatch plumbing but is not a physical/network bearer and does not establish recipient delivery or production activation.
 
 ## Remaining activation boundary
 
-Source/software selection-to-execution-to-KV persistence is now validated. Remaining work belongs to the running system:
+The source path through native KV persistence is now validated. Still open:
 
-- persist an actual bearer-generated attempt into the connected personal KnowledgeVault;
+- persist a bearer-generated runtime attempt into the connected personal KnowledgeVault;
 - advertise at least two actual admitted device edges;
 - execute a selected physical/network bearer;
 - append observed delivery evidence into connected KV;
