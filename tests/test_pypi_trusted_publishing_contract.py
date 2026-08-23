@@ -38,8 +38,8 @@ class PyPITrustedPublishingContractTests(unittest.TestCase):
             "packages: write",
             "actions: write",
             "pull-requests: write",
-            "PYPI_API_TOKEN:",
-            "PYPI_TOKEN:",
+            "PYPI_API_TOKEN: ${{",
+            "PYPI_TOKEN: ${{",
             "password:",
             "git push",
             "gh release create",
@@ -60,6 +60,7 @@ class PyPITrustedPublishingContractTests(unittest.TestCase):
         self.assertIn("python -m twine check dist/*", self.text)
         self.assertIn("sha256sum dist/* | sort | tee dist/SHA256SUMS", self.text)
         self.assertIn("sha256sum -c SHA256SUMS", self.text)
+        self.assertIn("rm dist/SHA256SUMS", self.text)
         self.assertIn("find dist -maxdepth 1 -type f -name '*.whl'", self.text)
         self.assertIn("find dist -maxdepth 1 -type f -name '*.tar.gz'", self.text)
 
