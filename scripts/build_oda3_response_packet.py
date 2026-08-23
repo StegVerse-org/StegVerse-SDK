@@ -74,6 +74,8 @@ def verify_release_receipt(receipt: dict[str, Any]) -> dict[str, Any]:
             reasons.append("aggregate_receipt_source_tests_not_passed")
         if source_validation.get("guard_tests_passed") is not True:
             reasons.append("aggregate_receipt_guard_tests_not_passed")
+        if source_validation.get("dispatcher_tests_passed") is not True:
+            reasons.append("aggregate_receipt_dispatcher_tests_not_passed")
         if source_validation.get("non_tv_tvc_credential_used") is not False:
             reasons.append("aggregate_receipt_source_validation_non_tv_tvc_credential_used")
         if source_validation.get("release_authority") is not False:
