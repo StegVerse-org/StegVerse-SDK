@@ -4,6 +4,14 @@ The StegVerse SDK is a public governance experiment and validation environment f
 
 A request, manifest, model output, validation result, receipt, or receipt locator does **not** become execution authority merely because it validates.
 
+## Open testing and governed interoperability
+
+StegVerse is meant to be inspected, challenged, and used by people and independent systems. Anyone may use the SDK, exercise the published governance lanes, inspect the governing principles and evidence, and reach their own conclusions.
+
+If StegVerse or the StegVerse SDK materially helps validate, augment, or improve another system, attribution is welcome but is not a condition of access. That does not change the purpose of StegVerse: to remain as transparent, inspectable, and open to independent use as possible.
+
+Independent systems may also connect through governed interlocks that preserve each system's authority while allowing explicitly admitted evidence and state transitions to cross the boundary. Such a connection may help the external system, StegVerse, or both. Openness and interoperability do not grant execution authority; every consequential transition remains governed.
+
 ## 90-second start
 
 ```bash
