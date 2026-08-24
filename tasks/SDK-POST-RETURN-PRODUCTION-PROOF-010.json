@@ -2,33 +2,64 @@
   "schema": "stegverse.sdk-task.v1",
   "task_id": "SDK-POST-RETURN-PRODUCTION-PROOF-010",
   "goal": "Produce the exact reciprocal interlock POST_RETURN proof from a canonical sovereign governed run, retained Master Records custody, participant acknowledgement, portable exchange, replay, and reconstruction.",
-  "state": "ACTIVE_SOURCE_IMPLEMENTATION",
+  "state": "SOURCE_COMPLETE_VALIDATED_MERGED_RUNTIME_AUTHORITY_GATES_OPEN",
   "authority": {
     "credential_authority": "TV/TVC",
     "release_authority": "TV/TVC",
     "github_runtime_authority": "NONE",
     "sdk_authority": "NONE"
   },
-  "required_chain": [
-    "REFERENCE_PARTICIPANT_TERMINAL_RECEIPT",
-    "PUBLIC_INTERLOCK_INGRESS",
-    "SPE_STANDING",
-    "CANONICAL_STEGGATE_DECISION",
-    "GOVERNED_CONSEQUENCE_TRANSITION",
-    "MASTER_RECORDS_CUSTODY",
-    "INTERLOCK_RETURN",
-    "PARTICIPANT_ACKNOWLEDGEMENT",
-    "POST_RETURN_BUNDLE",
-    "PORTABLE_EVIDENCE_EXCHANGE",
-    "INDEPENDENT_VERIFICATION",
-    "REPLAY_PASS",
-    "RECONSTRUCTION_PASS"
+  "source_evidence": {
+    "python_3_13_validation_merge": "a4ac6408c261c8ddfe9728acff21566dd53b2222",
+    "post_return_source_merge": "0a3690c4624f53f268980fd582d4a3baf492b8fc",
+    "post_return_validated_head": "5d534ad14c14212c605cd3bc670e37a65854732f",
+    "package_artifact_validation_run": 32691456393,
+    "package_artifact_validation_result": "SUCCESS",
+    "canonical_standing_owner_pr": "StegVerse-Labs/StegCore#146",
+    "canonical_standing_exact_head": "9e30638048b7ce117d9081ec9f8bfd7be2352710",
+    "tvc_private_source_request_comment": 5390899449,
+    "r3_pypi_guard_pr": "StegVerse-Labs/TVC#98",
+    "r3_pypi_guard_exact_head": "69513f7b7c4a0ddf322280989624156a00c935ef"
+  },
+  "implemented_chain": [
+    "REFERENCE_PARTICIPANT_TERMINAL_RECEIPT_SOURCE",
+    "PUBLIC_INTERLOCK_INGRESS_SOURCE",
+    "SPE_ENVELOPE_RECEIPT_BRIDGE_SOURCE",
+    "CANONICAL_STEGGATE_STANDING_BINDING_SOURCE_PR_146",
+    "BOUNDED_SOVEREIGN_STATE_CONSEQUENCE_SOURCE",
+    "MASTER_RECORDS_CUSTODY_CONSUMER_BINDING_SOURCE",
+    "INTERLOCK_RETURN_SOURCE",
+    "PARTICIPANT_ACKNOWLEDGEMENT_SOURCE",
+    "POST_RETURN_BUNDLE_SOURCE",
+    "PORTABLE_EVIDENCE_EXCHANGE_SOURCE",
+    "INDEPENDENT_VERIFICATION_SOURCE",
+    "REPLAY_RECONSTRUCTION_CUSTODY_ASSERTIONS_SOURCE"
   ],
-  "completion_rule": "Source wiring and tests are insufficient. COMPLETE requires an exact sovereign run with canonical Master Records custody, reciprocal ACKNOWLEDGED return, independently verified POST_RETURN exchange, replay/reconstruction custody PASS, and retained immutable evidence.",
-  "non_claims": [
-    "GitHub validation is not sovereign runtime proof",
-    "PRE_STEGGATE verification is not POST_RETURN completion",
-    "copied exchange evidence is not canonical custody",
-    "release/source readiness is not runtime activation"
+  "remaining_runtime_gates": [
+    {
+      "gate": "CANONICAL_STEGGATE_STANDING_BINDING",
+      "owner": "StegVerse-Labs/StegCore#146",
+      "required": "Admitted TV/TVC private-source exact-head validation, then merge/release propagation before use in the sovereign run.",
+      "state": "PENDING_PRIVATE_SOURCE_VALIDATION"
+    },
+    {
+      "gate": "SDK_1_1_0_IMMUTABLE_RELEASE_AND_PYPI",
+      "owner": "StegVerse-Labs/TVC#98 / TV/TVC resident aggregate release",
+      "required": "Exact PR #98 private-source validation, merge, resident TV/TVC authorization/credential execution, immutable v1.1.0 release, PyPI wheel+sdist Integrity provenance verification, and aggregate receipt.",
+      "state": "PENDING_RESIDENT_TV_TVC_EXECUTION"
+    },
+    {
+      "gate": "EXACT_SOVEREIGN_POST_RETURN_RUN",
+      "owner": "SDK canonical sovereign runtime + Master Records",
+      "required": "Run the public reference participant through the standing-bound canonical StegGate path with the bounded state consequence, retain MR custody, ACK return, exchange, independent verification, replay and reconstruction.",
+      "state": "PENDING_UPSTREAM_AUTHORITY_GATES"
+    }
+  ],
+  "completion_rule": "COMPLETE requires an exact sovereign run with canonical standing-bound StegGate decision, real bounded state mutation, canonical Master Records custody, reciprocal ACKNOWLEDGED return, independently verified POST_RETURN exchange, replay/reconstruction operation custody PASS, and retained immutable evidence. Source validation, PR merge, release readiness, or a copied evidence archive are insufficient.",
+  "preserved_invariants": [
+    "unsupported evaluator capability fails closed",
+    "verified copied exchange evidence is not canonical Master Records custody",
+    "default public governed TEST does not grant arbitrary external network side-effect authority",
+    "GitHub grants no StegVerse runtime/release authority"
   ]
 }
