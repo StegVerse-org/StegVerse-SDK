@@ -1,0 +1,53 @@
+name: Sovereign Standing Context Validation
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/sovereign_validation_runtime.py'
+      - 'stegverse/standing_execution_context.py'
+      - 'tests/test_standing_execution_context.py'
+      - '.github/workflows/sovereign-standing-context-validation.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert non-authorizing environment
+        run: |
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          test -z "${TVC_PRIVATE_SOURCE_READ_TOKEN:-}"
+      - name: Materialize exact source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Install pytest
+        run: python -m pip install --disable-pip-version-check --no-input pytest
+      - name: Execute standing context tests
+        run: |
+          cd /tmp/source
+          python -m pytest -q tests/test_standing_execution_context.py
+      - name: Compile changed runtime surfaces
+        run: |
+          cd /tmp/source
+          python -m py_compile stegverse/sovereign_validation_runtime.py stegverse/standing_execution_context.py
+      - name: Prove no credential authority introduced
+        run: |
+          cd /tmp/source
+          python - <<'PY'
+          from pathlib import Path
+          text = '\n'.join(Path(p).read_text(encoding='utf-8') for p in (
+              'stegverse/sovereign_validation_runtime.py',
+              'stegverse/standing_execution_context.py',
+          ))
+          for name in ('GITHUB_TOKEN', 'GH_TOKEN', 'TVC_PRIVATE_SOURCE_READ_TOKEN'):
+              assert name not in text
+          print('SOVEREIGN_STANDING_CONTEXT_NON_AUTHORIZING_SOURCE_OK')
+          PY
