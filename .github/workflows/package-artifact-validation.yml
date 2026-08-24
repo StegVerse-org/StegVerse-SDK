@@ -11,6 +11,8 @@ on:
       - 'tests/test_portable_governance_verifier.py'
       - 'tests/test_portable_governance_verifier_cli.py'
       - 'tests/test_portable_governance_exchange.py'
+      - 'tests/test_reference_bounded_consequence.py'
+      - 'tests/test_post_return_evidence.py'
       - 'docs/PYPI_TRUSTED_PUBLISHING_MIRROR_HANDOFF.md'
       - 'docs/PORTABLE_GOVERNANCE_VERIFIER_MIRROR_HANDOFF.md'
       - 'docs/PORTABLE_GOVERNANCE_EVIDENCE_EXCHANGE_MIRROR_HANDOFF.md'
@@ -59,7 +61,9 @@ jobs:
           python -m pytest -q \
             tests/test_portable_governance_verifier.py \
             tests/test_portable_governance_verifier_cli.py \
-            tests/test_portable_governance_exchange.py
+            tests/test_portable_governance_exchange.py \
+            tests/test_reference_bounded_consequence.py \
+            tests/test_post_return_evidence.py
 
       - name: Build wheel and source distribution
         run: |
