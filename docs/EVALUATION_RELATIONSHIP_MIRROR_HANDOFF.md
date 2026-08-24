@@ -39,6 +39,31 @@ The evaluator's conclusion is external to StegVerse authority. StegVerse does no
 
 A cooperative agreement may define mutually useful test boundaries, disclosure constraints, or consequence limits, but it must not make the evaluator a governance authority or substitute evaluator reputation for the underlying evidence.
 
+## Open testing and governed interoperability posture — 2026-08-23
+
+The public README now states the general relationship principle explicitly:
+
+```text
+open inspection: YES
+open independent experimentation: YES
+open access to published governance lanes/principles/evidence: YES
+attribution required for downstream learning or improvement: NO
+governed interlock interoperability: PERMITTED_WHEN_ADMITTED
+cross-boundary authority collapse: PROHIBITED
+```
+
+StegVerse is intentionally open to independent people and systems that want to inspect, challenge, test, or learn from the published SDK. If SDK behavior materially helps validate, augment, or improve another system, attribution is welcome but is not a condition of access.
+
+Independent systems may connect through governed interlocks when an admitted interlock contract exists. Such a connection may improve the external system, StegVerse, or both, while preserving each side's independent authority and ensuring consequential state transitions remain governed.
+
+Public README posture commit:
+
+```text
+fd285fdd7a6862b78a240021168f48552d4a82f1
+```
+
+This clarification changes no runtime authority, credential authority, custody semantics, or evaluator standing.
+
 ## Required sequence
 
 ```text
@@ -155,11 +180,11 @@ recipient-specific evaluator path: NONE
 ## Completion accounting
 
 ```text
-developed_files: 13/13
+developed_files: 14/14
 scaffolding_or_stubs: 0
 missing_required_files: 0
-validation: 13/13
-integration: 13/13
+validation: 13/13 runtime surfaces unchanged
+integration: 14/14
 goal_activation: 100%
 session_consolidation: COMPLETE_FOR_THIS_GOAL
 ```
