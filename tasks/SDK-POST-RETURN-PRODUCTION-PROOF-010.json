@@ -1,0 +1,34 @@
+{
+  "schema": "stegverse.sdk-task.v1",
+  "task_id": "SDK-POST-RETURN-PRODUCTION-PROOF-010",
+  "goal": "Produce the exact reciprocal interlock POST_RETURN proof from a canonical sovereign governed run, retained Master Records custody, participant acknowledgement, portable exchange, replay, and reconstruction.",
+  "state": "ACTIVE_SOURCE_IMPLEMENTATION",
+  "authority": {
+    "credential_authority": "TV/TVC",
+    "release_authority": "TV/TVC",
+    "github_runtime_authority": "NONE",
+    "sdk_authority": "NONE"
+  },
+  "required_chain": [
+    "REFERENCE_PARTICIPANT_TERMINAL_RECEIPT",
+    "PUBLIC_INTERLOCK_INGRESS",
+    "SPE_STANDING",
+    "CANONICAL_STEGGATE_DECISION",
+    "GOVERNED_CONSEQUENCE_TRANSITION",
+    "MASTER_RECORDS_CUSTODY",
+    "INTERLOCK_RETURN",
+    "PARTICIPANT_ACKNOWLEDGEMENT",
+    "POST_RETURN_BUNDLE",
+    "PORTABLE_EVIDENCE_EXCHANGE",
+    "INDEPENDENT_VERIFICATION",
+    "REPLAY_PASS",
+    "RECONSTRUCTION_PASS"
+  ],
+  "completion_rule": "Source wiring and tests are insufficient. COMPLETE requires an exact sovereign run with canonical Master Records custody, reciprocal ACKNOWLEDGED return, independently verified POST_RETURN exchange, replay/reconstruction custody PASS, and retained immutable evidence.",
+  "non_claims": [
+    "GitHub validation is not sovereign runtime proof",
+    "PRE_STEGGATE verification is not POST_RETURN completion",
+    "copied exchange evidence is not canonical custody",
+    "release/source readiness is not runtime activation"
+  ]
+}
