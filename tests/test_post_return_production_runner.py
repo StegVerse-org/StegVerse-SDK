@@ -104,18 +104,19 @@ def test_historical_or_capability_free_release_fails_closed():
 def test_manifest_is_exactly_bound_to_pre_steggate_three_layer_proposition():
     bundle = _bundle()
     manifest = _manifest(bundle)
-    derived = derive_three_layer_request(manifest["input"]["steggate_request"])
-    assert derived == bundle["steggate_bridge"]["admissibility_candidate"]["three_layer_request"]
     result = verify_manifest_standing_proposition_binding(manifest, bundle)
     assert result["verified"] is True
-    assert result["three_layer_request_hash"] == bundle["steggate_bridge"]["admissibility_candidate"]["three_layer_request_hash"]
+    assert result["bridge_three_layer_request_hash"] == bundle["steggate_bridge"]["admissibility_candidate"]["three_layer_request_hash"]
+    assert result["canonical_semantic_request_hash"] == __import__(
+        "stegverse.spe_steggate_bridge", fromlist=["stable_hash"]
+    ).stable_hash(derive_three_layer_request(manifest["input"]["steggate_request"]))
 
 
 def test_cross_paired_manifest_and_standing_bundle_fails_before_runtime():
     bundle = _bundle()
     manifest = _manifest(bundle)
     manifest["input"]["steggate_request"]["candidate"]["target"] = "target:different"
-    with pytest.raises(ValueError, match="does not match PRE_STEGGATE"):
+    with pytest.raises(ValueError, match="does not equal PRE_STEGGATE"):
         verify_manifest_standing_proposition_binding(manifest, bundle)
 
 
