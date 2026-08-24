@@ -82,6 +82,7 @@ def run_sovereign_validation(
     host_identity: str = "stegverse-sovereign-local",
     consequence_executor: Callable[[], Mapping[str, Any]] | None = None,
     consequence_metadata: Mapping[str, Any] | None = None,
+    declared_execution_context: Mapping[str, Any] | None = None,
     route_source: str = "StegVerse-SDK:sovereign-validation",
     route_purpose: str = "production-lane-evaluator-validation",
 ) -> dict[str, Any]:
@@ -91,6 +92,11 @@ def run_sovereign_validation(
     integration test. It is invoked only by the canonical StegCore transaction
     lifecycle when the governance disposition permits execution. The SDK does not
     introduce a second evaluator, receipt authority, or custody path.
+
+    ``declared_execution_context`` is carried unchanged into the canonical
+    StegCore transaction lifecycle. The SDK does not decide standing from that
+    context. A StegCore runtime that requires standing must independently verify
+    the bound evidence and fail closed before invoking the consequence.
 
     Evaluator WHAT/HOW/WHY declarations are retained as evidence metadata but are
     never inputs to the StegGate decision model. The runtime resolves the route
@@ -168,6 +174,7 @@ def run_sovereign_validation(
             "governance_request": request_model.model_dump(mode="json", exclude_none=False),
             "test_mode": True,
             "external_side_effects_enabled": consequence_enabled,
+            "declared_execution_context_supplied": declared_execution_context is not None,
         }
         if consequence_metadata:
             metadata["bounded_consequence"] = dict(consequence_metadata)
@@ -177,6 +184,7 @@ def run_sovereign_validation(
             subject=f"public-inspection:{normalized['request_id']}", ledger=ledger,
             transaction_id=active_manifest["transaction_id"],
             metadata=metadata,
+            declared_execution_context=declared_execution_context,
             capability_surface={"actions_exposed": [request_model.candidate.action],
                                 "execution_mode": "governed" if consequence_enabled else "manual",
                                 "requires_governed_commit": True},
@@ -251,6 +259,7 @@ def run_sovereign_validation(
         "master_records_custody_status": "RECORDED",
         "external_side_effect": external_effect,
         "third_party_host_required": False,
+        "declared_execution_context_consumed_by_canonical_runtime": declared_execution_context is not None,
     }
     if isinstance(execution_result, Mapping):
         output["execution_result"] = dict(execution_result)
