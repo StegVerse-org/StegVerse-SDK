@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -14,28 +15,27 @@ def _write(path: Path, value) -> None:
     path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
 
 
-def test_run_harness_rejects_unverified_release_before_runtime(monkeypatch, tmp_path: Path):
+def test_run_harness_rejects_unverified_release_before_runtime(tmp_path: Path):
     receipt = tmp_path / "receipt.json"
     manifest = tmp_path / "manifest.json"
     _write(receipt, {"schema": "wrong"})
     _write(manifest, {"schema_version": "1.0"})
 
-    monkeypatch.setattr(
+    with patch.object(
         harness,
         "run_sovereign_validation",
-        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("runtime must not execute")),
-    )
+        side_effect=AssertionError("runtime must not execute"),
+    ):
+        with pytest.raises(RuntimeError, match="release_receipt_not_verified"):
+            harness.run_exact_r3(
+                release_receipt_path=receipt,
+                manifest_path=manifest,
+                custody_db=tmp_path / "custody.db",
+                run_dir=tmp_path / "run",
+            )
 
-    with pytest.raises(RuntimeError, match="release_receipt_not_verified"):
-        harness.run_exact_r3(
-            release_receipt_path=receipt,
-            manifest_path=manifest,
-            custody_db=tmp_path / "custody.db",
-            run_dir=tmp_path / "run",
-        )
 
-
-def test_run_harness_rejects_runtime_governance_binding_that_does_not_match_retained_exact_request(monkeypatch, tmp_path: Path):
+def test_run_harness_rejects_runtime_governance_binding_that_does_not_match_retained_exact_request(tmp_path: Path):
     receipt_path = tmp_path / "receipt.json"
     manifest_path = tmp_path / "manifest.json"
     manifest = {
@@ -54,22 +54,23 @@ def test_run_harness_rejects_runtime_governance_binding_that_does_not_match_reta
 
     _write(receipt_path, {"schema": "stegverse.tvc.aggregate-release-receipt.v1"})
     _write(manifest_path, manifest)
-    monkeypatch.setattr(harness, "verify_release_receipt", lambda value: {"verified": True, "release_set_id": "EVALUATION-BOUNDARY-2026-08-19-R3"})
-    monkeypatch.setattr(harness, "load_public_inspection_request", lambda path: manifest)
-    monkeypatch.setattr(harness, "validate_public_inspection_request", lambda value: manifest)
-    monkeypatch.setattr(harness, "_canonical_governance_request", lambda raw: canonical_request)
-    monkeypatch.setattr(harness, "run_sovereign_validation", lambda *args, **kwargs: governed)
+    with (
+        patch.object(harness, "verify_release_receipt", return_value={"verified": True, "release_set_id": "EVALUATION-BOUNDARY-2026-08-19-R3"}),
+        patch.object(harness, "load_public_inspection_request", return_value=manifest),
+        patch.object(harness, "validate_public_inspection_request", return_value=manifest),
+        patch.object(harness, "_canonical_governance_request", return_value=canonical_request),
+        patch.object(harness, "run_sovereign_validation", return_value=governed),
+    ):
+        with pytest.raises(RuntimeError, match="runtime_governance_request_binding_mismatch"):
+            harness.run_exact_r3(
+                release_receipt_path=receipt_path,
+                manifest_path=manifest_path,
+                custody_db=tmp_path / "custody.db",
+                run_dir=tmp_path / "run",
+            )
 
-    with pytest.raises(RuntimeError, match="runtime_governance_request_binding_mismatch"):
-        harness.run_exact_r3(
-            release_receipt_path=receipt_path,
-            manifest_path=manifest_path,
-            custody_db=tmp_path / "custody.db",
-            run_dir=tmp_path / "run",
-        )
 
-
-def test_run_harness_retains_exact_tuple_custody_reconstruction_replay_and_packet(monkeypatch, tmp_path: Path):
+def test_run_harness_retains_exact_tuple_custody_reconstruction_replay_and_packet(tmp_path: Path):
     receipt_path = tmp_path / "receipt.json"
     manifest_path = tmp_path / "manifest.json"
     run_dir = tmp_path / "run"
@@ -107,44 +108,44 @@ def test_run_harness_retains_exact_tuple_custody_reconstruction_replay_and_packe
     _write(receipt_path, receipt)
     _write(manifest_path, manifest)
 
-    monkeypatch.setattr(
-        harness,
-        "verify_release_receipt",
-        lambda value: {"verified": True, "reasons": ["ok"], "release_set_id": "EVALUATION-BOUNDARY-2026-08-19-R3"},
-    )
-    monkeypatch.setattr(harness, "load_public_inspection_request", lambda path: manifest)
-    monkeypatch.setattr(harness, "validate_public_inspection_request", lambda value: normalized)
-    monkeypatch.setattr(harness, "_canonical_governance_request", lambda raw: canonical_request)
-    monkeypatch.setattr(harness, "run_sovereign_validation", lambda *args, **kwargs: governed)
-
     def export_custody(*, custody_db, governed_result, run_dir):
         _write(run_dir / "route-receipts" / "000.json", {"route_receipt_id": "RR-1"})
         _write(run_dir / "master-records" / "evidence-package.json", {"manifest_receipt_id": "MR-ODA3"})
 
-    monkeypatch.setattr(harness, "_export_custody", export_custody)
-    monkeypatch.setattr(
-        harness,
-        "reconstruct_sovereign",
-        lambda rid, custody_db: {"schema": "stegverse.sovereign-reconstruction.v1", "manifest_receipt_id": rid},
-    )
-    monkeypatch.setattr(
-        harness,
-        "replay_sovereign",
-        lambda rid, custody_db: {"schema": "stegverse.sovereign-replay.v1", "manifest_receipt_id": rid},
-    )
-    monkeypatch.setattr(
-        harness,
-        "build_packet",
-        lambda **kwargs: {"status": "ok", "independent_verification_pass": True},
-    )
-
-    result = harness.run_exact_r3(
-        release_receipt_path=receipt_path,
-        manifest_path=manifest_path,
-        custody_db=tmp_path / "custody.db",
-        run_dir=run_dir,
-        packet_dir=packet_dir,
-    )
+    with (
+        patch.object(
+            harness,
+            "verify_release_receipt",
+            return_value={"verified": True, "reasons": ["ok"], "release_set_id": "EVALUATION-BOUNDARY-2026-08-19-R3"},
+        ),
+        patch.object(harness, "load_public_inspection_request", return_value=manifest),
+        patch.object(harness, "validate_public_inspection_request", return_value=normalized),
+        patch.object(harness, "_canonical_governance_request", return_value=canonical_request),
+        patch.object(harness, "run_sovereign_validation", return_value=governed),
+        patch.object(harness, "_export_custody", side_effect=export_custody),
+        patch.object(
+            harness,
+            "reconstruct_sovereign",
+            side_effect=lambda rid, custody_db: {"schema": "stegverse.sovereign-reconstruction.v1", "manifest_receipt_id": rid},
+        ),
+        patch.object(
+            harness,
+            "replay_sovereign",
+            side_effect=lambda rid, custody_db: {"schema": "stegverse.sovereign-replay.v1", "manifest_receipt_id": rid},
+        ),
+        patch.object(
+            harness,
+            "build_packet",
+            return_value={"status": "ok", "independent_verification_pass": True},
+        ),
+    ):
+        result = harness.run_exact_r3(
+            release_receipt_path=receipt_path,
+            manifest_path=manifest_path,
+            custody_db=tmp_path / "custody.db",
+            run_dir=run_dir,
+            packet_dir=packet_dir,
+        )
 
     assert result["status"] == "ok"
     assert result["manifest_receipt_id"] == "MR-ODA3"
