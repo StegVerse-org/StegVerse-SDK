@@ -2,7 +2,7 @@
   "schema": "stegverse.sdk-task.v1",
   "task_id": "SDK-POST-RETURN-PRODUCTION-PROOF-010",
   "goal": "Produce the exact reciprocal interlock POST_RETURN proof from a canonical sovereign governed run, retained Master Records custody, participant acknowledgement, portable exchange, replay, and reconstruction.",
-  "state": "SOURCE_COMPLETE_RELEASE_COHERENCE_REPAIR_IN_VALIDATION_RUNTIME_AUTHORITY_GATES_OPEN",
+  "state": "SOURCE_CHAIN_NEAR_COMPLETE_FINAL_SUCCESSOR_RUNNER_VALIDATION_PENDING_RUNTIME_AUTHORITY_GATES_OPEN",
   "authority": {
     "credential_authority": "TV/TVC",
     "release_authority": "TV/TVC",
@@ -12,33 +12,52 @@
   "source_evidence": {
     "python_3_13_validation_merge": "a4ac6408c261c8ddfe9728acff21566dd53b2222",
     "post_return_source_merge": "0a3690c4624f53f268980fd582d4a3baf492b8fc",
-    "post_return_validated_head": "5d534ad14c14212c605cd3bc670e37a65854732f",
-    "package_artifact_validation_run": 32691456393,
-    "package_artifact_validation_result": "SUCCESS",
+    "release_coherence_merge": "d6b46580e1fa591fa9e99e422262db081fef1267",
+    "canonical_standing_context_consumption_merge": "3c4b503a6be12ef191bf2808a1d32abbc65ef82e",
+    "canonical_standing_context_exact_validation_head": "dabb14b915b06bc5898d5be74cb0a4d2b9546da5",
+    "canonical_standing_context_runs": {
+      "standing_context": 32787434656,
+      "evaluator_manifest": 32787434658,
+      "package_artifact": 32787434652,
+      "mcp_source": 32787434676
+    },
     "canonical_standing_owner_pr": "StegVerse-Labs/StegCore#146",
-    "canonical_standing_exact_head": "9e30638048b7ce117d9081ec9f8bfd7be2352710",
+    "canonical_standing_exact_head": "f09eb36abcd3b317f35638e5c0b0c4a802d0aecf",
+    "canonical_standing_hosted_validation_run": 32786378106,
+    "canonical_standing_hosted_validation_job": 97619049003,
+    "canonical_standing_resident_admission": "PENDING",
     "r3_pypi_guard_merge": "c7f090f06b3de7a23b373d02017660cf2833150a",
     "r3_distribution_validation_run": 32738335920,
-    "r3_hosted_authority_boundary_run": 32738336392,
-    "release_coherence_handoff": "docs/POST_RETURN_RELEASE_COHERENCE_MIRROR_HANDOFF.md"
+    "r3_release_authorization_status": "REQUESTED_NOT_GRANTED",
+    "successor_proof_capability_release_support_merge": "81efb4b8a14b3e76114a655e8447b87316b53ea2",
+    "successor_proof_capability_validation_run": 32787541230,
+    "final_successor_runner_pr": "StegVerse-org/StegVerse-SDK#78",
+    "final_successor_runner_exact_head": "d11567727797a39c7cc50f6d619fb2388c3ceb5a",
+    "final_successor_runner_package_run": 32787873029,
+    "final_successor_runner_dedicated_run": 32787873011
   },
   "implemented_chain": [
     "REFERENCE_PARTICIPANT_TERMINAL_RECEIPT_SOURCE",
     "PUBLIC_INTERLOCK_INGRESS_SOURCE",
     "SPE_ENVELOPE_RECEIPT_BRIDGE_SOURCE",
     "CANONICAL_STEGGATE_STANDING_BINDING_SOURCE_PR_146",
+    "VERIFIED_STANDING_CONTEXT_TO_CANONICAL_SOVEREIGN_RUNTIME_MERGED",
     "BOUNDED_SOVEREIGN_STATE_CONSEQUENCE_SOURCE",
-    "MASTER_RECORDS_CUSTODY_CONSUMER_BINDING_SOURCE",
+    "MASTER_RECORDS_DIRECT_CUSTODY_LOOKUP_SOURCE_PR_78",
     "INTERLOCK_RETURN_SOURCE",
     "PARTICIPANT_ACKNOWLEDGEMENT_SOURCE",
     "POST_RETURN_BUNDLE_SOURCE",
     "PORTABLE_EVIDENCE_EXCHANGE_SOURCE",
     "INDEPENDENT_VERIFICATION_SOURCE",
     "REPLAY_RECONSTRUCTION_CUSTODY_ASSERTIONS_SOURCE",
-    "RELEASE_PROOF_CAPABILITY_COHERENCE_GATE_SOURCE"
+    "RELEASE_PROOF_CAPABILITY_COHERENCE_GATE_MERGED",
+    "GENERIC_TVC_SUCCESSOR_RELEASE_CAPABILITY_CONTAINMENT_MERGED",
+    "MANIFEST_TO_PRE_STEGGATE_PROPOSITION_ANTI_CROSS_PAIR_BINDING_SOURCE_PR_78",
+    "ONE_COMMAND_SUCCESSOR_POST_RETURN_PRODUCTION_PROOF_SOURCE_PR_78"
   ],
   "release_coherence": {
     "r3_release_set_still_should_complete": true,
+    "r3_release_authorization_status": "REQUESTED_NOT_GRANTED",
     "r3_sufficient_for_full_post_return_proof": false,
     "reason": "R3 freezes SDK and StegCore coordinates that predate the POST_RETURN and canonical SPE-standing proof implementations.",
     "r3_sdk_commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
@@ -50,41 +69,49 @@
       "STEGCORE_SPE_STANDING_BINDING_V1",
       "MASTER_RECORDS_OPERATION_CUSTODY_V1"
     ],
+    "successor_release_engine_support": "MERGED_VALIDATED",
     "successor_release_set_required": true
   },
   "remaining_runtime_gates": [
     {
+      "gate": "FINAL_SUCCESSOR_RUNNER_SOURCE",
+      "owner": "StegVerse-org/StegVerse-SDK#78",
+      "required": "Dedicated exact-head proof-runner validation PASS, then merge. Package artifact validation is already PASS on the current head.",
+      "state": "PENDING_DEDICATED_VALIDATION"
+    },
+    {
       "gate": "CANONICAL_STEGGATE_STANDING_BINDING",
       "owner": "StegVerse-Labs/StegCore#146",
-      "required": "Admitted TV/TVC private-source exact-head validation, then merge before successor release freeze.",
-      "state": "PENDING_PRIVATE_SOURCE_VALIDATION"
+      "required": "Resident TV/TVC private-source exact-head admission of f09eb36abcd3b317f35638e5c0b0c4a802d0aecf, then merge before successor release freeze.",
+      "state": "HOSTED_VALIDATED_PENDING_RESIDENT_ADMISSION"
     },
     {
       "gate": "R3_HISTORICAL_RELEASE_COMPLETION",
       "owner": "StegVerse-Labs/TVC / TV/TVC resident aggregate release",
-      "required": "Execute the now-merged package-aware R3 continuation on the TVC resident authority path, verify four immutable releases plus SDK 1.1.0 PyPI provenance, and retain the R3 aggregate receipt.",
-      "state": "PENDING_RESIDENT_TV_TVC_EXECUTION",
+      "required": "Grant/activate the existing bounded R3 TV/TVC release credential, execute the package-aware R3 continuation, verify four immutable releases plus SDK 1.1.0 PyPI provenance, and retain the R3 aggregate receipt.",
+      "state": "REQUESTED_NOT_GRANTED",
       "proof_scope": "FROZEN_R3_ONLY"
     },
     {
       "gate": "SUCCESSOR_POST_RETURN_RELEASE_SET",
       "owner": "TV/TVC release authority",
-      "required": "After StegCore #146 merge and SDK POST_RETURN release freeze, publish an immutable successor release set whose receipt proves required feature commits are contained in the exact release coordinates.",
+      "required": "After #146 and #78 merge/freeze, publish immutable successor coordinates through the merged generic proof-capability release layer and retain a receipt proving all required feature commits are contained.",
       "state": "PENDING_EXACT_RELEASE_COORDINATES"
     },
     {
       "gate": "EXACT_SOVEREIGN_POST_RETURN_RUN",
       "owner": "SDK canonical sovereign runtime + Master Records",
-      "required": "Consume the coherent successor release receipt, run the public reference participant through standing-bound canonical StegGate with the bounded state consequence, retain MR custody, ACK return, exchange, independent verification, replay and reconstruction.",
+      "required": "Consume the coherent successor release receipt and real PRE_STEGGATE bundle with the final production runner; retain bounded state transition, exact Master Records custody, reciprocal ACK, POST_RETURN exchange, independent verification, replay and reconstruction PASS.",
       "state": "PENDING_UPSTREAM_AUTHORITY_GATES"
     }
   ],
-  "completion_rule": "COMPLETE requires an exact sovereign run whose immutable release receipt contains the exact proof capabilities exercised by that run, plus canonical standing-bound StegGate decision, real bounded state mutation, canonical Master Records custody, reciprocal ACKNOWLEDGED return, independently verified POST_RETURN exchange, replay/reconstruction operation custody PASS, and retained immutable evidence. Historical release validity, source validation, PR merge, release readiness, or a copied evidence archive are insufficient.",
+  "completion_rule": "COMPLETE requires an exact sovereign run whose immutable release receipt contains the exact proof capabilities exercised by that run, whose PRE_STEGGATE standing proposition is canonically bound to the submitted governance request, plus a canonical standing-bound StegGate decision, real bounded state mutation, direct canonical Master Records custody, reciprocal ACKNOWLEDGED return, independently verified POST_RETURN exchange, replay/reconstruction operation custody PASS, and retained immutable evidence. Historical release validity, source validation, PR merge, release readiness, or a copied evidence archive are insufficient.",
   "preserved_invariants": [
     "unsupported evaluator capability fails closed",
     "verified copied exchange evidence is not canonical Master Records custody",
     "default public governed TEST does not grant arbitrary external network side-effect authority",
     "GitHub grants no StegVerse runtime/release authority",
-    "historical release evidence cannot certify later source"
+    "historical release evidence cannot certify later source",
+    "standing evidence for one proposition cannot authorize a different manifest proposition"
   ]
 }
