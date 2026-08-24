@@ -94,26 +94,21 @@ def verify_coherent_release_receipt(receipt: Mapping[str, Any]) -> dict[str, Any
     }
 
 
-def derive_three_layer_request(admissibility_request: Mapping[str, Any]) -> dict[str, Any]:
-    """Project an AdmissibilityRequest into canonical StegCore three-layer semantics."""
-    request = dict(admissibility_request)
-    candidate = request.get("candidate")
-    judgment = request.get("judgment")
-    signal = request.get("signal")
-    execution = request.get("execution")
-    if not all(isinstance(item, Mapping) for item in (candidate, judgment, signal, execution)):
-        raise ValueError("admissibility request is missing candidate/judgment/signal/execution objects")
-    candidate = dict(candidate)
+def _normalize_three_layer_request(value: Mapping[str, Any]) -> dict[str, Any]:
+    request = dict(value)
+    judgment = request.get("judgment_conditions")
+    signal = request.get("signal_admission")
+    execution = request.get("execution_boundary")
+    if not all(isinstance(item, Mapping) for item in (judgment, signal, execution)):
+        raise ValueError("three-layer request is missing judgment/signal/execution objects")
     judgment = dict(judgment)
     signal = dict(signal)
     execution = dict(execution)
-
-    action = str(candidate.get("action") or "").strip()
-    target = str(candidate.get("target") or "").strip()
-    scope = str(candidate.get("scope") or "default").strip()
+    action = str(request.get("action") or "").strip()
+    target = str(request.get("target") or "").strip()
+    scope = str(request.get("scope") or "default").strip()
     if not action or not target or not scope:
-        raise ValueError("candidate action/target/scope are required")
-
+        raise ValueError("three-layer action/target/scope are required")
     return {
         "judgment_conditions": {
             "refusal_available": bool(judgment.get("refusal_available")),
@@ -152,6 +147,27 @@ def derive_three_layer_request(admissibility_request: Mapping[str, Any]) -> dict
     }
 
 
+def derive_three_layer_request(admissibility_request: Mapping[str, Any]) -> dict[str, Any]:
+    """Project an AdmissibilityRequest into canonical StegCore three-layer semantics."""
+    request = dict(admissibility_request)
+    candidate = request.get("candidate")
+    judgment = request.get("judgment")
+    signal = request.get("signal")
+    execution = request.get("execution")
+    if not all(isinstance(item, Mapping) for item in (candidate, judgment, signal, execution)):
+        raise ValueError("admissibility request is missing candidate/judgment/signal/execution objects")
+    candidate = dict(candidate)
+    three = {
+        "judgment_conditions": dict(judgment),
+        "signal_admission": dict(signal),
+        "execution_boundary": dict(execution),
+        "action": candidate.get("action"),
+        "target": candidate.get("target"),
+        "scope": candidate.get("scope") or "default",
+    }
+    return _normalize_three_layer_request(three)
+
+
 def verify_manifest_standing_proposition_binding(
     normalized_manifest: Mapping[str, Any],
     pre_steggate_bundle: Mapping[str, Any],
@@ -173,16 +189,19 @@ def verify_manifest_standing_proposition_binding(
     if not isinstance(bridge_request, Mapping):
         raise ValueError("PRE_STEGGATE bridge has no three-layer request")
 
-    derived = derive_three_layer_request(raw_request)
-    derived_hash = stable_hash(derived)
     claimed_hash = str(admissibility.get("three_layer_request_hash") or "")
-    if derived_hash != claimed_hash:
-        raise ValueError("manifest governance request does not match PRE_STEGGATE three-layer request hash")
-    if dict(bridge_request) != derived:
+    if stable_hash(dict(bridge_request)) != claimed_hash:
+        raise ValueError("PRE_STEGGATE three-layer request hash is invalid")
+
+    derived = derive_three_layer_request(raw_request)
+    normalized_bridge = _normalize_three_layer_request(bridge_request)
+    if normalized_bridge != derived:
         raise ValueError("manifest governance request does not equal PRE_STEGGATE three-layer proposition")
+    semantic_hash = stable_hash(derived)
     return {
         "verified": True,
-        "three_layer_request_hash": derived_hash,
+        "bridge_three_layer_request_hash": claimed_hash,
+        "canonical_semantic_request_hash": semantic_hash,
         "authority_effect": "NONE",
     }
 
@@ -238,7 +257,8 @@ def run_post_return_production_proof(
         "package_id": pre_bundle.get("package_id"),
         "transition_id": pre_bundle.get("transition_id"),
         "run_id": run_id,
-        "three_layer_request_hash": proposition_binding["three_layer_request_hash"],
+        "bridge_three_layer_request_hash": proposition_binding["bridge_three_layer_request_hash"],
+        "canonical_semantic_request_hash": proposition_binding["canonical_semantic_request_hash"],
     }
     executor = reference_state_executor(
         state_path,
