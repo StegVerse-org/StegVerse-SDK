@@ -6,6 +6,14 @@ import json
 from pathlib import Path
 
 from stegverse.post_return_production_runner import run_post_return_production_proof
+from stegverse.release_dependency_alignment import verify_installed_governed_test_dependency_alignment
+
+
+def _load_release_receipt(path: Path) -> dict:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("release receipt must contain a JSON object")
+    return value
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -24,8 +32,16 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
+        release_path = Path(args.release_receipt)
+        release_receipt = _load_release_receipt(release_path)
+        dependency_alignment = verify_installed_governed_test_dependency_alignment(release_receipt)
+        if dependency_alignment.get("verified") is not True:
+            raise RuntimeError(
+                "installed_governed_test_dependency_alignment_failed:"
+                + ",".join(dependency_alignment.get("reasons") or [])
+            )
         result = run_post_return_production_proof(
-            release_receipt_path=Path(args.release_receipt),
+            release_receipt_path=release_path,
             manifest_path=Path(args.manifest),
             pre_steggate_bundle_path=Path(args.pre_steggate_bundle),
             custody_db=Path(args.custody_db),
@@ -35,6 +51,7 @@ def main(argv: list[str] | None = None) -> int:
             consequence_key=args.consequence_key,
             host_identity=args.host_identity,
         )
+        result["installed_governed_test_dependency_alignment"] = dependency_alignment
     except Exception as exc:
         print(
             json.dumps(
