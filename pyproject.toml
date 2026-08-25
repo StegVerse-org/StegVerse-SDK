@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stegverse-sdk"
-version = '1.2.0.dev0'
+version = '1.2.0'
 description = "StegVerse SDK for governed AI testing, admissibility evaluation, receipt verification, and bounded routing"
 readme = "README.md"
 license = {text = "MIT"}
