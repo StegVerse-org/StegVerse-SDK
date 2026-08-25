@@ -44,33 +44,33 @@ jobs:
           python -m build --wheel
           python -m venv /tmp/alignment-venv
           /tmp/alignment-venv/bin/python -m pip install --disable-pip-version-check --no-input dist/*.whl
-      - name: Verify installed wheel metadata aligns to successor executable coordinates and refuses historical mismatch
+      - name: Verify installed wheel metadata aligns to final TVC source-parent coordinates
         run: |
           set -eu
           /tmp/alignment-venv/bin/python - <<'PY'
           from stegverse.release_dependency_alignment import verify_installed_governed_test_dependency_alignment
 
-          successor = {
+          final_receipt = {
               'components': [
-                  {'repository': 'StegVerse-Labs/StegCore', 'commit_sha': '1'*40, 'source_parent_commit': '124ea6b53ff79db8f514cacf1aab295f03cacf74'},
+                  {'repository': 'StegVerse-Labs/StegCore', 'commit_sha': '1'*40, 'source_parent_commit': 'ef38410505b0ef3e84148892b1d6e3cdef20f300'},
                   {'repository': 'Data-Continuation/core-lite', 'commit_sha': '2'*40, 'source_parent_commit': '72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8'},
-                  {'repository': 'master-records/orchestration', 'commit_sha': '3'*40, 'source_parent_commit': '3dae8832a167359612a15ccfde99a9f22b77fc8a'},
+                  {'repository': 'master-records/orchestration', 'commit_sha': '3'*40, 'source_parent_commit': '03312236c115bc814024d700810391340648601f'},
               ]
           }
-          historical = {
+          pre_tvc = {
               'components': [
-                  {'repository': 'StegVerse-Labs/StegCore', 'commit_sha': '4'*40, 'source_parent_commit': '083557adec1bdbace09ebd10fb0765eb8e9a9d08'},
+                  {'repository': 'StegVerse-Labs/StegCore', 'commit_sha': '4'*40, 'source_parent_commit': '124ea6b53ff79db8f514cacf1aab295f03cacf74'},
                   {'repository': 'Data-Continuation/core-lite', 'commit_sha': '2'*40, 'source_parent_commit': '72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8'},
-                  {'repository': 'master-records/orchestration', 'commit_sha': '5'*40, 'source_parent_commit': '6626c6a7f1df6bf531940c165b2f4db374e08b92'},
+                  {'repository': 'master-records/orchestration', 'commit_sha': '5'*40, 'source_parent_commit': '3dae8832a167359612a15ccfde99a9f22b77fc8a'},
               ]
           }
-          ok = verify_installed_governed_test_dependency_alignment(successor)
+          ok = verify_installed_governed_test_dependency_alignment(final_receipt)
           assert ok['verified'] is True, ok
-          mismatch = verify_installed_governed_test_dependency_alignment(historical)
+          mismatch = verify_installed_governed_test_dependency_alignment(pre_tvc)
           assert mismatch['verified'] is False, mismatch
           assert 'stegcore:commit_mismatch' in mismatch['reasons'], mismatch
           assert 'stegverse-master-records:commit_mismatch' in mismatch['reasons'], mismatch
-          print('INSTALLED_SUCCESSOR_RELEASE_DEPENDENCY_ALIGNMENT_PASS')
+          print('INSTALLED_FINAL_TVC_RELEASE_DEPENDENCY_ALIGNMENT_PASS')
           PY
       - name: Compile canonical command and verifier
         run: |
