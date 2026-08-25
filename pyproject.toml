@@ -40,9 +40,9 @@ dev = [
     "mypy>=1.0",
 ]
 governed-test = [
-    "stegcore @ git+https://github.com/StegVerse-Labs/StegCore.git@083557adec1bdbace09ebd10fb0765eb8e9a9d08",
+    "stegcore @ git+https://github.com/StegVerse-Labs/StegCore.git@124ea6b53ff79db8f514cacf1aab295f03cacf74",
     "stegverse-core-lite @ git+https://github.com/Data-Continuation/core-lite.git@72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8",
-    "stegverse-master-records @ git+https://github.com/master-records/orchestration.git@6626c6a7f1df6bf531940c165b2f4db374e08b92",
+    "stegverse-master-records @ git+https://github.com/master-records/orchestration.git@3dae8832a167359612a15ccfde99a9f22b77fc8a",
 ]
 
 [project.scripts]
