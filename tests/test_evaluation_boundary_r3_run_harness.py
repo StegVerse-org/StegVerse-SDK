@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from scripts import run_evaluation_boundary_evaluation_boundary_r3 as harness
+from scripts import run_evaluation_boundary_r3 as harness
 from stegverse.evaluation_boundary_verifier import canonical_sha256
 
 
