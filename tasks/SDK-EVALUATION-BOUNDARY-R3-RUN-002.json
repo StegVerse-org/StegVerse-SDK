@@ -1,0 +1,66 @@
+{
+  "schema_version": "STEGVERSE-TASK-v1",
+  "task_id": "SDK-EVALUATION-BOUNDARY-R3-RUN-002",
+  "goal_id": "EVALUATION-BOUNDARY-2026-08-19-R3",
+  "title": "Execute and retain the evaluator-neutral R3 evaluation-boundary run",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "main",
+  "canonical_handoff": "docs/EVALUATION_BOUNDARY_RESPONSE_PACKET_MIRROR_HANDOFF.md",
+  "state": "SOURCE_NEUTRALIZATION_IN_PROGRESS_RELEASE_AND_RUNTIME_PENDING",
+  "owner": "StegVerse SDK generalized evaluation runtime",
+  "authority": {
+    "credential_authority": "TV/TVC",
+    "github_runtime_authority": "NONE",
+    "evaluator_specific_route_allowed": false,
+    "evaluator_specific_semantic_override_allowed": false,
+    "moving_main_substitution_allowed": false
+  },
+  "release_set": {
+    "id": "EVALUATION-BOUNDARY-2026-08-19-R3",
+    "required_aggregate_receipt": "stegverse.tvc.aggregate-release-receipt.v1",
+    "tvc_task": "TVC-EVALUATION-BOUNDARY-AGGREGATE-RELEASE-029",
+    "required_before_runtime": true
+  },
+  "execution": {
+    "runner": "scripts/run_evaluation_boundary_r3.py",
+    "packet_builder": "scripts/build_evaluation_boundary_response_packet.py",
+    "owner_packet_validator": "scripts/build_evaluation_boundary_owner_packet.py",
+    "manifest_source": "EXTERNAL_EVALUATOR_SUPPLIED_AT_RUN_TIME",
+    "manifest_retention": "EXACT_SUBMITTED_AND_NORMALIZED_BYTES_WITH_RUN_EVIDENCE",
+    "must_begin_at_sdk_ingress": true,
+    "direct_core_lite_or_stegcore_or_steggate_submission_allowed": false
+  },
+  "required_outputs": [
+    "verified R3 aggregate release receipt",
+    "exact submitted/normalized manifest",
+    "exact governance request",
+    "governed result",
+    "route + manifest receipts",
+    "Master Records exact-run custody",
+    "reconstruction",
+    "replay when requested",
+    "independent unmodified tuple PASS",
+    "manifest tamper FAIL",
+    "governance-request tamper FAIL",
+    "result tamper FAIL",
+    "neutral response packet + file/hash manifest"
+  ],
+  "current_state": {
+    "required_r3_tags_latest_observed": "0/4",
+    "r3_source_validation_report_observed": false,
+    "r3_aggregate_receipt_observed": false,
+    "governed_run_executed": false,
+    "user_action_required_now": false
+  },
+  "next_executable_action": "Validate and merge the neutral tooling change; then wait on verified R3 aggregate release receipt before executing an evaluator-supplied manifest through ordinary SDK ingress.",
+  "collision_boundaries": [
+    "Do not create a person-specific evaluator, route, task, packet schema, evidence namespace, or runtime.",
+    "Do not manufacture runtime evidence from fixtures.",
+    "Do not execute before the verified R3 aggregate receipt exists.",
+    "Do not substitute moving main for frozen release coordinates.",
+    "Do not treat source validation, merge, assignment, release readiness, or packet scaffolding as governed runtime completion."
+  ],
+  "authority_effect": false,
+  "activation_effect": false,
+  "archive_dependency": true
+}

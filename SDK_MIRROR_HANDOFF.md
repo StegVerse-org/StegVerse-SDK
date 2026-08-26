@@ -370,3 +370,43 @@ issue #30
 ```
 
 Do not mark MCP activation complete until the exact declared production artifacts produce retained MR/MRR/MRO evidence. Do not use GitHub/private-repository credentials to manufacture that proof. That separate machine/authority-owned workstream is not an archive dependency of the completed 2026-08-17 session.
+
+
+## Evaluator-neutral R3 response/run surface — 2026-08-26
+
+The active R3 evaluation-boundary continuation now has a neutral repository-facing execution and packet surface. External evaluator identity is not encoded into route IDs, task IDs, packet schemas, active filenames, test names, or runtime modules.
+
+Active scoped handoff:
+
+\`docs/EVALUATION_BOUNDARY_RESPONSE_PACKET_MIRROR_HANDOFF.md\`
+
+Active task:
+
+\`tasks/SDK-EVALUATION-BOUNDARY-R3-RUN-002.json\`
+
+Neutral tooling:
+
+\`\`\`text
+scripts/run_evaluation_boundary_r3.py
+scripts/build_evaluation_boundary_response_packet.py
+scripts/build_evaluation_boundary_owner_packet.py
+tests/test_evaluation_boundary_r3_run_harness.py
+tests/test_evaluation_boundary_response_packet.py
+docs/EVALUATION_BOUNDARY_PACKET_README_REPRODUCE.md
+docs/EVALUATION_BOUNDARY_LICENSE_ACCESS_NOTES.md
+\`\`\`
+
+The evaluator supplies the manifest for the run. The manifest is validated/canonicalized at SDK ingress, its declared route is resolved against installed published routes, current governing state is bound to that route, and the exact submitted/normalized manifest is retained with the run evidence. A repository-local evaluator-specific manifest is not an architectural prerequisite.
+
+Historical evaluator-specific artifacts may remain immutable for reconstruction of earlier work, but they are not active execution/coordination surfaces and must not be propagated into new repository artifacts.
+
+Current R3 runtime state remains nonterminal:
+
+\`\`\`text
+aggregate release set EVALUATION-BOUNDARY-2026-08-19-R3: NOT RELEASED
+verified aggregate receipt: NOT PRESENT
+exact governed SDK-ingress run: NOT EXECUTED
+custody/reconstruction/replay packet: NOT PRESENT
+\`\`\`
+
+Source neutralization does not satisfy release, runtime, custody, independent verification, deployment, activation, or propagation gates.
