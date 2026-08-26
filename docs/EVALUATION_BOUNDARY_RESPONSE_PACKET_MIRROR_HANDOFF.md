@@ -164,3 +164,21 @@ release/runtime authority: NONE
 \`\`\`
 
 This is post-merge source validation. It does not alter the still-open TVC aggregate-release, governed-runtime, Master Records custody, replay/reconstruction, or external-evidence gates.
+
+
+## Exact neutral tooling source pin
+
+The execution-support harness is not part of the frozen SDK 1.1.0 distribution identity, so its own exact immutable source identity is retained separately rather than being silently taken from moving \`main\`.
+
+\`\`\`text
+neutral tooling merge/source commit: 1bda547a4e85749190beab4f8a6d51085fb31034
+run_evaluation_boundary_r3.py blob: d863d36cfd2aabb4740d18d2e931c5460af7b766
+build_evaluation_boundary_response_packet.py blob: 6e80ca8819ffcb1ee7acf2864d0a1ade609394e2
+post-merge validation head: 5ea6388192ee3bb0f22c00714699be27667e56a7
+post-merge validation run/job: 33024316801 / 98361953490 SUCCESS
+same runner blob at merge + validation heads: true
+same packet-builder blob at merge + validation heads: true
+moving-main tooling substitution: prohibited
+\`\`\`
+
+The governed runtime still uses the frozen R3 component release set. The neutral harness is execution-support tooling with a separately pinned immutable source identity. Later repository changes may not be substituted into this exact experiment unless a new exact experiment/release coordinate is deliberately established.
