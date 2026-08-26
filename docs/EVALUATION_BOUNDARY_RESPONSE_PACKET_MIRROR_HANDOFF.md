@@ -105,10 +105,10 @@ runtime/source release identity evidence
 ## Current state
 
 ```text
-neutral runner source: IMPLEMENTED ON ACTIVE CHANGE BRANCH
-neutral packet builder source: IMPLEMENTED ON ACTIVE CHANGE BRANCH
-neutral reproduction/access docs: IMPLEMENTED ON ACTIVE CHANGE BRANCH
-neutral tests: IMPLEMENTED ON ACTIVE CHANGE BRANCH
+neutral runner source: COMPLETE_VALIDATED_MERGED
+neutral packet builder source: COMPLETE_VALIDATED_MERGED
+neutral reproduction/access docs: COMPLETE_VALIDATED_MERGED
+neutral tests: COMPLETE_VALIDATED_MERGED
 R3 aggregate release: NOT RELEASED
 required R3 tags observed in latest consolidation: 0/4
 exact R3 source-validation report: NOT PRESENT
@@ -119,13 +119,29 @@ runtime/custody/replay/reconstruction packet: NOT PRESENT
 
 ## Next executable boundary
 
-1. validate and merge the neutral tooling change;
-2. keep the run blocked until TVC R3 publication/verification produces the exact aggregate receipt;
-3. receive the evaluator's manifest through ordinary SDK ingress;
-4. execute the neutral R3 harness against that supplied manifest and verified receipt;
-5. retain exact-run evidence and build the neutral response packet;
-6. propagate release/evidence identities only after immutable evidence exists.
+1. keep the run blocked until TVC R3 publication/verification produces the exact aggregate receipt;
+2. receive the evaluator's manifest through ordinary SDK ingress;
+3. execute the neutral R3 harness against that supplied manifest and verified receipt;
+4. retain exact-run evidence and build the neutral response packet;
+5. propagate release/evidence identities only after immutable evidence exists.
 
 ## Completion
 
 This goal is complete only when the neutral tooling is merged and validated, the R3 release set is verified, the actual evaluator-supplied manifest has traversed the canonical declared route, exact custody/reconstruction evidence exists, independent verification/tamper results are retained, and the packet is reproducible without evaluator-specific repository augmentation.
+
+
+## 2026-08-26 neutralization validation and merge evidence
+
+The active neutral execution/packet surface is now validated and merged:
+
+\`\`\`text
+pull request: #88
+validated head: 86210c7c8d308fc99aea8b468197b4d7d8874aaf
+Evaluator Manifest Source Validation run: 33024139371 SUCCESS
+job: 98361377716 SUCCESS
+merge commit: 1bda547a4e85749190beab4f8a6d51085fb31034
+\`\`\`
+
+The validation exercised generic manifest ingress, the neutral response-packet builder, the neutral R3 run harness, module compilation, and exact-commit artifact-manifest generation. It was explicitly non-authorizing and did not publish releases or execute the governed R3 experiment.
+
+Current next boundary is therefore no longer source neutralization. It is the independently owned TVC R3 aggregate-release gate, followed by execution of the actual externally supplied manifest after a verified aggregate receipt exists.
