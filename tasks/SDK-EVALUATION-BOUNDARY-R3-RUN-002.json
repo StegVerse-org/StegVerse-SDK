@@ -83,5 +83,12 @@
     "merge_commit": "1bda547a4e85749190beab4f8a6d51085fb31034",
     "release_authority": false,
     "runtime_authority": false
+  },
+  "frozen_sdk_manifest_route_source_proof": {
+    "path": "evidence/evaluation-boundary/R3_FROZEN_MANIFEST_ROUTE_SOURCE_PROOF_2026-08-26.json",
+    "evidence_commit": "1569832ac4fd44c2954a6cbbe4ef3d9a59929cd6",
+    "conclusion": "FROZEN_R3_SDK_CONTAINS_REQUIRED_MANIFEST_DECLARED_ROUTE_AND_STATE_BINDING_RUNTIME_SEMANTICS",
+    "release_coordinate_change_required": false,
+    "runtime_execution_proof": false
   }
 }
