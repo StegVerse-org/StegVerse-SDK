@@ -28,7 +28,14 @@
     "manifest_source": "EXTERNAL_EVALUATOR_SUPPLIED_AT_RUN_TIME",
     "manifest_retention": "EXACT_SUBMITTED_AND_NORMALIZED_BYTES_WITH_RUN_EVIDENCE",
     "must_begin_at_sdk_ingress": true,
-    "direct_core_lite_or_stegcore_or_steggate_submission_allowed": false
+    "direct_core_lite_or_stegcore_or_steggate_submission_allowed": false,
+    "tooling_source_commit": "1bda547a4e85749190beab4f8a6d51085fb31034",
+    "runner_blob_sha": "d863d36cfd2aabb4740d18d2e931c5460af7b766",
+    "packet_builder_blob_sha": "6e80ca8819ffcb1ee7acf2864d0a1ade609394e2",
+    "tooling_source_moving_main_allowed": false,
+    "tooling_post_merge_validation_head": "5ea6388192ee3bb0f22c00714699be27667e56a7",
+    "tooling_post_merge_validation_run": 33024316801,
+    "tooling_post_merge_validation_job": 98361953490
   },
   "required_outputs": [
     "verified R3 aggregate release receipt",
@@ -61,7 +68,8 @@
     "Do not manufacture runtime evidence from fixtures.",
     "Do not execute before the verified R3 aggregate receipt exists.",
     "Do not substitute moving main for frozen release coordinates.",
-    "Do not treat source validation, merge, assignment, release readiness, or packet scaffolding as governed runtime completion."
+    "Do not treat source validation, merge, assignment, release readiness, or packet scaffolding as governed runtime completion.",
+    "Execute the neutral runner/packet builder from the exact pinned tooling source commit/blob identities; do not substitute later moving main."
   ],
   "authority_effect": false,
   "activation_effect": false,
