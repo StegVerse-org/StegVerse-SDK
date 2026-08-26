@@ -145,3 +145,22 @@ merge commit: 1bda547a4e85749190beab4f8a6d51085fb31034
 The validation exercised generic manifest ingress, the neutral response-packet builder, the neutral R3 run harness, module compilation, and exact-commit artifact-manifest generation. It was explicitly non-authorizing and did not publish releases or execute the governed R3 experiment.
 
 Current next boundary is therefore no longer source neutralization. It is the independently owned TVC R3 aggregate-release gate, followed by execution of the actual externally supplied manifest after a verified aggregate receipt exists.
+
+
+## 2026-08-26 post-merge current-main validation
+
+After the neutral source was merged and the canonical task advanced to its release/runtime gate, the active source-validation workflow ran again on current \`main\`:
+
+\`\`\`text
+head: 5ea6388192ee3bb0f22c00714699be27667e56a7
+workflow: Evaluator Manifest Source Validation (Non-Authorizing)
+run: 33024316801
+job: 98361953490
+result: SUCCESS
+generic manifest ingress + neutral response tooling: PASS
+module compilation: PASS
+exact-commit artifact manifest: PASS
+release/runtime authority: NONE
+\`\`\`
+
+This is post-merge source validation. It does not alter the still-open TVC aggregate-release, governed-runtime, Master Records custody, replay/reconstruction, or external-evidence gates.
