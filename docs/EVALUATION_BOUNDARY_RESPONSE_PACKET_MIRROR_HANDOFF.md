@@ -182,3 +182,39 @@ moving-main tooling substitution: prohibited
 \`\`\`
 
 The governed runtime still uses the frozen R3 component release set. The neutral harness is execution-support tooling with a separately pinned immutable source identity. Later repository changes may not be substituted into this exact experiment unless a new exact experiment/release coordinate is deliberately established.
+
+
+## Frozen R3 manifest-route source proof
+
+A direct exact-ref source inspection verifies that the frozen SDK 1.1.0 candidate itself already contains the manifest-declared route and governance-state binding semantics required by the current experiment contract.
+
+Durable source proof:
+
+\`evidence/evaluation-boundary/R3_FROZEN_MANIFEST_ROUTE_SOURCE_PROOF_2026-08-26.json\`
+commit: \`1569832ac4fd44c2954a6cbbe4ef3d9a59929cd6\`
+
+Critical frozen/current blob identity:
+
+\`\`\`text
+route_resolution.py
+  frozen/current blob: c10893705a6b8b374abbfb9ec77d1a6946d4b759
+
+governance_ingress_runtime.py
+  frozen/current blob: 62c5ae4799ae018f6b100766215c3c68078c5b2e
+
+governance_ingress_cli.py
+  frozen/current blob: ca16093282fcf87606bc06467ba79c2b7144da00
+
+test_route_resolution.py
+  frozen/current blob: e6976c1499a7db39870301be86ec4341157bbe44
+
+test_governance_ingress_runtime.py
+  frozen/current blob: 24c91261fc43cd5d110828fc794cba906f846736
+
+test_cli_preformatted_manifest.py
+  frozen/current blob: 4625f9a2d5171be5578051c5683a44468075a493
+\`\`\`
+
+The frozen sovereign runtime separately imports and applies \`validate_runtime_provenance\`, recomputes the governance-state binding, rejects mismatches, and records no route substitution. Its blob differs from current main because current main has a later optional declared-execution-context surface; the neutral R3 harness does not use that later parameter.
+
+Therefore no R3 SDK release-coordinate change is required merely to obtain the manifest-declared route/state-binding behavior. The exact R3 release gate remains valid. This is source proof only, not release or governed-runtime execution proof.
