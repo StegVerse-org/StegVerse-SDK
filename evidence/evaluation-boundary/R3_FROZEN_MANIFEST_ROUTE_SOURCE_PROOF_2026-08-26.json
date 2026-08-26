@@ -1,0 +1,79 @@
+{
+  "schema": "stegverse.evaluation-boundary-r3-frozen-runtime-source-proof.v1",
+  "observed_date": "2026-08-26",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "frozen_sdk": {
+    "version": "1.1.0",
+    "commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
+    "tree": "d9ddda3dbe942324c921051d89ec19eec3970b16"
+  },
+  "required_manifest_route_semantics": {
+    "manifest_declares_route": true,
+    "published_route_resolution": true,
+    "unknown_or_conflicting_route_rejected": true,
+    "route_substitution_permitted": false,
+    "governance_state_binding": true,
+    "sovereign_runtime_reresolves_route": true,
+    "sovereign_runtime_verifies_state_binding": true
+  },
+  "exact_source_blobs": [
+    {
+      "path": "stegverse/route_resolution.py",
+      "blob_sha": "c10893705a6b8b374abbfb9ec77d1a6946d4b759",
+      "same_as_current_main": true
+    },
+    {
+      "path": "stegverse/governance_ingress_runtime.py",
+      "blob_sha": "62c5ae4799ae018f6b100766215c3c68078c5b2e",
+      "same_as_current_main": true
+    },
+    {
+      "path": "stegverse/governance_ingress_cli.py",
+      "blob_sha": "ca16093282fcf87606bc06467ba79c2b7144da00",
+      "same_as_current_main": true
+    },
+    {
+      "path": "tests/test_route_resolution.py",
+      "blob_sha": "e6976c1499a7db39870301be86ec4341157bbe44",
+      "same_as_current_main": true
+    },
+    {
+      "path": "tests/test_governance_ingress_runtime.py",
+      "blob_sha": "24c91261fc43cd5d110828fc794cba906f846736",
+      "same_as_current_main": true
+    },
+    {
+      "path": "tests/test_cli_preformatted_manifest.py",
+      "blob_sha": "4625f9a2d5171be5578051c5683a44468075a493",
+      "same_as_current_main": true
+    },
+    {
+      "path": "stegverse/sovereign_validation_runtime.py",
+      "blob_sha": "130d4813f9f0b5973d1c9ac23ffd029af5fec7e6",
+      "same_as_current_main": false
+    }
+  ],
+  "sovereign_runtime_source_observation": {
+    "imports_validate_runtime_provenance": true,
+    "resolves_declared_route_before_execution": true,
+    "rejects_unbound_route": true,
+    "recomputes_governance_state_hash": true,
+    "rejects_state_binding_hash_mismatch": true,
+    "records_route_substitution_occurred_false": true,
+    "current_main_difference_observed": true,
+    "current_main_adds_declared_execution_context_surface": true,
+    "neutral_r3_harness_uses_declared_execution_context": false
+  },
+  "neutral_support_tooling": {
+    "source_commit": "1bda547a4e85749190beab4f8a6d51085fb31034",
+    "runner_blob_sha": "d863d36cfd2aabb4740d18d2e931c5460af7b766",
+    "packet_builder_blob_sha": "6e80ca8819ffcb1ee7acf2864d0a1ade609394e2",
+    "moving_main_substitution_allowed": false
+  },
+  "conclusion": "FROZEN_R3_SDK_CONTAINS_REQUIRED_MANIFEST_DECLARED_ROUTE_AND_STATE_BINDING_RUNTIME_SEMANTICS",
+  "release_authority": false,
+  "runtime_execution_proof": false,
+  "governed_run_proof": false,
+  "credential_consumed": false,
+  "credential_authority": "TV/TVC"
+}
