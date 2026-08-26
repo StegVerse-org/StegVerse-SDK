@@ -162,6 +162,29 @@ StegVerse-Labs/StegCore/PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
 master-records/orchestration/PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
 ```
 
+## 2026-08-26 live reconciliation
+
+Current TVC release handoff and direct live repository checks supersede the older R3 source-state wording above where they differ.
+
+```text
+TVC package-aware R3 guard: IMPLEMENTED_VALIDATED_MERGED
+TVC PR #98 merge: c7f090f06b3de7a23b373d02017660cf2833150a
+R3 Distribution Source Validation hosted run: 32738335920 SUCCESS
+Aggregate Release Hosted Boundary Check: 32738336392 SUCCESS
+changed-surface regression: 41 passed
+exact retained sole-host R3 source-validation report: NOT PRESENT on current TVC main
+R3 aggregate receipt: NOT PRESENT on current TVC main
+R3 latest final report: NOT PRESENT on current TVC main
+SDK v1.1.0 Git tag: NOT PRESENT by direct GitHub ref lookup
+SDK v1.1.0 GitHub Release: NOT PRESENT by direct GitHub release lookup
+PyPI stegverse-sdk 1.1.0: NOT OBSERVED; public release history still tops out at historical 1.0.13
+completion_state: NOT_RELEASED
+```
+
+The hosted PR/source validation is non-authorizing and is not the retained sole-host source-validation receipt required by the release guard. Publication remains TV/TVC-governed. The current TVC aggregate handoff also requires wheel+sdist SHA-256 plus PyPI Trusted Publisher provenance for terminal SDK package evidence.
+
+The separate TV/TVC credential-model consistency incident at `StegVerse-Labs/TVC/docs/CREDENTIAL_MODEL_CONSISTENCY_MIRROR_HANDOFF.md` freezes new credential-semantic expansion but does not itself erase or complete this existing bounded R3 release lane. Any change to release credential semantics must first pass that consistency gate.
+
 ## Current status
 
 ```text
