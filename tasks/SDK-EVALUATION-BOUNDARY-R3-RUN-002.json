@@ -6,7 +6,7 @@
   "repository": "StegVerse-org/StegVerse-SDK",
   "branch": "main",
   "canonical_handoff": "docs/EVALUATION_BOUNDARY_RESPONSE_PACKET_MIRROR_HANDOFF.md",
-  "state": "SOURCE_NEUTRALIZATION_IN_PROGRESS_RELEASE_AND_RUNTIME_PENDING",
+  "state": "SOURCE_NEUTRALIZATION_COMPLETE_VALIDATED_MERGED_RELEASE_AND_RUNTIME_PENDING",
   "owner": "StegVerse SDK generalized evaluation runtime",
   "authority": {
     "credential_authority": "TV/TVC",
@@ -50,9 +50,12 @@
     "r3_source_validation_report_observed": false,
     "r3_aggregate_receipt_observed": false,
     "governed_run_executed": false,
-    "user_action_required_now": false
+    "user_action_required_now": false,
+    "source_neutralization_complete": true,
+    "source_validation_pass": true,
+    "source_merged": true
   },
-  "next_executable_action": "Validate and merge the neutral tooling change; then wait on verified R3 aggregate release receipt before executing an evaluator-supplied manifest through ordinary SDK ingress.",
+  "next_executable_action": "Wait for TVC task TVC-EVALUATION-BOUNDARY-AGGREGATE-RELEASE-029 to produce and verify the exact R3 aggregate receipt; then execute the evaluator-supplied manifest through ordinary SDK ingress with scripts/run_evaluation_boundary_r3.py and retain the complete evidence packet.",
   "collision_boundaries": [
     "Do not create a person-specific evaluator, route, task, packet schema, evidence namespace, or runtime.",
     "Do not manufacture runtime evidence from fixtures.",
@@ -62,5 +65,15 @@
   ],
   "authority_effect": false,
   "activation_effect": false,
-  "archive_dependency": true
+  "archive_dependency": true,
+  "source_validation": {
+    "pull_request": 88,
+    "validated_head": "86210c7c8d308fc99aea8b468197b4d7d8874aaf",
+    "workflow_run": 33024139371,
+    "workflow_job": 98361377716,
+    "result": "SUCCESS",
+    "merge_commit": "1bda547a4e85749190beab4f8a6d51085fb31034",
+    "release_authority": false,
+    "runtime_authority": false
+  }
 }
