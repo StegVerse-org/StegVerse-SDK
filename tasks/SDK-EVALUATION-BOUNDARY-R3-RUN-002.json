@@ -62,7 +62,7 @@
     "source_validation_pass": true,
     "source_merged": true
   },
-  "next_executable_action": "Wait for TVC task TVC-EVALUATION-BOUNDARY-AGGREGATE-RELEASE-029 to produce and verify the exact R3 aggregate receipt; then execute the evaluator-supplied manifest through ordinary SDK ingress with scripts/run_evaluation_boundary_r3.py and retain the complete evidence packet.",
+  "next_executable_action": "Remain blocked on the upstream TVC resident authority lane until the verified R3 aggregate receipt exists. No additional SDK source work is required for the current manifest-route or neutral-harness contract; after receipt availability, execute the actual evaluator-supplied manifest through the pinned neutral R3 harness and retain custody/reconstruction/verification evidence.",
   "collision_boundaries": [
     "Do not create a person-specific evaluator, route, task, packet schema, evidence namespace, or runtime.",
     "Do not manufacture runtime evidence from fixtures.",
@@ -90,5 +90,19 @@
     "conclusion": "FROZEN_R3_SDK_CONTAINS_REQUIRED_MANIFEST_DECLARED_ROUTE_AND_STATE_BINDING_RUNTIME_SEMANTICS",
     "release_coordinate_change_required": false,
     "runtime_execution_proof": false
+  },
+  "upstream_tvc_release_progression": {
+    "source_state": "COMPLETE_VALIDATED_MERGED",
+    "pull_request": 122,
+    "validated_head": "b30fa18c35fd0fe614d40c5ea2a260fc9bbfa39d",
+    "validation_run": 32808276832,
+    "validation_job": 97682545418,
+    "tests_passed": 50,
+    "merge_commit": "f4b5d83b57e12c8d83bd25a68a12d93496de2074",
+    "current_main_identity_verified": true,
+    "frozen_component_lineage_reverified": true,
+    "exact_admitted_source_validation_report": false,
+    "resident_credential_observed": false,
+    "aggregate_receipt_observed": false
   }
 }
