@@ -1,0 +1,272 @@
+{
+  "schema": "stegverse.sdk-manifold-governance-test.v1",
+  "base_manifold_hash": "M-DEMO-REVIEWABLE-1",
+  "authority_boundary_refs": [
+    "authority:human-review",
+    "policy:manifold-demo-v1"
+  ],
+  "transitions": [
+    {
+      "transition_id": "T-SENSOR-A",
+      "request": {
+        "candidate": {
+          "actor_class": "system",
+          "action": "write_record",
+          "target": "demo:sensor-a",
+          "scope": "sdk-manifold-demo",
+          "parameters": {
+            "value": 1
+          }
+        },
+        "judgment": {
+          "refusal_available": true,
+          "operator_recoverability": "available",
+          "workload_state": "supported",
+          "time_pressure": "normal",
+          "isolation_state": "supported",
+          "evidence_refs": [
+            "judgment:demo"
+          ]
+        },
+        "signal": {
+          "admitted_signal_refs": [
+            "signal:demo"
+          ],
+          "transformations": [
+            "demo:v1"
+          ],
+          "missing_inputs": [],
+          "uncertainty_state": "bounded",
+          "reference_state_hash": "state:demo",
+          "expected_reference_state_hash": "state:demo",
+          "reconstruction_available": true,
+          "transformation_provenance_complete": true
+        },
+        "execution": {
+          "actor_authority_current": true,
+          "policy_current": true,
+          "delegation_current": true,
+          "evidence_current": true,
+          "affected_entity_conditions_represented": true,
+          "recoverability_profile": "recoverable",
+          "validity_window_open": true,
+          "policy_ref": "policy:manifold-demo",
+          "delegation_ref": "delegation:demo",
+          "evidence_refs": [
+            "execution:demo"
+          ]
+        },
+        "capability": {
+          "allowed": true
+        },
+        "continuity": {
+          "required": true,
+          "previous_receipt_verified": true,
+          "previous_receipt_hash": "receipt:demo-0"
+        },
+        "approval": {
+          "required": false
+        },
+        "permission_present": false
+      }
+    },
+    {
+      "transition_id": "T-SENSOR-B",
+      "depends_on": [
+        "T-SENSOR-A"
+      ],
+      "request": {
+        "candidate": {
+          "actor_class": "system",
+          "action": "write_record",
+          "target": "demo:sensor-b",
+          "scope": "sdk-manifold-demo",
+          "parameters": {
+            "value": 2
+          }
+        },
+        "judgment": {
+          "refusal_available": true,
+          "operator_recoverability": "available",
+          "workload_state": "supported",
+          "time_pressure": "normal",
+          "isolation_state": "supported",
+          "evidence_refs": [
+            "judgment:demo"
+          ]
+        },
+        "signal": {
+          "admitted_signal_refs": [
+            "signal:demo"
+          ],
+          "transformations": [
+            "demo:v1"
+          ],
+          "missing_inputs": [],
+          "uncertainty_state": "bounded",
+          "reference_state_hash": "state:demo",
+          "expected_reference_state_hash": "state:demo",
+          "reconstruction_available": true,
+          "transformation_provenance_complete": true
+        },
+        "execution": {
+          "actor_authority_current": true,
+          "policy_current": true,
+          "delegation_current": true,
+          "evidence_current": true,
+          "affected_entity_conditions_represented": true,
+          "recoverability_profile": "recoverable",
+          "validity_window_open": true,
+          "policy_ref": "policy:manifold-demo",
+          "delegation_ref": "delegation:demo",
+          "evidence_refs": [
+            "execution:demo"
+          ]
+        },
+        "capability": {
+          "allowed": true
+        },
+        "continuity": {
+          "required": true,
+          "previous_receipt_verified": true,
+          "previous_receipt_hash": "receipt:demo-0"
+        },
+        "approval": {
+          "required": false
+        },
+        "permission_present": false
+      }
+    },
+    {
+      "transition_id": "T-PROTECTED-RELEASE",
+      "request": {
+        "candidate": {
+          "actor_class": "system",
+          "action": "write_record",
+          "target": "demo:protected-release",
+          "scope": "sdk-manifold-demo",
+          "parameters": {
+            "value": 3
+          }
+        },
+        "judgment": {
+          "refusal_available": true,
+          "operator_recoverability": "available",
+          "workload_state": "supported",
+          "time_pressure": "normal",
+          "isolation_state": "supported",
+          "evidence_refs": [
+            "judgment:demo"
+          ]
+        },
+        "signal": {
+          "admitted_signal_refs": [
+            "signal:demo"
+          ],
+          "transformations": [
+            "demo:v1"
+          ],
+          "missing_inputs": [],
+          "uncertainty_state": "bounded",
+          "reference_state_hash": "state:demo",
+          "expected_reference_state_hash": "state:demo",
+          "reconstruction_available": true,
+          "transformation_provenance_complete": true
+        },
+        "execution": {
+          "actor_authority_current": true,
+          "policy_current": true,
+          "delegation_current": true,
+          "evidence_current": true,
+          "affected_entity_conditions_represented": true,
+          "recoverability_profile": "recoverable",
+          "validity_window_open": true,
+          "policy_ref": "policy:manifold-demo",
+          "delegation_ref": "delegation:demo",
+          "evidence_refs": [
+            "execution:demo"
+          ]
+        },
+        "capability": {
+          "allowed": true
+        },
+        "continuity": {
+          "required": true,
+          "previous_receipt_verified": true,
+          "previous_receipt_hash": "receipt:demo-0"
+        },
+        "approval": {
+          "required": true
+        },
+        "permission_present": false
+      }
+    },
+    {
+      "transition_id": "T-AFTER-REVIEW",
+      "depends_on": [
+        "T-PROTECTED-RELEASE"
+      ],
+      "request": {
+        "candidate": {
+          "actor_class": "system",
+          "action": "write_record",
+          "target": "demo:after-review",
+          "scope": "sdk-manifold-demo",
+          "parameters": {
+            "value": 4
+          }
+        },
+        "judgment": {
+          "refusal_available": true,
+          "operator_recoverability": "available",
+          "workload_state": "supported",
+          "time_pressure": "normal",
+          "isolation_state": "supported",
+          "evidence_refs": [
+            "judgment:demo"
+          ]
+        },
+        "signal": {
+          "admitted_signal_refs": [
+            "signal:demo"
+          ],
+          "transformations": [
+            "demo:v1"
+          ],
+          "missing_inputs": [],
+          "uncertainty_state": "bounded",
+          "reference_state_hash": "state:demo",
+          "expected_reference_state_hash": "state:demo",
+          "reconstruction_available": true,
+          "transformation_provenance_complete": true
+        },
+        "execution": {
+          "actor_authority_current": true,
+          "policy_current": true,
+          "delegation_current": true,
+          "evidence_current": true,
+          "affected_entity_conditions_represented": true,
+          "recoverability_profile": "recoverable",
+          "validity_window_open": true,
+          "policy_ref": "policy:manifold-demo",
+          "delegation_ref": "delegation:demo",
+          "evidence_refs": [
+            "execution:demo"
+          ]
+        },
+        "capability": {
+          "allowed": true
+        },
+        "continuity": {
+          "required": true,
+          "previous_receipt_verified": true,
+          "previous_receipt_hash": "receipt:demo-0"
+        },
+        "approval": {
+          "required": false
+        },
+        "permission_present": false
+      }
+    }
+  ]
+}
