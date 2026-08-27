@@ -102,3 +102,19 @@ Required deterministic checks:
 ## Completion rule
 
 This goal is complete only after source implementation, focused tests, hosted validation, merge to SDK `main`, and canonical handoff reconciliation. A demo-specific duplicate evaluator is a failure condition.
+
+## Installed source state
+
+```text
+stegverse/manifold_governance.py: IMPLEMENTED
+stegverse/demo_data/manifold_governance_reviewable.json: IMPLEMENTED
+stegverse/sdk_surfaces.py registration: IMPLEMENTED
+stegverse/cli.py demo/run bindings: IMPLEMENTED
+tests/test_manifold_governance_sdk.py: IMPLEMENTED
+.github/workflows/manifold-governance-sdk.yml: IMPLEMENTED
+pyproject.toml manifold-test exact StegCore pin: IMPLEMENTED
+source_state: IMPLEMENTED_VALIDATION_PENDING
+release_state: NOT_RELEASED
+```
+
+The existing `governed-test` frozen dependency set is intentionally unchanged. A separate `manifold-test` optional extra pins the exact StegCore production merge `99397392462b8e39a510ec6d9e543551270bd402` so this new evaluator capability does not rewrite older frozen evaluation coordinates.
