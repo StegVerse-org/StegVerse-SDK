@@ -113,7 +113,7 @@ stegverse/cli.py demo/run bindings: IMPLEMENTED
 tests/test_manifold_governance_sdk.py: IMPLEMENTED
 .github/workflows/manifold-governance-sdk.yml: IMPLEMENTED
 pyproject.toml manifold-test exact StegCore pin: IMPLEMENTED
-source_state: IMPLEMENTED_MERGED_VALIDATION_PENDING
+source_state: IMPLEMENTED_MERGED_SDK_BOUNDARY_VALIDATION_PENDING
 release_state: NOT_RELEASED
 ```
 
@@ -125,5 +125,22 @@ The existing `governed-test` frozen dependency set is intentionally unchanged. A
 SDK PR: #89
 SDK merge: 9bfb318b409624868160b32a831d327f9ef3ecf9
 source merge: COMPLETE
-hosted production-manifold validation: PENDING
+production StegCore validation: PASS / run 33118864638
+SDK delegation-boundary validation: PENDING
 ```
+
+## Production validation binding — current
+
+The production capability itself is no longer validation-pending.
+
+```text
+StegCore production implementation PR: #157
+StegCore production implementation merge: 99397392462b8e39a510ec6d9e543551270bd402
+StegCore validation reconciliation PR: #158
+StegCore hosted validation run: 33118864638
+StegCore hosted validation result: SUCCESS
+```
+
+The SDK validation lane deliberately does not copy or reimplement private StegCore source. Its hosted test proves the SDK is a thin client of the canonical runtime contract and that absence of StegCore fails rather than selecting an SDK fallback. The real-runtime behavior is proven by the owning StegCore validation above.
+
+An end-to-end evaluator execution of the SDK command requires an installed canonical StegCore build containing `govern_manifold_action`. The repository already records the exact internal test coordinate through the `manifold-test` optional dependency. Distribution/release of that StegCore build remains governed by StegCore/TV/TVC release authority and is not fabricated by this SDK lane.
