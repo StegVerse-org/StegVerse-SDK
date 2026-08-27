@@ -113,7 +113,7 @@ stegverse/cli.py demo/run bindings: IMPLEMENTED
 tests/test_manifold_governance_sdk.py: IMPLEMENTED
 .github/workflows/manifold-governance-sdk.yml: IMPLEMENTED
 pyproject.toml manifold-test exact StegCore pin: IMPLEMENTED
-source_state: IMPLEMENTED_MERGED_SDK_BOUNDARY_VALIDATION_PENDING
+source_state: IMPLEMENTED_VALIDATED_MERGED
 release_state: NOT_RELEASED
 ```
 
@@ -126,7 +126,7 @@ SDK PR: #89
 SDK merge: 9bfb318b409624868160b32a831d327f9ef3ecf9
 source merge: COMPLETE
 production StegCore validation: PASS / run 33118864638
-SDK delegation-boundary validation: PENDING
+SDK delegation-boundary validation: PASS / run 33119113357
 ```
 
 ## Production validation binding — current
@@ -144,3 +144,23 @@ StegCore hosted validation result: SUCCESS
 The SDK validation lane deliberately does not copy or reimplement private StegCore source. Its hosted test proves the SDK is a thin client of the canonical runtime contract and that absence of StegCore fails rather than selecting an SDK fallback. The real-runtime behavior is proven by the owning StegCore validation above.
 
 An end-to-end evaluator execution of the SDK command requires an installed canonical StegCore build containing `govern_manifold_action`. The repository already records the exact internal test coordinate through the `manifold-test` optional dependency. Distribution/release of that StegCore build remains governed by StegCore/TV/TVC release authority and is not fabricated by this SDK lane.
+
+## SDK validation and merge evidence
+
+```text
+SDK source integration PR: #89
+SDK source integration merge: 9bfb318b409624868160b32a831d327f9ef3ecf9
+SDK validation reconciliation PR: #90
+SDK validated head: 31d9c84f710f1497b90b277cbf20dacbd85ca4c3
+SDK validation workflow run: 33119113357
+SDK validation result: SUCCESS
+SDK validation merge: 1825b37a08956ce23aee48b352271a0bc2e31c5a
+production StegCore runtime merge: 99397392462b8e39a510ec6d9e543551270bd402
+production StegCore validation run: 33118864638 SUCCESS
+source + delegation boundary: COMPLETE
+demo/test source capability: COMPLETE
+end-to-end evaluator execution predicate: installed canonical StegCore build containing govern_manifold_action
+release/distribution authority: StegCore / TV/TVC
+```
+
+The SDK capability is complete as a production-governance client. It intentionally does not embed a second manifold evaluator. External distribution of the newly extended StegCore build is a separately governed release concern and must not be conflated with SDK source completeness.
