@@ -221,6 +221,14 @@ def _verify_admittedcode(receipt: Mapping[str, Any]) -> dict[str, Any]:
 
 def _demo_surface(args: argparse.Namespace) -> int:
     surface = canonical_surface_name(args.surface)
+    if surface == "manifold-governance":
+        from .manifold_governance import evaluate_manifold_governance
+        result = evaluate_manifold_governance(
+            _load_demo_json("manifold_governance_reviewable.json")
+        )
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
     if surface != "admittedcode":
         print(f"No bundled demo is registered for: {args.surface}")
         print("Run 'stegverse surfaces' and 'stegverse help-surface <name>' for available local operations.")
@@ -243,10 +251,14 @@ def _demo_surface(args: argparse.Namespace) -> int:
     }, indent=2, sort_keys=True))
     return 0
 
-
 def _run_surface(args: argparse.Namespace) -> int:
     surface = canonical_surface_name(args.surface)
-    if surface == "admissibility":
+    if surface == "manifold-governance":
+        if not args.input:
+            raise ValueError("manifold-governance requires --input <packet.json>")
+        from .manifold_governance import evaluate_manifold_governance
+        result = evaluate_manifold_governance(_load_json(args.input, "manifold governance packet"))
+    elif surface == "admissibility":
         if not args.input:
             raise ValueError("admissibility requires --input <packet.json>")
         from .admissibility import evaluate_admissibility_packet
@@ -336,7 +348,7 @@ def main(argv: list[str] | None = None) -> int:
             parser.print_help()
             print("\nStart with: stegverse governance")
             print("Discover surfaces: stegverse surfaces")
-            print("Bundled demo: stegverse demo admittedcode")
+            print("Bundled demos: stegverse demo admittedcode | stegverse demo manifold-governance")
             return 0
         if args.command == "governance":
             return _governance_guide(args)
@@ -347,7 +359,7 @@ def main(argv: list[str] | None = None) -> int:
             print("\nHelp: stegverse help-surface <name>")
             print("Run:  stegverse run <name> [options]")
             print("Governance: stegverse governance")
-            print("Demo: stegverse demo admittedcode")
+            print("Demo: stegverse demo admittedcode | stegverse demo manifold-governance")
             return 0
         if args.command == "capabilities":
             print(json.dumps({"surfaces": list_sdk_surfaces(), "authority_effect": "NONE"}, indent=2, sort_keys=True))

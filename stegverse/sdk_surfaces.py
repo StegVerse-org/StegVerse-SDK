@@ -90,6 +90,20 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
             "inspection/examples/mcp-external-stdio-descriptor.example.json",
         ],
     },
+    "manifold-governance": {
+        "summary": "Exercise canonical StegCore production governance over a concurrent state-transition manifold.",
+        "mode": "canonical-production-governance-test",
+        "input": "stegverse.sdk-manifold-governance-test.v1 JSON packet",
+        "command": "stegverse run manifold-governance --input <packet.json>",
+        "demo_command": "stegverse demo manifold-governance",
+        "module": "stegverse.manifold_governance.evaluate_manifold_governance",
+        "documentation": "docs/PRODUCTION_MANIFOLD_GOVERNANCE_DEMO_MIRROR_HANDOFF.md",
+        "authority_effect": "NONE_UNTIL_SEPARATE_GOVERNED_COMMIT",
+        "result_semantics": "The SDK maps the packet into the canonical StegCore govern_manifold_action runtime; independent ALLOW branches may continue toward the governed commit boundary while REVIEW branches remain reviewable and dependents remain held.",
+        "repository_examples": [
+            "stegverse/demo_data/manifold_governance_reviewable.json",
+        ],
+    },
     "universal-entry": {
         "summary": "Route a universal-entry envelope against an explicitly supplied capability registry.",
         "mode": "local",
@@ -130,6 +144,8 @@ ALIASES = {
     "provider-output-proof": "output-boundary-proof",
     "mcp": "mcp-production-artifact-test",
     "mcp-test": "mcp-production-artifact-test",
+    "manifold": "manifold-governance",
+    "governed-manifold": "manifold-governance",
 }
 
 
