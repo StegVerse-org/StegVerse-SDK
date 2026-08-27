@@ -218,3 +218,34 @@ test_cli_preformatted_manifest.py
 The frozen sovereign runtime separately imports and applies \`validate_runtime_provenance\`, recomputes the governance-state binding, rejects mismatches, and records no route substitution. Its blob differs from current main because current main has a later optional declared-execution-context surface; the neutral R3 harness does not use that later parameter.
 
 Therefore no R3 SDK release-coordinate change is required merely to obtain the manifest-declared route/state-binding behavior. The exact R3 release gate remains valid. This is source proof only, not release or governed-runtime execution proof.
+
+
+## 2026-08-26 upstream TVC resident progression advancement
+
+The upstream TVC release lane has advanced materially at source level without changing the frozen R3 release coordinate.
+
+\`\`\`text
+TVC progression source: COMPLETE_VALIDATED_MERGED
+TVC PR: #122
+validated head: b30fa18c35fd0fe614d40c5ea2a260fc9bbfa39d
+validation run/job: 32808276832 / 97682545418 SUCCESS
+focused suite: 50 passed
+merge: f4b5d83b57e12c8d83bd25a68a12d93496de2074
+TVC progression/source identity evidence: retained
+frozen component lineage: re-verified
+\`\`\`
+
+The upstream progression wrapper can verify/install the resident service, observe credential-file presence without reading it, require explicit TV/TVC authorization inputs, and delegate to the existing guarded release path.
+
+The SDK remains correctly blocked because the following upstream evidence is still absent:
+
+\`\`\`text
+live resident credential: NOT OBSERVED
+live TV/TVC authorization inputs: NOT SUPPLIED
+exact admitted resident source-validation report: NOT PRESENT
+four R3 releases: NOT VERIFIED
+SDK PyPI 1.1.0 provenance: NOT VERIFIED
+R3 aggregate receipt: NOT PRESENT
+\`\`\`
+
+No SDK action should bypass that boundary. Once the verified aggregate receipt exists, this SDK lane can proceed immediately with the pinned neutral harness and actual evaluator-supplied manifest.
