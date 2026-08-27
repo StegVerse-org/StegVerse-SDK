@@ -113,7 +113,7 @@ stegverse/cli.py demo/run bindings: IMPLEMENTED
 tests/test_manifold_governance_sdk.py: IMPLEMENTED
 .github/workflows/manifold-governance-sdk.yml: IMPLEMENTED
 pyproject.toml manifold-test exact StegCore pin: IMPLEMENTED
-source_state: IMPLEMENTED_VALIDATION_PENDING
+source_state: IMPLEMENTED_PR_89_VALIDATION_PENDING
 release_state: NOT_RELEASED
 ```
 
