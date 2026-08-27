@@ -410,3 +410,32 @@ custody/reconstruction/replay packet: NOT PRESENT
 \`\`\`
 
 Source neutralization does not satisfy release, runtime, custody, independent verification, deployment, activation, or propagation gates.
+
+
+## Active Evaluation Boundary R3 release/runtime dependency — 2026-08-26
+
+Scoped continuation:
+
+\`\`\`text
+handoff: docs/EVALUATION_BOUNDARY_RESPONSE_PACKET_MIRROR_HANDOFF.md
+task: tasks/SDK-EVALUATION-BOUNDARY-R3-RUN-002.json
+tracking: #47
+frozen SDK coordinate: stegverse-sdk 1.1.0
+frozen commit: 922d6c5235229e854c36e1a194dc99ed15a31b51
+neutral harness source: COMPLETE_VALIDATED_MERGED
+governed R3 execution: NOT_EXECUTED
+\`\`\`
+
+The upstream TVC resident progression wrapper is source-complete/validated/merged (TVC PR #122, run/job 32808276832 / 97682545418 SUCCESS, 50 PASS, merge f4b5d83b57e12c8d83bd25a68a12d93496de2074), and TVC has reverified frozen component lineage plus current-main identity of the guarded release source.
+
+That source completion does not satisfy the SDK run gate. Still required before the real evaluator-supplied manifest may execute:
+
+\`\`\`text
+current bounded TV/TVC grant + resident credential
+exact admitted TVC source-validation report
+four exact immutable tag/release bindings
+stegverse-sdk 1.1.0 wheel/sdist + Trusted Publisher provenance
+verified TVC aggregate release receipt
+\`\`\`
+
+Once the aggregate receipt exists, the SDK lane proceeds with the already-pinned neutral harness, exact evaluator manifest retention, canonical route execution, Master Records custody, reconstruction, independent verification, and tamper-negative evidence. Moving current main or substituting another runtime does not satisfy that proof.
