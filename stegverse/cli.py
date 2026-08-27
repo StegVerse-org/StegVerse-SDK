@@ -253,7 +253,12 @@ def _demo_surface(args: argparse.Namespace) -> int:
 
 def _run_surface(args: argparse.Namespace) -> int:
     surface = canonical_surface_name(args.surface)
-    if surface == "admissibility":
+    if surface == "manifold-governance":
+        if not args.input:
+            raise ValueError("manifold-governance requires --input <packet.json>")
+        from .manifold_governance import evaluate_manifold_governance
+        result = evaluate_manifold_governance(_load_json(args.input, "manifold governance packet"))
+    elif surface == "admissibility":
         if not args.input:
             raise ValueError("admissibility requires --input <packet.json>")
         from .admissibility import evaluate_admissibility_packet
