@@ -49,13 +49,12 @@ jobs:
         run: |
           set -eu
           python -m pip install --upgrade pip
-          python -m pip install pytest
           python -m pip install .
 
       - name: Prove SDK delegates and has no fallback evaluator
         run: |
           set -eu
-          python -m pytest -q tests/test_manifold_governance_sdk_boundary.py
+          python -m unittest tests.test_manifold_governance_sdk_boundary -v
           python -m py_compile stegverse/manifold_governance.py stegverse/sdk_surfaces.py stegverse/cli.py
           python - <<'PY'
           from pathlib import Path
