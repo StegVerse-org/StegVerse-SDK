@@ -1,6 +1,6 @@
 # Evaluation-Boundary Response Packet Mirror Handoff
 
-Updated: 2026-08-26
+Updated: 2026-08-27
 Repository: `StegVerse-org/StegVerse-SDK`
 Branch: `main`
 Goal ID: `SDK-EVALUATION-BOUNDARY-R3-RUN-002`
@@ -249,3 +249,35 @@ R3 aggregate receipt: NOT PRESENT
 \`\`\`
 
 No SDK action should bypass that boundary. Once the verified aggregate receipt exists, this SDK lane can proceed immediately with the pinned neutral harness and actual evaluator-supplied manifest.
+
+
+## 2026-08-27 upstream release preflight reconciliation
+
+Upstream TVC nonauthorizing preflight is now durably merged:
+
+```text
+TVC preflight merge: 9bdef2324b9309224d94bd509ca192435967360c
+TVC preflight path: reports/aggregate_release/EVALUATION-BOUNDARY-2026-08-19-R3/preflight-2026-08-27.json
+required R3 tag refs: 0/4
+exact admitted R3 source-validation report: ABSENT
+R3 aggregate receipt: ABSENT
+R3 latest aggregate report: ABSENT
+resident TV/TVC host/service/credential observation: NOT PROVIDED BY PUBLIC PREFLIGHT
+decision: BLOCKED_WAITING_TVC_SOLE_HOST_CONTINUATION
+```
+
+Current SDK main has also advanced for unrelated manifold-governance work, but the pinned neutral R3 tooling identities remain unchanged:
+
+```text
+scripts/run_evaluation_boundary_r3.py
+  d863d36cfd2aabb4740d18d2e931c5460af7b766
+scripts/build_evaluation_boundary_response_packet.py
+  6e80ca8819ffcb1ee7acf2864d0a1ade609394e2
+scripts/build_evaluation_boundary_owner_packet.py
+  ce7a3d25775b5adffcbb15fa26e49c5542e18050
+```
+
+Durable SDK-side reconciliation evidence:
+`evidence/evaluation-boundary/R3_UPSTREAM_RELEASE_PREFLIGHT_2026-08-27.json`.
+
+No governed run is admissible yet. This reconciliation is source/evidence propagation only and grants no release, runtime, credential, or activation authority.
