@@ -1,167 +1,160 @@
 # Minimal Portable Governance Ecosystem Mirror Handoff
 
+Updated: 2026-08-26
+Repository: StegVerse-org/StegVerse-SDK
+Canonical issue: #65
+Role: public non-authorizing interlock/manifold compatibility contract
+
 ## Source of truth
 
-```text
-repository: StegVerse-org/StegVerse-SDK
-issue: #65
-role: public non-authorizing interlock/manifold compatibility contract
-```
-
-Live repository state, issue/PR state, workflow results, SPE/StegCore/Master Records handoffs, and committed evidence supersede prose summaries.
+Live repository state, issue/PR state, workflow results, Standing-Proof-Engine, StegCore, Master Records, TV/TVC handoffs, and committed evidence supersede chat summaries.
 
 ## Architecture
 
 The minimal portable StegVerse Governance Ecosystem is the smallest implementation capable of receiving manifested state from a conformant participant, governing a consequential transition without assuming ownership of either endpoint, producing a compatible successor record, and supporting independent replay/reconstruction of the material decision context.
-
-The portable core is:
 
 ```text
 manifest / receipt protocol
   -> interlock boundary contract
   -> SPE standing/evidence
   -> StegGate / AdmittedCode present-tense admissibility
-  -> governed successor state
+  -> bounded consequence only after required ALLOW/coherence
+  -> reciprocal return
   -> Master Records manifold-aware preservation
   -> replay / reconstruction / portable verification
 ```
 
-The SDK is the public manifestation/interlock/conformance membrane. It remains non-authorizing.
+The SDK is the public manifestation/interlock/conformance membrane and remains non-authorizing.
 
-## Participant rule
+## Participant invariant
 
-Every StegVerse module and any external framework choosing full interoperability is a participant around the governance core. Internal StegVerse modules do not receive privileged governance semantics. Shared-process or shared-network transport MAY be optimized, but transport optimization MUST NOT bypass manifestation, interlock binding, standing, admissibility, receipt production, or reconstruction requirements.
+Every StegVerse module and any external framework choosing full interoperability is a participant around the governance core. Internal StegVerse modules do not receive privileged governance semantics.
+
+Transport optimization MAY change process/network placement but MUST NOT bypass manifestation, interlock binding, standing, admissibility, receipt production, reciprocal return, or reconstruction.
 
 ## Adapter vs interlock
 
-`ADAPTER` means StegVerse can record exactly what it received but cannot infer that the submitted state was the participant's own terminal authoritative state.
+ADAPTER means StegVerse records exactly what it received but cannot infer that the submitted state was the participant's own terminal authoritative state.
 
-`INTERLOCK` means the participant has bound its last receipt/state to the manifested package before the StegVerse boundary. A compatible participant receipt may therefore become a first-class predecessor in the StegVerse receipt graph. This increases continuity/provenance standing only; it does not transfer truth, execution authority, custody, or substantive standing.
-
-The reciprocal return goal is:
-
-```text
-participant terminal receipt
-  -> participant-bound manifest
-  -> StegVerse ingress receipt
-  -> governed transition manifold
-  -> StegVerse egress receipt
-  -> participant successor receipt
-```
+INTERLOCK means the participant binds its terminal receipt/state to the manifested package before the StegVerse boundary. A compatible participant receipt may therefore become a first-class predecessor in the StegVerse receipt graph. This increases continuity/provenance standing only; it does not transfer truth, execution authority, custody, or substantive standing.
 
 ## Governance declaration
 
-Governance source is explicit. Initial modes are:
+Governance source is explicit:
 
-- `PROVIDED`: participant-only governance profiles.
-- `DEFAULT_STEGVERSE`: one or more explicitly selected StegVerse-maintained, versioned profiles appropriate to the transaction surface.
-- `COMPOSED`: participant profiles plus one or more explicitly selected StegVerse profiles.
+- PROVIDED
+- DEFAULT_STEGVERSE
+- COMPOSED
 
-No StegVerse default is inferred from omitted governance fields.
-
-## Boundary outcomes
-
-Protocol-level boundary state vocabulary is:
-
-```text
-PRESENTED
-ACCEPT
-REPAIR
-DENY
-REVIEW
-```
-
-`REPAIR` must preserve the original manifested package and point to a distinct repaired successor. The SDK contract validates this structure only; it does not decide when repair is permitted.
+No StegVerse default is inferred from omission.
 
 ## Manifold semantics
 
-Linear `previous -> next` chains are a special case. The portable contract models bounded predecessor and successor state sets plus typed relationships. Initial relationship vocabulary:
+Linear previous -> next is a special case. The contract supports bounded predecessor/successor sets and typed relationships including CAUSE, DEPENDENCY, EVIDENCE, AUTHORITY, CORROBORATION, CONFLICT, SUPERSEDES, and OBSERVED_WITHOUT_DEPENDENCY.
 
-```text
-CAUSE
-DEPENDENCY
-EVIDENCE
-AUTHORITY
-CORROBORATION
-CONFLICT
-SUPERSEDES
-OBSERVED_WITHOUT_DEPENDENCY
-```
-
-Chronology is evidence but must not silently create causality. Replay/reconstruction is scoped to `MATERIAL_CAUSAL_CLOSURE`: the bounded predecessor/evidence/governance context materially relevant to the transition under review.
+Chronology does not silently create causality. Replay/reconstruction is scoped to MATERIAL_CAUSAL_CLOSURE.
 
 ## Authority invariants
-
-This first SDK slice enforces:
 
 ```text
 sdk_authority == NONE
 participant_truth_assumed == false
 interlock_transfers_authority == false
-master_records_custody_claimed == false
-execution_authorized == false
+master_records_custody_claimed == false unless separately installed
+execution_authorized == false at SDK compatibility layers
+model_output_authority == NONE
 ```
 
-The interlock validator does not:
+## Implemented / validated / merged slices
 
-- mint standing;
-- run SPE;
-- run StegGate;
-- authorize consequence;
-- create Master Records custody;
-- assert truth of participant claims;
-- create a second receipt authority.
+1. Interlock/manifold contract + validator
+   - PR #66
+   - merge: ed30b6439d755b23d029f5806801a18e3f418e64
+   - package validation: 32617578954 SUCCESS
 
-## Production-proof rule
+2. Reciprocal return / participant acknowledgement
+   - PR #67
+   - merge: 622ac7d286022d63c341cfffcd1cd11accff151d
+   - package validation: 32618315765 SUCCESS
 
-Public SDK demonstration must use the same production-grade manifestation/interlock/governance/receipt/replay/reconstruction path as real consumers. A bounded demonstration may reduce consequence scope; it may not substitute a weaker governance backend.
+3. SDK SPE-return -> canonical StegGate request-candidate bridge
+   - PR #69
+   - merge: e72677c90261b2bf5c4716baaba1eeb99f70c9fe
+   - package validation: 32618543246 SUCCESS
+   - non-authorizing; SPE ALLOW remains standing evidence only
 
-## Slice 1 source
+4. Portable independent verifier
+   - PR #70
+   - merge: ceb6a353162242dd9c5919d8af89823b9a97501a
+   - package validation: 32669362421 SUCCESS
+
+5. Public reference interlock participant
+   - PR #71
+   - merge: 9368804802ba8b5e5899a9da6c8325d811c268de
+   - package validation: 32669518279 SUCCESS
+
+6. Canonical StegCore standing consumption
+   - StegCore PR #146
+   - merge: 26b18204b135a213231d160b718e47ca6ab46f28
+   - canonical runtime verifies SDK/SPE/interlock standing before consequence
+
+7. Cross-repository public-interlock -> canonical StegGate bounded consequence proof
+   - StegCore PR #148
+   - merge: 124ea6b53ff79db8f514cacf1aab295f03cacf74
+   - validation: 32808051766 SUCCESS
+
+8. Master Records Universal Interlock custody baseline
+   - Master Records PR #38
+   - merge: 3dae8832a167359612a15ccfde99a9f22b77fc8a
+   - later Universal Interlock custody extensions are separately governed by Master Records handoffs
+
+9. Successor release coherence
+   - SDK 1.2.0 release source parent: 47a85c402d8d72e1db90445ec272fa83e8a40b08
+   - SDK 1.2.0 release commit: beaabe0a06ef32f0f62fbe6bc360463b245bff61
+   - TVC successor policy/source validation merged
+   - actual immutable publication remains TV/TVC runtime-gated
+
+## Current state
 
 ```text
-schemas/interlock_transition.v1.schema.json
-stegverse/interlock_transition.py
-tests/test_interlock_transition.py
-docs/MINIMAL_PORTABLE_GOVERNANCE_ECOSYSTEM_MIRROR_HANDOFF.md
+protocol/interlock source: IMPLEMENTED
+SDK validation: VALIDATED
+SDK slices above: MERGED
+canonical standing consumption: MERGED + VALIDATED
+bounded canonical consequence traversal: MERGED + VALIDATED
+reference external participant: MERGED + VALIDATED
+portable verifier: MERGED + VALIDATED
+reciprocal return source: MERGED + VALIDATED
+full successor aggregate publication: NOT RELEASED
+genuine POST_RETURN production proof: NOT ACTIVATED / NOT COMPLETE
+real StegVerse module migration through exact public interlock: OPEN
+issue #65: OPEN
 ```
 
-Implemented structural checks include:
+## Current collision / authority boundaries
 
-- adapter vs interlock connection classes;
-- required participant terminal receipt/binding for interlock;
-- exact boundary receipt membership in predecessor receipts;
-- JCS/NFC canonicalization declaration;
-- explicit governance source/profile mode;
-- many-predecessor/many-successor state representation;
-- typed manifold relationships referencing known states;
-- immutable original manifest binding;
-- explicit distinct repair successor;
-- authority non-claims;
-- material-causal-closure replay requirement;
-- linear transition accepted only as the special 1 -> 1 manifold case;
-- deterministic canonical hash helper.
-
-## Collision boundaries
-
-- SDK #61 remains the SDK -> SPE -> StegGate -> return/reconstruction composition owner.
-- SDK #64 remains provider interoperability/conformance/certification owner.
+- SDK #61 remains canonical SDK -> SPE -> StegGate -> return/reconstruction composition owner.
+- SDK #64 remains provider interoperability/conformance owner.
 - Standing-Proof-Engine remains standing owner.
 - StegCore remains canonical StegGate/AdmittedCode owner.
 - Master Records remains custody/reconstruction authority where separately admitted.
-- StegCore PR #141 is still an active transaction/receipt collision boundary. Do not implement the StegCore side of this interlock by mutating colliding transaction-lifecycle paths until that PR is reconciled.
-- TV/TVC only for credential authority; no GitHub-token runtime authority; no Render dependency.
+- TV/TVC remains credential and successor-release authority.
+- StegCore PR #141 remains a separate active transaction/capability-context lane; do not reinterpret it as this protocol's completion.
+- GitHub-hosted validation is not release/runtime authority.
+- No Render dependency or generic GitHub-token runtime authority.
 
-## Required next slices
+## Remaining completion gates
 
-1. Validate and merge this SDK interlock/manifold contract using existing SDK workflows.
-2. Bind the #61 SPE-return bridge to this interlock package identity without turning standing into authority.
-3. Define a compatible interlock egress/participant acknowledgement record so a participant can bind StegVerse's terminal receipt into its own successor receipt.
-4. After StegCore #141 collision clears, bind the canonical StegGate request/decision to the same interlock transition/package/run identity.
-5. Extend Master Records handoff from single-chain assumptions, where any remain, to bounded receipt-manifold preservation and material-causal-closure reconstruction.
-6. Migrate one StegVerse module to the exact public interlock contract.
-7. Migrate one external/reference participant to the same contract.
-8. Expose production-path receipts/explanations/replay/reconstruction through the public SDK surface with no alternate demo governance backend.
+Issue #65 remains open until all of the following are evidenced:
 
-## Completion boundary
+1. exact successor aggregate is immutably released through real TV/TVC authority;
+2. genuine SDK POST_RETURN production runner executes on released coordinates;
+3. bounded consequence is retained in canonical Master Records custody;
+4. reciprocal participant ACK is retained;
+5. portable verification PASS;
+6. replay PASS without consequence re-execution;
+7. reconstruction PASS without consequence re-execution;
+8. at least one actual StegVerse production module traverses the same public interlock contract;
+9. external/reference participant parity remains demonstrable without a privileged internal fast path.
 
-Issue #65 is not complete on this source slice. Full completion requires live interlock ingress and reciprocal return binding, a real StegVerse module, a real external/reference participant, canonical SPE and StegGate traversal, Master Records manifold preservation, replay/reconstruction PASS, and portable independent verification.
+Source implementation or hosted validation alone does not satisfy activation or completion.
