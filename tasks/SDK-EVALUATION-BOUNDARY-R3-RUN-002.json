@@ -60,7 +60,9 @@
     "user_action_required_now": false,
     "source_neutralization_complete": true,
     "source_validation_pass": true,
-    "source_merged": true
+    "source_merged": true,
+    "latest_upstream_preflight_merge": "9bdef2324b9309224d94bd509ca192435967360c",
+    "current_main_neutral_tooling_identity_verified": true
   },
   "next_executable_action": "Remain blocked on the upstream TVC resident authority lane until the verified R3 aggregate receipt exists. No additional SDK source work is required for the current manifest-route or neutral-harness contract; after receipt availability, execute the actual evaluator-supplied manifest through the pinned neutral R3 harness and retain custody/reconstruction/verification evidence.",
   "collision_boundaries": [
@@ -103,6 +105,17 @@
     "frozen_component_lineage_reverified": true,
     "exact_admitted_source_validation_report": false,
     "resident_credential_observed": false,
-    "aggregate_receipt_observed": false
+    "aggregate_receipt_observed": false,
+    "latest_public_preflight": {
+      "path": "StegVerse-Labs/TVC/reports/aggregate_release/EVALUATION-BOUNDARY-2026-08-19-R3/preflight-2026-08-27.json",
+      "merge_commit": "9bdef2324b9309224d94bd509ca192435967360c",
+      "required_tags_observed": "0/4",
+      "exact_admitted_source_validation_report": false,
+      "aggregate_receipt_observed": false,
+      "aggregate_latest_report_observed": false,
+      "resident_host_observed": false,
+      "decision": "BLOCKED_WAITING_TVC_SOLE_HOST_CONTINUATION",
+      "authority_effect": false
+    }
   }
 }

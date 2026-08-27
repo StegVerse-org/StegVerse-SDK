@@ -1,0 +1,27 @@
+{
+  "schema": "stegverse.sdk.evaluation-boundary-upstream-preflight.v1",
+  "release_set_id": "EVALUATION-BOUNDARY-2026-08-19-R3",
+  "observed_at": "2026-08-27T16:47:00-05:00",
+  "sdk_main_commit": "e7f4bb981611c291b1845be2377ffc4d4333b280",
+  "upstream_tvc_preflight_merge": "9bdef2324b9309224d94bd509ca192435967360c",
+  "upstream_tvc_preflight_path": "reports/aggregate_release/EVALUATION-BOUNDARY-2026-08-19-R3/preflight-2026-08-27.json",
+  "upstream_state": {
+    "required_tags_observed": "0/4",
+    "source_validation_report_observed": false,
+    "aggregate_receipt_observed": false,
+    "aggregate_latest_report_observed": false,
+    "resident_host_observed": false,
+    "decision": "BLOCKED_WAITING_TVC_SOLE_HOST_CONTINUATION"
+  },
+  "pinned_neutral_tooling_identity": {
+    "scripts/run_evaluation_boundary_r3.py": "d863d36cfd2aabb4740d18d2e931c5460af7b766",
+    "scripts/build_evaluation_boundary_response_packet.py": "6e80ca8819ffcb1ee7acf2864d0a1ade609394e2",
+    "scripts/build_evaluation_boundary_owner_packet.py": "ce7a3d25775b5adffcbb15fa26e49c5542e18050"
+  },
+  "tooling_identity_changed_on_current_main": false,
+  "governed_run_executed": false,
+  "release_authority": false,
+  "runtime_authority": false,
+  "activation_effect": false,
+  "decision": "WAIT_FOR_VERIFIED_R3_AGGREGATE_RECEIPT"
+}
