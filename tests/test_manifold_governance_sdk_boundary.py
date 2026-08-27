@@ -1,8 +1,11 @@
+import builtins
 import json
 import sys
 import types
+import unittest
 from dataclasses import dataclass
 from pathlib import Path
+from unittest.mock import patch
 
 
 FIXTURE = Path(__file__).resolve().parents[1] / "stegverse" / "demo_data" / "manifold_governance_reviewable.json"
@@ -32,7 +35,11 @@ class FakePopulationTransition:
         self.__dict__.update(kwargs)
 
 
-def _install_fake_canonical_runtime(monkeypatch, calls):
+def _fixture():
+    return json.loads(FIXTURE.read_text(encoding="utf-8"))
+
+
+def _fake_modules(calls):
     stegcore = types.ModuleType("stegcore")
     manifold = types.ModuleType("stegcore.manifold_governance")
     steggate = types.ModuleType("stegcore.steggate")
@@ -68,78 +75,75 @@ def _install_fake_canonical_runtime(monkeypatch, calls):
     manifold.PopulationTransition = FakePopulationTransition
     manifold.govern_manifold_action = govern_manifold_action
     steggate.AdmissibilityRequest = FakeRequest
-
-    monkeypatch.setitem(sys.modules, "stegcore", stegcore)
-    monkeypatch.setitem(sys.modules, "stegcore.manifold_governance", manifold)
-    monkeypatch.setitem(sys.modules, "stegcore.steggate", steggate)
-
-
-def _fixture():
-    return json.loads(FIXTURE.read_text(encoding="utf-8"))
+    return {
+        "stegcore": stegcore,
+        "stegcore.manifold_governance": manifold,
+        "stegcore.steggate": steggate,
+    }
 
 
-def test_sdk_is_a_thin_client_of_canonical_production_runtime(monkeypatch):
-    calls = []
-    _install_fake_canonical_runtime(monkeypatch, calls)
+class ManifoldGovernanceSDKBoundaryTests(unittest.TestCase):
+    def test_sdk_is_a_thin_client_of_canonical_production_runtime(self):
+        calls = []
+        with patch.dict(sys.modules, _fake_modules(calls), clear=False):
+            from stegverse.manifold_governance import (
+                PRODUCTION_RUNTIME,
+                evaluate_manifold_governance,
+            )
+            result = evaluate_manifold_governance(_fixture())
 
-    from stegverse.manifold_governance import (
-        PRODUCTION_RUNTIME,
-        evaluate_manifold_governance,
-    )
+        self.assertEqual(
+            calls,
+            [
+                {
+                    "transition_ids": (
+                        "T-SENSOR-A",
+                        "T-SENSOR-B",
+                        "T-PROTECTED-RELEASE",
+                        "T-AFTER-REVIEW",
+                    ),
+                    "authority_boundary_refs": (
+                        "authority:human-review",
+                        "policy:manifold-demo-v1",
+                    ),
+                }
+            ],
+        )
+        self.assertEqual(result["production_runtime"], PRODUCTION_RUNTIME)
+        self.assertEqual(result["production_runtime"], "stegcore.manifold_governance.govern_manifold_action")
+        self.assertFalse(result["parallel_evaluator"])
+        self.assertFalse(result["sdk_grants_authority"])
+        self.assertFalse(result["sdk_reinterprets_disposition"])
+        self.assertFalse(result["external_execution_performed_by_sdk"])
 
-    result = evaluate_manifold_governance(_fixture())
+        action = result["action"]
+        self.assertEqual(action["state"], "REVIEWABLE")
+        self.assertEqual(action["continue_transition_ids"], ("T-SENSOR-A", "T-SENSOR-B"))
+        self.assertEqual(action["review_transition_ids"], ("T-PROTECTED-RELEASE",))
+        self.assertEqual(action["held_transition_ids"], ("T-AFTER-REVIEW",))
+        self.assertFalse(action["external_execution_performed"])
 
-    assert calls == [
-        {
-            "transition_ids": (
-                "T-SENSOR-A",
-                "T-SENSOR-B",
-                "T-PROTECTED-RELEASE",
-                "T-AFTER-REVIEW",
-            ),
-            "authority_boundary_refs": (
-                "authority:human-review",
-                "policy:manifold-demo-v1",
-            ),
+    def test_missing_canonical_runtime_fails_without_sdk_fallback(self):
+        from stegverse.manifold_governance import ManifoldGovernanceSDKError, evaluate_manifold_governance
+
+        real_import = builtins.__import__
+
+        def blocked_import(name, *args, **kwargs):
+            if name.startswith("stegcore"):
+                raise ImportError("canonical runtime unavailable")
+            return real_import(name, *args, **kwargs)
+
+        filtered_modules = {
+            key: value
+            for key, value in sys.modules.items()
+            if not key.startswith("stegcore")
         }
-    ]
-    assert result["production_runtime"] == PRODUCTION_RUNTIME
-    assert result["production_runtime"] == "stegcore.manifold_governance.govern_manifold_action"
-    assert result["parallel_evaluator"] is False
-    assert result["sdk_grants_authority"] is False
-    assert result["sdk_reinterprets_disposition"] is False
-    assert result["external_execution_performed_by_sdk"] is False
+        with patch.dict(sys.modules, filtered_modules, clear=True), patch("builtins.__import__", blocked_import):
+            with self.assertRaises(ManifoldGovernanceSDKError) as caught:
+                evaluate_manifold_governance(_fixture())
 
-    action = result["action"]
-    assert action["state"] == "REVIEWABLE"
-    assert action["continue_transition_ids"] == ("T-SENSOR-A", "T-SENSOR-B")
-    assert action["review_transition_ids"] == ("T-PROTECTED-RELEASE",)
-    assert action["held_transition_ids"] == ("T-AFTER-REVIEW",)
-    assert action["external_execution_performed"] is False
+        self.assertIn("no fallback or parallel evaluator", str(caught.exception))
 
 
-def test_missing_canonical_runtime_fails_without_sdk_fallback(monkeypatch):
-    monkeypatch.delitem(sys.modules, "stegcore", raising=False)
-    monkeypatch.delitem(sys.modules, "stegcore.manifold_governance", raising=False)
-    monkeypatch.delitem(sys.modules, "stegcore.steggate", raising=False)
-
-    import builtins
-    real_import = builtins.__import__
-
-    def blocked_import(name, *args, **kwargs):
-        if name.startswith("stegcore"):
-            raise ImportError("canonical runtime unavailable")
-        return real_import(name, *args, **kwargs)
-
-    monkeypatch.setattr(builtins, "__import__", blocked_import)
-
-    from stegverse.manifold_governance import ManifoldGovernanceSDKError, evaluate_manifold_governance
-
-    try:
-        evaluate_manifold_governance(_fixture())
-    except ManifoldGovernanceSDKError as exc:
-        message = str(exc)
-    else:
-        raise AssertionError("missing canonical StegCore must fail")
-
-    assert "no fallback or parallel evaluator" in message
+if __name__ == "__main__":
+    unittest.main()
