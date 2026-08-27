@@ -1,78 +1,150 @@
 # Governed Application Spine Mirror Handoff
 
+Updated: 2026-08-26
+Repository: StegVerse-org/StegVerse-SDK
+Canonical issue: #61
+Role: non-authorizing composition contract for SDK -> SPE -> StegGate -> return/reconstruction
+
 ## Source of truth
 
-```text
-repository: StegVerse-org/StegVerse-SDK
-issue: #61
-branch: feat/governed-application-spine-61-r2
-role: non-authorizing composition contract for SDK -> SPE -> StegGate -> return/reconstruction
-```
-
-Live repository state, issue/PR state, workflow results, and canonical downstream handoffs supersede prose summaries.
+Live repository state, issue/PR state, workflow results, and canonical Standing-Proof-Engine, StegCore, Master Records, TV/TVC, and SDK handoffs supersede chat summaries.
 
 ## Goal
+
 Make SDK, SPE, and canonical StegGate/AdmittedCode operate as one reusable application-neutral lifecycle while preserving each component's authority boundary.
 
 ## Canonical order
+
 ```text
 external/user/model/tool/OSS capability
   -> SDK manifestation / DECLARED candidate
+  -> governance interlock identity
   -> SPE fresh standing determination
+  -> verified SDK SPE-return binding
   -> canonical StegGate present-tense admissibility + commit coherence
   -> bounded executor only when all required gates allow
   -> return ingestion
+  -> reciprocal participant acknowledgement
+  -> portable verification
   -> replay/reconstruction/discovery
-  -> custody only where separately admitted
+  -> Master Records custody only where separately admitted
 ```
 
-This ordering is derived from existing live contracts: SDK-to-SPE candidates retain admissibility and commit-time validity as PENDING; SPE ALLOW grants standing only; StegCore admissibility requires current standing where applicable together with current authority, continuity, governing conditions, attributable consequence, and reconstructability.
+## Authority boundary
 
-## Slice 1
 ```text
-schemas/governed_application_spine.v1.schema.json
-stegverse/governed_application_spine.py
-tests/test_governed_application_spine.py
-docs/GOVERNED_APPLICATION_SPINE_MIRROR_HANDOFF.md
+SDK authority: NONE
+SPE execution authority: NONE
+model output authority: NONE
+canonical StegGate runtime:
+  stegverse:steggate:canonical:three-layer:v1
+Master Records custody authority: separate
+release/credential authority: TV/TVC
 ```
 
-The SDK validator is deliberately non-authorizing. It does not evaluate SPE, run StegGate, execute an action, create custody, or mint standing/admissibility.
+SPE ALLOW alone cannot authorize execution. StegGate ALLOW alone does not prove that execution occurred. A consequence is valid only when canonical runtime evidence proves the required standing/admissibility/coherence path and the bounded executor actually ran.
 
-## Enforced invariants
+## Merged implementation state
+
+### Slice 1 — application-neutral composition contract
+- schema + validator merged through PR #63
+- merge: 06fd00942e616323d6d0fe3d7e0e033c18e4d859
+- package validation: 32609147806 SUCCESS
+
+### Slice 2 — SPE-return consumer / StegGate request candidate
+- merged through PR #69
+- merge: e72677c90261b2bf5c4716baaba1eeb99f70c9fe
+- package validation: 32618543246 SUCCESS
+- independently verifies SDK candidate/envelope hashes, deterministic SPE receipt identity/hash, interlock package/transition/run identity, and validity window
+- emits only a non-authorizing canonical StegGate request candidate
+
+### Portable interlock/return/verifier support
+- interlock/manifold contract: PR #66 / ed30b6439d755b23d029f5806801a18e3f418e64
+- reciprocal return/ACK contract: PR #67 / 622ac7d286022d63c341cfffcd1cd11accff151d
+- portable verifier: PR #70 / ceb6a353162242dd9c5919d8af89823b9a97501a
+- public reference interlock participant: PR #71 / 9368804802ba8b5e5899a9da6c8325d811c268de
+
+### Canonical StegCore consumption
+- StegCore PR #146 merged as 26b18204b135a213231d160b718e47ca6ab46f28
+- canonical `governed_steggate_execute` verifies standing/interlock context and fails closed before consequence invocation when invalid
+
+### Cross-repository bounded consequence proof
+- StegCore PR #148 merged as 124ea6b53ff79db8f514cacf1aab295f03cacf74
+- exact-head validation run 32808051766 SUCCESS
+- proves public interlock identity -> SPE standing binding -> canonical StegGate -> commit coherence -> one bounded consequence
+
+### POST_RETURN production runner
+Canonical SDK handoff: `docs/POST_RETURN_PRODUCTION_RUNNER_MIRROR_HANDOFF.md`
+
+The runner is source-real and successor-release-aware. It requires:
+- successor aggregate receipt with proof-capability containment;
+- PRE_STEGGATE portable governance bundle;
+- canonical StegCore standing/admissibility path;
+- real bounded state transition;
+- direct Master Records custody lookup;
+- reciprocal ACK;
+- portable/exchange verification;
+- replay and reconstruction without consequence re-execution.
+
+## OSS / commodity capability rule
+
+Applications should prefer:
+
+`adopt -> adapter -> govern -> verify`
+
+for commodity OCR, document parsing, RAG, vector search, chat UI primitives, image decoding, model serving, math parsing/solving, and file-upload mechanics.
+
+Third-party/OSS output remains a candidate or interpretation state only and gains no authority by successful production.
+
+## Current state
+
 ```text
-SDK candidate authorizing == false
-SDK authority == NONE
-SPE execution authority == NONE
-model output authority == NONE
-canonical StegGate runtime identity == stegverse:steggate:canonical:three-layer:v1
+composition schema: IMPLEMENTED / VALIDATED / MERGED
+SPE bridge: IMPLEMENTED / VALIDATED / MERGED
+canonical StegCore standing consumer: IMPLEMENTED / VALIDATED / MERGED
+bounded canonical consequence proof: VALIDATED / MERGED
+reciprocal return source: IMPLEMENTED / VALIDATED / MERGED
+portable verifier: IMPLEMENTED / VALIDATED / MERGED
+reference external participant: IMPLEMENTED / VALIDATED / MERGED
+POST_RETURN runner source: IMPLEMENTED / MERGED
+successor release alignment: IMPLEMENTED / VALIDATED / MERGED
+real successor aggregate release: NOT RELEASED
+genuine POST_RETURN production run: NOT ACTIVATED / NOT COMPLETE
+application migrations: PARTIAL / OPEN
+issue #61: OPEN
 ```
 
-If `execution.performed == true`, the contract requires current SPE ALLOW standing, canonical StegGate ALLOW, CURRENT commit-time validity, commit-coherence ALLOW, an executor reference, and a result hash. SPE ALLOW alone cannot cross the execution boundary.
+## Current dependencies
 
-## Open-source / commodity capability rule
-Applications should prefer `adopt -> adapter -> govern -> verify` for commodity OCR, document parsing, RAG, vector search, chat UI primitives, image decoding, model serving, math parsing/solving, and file-upload mechanics. OSS/provider output is a candidate or interpretation state only and gains no authority by successful production.
+The immediate blocking dependency is no longer composition source. It is the successor release/runtime proof chain owned by TV/TVC:
 
-A bespoke implementation is justified only when no suitable implementation exists, licensing/security/privacy requires it, governance cannot be preserved through an adapter, sovereign/offline requirements cannot be met, or a deliberately small conformance/reference/fallback implementation is useful.
+1. current TV/TVC GRANTED authorization for the exact successor request;
+2. live resident SKAP recipient key/activation/liveness/lease;
+3. real owner/device sealed release credential capsule;
+4. real DEVICE->KV and KV->SKAP_VAULT InTr receipts;
+5. resident aggregate release execution;
+6. immutable successor release receipt;
+7. genuine POST_RETURN production runner evidence.
 
-## Collision boundaries
-- StegCore remains canonical StegGate/admissibility owner.
-- Standing-Proof-Engine remains standing owner.
-- master-records remains custody/reconstruction authority where applicable.
-- SDK remains intake/compatibility/composition only.
-- StegCore PR #141 is active on manifested transaction/capability context; do not mutate colliding transaction-lifecycle paths from this SDK slice.
-- AdmittedCode/code-admit-gate is historical/reference only; current runtime is StegCore.
-- TV/TVC only for credentials; GitHub-token runtime authority NONE.
-- no new heartbeat, provider runtime, scheduler, evaluator, custody service, or receipt authority.
+StegCore PR #141 remains a separate active capability-context/transaction-lifecycle lane and must not be treated as completed by this spine work.
 
-## Remaining source slices
-1. Validate/merge this composition schema + SDK validator.
-2. Add SDK SPE-return consumer that verifies receipt identity/hash/scope/currentness and constructs a non-authorizing canonical StegGate request candidate.
-3. After StegCore PR #141 is reconciled, add the StegCore bridge consuming the exact SPE receipt/hash and failing closed on missing/stale/mismatched standing where required.
-4. Preserve package/transition/run IDs, SPE receipt, StegGate decision, and bounded-execution evidence through return ingestion/discovery and Master Records handoff.
-5. Add an application adapter interface for commodity capabilities: source state -> candidate interpretation/action -> governed spine.
-6. Migrate Ecosystem Chat/VACC/Math/HIL first.
-7. Add portable independent verifier.
-8. Demonstrate one OSS-backed interpretation capability and one consequence-bearing capability end-to-end with replay/reconstruction PASS.
+## Remaining completion gates
 
-## Completion boundary
-This goal is not complete on schema merge. Full completion requires a real capability to traverse the composed live lifecycle with fresh SPE standing, canonical StegGate evaluation, bounded consequence only when allowed, return ingestion, replay/reconstruction PASS, and portable independent verification.
+Issue #61 remains open until at least one real consequence-bearing production capability completes:
+
+```text
+SDK manifestation/interlock
+-> fresh SPE standing
+-> canonical StegGate
+-> bounded consequence
+-> return ingestion
+-> Master Records custody
+-> reciprocal ACK
+-> portable verification PASS
+-> replay PASS
+-> reconstruction PASS
+```
+
+and the retained evidence demonstrates no application-specific authority bypass.
+
+Subsequent application migrations should consume this same core rather than bespoke governance runtimes.
