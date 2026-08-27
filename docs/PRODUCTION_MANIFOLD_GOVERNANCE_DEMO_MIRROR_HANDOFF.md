@@ -113,8 +113,17 @@ stegverse/cli.py demo/run bindings: IMPLEMENTED
 tests/test_manifold_governance_sdk.py: IMPLEMENTED
 .github/workflows/manifold-governance-sdk.yml: IMPLEMENTED
 pyproject.toml manifold-test exact StegCore pin: IMPLEMENTED
-source_state: IMPLEMENTED_PR_89_VALIDATION_PENDING
+source_state: IMPLEMENTED_MERGED_VALIDATION_PENDING
 release_state: NOT_RELEASED
 ```
 
 The existing `governed-test` frozen dependency set is intentionally unchanged. A separate `manifold-test` optional extra pins the exact StegCore production merge `99397392462b8e39a510ec6d9e543551270bd402` so this new evaluator capability does not rewrite older frozen evaluation coordinates.
+
+## Merge state
+
+```text
+SDK PR: #89
+SDK merge: 9bfb318b409624868160b32a831d327f9ef3ecf9
+source merge: COMPLETE
+hosted production-manifold validation: PENDING
+```
