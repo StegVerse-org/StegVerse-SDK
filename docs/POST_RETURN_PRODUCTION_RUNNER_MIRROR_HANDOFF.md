@@ -122,3 +122,27 @@ replay PASS without reexecution
 reconstruction PASS without reexecution
 final proof object retained
 ```
+
+## 2026-08-26 runtime/release reconciliation
+
+Upstream source/release preparation has advanced beyond the original runner implementation state:
+
+```text
+StegCore canonical standing consumer: MERGED / VALIDATED
+StegCore bounded public interlock consequence proof: MERGED / VALIDATED
+SDK 1.2.0 release source parent: 47a85c402d8d72e1db90445ec272fa83e8a40b08
+SDK 1.2.0 release commit: beaabe0a06ef32f0f62fbe6bc360463b245bff61
+StegCore 0.3.0 source parent: ef38410505b0ef3e84148892b1d6e3cdef20f300
+StegCore 0.3.0 release commit: 58445bb14642c1889cf9802666c15bd48c6d2e39
+Master Records 0.2.0 source parent: 03312236c115bc814024d700810391340648601f
+Master Records 0.2.0 release commit: c524b1a0c1a43e49c70faeac7b67f78c5908e4e4
+TVC successor policy/source validation: COMPLETE / MERGED
+TVC provider-neutral sealed SKAP release-credential source: COMPLETE / VALIDATED / MERGED
+TV authorization request: REQUESTED_NOT_GRANTED
+successor aggregate receipt: NOT PRODUCED
+POST_RETURN production proof: NOT EXECUTED
+```
+
+The immediate blocker is no longer runner source, release-coordinate selection, or sealed-credential source. It is the real TV/TVC authority/runtime boundary: current GRANTED authorization, live resident SKAP recipient activation/liveness/lease, real owner/device sealed capsule, and real DEVICE->KV->SKAP_VAULT InTr evidence. After those exist, TVC owns resident `runtime_activate`, immutable release publication/verification, aggregate receipt generation, then this runner owns the genuine POST_RETURN proof.
+
+Do not substitute hosted CI, moving main, a generic GitHub token, a plaintext SKAP credential file, or a fabricated receipt for that boundary.
