@@ -439,3 +439,42 @@ verified TVC aggregate release receipt
 \`\`\`
 
 Once the aggregate receipt exists, the SDK lane proceeds with the already-pinned neutral harness, exact evaluator manifest retention, canonical route execution, Master Records custody, reconstruction, independent verification, and tamper-negative evidence. Moving current main or substituting another runtime does not satisfy that proof.
+
+## Production manifold governance SDK demo/test — 2026-08-27
+
+Scoped canonical continuation:
+
+```text
+docs/PRODUCTION_MANIFOLD_GOVERNANCE_DEMO_MIRROR_HANDOFF.md
+goal: SDK-PRODUCTION-MANIFOLD-GOVERNANCE-DEMO-001
+SDK role: DEMO_TEST_CLIENT
+production owner: StegVerse-Labs/StegCore
+production runtime: stegcore.manifold_governance.govern_manifold_action
+parallel evaluator: PROHIBITED
+```
+
+Current source/validation state:
+
+```text
+StegCore production PR #157: MERGED
+StegCore production merge: 99397392462b8e39a510ec6d9e543551270bd402
+StegCore production validation run 33118864638: SUCCESS
+StegCore validation reconciliation PR #158: MERGED
+
+SDK source PR #89: MERGED
+SDK source merge: 9bfb318b409624868160b32a831d327f9ef3ecf9
+SDK validation PR #90: MERGED
+SDK validation run 33119113357: SUCCESS
+SDK validation merge: 1825b37a08956ce23aee48b352271a0bc2e31c5a
+```
+
+Evaluator/test entries:
+
+```bash
+stegverse demo manifold-governance
+stegverse run manifold-governance --input <packet.json>
+```
+
+The SDK does not define manifold disposition. It maps evaluator packets into canonical StegCore request objects and calls the production manifold-governance runtime. Independent ALLOW branches may proceed toward the separately governed commit boundary while REVIEW branches remain reviewable and dependents remain held. Human-review timing, wall-clock time, and HB cadence are not governance authority.
+
+End-to-end execution of these SDK commands requires an installed canonical StegCore build that contains `govern_manifold_action`. Release/distribution of that StegCore build remains separately governed by StegCore/TV/TVC release authority; SDK validation does not fabricate a release.
