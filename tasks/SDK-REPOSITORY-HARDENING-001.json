@@ -4,7 +4,7 @@
   "canonical_branch": "main",
   "handoff": "docs/REPOSITORY_HARDENING_MIRROR_HANDOFF.md",
   "state": "ACTIVE_EXTERNAL_SETTINGS_AND_CURRENT_RELEASE_AUTHORITY_BLOCKED",
-  "observed_at": "2026-08-28T08:00:00-05:00",
+  "observed_at": "2026-08-28T08:15:00-05:00",
   "historical_pypi_failure": {
     "state": "IDENTIFIED_AND_CLASSIFIED",
     "tag": "v1.0.4",
@@ -28,7 +28,7 @@
     },
     {
       "id": "publish-current-successor",
-      "state": "BLOCKED_TV_TVC_RELEASE_AUTHORITY"
+      "state": "BLOCKED_TV_TVC_RELEASE_AUTHORITY_ONLY"
     }
   ],
   "completion": {
@@ -37,6 +37,15 @@
     "failed_pypi_run_identified": true,
     "pypi_root_cause_recorded": true,
     "current_release_authorized": false,
-    "trusted_publisher_provenance_verified": false
+    "trusted_publisher_provenance_verified": false,
+    "trusted_publisher_mapping_verified": true
+  },
+  "trusted_publisher": {
+    "state": "VERIFIED_CORRECT",
+    "repository": "StegVerse-org/StegVerse-SDK",
+    "workflow": "release.yml",
+    "environment": "pypi",
+    "static_token_required": false,
+    "new_mapping_required": false
   }
 }
