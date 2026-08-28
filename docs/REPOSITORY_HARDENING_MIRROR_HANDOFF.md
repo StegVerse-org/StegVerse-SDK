@@ -1,6 +1,6 @@
 # Repository Hardening Mirror Handoff
 
-Updated: 2026-08-28T07:54:00-05:00
+Updated: 2026-08-28T08:00:00-05:00
 
 ## Source of truth
 
@@ -18,14 +18,17 @@ Live repository state and this handoff supersede chat-only claims for this harde
 
 ## Observed state
 
-User-provided GitHub repository screenshots at 2026-08-28 07:54 -05:00 visibly show:
+User-provided GitHub repository screenshots at 2026-08-28 07:54 and 08:00 -05:00 show:
 
 ```text
 main branch protection: NOT ENABLED
 GitHub repository banner: "Your main branch isn't protected"
-Deployments: pypi environment shows FAILED status
 repository: public
-open pull requests: 1
+pypi environment: one failed deployment
+failed deployment tag shown by GitHub: v1.0.4
+failed deployment date shown by GitHub: Apr 29
+failed deployment workflow shown by GitHub: StegVerse SDK Validation (Optional Hosted) #37
+deployment title begins: Bump version from 1.0.2 to 1....
 ```
 
 Direct live repository inspection confirms:
@@ -36,58 +39,67 @@ current package version in pyproject.toml: 1.2.0
 PyPI Trusted Publishing workflow: .github/workflows/release.yml
 trusted publishing source implementation: MERGED
 SDK 1.2.0 successor source candidate: VALIDATED_MERGED_RELEASE_PENDING
-open PR #94: draft neutral current-basis transition manifest
+open evaluator draft PR #94 remains independent
+hardening PR #95 tracks this lane
 ```
 
-The red GitHub `pypi` deployment indicator is evidence of a failed environment deployment, but it is not by itself proof that the current 1.2.0 successor publication was attempted. The current successor handoff still records v1.2.0 tag/release/PyPI publication as not yet verified/published.
+## Historical failed pypi deployment reconciliation
 
-## Required hardening
+The failed deployment is now identified as a historical April 29 release attempt, not the current 1.2.0 successor lane.
 
-### 1. Protect `main`
+```text
+Git tag: v1.0.4
+tag target commit: ec8846311462651d69daaf4ec0d4b049100b3f8e
+tag target commit message: Bump version from 1.0.2 to 1.0.3
+pyproject.toml at v1.0.4 declares project.version = 1.0.3
+historical workflow at v1.0.4: .github/workflows/sdk-demo-test.yml
+historical workflow pypi job: OIDC publisher bound to environment pypi
+```
 
-Required repository-setting outcome:
+This proves an exact tag/package identity defect at the failed release coordinate:
+
+```text
+release tag identity: 1.0.4
+package artifact identity: 1.0.3
+identity relation: MISMATCH
+```
+
+The historical workflow lacked the current exact tag/package-version guard. It could therefore build a 1.0.3 distribution from a v1.0.4 tag and pass that artifact set to the pypi job. This is sufficient to classify the old deployment as release-identity-invalid without treating it as evidence about the current 1.2.0 lane.
+
+Do not retry, repair, or retarget v1.0.4. Historical tags remain immutable evidence.
+
+The current .github/workflows/release.yml already contains a fail-closed tag/package identity check, exact tag materialization, exact wheel+sdist verification, OIDC Trusted Publishing, and no static PyPI token path. Therefore the historical failure does not require a current source-code hotfix.
+
+## Remaining hardening
+
+### Protect main
 
 - prohibit force-pushes;
 - prohibit branch deletion;
 - require pull request before merge;
-- require required status checks for the SDK validation lanes appropriate to the repository;
-- require branch to be up to date before merge where compatible with the active workflow;
-- preserve administrator emergency recovery without weakening ordinary merge policy;
-- do not make GitHub a StegVerse runtime/release authority.
+- require appropriate status checks;
+- verify branch policy after configuration;
+- do not make GitHub a StegVerse runtime or release authority.
 
-This is a GitHub repository setting. It cannot be completed by source mutation alone.
+This is a GitHub repository-setting mutation and cannot be truthfully completed by source mutation alone.
 
-### 2. Reconcile failed `pypi` deployment
+### Current 1.2.0 publication boundary
 
-Before retrying publication:
-
-1. identify the exact failed deployment/workflow run and release/tag identity;
-2. classify failure as build/identity, environment protection, OIDC/Trusted Publisher mapping, or PyPI rejection;
-3. do not rerun against moving `main`;
-4. do not create or retarget a historical tag;
-5. only publish an exact TV/TVC-authorized release coordinate;
-6. verify wheel + sdist hashes and Trusted Publisher provenance after publication.
-
-Canonical publication transport remains `.github/workflows/release.yml`. No static PyPI token is authorized.
+Only publish the exact TV/TVC-authorized immutable successor coordinate. Do not derive release identity from moving main, reuse historical tags, or retarget v1.0.4. After publication retain exact wheel/sdist SHA-256 and verify Trusted Publisher provenance.
 
 ## Current blockers
 
 ```text
 BLOCKER-A: main branch protection requires GitHub repository settings mutation
-BLOCKER-B: exact failed pypi deployment run has not yet been identified from retained machine evidence
-BLOCKER-C: SDK 1.2.0 successor release remains TV/TVC-authority gated
+BLOCKER-B: SDK 1.2.0 successor release remains TV/TVC-authority gated
 ```
 
-## Non-goals / invariants
+Resolved investigation:
 
 ```text
-source validation != release
-workflow success != runtime authority
-GitHub deployment != StegVerse activation
-PyPI publication != governance activation
-generic GitHub credential substitution: PROHIBITED
-static PyPI token: PROHIBITED
-tag retargeting: PROHIBITED
+RESOLVED-B: failed pypi deployment identified as historical v1.0.4
+RESOLVED-C: historical defect proven: tag v1.0.4 -> package 1.0.3
+RESOLVED-D: current trusted publisher workflow already guards exact tag/package identity
 ```
 
 ## Completion gates
@@ -95,21 +107,12 @@ tag retargeting: PROHIBITED
 ```text
 main branch protection: ENABLED + VERIFIED
 required checks: CONFIGURED + VERIFIED
-failed pypi deployment: EXACT RUN IDENTIFIED + ROOT CAUSE RECORDED
-publication retry: ONLY IF TV/TVC-AUTHORIZED EXACT RELEASE EXISTS
+failed pypi deployment: IDENTIFIED
+historical root cause class: RECORDED
+current release publication: ONLY IF TV/TVC-AUTHORIZED EXACT RELEASE EXISTS
 published package: exact wheel/sdist hashes + Trusted Publisher provenance VERIFIED
-handoff: updated with exact evidence
 ```
 
 ## Cross-repository propagation after release readiness
 
-When this lane reaches release/tag readiness, verify pertinent release/hardening state is reflected where applicable in:
-
-```text
-StegVerse-Labs/Site
-GCAT-BCAT-Engine/Publisher
-StegVerse-Labs/admissibility-wiki
-StegVerse-002/stegguardian-wiki
-```
-
-Do not duplicate runtime or release authority in those repositories.
+When release/tag readiness is reached, verify pertinent state where applicable in StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, StegVerse-Labs/admissibility-wiki, and StegVerse-002/stegguardian-wiki. Do not duplicate runtime or release authority.
