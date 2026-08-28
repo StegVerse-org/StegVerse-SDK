@@ -273,3 +273,36 @@ claim: MACHINE_OWNED / no active implementation claimant
 The communication-edge SDK work is durable in its source, package command, public guide, workflow, task-specific handoff, and observed validation runs. Future communication runtime activation must continue from StegTalk/StegWhisper/KnowledgeVault rather than treating SDK conformance as physical execution.
 
 The shared Health/Neuro device-substrate requirement and whole-nervous-system profile scope remain durable in `docs/BIOINTERFACE_DEVICE_SDK_CONVERGENCE.md` and issue #13. Future implementation must proceed from the issue and this handoff.
+
+
+## Cross-framework evaluator freeze lane — PR #94
+
+Updated: 2026-08-28
+
+State:
+
+```text
+PR: #94
+branch: test/cross-framework-current-basis-manifest-draft-20260828
+artifact: inspection/examples/cross-framework-current-basis-request.draft.json
+status: DRAFT_PRE_FREEZE / EXTERNAL REVIEW IN PROGRESS
+final comparison execution permitted: false
+```
+
+External evaluator feedback received 2026-08-28:
+
+- a materially changed policy basis and a policy basis already established as invalid must not be treated as equivalent by construction;
+- the primary shared vector must describe the changed condition without encoding invalidation as an input conclusion when continuing standing is intended to be independently determined;
+- if known material invalidation is tested, the evidence establishing invalidation must be frozen as part of S1;
+- preserve controls that distinguish valid continuity, known-invalidated continuity, and unresolved/current-basis continuity;
+- after amendment, the evaluator must review the exact revised manifest before freeze/hash.
+
+Required machine correction on PR #94:
+
+1. replace `CURRENT_POLICY_BASIS_INVALIDATED_OR_CHANGED` in the primary vector with a neutral changed-basis condition;
+2. stop marking the changed policy basis non-current solely because it changed;
+3. explicitly declare that primary-vector invalidation is not asserted as input;
+4. retain separate control descriptions for valid continuity and known-material invalidation;
+5. validate the revised branch and wait for exact-revision approval before freezing or executing.
+
+Freeze gate remains fail-closed. No approval, hash, execution, or comparison result may be claimed from this draft revision.
