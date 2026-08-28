@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "request_id": "multilane-noninterference-001",
+  "requester_label": "independent-evaluator-b",
+  "case_profile": "custom-declarative",
+  "evaluation_declaration": {
+    "what": "Evaluate whether an independent evaluator manifest can be admitted while an unrelated R3 evaluation lane remains nonterminal.",
+    "how": "Use the published evaluator-neutral manifest contract and ordinary SDK submission preparation without changing R3 task state or route semantics.",
+    "why": "Verify that evaluator lanes are isolated at the manifest and evidence boundary rather than serialized by evaluator identity or unrelated task state.",
+    "expected_observation": "The independent manifest remains valid and prepares identically regardless of the unrelated R3 lane being blocked on its own release/runtime prerequisites.",
+    "requested_capabilities": [
+      "commit_time_admissibility",
+      "master_records_custody"
+    ],
+    "requested_evidence": [
+      "governance_decision",
+      "manifest_receipt",
+      "exact_run_custody"
+    ]
+  },
+  "execution_provenance": {
+    "lane_class": "PRODUCTION_VALIDATION",
+    "routing_surface": "CANONICAL_PRODUCTION",
+    "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
+    "sandbox_required": false,
+    "sandbox_tier": "NONE",
+    "origin_surface": "StegVerse-org/StegVerse-SDK:public-inspection",
+    "external_consequence_enabled": false
+  },
+  "input": {
+    "test_vector": "multilane-noninterference",
+    "independent_lane": true,
+    "unrelated_lane_reference": "SDK-EVALUATION-BOUNDARY-R3-RUN-002"
+  },
+  "return_projection": "ALL",
+  "manifest_labels": true,
+  "authority_claim": false,
+  "notes": "General evaluator-neutral multi-lane non-interference test. This does not execute or modify R3."
+}
