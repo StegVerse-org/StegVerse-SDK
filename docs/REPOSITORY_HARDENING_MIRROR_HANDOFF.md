@@ -143,3 +143,26 @@ environment: pypi
 ```
 
 Do not create a new publisher mapping if an exact matching mapping already exists.
+
+
+## PyPI Trusted Publisher mapping verification — 2026-08-28T08:15:00-05:00
+
+User-provided authenticated PyPI Publishing-page evidence verifies the currently configured GitHub Trusted Publisher exactly matches the canonical SDK publication contract:
+
+```text
+repository: StegVerse-org/StegVerse-SDK
+workflow: release.yml
+environment name: pypi
+publisher type: GitHub OIDC Trusted Publisher
+```
+
+Status:
+
+```text
+trusted publisher mapping: VERIFIED_CORRECT
+new publisher mapping required: FALSE
+static PyPI token required: FALSE
+PyPI project configuration repair required: FALSE
+```
+
+The current PyPI-side publisher configuration therefore does not block the 1.2.0 successor release. Remaining publication gates are the exact TV/TVC-authorized immutable release coordinate, GitHub release publication for that exact tag, successful execution of the existing `.github/workflows/release.yml` path, and post-publication wheel/sdist hash + provenance verification.
