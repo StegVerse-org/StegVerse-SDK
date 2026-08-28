@@ -403,11 +403,14 @@ person-specific route introduced: FALSE
 Validation evidence on PR #92:
 
 ```text
-head: 8decc00d590b36fcd6dc36633633c2d862fe3ae7
+initial tested head: 8decc00d590b36fcd6dc36633633c2d862fe3ae7
+initial workflow run/job: 33141450395 / 98752973773
+handoff-updated PR head: 4831bab3b09ff988c11dee425b9884289831b59e
+handoff-updated workflow run: 33141487186 SUCCESS
+merge: 3314e28dd02fce8c5649e910868a88601835f149
+post-merge run: 33141509976 SUCCESS
 workflow: Evaluator Manifest Source Validation (Non-Authorizing)
-run: 33141450395
-job: 98752973773
-result: SUCCESS
+result: MERGED_POST_MERGE_VALIDATED
 ```
 
 This establishes source/runtime-preparation non-interference for independent evaluator manifests while R3 is blocked on its own release/runtime prerequisites. It does **not** claim that a second exact sovereign governed run with Master Records custody was executed by GitHub Actions, and it does not alter R3's frozen release gate. GitHub remains non-authorizing.
