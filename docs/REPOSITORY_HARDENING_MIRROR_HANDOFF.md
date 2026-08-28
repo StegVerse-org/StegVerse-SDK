@@ -116,3 +116,30 @@ published package: exact wheel/sdist hashes + Trusted Publisher provenance VERIF
 ## Cross-repository propagation after release readiness
 
 When release/tag readiness is reached, verify pertinent state where applicable in StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, StegVerse-Labs/admissibility-wiki, and StegVerse-002/stegguardian-wiki. Do not duplicate runtime or release authority.
+
+## PyPI project-side observation — 2026-08-28T08:12:00-05:00
+
+User-provided authenticated PyPI project screenshots show the managed project `stegverse-sdk` currently has seven published releases. Visible releases include:
+
+```text
+1.0.13 — Apr 29, 2026 — 2 files (1 wheel, 1 source)
+1.0.12 — Apr 29, 2026 — 2 files (1 wheel, 1 source)
+1.0.11 — Apr 29, 2026 — 2 files (1 wheel, 1 source)
+1.0.9  — Apr 29, 2026 — 2 files (1 wheel, 1 source)
+1.0.8  — Apr 29, 2026 — 2 files (1 wheel, 1 source)
+1.0.7  — Apr 29, 2026
+```
+
+This confirms the PyPI project itself exists, is accessible to the project owner, and historically accepted wheel+source uploads after the failed v1.0.4 GitHub deployment. Therefore the historical red deployment does not indicate a permanently broken PyPI project.
+
+The screenshots also confirm that 1.2.0 is not yet present in the managed release list. Current remediation remains to execute the exact authorized 1.2.0 Trusted Publisher release path and verify provenance; there is no reason to repair or delete the historical v1.0.4 deployment record.
+
+Next manual inspection surface, if needed, is the PyPI project `Publishing` page to verify the Trusted Publisher mapping still exactly names:
+
+```text
+owner/repository: StegVerse-org/StegVerse-SDK
+workflow filename: release.yml
+environment: pypi
+```
+
+Do not create a new publisher mapping if an exact matching mapping already exists.
