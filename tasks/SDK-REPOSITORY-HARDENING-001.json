@@ -1,0 +1,46 @@
+{
+  "goal_id": "SDK-REPOSITORY-HARDENING-001",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "canonical_branch": "main",
+  "handoff": "docs/REPOSITORY_HARDENING_MIRROR_HANDOFF.md",
+  "state": "ACTIVE_EXTERNAL_SETTINGS_AND_RELEASE_EVIDENCE_BLOCKED",
+  "observed_at": "2026-08-28T07:54:00-05:00",
+  "work": [
+    {
+      "id": "protect-main",
+      "state": "BLOCKED_EXTERNAL_REPOSITORY_SETTING",
+      "required": [
+        "prohibit force pushes",
+        "prohibit branch deletion",
+        "require pull request before merge",
+        "require appropriate status checks"
+      ]
+    },
+    {
+      "id": "reconcile-pypi-failure",
+      "state": "ACTIVE",
+      "required": [
+        "identify exact failed deployment/workflow run",
+        "record exact release/tag identity",
+        "classify root cause",
+        "preserve TV/TVC-only release authority",
+        "retry only exact authorized release",
+        "verify hashes and Trusted Publisher provenance"
+      ]
+    }
+  ],
+  "invariants": {
+    "credential_authority": "TV/TVC",
+    "github_runtime_authority": "NONE",
+    "static_pypi_token_allowed": false,
+    "tag_retargeting_allowed": false
+  },
+  "completion": {
+    "main_branch_protection_verified": false,
+    "required_checks_verified": false,
+    "failed_pypi_run_identified": false,
+    "pypi_root_cause_recorded": false,
+    "authorized_release_verified": false,
+    "trusted_publisher_provenance_verified": false
+  }
+}
