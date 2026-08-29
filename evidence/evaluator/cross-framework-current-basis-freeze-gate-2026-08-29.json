@@ -3,60 +3,46 @@
   "record_id": "cross-framework-current-basis-001-freeze-gate-20260829",
   "repository": "StegVerse-org/StegVerse-SDK",
   "pull_request": 94,
-  "reviewed_revision": "c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac",
-  "reviewed_manifest_path": "inspection/examples/cross-framework-current-basis-request.draft.json",
-  "reviewed_manifest_blob_sha1": "2dd0468779975d18ad53dfe400e1d2fcf83650c3",
-  "reviewed_manifest_sha256": "a7d8f6b5d09fc894f92634e5ee31e82b3297fb453c315160b04aeb28f73b515d",
-  "reviewed_manifest_state": "DRAFT_PRE_FREEZE",
-  "approval_gate": {
-    "external_evaluator": {
-      "state": "APPROVED_EXACT_REVISION_FOR_HASH_FREEZE",
-      "observed_at": "2026-08-29",
-      "evidence_source": "user-provided LinkedIn review screenshot in active control session",
-      "exact_revision_acknowledged": true,
-      "summary": "External evaluator stated that the revised manifest resolves the pre-freeze concern and approved exact revision c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac for the hash/freeze step."
-    },
-    "stegverse_operator": {
-      "state": "AUTHORIZED_HASH_FREEZE_PROGRESSION",
-      "observed_at": "2026-08-29",
-      "evidence_source": "active StegVerse control session",
-      "summary": "Operator explicitly instructed the system to proceed with the approved hash/freeze step."
-    }
+  "status": "CORRECTED_TEMPORAL_RECEIPT_SEMANTICS",
+  "correction": {
+    "reason": "The prior gate incorrectly treated an S0→S1 transition receipt as a pre-freeze input. A transition receipt can only be bound after S1 is observed and the S0→S1 transition is thereby established.",
+    "supersedes_prior_blocker": "bind_actual_s0_valid_state_receipt_or_equivalent",
+    "prior_blocker_valid": false,
+    "correct_rule": "Freeze the S0 declaration, transition definition, S1 observation definition, observables, evidence requirements, and semantic comparison boundary before execution. Observe S1 independently. Only then bind the S0→S1 transition receipt as output evidence.",
+    "operator_correction_observed_at": "2026-08-29"
   },
-  "immutable_identity_gate": {
-    "exact_reviewed_content_sha256_recorded": true,
-    "exact_reviewed_git_blob_recorded": true,
-    "approval_revision_matches_reviewed_revision": true,
-    "content_change_after_approval_detected": false
+  "previous_reviewed_revision": "c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac",
+  "previous_reviewed_manifest_blob_sha1": "2dd0468779975d18ad53dfe400e1d2fcf83650c3",
+  "previous_reviewed_manifest_sha256": "a7d8f6b5d09fc894f92634e5ee31e82b3297fb453c315160b04aeb28f73b515d",
+  "previous_external_approval": {
+    "state": "SUPERSEDED_BY_CONTENT_CHANGE",
+    "reason": "Revision v0.3 changes the manifest's temporal receipt semantics. Exact-revision approval for v0.2 cannot be carried forward automatically."
   },
-  "pre_freeze_requirements": {
-    "bind_actual_s0_valid_state_receipt_or_equivalent": {
-      "state": "BLOCKED",
-      "observed_manifest_reference": "receipt:s0-valid",
-      "reason": "The reviewed manifest contains a symbolic receipt reference; no actual S0 valid-state receipt or independently verifiable equivalent was located in the authoritative SDK repository evidence surfaces during this progression."
-    },
-    "freeze_exact_s0_s1_state_descriptions": {
-      "state": "READY_FROM_APPROVED_MANIFEST"
-    },
-    "freeze_material_transition_definition": {
-      "state": "READY_FROM_APPROVED_MANIFEST"
-    },
-    "freeze_observable_outputs_and_evidence_requirements": {
-      "state": "READY_FROM_APPROVED_MANIFEST"
-    },
-    "freeze_semantic_pass_fail_interpretation": {
-      "state": "READY_FROM_APPROVED_MANIFEST"
-    },
-    "freeze_known_invalidation_evidence": {
-      "state": "CONDITIONAL_BLOCK",
-      "reason": "KNOWN_INVALIDATION_CONTROL requires establishing invalidation evidence to be frozen with S1 when that control is instantiated; no such exact evidence object is yet bound."
-    }
+  "current_manifest": {
+    "path": "inspection/examples/cross-framework-current-basis-request.draft.json",
+    "vector_schema": "stegverse.cross-framework-current-basis-vector.v0.3",
+    "git_blob_sha1": "79f1e26a1c34beb0d4d43342d14ea99c5d600bc0",
+    "sha256": "ad863e73112c4bd7295cebaa456471335a68f0b7733b80aff6ef167b15e881f4",
+    "source_commit": "910442aa274fdcc8c720b6ae46367295e5c2a895",
+    "freeze_state": "DRAFT_PRE_FREEZE"
   },
-  "canonical_freeze_state": "HASH_BOUND_APPROVAL_RECORDED_FREEZE_BLOCKED",
-  "final_frozen_manifest_sha256": null,
-  "frozen_artifact_created": false,
+  "receipt_model": {
+    "s0_pre_observation": "DECLARED_AND_FROZEN_NOT_TRANSITION_RECEIPT_BEARING",
+    "s1_pre_execution": "OBSERVATION_DEFINITION_ONLY",
+    "s0_to_s1_transition_receipt": "POST_OBSERVATION_OUTPUT",
+    "transition_receipt_consumed_as_pre_execution_input": false,
+    "independently_preexisting_evidence_may_be_frozen_as_input": true
+  },
+  "freeze_gate": {
+    "external_exact_revision_approval": "PENDING_REREVIEW_V0_3",
+    "stegverse_operator_acceptance": "CURRENT_CORRECTION_AUTHORIZED",
+    "exact_manifest_sha256_recorded": true,
+    "unresolved_requested_changes": "UNKNOWN_UNTIL_REREVIEW",
+    "eligible_to_mark_frozen": false,
+    "reason_not_frozen": "The semantic correction changes the exact reviewed manifest. External exact-revision approval must be renewed for v0.3; there is no longer an S0-receipt prerequisite."
+  },
   "execution_permitted": false,
-  "next_machine_action": "Bind an actual S0 valid-state receipt or independently verifiable equivalent, bind any required known-invalidation evidence object, then derive and hash the FROZEN artifact without changing approved evaluation semantics.",
+  "next_machine_action": "Run source validation on v0.3 and present the exact v0.3 manifest/hash for external exact-revision rereview. If approved unchanged, record owner freeze attestation, mark the exact artifact FROZEN, and execute each architecture independently. Mint transition receipts only after observing each S1 result.",
   "authority_effect": "NONE",
   "activation_effect": false
 }
