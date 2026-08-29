@@ -360,3 +360,25 @@ Any content change after external approval invalidates that approval for freeze 
 No credential, WebAuthn, owner-secret entry, provider activation, or physical device action is required for the current pre-freeze review gate. The only current manual/external dependency is the evaluator's exact-revision review/approval. Future execution may inherit its ordinary SDK/TVC/Master-Records runtime authority requirements, but none may be pre-claimed from this draft.
 
 Downstream propagation obligation after this lane becomes release-worthy: re-check StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki, and stegguardian-wiki for only the pertinent contract-level changes. No downstream release/propagation is warranted while the manifest is still DRAFT_PRE_FREEZE.
+
+## Cross-framework current-basis freeze-gate progression — 2026-08-29
+
+External exact-revision approval is now observed and machine-bound to the reviewed manifest identity.
+
+```text
+reviewed revision: c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac
+reviewed manifest blob: 2dd0468779975d18ad53dfe400e1d2fcf83650c3
+reviewed manifest SHA-256: a7d8f6b5d09fc894f92634e5ee31e82b3297fb453c315160b04aeb28f73b515d
+external evaluator: APPROVED_EXACT_REVISION_FOR_HASH_FREEZE
+StegVerse operator: AUTHORIZED_HASH_FREEZE_PROGRESSION
+freeze state: HASH_BOUND_APPROVAL_RECORDED_FREEZE_BLOCKED
+execution permitted: false
+evidence: evidence/evaluator/cross-framework-current-basis-freeze-gate-2026-08-29.json
+```
+
+The prior external-review blocker is closed. The freeze gate remains fail-closed because the approved manifest still names symbolic S0 receipt reference `receipt:s0-valid`; no actual S0 valid-state receipt or independently verifiable equivalent is bound yet. The `KNOWN_INVALIDATION_CONTROL` likewise requires exact establishing invalidation evidence to be frozen with S1 when that control is instantiated.
+
+Do not create a FROZEN derivative or execute either architecture until those evidence objects are bound. When they are bound, derive the FROZEN artifact mechanically without changing the approved evaluation semantics, compute its final SHA-256, retain the derivation/freeze receipt, and execute both architectures independently against that same frozen identity.
+
+No credential/key entry or second-machine action is required for this current blocker; it is an evidence-binding gap in the canonical evaluator manifest lane.
+
