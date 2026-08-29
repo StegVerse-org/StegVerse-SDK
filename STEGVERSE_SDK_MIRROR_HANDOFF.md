@@ -280,12 +280,12 @@ The shared Health/Neuro device-substrate requirement and whole-nervous-system pr
 ```text
 PR: #94
 branch: test/cross-framework-current-basis-manifest-draft-20260828
-exact head: c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac
+current PR head: 18ff1808ef19d25faf7386236f0478f5c4f32c70
 manifest: inspection/examples/cross-framework-current-basis-request.draft.json
 manifest blob: 2dd0468779975d18ad53dfe400e1d2fcf83650c3
 vector schema: stegverse.cross-framework-current-basis-vector.v0.2
 state: DRAFT_PRE_FREEZE
-source validation: 33196691745 SUCCESS
+current-head source validation: 33222653960 SUCCESS
 external approval: NONE
 StegVerse freeze attestation: NONE
 frozen: NO
@@ -297,4 +297,9 @@ External evaluator feedback corrected the original draft so material policy-basi
 
 Human review is provided through the non-authorizing Site evaluator-review front end. Site PR #576 implemented/validated/merged the generic UI; Site PR #590 validated/merged the exact v0.2 public projection as `dd7e6d5685abea6c87429e90e36b1069bd9c9b9d`. Public-route observation remains pending. Site never becomes test, approval, freeze, execution, credential, custody, replay, or reconstruction authority.
 
-Next boundary: observe the public Site v0.2 projection; external evaluator reviews exact PR #94 head above; any content change invalidates approval for freeze purposes; only matching exact-revision/hash approvals may proceed to canonical freeze, followed by independent execution and ordinary TV/TVC + Master Records evidence/custody boundaries.
+Next boundary: observe the public Site v0.2 projection; external evaluator reviews the exact v0.2 manifest blob/hash above (current PR head may contain non-manifest handoff changes); any content change invalidates approval for freeze purposes; only matching exact-revision/hash approvals may proceed to canonical freeze, followed by independent execution and ordinary TV/TVC + Master Records evidence/custody boundaries.
+
+
+### Manifest-content continuity note — PR #94 head advance
+
+PR #94 now points to head `18ff1808ef19d25faf7386236f0478f5c4f32c70`, and Evaluator Manifest Source Validation run `33222653960` is SUCCESS. The manifest file content is unchanged from the externally discussed v0.2 revision: blob `2dd0468779975d18ad53dfe400e1d2fcf83650c3`. Therefore no approval is inferred or invalidated—none existed. Future approval/freeze must bind the exact manifest content hash/version, not rely on a stale PR-head label.
