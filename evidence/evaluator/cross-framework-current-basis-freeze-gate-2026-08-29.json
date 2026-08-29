@@ -22,9 +22,15 @@
     "path": "inspection/examples/cross-framework-current-basis-request.draft.json",
     "vector_schema": "stegverse.cross-framework-current-basis-vector.v0.3",
     "git_blob_sha1": "79f1e26a1c34beb0d4d43342d14ea99c5d600bc0",
-    "sha256": "ad863e73112c4bd7295cebaa456471335a68f0b7733b80aff6ef167b15e881f4",
+    "sha256": "981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975",
     "source_commit": "910442aa274fdcc8c720b6ae46367295e5c2a895",
     "freeze_state": "DRAFT_PRE_FREEZE"
+  },
+  "hash_identity_correction": {
+    "previously_recorded_sha256": "ad863e73112c4bd7295cebaa456471335a68f0b7733b80aff6ef167b15e881f4",
+    "previous_value_valid": false,
+    "correct_sha256": "981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975",
+    "verification": "Exact bytes reproduce Git blob SHA-1 79f1e26a1c34beb0d4d43342d14ea99c5d600bc0 and SHA-256 981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975."
   },
   "receipt_model": {
     "s0_pre_observation": "DECLARED_AND_FROZEN_NOT_TRANSITION_RECEIPT_BEARING",
@@ -42,7 +48,7 @@
     "reason_not_frozen": "The semantic correction changes the exact reviewed manifest. External exact-revision approval must be renewed for v0.3; there is no longer an S0-receipt prerequisite."
   },
   "execution_permitted": false,
-  "next_machine_action": "Run source validation on v0.3 and present the exact v0.3 manifest/hash for external exact-revision rereview. If approved unchanged, record owner freeze attestation, mark the exact artifact FROZEN, and execute each architecture independently. Mint transition receipts only after observing each S1 result.",
+  "next_machine_action": "Present the exact v0.3 artifact with SHA-256 981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975 for external exact-revision rereview. If approved unchanged, record owner freeze attestation, mark the exact artifact FROZEN, and execute each architecture independently. Mint transition receipts only after observing each S1 result.",
   "authority_effect": "NONE",
   "activation_effect": false
 }
