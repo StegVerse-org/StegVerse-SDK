@@ -7,9 +7,11 @@ Updated: 2026-08-29
 ```text
 repository: StegVerse-org/StegVerse-SDK
 issue: #96
-branch: feat/evaluator-review-intr-ingress-96
+implementation_pr: #97
+merge: 00e8acc274be0328fc009807feaf1afd35f3f0de
 claim: SDK-EVALUATOR-REVIEW-INTR-INGRESS-96-20260829
 linked_site_issue: StegVerse-Labs/Site#634
+linked_site_pr: StegVerse-Labs/Site#635
 parent_handoff: SDK_MIRROR_HANDOFF.md
 production_governance_owner: StegVerse-Labs/StegCore
 production_runtime: stegcore.manifold_governance.govern_manifold_action
@@ -23,9 +25,9 @@ activation_effect: false
 
 ## Goal
 
-Provide the receiving SDK boundary for browser-originated evaluator/demo/test requests that have already been admitted and transported through canonical StegVerse Interlock + InTr. The SDK must validate the bounded request contract and delegate execution to existing SDK test-client surfaces without implementing transport, credentials, receipts, or a parallel evaluator.
+Provide the receiving SDK boundary for browser-originated evaluator/demo/test requests that have already been admitted and transported through canonical StegVerse Interlock + InTr. The SDK validates the bounded request contract and delegates execution to existing SDK test-client surfaces without implementing transport, credentials, receipts, or a parallel evaluator.
 
-## Implemented source
+## Installed source
 
 ```text
 stegverse/evaluator_review_intr.py
@@ -37,8 +39,8 @@ stegverse/evaluator_review_intr.py
   - preserves exact test/revision/manifest-hash bindings
   - rejects payload/binding disagreement
   - exposes execute_admitted_demo_test(...)
-  - initially routes only surface=manifold-governance
-  - delegates to existing evaluate_manifold_governance(...)
+  - routes surface=manifold-governance to existing SDK client
+  - delegates to evaluate_manifold_governance(...)
   - does not mint Interlock/InTr receipts
   - does not grant authority
 
@@ -82,17 +84,26 @@ TV/TVC credential authority: unchanged
 Master Records custody/replay/reconstruction: unchanged where applicable
 ```
 
+## Validation + merge evidence
+
+```text
+SDK PR: #97
+final head: f97d38d2c71981f4268992eb09ebeb56deb92157
+SDK Package Artifact Validation (Non-Authorizing): run 33274191061 / SUCCESS
+merge: 00e8acc274be0328fc009807feaf1afd35f3f0de
+source_state: IMPLEMENTED_VALIDATED_MERGED
+```
+
 ## Current completion gates
 
 ```text
-pre-work collision check: COMPLETE / no open conflicting issue found
+pre-work collision check: COMPLETE
 SDK issue/claim: COMPLETE
-SDK branch: COMPLETE
 admitted request validator: IMPLEMENTED
 bounded manifold-governance execution adapter: IMPLEMENTED
-focused deterministic tests: IMPLEMENTED / CI NOT YET OBSERVED
-SDK merge: PENDING
-Site merge: PENDING
+focused deterministic/package validation: SUCCESS
+SDK merge: COMPLETE
+Site source counterpart: IMPLEMENTED ON PR #635 / VALIDATION IN PROGRESS
 runtime Interlock Connector provisioning: NOT CLAIMED
 live browser->InTr->SDK receipt: NOT OBSERVED
 live execution/result return: NOT OBSERVED
