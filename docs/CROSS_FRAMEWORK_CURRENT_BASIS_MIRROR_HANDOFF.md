@@ -52,10 +52,12 @@ Current v0.3 manifest identity:
 ```text
 source correction commit: 910442aa274fdcc8c720b6ae46367295e5c2a895
 blob: 79f1e26a1c34beb0d4d43342d14ea99c5d600bc0
-sha256: ad863e73112c4bd7295cebaa456471335a68f0b7733b80aff6ef167b15e881f4
+sha256: 981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975
 freeze state: DRAFT_PRE_FREEZE
 external exact-revision approval: PENDING_REREVIEW
 ```
+
+Hash correction note: the previously recorded v0.3 SHA-256 `ad863e73112c4bd7295cebaa456471335a68f0b7733b80aff6ef167b15e881f4` was a bookkeeping error. The exact repository blob `79f1e26a1c34beb0d4d43342d14ea99c5d600bc0` independently re-materializes to SHA-256 `981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975`; Git blob identity and exact byte content match.
 
 Machine-readable correction evidence:
 
@@ -101,7 +103,7 @@ result comparison: NO
 ## Next actions
 
 1. Observe the evaluator-manifest source-validation result for the current v0.3 branch head.
-2. If source validation passes, present the exact v0.3 manifest/hash for external exact-revision rereview.
+2. Present the exact v0.3 manifest with SHA-256 `981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975` for external exact-revision rereview.
 3. If approved unchanged, record StegVerse owner freeze attestation against the same exact manifest hash.
 4. Transition only that exact artifact to FROZEN.
 5. Execute both architectures independently against the same frozen definition.
