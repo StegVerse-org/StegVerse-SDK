@@ -9,90 +9,79 @@ repository: StegVerse-org/StegVerse-SDK
 pull request: #94
 branch: test/cross-framework-current-basis-manifest-draft-20260828
 manifest: inspection/examples/cross-framework-current-basis-request.draft.json
-vector schema: stegverse.cross-framework-current-basis-vector.v0.3
-state: DRAFT_PRE_FREEZE / SOURCE_VALIDATION_PENDING
+vector schema: stegverse.cross-framework-current-basis-vector.v0.4
+state: DRAFT_PRE_FREEZE / EXACT-REVISION REREVIEW REQUIRED
 ```
 
-This scoped handoff is the authoritative continuation record for the cross-framework current-basis comparison lane. Live repository state and exact artifact hashes supersede stale conversation or earlier handoff claims for this lane.
+This file is the authoritative continuation record for the cross-framework current-basis comparison lane. Live repository state and exact artifact hashes supersede prior conversation claims and stale v0.2/v0.3 review state.
 
-## Correct temporal receipt model
-
-The test must not require a transition receipt before the transition has been observed.
+## Governing temporal receipt model
 
 ```text
 S0 declaration
--> freeze exact S0 + transition definition + S1 observation definition + comparison boundary
+-> freeze exact S0 + transition definition + neutral S1 observed inputs + derivation rule + comparison boundary
 -> execute architecture A and architecture B independently
--> observe each S1
+-> each architecture derives its own native evaluation representation
+-> observe each S1 and current-basis determination
 -> establish whether each observed S1 transitioned from the exact frozen S0
 -> only then bind the corresponding S0->S1 transition receipt
 -> retain custody/replay/reconstruction evidence
--> compare result semantics, not internal implementation details
+-> compare result semantics, not internals
 ```
 
-An S0 state can be declared and frozen before execution. It does not become receipt-bearing for the S0->S1 transition until S1 is observed and the relationship is established. A transition receipt is therefore post-observation evidence, never a pre-execution input for the transition it proves.
+S0 may be declared and frozen before execution. It does not become receipt-bearing for the S0->S1 transition until S1 is observed and the relationship is established. Independently pre-existing evidence may be frozen as an input when a proposition explicitly depends on that evidence; that is separate from the post-observation transition receipt.
 
-Independently pre-existing evidence may still be frozen as an input when the proposition explicitly depends on that prior evidence. That is different from pre-minting the transition receipt under test.
+## v0.4 execution-input correction
 
-## Correction applied
+External pre-freeze review of v0.3 accepted the temporal receipt correction but identified a remaining ambiguity: architecture-native fields such as `actor_authority_current`, `policy_current`, `delegation_current`, `evidence_current`, and `validity_window_open` could be read as pre-establishing the present-standing/current-basis conclusion that each architecture is supposed to determine independently.
 
-Previous v0.2 manifest identity:
-
-```text
-revision: c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac
-blob: 2dd0468779975d18ad53dfe400e1d2fcf83650c3
-sha256: a7d8f6b5d09fc894f92634e5ee31e82b3297fb453c315160b04aeb28f73b515d
-external review: APPROVED_FOR_HASH_FREEZE
-```
-
-That approval is now stale because v0.3 materially corrects receipt timing semantics.
-
-Current v0.3 manifest identity:
+v0.4 removes those native currentness booleans from the common frozen artifact. The common input now freezes neutral S1 observed-input facts only. Each architecture must independently derive any native currentness/authority/continuity fields required by its own evaluation model. Those derivations are architecture-specific intermediate evidence, not common pre-established conclusions.
 
 ```text
-source correction commit: 910442aa274fdcc8c720b6ae46367295e5c2a895
-blob: 79f1e26a1c34beb0d4d43342d14ea99c5d600bc0
-sha256: 981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975
+v0.4 manifest correction commit: 5a21fc6bdf4a94cfd6c4a4f369a1ba8b86721909
+v0.4 manifest Git blob SHA-1: 59d818a15fc7be732c97dae7d2174d8cfe9a7bab
+v0.4 manifest SHA-256: 07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f
+v0.4 regression-test commit: 2c389a042d0eebd87abdd47a0b311b32ba1ac97b
 freeze state: DRAFT_PRE_FREEZE
-external exact-revision approval: PENDING_REREVIEW
+external exact-v0.4 approval: PENDING
 ```
 
-Hash correction note: the previously recorded v0.3 SHA-256 `ad863e73112c4bd7295cebaa456471335a68f0b7733b80aff6ef167b15e881f4` was a bookkeeping error. The exact repository blob `79f1e26a1c34beb0d4d43342d14ea99c5d600bc0` independently re-materializes to SHA-256 `981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975`; Git blob identity and exact byte content match.
-
-Machine-readable correction evidence:
-
-```text
-evidence/evaluator/cross-framework-current-basis-freeze-gate-2026-08-29.json
-```
-
-The prior `bind_actual_s0_valid_state_receipt_or_equivalent` blocker is explicitly superseded and invalid.
-
-## Installed regression guard
+## Regression guards
 
 ```text
 tests/test_cross_framework_current_basis_manifest.py
 .github/workflows/evaluator-manifest-source-validation.yml
 ```
 
-The regression test requires:
+The v0.4 regression test now requires:
 
-- S0 is not transition-receipt-bearing before S1 observation;
-- no `prior_receipt_ref` is present in S0;
-- the runtime continuity input does not claim a verified previous transition receipt;
-- the S0->S1 receipt is explicitly post-observation evidence;
-- the pre-freeze requirements prohibit requiring that receipt before S1 exists;
-- the post-observation requirements require binding the receipt only after observation;
-- independently pre-existing known-invalidation evidence remains distinguishable from the control transition's own later receipt.
+- no `steggate_request` or equivalent native currentness booleans in the common frozen comparison input;
+- no `actor_authority_current`, `policy_current`, `delegation_current`, `evidence_current`, or `validity_window_open` strings in the common input;
+- S0 remains non-receipt-bearing for S0->S1 before S1 observation;
+- transition receipt remains post-observation evidence;
+- `current_basis_status` remains `TO_BE_DETERMINED_BY_EACH_ARCHITECTURE`;
+- architecture-native currentness fields are independently derived, not common conclusions;
+- known-invalidation evidence remains distinct from the transition receipt.
+
+## Review history
+
+```text
+v0.2: external approval received; superseded by temporal receipt correction
+v0.3: temporal receipt correction externally accepted; hash/freeze approval held on execution-input ambiguity
+v0.4: execution-input ambiguity corrected; exact-revision rereview required
+```
+
+No prior approval is inherited across the material v0.4 manifest change.
 
 ## Current completion gates
 
 ```text
-semantic correction: IMPLEMENTED
-machine-readable correction evidence: IMPLEMENTED
-regression test: IMPLEMENTED
-workflow integration: IMPLEMENTED
-source validation: PENDING_OBSERVABLE_RESULT
-external exact-v0.3 rereview: PENDING
+v0.4 semantic correction: IMPLEMENTED
+v0.4 exact JSON artifact: IMPLEMENTED
+v0.4 deterministic review PDF: IMPLEMENTED / 5 ACTUAL PAGES
+v0.4 regression guard: IMPLEMENTED
+source validation: PENDING OBSERVABLE RESULT
+external exact-v0.4 review: PENDING
 freeze: NO
 independent architecture execution: NO
 transition receipts: NO / correctly post-observation only
@@ -102,17 +91,17 @@ result comparison: NO
 
 ## Next actions
 
-1. Observe the evaluator-manifest source-validation result for the current v0.3 branch head.
-2. Present the exact v0.3 manifest with SHA-256 `981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975` for external exact-revision rereview.
-3. If approved unchanged, record StegVerse owner freeze attestation against the same exact manifest hash.
+1. Observe source validation for the v0.4 branch head.
+2. Send the exact v0.4 review artifact identified by SHA-256 `07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f` for external exact-revision review.
+3. If approved unchanged, record the StegVerse owner freeze attestation against the same exact JSON identity.
 4. Transition only that exact artifact to FROZEN.
-5. Execute both architectures independently against the same frozen definition.
-6. Observe each S1 and only then mint/bind its S0->S1 transition receipt.
-7. Preserve ordinary Master Records custody/replay/reconstruction evidence and compare semantic results.
+5. Open the agreed execution window and execute both architectures independently.
+6. Observe S1 independently and only then mint/bind each S0->S1 transition receipt.
+7. Preserve Master Records custody/replay/reconstruction evidence and compare semantic results.
 
 ## Downstream propagation
 
-After v0.3 passes source validation and exact external rereview, re-check and update only pertinent projections/contracts in:
+After v0.4 passes source validation and exact external review, re-check only pertinent projections/contracts in:
 
 ```text
 StegVerse-Labs/Site
@@ -121,7 +110,7 @@ StegVerse-Labs/admissibility-wiki
 StegVerse-002/stegguardian-wiki
 ```
 
-Do not propagate the stale v0.2 pre-observation receipt requirement.
+Do not propagate stale v0.2/v0.3 pre-observation or pre-established-currentness semantics.
 
 ## Authority boundary
 
@@ -129,6 +118,7 @@ Do not propagate the stale v0.2 pre-observation receipt requirement.
 GitHub source validation != runtime authority
 manifest declaration != execution authority
 freeze != execution
+native derivation != common input conclusion
 transition receipt != pre-execution authority
 post-observation receipt != retroactive permission
 Master Records custody != admissibility
