@@ -478,3 +478,57 @@ stegverse run manifold-governance --input <packet.json>
 The SDK does not define manifold disposition. It maps evaluator packets into canonical StegCore request objects and calls the production manifold-governance runtime. Independent ALLOW branches may proceed toward the separately governed commit boundary while REVIEW branches remain reviewable and dependents remain held. Human-review timing, wall-clock time, and HB cadence are not governance authority.
 
 End-to-end execution of these SDK commands requires an installed canonical StegCore build that contains `govern_manifold_action`. Release/distribution of that StegCore build remains separately governed by StegCore/TV/TVC release authority; SDK validation does not fabricate a release.
+
+
+## Cross-framework current-basis evaluator freeze lane — live reconciliation 2026-08-28
+
+Authoritative working surface:
+
+```text
+repository: StegVerse-org/StegVerse-SDK
+PR: #94
+branch: test/cross-framework-current-basis-manifest-draft-20260828
+artifact: inspection/examples/cross-framework-current-basis-request.draft.json
+exact reviewed revision pending external approval: c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac
+manifest state: DRAFT_PRE_FREEZE
+```
+
+Live verified state:
+
+```text
+semantic correction: IMPLEMENTED
+source validation: VALIDATED
+Evaluator Manifest Source Validation run: 33196691745 SUCCESS
+PR merged: false
+manifest frozen: false
+final artifact SHA-256 recorded: false
+independent comparison execution: NOT EXECUTED
+custody/replay/reconstruction evidence for this comparison: NOT PRESENT
+release/deployment/activation implied: false
+```
+
+External evaluator evidence received off-GitHub and preserved here:
+
+- evaluator confirmed that separating material change from established invalidation addresses the semantic distinction raised in review;
+- evaluator agreed that keeping the unresolved changed-basis case open to independent determination preserves comparison neutrality;
+- evaluator agreed with separate controls for continuity, established invalidation, and unresolved continuity;
+- evaluator stated intent to review exact revision `c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac` before freeze;
+- if that exact revision preserves the stated boundary, the next step is hash/freeze;
+- evaluator explicitly acknowledged that the artifact should remain `DRAFT_PRE_FREEZE` until exact-revision review completes.
+
+The earlier semantic issue is therefore RESOLVED_IN_SOURCE but external exact-revision approval remains PENDING. Do not infer approval from agreement with the conceptual correction.
+
+Remaining gates, in order:
+
+1. external evaluator reviews the exact revision `c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac`;
+2. if approved with no material changes, compute and retain the exact manifest SHA-256 and bind both-party freeze attestations to that exact content;
+3. transition the artifact from `DRAFT_PRE_FREEZE` to `FROZEN` only under that joint gate;
+4. execute each architecture independently against the same frozen definition;
+5. retain each side's observable results/evidence and compare semantics/results rather than internal implementation details;
+6. preserve exact-run custody, replay, reconstruction, and any negative/tamper evidence required by the declared manifest.
+
+Any content change after external approval invalidates that approval for freeze purposes and requires review of the new exact revision.
+
+No credential, WebAuthn, owner-secret entry, provider activation, or physical device action is required for the current pre-freeze review gate. The only current manual/external dependency is the evaluator's exact-revision review/approval. Future execution may inherit its ordinary SDK/TVC/Master-Records runtime authority requirements, but none may be pre-claimed from this draft.
+
+Downstream propagation obligation after this lane becomes release-worthy: re-check StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki, and stegguardian-wiki for only the pertinent contract-level changes. No downstream release/propagation is warranted while the manifest is still DRAFT_PRE_FREEZE.
