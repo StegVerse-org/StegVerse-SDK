@@ -29,6 +29,7 @@ on:
       - docs/EVALUATION_BOUNDARY_LICENSE_ACCESS_NOTES.md
       - tests/test_public_inspection_request.py
       - tests/test_evaluator_manifest_multilane_noninterference.py
+      - tests/test_cross_framework_current_basis_manifest.py
       - tests/test_public_inspection_governed_binding.py
       - tests/test_governance_ingress_runtime.py
       - tests/test_route_resolution.py
@@ -68,6 +69,7 @@ on:
       - docs/EVALUATION_BOUNDARY_LICENSE_ACCESS_NOTES.md
       - tests/test_public_inspection_request.py
       - tests/test_evaluator_manifest_multilane_noninterference.py
+      - tests/test_cross_framework_current_basis_manifest.py
       - tests/test_public_inspection_governed_binding.py
       - tests/test_governance_ingress_runtime.py
       - tests/test_route_resolution.py
@@ -109,6 +111,7 @@ jobs:
           python scripts/validate_public_inspection_request.py inspection/examples/cross-framework-current-basis-request.draft.json
           python -m unittest tests.test_public_inspection_request
           python -m unittest tests.test_evaluator_manifest_multilane_noninterference
+          python -m unittest tests.test_cross_framework_current_basis_manifest
           python -m unittest tests.test_public_inspection_governed_binding
           python -m unittest tests.test_governance_ingress_runtime
           python -m unittest tests.test_route_resolution
