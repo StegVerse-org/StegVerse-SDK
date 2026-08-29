@@ -5,9 +5,9 @@
   "case_profile": "custom-declarative",
   "evaluation_declaration": {
     "what": "Evaluate whether a prior valid determination can independently establish present admissibility after a material governance-relevant state transition.",
-    "how": "Bind the successor-state governance request to the ordinary published SDK route, retain the prior valid-state reference as evidence metadata, attempt continuity through the prior receipt, and require a current-basis determination at the execution boundary.",
-    "why": "Test the cross-framework invariant that historical validity and provenance do not silently confer continuing present authority after a material state change.",
-    "expected_observation": "The prior valid determination is preserved as history but does not independently establish current admissibility after the declared material transition.",
+    "how": "Freeze the declared S0 state, transition definition, observation criteria, and evidence requirements before execution; execute each architecture independently; observe S1; only after observing that S1 transitioned from the frozen S0 may the S0→S1 transition become receipt-bearing.",
+    "why": "Test the cross-framework invariant that historical validity and provenance do not silently confer continuing present authority after a material state change, without pre-asserting transition evidence that can exist only after observation.",
+    "expected_observation": "Each architecture independently determines current standing at S1 from the same frozen S0 and transition definition; the resulting S0→S1 relationship is receipted only after the S1 observation establishes that transition.",
     "requested_capabilities": [
       "commit_time_admissibility",
       "bounded_consequence",
@@ -42,7 +42,7 @@
         "target": "cross-framework-current-basis-vector",
         "scope": "evaluation",
         "parameters": {
-          "vector_id": "current-basis-transition-v0.2"
+          "vector_id": "current-basis-transition-v0.3"
         }
       },
       "judgment": {
@@ -81,16 +81,16 @@
         "delegation_ref": "delegation:s1",
         "evidence_refs": [
           "execution:s1-current",
-          "history:s0-valid-determination"
+          "state:s0-declared-valid"
         ]
       },
       "capability": {
         "allowed": true
       },
       "continuity": {
-        "required": true,
-        "previous_receipt_verified": true,
-        "previous_receipt_hash": "receipt:s0-valid"
+        "required": false,
+        "previous_receipt_verified": false,
+        "previous_receipt_hash": "UNAVAILABLE_BEFORE_S1_OBSERVATION"
       },
       "approval": {
         "required": false
@@ -98,20 +98,21 @@
       "permission_present": false
     },
     "input_data": {
-      "vector_schema": "stegverse.cross-framework-current-basis-vector.v0.2",
+      "vector_schema": "stegverse.cross-framework-current-basis-vector.v0.3",
       "freeze_state": "DRAFT_PRE_FREEZE",
       "initial_state": {
         "state_id": "S0",
-        "standing": "VALID",
-        "prior_determination": "VALID",
-        "prior_receipt_ref": "receipt:s0-valid"
+        "standing": "DECLARED_VALID_FOR_TEST",
+        "prior_determination": "DECLARED_VALID_FOR_TEST",
+        "receipt_state": "NOT_RECEIPT_BEARING_PRE_OBSERVATION"
       },
       "transition": {
         "transition_id": "DELTA-S0-S1",
         "materiality": "MATERIAL",
         "changed_condition": "CURRENT_POLICY_BASIS_CHANGED",
         "invalidation_asserted_as_input": false,
-        "transition_semantics": "MATERIAL_CHANGE_REQUIRING_CURRENT_BASIS_EVALUATION"
+        "transition_semantics": "MATERIAL_CHANGE_REQUIRING_CURRENT_BASIS_EVALUATION",
+        "receipt_semantics": "S0_TO_S1_RECEIPT_IS_POST_OBSERVATION_EVIDENCE"
       },
       "successor_state": {
         "state_id": "S1",
@@ -121,12 +122,19 @@
       },
       "normative_invariant": "PRIOR_VALIDITY_MUST_NOT_SILENTLY_ESTABLISH_PRESENT_ADMISSIBILITY_AFTER_MATERIAL_CHANGE",
       "pre_freeze_requirements": [
-        "bind an actual S0 valid-state receipt or equivalent independently verifiable evidence",
-        "freeze exact S0 and S1 state descriptions",
+        "freeze exact S0 declaration and S1 observation definition",
         "freeze material transition definition without treating change itself as proof of invalidation",
         "freeze observable outputs and evidence requirements",
         "freeze semantic pass-fail interpretation before either implementation executes",
-        "freeze any evidence used to establish known invalidation in the known-invalidation control"
+        "do not require or assert an S0-to-S1 transition receipt before S1 is observed",
+        "freeze any evidence that independently predates the experiment and is explicitly used as an input condition"
+      ],
+      "post_observation_requirements": [
+        "observe S1 independently for each architecture",
+        "establish whether the observed S1 transitioned from the exact frozen S0 under the frozen transition definition",
+        "only after that observation bind the S0-to-S1 transition receipt",
+        "retain architecture-specific execution evidence without allowing either architecture to consume the other's result",
+        "compare resulting semantics against the frozen comparison boundary"
       ],
       "comparison_boundary": {
         "native_result_labels_may_differ": true,
@@ -134,21 +142,23 @@
         "evaluator_identity_is_not_a_decision_input": true,
         "expected_observation_is_not_a_decision_input": true,
         "primary_vector_does_not_assert_invalidation": true,
-        "current_standing_is_independently_determined": true
+        "current_standing_is_independently_determined": true,
+        "transition_receipt_is_not_a_pre_execution_input": true
       },
       "controls": [
         {
           "control_id": "VALID_CONTINUITY_CONTROL",
           "purpose": "Confirm that continuity can remain valid when the governing basis remains materially continuous and current.",
           "basis_condition": "CURRENT_POLICY_BASIS_UNCHANGED_AND_CURRENT",
-          "prior_invalidation_established": false
+          "prior_invalidation_established": false,
+          "receipt_semantics": "Any transition receipt is bound after the control transition is observed."
         },
         {
           "control_id": "KNOWN_INVALIDATION_CONTROL",
-          "purpose": "Confirm that an already-established material invalidation is not silently overridden by prior valid history.",
+          "purpose": "Confirm that an independently established invalidation condition is not silently overridden by declared prior valid history.",
           "basis_condition": "CURRENT_POLICY_BASIS_INVALIDATED",
           "prior_invalidation_established": true,
-          "freeze_requirement": "Evidence establishing invalidation must be frozen as part of S1."
+          "freeze_requirement": "Only independently pre-existing evidence used to establish the invalidation condition is frozen as an input; the control's own transition receipt is minted after observation."
         }
       ]
     }
@@ -156,5 +166,5 @@
   "return_projection": "ALL",
   "manifest_labels": true,
   "authority_claim": false,
-  "notes": "DRAFT_PRE_FREEZE revision v0.2. Neutral cross-framework state-transition manifest amended after external evaluator review: material policy-basis change is distinct from established invalidation; the primary vector does not assert invalidation as an input conclusion. No evaluator-specific route or runtime augmentation is requested."
+  "notes": "DRAFT_PRE_FREEZE revision v0.3. Corrects temporal receipt semantics: S0 is a frozen declared initial state and cannot be made receipt-bearing for S0→S1 before S1 is observed. The transition receipt is post-observation evidence. Material policy-basis change remains distinct from established invalidation. No evaluator-specific route or runtime augmentation is requested."
 }
