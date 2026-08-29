@@ -273,3 +273,28 @@ claim: MACHINE_OWNED / no active implementation claimant
 The communication-edge SDK work is durable in its source, package command, public guide, workflow, task-specific handoff, and observed validation runs. Future communication runtime activation must continue from StegTalk/StegWhisper/KnowledgeVault rather than treating SDK conformance as physical execution.
 
 The shared Health/Neuro device-substrate requirement and whole-nervous-system profile scope remain durable in `docs/BIOINTERFACE_DEVICE_SDK_CONVERGENCE.md` and issue #13. Future implementation must proceed from the issue and this handoff.
+
+
+## Active cross-framework current-basis evaluator review lane — 2026-08-28
+
+```text
+PR: #94
+branch: test/cross-framework-current-basis-manifest-draft-20260828
+exact head: c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac
+manifest: inspection/examples/cross-framework-current-basis-request.draft.json
+manifest blob: 2dd0468779975d18ad53dfe400e1d2fcf83650c3
+vector schema: stegverse.cross-framework-current-basis-vector.v0.2
+state: DRAFT_PRE_FREEZE
+source validation: 33196691745 SUCCESS
+external approval: NONE
+StegVerse freeze attestation: NONE
+frozen: NO
+executed: NO
+results: NONE
+```
+
+External evaluator feedback corrected the original draft so material policy-basis change is not treated as already-established invalidation. The current primary vector declares `CURRENT_POLICY_BASIS_CHANGED`, `invalidation_asserted_as_input=false`, independent S1 current-basis determination, and explicit `VALID_CONTINUITY_CONTROL` / `KNOWN_INVALIDATION_CONTROL`; known invalidation requires its establishing evidence to be frozen with S1.
+
+Human review is provided through the non-authorizing Site evaluator-review front end. Site PR #576 implemented/validated/merged the generic UI; Site PR #590 validated/merged the exact v0.2 public projection as `dd7e6d5685abea6c87429e90e36b1069bd9c9b9d`. Public-route observation remains pending. Site never becomes test, approval, freeze, execution, credential, custody, replay, or reconstruction authority.
+
+Next boundary: observe the public Site v0.2 projection; external evaluator reviews exact PR #94 head above; any content change invalidates approval for freeze purposes; only matching exact-revision/hash approvals may proceed to canonical freeze, followed by independent execution and ordinary TV/TVC + Master Records evidence/custody boundaries.
