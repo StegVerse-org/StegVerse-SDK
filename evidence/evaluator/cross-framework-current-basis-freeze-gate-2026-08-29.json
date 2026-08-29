@@ -1,0 +1,62 @@
+{
+  "schema": "stegverse.sdk.evaluator-freeze-gate.v1",
+  "record_id": "cross-framework-current-basis-001-freeze-gate-20260829",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "pull_request": 94,
+  "reviewed_revision": "c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac",
+  "reviewed_manifest_path": "inspection/examples/cross-framework-current-basis-request.draft.json",
+  "reviewed_manifest_blob_sha1": "2dd0468779975d18ad53dfe400e1d2fcf83650c3",
+  "reviewed_manifest_sha256": "a7d8f6b5d09fc894f92634e5ee31e82b3297fb453c315160b04aeb28f73b515d",
+  "reviewed_manifest_state": "DRAFT_PRE_FREEZE",
+  "approval_gate": {
+    "external_evaluator": {
+      "state": "APPROVED_EXACT_REVISION_FOR_HASH_FREEZE",
+      "observed_at": "2026-08-29",
+      "evidence_source": "user-provided LinkedIn review screenshot in active control session",
+      "exact_revision_acknowledged": true,
+      "summary": "External evaluator stated that the revised manifest resolves the pre-freeze concern and approved exact revision c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac for the hash/freeze step."
+    },
+    "stegverse_operator": {
+      "state": "AUTHORIZED_HASH_FREEZE_PROGRESSION",
+      "observed_at": "2026-08-29",
+      "evidence_source": "active StegVerse control session",
+      "summary": "Operator explicitly instructed the system to proceed with the approved hash/freeze step."
+    }
+  },
+  "immutable_identity_gate": {
+    "exact_reviewed_content_sha256_recorded": true,
+    "exact_reviewed_git_blob_recorded": true,
+    "approval_revision_matches_reviewed_revision": true,
+    "content_change_after_approval_detected": false
+  },
+  "pre_freeze_requirements": {
+    "bind_actual_s0_valid_state_receipt_or_equivalent": {
+      "state": "BLOCKED",
+      "observed_manifest_reference": "receipt:s0-valid",
+      "reason": "The reviewed manifest contains a symbolic receipt reference; no actual S0 valid-state receipt or independently verifiable equivalent was located in the authoritative SDK repository evidence surfaces during this progression."
+    },
+    "freeze_exact_s0_s1_state_descriptions": {
+      "state": "READY_FROM_APPROVED_MANIFEST"
+    },
+    "freeze_material_transition_definition": {
+      "state": "READY_FROM_APPROVED_MANIFEST"
+    },
+    "freeze_observable_outputs_and_evidence_requirements": {
+      "state": "READY_FROM_APPROVED_MANIFEST"
+    },
+    "freeze_semantic_pass_fail_interpretation": {
+      "state": "READY_FROM_APPROVED_MANIFEST"
+    },
+    "freeze_known_invalidation_evidence": {
+      "state": "CONDITIONAL_BLOCK",
+      "reason": "KNOWN_INVALIDATION_CONTROL requires establishing invalidation evidence to be frozen with S1 when that control is instantiated; no such exact evidence object is yet bound."
+    }
+  },
+  "canonical_freeze_state": "HASH_BOUND_APPROVAL_RECORDED_FREEZE_BLOCKED",
+  "final_frozen_manifest_sha256": null,
+  "frozen_artifact_created": false,
+  "execution_permitted": false,
+  "next_machine_action": "Bind an actual S0 valid-state receipt or independently verifiable equivalent, bind any required known-invalidation evidence object, then derive and hash the FROZEN artifact without changing approved evaluation semantics.",
+  "authority_effect": "NONE",
+  "activation_effect": false
+}
