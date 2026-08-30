@@ -6,6 +6,7 @@ from stegverse.evaluator_review_intr import (
     EvaluatorReviewInTrError,
     REQUEST_SCHEMA,
     admit_evaluator_review_request,
+    execute_admitted_demo_test,
 )
 
 
@@ -63,3 +64,37 @@ def test_rejects_invalid_manifest_hash():
     bad["bindings"] = dict(bad["bindings"], manifest_hash="not-a-hash")
     with pytest.raises(EvaluatorReviewInTrError, match="64 lowercase hex"):
         admit_evaluator_review_request(bad)
+
+
+def test_executes_current_basis_through_existing_sdk_surface(monkeypatch):
+    from stegverse import current_basis as current_basis_module
+
+    calls = []
+
+    def fake_evaluate(packet):
+        calls.append(packet)
+        return {"schema": "stegverse.sdk-current-basis-result.v1", "result": {"ok": True}}
+
+    monkeypatch.setattr(current_basis_module, "evaluate_current_basis", fake_evaluate)
+
+    value = request(
+        operation="EXECUTE",
+        payload={
+            "testId": "cross-framework-current-basis-001",
+            "revision": 4,
+            "manifestHash": "a" * 64,
+            "surface": "current-basis",
+            "packet": {"schema": "stegverse.sdk-current-basis-test.v1"},
+        },
+        bindings={
+            "test_id": "cross-framework-current-basis-001",
+            "revision": 4,
+            "manifest_hash": "a" * 64,
+        },
+    )
+    result = execute_admitted_demo_test(value)
+    assert result["surface"] == "current-basis"
+    assert result["sdk_grants_authority"] is False
+    assert result["sdk_mints_intr_receipt"] is False
+    assert result["result"]["result"]["ok"] is True
+    assert calls == [{"schema": "stegverse.sdk-current-basis-test.v1"}]
