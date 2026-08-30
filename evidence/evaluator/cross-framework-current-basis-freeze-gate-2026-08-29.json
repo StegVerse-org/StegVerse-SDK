@@ -3,52 +3,52 @@
   "record_id": "cross-framework-current-basis-001-freeze-gate-20260829",
   "repository": "StegVerse-org/StegVerse-SDK",
   "pull_request": 94,
-  "status": "CORRECTED_TEMPORAL_RECEIPT_SEMANTICS",
-  "correction": {
-    "reason": "The prior gate incorrectly treated an S0→S1 transition receipt as a pre-freeze input. A transition receipt can only be bound after S1 is observed and the S0→S1 transition is thereby established.",
-    "supersedes_prior_blocker": "bind_actual_s0_valid_state_receipt_or_equivalent",
-    "prior_blocker_valid": false,
-    "correct_rule": "Freeze the S0 declaration, transition definition, S1 observation definition, observables, evidence requirements, and semantic comparison boundary before execution. Observe S1 independently. Only then bind the S0→S1 transition receipt as output evidence.",
-    "operator_correction_observed_at": "2026-08-29"
-  },
-  "previous_reviewed_revision": "c9b8935309e69d3a6f70e4ad4ef5dd55fb8a9aac",
-  "previous_reviewed_manifest_blob_sha1": "2dd0468779975d18ad53dfe400e1d2fcf83650c3",
-  "previous_reviewed_manifest_sha256": "a7d8f6b5d09fc894f92634e5ee31e82b3297fb453c315160b04aeb28f73b515d",
-  "previous_external_approval": {
-    "state": "SUPERSEDED_BY_CONTENT_CHANGE",
-    "reason": "Revision v0.3 changes the manifest's temporal receipt semantics. Exact-revision approval for v0.2 cannot be carried forward automatically."
+  "status": "V0_4_EXTERNAL_EXACT_IDENTITY_APPROVED_SOURCE_VALIDATION_PENDING",
+  "review_history": {
+    "v0.2": "EXTERNAL_APPROVAL_SUPERSEDED_BY_CONTENT_CHANGE",
+    "v0.3": "TEMPORAL_RECEIPT_CORRECTION_ACCEPTED_FREEZE_HELD_ON_EXECUTION_INPUT_AMBIGUITY",
+    "v0.4": "EXECUTION_INPUT_AMBIGUITY_CORRECTED_AND_EXACT_IDENTITY_APPROVED"
   },
   "current_manifest": {
     "path": "inspection/examples/cross-framework-current-basis-request.draft.json",
-    "vector_schema": "stegverse.cross-framework-current-basis-vector.v0.3",
-    "git_blob_sha1": "79f1e26a1c34beb0d4d43342d14ea99c5d600bc0",
-    "sha256": "981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975",
-    "source_commit": "910442aa274fdcc8c720b6ae46367295e5c2a895",
-    "freeze_state": "DRAFT_PRE_FREEZE"
+    "vector_schema": "stegverse.cross-framework-current-basis-vector.v0.4",
+    "git_blob_sha1": "59d818a15fc7be732c97dae7d2174d8cfe9a7bab",
+    "sha256": "07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f",
+    "source_commit": "5a21fc6bdf4a94cfd6c4a4f369a1ba8b86721909",
+    "embedded_snapshot_label": "DRAFT_PRE_FREEZE",
+    "identity_must_remain_unchanged": true
   },
-  "hash_identity_correction": {
-    "previously_recorded_sha256": "ad863e73112c4bd7295cebaa456471335a68f0b7733b80aff6ef167b15e881f4",
-    "previous_value_valid": false,
-    "correct_sha256": "981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975",
-    "verification": "Exact bytes reproduce Git blob SHA-1 79f1e26a1c34beb0d4d43342d14ea99c5d600bc0 and SHA-256 981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975."
+  "external_exact_revision_approval": {
+    "state": "APPROVED_FOR_HASH_FREEZE",
+    "reviewer": "Richard Colimon",
+    "review_channel": "LinkedIn direct message",
+    "observed_at_local": "2026-08-29T19:08:00-05:00",
+    "owner_supplied_screenshot_evidence": true,
+    "approved_sha256": "07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f",
+    "approved_git_blob_sha1": "59d818a15fc7be732c97dae7d2174d8cfe9a7bab",
+    "approval_scope": "EXACT_UNCHANGED_JSON_IDENTITY_ONLY",
+    "reviewer_statement_summary": "v0.4 resolves the remaining pre-freeze concern; neutral S1 observed-input facts no longer pre-establish architecture-native currentness, authority, delegation, evidence-currentness, validity-window, continuity, or present-standing conclusions; each architecture derives those independently. Earlier temporal receipt and material-change controls remain intact."
   },
   "receipt_model": {
     "s0_pre_observation": "DECLARED_AND_FROZEN_NOT_TRANSITION_RECEIPT_BEARING",
-    "s1_pre_execution": "OBSERVATION_DEFINITION_ONLY",
+    "s1_common_input": "NEUTRAL_OBSERVED_FACTS_ONLY",
+    "architecture_native_currentness": "INDEPENDENTLY_DERIVED_PER_ARCHITECTURE",
     "s0_to_s1_transition_receipt": "POST_OBSERVATION_OUTPUT",
     "transition_receipt_consumed_as_pre_execution_input": false,
     "independently_preexisting_evidence_may_be_frozen_as_input": true
   },
   "freeze_gate": {
-    "external_exact_revision_approval": "PENDING_REREVIEW_V0_3",
-    "stegverse_operator_acceptance": "CURRENT_CORRECTION_AUTHORIZED",
+    "external_exact_revision_approval": "SATISFIED_V0_4",
     "exact_manifest_sha256_recorded": true,
-    "unresolved_requested_changes": "UNKNOWN_UNTIL_REREVIEW",
+    "exact_manifest_git_blob_recorded": true,
+    "unresolved_external_requested_changes": false,
+    "source_validation": "PENDING_OBSERVABLE_RESULT",
+    "stegverse_owner_freeze_attestation": "PENDING_AFTER_SOURCE_VALIDATION",
     "eligible_to_mark_frozen": false,
-    "reason_not_frozen": "The semantic correction changes the exact reviewed manifest. External exact-revision approval must be renewed for v0.3; there is no longer an S0-receipt prerequisite."
+    "reason_not_frozen": "External exact-v0.4 approval is satisfied, but the scoped handoff still requires an observable source-validation result before owner freeze attestation. No manifest mutation is permitted because approval is bound to the exact unchanged JSON identity."
   },
   "execution_permitted": false,
-  "next_machine_action": "Present the exact v0.3 artifact with SHA-256 981df7cf06c319b8c363542e114f5955e0ad75097469d129c6a9b0e8a8597975 for external exact-revision rereview. If approved unchanged, record owner freeze attestation, mark the exact artifact FROZEN, and execute each architecture independently. Mint transition receipts only after observing each S1 result.",
+  "next_machine_action": "Obtain an observable source-validation result for the exact v0.4 manifest identity. If source validation passes, record StegVerse owner freeze attestation against SHA-256 07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f without modifying the manifest, mark that exact identity FROZEN in external evidence, then open the independent execution window.",
   "authority_effect": "NONE",
   "activation_effect": false
 }
