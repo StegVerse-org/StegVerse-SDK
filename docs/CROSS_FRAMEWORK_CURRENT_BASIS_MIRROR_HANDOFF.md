@@ -6,8 +6,9 @@ Updated: 2026-08-29
 
 ```text
 repository: StegVerse-org/StegVerse-SDK
-pull request: #94
-branch: test/cross-framework-current-basis-manifest-draft-20260828
+freeze/review pull request: #94
+execution integration branch: feat/cross-framework-v04-execution-20260829
+frozen-source branch: test/cross-framework-current-basis-manifest-draft-20260828
 manifest: inspection/examples/cross-framework-current-basis-request.draft.json
 vector schema: stegverse.cross-framework-current-basis-vector.v0.4
 state: EXACT_V0_4_FROZEN / COMMON_EXECUTION_WINDOW_OPEN
@@ -195,3 +196,59 @@ retention: 90 days
 Publication is fail-closed. The packet cannot be published as successful unless `RUN_COMPLETE.json` binds the exact frozen v0.4 SHA-256 and Git blob identity and asserts completed independent execution, S1 observation, post-observation transition-receipt binding, custody, replay, and reconstruction. The packager independently recomputes the frozen manifest SHA-256 and inventories every attached file with its own SHA-256.
 
 GitHub Actions is distribution/verification only for this surface. It does not execute governance, mint the transition receipt, create runtime authority, or replace Master Records custody. The intended external handoff after authentic completion is: resultant packet + successful Actions-run link + attached `cross-framework-current-basis-v0.4-results` artifact.
+
+
+## Execution integration continuation — 2026-08-29
+
+The frozen v0.4 source identity remains unchanged and continues to be rooted in PR #94. A fresh execution-integration branch was created from current SDK main because the original freeze branch predates the merged evaluator Interlock/InTr ingress and cannot be cleanly synchronized without conflicts.
+
+```text
+execution branch: feat/cross-framework-v04-execution-20260829
+current main parent: fdf15f110fd407c8c63943ab5bb1e2c43d032237
+frozen manifest bytes: unchanged
+frozen manifest SHA-256: 07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f
+frozen manifest Git blob: 59d818a15fc7be732c97dae7d2174d8cfe9a7bab
+```
+
+New execution surfaces on this branch:
+
+```text
+StegCore issue #161 / PR #162:
+  src/stegcore/current_basis.py
+  tests/test_current_basis.py
+
+SDK:
+  stegverse/current_basis.py
+  stegverse/evaluator_review_intr.py -> current-basis surface
+  stegverse/sovereign_validation_runtime.py -> derived native request support
+  scripts/run_cross_framework_current_basis_v04.py
+  tests/test_current_basis_sdk.py
+  tests/test_cross_framework_current_basis_run.py
+  tests/test_evaluator_review_intr.py
+  pyproject.toml current-basis-test exact dependency set
+```
+
+The exact execution harness:
+1. re-hashes the frozen manifest bytes and Git blob identity;
+2. loads the unchanged neutral v0.4 vector;
+3. asks canonical StegCore to derive its native AdmissibilityRequest;
+4. sends that derived native request through the existing canonical SDK sovereign route while retaining the unchanged frozen manifest as the submitted comparison source;
+5. requires canonical StegCore chain verification, transaction-identity continuity, and Master Records custody;
+6. independently verifies the manifest/request/result binding tuple;
+7. only after S1 observation creates the S0->S1 evidence receipt bound to the exact governed result and Master Records locator;
+8. records reconstruction and replay as separately custodied operations and prohibits replay consequence re-execution;
+9. writes RUN_COMPLETE.json only after all required evidence gates pass;
+10. allows the already-prepared GitHub Actions publication workflow to verify/package the completed evidence without becoming runtime authority.
+
+Current state:
+
+```text
+StegCore native derivation source: IMPLEMENTED ON PR #162 / VALIDATION PENDING
+SDK thin client: IMPLEMENTED ON EXECUTION BRANCH
+SDK InTr current-basis routing: IMPLEMENTED ON EXECUTION BRANCH
+exact sovereign run harness: IMPLEMENTED ON EXECUTION BRANCH
+source validation workflow integration: IMPLEMENTED ON EXECUTION BRANCH
+authentic independent StegVerse run: NOT YET OBSERVED
+RUN_COMPLETE.json: NOT PRESENT
+artifact publication action: NOT YET ELIGIBLE
+```
