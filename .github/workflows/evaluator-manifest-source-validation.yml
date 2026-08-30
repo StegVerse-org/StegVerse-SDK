@@ -123,7 +123,7 @@ jobs:
           python scripts/validate_public_inspection_request.py inspection/examples/cross-framework-current-basis-request.draft.json
           python -m unittest tests.test_public_inspection_request
           python -m unittest tests.test_evaluator_manifest_multilane_noninterference
-          python -m unittest tests.test_cross_framework_current_basis_manifest
+          python -m pytest -q tests/test_cross_framework_current_basis_manifest.py
           python -m pytest -q tests/test_current_basis_sdk.py tests/test_cross_framework_current_basis_run.py tests/test_evaluator_review_intr.py
           python -m unittest tests.test_public_inspection_governed_binding
           python -m unittest tests.test_governance_ingress_runtime
