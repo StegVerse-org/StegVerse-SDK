@@ -47,6 +47,32 @@ def _write(path: Path, value: Mapping[str, Any]) -> None:
     path.write_text(json.dumps(dict(value), indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def _portable_replay_reference(manifest_receipt_id: str) -> str:
+    return f"stegverse-replay:v1:{manifest_receipt_id}:{EXPECTED_MANIFEST_SHA256}"
+
+
+def _replay_reference_text(
+    *,
+    manifest_receipt_id: str,
+    transition_receipt: Mapping[str, Any],
+    sovereign_result: Mapping[str, Any],
+) -> str:
+    portable = _portable_replay_reference(manifest_receipt_id)
+    lines = (
+        f"TEST_ID={TEST_ID}",
+        f"MANIFEST_RECEIPT_ID={manifest_receipt_id}",
+        f"MANIFEST_SHA256={EXPECTED_MANIFEST_SHA256}",
+        f"MANIFEST_GIT_BLOB_SHA1={EXPECTED_MANIFEST_GIT_BLOB_SHA1}",
+        f"TRANSITION_ID={transition_receipt.get('transition_id')}",
+        f"TRANSITION_RECEIPT_HASH={transition_receipt.get('receipt_hash')}",
+        f"STEGVERSE_RESULT_SHA256={_sha256_value(sovereign_result)}",
+        f"PORTABLE_REPLAY_REFERENCE={portable}",
+        f"REPLAY_REFERENCE={manifest_receipt_id}",
+        f"RECONSTRUCTION_REFERENCE={manifest_receipt_id}",
+    )
+    return "\n".join(lines) + "\n"
+
+
 def _load_manifest(path: Path) -> dict[str, Any]:
     if not path.is_file():
         raise CrossFrameworkExecutionError(f"frozen manifest not found: {path}")
@@ -160,11 +186,19 @@ def execute(
     if not replay_recorded or not reconstruction_recorded:
         raise CrossFrameworkExecutionError("replay/reconstruction operation custody is incomplete")
 
+    portable_replay_reference = _portable_replay_reference(manifest_receipt_id)
+    replay_reference_text = _replay_reference_text(
+        manifest_receipt_id=manifest_receipt_id,
+        transition_receipt=transition_receipt,
+        sovereign_result=sovereign_result,
+    )
+
     _write(output_dir / "STEGVERSE_RESULT.json", sovereign_result)
     _write(output_dir / "S1_OBSERVATION.json", s1_observation)
     _write(output_dir / "S0_S1_TRANSITION_RECEIPT.json", transition_receipt)
     _write(output_dir / "REPLAY.json", replay)
     _write(output_dir / "RECONSTRUCTION.json", reconstruction)
+    (output_dir / "REPLAY_REFERENCE.txt").write_text(replay_reference_text, encoding="utf-8")
 
     complete = {
         "schema": "stegverse.sdk.cross-framework-run-complete.v1",
@@ -174,6 +208,8 @@ def execute(
         "manifest_sha256": EXPECTED_MANIFEST_SHA256,
         "manifest_git_blob_sha1": EXPECTED_MANIFEST_GIT_BLOB_SHA1,
         "manifest_receipt_id": manifest_receipt_id,
+        "portable_replay_reference": portable_replay_reference,
+        "replay_reference_artifact": "REPLAY_REFERENCE.txt",
         "independent_execution_complete": True,
         "counterpart_result_consumed_before_completion": False,
         "s1_observed": True,

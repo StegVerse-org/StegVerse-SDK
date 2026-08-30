@@ -9,6 +9,7 @@ from typing import Any
 
 EXPECTED_MANIFEST_SHA256 = "07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f"
 EXPECTED_MANIFEST_BLOB_SHA1 = "59d818a15fc7be732c97dae7d2174d8cfe9a7bab"
+TEST_ID = "cross-framework-current-basis-001"
 
 REQUIRED_COMPLETE_FLAGS = {
     "independent_execution_complete": True,
@@ -27,6 +28,7 @@ REQUIRED_EVIDENCE_FILES = (
     "S0_S1_TRANSITION_RECEIPT.json",
     "REPLAY.json",
     "RECONSTRUCTION.json",
+    "REPLAY_REFERENCE.txt",
     "RUN_COMPLETE.json",
 )
 
@@ -39,11 +41,40 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def _canonical_value_sha256(value: Any) -> str:
+    payload = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+        default=str,
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise ValueError(f"{path} must contain a JSON object")
     return value
+
+
+def _parse_reference_text(path: Path) -> dict[str, str]:
+    parsed: dict[str, str] = {}
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if "=" not in line:
+            raise RuntimeError("REPLAY_REFERENCE.txt contains a non-copyable line")
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if not key or not value:
+            raise RuntimeError("REPLAY_REFERENCE.txt contains an empty key or value")
+        parsed[key] = value
+    return parsed
 
 
 def package_results(*, result_dir: Path, manifest_path: Path, output_dir: Path) -> dict[str, Any]:
@@ -71,10 +102,12 @@ def package_results(*, result_dir: Path, manifest_path: Path, output_dir: Path) 
     if missing:
         raise RuntimeError("result directory missing required authentic evidence: " + ",".join(missing))
 
+    stegverse_result = _load_json(result_dir / "STEGVERSE_RESULT.json")
     s1 = _load_json(result_dir / "S1_OBSERVATION.json")
     transition = _load_json(result_dir / "S0_S1_TRANSITION_RECEIPT.json")
     replay = _load_json(result_dir / "REPLAY.json")
     reconstruction = _load_json(result_dir / "RECONSTRUCTION.json")
+    replay_reference = _parse_reference_text(result_dir / "REPLAY_REFERENCE.txt")
 
     if s1.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256 or s1.get("s1_observed") is not True:
         raise RuntimeError("S1 observation is not bound to the frozen v0.4 run")
@@ -86,14 +119,38 @@ def package_results(*, result_dir: Path, manifest_path: Path, output_dir: Path) 
         raise RuntimeError("transition receipt is not post-observation evidence")
     if transition.get("receipt_hash") != complete.get("transition_receipt_hash"):
         raise RuntimeError("RUN_COMPLETE transition receipt hash mismatch")
-    if not str(complete.get("manifest_receipt_id") or "").strip():
+
+    manifest_receipt_id = str(complete.get("manifest_receipt_id") or "").strip()
+    if not manifest_receipt_id:
         raise RuntimeError("RUN_COMPLETE missing manifest_receipt_id")
+    if stegverse_result.get("manifest_receipt_id") != manifest_receipt_id:
+        raise RuntimeError("STEGVERSE_RESULT manifest_receipt_id mismatch")
+    portable_reference = f"stegverse-replay:v1:{manifest_receipt_id}:{EXPECTED_MANIFEST_SHA256}"
+    if complete.get("portable_replay_reference") != portable_reference:
+        raise RuntimeError("RUN_COMPLETE portable replay reference mismatch")
+    if complete.get("replay_reference_artifact") != "REPLAY_REFERENCE.txt":
+        raise RuntimeError("RUN_COMPLETE replay reference artifact mismatch")
+
+    expected_reference_values = {
+        "TEST_ID": TEST_ID,
+        "MANIFEST_RECEIPT_ID": manifest_receipt_id,
+        "MANIFEST_SHA256": EXPECTED_MANIFEST_SHA256,
+        "MANIFEST_GIT_BLOB_SHA1": EXPECTED_MANIFEST_BLOB_SHA1,
+        "TRANSITION_ID": str(transition.get("transition_id") or "").strip(),
+        "TRANSITION_RECEIPT_HASH": str(transition.get("receipt_hash") or "").strip(),
+        "STEGVERSE_RESULT_SHA256": _canonical_value_sha256(stegverse_result),
+        "PORTABLE_REPLAY_REFERENCE": portable_reference,
+        "REPLAY_REFERENCE": manifest_receipt_id,
+        "RECONSTRUCTION_REFERENCE": manifest_receipt_id,
+    }
+    for key, expected in expected_reference_values.items():
+        if not expected or replay_reference.get(key) != expected:
+            raise RuntimeError(f"REPLAY_REFERENCE.txt mismatch: {key}")
+
     if replay.get("operation_transition_custody_status") != "RECORDED":
         raise RuntimeError("replay custody evidence is not recorded")
     if reconstruction.get("operation_transition_custody_status") != "RECORDED":
         raise RuntimeError("reconstruction custody evidence is not recorded")
-
-    files = sorted(path for path in result_dir.rglob("*") if path.is_file())
 
     if output_dir.exists():
         shutil.rmtree(output_dir)
@@ -109,10 +166,13 @@ def package_results(*, result_dir: Path, manifest_path: Path, output_dir: Path) 
 
     index = {
         "schema": "stegverse.sdk.cross-framework-result-publication.v1",
-        "test_id": "cross-framework-current-basis-001",
+        "test_id": TEST_ID,
         "vector_schema": "stegverse.cross-framework-current-basis-vector.v0.4",
         "frozen_manifest_sha256": EXPECTED_MANIFEST_SHA256,
         "frozen_manifest_git_blob_sha1": EXPECTED_MANIFEST_BLOB_SHA1,
+        "manifest_receipt_id": manifest_receipt_id,
+        "portable_replay_reference": portable_reference,
+        "copy_paste_reference_artifact": "run-evidence/REPLAY_REFERENCE.txt",
         "publication_role": "VERIFICATION_AND_DISTRIBUTION_ONLY",
         "github_actions_runtime_authority": False,
         "files": indexed,
