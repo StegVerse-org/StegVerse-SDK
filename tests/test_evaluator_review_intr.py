@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import pytest
 
 from stegverse.evaluator_review_intr import (
@@ -17,16 +19,8 @@ def request(**overrides):
         "operation": "APPROVE",
         "authority_ref": "opaque-authority-ref",
         "transport": "InTr",
-        "payload": {
-            "testId": "t1",
-            "revision": 4,
-            "manifestHash": "a" * 64,
-        },
-        "bindings": {
-            "test_id": "t1",
-            "revision": 4,
-            "manifest_hash": "a" * 64,
-        },
+        "payload": {"testId": "t1", "revision": 4, "manifestHash": "a" * 64},
+        "bindings": {"test_id": "t1", "revision": 4, "manifest_hash": "a" * 64},
         "authority_transfer": False,
     }
     payload.update(overrides)
@@ -66,16 +60,12 @@ def test_rejects_invalid_manifest_hash():
         admit_evaluator_review_request(bad)
 
 
-def test_executes_current_basis_through_existing_sdk_surface(monkeypatch):
-    from stegverse import current_basis as current_basis_module
-
+def test_executes_current_basis_through_existing_sdk_surface():
     calls = []
 
     def fake_evaluate(packet):
         calls.append(packet)
         return {"schema": "stegverse.sdk-current-basis-result.v1", "result": {"ok": True}}
-
-    monkeypatch.setattr(current_basis_module, "evaluate_current_basis", fake_evaluate)
 
     value = request(
         operation="EXECUTE",
@@ -92,7 +82,8 @@ def test_executes_current_basis_through_existing_sdk_surface(monkeypatch):
             "manifest_hash": "a" * 64,
         },
     )
-    result = execute_admitted_demo_test(value)
+    with patch("stegverse.current_basis.evaluate_current_basis", side_effect=fake_evaluate):
+        result = execute_admitted_demo_test(value)
     assert result["surface"] == "current-basis"
     assert result["sdk_grants_authority"] is False
     assert result["sdk_mints_intr_receipt"] is False
