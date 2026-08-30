@@ -219,7 +219,7 @@ Source validation of this harness does not equal authentic sovereign execution. 
 
 ## Superseding execution/publication state — 2026-08-30
 
-This section supersedes stale earlier completion-gate text that still described freeze/source validation as pending.
+This section supersedes stale earlier completion-gate text that still described freeze/source validation as pending **and** any resident-only interpretation of this internally resident SDK test.
 
 ```text
 exact v0.4 manifest: FROZEN
@@ -228,12 +228,11 @@ StegVerse owner freeze attestation: FROZEN
 common execution window: OPEN
 SDK authentic harness: MERGED / VALIDATED
 StegCore native derivation: MERGED / VALIDATED
-resident request/consumer: MERGED / VALIDATED
-resident refresh consumer materialization: MERGED / VALIDATED
-canonical local source-root discovery: MERGED / VALIDATED
-exact experiment-critical resident source-blob guard: MERGED / VALIDATED
+copy-safe replay artifact: MERGED / VALIDATED
+internal-test execution boundary correction: MERGED / AUTHORITATIVE
+external-ingress/resident observation prerequisite for this test: REMOVED
 Site frozen v0.4 projection: MERGED / PUBLICLY OBSERVED
-authentic resident request consumption: NOT OBSERVED
+actual canonical internal SDK/Master Records execution: NOT OBSERVED
 StegVerse S1: NOT OBSERVED
 post-observation S0->S1 receipt: NOT OBSERVED
 Master Records custody/replay/reconstruction for the authentic run: NOT OBSERVED
@@ -241,13 +240,16 @@ RUN_COMPLETE.json: NOT OBSERVED
 result packet publication: NOT YET ELIGIBLE
 ```
 
-Resident/runtime source evidence:
-- `StegVerse-Labs/.github#500` / merge `0c45dfc7e413c5da8fcc89f33637e1783a6eb558`
-- `StegVerse-Labs/.github#511` / merge `6d03c0d3d41f45ac91b740c091f16b7ddf9097bf`
-- `StegVerse-Labs/.github#518` / merge `c379903b25ebf369ba3aaf7b295d6a725e9d6ec8`
-- Site public verification run `33294523117`, attempt 2, job `99211964506`: PASS.
+Authoritative execution-boundary correction:
+- `docs/CROSS_FRAMEWORK_CURRENT_BASIS_INTERNAL_TEST_EXECUTION_CORRECTION_2026-08-30.md`
+- PR `#111` / merge `a2de89aff303b878671c127821b1dce311229b5b`
+- issue `#106` remains open for authentic execution evidence only.
 
-The remaining experiment transition is therefore authentic sovereign execution, not further specification freeze or Site publication work.
+Historical resident/runtime plumbing may remain useful for genuine external-ingress or resident-observation scenarios, but it is not a prerequisite for this internally resident v0.4 experiment and must not be reintroduced as its blocker.
+
+Current connected-tool reachability check on 2026-08-30 found no retained result directory on `main` and no connected execution surface that both runs the pinned SDK/StegCore/Core-Lite/Master Records stack and durably retains the resulting Master Records custody. GitHub Actions is source validation/distribution only; an ephemeral chat/container execution whose custody disappears is not an acceptable substitute.
+
+The remaining experiment transition is therefore actual canonical internal SDK/Master Records execution with durable custody, followed by S1 observation, post-observation transition receipt, replay, reconstruction, `RUN_COMPLETE.json`, packaging, and non-authorizing publication.
 
 ## Result publication hardening — 2026-08-30
 
