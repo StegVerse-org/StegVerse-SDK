@@ -116,7 +116,7 @@ jobs:
           python -m unittest tests.test_public_inspection_request
           python -m unittest tests.test_evaluator_manifest_multilane_noninterference
           python -m unittest tests.test_cross_framework_current_basis_manifest
-          python -m pytest -q tests/test_current_basis_sdk.py
+          python -m unittest tests.test_current_basis_sdk
           python -m unittest tests.test_public_inspection_governed_binding
           python -m unittest tests.test_governance_ingress_runtime
           python -m unittest tests.test_route_resolution
