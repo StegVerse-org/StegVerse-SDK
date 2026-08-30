@@ -508,3 +508,29 @@ Next boundary: observe the public Site v0.2 projection; external evaluator revie
 ### Manifest-content continuity note — PR #94 head advance
 
 PR #94 now points to head `18ff1808ef19d25faf7386236f0478f5c4f32c70`, and Evaluator Manifest Source Validation run `33222653960` is SUCCESS. The manifest file content is unchanged from the externally discussed v0.2 revision: blob `2dd0468779975d18ad53dfe400e1d2fcf83650c3`. Therefore no approval is inferred or invalidated—none existed. Future approval/freeze must bind the exact manifest content hash/version, not rely on a stale PR-head label.
+
+
+## Active cross-framework current-basis comparison — v0.4 / execution integration
+
+The externally reviewed common test artifact is frozen by exact content identity while execution integration proceeds separately from the current SDK main line.
+
+```text
+freeze/review provenance: PR #94
+execution integration branch: feat/cross-framework-v04-execution-20260829
+test_id: cross-framework-current-basis-001
+vector schema: stegverse.cross-framework-current-basis-vector.v0.4
+manifest Git blob SHA-1: 59d818a15fc7be732c97dae7d2174d8cfe9a7bab
+manifest SHA-256: 07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f
+source validation: PASS
+StegVerse owner freeze attestation: FROZEN
+common execution window: OPEN
+StegVerse authentic independent execution: NOT YET OBSERVED
+```
+
+Testing S0 rule: absent explicitly supplied prior-state data, S0 is the declared initial state from which evaluation begins and does not require a historical receipt. The S0->S1 transition receipt is post-observation evidence. Material change does not itself establish invalidation or architecture-native non-currentness.
+
+Current execution implementation preserves that boundary: the unchanged common vector is retained as the frozen input; canonical StegCore independently derives its native request; the SDK remains a thin client; the canonical sovereign SDK/Core-Lite/StegCore/Master Records path owns the governed run and custody. `RUN_COMPLETE.json` is written only after S1 observation, post-observation transition receipt binding, exact-run custody, replay, and reconstruction all succeed.
+
+Prepared result publication is verification/distribution only. After authentic result evidence exists, a GitHub Actions run packages the exact frozen manifest and retained evidence as `cross-framework-current-basis-v0.4-results`; GitHub does not execute the governance test or acquire runtime authority.
+
+Scoped continuation: `docs/CROSS_FRAMEWORK_CURRENT_BASIS_MIRROR_HANDOFF.md`.
