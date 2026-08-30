@@ -1,0 +1,34 @@
+{
+  "schema": "stegverse.sdk.cross-framework-owner-freeze-attestation.v1",
+  "record_id": "cross-framework-current-basis-001-v0.4-owner-freeze-20260829",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "pull_request": 94,
+  "manifest_path": "inspection/examples/cross-framework-current-basis-request.draft.json",
+  "manifest_sha256": "07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f",
+  "manifest_git_blob_sha1": "59d818a15fc7be732c97dae7d2174d8cfe9a7bab",
+  "external_exact_revision_approval": {
+    "state": "APPROVED_FOR_HASH_FREEZE",
+    "reviewer": "Richard Colimon",
+    "scope": "EXACT_UNCHANGED_JSON_IDENTITY_ONLY"
+  },
+  "source_validation": {
+    "state": "PASS",
+    "evidence_path": "evidence/evaluator/cross-framework-current-basis-v0.4-source-validation-2026-08-29.json",
+    "evidence_commit": "28880b03b1c6b38d0d5f0d481a6cfa252a420150"
+  },
+  "stegverse_owner_instruction": {
+    "state": "AUTHORIZED",
+    "instruction": "Do it.",
+    "scope": "bind the StegVerse owner freeze attestation to the approved hash, mark that exact identity frozen in separate evidence, and open the common execution window"
+  },
+  "freeze_attestation": {
+    "state": "FROZEN",
+    "binding_rule": "Freeze applies to the exact unchanged JSON identity only.",
+    "manifest_mutated_for_freeze": false,
+    "embedded_draft_label_treated_as_snapshot_content": true,
+    "effective_at": "2026-08-29"
+  },
+  "execution_effect": "ELIGIBLE_TO_OPEN_COMMON_EXECUTION_WINDOW",
+  "authority_effect": "SPECIFICATION_FREEZE_ONLY",
+  "runtime_authority_effect": "NONE"
+}
