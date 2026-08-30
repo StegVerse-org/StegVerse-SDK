@@ -10,7 +10,7 @@ pull request: #94
 branch: test/cross-framework-current-basis-manifest-draft-20260828
 manifest: inspection/examples/cross-framework-current-basis-request.draft.json
 vector schema: stegverse.cross-framework-current-basis-vector.v0.4
-state: EXACT_V0_4_EXTERNAL_APPROVAL_RECEIVED / SOURCE_VALIDATION_PENDING / NOT_FROZEN
+state: EXACT_V0_4_FROZEN / COMMON_EXECUTION_WINDOW_OPEN
 ```
 
 This file is the authoritative continuation record for the cross-framework current-basis comparison lane. Live repository state and exact artifact hashes supersede prior conversation claims and stale v0.2/v0.3 review state.
@@ -111,7 +111,7 @@ custody/replay/reconstruction: NO
 result comparison: NO
 ```
 
-No GitHub Actions workflow run is currently observable for the current v0.4 branch head, so source validation must not be claimed as passed yet.
+No GitHub Actions workflow run is observable for the current v0.4 branch head, and no Actions pass is claimed. Instead, the exact approved manifest bytes were deterministically validated against the installed v0.4 regression invariants and identity checks; that source-validation evidence is recorded separately.
 
 ## Next actions
 
@@ -148,3 +148,4 @@ post-observation receipt != retroactive permission
 Master Records custody != admissibility
 TV/TVC remains credential authority
 ```
+\n\n## Freeze / execution evidence\n\n```text\nevidence/evaluator/cross-framework-current-basis-v0.4-source-validation-2026-08-29.json\nevidence/evaluator/cross-framework-current-basis-v0.4-owner-freeze-attestation-2026-08-29.json\nevidence/evaluator/cross-framework-current-basis-v0.4-execution-window-2026-08-29.json\n```\n
