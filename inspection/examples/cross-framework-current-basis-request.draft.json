@@ -1,0 +1,165 @@
+{
+  "schema_version": "1.0",
+  "request_id": "cross-framework-current-basis-001",
+  "requester_label": "cross-framework-evaluator",
+  "case_profile": "custom-declarative",
+  "evaluation_declaration": {
+    "what": "Evaluate how each architecture independently determines present standing/admissibility after a material governance-relevant state transition, without pre-asserting the current-basis conclusion.",
+    "how": "Freeze the exact S0 declaration, material transition definition, neutral S1 observed-input facts, observation criteria, evidence requirements, and comparison boundary. Each architecture independently maps the same neutral inputs into its own native evaluation representation, executes, observes S1, and produces its own current-basis determination. Only after S1 observation may the S0-to-S1 transition become receipt-bearing.",
+    "why": "Test the cross-framework invariant that historical validity and provenance do not silently confer continuing present authority after material change, while ensuring the common test artifact does not preload any architecture's present-standing conclusion.",
+    "expected_observation": "Both architectures consume the same frozen neutral facts and independently determine current standing at S1. Native labels may differ; comparison is semantic. The S0-to-S1 relationship is receipted only after observation establishes that transition.",
+    "requested_capabilities": [
+      "commit_time_admissibility",
+      "bounded_consequence",
+      "master_records_custody",
+      "replay",
+      "reconstruction"
+    ],
+    "requested_evidence": [
+      "governance_decision",
+      "execution_observation",
+      "manifest_receipt",
+      "route_receipts",
+      "exact_run_custody",
+      "replay",
+      "reconstruction"
+    ]
+  },
+  "execution_provenance": {
+    "lane_class": "PRODUCTION_VALIDATION",
+    "routing_surface": "CANONICAL_PRODUCTION",
+    "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
+    "sandbox_required": false,
+    "sandbox_tier": "NONE",
+    "origin_surface": "StegVerse-org/StegVerse-SDK:public-inspection",
+    "external_consequence_enabled": false
+  },
+  "input": {
+    "comparison_input": {
+      "vector_schema": "stegverse.cross-framework-current-basis-vector.v0.4",
+      "freeze_state": "DRAFT_PRE_FREEZE",
+      "initial_state": {
+        "state_id": "S0",
+        "standing": "DECLARED_VALID_FOR_TEST",
+        "prior_determination": "DECLARED_VALID_FOR_TEST",
+        "receipt_state": "NOT_RECEIPT_BEARING_PRE_OBSERVATION"
+      },
+      "transition": {
+        "transition_id": "DELTA-S0-S1",
+        "materiality": "MATERIAL",
+        "changed_condition": "CURRENT_POLICY_BASIS_CHANGED",
+        "invalidation_asserted_as_input": false,
+        "transition_semantics": "MATERIAL_CHANGE_REQUIRING_CURRENT_BASIS_EVALUATION",
+        "receipt_semantics": "S0_TO_S1_RECEIPT_IS_POST_OBSERVATION_EVIDENCE"
+      },
+      "successor_state_observed_inputs": {
+        "state_id": "S1",
+        "actor": {
+          "class": "ai",
+          "action": "publish_candidate",
+          "target": "cross-framework-current-basis-vector",
+          "scope": "evaluation"
+        },
+        "policy": {
+          "reference": "policy:s1-materially-changed",
+          "observation": "MATERIAL_CHANGE_PRESENT"
+        },
+        "delegation": {
+          "reference": "delegation:s1",
+          "observation": "SUPPLIED_FOR_EVALUATION"
+        },
+        "evidence": {
+          "references": [
+            "execution:s1-observed-inputs",
+            "state:s0-declared-valid"
+          ],
+          "observation": "SUPPLIED_FOR_EVALUATION"
+        },
+        "validity_window": {
+          "observation": "WINDOW_FACTS_SUPPLIED_TO_EACH_ARCHITECTURE"
+        },
+        "judgment_context": {
+          "refusal_available": true,
+          "operator_recoverability": "available",
+          "workload_state": "supported",
+          "time_pressure": "normal",
+          "isolation_state": "supported"
+        },
+        "signal_context": {
+          "admitted_signal_refs": [
+            "signal:current-basis:s1"
+          ],
+          "transformations": [
+            "state-transition:s0-to-s1"
+          ],
+          "missing_inputs": [],
+          "uncertainty_state": "bounded",
+          "reference_state_hash": "state:s1",
+          "expected_reference_state_hash": "state:s1",
+          "reconstruction_available": true,
+          "transformation_provenance_complete": true
+        }
+      },
+      "architecture_native_derivation": {
+        "required": true,
+        "common_artifact_contains_native_currentness_booleans": false,
+        "rule": "Each architecture independently derives any native actor-authority, policy-currentness, delegation-currentness, evidence-currentness, validity-window, continuity, or equivalent evaluation fields from the frozen neutral S1 observed inputs. Those derived fields are architecture outputs/intermediate evidence, not common pre-established conclusions.",
+        "cross_architecture_visibility_before_completion": false
+      },
+      "successor_state_determination": {
+        "current_basis_status": "TO_BE_DETERMINED_BY_EACH_ARCHITECTURE",
+        "attempted_inheritance": "PRIOR_DETERMINATION_AS_CURRENT_BASIS",
+        "prior_invalidation_established": false
+      },
+      "normative_invariant": "PRIOR_VALIDITY_MUST_NOT_SILENTLY_ESTABLISH_PRESENT_ADMISSIBILITY_AFTER_MATERIAL_CHANGE",
+      "pre_freeze_requirements": [
+        "freeze exact S0 declaration and neutral S1 observed-input facts",
+        "freeze material transition definition without treating change itself as proof of invalidation",
+        "freeze architecture-native derivation rule without supplying native currentness conclusions",
+        "freeze observable outputs and evidence requirements",
+        "freeze semantic pass-fail interpretation before either implementation executes",
+        "do not require or assert an S0-to-S1 transition receipt before S1 is observed",
+        "freeze any independently pre-existing evidence explicitly used as an input condition"
+      ],
+      "post_observation_requirements": [
+        "observe S1 independently for each architecture",
+        "retain each architecture's independently derived native evaluation representation",
+        "retain each architecture's current-basis determination",
+        "establish whether the observed S1 transitioned from the exact frozen S0 under the frozen transition definition",
+        "only after that observation bind the S0-to-S1 transition receipt",
+        "compare resulting semantics without exposing one architecture's result to the other before completion"
+      ],
+      "comparison_boundary": {
+        "native_result_labels_may_differ": true,
+        "compare_semantics_not_labels": true,
+        "evaluator_identity_is_not_a_decision_input": true,
+        "expected_observation_is_not_a_decision_input": true,
+        "primary_vector_does_not_assert_invalidation": true,
+        "current_standing_is_independently_determined": true,
+        "transition_receipt_is_not_a_pre_execution_input": true,
+        "common_input_does_not_assert_native_currentness": true
+      },
+      "controls": [
+        {
+          "control_id": "VALID_CONTINUITY_CONTROL",
+          "purpose": "Confirm that continuity can remain valid when the governing basis remains materially continuous and current.",
+          "basis_condition": "CURRENT_POLICY_BASIS_UNCHANGED",
+          "currentness_conclusion": "TO_BE_DERIVED_BY_EACH_ARCHITECTURE",
+          "prior_invalidation_established": false,
+          "receipt_semantics": "Any transition receipt is bound after the control transition is observed."
+        },
+        {
+          "control_id": "KNOWN_INVALIDATION_CONTROL",
+          "purpose": "Confirm that independently established invalidation evidence is not silently overridden by declared prior valid history.",
+          "basis_condition": "INDEPENDENT_PREEXISTING_INVALIDATION_EVIDENCE_SUPPLIED",
+          "prior_invalidation_established": true,
+          "freeze_requirement": "Only independently pre-existing evidence used to establish the invalidation condition is frozen as an input; the control transition's own receipt is minted after observation."
+        }
+      ]
+    }
+  },
+  "return_projection": "ALL",
+  "manifest_labels": true,
+  "authority_claim": false,
+  "notes": "DRAFT_PRE_FREEZE revision v0.4. Corrects the remaining execution-input ambiguity identified during external pre-freeze review. The common artifact no longer supplies architecture-native *_current booleans or any equivalent present-standing conclusion. Instead it freezes neutral S1 observed-input facts and requires each architecture to derive its own native evaluation representation and current-basis determination independently. v0.3 temporal receipt semantics and the separation of material change from established invalidation remain intact."
+}
