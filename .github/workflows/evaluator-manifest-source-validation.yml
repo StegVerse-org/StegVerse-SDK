@@ -32,7 +32,9 @@ on:
       - tests/test_cross_framework_current_basis_manifest.py
       - tests/test_current_basis_sdk.py
       - tests/test_cross_framework_current_basis_execution.py
+      - tests/test_cross_framework_current_basis_result_packaging.py
       - scripts/run_cross_framework_current_basis_v04.py
+      - scripts/package_cross_framework_current_basis_results.py
       - stegverse/current_basis.py
       - tests/test_public_inspection_governed_binding.py
       - tests/test_governance_ingress_runtime.py
@@ -76,7 +78,9 @@ on:
       - tests/test_cross_framework_current_basis_manifest.py
       - tests/test_current_basis_sdk.py
       - tests/test_cross_framework_current_basis_execution.py
+      - tests/test_cross_framework_current_basis_result_packaging.py
       - scripts/run_cross_framework_current_basis_v04.py
+      - scripts/package_cross_framework_current_basis_results.py
       - stegverse/current_basis.py
       - tests/test_public_inspection_governed_binding.py
       - tests/test_governance_ingress_runtime.py
@@ -122,6 +126,7 @@ jobs:
           python -m unittest tests.test_cross_framework_current_basis_manifest
           python -m unittest tests.test_current_basis_sdk
           python -m unittest tests.test_cross_framework_current_basis_execution
+          python -m unittest tests.test_cross_framework_current_basis_result_packaging
           python -m unittest tests.test_public_inspection_governed_binding
           python -m unittest tests.test_governance_ingress_runtime
           python -m unittest tests.test_route_resolution
@@ -144,6 +149,7 @@ jobs:
             stegverse/evaluation_boundary_verifier.py \
             stegverse/current_basis.py \
             scripts/run_cross_framework_current_basis_v04.py \
+            scripts/package_cross_framework_current_basis_results.py \
             scripts/validate_public_inspection_request.py \
             scripts/build_evaluation_boundary_artifact_manifest.py \
             scripts/build_evaluation_boundary_owner_packet.py \

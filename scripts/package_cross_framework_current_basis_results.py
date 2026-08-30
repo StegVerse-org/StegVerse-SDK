@@ -17,7 +17,18 @@ REQUIRED_COMPLETE_FLAGS = {
     "custody_recorded": True,
     "replay_recorded": True,
     "reconstruction_recorded": True,
+    "counterpart_result_consumed_before_completion": False,
+    "external_side_effect": False,
+    "github_actions_runtime_authority": False,
 }
+REQUIRED_EVIDENCE_FILES = (
+    "STEGVERSE_RESULT.json",
+    "S1_OBSERVATION.json",
+    "S0_S1_TRANSITION_RECEIPT.json",
+    "REPLAY.json",
+    "RECONSTRUCTION.json",
+    "RUN_COMPLETE.json",
+)
 
 
 def _sha256(path: Path) -> str:
@@ -56,9 +67,33 @@ def package_results(*, result_dir: Path, manifest_path: Path, output_dir: Path) 
     if _sha256(manifest_path) != EXPECTED_MANIFEST_SHA256:
         raise RuntimeError("working manifest bytes do not match frozen v0.4 identity")
 
+    missing = [name for name in REQUIRED_EVIDENCE_FILES if not (result_dir / name).is_file()]
+    if missing:
+        raise RuntimeError("result directory missing required authentic evidence: " + ",".join(missing))
+
+    s1 = _load_json(result_dir / "S1_OBSERVATION.json")
+    transition = _load_json(result_dir / "S0_S1_TRANSITION_RECEIPT.json")
+    replay = _load_json(result_dir / "REPLAY.json")
+    reconstruction = _load_json(result_dir / "RECONSTRUCTION.json")
+
+    if s1.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256 or s1.get("s1_observed") is not True:
+        raise RuntimeError("S1 observation is not bound to the frozen v0.4 run")
+    if s1.get("counterpart_result_consumed_before_completion") is not False:
+        raise RuntimeError("S1 observation violates independent execution isolation")
+    if transition.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256:
+        raise RuntimeError("transition receipt is not bound to the frozen v0.4 run")
+    if transition.get("receipt_timing") != "POST_OBSERVATION":
+        raise RuntimeError("transition receipt is not post-observation evidence")
+    if transition.get("receipt_hash") != complete.get("transition_receipt_hash"):
+        raise RuntimeError("RUN_COMPLETE transition receipt hash mismatch")
+    if not str(complete.get("manifest_receipt_id") or "").strip():
+        raise RuntimeError("RUN_COMPLETE missing manifest_receipt_id")
+    if replay.get("operation_transition_custody_status") != "RECORDED":
+        raise RuntimeError("replay custody evidence is not recorded")
+    if reconstruction.get("operation_transition_custody_status") != "RECORDED":
+        raise RuntimeError("reconstruction custody evidence is not recorded")
+
     files = sorted(path for path in result_dir.rglob("*") if path.is_file())
-    if len(files) < 2:
-        raise RuntimeError("result directory contains no retained evidence beyond completion sentinel")
 
     if output_dir.exists():
         shutil.rmtree(output_dir)
