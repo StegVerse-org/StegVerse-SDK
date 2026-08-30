@@ -279,3 +279,36 @@ reconstruction operation_transition_custody_status=RECORDED
 ```
 
 This means the desired successful GitHub Actions artifact link cannot be produced from a partial, architecture-cross-contaminated, pre-observation, or externally consequential packet. GitHub Actions remains verification/distribution only.
+
+
+## PR retirement / execution-only continuation — 2026-08-30
+
+Historical working PRs have been retired after their canonical content was reconciled onto current main:
+
+```text
+PR #94: CLOSED / SUPERSEDED_BY_EXACT_V0_4_FROZEN_MAIN
+PR #99: CLOSED / SUPERSEDED_BY_CURRENT_MAIN_EXECUTION_HARNESS
+issue #106: OPEN / AUTHENTIC_EXECUTION_EVIDENCE_ONLY
+manifest blob: 59d818a15fc7be732c97dae7d2174d8cfe9a7bab
+manifest SHA-256: 07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f
+SDK execution harness merge: 2b1ae25662aaade5033e6bacac98d9ba5233fdee
+StegCore native derivation merge: e80e927616750a88ad7fc88f4017fc496474f1e4
+known scoped scaffolding/stubs: 0
+```
+
+Closing #94/#99 is source-branch housekeeping only. It does not represent execution.
+
+The remaining #106 completion evidence is exactly:
+
+```text
+authentic independent StegVerse execution
+-> S1 observed
+-> post-observation S0->S1 receipt bound
+-> Master Records custody
+-> replay custody
+-> reconstruction custody
+-> RUN_COMPLETE.json
+-> fail-closed result packet verification/publication
+```
+
+Until those artifacts exist, result publication remains ineligible and no successful external-result Action may be represented as available.
