@@ -6,8 +6,10 @@ on:
     branches: [main]
     paths:
       - evidence/evaluator/cross-framework-current-basis-v0.4-result/**
-      - scripts/package_cross_framework_current_basis_results.py
-      - .github/workflows/cross-framework-result-artifact-publication.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - evidence/evaluator/cross-framework-current-basis-v0.4-result/**
 
 permissions:
   contents: read
