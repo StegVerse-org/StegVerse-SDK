@@ -1,6 +1,7 @@
-import importlib
+import builtins
 import sys
 import types
+from unittest.mock import patch
 
 import pytest
 
@@ -19,29 +20,26 @@ def packet():
         "test_id": "cross-framework-current-basis-001",
         "manifest_sha256": FROZEN_MANIFEST_SHA256,
         "manifest_git_blob_sha1": FROZEN_MANIFEST_GIT_BLOB_SHA1,
-        "vector": {
-            "vector_schema": "stegverse.cross-framework-current-basis-vector.v0.4",
-        },
+        "vector": {"vector_schema": "stegverse.cross-framework-current-basis-vector.v0.4"},
     }
 
 
-def test_sdk_is_thin_client_of_canonical_stegcore(monkeypatch):
+def test_sdk_is_thin_client_of_canonical_stegcore():
     fake_package = types.ModuleType("stegcore")
     fake_module = types.ModuleType("stegcore.current_basis")
     calls = []
 
-    def evaluate_current_basis_vector(vector):
+    def fake(vector):
         calls.append(vector)
         return {
             "schema": "stegcore.current-basis-evaluation.v1",
             "evaluation": {"disposition": "FAIL_CLOSED"},
         }
 
-    fake_module.evaluate_current_basis_vector = evaluate_current_basis_vector
-    monkeypatch.setitem(sys.modules, "stegcore", fake_package)
-    monkeypatch.setitem(sys.modules, "stegcore.current_basis", fake_module)
+    fake_module.evaluate_current_basis_vector = fake
+    with patch.dict(sys.modules, {"stegcore": fake_package, "stegcore.current_basis": fake_module}):
+        result = evaluate_current_basis(packet())
 
-    result = evaluate_current_basis(packet())
     assert result["production_runtime"] == PRODUCTION_RUNTIME
     assert result["parallel_evaluator"] is False
     assert result["sdk_grants_authority"] is False
@@ -57,18 +55,19 @@ def test_wrong_frozen_hash_fails_before_stegcore_import():
         evaluate_current_basis(value)
 
 
-def test_no_stegcore_fallback(monkeypatch):
+def test_no_stegcore_fallback():
     value = packet()
-    monkeypatch.delitem(sys.modules, "stegcore.current_basis", raising=False)
-    monkeypatch.delitem(sys.modules, "stegcore", raising=False)
-
-    real_import = __import__
+    original_import = builtins.__import__
 
     def blocked_import(name, *args, **kwargs):
         if name.startswith("stegcore"):
             raise ImportError("blocked")
-        return real_import(name, *args, **kwargs)
+        return original_import(name, *args, **kwargs)
 
-    monkeypatch.setattr("builtins.__import__", blocked_import)
-    with pytest.raises(CurrentBasisSDKError, match="no fallback evaluator"):
-        evaluate_current_basis(value)
+    saved = {name: sys.modules.pop(name) for name in ("stegcore.current_basis", "stegcore") if name in sys.modules}
+    try:
+        with patch("builtins.__import__", side_effect=blocked_import):
+            with pytest.raises(CurrentBasisSDKError, match="no fallback evaluator"):
+                evaluate_current_basis(value)
+    finally:
+        sys.modules.update(saved)
