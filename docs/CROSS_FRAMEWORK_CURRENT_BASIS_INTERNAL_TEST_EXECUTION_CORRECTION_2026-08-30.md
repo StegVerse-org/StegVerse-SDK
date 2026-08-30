@@ -18,7 +18,9 @@ frozen test definition
 -> replay
 -> reconstruction
 -> RUN_COMPLETE
--> result packet / evidence distribution
+-> host-neutral verified result packet
+-> StegVerse-native durable retention / evaluator availability
+-> optional third-party mirrors
 ```
 
 Master Records custody is a normal property of the governed SDK execution. It is not an additional external-ingress attestation prerequisite for this internally resident test.
@@ -80,8 +82,31 @@ internal test execution != external ingress demo
 Master Records custody of canonical SDK run: REQUIRED
 external-ingress boundary observation for internally resident test: NOT REQUIRED
 GitHub Actions runtime authority: NONE
-GitHub Actions publication role: VERIFICATION_AND_DISTRIBUTION_ONLY
+StegVerse-native retention / evaluator availability: REQUIRED
+third-party distribution dependency: NONE
+GitHub Actions publication role: OPTIONAL_MIRROR_ONLY
 TV/TVC credential authority: UNCHANGED
 ```
 
 This correction does not weaken Master Records custody, replay, reconstruction, frozen-input identity, counterpart isolation, or post-observation receipt timing. It removes only the incorrectly elevated external-ingress-specific prerequisite from internally resident test execution.
+
+
+## Third-party independence correction — 2026-08-30
+
+The completed v0.4 experiment must not depend on GitHub or any other third-party platform for execution, custody, replay, reconstruction, packet verification, durable retention, evaluator availability, activation, or completion.
+
+The required completion path is:
+
+```text
+canonical internal StegVerse execution
+-> Master Records durable custody
+-> S1 observation
+-> post-observation S0->S1 transition receipt
+-> replay
+-> reconstruction
+-> RUN_COMPLETE
+-> host-neutral verified result packet
+-> StegVerse-native durable retention and evaluator-visible availability
+```
+
+GitHub Actions may optionally mirror an already-complete packet. Failure, unavailability, removal, or non-use of that mirror must not alter the StegVerse-native completion state.
