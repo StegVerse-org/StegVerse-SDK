@@ -195,3 +195,23 @@ retention: 90 days
 Publication is fail-closed. The packet cannot be published as successful unless `RUN_COMPLETE.json` binds the exact frozen v0.4 SHA-256 and Git blob identity and asserts completed independent execution, S1 observation, post-observation transition-receipt binding, custody, replay, and reconstruction. The packager independently recomputes the frozen manifest SHA-256 and inventories every attached file with its own SHA-256.
 
 GitHub Actions is distribution/verification only for this surface. It does not execute governance, mint the transition receipt, create runtime authority, or replace Master Records custody. The intended external handoff after authentic completion is: resultant packet + successful Actions-run link + attached `cross-framework-current-basis-v0.4-results` artifact.
+
+
+## Authentic StegVerse execution harness — prepared 2026-08-29
+
+Issue: #106.
+
+Installed source:
+```text
+scripts/run_cross_framework_current_basis_v04.py
+tests/test_cross_framework_current_basis_execution.py
+```
+
+The harness consumes only the exact frozen v0.4 manifest bytes, verifies SHA-256 `07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f`, calls canonical merged `stegcore.current_basis` for native derivation/evaluation, then passes the derived canonical request into the existing sovereign validation runtime. It does not place architecture-native currentness fields into the frozen common manifest and does not consume counterpart results before completion.
+
+After the canonical run returns Master Records custody, the harness records S1 observation, then creates the S0->S1 post-observation evidence receipt, then invokes canonical replay and reconstruction. Only if all gates are observed does it write `RUN_COMPLETE.json` with the flags required by the external result packager.
+
+Expected result directory:
+`evidence/evaluator/cross-framework-current-basis-v0.4-result/`
+
+Source validation of this harness does not equal authentic sovereign execution. The execution goal remains open until that directory is produced by the canonical sovereign path and the retained custody/replay/reconstruction evidence verifies.
