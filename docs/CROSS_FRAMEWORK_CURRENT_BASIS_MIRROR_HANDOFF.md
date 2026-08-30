@@ -175,3 +175,23 @@ runtime authority effect: NONE
 The exact approved JSON must remain unchanged; its embedded `DRAFT_PRE_FREEZE` value is snapshot content within the approved byte identity, while the effective freeze is carried by the separate hash-bound attestation.
 
 The next legitimate machine step is independent StegVerse execution against that exact frozen identity, followed by S1 observation, post-observation S0->S1 receipt binding, custody/replay/reconstruction, and only then cross-framework semantic comparison. Neither architecture may consume the other's result before its own run completes.
+
+
+## External result packet publication — prepared 2026-08-29
+
+The completed authentic StegVerse run is intended to be shareable with the external evaluator as both a self-contained artifact packet and a successful GitHub Actions run whose attached artifacts reproduce the same packet.
+
+Prepared surfaces:
+
+```text
+scripts/package_cross_framework_current_basis_results.py
+.github/workflows/cross-framework-result-artifact-publication.yml
+result input directory: evidence/evaluator/cross-framework-current-basis-v0.4-result/
+completion sentinel: evidence/evaluator/cross-framework-current-basis-v0.4-result/RUN_COMPLETE.json
+uploaded artifact name: cross-framework-current-basis-v0.4-results
+retention: 90 days
+```
+
+Publication is fail-closed. The packet cannot be published as successful unless `RUN_COMPLETE.json` binds the exact frozen v0.4 SHA-256 and Git blob identity and asserts completed independent execution, S1 observation, post-observation transition-receipt binding, custody, replay, and reconstruction. The packager independently recomputes the frozen manifest SHA-256 and inventories every attached file with its own SHA-256.
+
+GitHub Actions is distribution/verification only for this surface. It does not execute governance, mint the transition receipt, create runtime authority, or replace Master Records custody. The intended external handoff after authentic completion is: resultant packet + successful Actions-run link + attached `cross-framework-current-basis-v0.4-results` artifact.
