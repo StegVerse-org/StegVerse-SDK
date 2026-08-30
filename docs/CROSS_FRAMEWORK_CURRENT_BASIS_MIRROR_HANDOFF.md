@@ -179,7 +179,7 @@ The next legitimate machine step is independent StegVerse execution against that
 
 ## External result packet publication — prepared 2026-08-29
 
-The completed authentic StegVerse run is intended to be shareable with the external evaluator as both a self-contained artifact packet and a successful GitHub Actions run whose attached artifacts reproduce the same packet.
+The completed authentic StegVerse run must be shareable with the external evaluator through StegVerse-native durable retention and evaluator availability. The result packet is host-neutral. A GitHub Actions artifact may exist only as an optional secondary mirror of the already-complete StegVerse-native packet.
 
 Prepared surfaces:
 
@@ -194,7 +194,7 @@ retention: 90 days
 
 Publication is fail-closed. The packet cannot be published as successful unless `RUN_COMPLETE.json` binds the exact frozen v0.4 SHA-256 and Git blob identity and asserts completed independent execution, S1 observation, post-observation transition-receipt binding, custody, replay, and reconstruction. The packager independently recomputes the frozen manifest SHA-256 and inventories every attached file with its own SHA-256.
 
-GitHub Actions is distribution/verification only for this surface. It does not execute governance, mint the transition receipt, create runtime authority, or replace Master Records custody. The intended external handoff after authentic completion is: resultant packet + successful Actions-run link + attached `cross-framework-current-basis-v0.4-results` artifact.
+GitHub Actions is an optional mirror only. It does not execute governance, mint the transition receipt, create runtime authority, replace Master Records custody, provide required evaluator availability, or determine completion. The required external handoff is the StegVerse-native retained packet plus its copy-safe replay reference. Any GitHub artifact is supplemental and disposable.
 
 
 ## Authentic StegVerse execution harness — prepared 2026-08-29
@@ -237,7 +237,8 @@ StegVerse S1: NOT OBSERVED
 post-observation S0->S1 receipt: NOT OBSERVED
 Master Records custody/replay/reconstruction for the authentic run: NOT OBSERVED
 RUN_COMPLETE.json: NOT OBSERVED
-result packet publication: NOT YET ELIGIBLE
+StegVerse-native result retention / evaluator availability: NOT YET OBSERVED
+optional GitHub mirror: NOT REQUIRED
 ```
 
 Authoritative execution-boundary correction:
@@ -249,7 +250,7 @@ Historical resident/runtime plumbing may remain useful for genuine external-ingr
 
 Current connected-tool reachability check on 2026-08-30 found no retained result directory on `main` and no connected execution surface that both runs the pinned SDK/StegCore/Core-Lite/Master Records stack and durably retains the resulting Master Records custody. GitHub Actions is source validation/distribution only; an ephemeral chat/container execution whose custody disappears is not an acceptable substitute.
 
-The remaining experiment transition is therefore actual canonical internal SDK/Master Records execution with durable custody, followed by S1 observation, post-observation transition receipt, replay, reconstruction, `RUN_COMPLETE.json`, packaging, and non-authorizing publication.
+The remaining experiment transition is therefore actual canonical internal SDK/Master Records execution with durable custody, followed by S1 observation, post-observation transition receipt, replay, reconstruction, `RUN_COMPLETE.json`, host-neutral packaging, and StegVerse-native durable evaluator availability. Third-party publication is outside the completion gate.
 
 ## Result publication hardening — 2026-08-30
 
@@ -310,7 +311,8 @@ authentic independent StegVerse execution
 -> replay custody
 -> reconstruction custody
 -> RUN_COMPLETE.json
--> fail-closed result packet verification/publication
+-> fail-closed host-neutral result packet verification
+-> StegVerse-native durable retention / evaluator availability
 ```
 
-Until those artifacts exist, result publication remains ineligible and no successful external-result Action may be represented as available.
+Until those artifacts and StegVerse-native retention evidence exist, the experiment remains incomplete. A GitHub Action is neither required nor sufficient for completion.
