@@ -14,7 +14,7 @@ REQUEST_SCHEMA = "stegverse.evaluator_review.interlock_request.v1"
 REQUEST_CLASS = "EVALUATOR_REVIEW"
 TRANSPORT = "InTr"
 EXECUTE_OPERATION = "EXECUTE"
-SUPPORTED_SURFACES = frozenset({"manifold-governance"})
+SUPPORTED_SURFACES = frozenset({"manifold-governance", "current-basis"})
 
 
 class EvaluatorReviewInTrError(RuntimeError):
@@ -119,6 +119,10 @@ def execute_admitted_demo_test(request: Mapping[str, Any]) -> dict[str, Any]:
         from .manifold_governance import evaluate_manifold_governance
 
         result = evaluate_manifold_governance(packet)
+    elif surface == "current-basis":
+        from .current_basis import evaluate_current_basis
+
+        result = evaluate_current_basis(packet)
     else:  # pragma: no cover - guarded by SUPPORTED_SURFACES
         raise EvaluatorReviewInTrError(f"unsupported SDK demo/test surface: {surface}")
 
