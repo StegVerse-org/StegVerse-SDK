@@ -78,3 +78,5 @@ def test_manifest_remains_pre_freeze_after_v04_correction():
     assert data["freeze_state"] == "DRAFT_PRE_FREEZE"
     assert manifest["authority_claim"] is False
     assert "revision v0.4" in manifest["notes"]
+
+# Validation retrigger marker: exact v0.4 manifest identity unchanged; source-validation observation requested.
