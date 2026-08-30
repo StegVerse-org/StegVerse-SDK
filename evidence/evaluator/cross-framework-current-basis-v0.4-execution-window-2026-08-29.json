@@ -1,0 +1,19 @@
+{
+  "schema": "stegverse.sdk.cross-framework-execution-window.v1",
+  "record_id": "cross-framework-current-basis-001-v0.4-execution-window-20260829",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "pull_request": 94,
+  "manifest_path": "inspection/examples/cross-framework-current-basis-request.draft.json",
+  "manifest_sha256": "07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f",
+  "manifest_git_blob_sha1": "59d818a15fc7be732c97dae7d2174d8cfe9a7bab",
+  "freeze_attestation_path": "evidence/evaluator/cross-framework-current-basis-v0.4-owner-freeze-attestation-2026-08-29.json",
+  "freeze_attestation_commit": "ced2f5b9b5a2336f3bc08b57ebf8a2d2cff381b8",
+  "window_state": "OPEN",
+  "execution_rule": "Each architecture executes independently against the exact frozen manifest identity. Neither architecture may consume the other's result before its own run completes.",
+  "receipt_rule": "S0-to-S1 transition receipts are minted/bound only after S1 observation establishes the transition.",
+  "comparison_rule": "Compare semantics after both independent runs close; native labels and internal implementation details may differ.",
+  "external_counterpart_may_execute_same_manifest": true,
+  "external_counterpart_instruction": "Use the exact frozen v0.4 manifest identity above without modification and preserve independent execution/result isolation until both runs complete.",
+  "authority_effect": "SPECIFICATION_EXECUTION_WINDOW_OPEN",
+  "runtime_authority_effect": "NONE"
+}
