@@ -41,6 +41,18 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def _canonical_value_sha256(value: Any) -> str:
+    payload = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+        default=str,
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -90,6 +102,7 @@ def package_results(*, result_dir: Path, manifest_path: Path, output_dir: Path) 
     if missing:
         raise RuntimeError("result directory missing required authentic evidence: " + ",".join(missing))
 
+    stegverse_result = _load_json(result_dir / "STEGVERSE_RESULT.json")
     s1 = _load_json(result_dir / "S1_OBSERVATION.json")
     transition = _load_json(result_dir / "S0_S1_TRANSITION_RECEIPT.json")
     replay = _load_json(result_dir / "REPLAY.json")
@@ -110,6 +123,8 @@ def package_results(*, result_dir: Path, manifest_path: Path, output_dir: Path) 
     manifest_receipt_id = str(complete.get("manifest_receipt_id") or "").strip()
     if not manifest_receipt_id:
         raise RuntimeError("RUN_COMPLETE missing manifest_receipt_id")
+    if stegverse_result.get("manifest_receipt_id") != manifest_receipt_id:
+        raise RuntimeError("STEGVERSE_RESULT manifest_receipt_id mismatch")
     portable_reference = f"stegverse-replay:v1:{manifest_receipt_id}:{EXPECTED_MANIFEST_SHA256}"
     if complete.get("portable_replay_reference") != portable_reference:
         raise RuntimeError("RUN_COMPLETE portable replay reference mismatch")
@@ -123,6 +138,7 @@ def package_results(*, result_dir: Path, manifest_path: Path, output_dir: Path) 
         "MANIFEST_GIT_BLOB_SHA1": EXPECTED_MANIFEST_BLOB_SHA1,
         "TRANSITION_ID": str(transition.get("transition_id") or "").strip(),
         "TRANSITION_RECEIPT_HASH": str(transition.get("receipt_hash") or "").strip(),
+        "STEGVERSE_RESULT_SHA256": _canonical_value_sha256(stegverse_result),
         "PORTABLE_REPLAY_REFERENCE": portable_reference,
         "REPLAY_REFERENCE": manifest_receipt_id,
         "RECONSTRUCTION_REFERENCE": manifest_receipt_id,
