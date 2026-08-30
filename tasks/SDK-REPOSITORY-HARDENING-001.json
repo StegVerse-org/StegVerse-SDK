@@ -1,0 +1,51 @@
+{
+  "goal_id": "SDK-REPOSITORY-HARDENING-001",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "canonical_branch": "main",
+  "handoff": "docs/REPOSITORY_HARDENING_MIRROR_HANDOFF.md",
+  "state": "ACTIVE_EXTERNAL_SETTINGS_AND_CURRENT_RELEASE_AUTHORITY_BLOCKED",
+  "observed_at": "2026-08-28T08:15:00-05:00",
+  "historical_pypi_failure": {
+    "state": "IDENTIFIED_AND_CLASSIFIED",
+    "tag": "v1.0.4",
+    "tag_target_commit": "ec8846311462651d69daaf4ec0d4b049100b3f8e",
+    "tag_target_commit_message": "Bump version from 1.0.2 to 1.0.3",
+    "package_version_at_tag": "1.0.3",
+    "deployment_workflow_display": "StegVerse SDK Validation (Optional Hosted) #37",
+    "deployment_date_display": "Apr 29",
+    "root_cause_class": "TAG_PACKAGE_VERSION_IDENTITY_MISMATCH",
+    "retry_allowed": false,
+    "tag_retarget_allowed": false
+  },
+  "work": [
+    {
+      "id": "protect-main",
+      "state": "BLOCKED_EXTERNAL_REPOSITORY_SETTING"
+    },
+    {
+      "id": "reconcile-pypi-failure",
+      "state": "COMPLETE"
+    },
+    {
+      "id": "publish-current-successor",
+      "state": "BLOCKED_TV_TVC_RELEASE_AUTHORITY_ONLY"
+    }
+  ],
+  "completion": {
+    "main_branch_protection_verified": false,
+    "required_checks_verified": false,
+    "failed_pypi_run_identified": true,
+    "pypi_root_cause_recorded": true,
+    "current_release_authorized": false,
+    "trusted_publisher_provenance_verified": false,
+    "trusted_publisher_mapping_verified": true
+  },
+  "trusted_publisher": {
+    "state": "VERIFIED_CORRECT",
+    "repository": "StegVerse-org/StegVerse-SDK",
+    "workflow": "release.yml",
+    "environment": "pypi",
+    "static_token_required": false,
+    "new_mapping_required": false
+  }
+}
