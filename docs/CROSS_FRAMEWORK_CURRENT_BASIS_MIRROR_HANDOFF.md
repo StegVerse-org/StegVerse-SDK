@@ -215,3 +215,67 @@ Expected result directory:
 `evidence/evaluator/cross-framework-current-basis-v0.4-result/`
 
 Source validation of this harness does not equal authentic sovereign execution. The execution goal remains open until that directory is produced by the canonical sovereign path and the retained custody/replay/reconstruction evidence verifies.
+
+
+## Superseding execution/publication state — 2026-08-30
+
+This section supersedes stale earlier completion-gate text that still described freeze/source validation as pending.
+
+```text
+exact v0.4 manifest: FROZEN
+source validation: PASS
+StegVerse owner freeze attestation: FROZEN
+common execution window: OPEN
+SDK authentic harness: MERGED / VALIDATED
+StegCore native derivation: MERGED / VALIDATED
+resident request/consumer: MERGED / VALIDATED
+resident refresh consumer materialization: MERGED / VALIDATED
+canonical local source-root discovery: MERGED / VALIDATED
+exact experiment-critical resident source-blob guard: MERGED / VALIDATED
+Site frozen v0.4 projection: MERGED / PUBLICLY OBSERVED
+authentic resident request consumption: NOT OBSERVED
+StegVerse S1: NOT OBSERVED
+post-observation S0->S1 receipt: NOT OBSERVED
+Master Records custody/replay/reconstruction for the authentic run: NOT OBSERVED
+RUN_COMPLETE.json: NOT OBSERVED
+result packet publication: NOT YET ELIGIBLE
+```
+
+Resident/runtime source evidence:
+- `StegVerse-Labs/.github#500` / merge `0c45dfc7e413c5da8fcc89f33637e1783a6eb558`
+- `StegVerse-Labs/.github#511` / merge `6d03c0d3d41f45ac91b740c091f16b7ddf9097bf`
+- `StegVerse-Labs/.github#518` / merge `c379903b25ebf369ba3aaf7b295d6a725e9d6ec8`
+- Site public verification run `33294523117`, attempt 2, job `99211964506`: PASS.
+
+The remaining experiment transition is therefore authentic sovereign execution, not further specification freeze or Site publication work.
+
+## Result publication hardening — 2026-08-30
+
+Issue #108 hardens the non-authorizing result distribution gate. A successful result packet must now include the complete expected evidence set:
+
+```text
+STEGVERSE_RESULT.json
+S1_OBSERVATION.json
+S0_S1_TRANSITION_RECEIPT.json
+REPLAY.json
+RECONSTRUCTION.json
+RUN_COMPLETE.json
+```
+
+In addition to the original completion flags and frozen manifest identity, publication now requires:
+
+```text
+counterpart_result_consumed_before_completion=false
+external_side_effect=false
+github_actions_runtime_authority=false
+manifest_receipt_id present
+S1 observation bound to frozen v0.4
+S1 counterpart isolation preserved
+transition receipt bound to frozen v0.4
+transition receipt timing=POST_OBSERVATION
+RUN_COMPLETE transition_receipt_hash matches retained receipt
+replay operation_transition_custody_status=RECORDED
+reconstruction operation_transition_custody_status=RECORDED
+```
+
+This means the desired successful GitHub Actions artifact link cannot be produced from a partial, architecture-cross-contaminated, pre-observation, or externally consequential packet. GitHub Actions remains verification/distribution only.
