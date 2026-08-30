@@ -367,3 +367,28 @@ Full console documentation: `docs/SDK_CONSOLE.md`.
 ## Repository control files
 
 Files matching `*_MIRROR_HANDOFF.md` preserve implementation continuity, validation state, task ownership, supersession, and archive conditions. They are project-control records, not evaluator commands. The public SDK should remain usable from this README plus installed console/help output without a private instruction channel.
+
+
+## Active cross-framework current-basis comparison — v0.4
+
+The active cross-framework current-basis comparison uses the same published production-validation semantics and remains evaluator-neutral. Its exact common input is frozen independently of either architecture's result.
+
+Current standing:
+
+```text
+manifest: inspection/examples/cross-framework-current-basis-request.draft.json
+vector schema: stegverse.cross-framework-current-basis-vector.v0.4
+Git blob SHA-1: 59d818a15fc7be732c97dae7d2174d8cfe9a7bab
+SHA-256: 07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f
+source validation: PASS
+StegVerse owner freeze attestation: FROZEN
+common execution window: OPEN
+StegVerse independent execution: NOT YET OBSERVED
+cross-framework semantic comparison: NOT YET PERFORMED
+```
+
+For this testing lane, absent explicitly supplied prior-state data, S0 is the declared initial state from which evaluation begins. It does not require a historical receipt. The S0->S1 transition receipt is post-observation evidence: each architecture first executes independently from the same frozen S0/transition/S1-observation definition, observes S1, and only then binds its S0->S1 transition receipt. If a test explicitly supplies prior-state data, that prior state/transition/receipt becomes part of that test's evaluation context.
+
+The exact approved JSON remains byte-for-byte unchanged; its embedded `DRAFT_PRE_FREEZE` label is snapshot content. Effective freeze state is carried by the separate hash-bound attestation under `evidence/evaluator/`.
+
+When the authentic StegVerse run completes, the repository is prepared to publish a verification-only GitHub Actions artifact bundle. That publication action does **not** execute governance and grants no runtime authority. It verifies the completed-run sentinel and frozen manifest identity, packages the retained result/custody/replay/reconstruction evidence, emits hashes, and attaches the packet to the successful Actions run for independent download and review.
