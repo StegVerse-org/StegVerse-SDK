@@ -393,4 +393,4 @@ The exact approved JSON remains byte-for-byte unchanged; its embedded `DRAFT_PRE
 
 The SDK thin client for this lane is `stegverse/current_basis.py`. It verifies the exact frozen identity and delegates native derivation/evaluation to canonical `stegcore.current_basis.evaluate_current_basis_vector`; the SDK does not implement a parallel evaluator.
 
-After authentic completion, `.github/workflows/cross-framework-result-artifact-publication.yml` verifies and attaches the retained result/custody/replay/reconstruction packet for external review. GitHub Actions is verification/distribution only and is not runtime authority.
+After authentic completion, the result/custody/replay/reconstruction packet must be durably retained and made evaluator-visible through StegVerse-native surfaces. `scripts/package_cross_framework_current_basis_results.py` produces a host-neutral verified packet. `.github/workflows/cross-framework-result-artifact-publication.yml` is only an optional GitHub mirror of that already-complete packet; GitHub is not required for execution, custody, retention, evaluator availability, activation, or completion.
