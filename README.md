@@ -367,3 +367,30 @@ Full console documentation: `docs/SDK_CONSOLE.md`.
 ## Repository control files
 
 Files matching `*_MIRROR_HANDOFF.md` preserve implementation continuity, validation state, task ownership, supersession, and archive conditions. They are project-control records, not evaluator commands. The public SDK should remain usable from this README plus installed console/help output without a private instruction channel.
+
+
+## Active cross-framework current-basis comparison — v0.4
+
+The active comparison is frozen against one exact neutral common input. Each architecture derives its own native current-basis representation independently; neither consumes the other's result before its own run completes.
+
+```text
+test_id: cross-framework-current-basis-001
+vector schema: stegverse.cross-framework-current-basis-vector.v0.4
+manifest Git blob SHA-1: 59d818a15fc7be732c97dae7d2174d8cfe9a7bab
+manifest SHA-256: 07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f
+source validation: PASS
+StegVerse owner freeze attestation: FROZEN
+common execution window: OPEN
+StegCore native derivation: VALIDATED_MERGED
+StegCore merge: e80e927616750a88ad7fc88f4017fc496474f1e4
+StegVerse independent execution: NOT YET OBSERVED
+cross-framework semantic comparison: NOT YET PERFORMED
+```
+
+For this testing lane, absent explicitly supplied prior-state data, S0 is the declared initial state from which evaluation begins. A historical S0 receipt is not required. The S0→S1 transition receipt is post-observation evidence: execution independently derives and observes S1 first, then binds the transition receipt.
+
+The exact approved JSON remains byte-for-byte unchanged; its embedded `DRAFT_PRE_FREEZE` label is snapshot content. Effective freeze state is carried by the separate hash-bound attestation under `evidence/evaluator/`.
+
+The SDK thin client for this lane is `stegverse/current_basis.py`. It verifies the exact frozen identity and delegates native derivation/evaluation to canonical `stegcore.current_basis.evaluate_current_basis_vector`; the SDK does not implement a parallel evaluator.
+
+After authentic completion, `.github/workflows/cross-framework-result-artifact-publication.yml` verifies and attaches the retained result/custody/replay/reconstruction packet for external review. GitHub Actions is verification/distribution only and is not runtime authority.

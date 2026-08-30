@@ -83,6 +83,7 @@ def run_sovereign_validation(
     consequence_executor: Callable[[], Mapping[str, Any]] | None = None,
     consequence_metadata: Mapping[str, Any] | None = None,
     declared_execution_context: Mapping[str, Any] | None = None,
+    derived_governance_request: Mapping[str, Any] | None = None,
     route_source: str = "StegVerse-SDK:sovereign-validation",
     route_purpose: str = "production-lane-evaluator-validation",
 ) -> dict[str, Any]:
@@ -106,9 +107,18 @@ def run_sovereign_validation(
     """
     normalized = validate_public_inspection_request(request)
     input_block = normalized.get("input")
-    if not isinstance(input_block, Mapping) or not isinstance(input_block.get("steggate_request"), Mapping):
-        raise SovereignValidationError("input.steggate_request is required")
-    raw_governance_request = input_block["steggate_request"]
+    if not isinstance(input_block, Mapping):
+        raise SovereignValidationError("input must be an object")
+    if derived_governance_request is not None:
+        if not isinstance(derived_governance_request, Mapping):
+            raise SovereignValidationError("derived_governance_request must be an object")
+        raw_governance_request = dict(derived_governance_request)
+        governance_request_source = "DERIVED_NATIVE_REQUEST"
+    else:
+        if not isinstance(input_block.get("steggate_request"), Mapping):
+            raise SovereignValidationError("input.steggate_request is required when no derived governance request is supplied")
+        raw_governance_request = input_block["steggate_request"]
+        governance_request_source = "MANIFEST_INPUT"
     (Carrier, build_route, default_route, Custody, build_submission, Registry,
      Request, _evaluate, Ledger, run_tx) = _components()
     provenance, resolved_route = _prov(normalized, host_identity, raw_governance_request)
@@ -165,6 +175,7 @@ def run_sovereign_validation(
             "unsupported_capability_behavior": "REJECT_BEFORE_EXECUTION",
             "submitted_manifest_hash": manifest_binding_hash,
             "governance_request_hash": governance_request_hash,
+            "governance_request_source": governance_request_source,
             "declared_route_id": resolved_route["route_id"],
             "route_declaration_hash": resolved_route["route_declaration_hash"],
             "state_binding_hash": provenance["state_binding_hash"],
@@ -243,6 +254,7 @@ def run_sovereign_validation(
         "unsupported_capability_behavior": "REJECT_BEFORE_EXECUTION",
         "submitted_manifest_hash": manifest_binding_hash,
         "governance_request_hash": governance_request_hash,
+        "governance_request_source": governance_request_source,
         "declared_route_id": resolved_route["route_id"],
         "route_declaration_hash": resolved_route["route_declaration_hash"],
         "state_binding_hash": provenance["state_binding_hash"],

@@ -303,3 +303,31 @@ Next boundary: observe the public Site v0.2 projection; external evaluator revie
 ### Manifest-content continuity note — PR #94 head advance
 
 PR #94 now points to head `18ff1808ef19d25faf7386236f0478f5c4f32c70`, and Evaluator Manifest Source Validation run `33222653960` is SUCCESS. The manifest file content is unchanged from the externally discussed v0.2 revision: blob `2dd0468779975d18ad53dfe400e1d2fcf83650c3`. Therefore no approval is inferred or invalidated—none existed. Future approval/freeze must bind the exact manifest content hash/version, not rely on a stale PR-head label.
+
+
+## Cross-framework current-basis v0.4 reconciliation — 2026-08-29
+
+This section supersedes the earlier v0.2/v0.3 status for the active cross-framework current-basis lane.
+
+```text
+test_id: cross-framework-current-basis-001
+vector_schema: stegverse.cross-framework-current-basis-vector.v0.4
+frozen manifest SHA-256: 07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f
+frozen manifest Git blob SHA-1: 59d818a15fc7be732c97dae7d2174d8cfe9a7bab
+external exact-v0.4 approval: APPROVED_FOR_HASH_FREEZE
+StegVerse owner freeze attestation: FROZEN
+common execution window: OPEN
+StegCore native derivation PR: StegVerse-Labs/StegCore#162
+StegCore validation: 33290922006 SUCCESS
+StegCore manifold regression: 33290922002 SUCCESS
+StegCore merge: e80e927616750a88ad7fc88f4017fc496474f1e4
+SDK role: THIN_CLIENT_OF_CANONICAL_STEGCORE
+SDK parallel evaluator: false
+authentic independent StegVerse execution: NOT YET OBSERVED
+```
+
+Testing-state rule: absent explicitly supplied prior-state data, S0 is the declared initial state from which evaluation begins; no historical S0 receipt is required. Material change does not itself establish invalidation/non-currentness. StegCore independently derives native currentness fields from the frozen neutral S1 observed facts, leaving unestablished currentness unknown. The S0->S1 transition receipt remains post-observation evidence.
+
+Current integration is reconciled from the historical PR #94 branch onto current SDK main rather than overwriting later SDK/Interlock work. The exact frozen manifest bytes are preserved unchanged. The SDK thin client is `stegverse/current_basis.py`; `stegverse/sovereign_validation_runtime.py` accepts an independently derived canonical StegCore request without requiring architecture-native fields inside the frozen common manifest.
+
+Result publication remains verification/distribution only through `.github/workflows/cross-framework-result-artifact-publication.yml`; GitHub Actions does not become runtime, receipt, custody, or governance authority.
