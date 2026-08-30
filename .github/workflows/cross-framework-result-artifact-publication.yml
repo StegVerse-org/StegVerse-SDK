@@ -1,4 +1,4 @@
-name: Cross-Framework Result Artifact Publication (Non-Authorizing)
+name: Optional GitHub Mirror of Cross-Framework Result Packet
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 jobs:
-  publish-verified-result-packet:
+  mirror-verified-result-packet:
     runs-on: ubuntu-latest
     steps:
       - name: Materialize exact source
@@ -34,7 +34,7 @@ jobs:
           sha256sum cross-framework-current-basis-v0.4-results.tar.gz > cross-framework-current-basis-v0.4-results.tar.gz.sha256
           cat cross-framework-current-basis-v0.4-results.tar.gz.sha256
 
-      - name: Attach verified result artifacts
+      - name: Attach optional mirror artifacts
         uses: actions/upload-artifact@v4
         with:
           name: cross-framework-current-basis-v0.4-results
@@ -47,6 +47,7 @@ jobs:
 
       - name: Record authority boundary
         run: |
-          echo 'CROSS_FRAMEWORK_RESULT_PACKET_PUBLICATION_PASS'
-          echo 'This workflow verifies and distributes already-produced authentic run evidence only.'
+          echo 'CROSS_FRAMEWORK_RESULT_PACKET_OPTIONAL_GITHUB_MIRROR_PASS'
+          echo 'This workflow is an optional third-party mirror of an already-complete StegVerse-native result packet.'
+          echo 'StegVerse-native custody, retention, evaluator availability, and completion do not depend on this workflow or GitHub.'
           echo 'It does not execute governance, create runtime authority, mint receipts, or substitute for Master Records custody.'
