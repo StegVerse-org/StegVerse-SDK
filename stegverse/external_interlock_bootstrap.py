@@ -77,6 +77,81 @@ def known_available_organizations()->list[dict[str,Any]]:
         "authority_effect":"NONE",
     }]
 
+
+def build_external_interaction_manifest(
+    *,
+    source_organization_id:str,
+    target_organization_id:str,
+    operation:str,
+    payload:Mapping[str,Any] | None=None,
+    experiment_id:str | None=None,
+)->dict[str,Any]:
+    """Build a neutral manifest for a caller-selected external organization interaction."""
+    source=str(source_organization_id or "").strip()
+    target=str(target_organization_id or "").strip()
+    op=str(operation or "").strip()
+    if not source or not target or not op:
+        raise ValueError("source organization, target organization, and operation are required")
+    body={
+        "schema":MANIFEST_SCHEMA,
+        "manifest_id":"EXT-"+canonical_sha256({"source":source,"target":target,"operation":op,"payload":dict(payload or {})})[:24],
+        "experiment_id":str(experiment_id or "").strip() or None,
+        "source_organization":{"organization_id":source},
+        "target":{"organization_id":target,"relationship_at_manifest_creation":"EXTERNAL_NOT_SELF"},
+        "operation":op,
+        "payload":deepcopy(dict(payload or {})),
+        "interaction_instructions":{
+            "request_is_manifest_receipt_bound":True,
+            "transport":TRANSPORT,
+            "response_must_bind_request_manifest":True,
+            "response_transport_receipts_required":True,
+            "master_records_custody_required":True,
+        },
+        "authority_transfer":False,
+        "authority_effect":"NONE",
+    }
+    return {**body,"manifest_sha256":canonical_sha256(body)}
+
+def build_external_interlock_request(
+    *,
+    source_organization_id:str,
+    target_organization_id:str,
+    operation:str,
+    payload:Mapping[str,Any] | None,
+    authority_ref:str,
+    experiment_id:str | None=None,
+)->dict[str,Any]:
+    """Build a production-lane request for a caller-selected external interaction."""
+    authority=str(authority_ref or "").strip()
+    if not authority:
+        raise ValueError("authority_ref is required")
+    manifest=build_external_interaction_manifest(
+        source_organization_id=source_organization_id,
+        target_organization_id=target_organization_id,
+        operation=operation,
+        payload=payload,
+        experiment_id=experiment_id,
+    )
+    return {
+        "schema_version":REQUEST_SCHEMA,
+        "request_class":REQUEST_CLASS,
+        "operation":manifest["operation"],
+        "authority_ref":authority,
+        "transport":TRANSPORT,
+        "payload":{"manifest":manifest},
+        "bindings":{
+            "experiment_id":manifest["experiment_id"],
+            "source_organization_id":source_organization_id,
+            "target_organization_id":target_organization_id,
+            "manifest_id":manifest["manifest_id"],
+            "manifest_sha256":manifest["manifest_sha256"],
+        },
+        "authority_transfer":False,
+        "sdk_mints_intr_receipt":False,
+        "sdk_claims_delivery":False,
+        "authority_effect":"NONE",
+    }
+
 def build_sv002_self_characterization_manifest()->dict[str,Any]:
     """Build the exact first external manifest without prescribing a self-definition."""
     body={
@@ -202,7 +277,7 @@ __all__=[
     "BOOTSTRAP_SCHEMA","MANIFEST_SCHEMA","REQUEST_SCHEMA","REQUEST_CLASS","TRANSPORT",
     "FIRST_OPERATION","EXPERIMENT_ID","SUBJECT_ID","SDK_ORGANIZATION_ID","OBJECTIVE",
     "canonical_sha256","external_interlock_bootstrap_instructions",
-    "known_available_organizations","build_sv002_self_characterization_manifest",
+    "known_available_organizations","build_external_interaction_manifest","build_external_interlock_request","build_sv002_self_characterization_manifest",
     "validate_sv002_self_characterization_manifest","build_sv002_first_interlock_request",
     "validate_sv002_first_interlock_request",
 ]
