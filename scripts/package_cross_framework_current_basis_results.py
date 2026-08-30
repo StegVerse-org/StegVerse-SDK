@@ -173,7 +173,10 @@ def package_results(*, result_dir: Path, manifest_path: Path, output_dir: Path) 
         "manifest_receipt_id": manifest_receipt_id,
         "portable_replay_reference": portable_reference,
         "copy_paste_reference_artifact": "run-evidence/REPLAY_REFERENCE.txt",
-        "publication_role": "VERIFICATION_AND_DISTRIBUTION_ONLY",
+        "publication_role": "HOST_NEUTRAL_VERIFIED_RESULT_PACKET",
+        "stegverse_native_retention_required": True,
+        "third_party_distribution_required": False,
+        "github_actions_distribution_optional": True,
         "github_actions_runtime_authority": False,
         "files": indexed,
     }
