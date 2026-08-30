@@ -7,6 +7,7 @@ on:
       - inspection/request.schema.json
       - inspection/examples/governed-test-request.json
       - inspection/examples/multilane-noninterference-request.json
+      - inspection/examples/cross-framework-current-basis-request.draft.json
       - stegverse/public_inspection.py
       - stegverse/sovereign_validation_runtime.py
       - stegverse/route_resolution.py
@@ -28,6 +29,9 @@ on:
       - docs/EVALUATION_BOUNDARY_LICENSE_ACCESS_NOTES.md
       - tests/test_public_inspection_request.py
       - tests/test_evaluator_manifest_multilane_noninterference.py
+      - tests/test_cross_framework_current_basis_manifest.py
+      - tests/test_current_basis_sdk.py
+      - stegverse/current_basis.py
       - tests/test_public_inspection_governed_binding.py
       - tests/test_governance_ingress_runtime.py
       - tests/test_route_resolution.py
@@ -45,6 +49,7 @@ on:
       - inspection/request.schema.json
       - inspection/examples/governed-test-request.json
       - inspection/examples/multilane-noninterference-request.json
+      - inspection/examples/cross-framework-current-basis-request.draft.json
       - stegverse/public_inspection.py
       - stegverse/sovereign_validation_runtime.py
       - stegverse/route_resolution.py
@@ -66,6 +71,9 @@ on:
       - docs/EVALUATION_BOUNDARY_LICENSE_ACCESS_NOTES.md
       - tests/test_public_inspection_request.py
       - tests/test_evaluator_manifest_multilane_noninterference.py
+      - tests/test_cross_framework_current_basis_manifest.py
+      - tests/test_current_basis_sdk.py
+      - stegverse/current_basis.py
       - tests/test_public_inspection_governed_binding.py
       - tests/test_governance_ingress_runtime.py
       - tests/test_route_resolution.py
@@ -104,8 +112,11 @@ jobs:
           python scripts/validate_public_inspection_request.py inspection/examples/example-request.json
           python scripts/validate_public_inspection_request.py inspection/examples/governed-test-request.json
           python scripts/validate_public_inspection_request.py inspection/examples/multilane-noninterference-request.json
+          python scripts/validate_public_inspection_request.py inspection/examples/cross-framework-current-basis-request.draft.json
           python -m unittest tests.test_public_inspection_request
           python -m unittest tests.test_evaluator_manifest_multilane_noninterference
+          python -m unittest tests.test_cross_framework_current_basis_manifest
+          python -m pytest -q tests/test_current_basis_sdk.py
           python -m unittest tests.test_public_inspection_governed_binding
           python -m unittest tests.test_governance_ingress_runtime
           python -m unittest tests.test_route_resolution
@@ -126,6 +137,7 @@ jobs:
             stegverse/governance_ingress_cli.py \
             stegverse/cli.py \
             stegverse/evaluation_boundary_verifier.py \
+            stegverse/current_basis.py \
             scripts/validate_public_inspection_request.py \
             scripts/build_evaluation_boundary_artifact_manifest.py \
             scripts/build_evaluation_boundary_owner_packet.py \
