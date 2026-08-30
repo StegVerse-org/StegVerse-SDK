@@ -106,6 +106,10 @@ class CrossFrameworkResultPackagingTests(unittest.TestCase):
                 f"stegverse-replay:v1:MR-CURRENT-BASIS-001:{EXPECTED_MANIFEST_SHA256}",
             )
             self.assertEqual(index["copy_paste_reference_artifact"], "run-evidence/REPLAY_REFERENCE.txt")
+            self.assertEqual(index["publication_role"], "HOST_NEUTRAL_VERIFIED_RESULT_PACKET")
+            self.assertTrue(index["stegverse_native_retention_required"])
+            self.assertFalse(index["third_party_distribution_required"])
+            self.assertTrue(index["github_actions_distribution_optional"])
             self.assertTrue((output / "RESULT_PACKET_INDEX.json").is_file())
             self.assertTrue((output / "run-evidence/RUN_COMPLETE.json").is_file())
             self.assertTrue((output / "run-evidence/REPLAY_REFERENCE.txt").is_file())
