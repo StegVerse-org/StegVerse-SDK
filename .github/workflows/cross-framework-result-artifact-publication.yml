@@ -1,0 +1,52 @@
+name: Cross-Framework Result Artifact Publication (Non-Authorizing)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - evidence/evaluator/cross-framework-current-basis-v0.4-result/**
+  pull_request:
+    branches: [main]
+    paths:
+      - evidence/evaluator/cross-framework-current-basis-v0.4-result/**
+
+permissions:
+  contents: read
+
+jobs:
+  publish-verified-result-packet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize exact source
+        uses: actions/checkout@v4
+
+      - name: Verify and package completed authentic result
+        run: |
+          set -eu
+          python scripts/package_cross_framework_current_basis_results.py             --result-dir evidence/evaluator/cross-framework-current-basis-v0.4-result             --manifest inspection/examples/cross-framework-current-basis-request.draft.json             --output-dir /tmp/cross-framework-current-basis-v0.4-packet
+
+      - name: Build packet archive and hashes
+        run: |
+          set -eu
+          cd /tmp
+          tar -czf cross-framework-current-basis-v0.4-results.tar.gz cross-framework-current-basis-v0.4-packet
+          sha256sum cross-framework-current-basis-v0.4-results.tar.gz > cross-framework-current-basis-v0.4-results.tar.gz.sha256
+          cat cross-framework-current-basis-v0.4-results.tar.gz.sha256
+
+      - name: Attach verified result artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-framework-current-basis-v0.4-results
+          path: |
+            /tmp/cross-framework-current-basis-v0.4-packet/**
+            /tmp/cross-framework-current-basis-v0.4-results.tar.gz
+            /tmp/cross-framework-current-basis-v0.4-results.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Record authority boundary
+        run: |
+          echo 'CROSS_FRAMEWORK_RESULT_PACKET_PUBLICATION_PASS'
+          echo 'This workflow verifies and distributes already-produced authentic run evidence only.'
+          echo 'It does not execute governance, create runtime authority, mint receipts, or substitute for Master Records custody.'
