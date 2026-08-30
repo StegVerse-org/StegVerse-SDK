@@ -1,3 +1,4 @@
+import hashlib
 import json
 import tempfile
 import unittest
@@ -10,6 +11,18 @@ from scripts.package_cross_framework_current_basis_results import (
 )
 
 MANIFEST = Path("inspection/examples/cross-framework-current-basis-request.draft.json")
+
+
+def canonical_sha256(value):
+    payload = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+        default=str,
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
 
 
 class CrossFrameworkResultPackagingTests(unittest.TestCase):
@@ -68,7 +81,7 @@ class CrossFrameworkResultPackagingTests(unittest.TestCase):
                     f"MANIFEST_GIT_BLOB_SHA1={EXPECTED_MANIFEST_BLOB_SHA1}",
                     "TRANSITION_ID=DELTA-S0-S1",
                     f"TRANSITION_RECEIPT_HASH={receipt_hash}",
-                    "STEGVERSE_RESULT_SHA256=" + "b" * 64,
+                    f"STEGVERSE_RESULT_SHA256={canonical_sha256(values['STEGVERSE_RESULT.json'])}",
                     f"PORTABLE_REPLAY_REFERENCE={portable_reference}",
                     f"REPLAY_REFERENCE={manifest_receipt_id}",
                     f"RECONSTRUCTION_REFERENCE={manifest_receipt_id}",
@@ -151,6 +164,22 @@ class CrossFrameworkResultPackagingTests(unittest.TestCase):
                 encoding="utf-8",
             )
             with self.assertRaisesRegex(RuntimeError, "MANIFEST_RECEIPT_ID"):
+                package_results(result_dir=result, manifest_path=MANIFEST, output_dir=output)
+
+    def test_tampered_result_hash_rejects_publication(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            result = base / "result"
+            output = base / "packet"
+            self.make_result(result)
+            text = (result / "REPLAY_REFERENCE.txt").read_text(encoding="utf-8")
+            start = "STEGVERSE_RESULT_SHA256="
+            lines = [
+                start + ("c" * 64) if line.startswith(start) else line
+                for line in text.splitlines()
+            ]
+            (result / "REPLAY_REFERENCE.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "STEGVERSE_RESULT_SHA256"):
                 package_results(result_dir=result, manifest_path=MANIFEST, output_dir=output)
 
     def test_pre_observation_transition_receipt_rejects_publication(self):
