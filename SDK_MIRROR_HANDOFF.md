@@ -554,3 +554,30 @@ Do not create a FROZEN derivative or execute either architecture until those evi
 
 No credential/key entry or second-machine action is required for this current blocker; it is an evidence-binding gap in the canonical evaluator manifest lane.
 
+
+
+## S0 semantics correction and live execution state — 2026-08-29
+
+This section supersedes any earlier statement in this handoff that requires a historical or pre-existing S0 receipt for this test lane.
+
+For this testing environment, absent explicitly supplied prior-state data, S0 is the declared initial state from which evaluation begins. The frozen test definition does not require a prior receipt to justify S0. The S0->S1 transition receipt is post-observation evidence and is bound only after S1 is observed and the transition relationship is established. If a future test explicitly supplies prior-state data, that prior state/transition/receipt becomes part of that test's evaluation context.
+
+Current exact lane state:
+
+```text
+vector schema: stegverse.cross-framework-current-basis-vector.v0.4
+manifest Git blob SHA-1: 59d818a15fc7be732c97dae7d2174d8cfe9a7bab
+manifest SHA-256: 07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f
+source validation: PASS
+authoritative source-validation evidence: evidence/evaluator/cross-framework-current-basis-v0.4-source-validation-2026-08-29.json
+StegVerse owner freeze attestation: FROZEN
+freeze evidence: evidence/evaluator/cross-framework-current-basis-v0.4-owner-freeze-attestation-2026-08-29.json
+common execution window: OPEN
+execution-window evidence: evidence/evaluator/cross-framework-current-basis-v0.4-execution-window-2026-08-29.json
+execution permitted by specification freeze: true
+runtime authority effect: NONE
+```
+
+The exact approved JSON must remain unchanged; its embedded `DRAFT_PRE_FREEZE` value is snapshot content within the approved byte identity, while the effective freeze is carried by the separate hash-bound attestation.
+
+The next legitimate machine step is independent StegVerse execution against that exact frozen identity, followed by S1 observation, post-observation S0->S1 receipt binding, custody/replay/reconstruction, and only then cross-framework semantic comparison. Neither architecture may consume the other's result before its own run completes.
