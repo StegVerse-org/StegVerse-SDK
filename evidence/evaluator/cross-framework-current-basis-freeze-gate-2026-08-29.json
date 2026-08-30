@@ -1,0 +1,54 @@
+{
+  "schema": "stegverse.sdk.evaluator-freeze-gate.v1",
+  "record_id": "cross-framework-current-basis-001-freeze-gate-20260829",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "pull_request": 94,
+  "status": "V0_4_FROZEN_EXECUTION_WINDOW_OPEN",
+  "current_manifest": {
+    "path": "inspection/examples/cross-framework-current-basis-request.draft.json",
+    "vector_schema": "stegverse.cross-framework-current-basis-vector.v0.4",
+    "git_blob_sha1": "59d818a15fc7be732c97dae7d2174d8cfe9a7bab",
+    "sha256": "07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f",
+    "source_commit": "5a21fc6bdf4a94cfd6c4a4f369a1ba8b86721909",
+    "embedded_snapshot_label": "DRAFT_PRE_FREEZE",
+    "identity_must_remain_unchanged": true
+  },
+  "external_exact_revision_approval": {
+    "state": "APPROVED_FOR_HASH_FREEZE",
+    "reviewer": "Richard Colimon",
+    "approved_sha256": "07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f",
+    "approved_git_blob_sha1": "59d818a15fc7be732c97dae7d2174d8cfe9a7bab",
+    "approval_scope": "EXACT_UNCHANGED_JSON_IDENTITY_ONLY"
+  },
+  "source_validation": {
+    "state": "PASS",
+    "mode": "DETERMINISTIC_EXACT_ARTIFACT_SOURCE_VALIDATION",
+    "evidence_path": "evidence/evaluator/cross-framework-current-basis-v0.4-source-validation-2026-08-29.json",
+    "evidence_commit": "28880b03b1c6b38d0d5f0d481a6cfa252a420150",
+    "github_actions_observed": false,
+    "github_actions_note": "No GitHub Actions workflow run was observable; no Actions pass is claimed."
+  },
+  "stegverse_owner_freeze_attestation": {
+    "state": "FROZEN",
+    "evidence_path": "evidence/evaluator/cross-framework-current-basis-v0.4-owner-freeze-attestation-2026-08-29.json",
+    "evidence_commit": "ced2f5b9b5a2336f3bc08b57ebf8a2d2cff381b8",
+    "manifest_mutated_for_freeze": false
+  },
+  "execution_window": {
+    "state": "OPEN",
+    "evidence_path": "evidence/evaluator/cross-framework-current-basis-v0.4-execution-window-2026-08-29.json",
+    "evidence_commit": "6f84407db1467bde8e82ff8dd773f6f1d9cd603c",
+    "external_counterpart_may_execute_same_manifest": true
+  },
+  "receipt_model": {
+    "s0_pre_observation": "DECLARED_AND_FROZEN_NOT_TRANSITION_RECEIPT_BEARING",
+    "s1_common_input": "NEUTRAL_OBSERVED_FACTS_ONLY",
+    "architecture_native_currentness": "INDEPENDENTLY_DERIVED_PER_ARCHITECTURE",
+    "s0_to_s1_transition_receipt": "POST_OBSERVATION_OUTPUT",
+    "transition_receipt_consumed_as_pre_execution_input": false
+  },
+  "execution_permitted": true,
+  "next_machine_action": "Execute the StegVerse architecture independently against the exact frozen v0.4 identity while the external counterpart independently executes the same identity. Do not consume the counterpart result before the StegVerse run completes. Observe S1, then bind the S0-to-S1 transition receipt and retain custody/replay/reconstruction evidence.",
+  "authority_effect": "SPECIFICATION_FREEZE_AND_EXECUTION_WINDOW_ONLY",
+  "runtime_authority_effect": "NONE"
+}
