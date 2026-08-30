@@ -2,7 +2,7 @@ from __future__ import annotations
 import copy
 import pytest
 from stegverse.external_interlock_bootstrap import (
-    OBJECTIVE, build_sv002_first_interlock_request,
+    OBJECTIVE, build_external_interaction_manifest, build_external_interlock_request, build_sv002_first_interlock_request,
     build_sv002_self_characterization_manifest,
     external_interlock_bootstrap_instructions,
     known_available_organizations,
@@ -48,3 +48,27 @@ def test_manifest_tamper_fails_digest_and_request_binds_exact_manifest():
     r["bindings"]["manifest_sha256"]="0"*64
     with pytest.raises(ValueError,match="manifest_sha256"):
         validate_sv002_first_interlock_request(r)
+
+def test_generic_builder_keeps_target_choice_open_and_manifest_receipt_bound():
+    m=build_external_interaction_manifest(
+        source_organization_id="StegVerse-002",
+        target_organization_id="Admissible-Existence",
+        operation="DESCRIBE_AVAILABLE_CAPABILITIES",
+        payload={"question":"What capabilities are available through this boundary?"},
+        experiment_id="STEGVERSE-002-SELF-CHARACTERIZATION-001",
+    )
+    assert m["target"]["organization_id"]=="Admissible-Existence"
+    assert m["interaction_instructions"]["response_transport_receipts_required"] is True
+    assert m["authority_transfer"] is False
+    r=build_external_interlock_request(
+        source_organization_id="StegVerse-002",
+        target_organization_id="Admissible-Existence",
+        operation="DESCRIBE_AVAILABLE_CAPABILITIES",
+        payload={"question":"What capabilities are available through this boundary?"},
+        authority_ref="OPAQUE_BOUND_AUTHORITY",
+        experiment_id="STEGVERSE-002-SELF-CHARACTERIZATION-001",
+    )
+    assert r["transport"]=="InTr"
+    assert r["bindings"]["target_organization_id"]=="Admissible-Existence"
+    assert r["sdk_mints_intr_receipt"] is False
+    assert r["sdk_claims_delivery"] is False
