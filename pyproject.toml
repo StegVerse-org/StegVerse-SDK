@@ -48,7 +48,7 @@ manifold-test = [
     "stegcore @ git+https://github.com/StegVerse-Labs/StegCore.git@99397392462b8e39a510ec6d9e543551270bd402",
 ]
 current-basis-test = [
-    "stegcore @ git+https://github.com/StegVerse-Labs/StegCore.git@d7971fbc30565e74cca7b4e4fdd7ab6587c19816",
+    "stegcore @ git+https://github.com/StegVerse-Labs/StegCore.git@e80e927616750a88ad7fc88f4017fc496474f1e4",
     "stegverse-core-lite @ git+https://github.com/Data-Continuation/core-lite.git@72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8",
     "stegverse-master-records @ git+https://github.com/master-records/orchestration.git@03312236c115bc814024d700810391340648601f",
 ]
