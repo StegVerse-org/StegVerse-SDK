@@ -9,6 +9,7 @@ from typing import Any, Mapping
 from stegverse.iw_matrix_falsifier import (
     evaluate_irreversible_early_commit_falsifier,
     evaluate_temporal_order_falsifier,
+    evaluate_temporal_boundary_ambiguity_falsifier,
 )
 
 SUITE_SCHEMA = "stegverse.iw-cross-system-falsifier-suite.v0.1"
@@ -70,6 +71,31 @@ def evaluate_suite(suite: Mapping[str, Any], observed: Mapping[str, Any]) -> dic
                 "matrix_resolution_unique": p["matrix_resolution_unique"],
                 "lane_crossed_action_boundary": p["lane_crossed_action_boundary"],
                 "consequence_irreversible": p["consequence_irreversible"],
+            })
+        elif fid == "IW-FALSIFIER-003":
+            t = case["test_conditions"]
+            result = evaluate_temporal_boundary_ambiguity_falsifier({
+                "case_id": cid,
+                "temporal_resolution_to_effect_gap_exists": obs.get(
+                    "temporal_resolution_to_effect_gap_exists",
+                    t["temporal_resolution_to_effect_gap_exists"],
+                ),
+                "declared_boundary_well_defined": obs.get(
+                    "declared_boundary_well_defined",
+                    t["declared_boundary_well_defined"],
+                ),
+                "boundary_equivalence_established": obs.get(
+                    "boundary_equivalence_established",
+                    t["boundary_equivalence_established"],
+                ),
+                "material_change_between_resolution_and_effect": t[
+                    "material_change_between_resolution_and_effect"
+                ],
+                "material_change_governance_relevant": t[
+                    "material_change_governance_relevant"
+                ],
+                "effect_used_prechange_resolution": obs.get("effect_used_prechange_resolution"),
+                "effect_prevented_or_reresolved": obs.get("effect_prevented_or_reresolved"),
             })
         else:
             raise ValueError(f"unsupported_falsifier_id:{fid}")
