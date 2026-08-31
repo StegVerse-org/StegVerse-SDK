@@ -11,6 +11,8 @@ on:
       - "scripts/run_iw_cross_system_falsifier_suite.py"
       - "IW_CROSS_SYSTEM_FALSIFIER_MIRROR_HANDOFF.md"
       - "tasks/SDK-IW-CROSS-SYSTEM-FIXTURE-005.json"
+      - "IW_TEMPORAL_BOUNDARY_FALSIFIER_MIRROR_HANDOFF.md"
+      - "tasks/SDK-IW-TEMPORAL-BOUNDARY-FALSIFIER-006.json"
       - "IW_MATRIX_FALSIFIER_MIRROR_HANDOFF.md"
       - "tasks/SDK-IW-MATRIX-FALSIFIERS-004.json"
       - ".github/workflows/iw-matrix-falsifier-validation.yml"
