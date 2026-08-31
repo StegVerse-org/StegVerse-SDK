@@ -1,6 +1,7 @@
 from stegverse.iw_matrix_falsifier import (
     evaluate_irreversible_early_commit_falsifier,
     evaluate_temporal_order_falsifier,
+    evaluate_temporal_boundary_ambiguity_falsifier,
 )
 
 
@@ -108,3 +109,54 @@ def test_lane_action_matching_unique_matrix_action_passes():
         }
     )
     assert result["architecture_falsified"] is False
+
+
+def test_temporal_boundary_ambiguity_falsifies_prechange_effect_across_unproven_boundary():
+    result = evaluate_temporal_boundary_ambiguity_falsifier(
+        {
+            "case_id": "TEMP-BOUNDARY-001",
+            "temporal_resolution_to_effect_gap_exists": True,
+            "declared_boundary_well_defined": False,
+            "boundary_equivalence_established": False,
+            "material_change_between_resolution_and_effect": True,
+            "material_change_governance_relevant": True,
+            "effect_used_prechange_resolution": True,
+            "effect_prevented_or_reresolved": False,
+        }
+    )
+    assert result["architecture_falsified"] is True
+    assert result["classification"] == "FAIL_TEMPORAL_BOUNDARY_AMBIGUITY"
+
+
+def test_temporal_boundary_control_passes_when_binding_and_boundary_are_proven():
+    result = evaluate_temporal_boundary_ambiguity_falsifier(
+        {
+            "case_id": "TEMP-BOUNDARY-CONTROL-001",
+            "temporal_resolution_to_effect_gap_exists": True,
+            "declared_boundary_well_defined": True,
+            "boundary_equivalence_established": True,
+            "material_change_between_resolution_and_effect": True,
+            "material_change_governance_relevant": True,
+            "effect_used_prechange_resolution": False,
+            "effect_prevented_or_reresolved": True,
+        }
+    )
+    assert result["architecture_falsified"] is False
+    assert result["classification"] == "PASS_OR_NOT_FALSIFIED"
+
+
+def test_matrix_resolution_action_model_has_no_temporal_gap_for_this_falsifier():
+    result = evaluate_temporal_boundary_ambiguity_falsifier(
+        {
+            "case_id": "NO-TEMPORAL-GAP-001",
+            "temporal_resolution_to_effect_gap_exists": False,
+            "declared_boundary_well_defined": False,
+            "boundary_equivalence_established": False,
+            "material_change_between_resolution_and_effect": False,
+            "material_change_governance_relevant": False,
+            "effect_used_prechange_resolution": False,
+            "effect_prevented_or_reresolved": False,
+        }
+    )
+    assert result["architecture_falsified"] is False
+    assert result["classification"] == "NOT_APPLICABLE_NO_TEMPORAL_GAP"
