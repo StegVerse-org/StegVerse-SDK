@@ -11,7 +11,7 @@ repository: StegVerse-org/StegVerse-SDK
 canonical_branch: main
 implementation_branch: test/iw-temporal-boundary-falsifier-20260831
 parent_handoff: IW_CROSS_SYSTEM_FALSIFIER_MIRROR_HANDOFF.md
-status: CLAIMED_FOR_IMPLEMENTATION_AND_VALIDATION
+status: VALIDATED_READY_FOR_MERGE
 SDK_role: non-authorizing temporal-boundary falsification surface
 ```
 
@@ -71,10 +71,33 @@ tasks/SDK-IW-TEMPORAL-BOUNDARY-FALSIFIER-006.json
 ## Completion gates
 
 ```text
-implementation: IN_PROGRESS
-focused tests: PENDING
-hosted validation: PENDING
+implementation: COMPLETE
+focused tests: PASS
+hosted validation: PASS
+  IW Matrix Falsifier Validation: run 33409324623 / Python 3.9, 3.11, 3.12 SUCCESS
+  SDK Package Artifact Validation (Non-Authorizing): run 33409324723 SUCCESS
 merge: PENDING
 independent AGCP execution: PENDING / external
 independent StegVerse execution: PENDING / external
+```
+
+
+## Observed validation
+
+```text
+positive falsifier:
+  temporal resolution-to-effect gap exists
+  boundary not well-defined/equivalence unproven
+  governance-relevant material change occurs before effect
+  effect uses pre-change resolution
+  no prevention or re-resolution
+  => FAIL_TEMPORAL_BOUNDARY_AMBIGUITY
+
+control:
+  proven boundary + prevention/re-resolution
+  => PASS_OR_NOT_FALSIFIED
+
+matrix-action control:
+  no later temporal resolution-to-effect governance gap
+  => NOT_APPLICABLE_NO_TEMPORAL_GAP
 ```
