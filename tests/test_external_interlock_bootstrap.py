@@ -26,7 +26,7 @@ def test_ae_is_known_available_from_provenance_but_not_connected_or_recommended(
     assert ae["availability"]=="KNOWN_AVAILABLE_FROM_CONSTRUCTION_PROVENANCE"
     assert ae["connection_state"]=="NOT_CONNECTED"
     assert ae["connection_preestablished"] is False
-    assert ae["relevance_to_current_inquiry"]=="NOT_PRESCRIBED"
+    assert ae["relevance_to_current_inquiry"]=="NOT_PRESCRIBED"\n    assert ae["availability_authority_effect"]=="NONE"
 
 def test_first_manifest_preserves_exact_neutral_objective_and_return_interlock_instruction():
     m=build_sv002_self_characterization_manifest()
@@ -34,7 +34,7 @@ def test_first_manifest_preserves_exact_neutral_objective_and_return_interlock_i
     assert "Return your completed response through this bound Interlock" in m["interaction_instructions"]["response_instruction"]
     assert all(v is False for v in m["knowledge_policy"].values())
     assert "Admissible-Existence" not in m["objective"]
-    validate_sv002_self_characterization_manifest(m)
+    assert m["authority_transfer"] is False\n    assert m["authority_effect_resolution"]=="DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS"\n    assert m["authority_effect_resolution"]=="DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS"\n    validate_sv002_self_characterization_manifest(m)
 
 def test_manifest_tamper_fails_digest_and_request_binds_exact_manifest():
     m=build_sv002_self_characterization_manifest()

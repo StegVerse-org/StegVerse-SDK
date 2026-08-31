@@ -56,7 +56,7 @@ def external_interlock_bootstrap_instructions()->dict[str,Any]:
         "sdk_mints_intr_receipts":False,
         "sdk_grants_authority":False,
         "connection_itself_proves_interaction":False,
-        "authority_effect":"NONE",
+        "authority_effect_resolution":"DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS",
     }
 
 def known_available_organizations()->list[dict[str,Any]]:
@@ -74,7 +74,7 @@ def known_available_organizations()->list[dict[str,Any]]:
             "formal_standing_path":"FORMAL_STANDING_SPEC.md",
             "subject_provenance_ref":"StegVerse-002/micro-node-runtime:experiments/self-characterization-001/CONSTRUCTION_PROVENANCE.v0.1.json",
         },
-        "authority_effect":"NONE",
+        "availability_authority_effect":"NONE",
     }]
 
 
@@ -108,7 +108,7 @@ def build_external_interaction_manifest(
             "master_records_custody_required":True,
         },
         "authority_transfer":False,
-        "authority_effect":"NONE",
+        "authority_effect_resolution":"DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS",
     }
     return {**body,"manifest_sha256":canonical_sha256(body)}
 
@@ -149,7 +149,7 @@ def build_external_interlock_request(
         "authority_transfer":False,
         "sdk_mints_intr_receipt":False,
         "sdk_claims_delivery":False,
-        "authority_effect":"NONE",
+        "authority_effect_resolution":"DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS",
     }
 
 def build_sv002_self_characterization_manifest()->dict[str,Any]:
@@ -184,7 +184,7 @@ def build_sv002_self_characterization_manifest()->dict[str,Any]:
             "prescribe_admissible_existence_connection":False,
         },
         "authority_transfer":False,
-        "authority_effect":"NONE",
+        "authority_effect_resolution":"DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS",
     }
     return {**body,"manifest_sha256":canonical_sha256(body)}
 
@@ -201,7 +201,7 @@ def validate_sv002_self_characterization_manifest(manifest:Mapping[str,Any])->di
         raise ValueError("objective must remain exact")
     if (manifest.get("target") or {}).get("entity_id")!=SUBJECT_ID:
         raise ValueError("target mismatch")
-    if manifest.get("authority_transfer") is not False or manifest.get("authority_effect")!="NONE":
+    if manifest.get("authority_transfer") is not False or manifest.get("authority_effect_resolution")!="DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS":
         raise ValueError("authority boundary mismatch")
     body=dict(manifest); claimed=str(body.pop("manifest_sha256",""))
     if claimed!=canonical_sha256(body):
@@ -236,7 +236,7 @@ def build_sv002_first_interlock_request(authority_ref:str)->dict[str,Any]:
         "authority_transfer":False,
         "sdk_mints_intr_receipt":False,
         "sdk_claims_delivery":False,
-        "authority_effect":"NONE",
+        "authority_effect_resolution":"DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS",
     }
 
 def validate_sv002_first_interlock_request(request:Mapping[str,Any])->dict[str,Any]:
@@ -250,7 +250,7 @@ def validate_sv002_first_interlock_request(request:Mapping[str,Any])->dict[str,A
         "authority_transfer":False,
         "sdk_mints_intr_receipt":False,
         "sdk_claims_delivery":False,
-        "authority_effect":"NONE",
+        "authority_effect_resolution":"DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS",
     }
     for key,value in expected.items():
         if request.get(key)!=value:

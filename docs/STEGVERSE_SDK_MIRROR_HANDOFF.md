@@ -211,3 +211,20 @@ broader repository suite: FAILURES REMAIN OUTSIDE GOAL 7 SCOPE
 ## Archive posture
 
 The repository-local implementation, local headless evidence, canonical matrix CI evidence, tests, documentation, validation receipt, and continuation record are durable. No earlier conversation context is required to continue downstream integration or broader repository remediation. The complete thread is ready for archiving.
+
+
+## Transition-derived interaction effects — 2026-08-31
+
+SDK manifest construction, review, and Interlock admission are distinct from authority transfer and from the effect produced by an admitted transition.
+
+```text
+manifest creation: may occur without granting authority
+authority_ref: still required where an actual Interlock request requires standing
+authority_transfer: false unless independently established
+authority_effect_resolution: DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS
+review visibility: not authority
+review acknowledgement: not adoption/endorsement
+known availability of Admissible-Existence: non-authorizing until an interaction transition exists
+```
+
+This supersedes blanket `authority_effect=NONE` outcome labeling on external interaction manifests/requests. The SDK still does not grant authority; it preserves the candidate interaction and its bindings so the applicable Transition Elements and canonical governance/runtime surfaces can resolve standing/effects from the actual transition.
