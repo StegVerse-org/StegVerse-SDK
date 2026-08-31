@@ -221,13 +221,7 @@ def _verify_admittedcode(receipt: Mapping[str, Any]) -> dict[str, Any]:
 
 def _demo_surface(args: argparse.Namespace) -> int:
     surface = canonical_surface_name(args.surface)
-    if surface == "self-characterization":
-        if not args.input:
-            raise ValueError("self-characterization requires --input <profile.json>")
-        from .self_characterization_lane import validate_lane_profile
-        result = validate_lane_profile(_load_json(args.input, "self-characterization profile"))
-    elif surface == "manifold-governance":
-
+    if surface == "manifold-governance":
         from .manifold_governance import evaluate_manifold_governance
         result = evaluate_manifold_governance(
             _load_demo_json("manifold_governance_reviewable.json")
@@ -259,7 +253,12 @@ def _demo_surface(args: argparse.Namespace) -> int:
 
 def _run_surface(args: argparse.Namespace) -> int:
     surface = canonical_surface_name(args.surface)
-    if surface == "manifold-governance":
+    if surface == "self-characterization":
+        if not args.input:
+            raise ValueError("self-characterization requires --input <profile.json>")
+        from .self_characterization_lane import validate_lane_profile
+        result = validate_lane_profile(_load_json(args.input, "self-characterization profile"))
+    elif surface == "manifold-governance":
         if not args.input:
             raise ValueError("manifold-governance requires --input <packet.json>")
         from .manifold_governance import evaluate_manifold_governance
