@@ -15,7 +15,7 @@ predecessor_handoffs:
   - EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md
 SDK_role: non-authorizing falsification/conformance surface
 canonical_execution_authority: external to SDK
-status: MERGED_BASELINE_WITH_INTEGRATION_TESTS_PENDING_VALIDATION
+status: INTEGRATION_VALIDATED_READY_FOR_MERGE
 ```
 
 ## Goal
@@ -75,6 +75,7 @@ workflow validation: PASS
   IW Matrix Falsifier Validation: run 33404519933 / Python 3.9, 3.11, 3.12 SUCCESS
   SDK Package Artifact Validation (Non-Authorizing): run 33404519845 SUCCESS
 merge: BASELINE MERGED via PR #112 / squash 7816670f691a84ea3d4ea97ec16e77a324891700
+integration extension validation: PASS / run 33405171586 / Python 3.9, 3.11, 3.12 SUCCESS
 integration extension merge: PENDING
 cross-repository propagation assessment: PENDING
 ```
@@ -125,3 +126,16 @@ The integration test asserts three additional properties:
 3. once the consequence is already irreversible, the execution-boundary evaluator correctly treats re-assessment as too late rather than retroactively restoring governance correctness.
 
 These tests remain non-authorizing and do not claim a live external irreversible action was executed.
+
+## Integration validation evidence
+
+```text
+PR: #113
+IW Matrix Falsifier Validation: run 33405171586
+Python 3.9: SUCCESS
+Python 3.11: SUCCESS
+Python 3.12: SUCCESS
+focused suite: original 6 falsifier tests + 3 real-SDK integration tests
+```
+
+Observed integration result: the SDK's single-lane execution-boundary evaluator can return `PERMIT_CONSEQUENCE` for A1 while the n>1 composition evaluator, using the same admissible A1 plus admissible A2, returns `FAIL_CLOSED` because the coupled relation is unresolved. This is the concrete SDK witness that lane-local correctness is not sufficient to establish joint Action correctness.
