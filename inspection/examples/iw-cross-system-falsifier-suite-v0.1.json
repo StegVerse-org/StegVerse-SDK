@@ -1,7 +1,7 @@
 {
   "schema": "stegverse.iw-cross-system-falsifier-suite.v0.1",
   "suite_id": "IW-CROSS-SYSTEM-001",
-  "purpose": "Neutral cross-system falsifier inputs for temporal-order dependence and irreversible early commit under coupled-manifold omission.",
+  "purpose": "Neutral cross-system falsifier inputs for temporal-order dependence, irreversible early commit under coupled-manifold omission, and temporal resolution-to-effect boundary ambiguity.",
   "authority_boundary": {
     "fixture_is_execution_authority": false,
     "sdk_runner_is_governance_authority": false,
@@ -52,6 +52,22 @@
       "oracle": {
         "falsify_if": "lane_committed_action_differs_from_test_oracle_matrix_action",
         "note": "The coupled information is part of the declared Action state before the boundary; this is not an unknowable-future case."
+      }
+    },
+    {
+      "falsifier_id": "IW-FALSIFIER-003",
+      "case_id": "IW-X-TEMPORAL-BOUNDARY-001",
+      "purpose": "Exercise a model in which admissibility resolution precedes operational effect and correctness depends on a commitment-consistent temporal boundary.",
+      "test_conditions": {
+        "temporal_resolution_to_effect_gap_exists": true,
+        "declared_boundary_well_defined": false,
+        "boundary_equivalence_established": false,
+        "material_change_between_resolution_and_effect": true,
+        "material_change_governance_relevant": true
+      },
+      "oracle": {
+        "falsify_if": "architecture_effects_prechange_resolution_without_prevention_or_reresolution",
+        "note": "This case targets boundary-dependent temporal governance. Architectures with no separate resolution-to-effect governance interval should report the case as not applicable rather than simulate a boundary."
       }
     }
   ]
