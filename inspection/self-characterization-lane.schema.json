@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/sdk-self-characterization-trajectory.v1.json",
+  "title": "StegVerse SDK Self-Characterization Trajectory Lane",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "run_id",
+    "subject",
+    "observation_window_minutes",
+    "authorized_organization_ids",
+    "sdk_structure_observation_permitted",
+    "direct_communication_outside_authorized_set_permitted",
+    "proxy_equivalent_communication_outside_authorized_set_permitted",
+    "self_repair_policy",
+    "max_end_state",
+    "trajectory_capture",
+    "authority_claim"
+  ],
+  "properties": {
+    "schema": {"const": "stegverse.sdk-self-characterization-trajectory.v1"},
+    "run_id": {"type": "string", "minLength": 3, "maxLength": 200},
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entity_id", "s0_state_hash"],
+      "properties": {
+        "entity_id": {"type": "string", "minLength": 1, "maxLength": 200},
+        "s0_state_hash": {"type": "string", "pattern": "^[0-9a-fA-F]{64}$"}
+      }
+    },
+    "observation_window_minutes": {"type": "integer", "minimum": 1, "maximum": 120},
+    "authorized_organization_ids": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 200}
+    },
+    "sdk_structure_observation_permitted": {"const": true},
+    "direct_communication_outside_authorized_set_permitted": {"const": false},
+    "proxy_equivalent_communication_outside_authorized_set_permitted": {"const": false},
+    "self_repair_policy": {
+      "type": "string",
+      "enum": ["OBSERVE_AND_PROPOSE_ONLY", "GOVERNED_RECONCILIATION_PERMITTED"]
+    },
+    "max_end_state": {
+      "const": "SELF_CHARACTERIZED_EVIDENCE_REVISED_RECONCILED_SDK_RELATIONALLY_EXPANDED"
+    },
+    "trajectory_capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_initial_self_model",
+        "record_material_revisions",
+        "bind_predecessor_hash",
+        "bind_evidence_refs"
+      ],
+      "properties": {
+        "record_initial_self_model": {"const": true},
+        "record_material_revisions": {"const": true},
+        "bind_predecessor_hash": {"const": true},
+        "bind_evidence_refs": {"const": true}
+      }
+    },
+    "authority_claim": {"const": false},
+    "notes": {"type": "string", "maxLength": 2000}
+  }
+}

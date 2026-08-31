@@ -1,0 +1,27 @@
+{
+  "schema": "stegverse.sdk-self-characterization-trajectory.v1",
+  "run_id": "self-characterization-example-001",
+  "subject": {
+    "entity_id": "example-s0-entity",
+    "s0_state_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "observation_window_minutes": 120,
+  "authorized_organization_ids": [
+    "organization-a",
+    "organization-b",
+    "organization-c"
+  ],
+  "sdk_structure_observation_permitted": true,
+  "direct_communication_outside_authorized_set_permitted": false,
+  "proxy_equivalent_communication_outside_authorized_set_permitted": false,
+  "self_repair_policy": "GOVERNED_RECONCILIATION_PERMITTED",
+  "max_end_state": "SELF_CHARACTERIZED_EVIDENCE_REVISED_RECONCILED_SDK_RELATIONALLY_EXPANDED",
+  "trajectory_capture": {
+    "record_initial_self_model": true,
+    "record_material_revisions": true,
+    "bind_predecessor_hash": true,
+    "bind_evidence_refs": true
+  },
+  "authority_claim": false,
+  "notes": "Example only. Replace identity, S0 hash, and organization IDs before use."
+}
