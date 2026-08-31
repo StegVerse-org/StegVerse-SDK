@@ -1,0 +1,18 @@
+{
+  "schema": "stegverse.task.v1",
+  "task_id": "SDK-IW-MATRIX-FALSIFIERS-004",
+  "state": "CLAIMED_FOR_IMPLEMENTATION_AND_VALIDATION",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "branch": "test/iw-matrix-falsifiers-20260831",
+  "goal": "Make temporal-order and irreversible-early-commit coupled-manifold falsifiers executable through the non-authorizing SDK.",
+  "required_files": [
+    "stegverse/iw_matrix_falsifier.py",
+    "tests/test_iw_matrix_falsifier.py",
+    ".github/workflows/iw-matrix-falsifier-validation.yml",
+    "IW_MATRIX_FALSIFIER_MIRROR_HANDOFF.md"
+  ],
+  "authority_boundaries": {
+    "sdk_grants_execution_authority": false,
+    "github_actions_is_runtime_authority": false
+  }
+}
