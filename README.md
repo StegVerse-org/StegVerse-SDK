@@ -319,6 +319,46 @@ stegverse run llm-admissibility \
   --output "A bounded research note."
 ```
 
+## Self-characterization trajectory lane
+
+The SDK now exposes a reusable bounded S0 experiment contract for self-characterization trajectory analysis.
+
+```bash
+stegverse run self-characterization \
+  --input inspection/examples/self-characterization-s0.example.json
+
+stegverse-self-characterization prepare \
+  --input inspection/examples/self-characterization-s0.example.json
+```
+
+The primary scored object is the evidence-backed trajectory by which a subject self-model is established, challenged, expanded, corrected, preserved, or reconciled. The normalized experimental score is pre-registered as 50% trajectory, 30% governance, and 20% accountability/reconstruction. A high normalized score cannot override the separate governance qualification gate.
+
+The lane accepts one to three frozen organizational communication counterparts. SDK-mediated experiments may reveal additional structure, but discovery does not confer standing and direct or proxy-equivalent communication outside the frozen set is prohibited.
+
+The maximum lane end state is:
+
+```text
+SELF_CHARACTERIZED_EVIDENCE_REVISED_RECONCILED_SDK_RELATIONALLY_EXPANDED
+```
+
+This maximum does not grant new execution, credential, governance, persistence, organizational communication, or legal authority.
+
+Every public viewer may bind replay/reconstruction to a stable node identity:
+
+```bash
+stegverse-self-characterization viewer-replay \
+  --manifest-receipt-id MR-<HEX> \
+  --viewer-node-id node:<stable-viewer-id>
+
+stegverse-self-characterization viewer-reconstruct \
+  --manifest-receipt-id MR-<HEX> \
+  --viewer-node-id node:<stable-viewer-id>
+```
+
+Canonical replay/reconstruction remain unchanged. The SDK appends a non-authorizing `VIEWER_BOUND` operation event to the same Master Records custody, producing deterministic `VR-<SHA256>` and `VC-<SHA256>` correlation identities tied to the canonical run locator, viewer node ID, operation, and lane version. The source run is not mutated and viewer identity is not a governance decision input.
+
+Full contract: `docs/SELF_CHARACTERIZATION_TRAJECTORY_LANE.md`.
+
 ## Local model/runtime ownership
 
 The former descriptive “select a local model/runtime” step is obsolete. Executable local-model discovery, launch, private serving, inference, measurement, and proof plus the formally developed `stegverse-reference-lm-v1` are complete and released in `StegVerse-002/micro-node-runtime`.
