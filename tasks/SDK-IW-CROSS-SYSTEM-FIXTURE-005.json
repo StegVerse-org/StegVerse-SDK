@@ -1,0 +1,31 @@
+{
+  "schema": "stegverse.task.v1",
+  "task_id": "SDK-IW-CROSS-SYSTEM-FIXTURE-005",
+  "state": "VALIDATED_READY_FOR_MERGE",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "issue": 114,
+  "branch": "test/iw-cross-system-fixture-20260831",
+  "goal": "Create a neutral cross-system IW falsifier fixture and SDK runner for independent architecture observations.",
+  "required_files": [
+    "inspection/examples/iw-cross-system-falsifier-suite-v0.1.json",
+    "scripts/run_iw_cross_system_falsifier_suite.py",
+    "tests/test_iw_cross_system_falsifier_suite.py",
+    ".github/workflows/iw-matrix-falsifier-validation.yml",
+    "IW_CROSS_SYSTEM_FALSIFIER_MIRROR_HANDOFF.md"
+  ],
+  "authority_boundaries": {
+    "sdk_runner_is_governance_authority": false,
+    "fixture_is_execution_authority": false,
+    "counterpart_result_must_be_independently_produced": true
+  },
+  "validation": {
+    "workflow": "IW Matrix Falsifier Validation",
+    "run_id": 33405588278,
+    "python": [
+      "3.9",
+      "3.11",
+      "3.12"
+    ],
+    "status": "SUCCESS"
+  }
+}

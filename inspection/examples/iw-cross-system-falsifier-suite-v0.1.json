@@ -1,0 +1,58 @@
+{
+  "schema": "stegverse.iw-cross-system-falsifier-suite.v0.1",
+  "suite_id": "IW-CROSS-SYSTEM-001",
+  "purpose": "Neutral cross-system falsifier inputs for temporal-order dependence and irreversible early commit under coupled-manifold omission.",
+  "authority_boundary": {
+    "fixture_is_execution_authority": false,
+    "sdk_runner_is_governance_authority": false,
+    "counterpart_result_must_be_independently_produced": true
+  },
+  "cases": [
+    {
+      "falsifier_id": "IW-FALSIFIER-001",
+      "case_id": "IW-X-ORDER-001",
+      "governed_input_hash": "sha256:GEAIW-CANONICAL-SAME",
+      "candidate_set_hash": "sha256:A1-A2-A3-CANONICAL-SAME",
+      "order_is_explicit_governed_input": false,
+      "runs": [
+        {
+          "run_id": "alpha",
+          "arrival_order": [
+            "A1",
+            "A2"
+          ]
+        },
+        {
+          "run_id": "beta",
+          "arrival_order": [
+            "A2",
+            "A1"
+          ]
+        }
+      ],
+      "oracle": {
+        "falsify_if": "committed_action_varies_across_runs",
+        "note": "Arrival order is intentionally not a governed input."
+      }
+    },
+    {
+      "falsifier_id": "IW-FALSIFIER-002",
+      "case_id": "IW-X-IRREV-001",
+      "lane_candidate": "A1",
+      "coupled_candidate": "A2",
+      "test_oracle_matrix_action": "A3",
+      "preconditions": {
+        "lane_local_checks_all_passed": true,
+        "coupled_information_existed_before_boundary": true,
+        "coupled_information_within_declared_scope": true,
+        "matrix_resolution_unique": true,
+        "lane_crossed_action_boundary": true,
+        "consequence_irreversible": true
+      },
+      "oracle": {
+        "falsify_if": "lane_committed_action_differs_from_test_oracle_matrix_action",
+        "note": "The coupled information is part of the declared Action state before the boundary; this is not an unknowable-future case."
+      }
+    }
+  ]
+}
