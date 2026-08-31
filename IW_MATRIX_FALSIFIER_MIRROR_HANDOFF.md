@@ -8,14 +8,14 @@ Updated: 2026-08-31
 goal_id: SDK-IW-MATRIX-FALSIFIERS-004
 repository: StegVerse-org/StegVerse-SDK
 canonical_branch: main
-implementation_branch: test/iw-matrix-falsifiers-20260831
+implementation_branch: test/iw-matrix-sdk-integration-20260831
 parent_handoff: STEGVERSE_SDK_MIRROR_HANDOFF.md
 predecessor_handoffs:
   - ADMISSIBILITY_COMPOSITION_MIRROR_HANDOFF.md
   - EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md
 SDK_role: non-authorizing falsification/conformance surface
 canonical_execution_authority: external to SDK
-status: VALIDATED_READY_FOR_MERGE
+status: MERGED_BASELINE_WITH_INTEGRATION_TESTS_PENDING_VALIDATION
 ```
 
 ## Goal
@@ -74,7 +74,8 @@ focused tests: PASS (6/6)
 workflow validation: PASS
   IW Matrix Falsifier Validation: run 33404519933 / Python 3.9, 3.11, 3.12 SUCCESS
   SDK Package Artifact Validation (Non-Authorizing): run 33404519845 SUCCESS
-merge: PENDING
+merge: BASELINE MERGED via PR #112 / squash 7816670f691a84ea3d4ea97ec16e77a324891700
+integration extension merge: PENDING
 cross-repository propagation assessment: PENDING
 ```
 
@@ -105,3 +106,22 @@ IW-FALSIFIER-002 controls:
 ```
 
 These are SDK-local architecture-trace falsifiers. They validate the test semantics and implementation, not a live external architecture run.
+
+
+## SDK-native integration extension
+
+The first falsifier slice validated architecture-trace semantics. The successor integration tests now exercise the existing SDK admissibility, composition, and execution-boundary implementations directly.
+
+Added surface:
+
+```text
+tests/test_iw_matrix_sdk_integration.py
+```
+
+The integration test asserts three additional properties:
+
+1. a real SDK single-lane boundary evaluation can return `PERMIT_CONSEQUENCE` for A1 while the real n>1 composition evaluator fails closed for A1+A2 because no governed joint relation exists;
+2. reversing component arrival order does not change the joint governance classification where order is not a governed input; and
+3. once the consequence is already irreversible, the execution-boundary evaluator correctly treats re-assessment as too late rather than retroactively restoring governance correctness.
+
+These tests remain non-authorizing and do not claim a live external irreversible action was executed.
