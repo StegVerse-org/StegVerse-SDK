@@ -53,7 +53,7 @@ Those viewer IDs are correlation/evidence identities only and grant no authority
 
 New:
 - `stegverse/self_characterization_lane.py`
-- `stegverse/self_characterization_cli.py`
+- `stegverse/self_characterization_cli.py`\n- `stegverse/viewer_bound_operations.py`
 - `inspection/self-characterization-lane.schema.json`
 - `inspection/examples/self-characterization-s0.example.json`
 - `tests/test_self_characterization_lane.py`
@@ -65,8 +65,13 @@ Updates:
 - `stegverse/sdk_surfaces.py`
 - `stegverse/cli.py`
 - `pyproject.toml`
-- `README.md`
+- `README.md`\n- `docs/SDK_CONSOLE.md`
 
 ## Completion condition
 
 Implementation merged with SDK validation passing and documentation describing the exact authority, scoring, replay/reconstruction, and maximum-end-state semantics.
+
+
+## Implementation refinement
+
+Canonical replay/reconstruction implementation remains unchanged. The lane uses `stegverse/viewer_bound_operations.py` to invoke the canonical operation and then append a sequence-4 `VIEWER_BOUND` event to the same Master Records custody. This preserves the source run and canonical operation semantics while making viewer identity and deterministic viewer replay/reconstruction IDs durable evidence context.
