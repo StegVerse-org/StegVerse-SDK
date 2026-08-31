@@ -1,0 +1,33 @@
+name: IW Matrix Falsifier Validation
+
+on:
+  pull_request:
+    paths:
+      - "stegverse/iw_matrix_falsifier.py"
+      - "tests/test_iw_matrix_falsifier.py"
+      - "IW_MATRIX_FALSIFIER_MIRROR_HANDOFF.md"
+      - "tasks/SDK-IW-MATRIX-FALSIFIERS-004.json"
+      - ".github/workflows/iw-matrix-falsifier-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install package and test dependency
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install pytest
+      - name: Run IW matrix falsifiers
+        run: python -m pytest -q tests/test_iw_matrix_falsifier.py
