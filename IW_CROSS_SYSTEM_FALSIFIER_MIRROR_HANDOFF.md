@@ -11,7 +11,7 @@ repository: StegVerse-org/StegVerse-SDK
 canonical_branch: main
 implementation_branch: test/iw-cross-system-fixture-20260831
 parent_handoff: IW_MATRIX_FALSIFIER_MIRROR_HANDOFF.md
-status: CLAIMED_FOR_IMPLEMENTATION_AND_VALIDATION
+status: VALIDATED_READY_FOR_MERGE
 SDK_role: non-authorizing neutral test fixture + result evaluator
 ```
 
@@ -57,8 +57,28 @@ The test declares A3 as the agreed unique matrix oracle for a case in which the 
 ```text
 fixture: IMPLEMENTED
 runner: IMPLEMENTED
-focused tests: IMPLEMENTED / NOT YET HOSTED-VALIDATED
-workflow integration: PENDING
+focused tests: PASS
+workflow integration: PASS / IW Matrix Falsifier Validation run 33405588278
+  Python 3.9 SUCCESS
+  Python 3.11 SUCCESS
+  Python 3.12 SUCCESS
 merge: PENDING
 external independent execution: PENDING / outside SDK-local source completion
+```
+
+
+## Validation evidence
+
+```text
+PR: #115
+IW Matrix Falsifier Validation: run 33405588278
+Python 3.9: SUCCESS
+Python 3.11: SUCCESS
+Python 3.12: SUCCESS
+suite coverage:
+  original architecture-trace falsifiers
+  real SDK integration witnesses
+  neutral cross-system fixture positive falsification
+  neutral matrix-stable controls
+  fixture-tamper/order-change fail-closed guard
 ```
