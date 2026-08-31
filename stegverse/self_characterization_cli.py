@@ -57,22 +57,19 @@ def main(argv: list[str] | None = None) -> int:
             viewer_node_id=args.viewer_node_id,
             operation=operation,
         )
-        from .sovereign_validation_runtime import replay_sovereign, reconstruct_sovereign
+        from .viewer_bound_operations import reconstruct_for_viewer, replay_for_viewer
         if operation == "REPLAY":
-            artifact = replay_sovereign(
+            result = replay_for_viewer(
                 args.manifest_receipt_id,
                 custody_db=args.custody_db,
                 viewer_node_id=args.viewer_node_id,
-                viewer_operation_id=binding["viewer_operation_id"],
             )
         else:
-            artifact = reconstruct_sovereign(
+            result = reconstruct_for_viewer(
                 args.manifest_receipt_id,
                 custody_db=args.custody_db,
                 viewer_node_id=args.viewer_node_id,
-                viewer_operation_id=binding["viewer_operation_id"],
             )
-        result = {"viewer_binding": binding, "artifact": artifact}
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 
