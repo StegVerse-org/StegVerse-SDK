@@ -1,15 +1,16 @@
 {
   "schema": "stegverse.task.v1",
   "task_id": "SDK-IW-MATRIX-FALSIFIERS-004",
-  "state": "VALIDATED_READY_FOR_MERGE",
+  "state": "INTEGRATION_VALIDATED_READY_FOR_MERGE",
   "repository": "StegVerse-org/StegVerse-SDK",
-  "branch": "test/iw-matrix-falsifiers-20260831",
+  "branch": "test/iw-matrix-sdk-integration-20260831",
   "goal": "Make temporal-order and irreversible-early-commit coupled-manifold falsifiers executable through the non-authorizing SDK.",
   "required_files": [
     "stegverse/iw_matrix_falsifier.py",
     "tests/test_iw_matrix_falsifier.py",
     ".github/workflows/iw-matrix-falsifier-validation.yml",
-    "IW_MATRIX_FALSIFIER_MIRROR_HANDOFF.md"
+    "IW_MATRIX_FALSIFIER_MIRROR_HANDOFF.md",
+    "tests/test_iw_matrix_sdk_integration.py"
   ],
   "validation": {
     "focused_tests": "6/6 PASS across Python 3.9, 3.11, 3.12",
@@ -19,5 +20,23 @@
   "authority_boundaries": {
     "sdk_grants_execution_authority": false,
     "github_actions_is_runtime_authority": false
+  },
+  "baseline_merge": {
+    "pr": 112,
+    "sha": "7816670f691a84ea3d4ea97ec16e77a324891700"
+  },
+  "integration_extension": {
+    "status": "VALIDATED_READY_FOR_MERGE",
+    "tests": [
+      "single_lane_permit_vs_joint_fail_closed",
+      "joint_classification_order_invariance",
+      "irreversible_boundary_too_late"
+    ],
+    "validation_run": 33405171586,
+    "python": [
+      "3.9",
+      "3.11",
+      "3.12"
+    ]
   }
 }

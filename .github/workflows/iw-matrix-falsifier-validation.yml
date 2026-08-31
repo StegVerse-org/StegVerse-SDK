@@ -5,6 +5,7 @@ on:
     paths:
       - "stegverse/iw_matrix_falsifier.py"
       - "tests/test_iw_matrix_falsifier.py"
+      - "tests/test_iw_matrix_sdk_integration.py"
       - "IW_MATRIX_FALSIFIER_MIRROR_HANDOFF.md"
       - "tasks/SDK-IW-MATRIX-FALSIFIERS-004.json"
       - ".github/workflows/iw-matrix-falsifier-validation.yml"
@@ -30,4 +31,4 @@ jobs:
           python -m pip install -e .
           python -m pip install pytest
       - name: Run IW matrix falsifiers
-        run: python -m pytest -q tests/test_iw_matrix_falsifier.py
+        run: python -m pytest -q tests/test_iw_matrix_falsifier.py tests/test_iw_matrix_sdk_integration.py
