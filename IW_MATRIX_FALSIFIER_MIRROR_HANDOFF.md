@@ -15,7 +15,7 @@ predecessor_handoffs:
   - EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md
 SDK_role: non-authorizing falsification/conformance surface
 canonical_execution_authority: external to SDK
-status: CLAIMED_FOR_IMPLEMENTATION_AND_VALIDATION
+status: VALIDATED_READY_FOR_MERGE
 ```
 
 ## Goal
@@ -69,9 +69,39 @@ The SDK may prove that a supplied architecture trace violates or preserves the f
 ## Completion gates
 
 ```text
-implementation: PENDING
-focused tests: PENDING
-workflow validation: PENDING
+implementation: COMPLETE
+focused tests: PASS (6/6)
+workflow validation: PASS
+  IW Matrix Falsifier Validation: run 33404519933 / Python 3.9, 3.11, 3.12 SUCCESS
+  SDK Package Artifact Validation (Non-Authorizing): run 33404519845 SUCCESS
 merge: PENDING
 cross-repository propagation assessment: PENDING
+
+## Observed test results
+
+```text
+IW-FALSIFIER-001 positive falsification:
+  same declared governed input + same candidate set
+  different non-governed arrival order
+  different committed Action
+  => FAIL_TEMPORAL_ORDER_DEPENDENCE
+
+IW-FALSIFIER-001 controls:
+  explicit governed order may legitimately affect outcome
+  same matrix-resolved Action across arrival orders does not falsify
+
+IW-FALSIFIER-002 positive falsification:
+  lane-local checks all pass
+  coupled information existed within declared scope before boundary
+  A1 crosses irreversible Action boundary
+  unique matrix solution = A3
+  A1 != A3
+  => FAIL_IRREVERSIBLE_EARLY_COMMIT
+
+IW-FALSIFIER-002 controls:
+  information that did not exist before boundary is not used as a falsifier
+  lane Action matching unique matrix Action does not falsify
+```
+
+These are SDK-local architecture-trace falsifiers. They validate the test semantics and implementation, not a live external architecture run.
 ```
