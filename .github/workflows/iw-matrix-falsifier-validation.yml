@@ -6,6 +6,11 @@ on:
       - "stegverse/iw_matrix_falsifier.py"
       - "tests/test_iw_matrix_falsifier.py"
       - "tests/test_iw_matrix_sdk_integration.py"
+      - "tests/test_iw_cross_system_falsifier_suite.py"
+      - "inspection/examples/iw-cross-system-falsifier-suite-v0.1.json"
+      - "scripts/run_iw_cross_system_falsifier_suite.py"
+      - "IW_CROSS_SYSTEM_FALSIFIER_MIRROR_HANDOFF.md"
+      - "tasks/SDK-IW-CROSS-SYSTEM-FIXTURE-005.json"
       - "IW_MATRIX_FALSIFIER_MIRROR_HANDOFF.md"
       - "tasks/SDK-IW-MATRIX-FALSIFIERS-004.json"
       - ".github/workflows/iw-matrix-falsifier-validation.yml"
@@ -31,4 +36,4 @@ jobs:
           python -m pip install -e .
           python -m pip install pytest
       - name: Run IW matrix falsifiers
-        run: python -m pytest -q tests/test_iw_matrix_falsifier.py tests/test_iw_matrix_sdk_integration.py
+        run: python -m pytest -q tests/test_iw_matrix_falsifier.py tests/test_iw_matrix_sdk_integration.py tests/test_iw_cross_system_falsifier_suite.py
