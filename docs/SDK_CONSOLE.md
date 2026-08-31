@@ -197,6 +197,40 @@ validation/SOVEREIGN_FROZEN_EVALUATOR_VALIDATION_2026-08-13.md
 
 The retained T0/T1-A/T1-B validation records exact-run custody, manifested-route custody, replay custody, and reconstruction custody as PASS on the sovereign path.
 
+## Self-characterization trajectory lane
+
+Prepare a reusable bounded S0 lane:
+
+```bash
+stegverse run self-characterization \
+  --input inspection/examples/self-characterization-s0.example.json
+```
+
+or:
+
+```bash
+stegverse-self-characterization prepare \
+  --input inspection/examples/self-characterization-s0.example.json
+```
+
+The lane preserves a frozen S0 identity/state, a maximum two-hour observation window, one to three authorized organizational communication counterparts, trajectory evidence bindings, and a maximum bounded end state of self-characterization, evidence-sensitive revision, permitted reconciliation/self-repair, and SDK-informed relational expansion.
+
+Viewer-bound access is available after an exact-run `manifest_receipt_id` exists:
+
+```bash
+stegverse-self-characterization viewer-replay \
+  --manifest-receipt-id MR-<HEX> \
+  --viewer-node-id node:<stable-viewer-id>
+
+stegverse-self-characterization viewer-reconstruct \
+  --manifest-receipt-id MR-<HEX> \
+  --viewer-node-id node:<stable-viewer-id>
+```
+
+Canonical replay/reconstruction still preserve the source run and do not re-execute its consequence. The viewer wrapper appends a separate non-authorizing `VIEWER_BOUND` operation event to canonical custody so each viewer's access can be correlated and independently reconstructed.
+
+See `docs/SELF_CHARACTERIZATION_TRAJECTORY_LANE.md`.
+
 ## Focused subsystem tests
 
 ```bash
