@@ -76,6 +76,7 @@ workflow validation: PASS
   SDK Package Artifact Validation (Non-Authorizing): run 33404519845 SUCCESS
 merge: PENDING
 cross-repository propagation assessment: PENDING
+```
 
 ## Observed test results
 
@@ -104,4 +105,3 @@ IW-FALSIFIER-002 controls:
 ```
 
 These are SDK-local architecture-trace falsifiers. They validate the test semantics and implementation, not a live external architecture run.
-```
