@@ -57,7 +57,8 @@ stegverse-connect-llm = "stegverse.llm_connect_cli:main"
 stegverse-output-proof = "stegverse.output_boundary_cli:main"
 stegverse-comm-demo = "stegverse.communication_edge_cli:main"
 stegverse-verify-governance = "stegverse.portable_governance_verifier_cli:main"
-stegverse-governance-exchange = "stegverse.portable_governance_exchange_cli:main"\nstegverse-self-characterization = "stegverse.self_characterization_cli:main"
+stegverse-governance-exchange = "stegverse.portable_governance_exchange_cli:main"
+stegverse-self-characterization = "stegverse.self_characterization_cli:main"
 
 [project.urls]
 Homepage = "https://github.com/StegVerse-org/StegVerse-SDK"
