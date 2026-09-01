@@ -327,6 +327,44 @@ def validate_state_transition_receipt(receipt: Mapping[str, Any]) -> dict[str, A
     return normalized
 
 
+def validate_transition_chain(
+    receipts: list[Mapping[str, Any]],
+    *,
+    require_terminal: bool = False,
+) -> dict[str, Any]:
+    """Validate a continuous receipt chain covering each recorded state change."""
+    if not isinstance(receipts, list) or not receipts:
+        raise SelfCharacterizationLaneError("transition receipt chain must be a non-empty list")
+    normalized = [validate_state_transition_receipt(receipt) for receipt in receipts]
+    for index, receipt in enumerate(normalized):
+        if receipt["sequence"] != index:
+            raise SelfCharacterizationLaneError("transition receipt sequence must be contiguous from zero")
+        if index:
+            prior = normalized[index - 1]
+            if prior["to_state"] != receipt["from_state"]:
+                raise SelfCharacterizationLaneError("transition receipt state chain is discontinuous")
+            if prior["next_transition"]["status"] == "NONE_TERMINAL":
+                raise SelfCharacterizationLaneError("terminal transition cannot be followed by another state change")
+    final_status = normalized[-1]["next_transition"]["status"]
+    if require_terminal and final_status != "NONE_TERMINAL":
+        raise SelfCharacterizationLaneError("final experiment projection requires a terminal transition receipt")
+    chain_payload = {
+        "schema": "stegverse.self-characterization-transition-chain.v1",
+        "run_id": normalized[0]["run_id"],
+        "receipt_ids": [receipt["transition_receipt_id"] for receipt in normalized],
+        "receipt_hashes": [receipt["transition_receipt_sha256"] for receipt in normalized],
+        "initial_state": normalized[0]["from_state"],
+        "final_state": normalized[-1]["to_state"],
+        "terminal": final_status == "NONE_TERMINAL",
+    }
+    if any(receipt["run_id"] != chain_payload["run_id"] for receipt in normalized):
+        raise SelfCharacterizationLaneError("all transition receipts must use one run_id")
+    chain_payload["transition_chain_sha256"] = canonical_sha256(chain_payload)
+    chain_payload["complete_state_change_coverage_claim"] = True
+    chain_payload["authority_effect"] = "NONE"
+    return {"chain": chain_payload, "receipts": normalized}
+
+
 def project_transition_receipts(
     receipts: list[Mapping[str, Any]],
     *,
@@ -336,9 +374,11 @@ def project_transition_receipts(
     mode = str(projection or "").strip().upper()
     if mode not in TRANSITION_EXPLANATION_PROJECTIONS:
         raise SelfCharacterizationLaneError("projection must be ALL or NONE")
-    normalized = [validate_state_transition_receipt(receipt) for receipt in receipts]
+    validated = validate_transition_chain(receipts)
+    normalized = validated["receipts"]
     return {
         "projection": mode,
+        "transition_chain": validated["chain"],
         "transition_receipts": normalized if mode == "ALL" else [],
         "transition_receipt_count": len(normalized),
         "receipts_omitted_from_final_projection": mode == "NONE",
@@ -427,6 +467,7 @@ __all__ = [
     "canonical_sha256",
     "validate_lane_profile",
     "validate_state_transition_receipt",
+    "validate_transition_chain",
     "project_transition_receipts",
     "validate_trajectory_transition",
     "score_experiment",
