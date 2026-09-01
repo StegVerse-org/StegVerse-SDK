@@ -124,3 +124,15 @@ When present, v0.3 receipts preserve and validate:
 `validate_transition_chain` now verifies both state continuity and previous-receipt hash continuity, and also verifies state-payload continuity when payloads are supplied.
 
 Legacy SDK receipts without those optional v0.3 fields remain valid. Authority effect remains NONE for the receipt object itself; downstream standing/authority effects remain independently Transition-Element derived.
+
+
+## v0.3 SDK source closure — 2026-09-01
+
+PR #122 merged as `93f01eaf851e740982b3bb53abddba2ec0c44a74`.
+
+The reusable SDK transition validator now matches the v0.3 principal receipt vocabulary, preserves backward compatibility, validates optional state payloads/hash linkage, and validates previous-receipt continuity when present.
+
+`.github/workflows/package-artifact-validation.yml` now runs the focused self-characterization lane tests in addition to package/build validation. The PR validation completed successfully before merge.
+
+SDK source status: COMPLETE / MERGED / NON-AUTHORIZING.
+Authentic StegVerse-002 principal execution remains outside SDK execution authority.
