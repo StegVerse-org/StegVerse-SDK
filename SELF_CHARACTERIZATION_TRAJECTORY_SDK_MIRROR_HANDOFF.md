@@ -107,3 +107,20 @@ Existing files extended:
 - `docs/SELF_CHARACTERIZATION_TRAJECTORY_LANE.md`
 - `README.md`
 - `docs/SDK_CONSOLE.md`
+
+
+## v0.3 receipt-integrity alignment — 2026-09-01
+
+The SDK transition validator now accepts the richer canonical runtime receipt without creating a second receipt dialect.
+
+When present, v0.3 receipts preserve and validate:
+- experiment identity;
+- exact from/to state payloads and their SHA-256 bindings;
+- observed timestamp;
+- previous-receipt SHA-256;
+- explicit no-authority-transfer assertion;
+- supplied canonical transition receipt SHA-256.
+
+`validate_transition_chain` now verifies both state continuity and previous-receipt hash continuity, and also verifies state-payload continuity when payloads are supplied.
+
+Legacy SDK receipts without those optional v0.3 fields remain valid. Authority effect remains NONE for the receipt object itself; downstream standing/authority effects remain independently Transition-Element derived.
