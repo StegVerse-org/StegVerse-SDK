@@ -215,6 +215,8 @@ stegverse-self-characterization prepare \
 
 The lane preserves a frozen S0 identity/state, a maximum two-hour observation window, one to three authorized organizational communication counterparts, trajectory evidence bindings, and a maximum bounded end state of self-characterization, evidence-sensitive revision, permitted reconciliation/self-repair, and SDK-informed relational expansion.
 
+Every state change must be recorded through a transition receipt chain. Set `transition_explanation_projection` to `ALL` or `NONE` in the lane profile to choose whether those transition explanations are shown in final results. `NONE` changes only the returned projection; canonical custody and replay/reconstruction remain complete.
+
 Viewer-bound access is available after an exact-run `manifest_receipt_id` exists:
 
 ```bash

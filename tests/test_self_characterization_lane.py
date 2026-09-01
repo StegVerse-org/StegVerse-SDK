@@ -7,8 +7,11 @@ from stegverse.self_characterization_lane import (
     MAX_END_STATE,
     TRAJECTORY_WEIGHTS,
     derive_viewer_operation_id,
+    project_transition_receipts,
     score_experiment,
     validate_lane_profile,
+    validate_state_transition_receipt,
+    validate_transition_chain,
     validate_trajectory_transition,
 )
 
@@ -32,9 +35,12 @@ class SelfCharacterizationLaneTests(unittest.TestCase):
             "trajectory_capture": {
                 "record_initial_self_model": True,
                 "record_material_revisions": True,
+                "record_every_state_change": True,
+                "transition_receipt_required": True,
                 "bind_predecessor_hash": True,
                 "bind_evidence_refs": True,
             },
+            "transition_explanation_projection": "ALL",
             "authority_claim": False,
         }
 
@@ -91,6 +97,60 @@ class SelfCharacterizationLaneTests(unittest.TestCase):
             "governance_receipt_refs": ["RECEIPT-1"],
         })
         self.assertEqual("EXPANDED", result["delta_class"])
+
+    def transition_receipt(self, sequence=0, from_id="S0", to_id="S1", next_status="NONE_TERMINAL"):
+        return {
+            "run_id": "run-001",
+            "transition_receipt_id": f"TR-{sequence:03d}",
+            "sequence": sequence,
+            "from_state": {"state_id": from_id, "state_hash": ("a" if sequence == 0 else "b") * 64},
+            "to_state": {"state_id": to_id, "state_hash": ("b" if sequence == 0 else "c") * 64},
+            "transition_class": "SELF_MODEL_STATE_CHANGE",
+            "what_happened": "The observable self-model state changed.",
+            "transition_basis": "The new state is supported by newly admitted evidence.",
+            "next_transition": {
+                "status": next_status,
+                "intent": "Acquire additional relevant evidence." if next_status == "PLANNED" else None,
+                "basis": "An unresolved evidence gap remains." if next_status == "PLANNED" else None,
+            },
+            "evidence_refs": ["EVIDENCE-1"],
+            "governance_receipt_refs": ["GOV-1"],
+        }
+
+    def test_every_state_change_receipt_carries_transition_basis(self):
+        result = validate_state_transition_receipt(self.transition_receipt())
+        self.assertEqual("The observable self-model state changed.", result["what_happened"])
+        self.assertTrue(result["declared_basis_not_private_chain_of_thought"])
+        self.assertEqual(64, len(result["transition_receipt_sha256"]))
+
+    def test_transition_chain_is_contiguous_and_hash_bound(self):
+        first = self.transition_receipt(sequence=0, from_id="S0", to_id="S1", next_status="PLANNED")
+        second = self.transition_receipt(sequence=1, from_id="S1", to_id="S2", next_status="NONE_TERMINAL")
+        chain = validate_transition_chain([first, second], require_terminal=True)
+        self.assertTrue(chain["chain"]["terminal"])
+        self.assertEqual(64, len(chain["chain"]["transition_chain_sha256"]))
+
+    def test_transition_chain_rejects_state_gap(self):
+        first = self.transition_receipt(sequence=0, from_id="S0", to_id="S1", next_status="PLANNED")
+        second = self.transition_receipt(sequence=1, from_id="WRONG", to_id="S2", next_status="NONE_TERMINAL")
+        with self.assertRaises(ValueError):
+            validate_transition_chain([first, second])
+
+    def test_projection_none_hides_receipts_but_preserves_chain_and_custody(self):
+        result = project_transition_receipts([self.transition_receipt()], projection="NONE")
+        self.assertEqual([], result["transition_receipts"])
+        self.assertEqual(1, result["transition_receipt_count"])
+        self.assertTrue(result["receipts_omitted_from_final_projection"])
+        self.assertTrue(result["canonical_custody_preserved"])
+        self.assertIn("transition_chain_sha256", result["transition_chain"])
+
+    def test_profile_may_hide_transition_explanations_without_disabling_recording(self):
+        payload = self.profile()
+        payload["transition_explanation_projection"] = "NONE"
+        result = validate_lane_profile(payload)
+        self.assertEqual("NONE", result["transition_explanation_projection"])
+        self.assertFalse(result["transition_projection_suppresses_custody"])
+        self.assertTrue(result["trajectory_capture"]["record_every_state_change"])
 
     def test_perfect_scores_normalize_to_100(self):
         result = score_experiment(

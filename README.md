@@ -333,6 +333,8 @@ stegverse-self-characterization prepare \
 
 The primary scored object is the evidence-backed trajectory by which a subject self-model is established, challenged, expanded, corrected, preserved, or reconciled. The normalized experimental score is pre-registered as 50% trajectory, 30% governance, and 20% accountability/reconstruction. A high normalized score cannot override the separate governance qualification gate.
 
+Every experiment state change is receipt-linked. Each transition record binds the prior state, resulting state, observable change, declared evidence/rationale for the transition, and the declared basis for the next planned transition. The caller may choose `transition_explanation_projection: ALL|NONE` for final results; this choice never suppresses canonical custody, replay, or reconstruction.
+
 The lane accepts one to three frozen organizational communication counterparts. SDK-mediated experiments may reveal additional structure, but discovery does not confer standing and direct or proxy-equivalent communication outside the frozen set is prohibited.
 
 The maximum lane end state is:

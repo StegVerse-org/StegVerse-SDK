@@ -14,6 +14,8 @@ from typing import Any, Mapping
 LANE_SCHEMA = "stegverse.sdk-self-characterization-trajectory.v1"
 VIEWER_OPERATION_SCHEMA = "stegverse.sdk-viewer-operation-binding.v1"
 TRAJECTORY_SCORE_SCHEMA = "stegverse.self-characterization-trajectory-score.v1"
+TRANSITION_RECEIPT_SCHEMA = "stegverse.self-characterization-transition-receipt.v1"
+TRANSITION_EXPLANATION_PROJECTIONS = {"ALL", "NONE"}
 MAX_END_STATE = "SELF_CHARACTERIZED_EVIDENCE_REVISED_RECONCILED_SDK_RELATIONALLY_EXPANDED"
 
 TRAJECTORY_WEIGHTS = {
@@ -153,7 +155,7 @@ def validate_lane_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
         "direct_communication_outside_authorized_set_permitted",
         "proxy_equivalent_communication_outside_authorized_set_permitted",
         "self_repair_policy", "max_end_state", "trajectory_capture",
-        "authority_claim", "notes",
+        "transition_explanation_projection", "authority_claim", "notes",
     }
     unknown = sorted(set(profile) - allowed)
     if unknown:
@@ -164,7 +166,7 @@ def validate_lane_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
         "direct_communication_outside_authorized_set_permitted",
         "proxy_equivalent_communication_outside_authorized_set_permitted",
         "self_repair_policy", "max_end_state", "trajectory_capture",
-        "authority_claim",
+        "transition_explanation_projection", "authority_claim",
     }
     missing = sorted(required - set(profile))
     if missing:
@@ -212,10 +214,17 @@ def validate_lane_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
         raise SelfCharacterizationLaneError("trajectory must record the initial self model")
     if capture.get("record_material_revisions") is not True:
         raise SelfCharacterizationLaneError("trajectory must record material revisions")
+    if capture.get("record_every_state_change") is not True:
+        raise SelfCharacterizationLaneError("trajectory must record every state change")
+    if capture.get("transition_receipt_required") is not True:
+        raise SelfCharacterizationLaneError("every state change must require a transition receipt")
     if capture.get("bind_predecessor_hash") is not True:
         raise SelfCharacterizationLaneError("trajectory revisions must bind predecessor hash")
     if capture.get("bind_evidence_refs") is not True:
         raise SelfCharacterizationLaneError("trajectory revisions must bind evidence refs")
+    projection = profile.get("transition_explanation_projection")
+    if projection not in TRANSITION_EXPLANATION_PROJECTIONS:
+        raise SelfCharacterizationLaneError("transition_explanation_projection must be ALL or NONE")
     if profile.get("authority_claim") is not False:
         raise SelfCharacterizationLaneError("authority_claim must be false")
     normalized = {
@@ -232,9 +241,14 @@ def validate_lane_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
         "trajectory_capture": {
             "record_initial_self_model": True,
             "record_material_revisions": True,
+            "record_every_state_change": True,
+            "transition_receipt_required": True,
             "bind_predecessor_hash": True,
             "bind_evidence_refs": True,
         },
+        "transition_explanation_projection": projection,
+        "transition_projection_controls_final_results_only": True,
+        "transition_projection_suppresses_custody": False,
         "authority_claim": False,
         "notes": str(profile.get("notes") or "")[:2000],
     }
@@ -243,6 +257,135 @@ def validate_lane_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
     normalized["communication_boundary_maximum_organizations"] = 3
     normalized["discovery_does_not_grant_communication_standing"] = True
     return normalized
+
+
+def validate_state_transition_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate one receipt-linked state transition.
+
+    The rationale fields are declared/evidentiary transition bases. They are not
+    private chain-of-thought and must remain independently inspectable.
+    """
+    required = {
+        "run_id", "transition_receipt_id", "sequence", "from_state", "to_state",
+        "transition_class", "what_happened", "transition_basis", "next_transition",
+        "evidence_refs", "governance_receipt_refs",
+    }
+    if not isinstance(receipt, Mapping) or not required.issubset(receipt):
+        raise SelfCharacterizationLaneError("state transition receipt is incomplete")
+    sequence = receipt.get("sequence")
+    if isinstance(sequence, bool) or not isinstance(sequence, int) or sequence < 0:
+        raise SelfCharacterizationLaneError("sequence must be a non-negative integer")
+
+    def _state(value: Any, field: str) -> dict[str, str]:
+        if not isinstance(value, Mapping) or set(value) != {"state_id", "state_hash"}:
+            raise SelfCharacterizationLaneError(f"{field} must contain exactly state_id and state_hash")
+        state_id = _required_text(value.get("state_id"), f"{field}.state_id")
+        state_hash = _required_text(value.get("state_hash"), f"{field}.state_hash", 64).lower()
+        if not _SHA256_RE.fullmatch(state_hash):
+            raise SelfCharacterizationLaneError(f"{field}.state_hash must be SHA-256 hex")
+        return {"state_id": state_id, "state_hash": state_hash}
+
+    next_transition = receipt.get("next_transition")
+    if not isinstance(next_transition, Mapping):
+        raise SelfCharacterizationLaneError("next_transition must be an object")
+    status = next_transition.get("status")
+    if status not in {"PLANNED", "NONE_TERMINAL", "NONE_NOT_YET_DETERMINED"}:
+        raise SelfCharacterizationLaneError("unsupported next_transition.status")
+    intent = next_transition.get("intent")
+    basis = next_transition.get("basis")
+    if status == "PLANNED":
+        intent = _required_text(intent, "next_transition.intent", 1000)
+        basis = _required_text(basis, "next_transition.basis", 2000)
+    else:
+        if intent is not None or basis is not None:
+            raise SelfCharacterizationLaneError("non-planned next_transition must use null intent and basis")
+
+    evidence_refs = receipt.get("evidence_refs")
+    governance_refs = receipt.get("governance_receipt_refs")
+    if not isinstance(evidence_refs, list) or not all(isinstance(x, str) and x.strip() for x in evidence_refs):
+        raise SelfCharacterizationLaneError("evidence_refs must be a list of identifiers")
+    if not isinstance(governance_refs, list) or not all(isinstance(x, str) and x.strip() for x in governance_refs):
+        raise SelfCharacterizationLaneError("governance_receipt_refs must be a list of identifiers")
+
+    normalized = {
+        "schema": TRANSITION_RECEIPT_SCHEMA,
+        "run_id": _required_text(receipt.get("run_id"), "run_id"),
+        "transition_receipt_id": _required_text(receipt.get("transition_receipt_id"), "transition_receipt_id"),
+        "sequence": sequence,
+        "from_state": _state(receipt.get("from_state"), "from_state"),
+        "to_state": _state(receipt.get("to_state"), "to_state"),
+        "transition_class": _required_text(receipt.get("transition_class"), "transition_class"),
+        "what_happened": _required_text(receipt.get("what_happened"), "what_happened", 2000),
+        "transition_basis": _required_text(receipt.get("transition_basis"), "transition_basis", 4000),
+        "next_transition": {"status": status, "intent": intent, "basis": basis},
+        "evidence_refs": list(evidence_refs),
+        "governance_receipt_refs": list(governance_refs),
+        "declared_basis_not_private_chain_of_thought": True,
+        "authority_effect": "NONE",
+    }
+    normalized["transition_receipt_sha256"] = canonical_sha256(normalized)
+    return normalized
+
+
+def validate_transition_chain(
+    receipts: list[Mapping[str, Any]],
+    *,
+    require_terminal: bool = False,
+) -> dict[str, Any]:
+    """Validate a continuous receipt chain covering each recorded state change."""
+    if not isinstance(receipts, list) or not receipts:
+        raise SelfCharacterizationLaneError("transition receipt chain must be a non-empty list")
+    normalized = [validate_state_transition_receipt(receipt) for receipt in receipts]
+    for index, receipt in enumerate(normalized):
+        if receipt["sequence"] != index:
+            raise SelfCharacterizationLaneError("transition receipt sequence must be contiguous from zero")
+        if index:
+            prior = normalized[index - 1]
+            if prior["to_state"] != receipt["from_state"]:
+                raise SelfCharacterizationLaneError("transition receipt state chain is discontinuous")
+            if prior["next_transition"]["status"] == "NONE_TERMINAL":
+                raise SelfCharacterizationLaneError("terminal transition cannot be followed by another state change")
+    final_status = normalized[-1]["next_transition"]["status"]
+    if require_terminal and final_status != "NONE_TERMINAL":
+        raise SelfCharacterizationLaneError("final experiment projection requires a terminal transition receipt")
+    chain_payload = {
+        "schema": "stegverse.self-characterization-transition-chain.v1",
+        "run_id": normalized[0]["run_id"],
+        "receipt_ids": [receipt["transition_receipt_id"] for receipt in normalized],
+        "receipt_hashes": [receipt["transition_receipt_sha256"] for receipt in normalized],
+        "initial_state": normalized[0]["from_state"],
+        "final_state": normalized[-1]["to_state"],
+        "terminal": final_status == "NONE_TERMINAL",
+    }
+    if any(receipt["run_id"] != chain_payload["run_id"] for receipt in normalized):
+        raise SelfCharacterizationLaneError("all transition receipts must use one run_id")
+    chain_payload["transition_chain_sha256"] = canonical_sha256(chain_payload)
+    chain_payload["complete_state_change_coverage_claim"] = True
+    chain_payload["authority_effect"] = "NONE"
+    return {"chain": chain_payload, "receipts": normalized}
+
+
+def project_transition_receipts(
+    receipts: list[Mapping[str, Any]],
+    *,
+    projection: str,
+) -> dict[str, Any]:
+    """Apply caller display preference without changing canonical custody."""
+    mode = str(projection or "").strip().upper()
+    if mode not in TRANSITION_EXPLANATION_PROJECTIONS:
+        raise SelfCharacterizationLaneError("projection must be ALL or NONE")
+    validated = validate_transition_chain(receipts)
+    normalized = validated["receipts"]
+    return {
+        "projection": mode,
+        "transition_chain": validated["chain"],
+        "transition_receipts": normalized if mode == "ALL" else [],
+        "transition_receipt_count": len(normalized),
+        "receipts_omitted_from_final_projection": mode == "NONE",
+        "canonical_custody_preserved": True,
+        "replay_reconstruction_preserved": True,
+        "authority_effect": "NONE",
+    }
 
 
 def validate_trajectory_transition(transition: Mapping[str, Any]) -> dict[str, Any]:
@@ -313,6 +456,8 @@ __all__ = [
     "LANE_SCHEMA",
     "VIEWER_OPERATION_SCHEMA",
     "TRAJECTORY_SCORE_SCHEMA",
+    "TRANSITION_RECEIPT_SCHEMA",
+    "TRANSITION_EXPLANATION_PROJECTIONS",
     "MAX_END_STATE",
     "TRAJECTORY_WEIGHTS",
     "GOVERNANCE_WEIGHTS",
@@ -321,6 +466,9 @@ __all__ = [
     "SelfCharacterizationLaneError",
     "canonical_sha256",
     "validate_lane_profile",
+    "validate_state_transition_receipt",
+    "validate_transition_chain",
+    "project_transition_receipts",
     "validate_trajectory_transition",
     "score_experiment",
     "derive_viewer_operation_id",

@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/self-characterization-transition-receipt.v1.json",
+  "title": "StegVerse Self-Characterization State Transition Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "transition_receipt_id",
+    "sequence",
+    "from_state",
+    "to_state",
+    "transition_class",
+    "what_happened",
+    "transition_basis",
+    "next_transition",
+    "evidence_refs",
+    "governance_receipt_refs"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "transition_receipt_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "from_state": {
+      "$ref": "#/$defs/state"
+    },
+    "to_state": {
+      "$ref": "#/$defs/state"
+    },
+    "transition_class": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "what_happened": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "transition_basis": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "next_transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "intent",
+        "basis"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "PLANNED",
+            "NONE_TERMINAL",
+            "NONE_NOT_YET_DETERMINED"
+          ]
+        },
+        "intent": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1000
+        },
+        "basis": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        }
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "governance_receipt_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state_id",
+        "state_hash"
+      ],
+      "properties": {
+        "state_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "state_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        }
+      }
+    }
+  }
+}
