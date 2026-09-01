@@ -323,7 +323,50 @@ def validate_state_transition_receipt(receipt: Mapping[str, Any]) -> dict[str, A
         "declared_basis_not_private_chain_of_thought": True,
         "authority_effect": "NONE",
     }
-    normalized["transition_receipt_sha256"] = canonical_sha256(normalized)
+
+    experiment_id = receipt.get("experiment_id")
+    if experiment_id is not None:
+        normalized["experiment_id"] = _required_text(experiment_id, "experiment_id")
+
+    payload_presence = ("from_state_payload" in receipt) or ("to_state_payload" in receipt)
+    if payload_presence:
+        from_payload = receipt.get("from_state_payload")
+        to_payload = receipt.get("to_state_payload")
+        if not isinstance(from_payload, Mapping) or not isinstance(to_payload, Mapping):
+            raise SelfCharacterizationLaneError("state payloads must be objects when supplied")
+        if normalized["from_state"]["state_hash"] != canonical_sha256(from_payload):
+            raise SelfCharacterizationLaneError("from_state payload hash mismatch")
+        if normalized["to_state"]["state_hash"] != canonical_sha256(to_payload):
+            raise SelfCharacterizationLaneError("to_state payload hash mismatch")
+        normalized["from_state_payload"] = dict(from_payload)
+        normalized["to_state_payload"] = dict(to_payload)
+
+    if "observed_at" in receipt:
+        normalized["observed_at"] = _required_text(receipt.get("observed_at"), "observed_at", 128)
+
+    if "previous_receipt_sha256" in receipt:
+        previous = receipt.get("previous_receipt_sha256")
+        if previous is not None:
+            previous = _required_text(previous, "previous_receipt_sha256", 64).lower()
+            if not _SHA256_RE.fullmatch(previous):
+                raise SelfCharacterizationLaneError("previous_receipt_sha256 must be SHA-256 hex")
+        normalized["previous_receipt_sha256"] = previous
+
+    if "authority_transfer_assumed" in receipt:
+        if receipt.get("authority_transfer_assumed") is not False:
+            raise SelfCharacterizationLaneError("transition receipt cannot assume authority transfer")
+        normalized["authority_transfer_assumed"] = False
+
+    if "declared_basis_not_private_chain_of_thought" in receipt and receipt.get("declared_basis_not_private_chain_of_thought") is not True:
+        raise SelfCharacterizationLaneError("declared basis must not be represented as private chain-of-thought")
+
+    claimed_hash = receipt.get("transition_receipt_sha256")
+    calculated_hash = canonical_sha256(normalized)
+    if claimed_hash is not None:
+        claimed = _required_text(claimed_hash, "transition_receipt_sha256", 64).lower()
+        if not _SHA256_RE.fullmatch(claimed) or claimed != calculated_hash:
+            raise SelfCharacterizationLaneError("transition receipt SHA-256 mismatch")
+    normalized["transition_receipt_sha256"] = calculated_hash
     return normalized
 
 
@@ -339,10 +382,17 @@ def validate_transition_chain(
     for index, receipt in enumerate(normalized):
         if receipt["sequence"] != index:
             raise SelfCharacterizationLaneError("transition receipt sequence must be contiguous from zero")
+        if "previous_receipt_sha256" in receipt:
+            expected_previous = None if index == 0 else normalized[index - 1]["transition_receipt_sha256"]
+            if receipt["previous_receipt_sha256"] != expected_previous:
+                raise SelfCharacterizationLaneError("transition receipt hash chain is discontinuous")
         if index:
             prior = normalized[index - 1]
             if prior["to_state"] != receipt["from_state"]:
                 raise SelfCharacterizationLaneError("transition receipt state chain is discontinuous")
+            if "to_state_payload" in prior or "from_state_payload" in receipt:
+                if prior.get("to_state_payload") != receipt.get("from_state_payload"):
+                    raise SelfCharacterizationLaneError("transition receipt state payload chain is discontinuous")
             if prior["next_transition"]["status"] == "NONE_TERMINAL":
                 raise SelfCharacterizationLaneError("terminal transition cannot be followed by another state change")
     final_status = normalized[-1]["next_transition"]["status"]
