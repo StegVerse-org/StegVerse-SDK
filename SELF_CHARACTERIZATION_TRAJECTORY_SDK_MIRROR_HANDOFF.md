@@ -75,3 +75,35 @@ Implementation merged with SDK validation passing and documentation describing t
 ## Implementation refinement
 
 Canonical replay/reconstruction implementation remains unchanged. The lane uses `stegverse/viewer_bound_operations.py` to invoke the canonical operation and then append a sequence-4 `VIEWER_BOUND` event to the same Master Records custody. This preserves the source run and canonical operation semantics while making viewer identity and deterministic viewer replay/reconstruction IDs durable evidence context.
+
+
+## Transition-receipt continuation — 2026-08-31
+
+Every experiment state change must produce a receipt-linked transition record that preserves:
+- prior state reference;
+- resulting state reference;
+- what changed;
+- declared transition basis explaining why the state changed;
+- next transition intent, when one exists;
+- declared basis for why that next transition is being attempted;
+- evidence references;
+- governance/authority receipt references;
+- the transition receipt identity itself.
+
+The transition basis is an inspectable declared/evidentiary rationale, not hidden chain-of-thought.
+
+Canonical custody is complete regardless of caller display preference. The SDK exposes a caller-facing final-results projection choice:
+- `ALL`: include all transition receipts and explanations;
+- `NONE`: omit them from the final returned projection while preserving custody/replay/reconstruction.
+
+Additional implementation files claimed for this continuation:
+- `inspection/self-characterization-transition-receipt.schema.json`
+
+Existing files extended:
+- `stegverse/self_characterization_lane.py`
+- `inspection/self-characterization-lane.schema.json`
+- `inspection/examples/self-characterization-s0.example.json`
+- `tests/test_self_characterization_lane.py`
+- `docs/SELF_CHARACTERIZATION_TRAJECTORY_LANE.md`
+- `README.md`
+- `docs/SDK_CONSOLE.md`
