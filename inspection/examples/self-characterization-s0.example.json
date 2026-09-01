@@ -20,8 +20,11 @@
     "record_initial_self_model": true,
     "record_material_revisions": true,
     "bind_predecessor_hash": true,
-    "bind_evidence_refs": true
+    "bind_evidence_refs": true,
+    "record_every_state_change": true,
+    "transition_receipt_required": true
   },
   "authority_claim": false,
-  "notes": "Example only. Replace identity, S0 hash, and organization IDs before use."
+  "notes": "Example only. Replace identity, S0 hash, and organization IDs before use.",
+  "transition_explanation_projection": "ALL"
 }
