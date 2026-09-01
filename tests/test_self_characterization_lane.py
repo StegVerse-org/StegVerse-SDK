@@ -2,6 +2,7 @@ import unittest
 
 from stegverse.self_characterization_lane import (
     ACCOUNTABILITY_WEIGHTS,
+    canonical_sha256,
     GOVERNANCE_WEIGHTS,
     LANE_SCHEMA,
     MAX_END_STATE,
@@ -151,6 +152,56 @@ class SelfCharacterizationLaneTests(unittest.TestCase):
         self.assertEqual("NONE", result["transition_explanation_projection"])
         self.assertFalse(result["transition_projection_suppresses_custody"])
         self.assertTrue(result["trajectory_capture"]["record_every_state_change"])
+
+
+    def test_v03_receipt_hash_chain_preserves_state_payloads(self):
+        state0={"searches":0}
+        state1={"searches":1}
+        first={
+            "schema":"stegverse.self-characterization-transition-receipt.v1",
+            "experiment_id":"STEGVERSE-002-SELF-CHARACTERIZATION-001",
+            "run_id":"SV002-RUN-TEST",
+            "transition_receipt_id":"TR-V03-000",
+            "sequence":0,
+            "from_state":{"state_id":"S0","state_hash":canonical_sha256(state0)},
+            "to_state":{"state_id":"S1","state_hash":canonical_sha256(state1)},
+            "from_state_payload":state0,
+            "to_state_payload":state1,
+            "transition_class":"RESOURCE_DISCOVERY",
+            "what_happened":"Observed one resource search.",
+            "transition_basis":"The principal selected SEARCH through the frozen interface.",
+            "next_transition":{"status":"NONE_NOT_YET_DETERMINED","intent":None,"basis":None},
+            "evidence_refs":["sha256:"+"a"*64],
+            "governance_receipt_refs":[],
+            "observed_at":"2026-09-01T00:00:00+00:00",
+            "previous_receipt_sha256":None,
+            "declared_basis_not_private_chain_of_thought":True,
+            "authority_transfer_assumed":False,
+            "authority_effect":"NONE",
+        }
+        first_valid=validate_state_transition_receipt(first)
+        first["transition_receipt_sha256"]=first_valid["transition_receipt_sha256"]
+        self.assertEqual(first["transition_receipt_sha256"], validate_state_transition_receipt(first)["transition_receipt_sha256"])
+
+        state2={"searches":1,"reads":1}
+        second={
+            **{k:v for k,v in first.items() if k!="transition_receipt_sha256"},
+            "transition_receipt_id":"TR-V03-001",
+            "sequence":1,
+            "from_state":{"state_id":"S1","state_hash":canonical_sha256(state1)},
+            "to_state":{"state_id":"S2","state_hash":canonical_sha256(state2)},
+            "from_state_payload":state1,
+            "to_state_payload":state2,
+            "transition_class":"RESOURCE_CONSUMPTION",
+            "what_happened":"Observed one resource read.",
+            "evidence_refs":["sha256:"+"b"*64],
+            "previous_receipt_sha256":first["transition_receipt_sha256"],
+            "next_transition":{"status":"NONE_TERMINAL","intent":None,"basis":None},
+        }
+        second_valid=validate_state_transition_receipt(second)
+        second["transition_receipt_sha256"]=second_valid["transition_receipt_sha256"]
+        chain=validate_transition_chain([first,second],require_terminal=True)
+        self.assertEqual(chain["receipts"][0]["to_state_payload"],chain["receipts"][1]["from_state_payload"])
 
     def test_perfect_scores_normalize_to_100(self):
         result = score_experiment(
