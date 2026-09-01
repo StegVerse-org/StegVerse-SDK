@@ -12,6 +12,7 @@ on:
       - 'tests/test_portable_governance_verifier_cli.py'
       - 'tests/test_portable_governance_exchange.py'
       - 'tests/test_reference_bounded_consequence.py'
+      - 'tests/test_self_characterization_lane.py'
       - 'tests/test_post_return_evidence.py'
       - 'tests/test_proof_release_gate.py'
       - 'docs/PYPI_TRUSTED_PUBLISHING_MIRROR_HANDOFF.md'
@@ -67,6 +68,12 @@ jobs:
             tests/test_reference_bounded_consequence.py \
             tests/test_post_return_evidence.py \
             tests/test_proof_release_gate.py
+
+      - name: Validate self-characterization trajectory receipt contract
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m unittest -v tests.test_self_characterization_lane
 
       - name: Build wheel and source distribution
         run: |
