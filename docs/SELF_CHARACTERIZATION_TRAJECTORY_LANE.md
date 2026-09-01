@@ -57,6 +57,57 @@ Trajectory metrics are scored 0..10 and weighted to 100:
 
 A high normalized score cannot override the separate governance qualification gate.
 
+## Every state change produces a transition receipt
+
+Every state change in the experiment is represented by a receipt-linked transition record. This applies to the complete experiment state trajectory, not only material changes to the semantic self-model.
+
+Each transition receipt binds:
+
+```text
+transition receipt ID
+sequence
+from-state ID + hash
+to-state ID + hash
+transition class
+what happened
+declared transition basis
+next-transition status
+next-transition intent, when planned
+declared basis for the next transition, when planned
+evidence references
+governance/authority receipt references
+transition receipt hash
+```
+
+The declared transition basis is the inspectable reason/evidence basis for the state transition. It is not private chain-of-thought.
+
+Transition receipts form a continuous chain. The resulting state of receipt N must be the source state of receipt N+1. The SDK derives a `transition_chain_sha256` over the ordered receipt identities and hashes.
+
+### Final-results display option
+
+The lane profile contains:
+
+```json
+"transition_explanation_projection": "ALL"
+```
+
+or:
+
+```json
+"transition_explanation_projection": "NONE"
+```
+
+`ALL` includes every transition receipt and explanation in the final returned projection.
+
+`NONE` omits the individual transition explanations from the final returned projection. It does **not** stop recording them, suppress canonical custody, alter the transition-chain hash, remove them from replay/reconstruction, or change governance.
+
+Therefore:
+
+```text
+recording policy = ALWAYS
+final display policy = USER CHOICE
+```
+
 ## Viewer-bound replay and reconstruction
 
 Every viewer supplies a stable `viewer_node_id`.
