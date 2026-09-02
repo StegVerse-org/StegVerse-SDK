@@ -8,6 +8,7 @@ permissions: {}
 
 jobs:
   build-and-verify:
+    if: startsWith(github.event.release.tag_name, 'v')
     name: Build and verify exact tagged SDK artifacts
     runs-on: ubuntu-latest
     permissions: {}
@@ -122,6 +123,7 @@ jobs:
           retention-days: 7
 
   publish-pypi:
+    if: startsWith(github.event.release.tag_name, 'v') && needs.build-and-verify.result == 'success'
     name: Publish exact artifacts to PyPI
     needs: build-and-verify
     runs-on: ubuntu-latest
