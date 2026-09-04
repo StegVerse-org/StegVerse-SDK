@@ -1,0 +1,29 @@
+{
+  "schema": "stegverse.mhia.module_manifest.v1",
+  "module": {
+    "module_id": "prototype:left-ear-sensor-a1",
+    "class": "composite",
+    "manufacturer": "StegVerse Prototype Builds",
+    "model": "MHIA Ear Sensor A1",
+    "hardware_revision": "A1",
+    "firmware_revision": null,
+    "serial_or_instance_id": "prototype-001",
+    "provenance": {
+      "origin": "StegVerse MHIA reference prototype",
+      "assertion_level": "declared",
+      "evidence_refs": ["docs/prototype-builds/MODULAR_HUMAN_INTERFACE_ARCHITECTURE.md"]
+    }
+  },
+  "capabilities": [
+    {"id": "SENSOR.IMU.6DOF", "version": "1", "direction": "input", "consequence_class": "local", "constraints": {"sample_rate_hz_max": 400}, "calibration_ref": "calibration:imu:a1"},
+    {"id": "SENSOR.MIC.ARRAY4", "version": "1", "direction": "input", "consequence_class": "local", "constraints": {"channels": 4}, "calibration_ref": "calibration:mic:a1"},
+    {"id": "OUTPUT.AUDIO.STEREO_LEFT", "version": "1", "direction": "output", "consequence_class": "local", "constraints": {}, "calibration_ref": "calibration:driver:a1"}
+  ],
+  "interfaces": [
+    {"interface_id": "earbus-1", "kind": "data", "role": "device", "profile": "MHIA-EARBUS-DRAFT-1", "protocols": ["capability-discovery-v1", "pcm-audio-v1", "sensor-stream-v1"]},
+    {"interface_id": "ear-attach-1", "kind": "mechanical", "role": "device", "profile": "MHIA-EAR-MECH-DRAFT-1", "protocols": []}
+  ],
+  "power": {"mode": "consumer", "nominal_voltage_v": 5.0, "max_input_w": 2.5, "max_output_w": 0, "energy_wh": null, "hot_swap_supported": false},
+  "physical_compatibility": {"attachment_profiles": ["MHIA-EAR-MECH-DRAFT-1"], "side": "left"},
+  "authority_boundary": {"discovery_grants_authority": false, "attachment_grants_authority": false, "external_consequence_requires_admission": true, "policy_refs": ["docs/PROTOTYPE_BUILDS_MIRROR_HANDOFF.md"]}
+}
