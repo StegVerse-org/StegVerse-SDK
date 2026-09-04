@@ -1,0 +1,48 @@
+name: MHIA Schema Validation (Non-Authorizing)
+
+on:
+  push:
+    paths:
+      - 'schemas/prototype-builds/**'
+      - 'examples/prototype-builds/**'
+      - 'tests/test_mhia_module_manifest_schema.py'
+      - '.github/workflows/mhia-schema-validation.yml'
+      - 'docs/prototype-builds/**'
+      - 'docs/PROTOTYPE_BUILDS_MIRROR_HANDOFF.md'
+  pull_request:
+    paths:
+      - 'schemas/prototype-builds/**'
+      - 'examples/prototype-builds/**'
+      - 'tests/test_mhia_module_manifest_schema.py'
+      - '.github/workflows/mhia-schema-validation.yml'
+      - 'docs/prototype-builds/**'
+      - 'docs/PROTOTYPE_BUILDS_MIRROR_HANDOFF.md'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate-mhia-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Install validation-only dependencies
+        run: |
+          python3 -m pip install --disable-pip-version-check pytest 'jsonschema>=4.18'
+      - name: Validate MHIA manifest contract
+        run: |
+          set -eu
+          cd /tmp/source
+          pytest -q tests/test_mhia_module_manifest_schema.py
+          echo 'MHIA_SCHEMA_VALIDATION_PASS'
+          echo 'This hosted validation grants no execution, credential, publication, transition, or runtime authority.'
