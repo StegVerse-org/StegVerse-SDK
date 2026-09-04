@@ -34,12 +34,15 @@ examples/prototype-builds/mhia-ear-mechanical-profile.v1.json
 examples/prototype-builds/mhia-ear-electrical-data-interface.v1.json
 stegverse/mhia_capability_graph.py
 stegverse/mhia_reference_firmware.py
+stegverse/mhia_reference_hal.py
 tests/test_mhia_module_manifest_schema.py
 tests/test_mhia_capability_graph.py
 tests/test_mhia_reference_firmware.py
+tests/test_mhia_reference_hal.py
 docs/prototype-builds/MHIA_REFERENCE_CONNECTOR_PINOUT_V0.md
 docs/prototype-builds/MHIA_TWO_EAR_REFERENCE_BOM_V0.md
 docs/prototype-builds/MHIA_PHYSICAL_VALIDATION_PLAN_V0.md
+docs/prototype-builds/MHIA_REFERENCE_COMPONENT_CANDIDATES_V0.md
 .github/workflows/mhia-schema-validation.yml
 ```
 
@@ -76,6 +79,16 @@ physical-validation-plan documentation-triggered validation:
 handoff-state validation:
   run: 33911441943
   head: 72b5d55eec8b0dc8974861c9dce3f0dadda0771a
+  result: SUCCESS
+
+hardware-abstraction boundary validation:
+  run: 33918491094
+  head: 75a38d42d1b092c3fb3dbec7a98d5ba90a7fda84
+  result: SUCCESS
+
+component-candidate documentation-triggered validation:
+  run: 33918515418
+  head: 424f9d938a811675a857b6f5d73ab93deb35ea7c
   state_at_last_observation: IN_PROGRESS
 
 hosted validation authority: NONE
@@ -90,10 +103,12 @@ capability graph tests: 48085656b86baa6f1e9dbe20787d9ca593b0bce9
 reference connector/pinout: 27c9c7a8a80319179a254849fad414cc51c51fa1
 reference firmware state machine: 75481290f00bbf1e26745017f116adb54656a8a7
 reference firmware tests: ebaae38195bf8af16bb9ec2cc88164aa5a6680a8
-validation workflow extension: c8a474d213161fb0fb9c87ad0ccaa9e37a0daaee
 two-ear reference BOM: 8c3308d1015308e597ed224b83296e19a486078b
 physical validation plan: cb3d3db9feb69f9a569dd19dbdf3366a591f5d76
-handoff advance: 72b5d55eec8b0dc8974861c9dce3f0dadda0771a
+hardware abstraction: 0c3df9fca46eea6efdf33f5ce9f3cafc964e5c26
+hardware abstraction tests: 8f4569efb59212d3e29fee6c66bb512db0a6dde7
+HAL validation-workflow extension: 75a38d42d1b092c3fb3dbec7a98d5ba90a7fda84
+concrete component candidate set: 424f9d938a811675a857b6f5d73ab93deb35ea7c
 ```
 
 Status:
@@ -114,9 +129,12 @@ no-authority-inheritance composition invariant: COMPLETE_SOURCE_VALIDATED
 reference connector/pinout candidate: SOURCE_COMPLETE_VALIDATED_AS_ENGINEERING_CANDIDATE
 reference firmware discovery/negotiation state machine: COMPLETE_SOURCE_VALIDATED
 reference firmware safety tests: COMPLETE_SOURCE_VALIDATED
+hardware-abstraction fail-closed projection: COMPLETE_SOURCE_VALIDATED
+hardware-abstraction overcurrent/fault enforcement: COMPLETE_SOURCE_VALIDATED
 two-ear reference BOM component classes: SOURCE_COMPLETE
 physical validation plan: SOURCE_COMPLETE
-manufacturer part-number freeze: NOT_STARTED
+manufacturer-family candidate set: SOURCE_COMPLETE_VALIDATION_IN_PROGRESS
+manufacturer orderable part-number freeze: NOT_STARTED
 mechanical CAD/fit validation: NOT_STARTED
 assembled reference hardware: NOT_STARTED
 compatibility implementation on physical hardware: NOT_STARTED
@@ -129,18 +147,21 @@ The capability graph sorts module/capability discovery deterministically, suppor
 
 The reference firmware enforces the sequence DETACHED -> SAFE_OFF -> VSAFE_DISCOVERY -> MANIFEST_VALIDATED -> NEGOTIATED -> ADMITTED -> VBUS_ACTIVE. Invalid manifests, negotiation failures, admission denial, detach, or fault cannot produce operating VBUS. Fault transitions isolate the port and clear the negotiated envelope. This is executable reference logic, not evidence of flashed physical firmware.
 
-The `MHIA-EAR-8P-MAG-v0` connector is an engineering candidate using keyed magnetic retention and eight spring contacts with separate GND, ground-sense, passive detect/ID, differential data, wake/interrupt, current-limited discovery power, and separately switched operating power. Physical geometry, contact rating, signal integrity, moisture/corrosion, arcing, magnetic safety and cycle life remain unvalidated.
+The hardware-abstraction layer projects that governed state onto independent VSAFE/VBUS controls. It always drives VBUS off before non-active transitions, forces both rails off on a hardware fault, and independently drops VBUS when observed current exceeds the negotiated envelope. The HAL does not create admission or credentials.
 
-The two-ear BOM deliberately freezes component classes but not manufacturer part numbers. The left reference module is sensor/audio-biased; the right reference module is power/audio-biased. The physical validation plan requires safe-power sequencing, fault isolation, signal/thermal testing, deterministic asymmetric capability composition, repeated interchangeability and retained test evidence.
+The `MHIA-EAR-8P-MAG-v0` connector remains an engineering candidate using keyed magnetic retention and eight spring contacts with separate GND, ground-sense, passive detect/ID, differential data, wake/interrupt, current-limited discovery power, and separately switched operating power. Physical geometry, contact rating, signal integrity, moisture/corrosion, arcing, magnetic safety and cycle life remain unvalidated.
+
+The concrete component-family candidate set currently identifies Nordic nRF5340, TI TPS25947, Nordic nPM1300, TDK InvenSense ICM-42688-P and Analog Devices MAX98357A for the first host/power/module-management/motion/audio reference path. These are engineering candidates only; exact orderable suffixes/packages and procurement quantities are not yet frozen.
 
 ## Next machine-execution sequence
 
-1. Retain final outcome of handoff-state validation run `33911441943`; correct source if it unexpectedly fails.
-2. Select concrete manufacturer part numbers for the host MCU, protected power path, connector/contact system, module MCU, audio chain, sensors and removable battery implementation after cost/availability/physical-envelope review.
-3. Produce first mechanical CAD/dimensional drawing against selected connector and component envelopes.
-4. Produce firmware hardware-abstraction bindings for the selected MCU/power switches/telemetry devices.
-5. Assemble hardware and execute `MHIA_PHYSICAL_VALIDATION_PLAN_V0.md`; do not claim physical validation before retained measurements exist.
-6. Only after successful physical validation evaluate a prototype release/tag and downstream propagation tasks for StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki and stegguardian-wiki.
+1. Retain final outcome of component-candidate validation run `33918515418`; correct source if it unexpectedly fails.
+2. Resolve exact orderable suffix/package candidates, connector/contact manufacturer, microphone, driver and battery cell only after cost/availability/physical-envelope review.
+3. Freeze a procurement-candidate BOM only when dimensions, ratings and availability are verified together.
+4. Produce first mechanical CAD/dimensional drawing against the frozen package/contact/component envelopes.
+5. Implement device-specific HAL adapters for selected MCU/power switches/telemetry devices.
+6. Assemble hardware and execute `MHIA_PHYSICAL_VALIDATION_PLAN_V0.md`; do not claim physical validation before retained measurements exist.
+7. Only after successful physical validation evaluate a prototype release/tag and downstream propagation tasks for StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki and stegguardian-wiki.
 
 ## Continuation rule
 
