@@ -35,14 +35,21 @@ tests/test_mhia_module_manifest_schema.py
 .github/workflows/mhia-schema-validation.yml
 ```
 
-Validated baseline:
+Validation evidence:
 
 ```text
-workflow: MHIA Schema Validation (Non-Authorizing)
-run: 33907042094
-job: 101134301013
-head: a806135a582e3c25f0f6230539cf219a45b9f70f
-result: SUCCESS
+initial logical-manifest validation:
+  run: 33907042094
+  job: 101134301013
+  head: a806135a582e3c25f0f6230539cf219a45b9f70f
+  result: SUCCESS
+
+mechanical + electrical/data extension validation:
+  run: 33907170937
+  job: 101134727468
+  head: f5fd64681ab3e09e180d44be2d344bab424ad69c
+  result: SUCCESS
+
 hosted validation authority: NONE
 ```
 
@@ -54,7 +61,6 @@ electrical/data schema: 00e75cc1bd9f3d28220b712bdfb6c41157a54426
 mechanical example: 47f7b91564d6a8a871f347f8bc846773f0354e1e
 electrical/data example: a20e7f41cdd1a651ff4793f4a9ac5cd88bd7c456
 extended tests: f5fd64681ab3e09e180d44be2d344bab424ad69c
-extended validation run: 33907170937 QUEUED at last observation
 ```
 
 Status:
@@ -66,11 +72,11 @@ module identity + provenance fields: COMPLETE_SOURCE_VALIDATED
 logical interface declaration: COMPLETE_SOURCE_VALIDATED
 power declaration: COMPLETE_SOURCE_VALIDATED
 authority-boundary declaration: COMPLETE_SOURCE_VALIDATED
-mechanical attachment logical profile: SOURCE_COMPLETE_VALIDATION_PENDING
-electrical/power/data negotiation logical profile: SOURCE_COMPLETE_VALIDATION_PENDING
+mechanical attachment logical profile: COMPLETE_SOURCE_VALIDATED
+electrical/power/data negotiation logical profile: COMPLETE_SOURCE_VALIDATED
 physical connector/pinout selection: NOT_STARTED
 mechanical CAD/fit validation: NOT_STARTED
-host capability-discovery graph implementation: NOT_STARTED
+host capability-discovery graph implementation: IN_PROGRESS
 reference firmware: NOT_STARTED
 reference hardware/BOM: NOT_STARTED
 compatibility implementation: NOT_STARTED
@@ -85,11 +91,10 @@ The mechanical profile defines implementation-neutral geometry envelope, datum, 
 
 ## Next machine-execution sequence
 
-1. Resolve and retain extended schema validation run `33907170937`.
-2. Implement host-side deterministic capability-graph construction from multiple module manifests without authority inheritance.
-3. Validate graph composition, duplicate/conflicting capability handling, and asymmetric left/right module composition.
-4. Define a first reference connector/pinout only after logical contract validation.
-5. Produce two-ear reference hardware/BOM and physical validation plan after connector selection.
+1. Implement host-side deterministic capability-graph construction from multiple module manifests without authority inheritance.
+2. Validate graph composition, duplicate/conflicting capability handling, and asymmetric left/right module composition.
+3. Define a first reference connector/pinout only after capability-graph validation.
+4. Produce two-ear reference hardware/BOM and physical validation plan after connector selection.
 
 ## Continuation rule
 
