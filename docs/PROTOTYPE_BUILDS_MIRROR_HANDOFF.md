@@ -49,48 +49,14 @@ docs/prototype-builds/MHIA_REFERENCE_COMPONENT_CANDIDATES_V0.md
 Validation evidence:
 
 ```text
-initial logical-manifest validation:
-  run: 33907042094
-  job: 101134301013
-  head: a806135a582e3c25f0f6230539cf219a45b9f70f
-  result: SUCCESS
-
-mechanical + electrical/data extension validation:
-  run: 33907170937
-  job: 101134727468
-  head: f5fd64681ab3e09e180d44be2d344bab424ad69c
-  result: SUCCESS
-
-capability-graph extension validation:
-  run: 33907371645
-  head: d3bd680f9d0aea05e2ffd46878d94f56e7ad9989
-  result: SUCCESS
-
-reference firmware + connector/BOM source validation:
-  run: 33911367741
-  head: 8c3308d1015308e597ed224b83296e19a486078b
-  result: SUCCESS
-
-physical-validation-plan documentation-triggered validation:
-  run: 33911399546
-  head: cb3d3db9feb69f9a569dd19dbdf3366a591f5d76
-  result: SUCCESS
-
-handoff-state validation:
-  run: 33911441943
-  head: 72b5d55eec8b0dc8974861c9dce3f0dadda0771a
-  result: SUCCESS
-
-hardware-abstraction boundary validation:
-  run: 33918491094
-  head: 75a38d42d1b092c3fb3dbec7a98d5ba90a7fda84
-  result: SUCCESS
-
-component-candidate documentation-triggered validation:
-  run: 33918515418
-  head: 424f9d938a811675a857b6f5d73ab93deb35ea7c
-  state_at_last_observation: IN_PROGRESS
-
+initial logical-manifest validation: run 33907042094 -> SUCCESS
+mechanical + electrical/data extension validation: run 33907170937 -> SUCCESS
+capability-graph extension validation: run 33907371645 -> SUCCESS
+reference firmware + connector/BOM source validation: run 33911367741 -> SUCCESS
+physical-validation-plan documentation-triggered validation: run 33911399546 -> SUCCESS
+handoff-state validation: run 33911441943 -> SUCCESS
+hardware-abstraction boundary validation: run 33918491094 -> SUCCESS
+component-candidate documentation-triggered validation: run 33918515418 -> SUCCESS
 hosted validation authority: NONE
 ```
 
@@ -109,6 +75,7 @@ hardware abstraction: 0c3df9fca46eea6efdf33f5ce9f3cafc964e5c26
 hardware abstraction tests: 8f4569efb59212d3e29fee6c66bb512db0a6dde7
 HAL validation-workflow extension: 75a38d42d1b092c3fb3dbec7a98d5ba90a7fda84
 concrete component candidate set: 424f9d938a811675a857b6f5d73ab93deb35ea7c
+handoff advance through HAL/component candidates: 605c60184f9580d5748fcf9424a8d473a4d786db
 ```
 
 Status:
@@ -133,7 +100,7 @@ hardware-abstraction fail-closed projection: COMPLETE_SOURCE_VALIDATED
 hardware-abstraction overcurrent/fault enforcement: COMPLETE_SOURCE_VALIDATED
 two-ear reference BOM component classes: SOURCE_COMPLETE
 physical validation plan: SOURCE_COMPLETE
-manufacturer-family candidate set: SOURCE_COMPLETE_VALIDATION_IN_PROGRESS
+manufacturer-family candidate set: COMPLETE_SOURCE_VALIDATED_AS_ENGINEERING_CANDIDATE
 manufacturer orderable part-number freeze: NOT_STARTED
 mechanical CAD/fit validation: NOT_STARTED
 assembled reference hardware: NOT_STARTED
@@ -151,17 +118,16 @@ The hardware-abstraction layer projects that governed state onto independent VSA
 
 The `MHIA-EAR-8P-MAG-v0` connector remains an engineering candidate using keyed magnetic retention and eight spring contacts with separate GND, ground-sense, passive detect/ID, differential data, wake/interrupt, current-limited discovery power, and separately switched operating power. Physical geometry, contact rating, signal integrity, moisture/corrosion, arcing, magnetic safety and cycle life remain unvalidated.
 
-The concrete component-family candidate set currently identifies Nordic nRF5340, TI TPS25947, Nordic nPM1300, TDK InvenSense ICM-42688-P and Analog Devices MAX98357A for the first host/power/module-management/motion/audio reference path. These are engineering candidates only; exact orderable suffixes/packages and procurement quantities are not yet frozen.
+The concrete component-family candidate set identifies Nordic nRF5340, TI TPS25947, Nordic nPM1300, TDK InvenSense ICM-42688-P and Analog Devices MAX98357A for the first host/power/module-management/motion/audio reference path. These are engineering candidates only; exact orderable suffixes/packages and procurement quantities are not yet frozen.
 
 ## Next machine-execution sequence
 
-1. Retain final outcome of component-candidate validation run `33918515418`; correct source if it unexpectedly fails.
-2. Resolve exact orderable suffix/package candidates, connector/contact manufacturer, microphone, driver and battery cell only after cost/availability/physical-envelope review.
-3. Freeze a procurement-candidate BOM only when dimensions, ratings and availability are verified together.
-4. Produce first mechanical CAD/dimensional drawing against the frozen package/contact/component envelopes.
-5. Implement device-specific HAL adapters for selected MCU/power switches/telemetry devices.
-6. Assemble hardware and execute `MHIA_PHYSICAL_VALIDATION_PLAN_V0.md`; do not claim physical validation before retained measurements exist.
-7. Only after successful physical validation evaluate a prototype release/tag and downstream propagation tasks for StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki and stegguardian-wiki.
+1. Resolve exact orderable suffix/package candidates, connector/contact manufacturer, microphone, driver and battery cell only after cost/availability/physical-envelope review.
+2. Freeze a procurement-candidate BOM only when dimensions, ratings and availability are verified together.
+3. Produce first mechanical CAD/dimensional drawing against the frozen package/contact/component envelopes.
+4. Implement device-specific HAL adapters for selected MCU/power switches/telemetry devices.
+5. Assemble hardware and execute `MHIA_PHYSICAL_VALIDATION_PLAN_V0.md`; do not claim physical validation before retained measurements exist.
+6. Only after successful physical validation evaluate a prototype release/tag and downstream propagation tasks for StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki and stegguardian-wiki.
 
 ## Continuation rule
 
