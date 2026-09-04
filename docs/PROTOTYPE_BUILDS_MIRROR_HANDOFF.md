@@ -68,10 +68,15 @@ reference firmware + connector/BOM source validation:
   head: 8c3308d1015308e597ed224b83296e19a486078b
   result: SUCCESS
 
-latest documentation-triggered validation:
+physical-validation-plan documentation-triggered validation:
   run: 33911399546
   head: cb3d3db9feb69f9a569dd19dbdf3366a591f5d76
-  state_at_last_observation: QUEUED
+  result: SUCCESS
+
+handoff-state validation:
+  run: 33911441943
+  head: 72b5d55eec8b0dc8974861c9dce3f0dadda0771a
+  state_at_last_observation: IN_PROGRESS
 
 hosted validation authority: NONE
 ```
@@ -88,6 +93,7 @@ reference firmware tests: ebaae38195bf8af16bb9ec2cc88164aa5a6680a8
 validation workflow extension: c8a474d213161fb0fb9c87ad0ccaa9e37a0daaee
 two-ear reference BOM: 8c3308d1015308e597ed224b83296e19a486078b
 physical validation plan: cb3d3db9feb69f9a569dd19dbdf3366a591f5d76
+handoff advance: 72b5d55eec8b0dc8974861c9dce3f0dadda0771a
 ```
 
 Status:
@@ -129,7 +135,7 @@ The two-ear BOM deliberately freezes component classes but not manufacturer part
 
 ## Next machine-execution sequence
 
-1. Retain final outcome of documentation-triggered validation run `33911399546`; correct source if it unexpectedly fails.
+1. Retain final outcome of handoff-state validation run `33911441943`; correct source if it unexpectedly fails.
 2. Select concrete manufacturer part numbers for the host MCU, protected power path, connector/contact system, module MCU, audio chain, sensors and removable battery implementation after cost/availability/physical-envelope review.
 3. Produce first mechanical CAD/dimensional drawing against selected connector and component envelopes.
 4. Produce firmware hardware-abstraction bindings for the selected MCU/power switches/telemetry devices.
