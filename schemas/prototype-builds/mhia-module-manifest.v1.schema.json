@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/prototype-builds/mhia-module-manifest.v1.schema.json",
+  "title": "StegVerse MHIA Module Manifest v1",
+  "type": "object",
+  "required": ["schema", "module", "capabilities", "interfaces", "power", "authority_boundary"],
+  "properties": {
+    "schema": {"const": "stegverse.mhia.module_manifest.v1"},
+    "module": {
+      "type": "object",
+      "required": ["module_id", "class", "manufacturer", "model", "hardware_revision", "firmware_revision", "provenance"],
+      "properties": {
+        "module_id": {"type": "string", "minLength": 1},
+        "class": {"type": "string", "enum": ["human_contact", "input", "output", "sensor", "compute", "radio", "power", "endpoint_auth", "composite"]},
+        "manufacturer": {"type": "string", "minLength": 1},
+        "model": {"type": "string", "minLength": 1},
+        "hardware_revision": {"type": "string", "minLength": 1},
+        "firmware_revision": {"type": ["string", "null"]},
+        "serial_or_instance_id": {"type": ["string", "null"]},
+        "provenance": {
+          "type": "object",
+          "required": ["origin", "assertion_level"],
+          "properties": {
+            "origin": {"type": "string", "minLength": 1},
+            "assertion_level": {"type": "string", "enum": ["declared", "manufacturer_signed", "independently_verified"]},
+            "evidence_refs": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["id", "version", "direction", "consequence_class"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z0-9_]+)+$"},
+          "version": {"type": "string", "minLength": 1},
+          "direction": {"type": "string", "enum": ["input", "output", "bidirectional", "internal"]},
+          "consequence_class": {"type": "string", "enum": ["none", "local", "external"]},
+          "constraints": {"type": "object"},
+          "calibration_ref": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "interfaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["interface_id", "kind", "role"],
+        "properties": {
+          "interface_id": {"type": "string", "minLength": 1},
+          "kind": {"type": "string", "enum": ["mechanical", "electrical", "data", "wireless", "acoustic", "optical"]},
+          "role": {"type": "string", "enum": ["host", "device", "peer", "source", "sink"]},
+          "profile": {"type": "string", "minLength": 1},
+          "protocols": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+        },
+        "additionalProperties": false
+      }
+    },
+    "power": {
+      "type": "object",
+      "required": ["mode", "max_input_w", "max_output_w"],
+      "properties": {
+        "mode": {"type": "string", "enum": ["none", "consumer", "source", "bidirectional", "self_powered"]},
+        "nominal_voltage_v": {"type": ["number", "null"], "minimum": 0},
+        "max_input_w": {"type": "number", "minimum": 0},
+        "max_output_w": {"type": "number", "minimum": 0},
+        "energy_wh": {"type": ["number", "null"], "minimum": 0},
+        "hot_swap_supported": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "physical_compatibility": {
+      "type": "object",
+      "properties": {
+        "attachment_profiles": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "side": {"type": "string", "enum": ["left", "right", "center", "either", "not_applicable"]}
+      },
+      "additionalProperties": false
+    },
+    "authority_boundary": {
+      "type": "object",
+      "required": ["discovery_grants_authority", "attachment_grants_authority", "external_consequence_requires_admission"],
+      "properties": {
+        "discovery_grants_authority": {"const": false},
+        "attachment_grants_authority": {"const": false},
+        "external_consequence_requires_admission": {"const": true},
+        "policy_refs": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
