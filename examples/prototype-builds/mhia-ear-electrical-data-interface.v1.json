@@ -1,0 +1,30 @@
+{
+  "schema": "stegverse.mhia.electrical_data_interface.v1",
+  "profile_id": "MHIA-EARBUS-DRAFT-1",
+  "power": {
+    "nominal_bus_v": 5.0,
+    "max_bus_v": 5.5,
+    "max_current_a": 1.0,
+    "role_negotiation_required": true,
+    "energize_before_negotiation": false,
+    "inrush_limit_a": 0.5
+  },
+  "data": {
+    "transport": "usb2_differential",
+    "minimum_link_rate_mbps": 12,
+    "hot_plug_detection": true,
+    "control_channel": "capability-discovery-v1"
+  },
+  "discovery": {
+    "manifest_required_before_capability_use": true,
+    "identity_required": true,
+    "discovery_grants_authority": false
+  },
+  "fault_behavior": {
+    "overcurrent_isolation": true,
+    "overvoltage_isolation": true,
+    "thermal_shutdown": true,
+    "unknown_module_power_state": "SAFE_OFF",
+    "invalid_manifest_behavior": "DENY_CAPABILITY_USE"
+  }
+}
