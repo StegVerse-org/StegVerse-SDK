@@ -1,0 +1,28 @@
+{
+  "schema": "stegverse.mhia.module_manifest.v1",
+  "module": {
+    "module_id": "prototype:right-ear-power-audio-a1",
+    "class": "composite",
+    "manufacturer": "StegVerse Prototype Builds",
+    "model": "MHIA Ear Power Audio A1",
+    "hardware_revision": "A1",
+    "firmware_revision": null,
+    "serial_or_instance_id": "prototype-002",
+    "provenance": {
+      "origin": "StegVerse MHIA reference prototype",
+      "assertion_level": "declared",
+      "evidence_refs": ["docs/prototype-builds/MODULAR_HUMAN_INTERFACE_ARCHITECTURE.md"]
+    }
+  },
+  "capabilities": [
+    {"id": "POWER.BATTERY.18WH", "version": "1", "direction": "internal", "consequence_class": "local", "constraints": {"energy_wh": 18}, "calibration_ref": null},
+    {"id": "OUTPUT.AUDIO.STEREO_RIGHT", "version": "1", "direction": "output", "consequence_class": "local", "constraints": {}, "calibration_ref": "calibration:driver:a1"}
+  ],
+  "interfaces": [
+    {"interface_id": "earbus-1", "kind": "data", "role": "device", "profile": "MHIA-EARBUS-DRAFT-1", "protocols": ["capability-discovery-v1", "pcm-audio-v1"]},
+    {"interface_id": "ear-attach-1", "kind": "mechanical", "role": "device", "profile": "MHIA-EAR-MECH-DRAFT-1", "protocols": []}
+  ],
+  "power": {"mode": "bidirectional", "nominal_voltage_v": 5.0, "max_input_w": 5.0, "max_output_w": 5.0, "energy_wh": 18.0, "hot_swap_supported": false},
+  "physical_compatibility": {"attachment_profiles": ["MHIA-EAR-MECH-DRAFT-1"], "side": "right"},
+  "authority_boundary": {"discovery_grants_authority": false, "attachment_grants_authority": false, "external_consequence_requires_admission": true, "policy_refs": ["docs/PROTOTYPE_BUILDS_MIRROR_HANDOFF.md"]}
+}
