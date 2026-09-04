@@ -60,7 +60,7 @@ physical-validation-plan documentation-triggered validation: run 33911399546 -> 
 handoff-state validation: run 33911441943 -> SUCCESS
 hardware-abstraction boundary validation: run 33918491094 -> SUCCESS
 component-candidate documentation-triggered validation: run 33918515418 -> SUCCESS
-procurement-gate validation: run 33918890343 -> IN_PROGRESS at last observation
+procurement-gate validation: run 33918890343 -> SUCCESS
 hosted validation authority: NONE
 ```
 
@@ -109,7 +109,7 @@ two-ear reference BOM component classes: SOURCE_COMPLETE
 physical validation plan: SOURCE_COMPLETE
 manufacturer-family candidate set: COMPLETE_SOURCE_VALIDATED_AS_ENGINEERING_CANDIDATE
 procurement candidate BOM: SOURCE_COMPLETE_NOT_FROZEN
-procurement freeze gate: SOURCE_COMPLETE_VALIDATION_IN_PROGRESS
+procurement freeze gate: COMPLETE_SOURCE_VALIDATED
 manufacturer orderable part-number freeze: BLOCKED_BY_INCOMPLETE_VERIFICATION
 mechanical CAD/fit validation: NOT_STARTED
 assembled reference hardware: NOT_STARTED
@@ -133,13 +133,12 @@ The procurement freeze gate fails closed. A BOM cannot become freeze-ready while
 
 ## Next machine-execution sequence
 
-1. Retain the final outcome of procurement-gate validation run `33918890343`; correct source if it fails.
-2. Resolve the remaining exact orderable suffixes/packages, connector/contact manufacturer, microphone, acoustic driver and removable cell, with contemporaneous availability and cost evidence.
-3. Only after the fail-closed procurement gate passes, freeze the first procurement BOM.
-4. Produce first mechanical CAD/dimensional drawing against the frozen package/contact/component envelopes.
-5. Implement device-specific HAL adapters for selected MCU/power switches/telemetry devices.
-6. Assemble hardware and execute `MHIA_PHYSICAL_VALIDATION_PLAN_V0.md`; do not claim physical validation before retained measurements exist.
-7. Only after successful physical validation evaluate a prototype release/tag and downstream propagation tasks for StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki and stegguardian-wiki.
+1. Resolve the remaining exact orderable suffixes/packages, connector/contact manufacturer, microphone, acoustic driver and removable cell, with contemporaneous availability and cost evidence.
+2. Only after the fail-closed procurement gate passes, freeze the first procurement BOM.
+3. Produce first mechanical CAD/dimensional drawing against the frozen package/contact/component envelopes.
+4. Implement device-specific HAL adapters for selected MCU/power switches/telemetry devices.
+5. Assemble hardware and execute `MHIA_PHYSICAL_VALIDATION_PLAN_V0.md`; do not claim physical validation before retained measurements exist.
+6. Only after successful physical validation evaluate a prototype release/tag and downstream propagation tasks for StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki and stegguardian-wiki.
 
 ## Continuation rule
 
