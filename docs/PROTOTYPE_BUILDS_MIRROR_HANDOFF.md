@@ -42,15 +42,27 @@ tests: e5740b3d05593ae89e08d37d69a12a47f46234f0
 non-authorizing validation workflow: a806135a582e3c25f0f6230539cf219a45b9f70f
 ```
 
+Validation evidence:
+
+```text
+workflow: MHIA Schema Validation (Non-Authorizing)
+run: 33907042094
+job: 101134301013
+head: a806135a582e3c25f0f6230539cf219a45b9f70f
+result: SUCCESS
+schema/example/tests: PASS
+hosted validation authority: NONE
+```
+
 Status:
 
 ```text
 concept captured: COMPLETE
-implementation-neutral module/capability manifest schema: SOURCE_COMPLETE_VALIDATION_PENDING
-module identity + provenance fields: SOURCE_COMPLETE_VALIDATION_PENDING
-logical interface declaration: SOURCE_COMPLETE_VALIDATION_PENDING
-power contract declaration: SOURCE_COMPLETE_VALIDATION_PENDING
-authority-boundary declaration: SOURCE_COMPLETE_VALIDATION_PENDING
+implementation-neutral module/capability manifest schema: COMPLETE_SOURCE_VALIDATED
+module identity + provenance fields: COMPLETE_SOURCE_VALIDATED
+logical interface declaration: COMPLETE_SOURCE_VALIDATED
+power contract declaration: COMPLETE_SOURCE_VALIDATED
+authority-boundary declaration: COMPLETE_SOURCE_VALIDATED
 mechanical geometry/attachment standard: NOT_STARTED
 electrical connector/pinout/negotiation standard: NOT_STARTED
 host capability-discovery graph implementation: NOT_STARTED
@@ -66,12 +78,11 @@ The v1 manifest deliberately requires discovery and attachment to be non-authori
 
 ## Next machine-execution sequence
 
-1. Observe and retain the first MHIA schema validation result.
-2. If validation fails, correct schema/example/test incompatibilities before advancing.
-3. Define the mechanical attachment profile separately from the logical capability manifest.
-4. Define the electrical/power/data negotiation contract, including fault/isolation behavior.
-5. Implement host-side discovery that converts multiple module manifests into a deterministic capability graph without granting authority.
-6. Only after those source contracts validate, define the first two-ear reference hardware/BOM and physical validation plan.
+1. Define the mechanical attachment profile separately from the logical capability manifest.
+2. Define the electrical/power/data negotiation contract, including fault/isolation behavior.
+3. Implement host-side discovery that converts multiple module manifests into a deterministic capability graph without granting authority.
+4. Validate those source contracts.
+5. Only after those source contracts validate, define the first two-ear reference hardware/BOM and physical validation plan.
 
 ## Continuation rule
 
