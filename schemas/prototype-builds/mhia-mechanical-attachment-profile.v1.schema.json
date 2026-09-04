@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/prototype-builds/mhia-mechanical-attachment-profile.v1.schema.json",
+  "title": "StegVerse MHIA Mechanical Attachment Profile v1",
+  "type": "object",
+  "required": ["schema", "profile_id", "geometry", "retention", "orientation", "serviceability"],
+  "properties": {
+    "schema": {"const": "stegverse.mhia.mechanical_attachment_profile.v1"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "geometry": {
+      "type": "object",
+      "required": ["envelope_mm", "datum", "mating_depth_mm", "clearance_mm"],
+      "properties": {
+        "envelope_mm": {"type": "object", "required": ["x", "y", "z"], "properties": {"x": {"type": "number", "exclusiveMinimum": 0}, "y": {"type": "number", "exclusiveMinimum": 0}, "z": {"type": "number", "exclusiveMinimum": 0}}, "additionalProperties": false},
+        "datum": {"type": "string", "minLength": 1},
+        "mating_depth_mm": {"type": "number", "exclusiveMinimum": 0},
+        "clearance_mm": {"type": "number", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "retention": {
+      "type": "object",
+      "required": ["method", "tool_required", "target_release_force_n"],
+      "properties": {
+        "method": {"type": "string", "enum": ["latch", "bayonet", "magnetic_plus_latch", "screw", "slide_lock", "other"]},
+        "tool_required": {"type": "boolean"},
+        "target_release_force_n": {"type": "number", "exclusiveMinimum": 0},
+        "secondary_retention": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "orientation": {
+      "type": "object",
+      "required": ["keyed", "reversible", "side_specific"],
+      "properties": {
+        "keyed": {"type": "boolean"},
+        "reversible": {"type": "boolean"},
+        "side_specific": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "serviceability": {
+      "type": "object",
+      "required": ["user_replaceable", "hot_swap_mechanical", "cycle_target"],
+      "properties": {
+        "user_replaceable": {"type": "boolean"},
+        "hot_swap_mechanical": {"type": "boolean"},
+        "cycle_target": {"type": "integer", "minimum": 100}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
