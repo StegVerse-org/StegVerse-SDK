@@ -1,0 +1,142 @@
+{
+  "schema": "stegverse.mhia.procurement_candidate_bom.v0",
+  "freeze_state": "NOT_FROZEN",
+  "source_of_truth": "docs/PROTOTYPE_BUILDS_MIRROR_HANDOFF.md",
+  "items": [
+    {
+      "role": "host_mcu",
+      "manufacturer": "Nordic Semiconductor",
+      "family": "nRF5340",
+      "orderable_candidate": "nRF5340-QKAA",
+      "package": "QKAA variant",
+      "verification": {
+        "manufacturer_identity": true,
+        "orderable_suffix": false,
+        "package_dimensions": false,
+        "electrical_rating": true,
+        "availability_checked": false,
+        "cost_checked": false
+      }
+    },
+    {
+      "role": "protected_vbus_path",
+      "manufacturer": "Texas Instruments",
+      "family": "TPS25947",
+      "orderable_candidate": "TPS259470LRPWR",
+      "package": "VQFN-HR RPW, 10-pin, 2 mm x 2 mm",
+      "verification": {
+        "manufacturer_identity": true,
+        "orderable_suffix": true,
+        "package_dimensions": true,
+        "electrical_rating": true,
+        "availability_checked": false,
+        "cost_checked": false
+      }
+    },
+    {
+      "role": "module_power_management",
+      "manufacturer": "Nordic Semiconductor",
+      "family": "nPM1300",
+      "orderable_candidate": null,
+      "package": null,
+      "verification": {
+        "manufacturer_identity": true,
+        "orderable_suffix": false,
+        "package_dimensions": false,
+        "electrical_rating": true,
+        "availability_checked": false,
+        "cost_checked": false
+      }
+    },
+    {
+      "role": "motion_sensor",
+      "manufacturer": "TDK InvenSense",
+      "family": "ICM-42688-P",
+      "orderable_candidate": "ICM-42688-P",
+      "package": null,
+      "verification": {
+        "manufacturer_identity": true,
+        "orderable_suffix": false,
+        "package_dimensions": false,
+        "electrical_rating": true,
+        "availability_checked": false,
+        "cost_checked": false
+      }
+    },
+    {
+      "role": "reference_audio_amplifier",
+      "manufacturer": "Analog Devices",
+      "family": "MAX98357A",
+      "orderable_candidate": "MAX98357AETE+T",
+      "package": "3 mm x 3 mm TQFN",
+      "verification": {
+        "manufacturer_identity": true,
+        "orderable_suffix": true,
+        "package_dimensions": true,
+        "electrical_rating": true,
+        "availability_checked": false,
+        "cost_checked": false
+      }
+    },
+    {
+      "role": "spring_contact_system",
+      "manufacturer": null,
+      "family": null,
+      "orderable_candidate": null,
+      "package": null,
+      "verification": {
+        "manufacturer_identity": false,
+        "orderable_suffix": false,
+        "package_dimensions": false,
+        "electrical_rating": false,
+        "availability_checked": false,
+        "cost_checked": false
+      }
+    },
+    {
+      "role": "microphone",
+      "manufacturer": null,
+      "family": null,
+      "orderable_candidate": null,
+      "package": null,
+      "verification": {
+        "manufacturer_identity": false,
+        "orderable_suffix": false,
+        "package_dimensions": false,
+        "electrical_rating": false,
+        "availability_checked": false,
+        "cost_checked": false
+      }
+    },
+    {
+      "role": "acoustic_driver",
+      "manufacturer": null,
+      "family": null,
+      "orderable_candidate": null,
+      "package": null,
+      "verification": {
+        "manufacturer_identity": false,
+        "orderable_suffix": false,
+        "package_dimensions": false,
+        "electrical_rating": false,
+        "availability_checked": false,
+        "cost_checked": false
+      }
+    },
+    {
+      "role": "removable_battery_cell",
+      "manufacturer": null,
+      "family": null,
+      "orderable_candidate": null,
+      "package": null,
+      "verification": {
+        "manufacturer_identity": false,
+        "orderable_suffix": false,
+        "package_dimensions": false,
+        "electrical_rating": false,
+        "availability_checked": false,
+        "cost_checked": false
+      }
+    }
+  ]
+}
