@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/prototype-builds/mhia-electrical-data-interface.v1.schema.json",
+  "title": "StegVerse MHIA Electrical/Data Interface v1",
+  "type": "object",
+  "required": ["schema", "profile_id", "power", "data", "discovery", "fault_behavior"],
+  "properties": {
+    "schema": {"const": "stegverse.mhia.electrical_data_interface.v1"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "power": {
+      "type": "object",
+      "required": ["nominal_bus_v", "max_bus_v", "max_current_a", "role_negotiation_required", "energize_before_negotiation"],
+      "properties": {
+        "nominal_bus_v": {"type": "number", "exclusiveMinimum": 0},
+        "max_bus_v": {"type": "number", "exclusiveMinimum": 0},
+        "max_current_a": {"type": "number", "exclusiveMinimum": 0},
+        "role_negotiation_required": {"const": true},
+        "energize_before_negotiation": {"const": false},
+        "inrush_limit_a": {"type": "number", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "required": ["transport", "minimum_link_rate_mbps", "hot_plug_detection"],
+      "properties": {
+        "transport": {"type": "string", "enum": ["usb2_differential", "usb3_differential", "ethernet", "i2c_control_plus_stream", "spi_control_plus_stream", "custom_differential"]},
+        "minimum_link_rate_mbps": {"type": "number", "minimum": 0},
+        "hot_plug_detection": {"type": "boolean"},
+        "control_channel": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "discovery": {
+      "type": "object",
+      "required": ["manifest_required_before_capability_use", "identity_required", "discovery_grants_authority"],
+      "properties": {
+        "manifest_required_before_capability_use": {"const": true},
+        "identity_required": {"const": true},
+        "discovery_grants_authority": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "fault_behavior": {
+      "type": "object",
+      "required": ["overcurrent_isolation", "overvoltage_isolation", "thermal_shutdown", "unknown_module_power_state", "invalid_manifest_behavior"],
+      "properties": {
+        "overcurrent_isolation": {"const": true},
+        "overvoltage_isolation": {"const": true},
+        "thermal_shutdown": {"const": true},
+        "unknown_module_power_state": {"const": "SAFE_OFF"},
+        "invalid_manifest_behavior": {"const": "DENY_CAPABILITY_USE"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
