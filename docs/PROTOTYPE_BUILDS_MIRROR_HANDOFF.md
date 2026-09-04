@@ -29,9 +29,12 @@ schemas/prototype-builds/mhia-module-manifest.v1.schema.json
 schemas/prototype-builds/mhia-mechanical-attachment-profile.v1.schema.json
 schemas/prototype-builds/mhia-electrical-data-interface.v1.schema.json
 examples/prototype-builds/mhia-left-ear-sensor-module.v1.json
+examples/prototype-builds/mhia-right-ear-power-audio-module.v1.json
 examples/prototype-builds/mhia-ear-mechanical-profile.v1.json
 examples/prototype-builds/mhia-ear-electrical-data-interface.v1.json
+stegverse/mhia_capability_graph.py
 tests/test_mhia_module_manifest_schema.py
+tests/test_mhia_capability_graph.py
 .github/workflows/mhia-schema-validation.yml
 ```
 
@@ -50,17 +53,21 @@ mechanical + electrical/data extension validation:
   head: f5fd64681ab3e09e180d44be2d344bab424ad69c
   result: SUCCESS
 
+capability-graph extension validation:
+  run: 33907371645
+  head: d3bd680f9d0aea05e2ffd46878d94f56e7ad9989
+  state_at_last_observation: IN_PROGRESS
+
 hosted validation authority: NONE
 ```
 
-Current extension commits:
+Capability-graph source commits:
 
 ```text
-mechanical profile schema: 97b56b124b50e50452fa95d0cfbfe247aeb730a4
-electrical/data schema: 00e75cc1bd9f3d28220b712bdfb6c41157a54426
-mechanical example: 47f7b91564d6a8a871f347f8bc846773f0354e1e
-electrical/data example: a20e7f41cdd1a651ff4793f4a9ac5cd88bd7c456
-extended tests: f5fd64681ab3e09e180d44be2d344bab424ad69c
+implementation: 335d32e1f84023b394563bb03867f1f5beae3b0c
+asymmetric right-ear fixture: 204d8f201c1774157404ef773f0b9c9a8e2bf5a7
+composition tests: 48085656b86baa6f1e9dbe20787d9ca593b0bce9
+validation-workflow extension: d3bd680f9d0aea05e2ffd46878d94f56e7ad9989
 ```
 
 Status:
@@ -74,9 +81,12 @@ power declaration: COMPLETE_SOURCE_VALIDATED
 authority-boundary declaration: COMPLETE_SOURCE_VALIDATED
 mechanical attachment logical profile: COMPLETE_SOURCE_VALIDATED
 electrical/power/data negotiation logical profile: COMPLETE_SOURCE_VALIDATED
+host deterministic capability-discovery graph: SOURCE_COMPLETE_VALIDATION_IN_PROGRESS
+asymmetric left/right composition fixture: SOURCE_COMPLETE
+conflicting capability quarantine: SOURCE_COMPLETE
+no-authority-inheritance composition invariant: SOURCE_COMPLETE
 physical connector/pinout selection: NOT_STARTED
 mechanical CAD/fit validation: NOT_STARTED
-host capability-discovery graph implementation: IN_PROGRESS
 reference firmware: NOT_STARTED
 reference hardware/BOM: NOT_STARTED
 compatibility implementation: NOT_STARTED
@@ -85,16 +95,18 @@ release/tag: NONE
 runtime activation claim: NONE
 ```
 
+The capability graph sorts module/capability discovery deterministically, supports asymmetric left/right modules, preserves compatible multiple providers, quarantines incompatible declarations instead of exposing them as usable capabilities, rejects duplicate module identity, and rejects any module declaration that attempts to derive authority from discovery or attachment. Composition itself grants no authority.
+
 The electrical contract fails closed by design: power-role negotiation is required; energization before negotiation is prohibited; unknown modules remain SAFE_OFF; invalid manifests deny capability use; overcurrent, overvoltage, and thermal isolation are required. Discovery and physical attachment do not grant authority.
 
 The mechanical profile defines implementation-neutral geometry envelope, datum, mating depth, clearance, retention, orientation, user serviceability, and cycle targets. It is not yet CAD or a manufacturing drawing.
 
 ## Next machine-execution sequence
 
-1. Implement host-side deterministic capability-graph construction from multiple module manifests without authority inheritance.
-2. Validate graph composition, duplicate/conflicting capability handling, and asymmetric left/right module composition.
-3. Define a first reference connector/pinout only after capability-graph validation.
-4. Produce two-ear reference hardware/BOM and physical validation plan after connector selection.
+1. Retain final outcome of capability-graph validation run `33907371645`; correct source if it fails.
+2. After graph validation, define a first reference connector/pinout and explicit signal/power allocation.
+3. Define reference firmware discovery/negotiation state machine against the validated contracts.
+4. Produce the first two-ear reference hardware/BOM and physical validation plan.
 
 ## Continuation rule
 
