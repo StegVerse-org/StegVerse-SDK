@@ -7,9 +7,11 @@ on:
       - 'examples/prototype-builds/**'
       - 'stegverse/mhia_capability_graph.py'
       - 'stegverse/mhia_reference_firmware.py'
+      - 'stegverse/mhia_reference_hal.py'
       - 'tests/test_mhia_module_manifest_schema.py'
       - 'tests/test_mhia_capability_graph.py'
       - 'tests/test_mhia_reference_firmware.py'
+      - 'tests/test_mhia_reference_hal.py'
       - '.github/workflows/mhia-schema-validation.yml'
       - 'docs/prototype-builds/**'
       - 'docs/PROTOTYPE_BUILDS_MIRROR_HANDOFF.md'
@@ -19,9 +21,11 @@ on:
       - 'examples/prototype-builds/**'
       - 'stegverse/mhia_capability_graph.py'
       - 'stegverse/mhia_reference_firmware.py'
+      - 'stegverse/mhia_reference_hal.py'
       - 'tests/test_mhia_module_manifest_schema.py'
       - 'tests/test_mhia_capability_graph.py'
       - 'tests/test_mhia_reference_firmware.py'
+      - 'tests/test_mhia_reference_hal.py'
       - '.github/workflows/mhia-schema-validation.yml'
       - 'docs/prototype-builds/**'
       - 'docs/PROTOTYPE_BUILDS_MIRROR_HANDOFF.md'
@@ -47,13 +51,14 @@ jobs:
       - name: Install validation-only dependencies
         run: |
           python3 -m pip install --disable-pip-version-check pytest 'jsonschema>=4.18'
-      - name: Validate MHIA contracts, capability composition, and reference firmware sequencing
+      - name: Validate MHIA contracts, capability composition, reference firmware, and HAL boundaries
         run: |
           set -eu
           cd /tmp/source
           pytest -q \
             tests/test_mhia_module_manifest_schema.py \
             tests/test_mhia_capability_graph.py \
-            tests/test_mhia_reference_firmware.py
+            tests/test_mhia_reference_firmware.py \
+            tests/test_mhia_reference_hal.py
           echo 'MHIA_SOURCE_VALIDATION_PASS'
           echo 'This hosted validation grants no execution, credential, publication, transition, or runtime authority.'
