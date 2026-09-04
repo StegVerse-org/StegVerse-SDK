@@ -1,11 +1,13 @@
-name: MHIA Schema Validation (Non-Authorizing)
+name: MHIA Source Validation (Non-Authorizing)
 
 on:
   push:
     paths:
       - 'schemas/prototype-builds/**'
       - 'examples/prototype-builds/**'
+      - 'stegverse/mhia_capability_graph.py'
       - 'tests/test_mhia_module_manifest_schema.py'
+      - 'tests/test_mhia_capability_graph.py'
       - '.github/workflows/mhia-schema-validation.yml'
       - 'docs/prototype-builds/**'
       - 'docs/PROTOTYPE_BUILDS_MIRROR_HANDOFF.md'
@@ -13,7 +15,9 @@ on:
     paths:
       - 'schemas/prototype-builds/**'
       - 'examples/prototype-builds/**'
+      - 'stegverse/mhia_capability_graph.py'
       - 'tests/test_mhia_module_manifest_schema.py'
+      - 'tests/test_mhia_capability_graph.py'
       - '.github/workflows/mhia-schema-validation.yml'
       - 'docs/prototype-builds/**'
       - 'docs/PROTOTYPE_BUILDS_MIRROR_HANDOFF.md'
@@ -22,7 +26,7 @@ on:
 permissions: {}
 
 jobs:
-  validate-mhia-schema:
+  validate-mhia-source:
     runs-on: ubuntu-latest
     steps:
       - name: Materialize public source anonymously
@@ -39,10 +43,10 @@ jobs:
       - name: Install validation-only dependencies
         run: |
           python3 -m pip install --disable-pip-version-check pytest 'jsonschema>=4.18'
-      - name: Validate MHIA manifest contract
+      - name: Validate MHIA contracts and capability composition
         run: |
           set -eu
           cd /tmp/source
-          pytest -q tests/test_mhia_module_manifest_schema.py
-          echo 'MHIA_SCHEMA_VALIDATION_PASS'
+          pytest -q tests/test_mhia_module_manifest_schema.py tests/test_mhia_capability_graph.py
+          echo 'MHIA_SOURCE_VALIDATION_PASS'
           echo 'This hosted validation grants no execution, credential, publication, transition, or runtime authority.'
