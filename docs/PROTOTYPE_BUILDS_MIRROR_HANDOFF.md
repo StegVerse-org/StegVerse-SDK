@@ -24,18 +24,54 @@ Canonical synopsis:
 docs/prototype-builds/MODULAR_HUMAN_INTERFACE_ARCHITECTURE.md
 ```
 
+Implemented source artifacts:
+
+```text
+schemas/prototype-builds/mhia-module-manifest.v1.schema.json
+examples/prototype-builds/mhia-left-ear-sensor-module.v1.json
+tests/test_mhia_module_manifest_schema.py
+.github/workflows/mhia-schema-validation.yml
+```
+
+Source commits:
+
+```text
+schema: 735f10927cbaecc37d2b20a68c552d94c8d1f938
+reference manifest: 8654107f1122ee00336355188573bad4683c665f
+tests: e5740b3d05593ae89e08d37d69a12a47f46234f0
+non-authorizing validation workflow: a806135a582e3c25f0f6230539cf219a45b9f70f
+```
+
 Status:
 
 ```text
 concept captured: COMPLETE
-formal interface specification: NOT_STARTED
-mechanical standard: NOT_STARTED
-electrical/power standard: NOT_STARTED
-capability-discovery schema: NOT_STARTED
+implementation-neutral module/capability manifest schema: SOURCE_COMPLETE_VALIDATION_PENDING
+module identity + provenance fields: SOURCE_COMPLETE_VALIDATION_PENDING
+logical interface declaration: SOURCE_COMPLETE_VALIDATION_PENDING
+power contract declaration: SOURCE_COMPLETE_VALIDATION_PENDING
+authority-boundary declaration: SOURCE_COMPLETE_VALIDATION_PENDING
+mechanical geometry/attachment standard: NOT_STARTED
+electrical connector/pinout/negotiation standard: NOT_STARTED
+host capability-discovery graph implementation: NOT_STARTED
+reference firmware: NOT_STARTED
 reference hardware: NOT_STARTED
 compatibility implementation: NOT_STARTED
+physical validation: NOT_STARTED
+release/tag: NONE
 runtime activation claim: NONE
 ```
+
+The v1 manifest deliberately requires discovery and attachment to be non-authorizing and requires external-consequence capabilities to remain subject to admission. This is a logical contract only; it does not establish a physical connector, electrical safety envelope, firmware implementation, or working prototype.
+
+## Next machine-execution sequence
+
+1. Observe and retain the first MHIA schema validation result.
+2. If validation fails, correct schema/example/test incompatibilities before advancing.
+3. Define the mechanical attachment profile separately from the logical capability manifest.
+4. Define the electrical/power/data negotiation contract, including fault/isolation behavior.
+5. Implement host-side discovery that converts multiple module manifests into a deterministic capability graph without granting authority.
+6. Only after those source contracts validate, define the first two-ear reference hardware/BOM and physical validation plan.
 
 ## Continuation rule
 
