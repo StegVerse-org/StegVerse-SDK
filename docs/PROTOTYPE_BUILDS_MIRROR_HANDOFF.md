@@ -33,8 +33,13 @@ examples/prototype-builds/mhia-right-ear-power-audio-module.v1.json
 examples/prototype-builds/mhia-ear-mechanical-profile.v1.json
 examples/prototype-builds/mhia-ear-electrical-data-interface.v1.json
 stegverse/mhia_capability_graph.py
+stegverse/mhia_reference_firmware.py
 tests/test_mhia_module_manifest_schema.py
 tests/test_mhia_capability_graph.py
+tests/test_mhia_reference_firmware.py
+docs/prototype-builds/MHIA_REFERENCE_CONNECTOR_PINOUT_V0.md
+docs/prototype-builds/MHIA_TWO_EAR_REFERENCE_BOM_V0.md
+docs/prototype-builds/MHIA_PHYSICAL_VALIDATION_PLAN_V0.md
 .github/workflows/mhia-schema-validation.yml
 ```
 
@@ -56,18 +61,33 @@ mechanical + electrical/data extension validation:
 capability-graph extension validation:
   run: 33907371645
   head: d3bd680f9d0aea05e2ffd46878d94f56e7ad9989
-  state_at_last_observation: IN_PROGRESS
+  result: SUCCESS
+
+reference firmware + connector/BOM source validation:
+  run: 33911367741
+  head: 8c3308d1015308e597ed224b83296e19a486078b
+  result: SUCCESS
+
+latest documentation-triggered validation:
+  run: 33911399546
+  head: cb3d3db9feb69f9a569dd19dbdf3366a591f5d76
+  state_at_last_observation: QUEUED
 
 hosted validation authority: NONE
 ```
 
-Capability-graph source commits:
+Current source commits:
 
 ```text
-implementation: 335d32e1f84023b394563bb03867f1f5beae3b0c
+capability graph: 335d32e1f84023b394563bb03867f1f5beae3b0c
 asymmetric right-ear fixture: 204d8f201c1774157404ef773f0b9c9a8e2bf5a7
-composition tests: 48085656b86baa6f1e9dbe20787d9ca593b0bce9
-validation-workflow extension: d3bd680f9d0aea05e2ffd46878d94f56e7ad9989
+capability graph tests: 48085656b86baa6f1e9dbe20787d9ca593b0bce9
+reference connector/pinout: 27c9c7a8a80319179a254849fad414cc51c51fa1
+reference firmware state machine: 75481290f00bbf1e26745017f116adb54656a8a7
+reference firmware tests: ebaae38195bf8af16bb9ec2cc88164aa5a6680a8
+validation workflow extension: c8a474d213161fb0fb9c87ad0ccaa9e37a0daaee
+two-ear reference BOM: 8c3308d1015308e597ed224b83296e19a486078b
+physical validation plan: cb3d3db9feb69f9a569dd19dbdf3366a591f5d76
 ```
 
 Status:
@@ -81,32 +101,40 @@ power declaration: COMPLETE_SOURCE_VALIDATED
 authority-boundary declaration: COMPLETE_SOURCE_VALIDATED
 mechanical attachment logical profile: COMPLETE_SOURCE_VALIDATED
 electrical/power/data negotiation logical profile: COMPLETE_SOURCE_VALIDATED
-host deterministic capability-discovery graph: SOURCE_COMPLETE_VALIDATION_IN_PROGRESS
-asymmetric left/right composition fixture: SOURCE_COMPLETE
-conflicting capability quarantine: SOURCE_COMPLETE
-no-authority-inheritance composition invariant: SOURCE_COMPLETE
-physical connector/pinout selection: NOT_STARTED
+host deterministic capability-discovery graph: COMPLETE_SOURCE_VALIDATED
+asymmetric left/right composition fixture: COMPLETE_SOURCE_VALIDATED
+conflicting capability quarantine: COMPLETE_SOURCE_VALIDATED
+no-authority-inheritance composition invariant: COMPLETE_SOURCE_VALIDATED
+reference connector/pinout candidate: SOURCE_COMPLETE_VALIDATED_AS_ENGINEERING_CANDIDATE
+reference firmware discovery/negotiation state machine: COMPLETE_SOURCE_VALIDATED
+reference firmware safety tests: COMPLETE_SOURCE_VALIDATED
+two-ear reference BOM component classes: SOURCE_COMPLETE
+physical validation plan: SOURCE_COMPLETE
+manufacturer part-number freeze: NOT_STARTED
 mechanical CAD/fit validation: NOT_STARTED
-reference firmware: NOT_STARTED
-reference hardware/BOM: NOT_STARTED
-compatibility implementation: NOT_STARTED
-physical validation: NOT_STARTED
+assembled reference hardware: NOT_STARTED
+compatibility implementation on physical hardware: NOT_STARTED
+physical validation execution: NOT_STARTED
 release/tag: NONE
 runtime activation claim: NONE
 ```
 
 The capability graph sorts module/capability discovery deterministically, supports asymmetric left/right modules, preserves compatible multiple providers, quarantines incompatible declarations instead of exposing them as usable capabilities, rejects duplicate module identity, and rejects any module declaration that attempts to derive authority from discovery or attachment. Composition itself grants no authority.
 
-The electrical contract fails closed by design: power-role negotiation is required; energization before negotiation is prohibited; unknown modules remain SAFE_OFF; invalid manifests deny capability use; overcurrent, overvoltage, and thermal isolation are required. Discovery and physical attachment do not grant authority.
+The reference firmware enforces the sequence DETACHED -> SAFE_OFF -> VSAFE_DISCOVERY -> MANIFEST_VALIDATED -> NEGOTIATED -> ADMITTED -> VBUS_ACTIVE. Invalid manifests, negotiation failures, admission denial, detach, or fault cannot produce operating VBUS. Fault transitions isolate the port and clear the negotiated envelope. This is executable reference logic, not evidence of flashed physical firmware.
 
-The mechanical profile defines implementation-neutral geometry envelope, datum, mating depth, clearance, retention, orientation, user serviceability, and cycle targets. It is not yet CAD or a manufacturing drawing.
+The `MHIA-EAR-8P-MAG-v0` connector is an engineering candidate using keyed magnetic retention and eight spring contacts with separate GND, ground-sense, passive detect/ID, differential data, wake/interrupt, current-limited discovery power, and separately switched operating power. Physical geometry, contact rating, signal integrity, moisture/corrosion, arcing, magnetic safety and cycle life remain unvalidated.
+
+The two-ear BOM deliberately freezes component classes but not manufacturer part numbers. The left reference module is sensor/audio-biased; the right reference module is power/audio-biased. The physical validation plan requires safe-power sequencing, fault isolation, signal/thermal testing, deterministic asymmetric capability composition, repeated interchangeability and retained test evidence.
 
 ## Next machine-execution sequence
 
-1. Retain final outcome of capability-graph validation run `33907371645`; correct source if it fails.
-2. After graph validation, define a first reference connector/pinout and explicit signal/power allocation.
-3. Define reference firmware discovery/negotiation state machine against the validated contracts.
-4. Produce the first two-ear reference hardware/BOM and physical validation plan.
+1. Retain final outcome of documentation-triggered validation run `33911399546`; correct source if it unexpectedly fails.
+2. Select concrete manufacturer part numbers for the host MCU, protected power path, connector/contact system, module MCU, audio chain, sensors and removable battery implementation after cost/availability/physical-envelope review.
+3. Produce first mechanical CAD/dimensional drawing against selected connector and component envelopes.
+4. Produce firmware hardware-abstraction bindings for the selected MCU/power switches/telemetry devices.
+5. Assemble hardware and execute `MHIA_PHYSICAL_VALIDATION_PLAN_V0.md`; do not claim physical validation before retained measurements exist.
+6. Only after successful physical validation evaluate a prototype release/tag and downstream propagation tasks for StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, admissibility-wiki and stegguardian-wiki.
 
 ## Continuation rule
 
