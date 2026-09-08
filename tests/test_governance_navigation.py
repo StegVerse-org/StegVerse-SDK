@@ -26,7 +26,7 @@ class GovernanceNavigationTests(unittest.TestCase):
         self.assertIn("[2] Reconstruct previously run set", text)
 
     def test_guidance_is_explicit_before_input(self):
-        self.assertIn("no user-supplied manifest", guidance_for("000"))
+        self.assertIn("no user-supplied manifest", " ".join(guidance_for("000").split()))
         self.assertIn("Master Records", guidance_for("00"))
         self.assertIn("preformatted machine manifest", guidance_for("0"))
         self.assertIn("manifest_receipt_id", guidance_for("1"))
