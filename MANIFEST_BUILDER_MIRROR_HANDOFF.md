@@ -8,24 +8,26 @@ repository: StegVerse-SDK
 canonical_branch: main
 parent_handoff: GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
 workstream: SDK-MANIFEST-BUILDER-001
+processor_generic_correction: SDK-PROCESSOR-GENERIC-MANIFEST-002
 credential_authority: TV/TVC
 GitHub runtime authority: NONE
 ```
 
-This scoped handoff records the completed user/framework-facing Manifest Builder over the merged generic `stegverse.ingress-manifest.v1` contract.
+This scoped handoff records the completed user/framework-facing Manifest Builder over `stegverse.ingress-manifest.v1` and its compatibility with the processor-generic manifest correction.
 
 ## Goal
 
-Provide a convenience layer that accepts source-native data, a selected installed processing class, and a desired return depth, then constructs and validates a canonical ingress manifest without changing source semantics or inventing processor-specific governance evidence.
+Provide a convenience layer that accepts source-native data, a selected installed processing capability, complete processor-specific evidence for that capability, and a desired return depth, then constructs and validates a canonical ingress manifest without changing source semantics or inventing processor-specific evidence.
 
 ## Required invariants
 
 ```text
 source payload semantic custody remains external
-payload class != processing class
+payload class != processing capability
+processing capability != runtime route
 builder construction != governance decision
 builder validation != authority
-missing governance evidence is never synthesized
+missing processor evidence is never synthesized
 return depth != canonical custody depth
 GitHub runtime authority: NONE
 credential authority: TV/TVC
@@ -40,6 +42,7 @@ source data + source identity
 + return_depth=(result-only | result+evidence | full-trace | locator-only)
 -> build_manifest(...)
 -> canonical stegverse.ingress-manifest.v1
+-> processing.capability + processing.route_id
 -> existing option 0B ingress/runtime
 ```
 
@@ -49,31 +52,9 @@ Primary CLI:
 stegverse manifest build --input <source.json> --governance-request <request.json> --source-framework <name> --source-output-id <id> --return-depth result+evidence --output <manifest.json>
 ```
 
-## Preflight determination
+The currently installed builder capability remains `governance`. The builder now emits the caller-facing `processing` block separately from `extensions.stegverse_route`, verifies that the route registry binds that route to the selected processing capability, and validates output with the processor-generic `validate_ingress_manifest()` contract.
 
-- Existing scoped handoff inspected: `GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md`.
-- Existing builder implementation search found no canonical `build_manifest` / `manifest_builder` implementation on `main` before this workstream.
-- Existing 0B route/runtime/schema reused; no duplicate evaluator or governance engine introduced.
-- README impact was REQUIRED because this adds a public user-facing SDK construction interface and CLI capability; README was updated in the same change set.
-- No new console-script entry point was needed; the builder is integrated under the existing `stegverse` command.
-
-## Implemented files
-
-```text
-stegverse/manifest_builder.py
-stegverse/evaluator_console.py
-tests/test_manifest_builder.py
-tests/test_governance_navigation.py
-README.md
-.github/workflows/manifest-builder-source-validation.yml
-MANIFEST_BUILDER_MIRROR_HANDOFF.md
-tasks/SDK-MANIFEST-BUILDER-001.json
-StegVerse-Labs/.github:control/task-vectors/SDK-MANIFEST-BUILDER-001.json
-```
-
-The navigation-test change is a whitespace-insensitive assertion correction for an already-valid wrapped guidance sentence; it changes no runtime or governance semantics.
-
-## Completion evidence
+## Original completion evidence — SDK-MANIFEST-BUILDER-001
 
 ```text
 PR: #125
@@ -85,7 +66,6 @@ run: 34278909616
 job: 102238648212
 result: SUCCESS
 builder tests: 5/5 PASS
-canonical ingress compatibility tests: PASS
 
 Evaluator Manifest Source Validation (Non-Authorizing)
 run: 34278909631
@@ -101,9 +81,34 @@ result: SUCCESS
 wheel build/install/smoke test: PASS
 ```
 
-An initial focused run exposed an unrelated brittle whitespace assertion in `tests.test_governance_navigation`; the assertion was corrected to normalize wrapped whitespace, then the complete focused validation passed. No production source behavior was changed to mask that test failure.
+## Processor-generic correction state
 
-## COSV registration
+```text
+correction_task: SDK-PROCESSOR-GENERIC-MANIFEST-002
+branch: fix/processor-generic-manifest-contract
+builder source: UPDATED_ON_BRANCH
+builder tests: UPDATED_ON_BRANCH
+README: UPDATED_ON_BRANCH
+validation: PENDING_PR
+merge: PENDING
+manual user work: NONE
+```
+
+Correction assertions for the builder:
+
+```text
+build_manifest emits processing.capability=governance
+build_manifest emits processing.route_id matching extensions.stegverse_route.route_id
+installed route registry processor_capability must match requested process
+builder uses processor-generic validate_ingress_manifest()
+source-native payload remains unchanged at JSON value level
+governance candidate remains sourced only from complete processor_request
+missing governance evidence fails closed
+return-depth aliases remain deterministic
+builder grants authority: FALSE
+```
+
+## COSV registration — original builder task
 
 ```text
 COSV profile: task.v1
@@ -119,37 +124,18 @@ activated: TRUE
 propagated: FALSE
 ```
 
-The vector follows the canonical `task.v1` position order `L R U I V G O C M T B E A P` and is evidence-bound to this completed workstream.
-
-## Completion predicates
-
-```text
-Python build_manifest API exists: PASS
-CLI manifest build path exists: PASS
-payload preserved at JSON value level: PASS
-candidate taken only from complete processor request: PASS
-hashes deterministic: PASS
-installed route selected explicitly: PASS
-return-depth aliases deterministic: PASS
-built output passes validate_external_manifest(): PASS
-missing processor evidence fails closed: PASS
-README documents public usage: PASS
-focused tests: PASS
-existing ingress/navigation tests: PASS
-package artifact build/install/smoke: PASS
-PR merged to main: PASS
-COSV registered: PASS
-```
+The original builder task remains complete. The processor-generic correction is a separate workstream and does not reopen or erase that historical completion evidence.
 
 ## Current readiness
 
 ```text
 SDK-MANIFEST-BUILDER-001: COMPLETE_VALIDATED_MERGED
-current installed builder processing class: governance
+current installed builder processing capability: governance
 current downstream submission path: option 0B
-additional processor classes installed by this workstream: NONE
+additional processor capabilities installed by correction: NONE
 new credential authority introduced: FALSE
 new runtime authority introduced: FALSE
+processor-generic correction merge state: PENDING
 ```
 
-The SDK is ready for an external framework to build a source-native manifest with `build_manifest(...)` or `stegverse manifest build ...`, then submit that output through the existing governed 0B path. Actual governance execution still depends on the complete processor-specific governance request and the existing sovereign runtime/custody path; the builder does not fabricate either.
+After `SDK-PROCESSOR-GENERIC-MANIFEST-002` validates and merges, the SDK builder remains the simple user-facing façade while `stegverse.ingress-manifest.v1` becomes structurally processor-generic beneath it. Actual governance execution still depends on the complete governance request and existing sovereign runtime/custody path; the builder does not fabricate either.
