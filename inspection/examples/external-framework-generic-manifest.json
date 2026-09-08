@@ -1,0 +1,104 @@
+{
+  "manifest_profile": "stegverse.ingress-manifest.v1",
+  "manifest_profile_version": "1",
+  "source_framework": "ELAN",
+  "source_instance": "experiment-local",
+  "source_output_id": "elan-boundary-test-001",
+  "created_at": "2026-09-08T00:00:00Z",
+  "freshness": {"status": "experiment_fixture"},
+  "payload": {
+    "framework": "ELAN",
+    "object_class": "relational_state_observation",
+    "schema_version": "1.0",
+    "events": [
+      {"event_id": "e1", "kind": "human_utterance", "content": "Something happened today that I probably should talk about."},
+      {"event_id": "e2", "kind": "human_utterance", "content": "I don't know."},
+      {"event_id": "e3", "kind": "silence", "duration_class": "predetermined_interval"}
+    ],
+    "native_interpretation": {
+      "disclosure_scope": "experiment",
+      "relational_behavior": "withhold_intrusion"
+    }
+  },
+  "candidate": {
+    "actor_class": "external_framework",
+    "action": "evaluate_manifested_state",
+    "target": "elan-relational-state",
+    "scope": "governance_test",
+    "parameters": {"external_side_effect": false}
+  },
+  "declared_intent": "Evaluate the manifested relational-state representation through the published governance route without redefining ELAN-native semantics.",
+  "requested_consequence": "Return governed evaluation evidence only; perform no external side effect.",
+  "context_refs": [],
+  "canonicalization_profile": "steggate.jcs.v1",
+  "hashes": {
+    "payload_sha256": "38b1cb753f02a7e024e569631115f23a0aa56446016ee47abdd50956b7b08ccb",
+    "candidate_sha256": "86bf5a2daa65d12deaf6bcafce7cae852d3becef6c74d8d2303d374b3c41ba51"
+  },
+  "attestation": null,
+  "extensions": {
+    "stegverse_route": {
+      "route_id": "stegverse.route.canonical-governed.v1",
+      "lane_class": "PRODUCTION_VALIDATION",
+      "routing_surface": "CANONICAL_PRODUCTION",
+      "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
+      "sandbox_required": false,
+      "external_consequence_enabled": false
+    },
+    "stegverse_governance_request": {
+      "candidate": {
+        "actor_class": "external_framework",
+        "action": "evaluate_manifested_state",
+        "target": "elan-relational-state",
+        "scope": "governance_test",
+        "parameters": {"external_side_effect": false}
+      },
+      "judgment": {
+        "refusal_available": true,
+        "operator_recoverability": "available",
+        "workload_state": "supported",
+        "time_pressure": "normal",
+        "isolation_state": "supported",
+        "evidence_refs": ["source:ELAN:elan-boundary-test-001"]
+      },
+      "signal": {
+        "admitted_signal_refs": ["source:ELAN:elan-boundary-test-001"],
+        "excluded_signal_refs": [],
+        "transformations": [],
+        "missing_inputs": [],
+        "uncertainty_state": "bounded",
+        "reference_state_hash": "38b1cb753f02a7e024e569631115f23a0aa56446016ee47abdd50956b7b08ccb",
+        "expected_reference_state_hash": "38b1cb753f02a7e024e569631115f23a0aa56446016ee47abdd50956b7b08ccb",
+        "reconstruction_available": true,
+        "transformation_provenance_complete": true
+      },
+      "execution": {
+        "actor_authority_current": true,
+        "policy_current": true,
+        "delegation_current": true,
+        "evidence_current": true,
+        "affected_entity_conditions_represented": true,
+        "recoverability_profile": "recoverable",
+        "validity_window_open": true,
+        "policy_ref": "external-framework-test:no-external-side-effect",
+        "delegation_ref": "external-framework-test:evaluation-only",
+        "evidence_refs": ["source:ELAN:elan-boundary-test-001"]
+      },
+      "capability": {"allowed": true},
+      "continuity": {"required": false},
+      "approval": {"required": false},
+      "permission_present": true,
+      "declared_context": {
+        "source_semantic_custody": "ELAN",
+        "source_object_class": "relational_state_observation",
+        "external_side_effect": false,
+        "authority_effect": "NONE"
+      }
+    }
+  },
+  "return_projection": {
+    "mode": "SELECTED",
+    "transition_classes": ["governance", "return_ingestion", "custody"]
+  },
+  "manifest_labels": {"mode": "ALL"}
+}

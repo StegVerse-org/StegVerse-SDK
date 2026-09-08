@@ -5,7 +5,9 @@ on:
     branches: [main]
     paths:
       - inspection/request.schema.json
+      - schemas/stegverse.ingress-manifest.v1.schema.json
       - inspection/examples/governed-test-request.json
+      - inspection/examples/external-framework-generic-manifest.json
       - inspection/examples/multilane-noninterference-request.json
       - inspection/examples/cross-framework-current-basis-request.draft.json
       - stegverse/public_inspection.py
@@ -27,7 +29,9 @@ on:
       - docs/EVALUATION_BOUNDARY_RESPONSE_PACKET_MIRROR_HANDOFF.md
       - docs/EVALUATION_BOUNDARY_PACKET_README_REPRODUCE.md
       - docs/EVALUATION_BOUNDARY_LICENSE_ACCESS_NOTES.md
+      - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - tests/test_public_inspection_request.py
+      - tests/test_generic_manifest_processing_contract.py
       - tests/test_evaluator_manifest_multilane_noninterference.py
       - tests/test_cross_framework_current_basis_manifest.py
       - tests/test_current_basis_sdk.py
@@ -43,6 +47,7 @@ on:
       - tests/test_evaluation_boundary_contract.py
       - tests/test_evaluation_boundary_owner_packet.py
       - EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md
+      - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
       - PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
       - README.md
       - docs/SDK_CONSOLE.md
@@ -51,7 +56,9 @@ on:
     branches: [main]
     paths:
       - inspection/request.schema.json
+      - schemas/stegverse.ingress-manifest.v1.schema.json
       - inspection/examples/governed-test-request.json
+      - inspection/examples/external-framework-generic-manifest.json
       - inspection/examples/multilane-noninterference-request.json
       - inspection/examples/cross-framework-current-basis-request.draft.json
       - stegverse/public_inspection.py
@@ -73,7 +80,9 @@ on:
       - docs/EVALUATION_BOUNDARY_RESPONSE_PACKET_MIRROR_HANDOFF.md
       - docs/EVALUATION_BOUNDARY_PACKET_README_REPRODUCE.md
       - docs/EVALUATION_BOUNDARY_LICENSE_ACCESS_NOTES.md
+      - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - tests/test_public_inspection_request.py
+      - tests/test_generic_manifest_processing_contract.py
       - tests/test_evaluator_manifest_multilane_noninterference.py
       - tests/test_cross_framework_current_basis_manifest.py
       - tests/test_current_basis_sdk.py
@@ -89,6 +98,7 @@ on:
       - tests/test_evaluation_boundary_contract.py
       - tests/test_evaluation_boundary_owner_packet.py
       - EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md
+      - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
       - PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
       - README.md
       - docs/SDK_CONSOLE.md
@@ -122,6 +132,7 @@ jobs:
           python scripts/validate_public_inspection_request.py inspection/examples/multilane-noninterference-request.json
           python scripts/validate_public_inspection_request.py inspection/examples/cross-framework-current-basis-request.draft.json
           python -m unittest tests.test_public_inspection_request
+          python -m unittest tests.test_generic_manifest_processing_contract
           python -m unittest tests.test_evaluator_manifest_multilane_noninterference
           python -m unittest tests.test_cross_framework_current_basis_manifest
           python -m unittest tests.test_current_basis_sdk
