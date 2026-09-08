@@ -1,0 +1,44 @@
+{
+  "task_id": "SDK-MANIFEST-BUILDER-001",
+  "originating_goal": "Provide a user/framework-facing Manifest Builder that constructs canonical source-native StegVerse ingress manifests from source data, an installed processing class, complete processor-specific evidence, and a selected return depth.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "source_branch": "sdk-manifest-builder-001",
+  "target_branch": "main",
+  "source_pull_request": 125,
+  "merge_commit": "f2d85e17ca50146f4234585561868d5b8818d1a4",
+  "state": "COMPLETE_VALIDATED_MERGED",
+  "owner": "StegVerse-org/StegVerse-SDK",
+  "credential_authority": "TV/TVC",
+  "github_token_runtime_authority": "NONE",
+  "source_handoff": "MANIFEST_BUILDER_MIRROR_HANDOFF.md",
+  "cosv": {
+    "profile": "task.v1",
+    "canonical_profile_ref": "StegVerse-Labs/.github:management/COSV_PROFILE_V1.json",
+    "vector": "71000000100110",
+    "registry_ref": "StegVerse-Labs/.github:control/task-vectors/SDK-MANIFEST-BUILDER-001.json"
+  },
+  "implemented": [
+    "Python build_manifest API",
+    "primary CLI stegverse manifest build",
+    "deterministic return-depth projection aliases",
+    "explicit installed governance route selection",
+    "deterministic payload and candidate hashing",
+    "source semantic custody preservation",
+    "fail-closed missing processor evidence",
+    "README user documentation",
+    "focused source validation workflow"
+  ],
+  "validation": {
+    "manifest_builder_source_validation_run": 34278909616,
+    "manifest_builder_source_validation_result": "SUCCESS",
+    "builder_tests": "5/5 PASS",
+    "evaluator_manifest_source_validation_run": 34278909631,
+    "evaluator_manifest_source_validation_result": "SUCCESS",
+    "evaluator_contract_console_validation_run": 34278909777,
+    "evaluator_contract_console_validation_result": "SUCCESS",
+    "sdk_package_artifact_validation_run": 34278909861,
+    "sdk_package_artifact_validation_result": "SUCCESS"
+  },
+  "manual_work_required": false,
+  "next_integration_goal": "Use the Manifest Builder to prepare an external-framework/ELAN source-native governance manifest and submit the resulting artifact through the existing option 0B path."
+}
