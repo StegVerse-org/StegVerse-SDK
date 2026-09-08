@@ -1,0 +1,47 @@
+{
+  "task_id": "SDK-PROCESSOR-GENERIC-MANIFEST-002",
+  "originating_goal": "Correct stegverse.ingress-manifest.v1 so source-native data class, caller-facing processing capability, runtime route, processor-specific evidence, artifact projection, and custody remain distinct while preserving the installed governance fail-closed path.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "source_branch": "fix/processor-generic-manifest-contract",
+  "target_branch": "main",
+  "source_pull_request": 126,
+  "validated_head": "771a28c7428c2adc92823b10f9bf031ecf2f710f",
+  "merge_commit": "cb53cb0304efbd21e5a5700677c4f3fb8ef7b874",
+  "state": "COMPLETE_VALIDATED_MERGED",
+  "owner": "StegVerse-org/StegVerse-SDK",
+  "credential_authority": "TV/TVC",
+  "github_token_runtime_authority": "NONE",
+  "source_handoff": "GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md",
+  "cosv": {
+    "profile": "task.v1",
+    "canonical_profile_ref": "StegVerse-Labs/.github:management/COSV_PROFILE_V1.json",
+    "vector": "71000000100110",
+    "registry_ref": "StegVerse-Labs/.github:control/task-vectors/SDK-PROCESSOR-GENERIC-MANIFEST-002.json"
+  },
+  "implemented": [
+    "processor-generic structural ingress validator",
+    "conditional processor-specific schema requirements",
+    "caller-facing processing capability separate from runtime route mechanics",
+    "explicit route-to-processor capability binding",
+    "governance-only candidate and governance-request requirements",
+    "backward-compatible legacy governance v1 processing derivation",
+    "profiled sha256 payload commitments",
+    "Manifest Builder processor-capability emission and validation",
+    "fail-closed unsupported processor and route behavior",
+    "README, contract documentation, examples, handoffs, tests, and workflow validation"
+  ],
+  "validation": {
+    "manifest_builder_source_validation_run": 34280687649,
+    "manifest_builder_source_validation_result": "SUCCESS",
+    "evaluator_manifest_source_validation_run": 34280687697,
+    "evaluator_manifest_source_validation_result": "SUCCESS",
+    "processor_generic_manifest_tests": "8/8 PASS",
+    "evaluator_contract_console_validation_run": 34280687650,
+    "evaluator_contract_console_validation_result": "SUCCESS",
+    "sdk_package_artifact_validation_run": 34280687651,
+    "sdk_package_artifact_validation_result": "SUCCESS",
+    "package_build_install_smoke": "PASS"
+  },
+  "manual_work_required": false,
+  "next_integration_goal": "Assess StegVerse-Labs/Site, GCAT-BCAT-Engine/Publisher, StegVerse-Labs/admissibility-wiki, and StegVerse-002/stegguardian-wiki for semantic consumption of the corrected SDK manifest contract; propagate only where pertinent."
+}
