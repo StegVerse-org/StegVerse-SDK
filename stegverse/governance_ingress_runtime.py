@@ -299,3 +299,29 @@ def run_external_manifest(
     return run_sovereign_validation(
         request, custody_db=custody_db, host_identity=host_identity
     )
+
+
+def run_000_demo(*, custody_db: str, host_identity: str = "stegverse-sovereign-local") -> dict[str, Any]:
+    """Execute option 000 through the same canonical sovereign runtime as 0A/0B."""
+    from .sovereign_validation_runtime import run_sovereign_validation
+
+    shape = demo_output_manifest_shape()
+    result = run_sovereign_validation(
+        build_000_public_request(), custody_db=custody_db, host_identity=host_identity
+    )
+    processing = dict(shape["demo_dataset_processing"])
+    processing.update({
+        "canonical_processing_status": "PROCESSED_CANONICAL_RUNTIME",
+        "manifest_receipt_id": result.get("manifest_receipt_id"),
+        "receipt_chain_head": result.get("route_receipt_chain_head"),
+        "governance_state": result.get("governance_state"),
+        "chain_verified": bool(result.get("chain_verified")),
+        "master_records_custody_status": result.get("master_records_custody_status"),
+        "external_side_effect": result.get("external_side_effect"),
+        "third_party_host_required": result.get("third_party_host_required"),
+        "do_not_claim_processed_until_receipts_exist": False,
+    })
+    shape["demo_dataset_processing"] = processing
+    shape["canonical_runtime_result"] = dict(result)
+    shape["demo_grants_authority"] = False
+    return shape
