@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://stegverse.org/schemas/stegverse.ingress-manifest.v1.schema.json",
   "title": "StegVerse ingress manifest v1",
-  "description": "Machine-to-machine ingress for externally manifested data. The source framework retains semantic custody of its payload. The manifest selects an installed processing route and a caller-facing evidence projection; neither choice grants authority or suppresses canonical Master Records custody.",
+  "description": "Processor-generic machine-to-machine ingress for externally manifested data. The source framework retains semantic custody of its payload. Processing capability, runtime route, and caller-facing evidence projection are distinct; none grants authority or suppresses canonical Master Records custody.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -11,7 +11,6 @@
     "source_framework",
     "source_output_id",
     "created_at",
-    "candidate",
     "declared_intent",
     "requested_consequence",
     "hashes",
@@ -30,12 +29,27 @@
       "type": ["object", "array", "string", "number", "boolean", "null"]
     },
     "payload_commitment": {
-      "description": "A source-provided commitment used instead of an inline payload.",
+      "description": "A source-provided commitment used instead of an inline payload. The commitment profile declares how independent implementations verify it.",
       "type": "string",
       "minLength": 1
     },
+    "payload_commitment_profile": {
+      "description": "Verification profile for payload_commitment. The currently published profile is sha256.",
+      "type": "string",
+      "enum": ["sha256"]
+    },
+    "processing": {
+      "description": "Caller-facing processing intent. This is distinct from runtime route mechanics. Existing v1 governance manifests that omit this object remain backward-compatible and derive governance only from the canonical governed route.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability", "route_id"],
+      "properties": {
+        "capability": {"type": "string", "minLength": 1},
+        "route_id": {"type": "string", "minLength": 1}
+      }
+    },
     "candidate": {
-      "description": "The governance proposition bound to the selected processing route. This is separate from the source payload class; it does not redefine the payload's native semantics.",
+      "description": "Processor-specific proposition. Required for governance processing, optional for other processors. It never redefines the source payload's native semantics.",
       "type": "object"
     },
     "declared_intent": {"type": "string", "minLength": 1},
@@ -44,7 +58,6 @@
     "canonicalization_profile": {"type": "string"},
     "hashes": {
       "type": "object",
-      "required": ["candidate_sha256"],
       "properties": {
         "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
@@ -54,31 +67,24 @@
     "attestation": {},
     "extensions": {
       "type": "object",
-      "required": ["stegverse_route", "stegverse_governance_request"],
+      "required": ["stegverse_route"],
       "properties": {
         "stegverse_route": {
-          "description": "The processing route selected by the caller. The current installed route is governance; future installed processors may be registered without changing the source payload class.",
+          "description": "Runtime route declaration. Structural ingress accepts a route identifier generically; executable runtime resolution separately requires an installed published route and its exact route contract.",
           "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "route_id",
-            "lane_class",
-            "routing_surface",
-            "containment",
-            "sandbox_required",
-            "external_consequence_enabled"
-          ],
+          "required": ["route_id"],
           "properties": {
-            "route_id": {"const": "stegverse.route.canonical-governed.v1"},
-            "lane_class": {"const": "PRODUCTION_VALIDATION"},
-            "routing_surface": {"const": "CANONICAL_PRODUCTION"},
-            "containment": {"const": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE"},
-            "sandbox_required": {"const": false},
-            "external_consequence_enabled": {"const": false}
-          }
+            "route_id": {"type": "string", "minLength": 1},
+            "lane_class": {"type": "string"},
+            "routing_surface": {"type": "string"},
+            "containment": {"type": "string"},
+            "sandbox_required": {"type": "boolean"},
+            "external_consequence_enabled": {"type": "boolean"}
+          },
+          "additionalProperties": true
         },
         "stegverse_governance_request": {
-          "description": "Complete processor-specific governance input. The SDK does not synthesize missing judgment, signal, execution, capability, continuity, approval, or permission evidence.",
+          "description": "Complete governance-processor input. Required only when processing capability is governance (or for backward-compatible canonical-governed v1 manifests that omit processing). The SDK does not synthesize missing governance evidence.",
           "type": "object",
           "required": [
             "candidate",
@@ -107,12 +113,64 @@
   },
   "oneOf": [
     {"required": ["payload"], "not": {"required": ["payload_commitment"]}},
-    {"required": ["payload_commitment"], "not": {"required": ["payload"]}}
+    {"required": ["payload_commitment", "payload_commitment_profile"], "not": {"required": ["payload"]}}
   ],
   "allOf": [
     {
       "if": {"required": ["payload"]},
-      "then": {"properties": {"hashes": {"required": ["payload_sha256", "candidate_sha256"]}}}
+      "then": {
+        "properties": {"hashes": {"required": ["payload_sha256"]}},
+        "not": {"required": ["payload_commitment_profile"]}
+      }
+    },
+    {
+      "if": {
+        "properties": {"payload_commitment_profile": {"const": "sha256"}},
+        "required": ["payload_commitment", "payload_commitment_profile"]
+      },
+      "then": {
+        "properties": {"payload_commitment": {"pattern": "^[0-9a-f]{64}$"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "processing": {
+            "properties": {"capability": {"const": "governance"}},
+            "required": ["capability"]
+          }
+        },
+        "required": ["processing"]
+      },
+      "then": {
+        "required": ["candidate"],
+        "properties": {
+          "hashes": {"required": ["candidate_sha256"]},
+          "extensions": {"required": ["stegverse_route", "stegverse_governance_request"]}
+        }
+      }
+    },
+    {
+      "if": {
+        "not": {"required": ["processing"]},
+        "properties": {
+          "extensions": {
+            "properties": {
+              "stegverse_route": {
+                "properties": {"route_id": {"const": "stegverse.route.canonical-governed.v1"}},
+                "required": ["route_id"]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": ["candidate"],
+        "properties": {
+          "hashes": {"required": ["candidate_sha256"]},
+          "extensions": {"required": ["stegverse_route", "stegverse_governance_request"]}
+        }
+      }
     }
   ],
   "$defs": {
