@@ -49,10 +49,17 @@ def main() -> None:
     if task.get("manual_work_required") is not False:
         fail("manual_work_required must remain false")
 
-    surfaces = task.get("public_surface_candidates")
-    expected = ["https://stegverse.org/", "https://stegverse.org/ecosystem-chat.html"]
-    if surfaces != expected:
-        fail(f"public_surface_candidates must equal {expected!r}; observed {surfaces!r}")
+    surface = task.get("public_surface")
+    if not isinstance(surface, dict):
+        fail("public_surface must be an object")
+    if surface.get("canonical_base") != "https://stegverse.org/":
+        fail("canonical public base must be https://stegverse.org/")
+    if surface.get("ecosystem_chat") != "https://stegverse.org/ecosystem-chat.html":
+        fail("Ecosystem Chat public route must use stegverse.org")
+    if surface.get("dedicated_processor_generic_route") is not None:
+        fail("dedicated processor-generic route must remain null until deployed evidence exists")
+    if surface.get("raw_github_pages_is_canonical_public_surface") is not False:
+        fail("raw GitHub Pages must not be canonical public surface")
 
     remaining = task.get("remaining") or []
     joined = "\n".join(str(item) for item in remaining)
@@ -63,6 +70,7 @@ def main() -> None:
 
     print("PASS: processor-generic downstream propagation contract is internally consistent")
     print("canonical_public_domain=https://stegverse.org/")
+    print("dedicated_processor_generic_route=UNDEPLOYED")
     print("propagation_complete=false")
     print("authority_effect=NONE")
 
