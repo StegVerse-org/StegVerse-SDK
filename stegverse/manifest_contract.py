@@ -50,7 +50,8 @@ def _normalize_processing(
     if raw_processing is None:
         if route_id != CANONICAL_PRODUCTION_ROUTE_ID:
             raise ValueError(
-                "processing is required for non-governance or future processor routes"
+                "unsupported manifest route for legacy v1 manifest; processing is required "
+                "for non-governance or future processor routes"
             )
         return {
             "capability": PROCESSING_CAPABILITY_GOVERNANCE,
@@ -156,7 +157,9 @@ def validate_ingress_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("extensions must be an object")
     route_declaration = extensions.get("stegverse_route")
     if not isinstance(route_declaration, Mapping):
-        raise ValueError("extensions.stegverse_route must be an object")
+        raise ValueError(
+            "manifest requires extensions.stegverse_route declaring a published route"
+        )
 
     processing = _normalize_processing(manifest, route_declaration)
     capability = processing["capability"]
@@ -171,7 +174,8 @@ def validate_ingress_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         governance_request = extensions.get("stegverse_governance_request")
         if not isinstance(governance_request, Mapping):
             raise ValueError(
-                "governance processing requires extensions.stegverse_governance_request"
+                "governance processing requires extensions.stegverse_governance_request "
+                "containing the complete canonical StegGate request"
             )
     else:
         if candidate is not None:
