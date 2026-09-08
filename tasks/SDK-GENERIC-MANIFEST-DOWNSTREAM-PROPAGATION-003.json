@@ -1,0 +1,41 @@
+{
+  "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
+  "originating_goal": "Propagate the processor-generic stegverse.ingress-manifest.v1 semantics only to downstream repositories that actually consume or document the SDK interoperability contract, without duplicating processor/runtime authority.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "source_branch": "tasks/generic-manifest-downstream-propagation",
+  "target_branch": "main",
+  "state": "ASSESSMENT_COMPLETE_IMPLEMENTATION_PARTIALLY_ADMITTED",
+  "owner": "StegVerse-org/StegVerse-SDK",
+  "credential_authority": "TV/TVC",
+  "github_token_runtime_authority": "NONE",
+  "source_handoff": "SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md",
+  "parent_task": "SDK-PROCESSOR-GENERIC-MANIFEST-002",
+  "cosv": {
+    "profile": "task.v1",
+    "canonical_profile_ref": "StegVerse-Labs/.github:management/COSV_PROFILE_V1.json",
+    "vector": "71000000100110",
+    "registry_ref": "StegVerse-Labs/.github:control/task-vectors/SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003.json"
+  },
+  "assessment": {
+    "StegVerse-Labs/Site": "REQUIRED_BUT_SITE_MACHINE_OWNED",
+    "GCAT-BCAT-Engine/Publisher": "NO_DIRECT_CHANGE_REQUIRED",
+    "StegVerse-Labs/admissibility-wiki": "REQUIRED_WITH_EXISTING_COLLISION_CONTROL",
+    "StegVerse-002/stegguardian-wiki": "NO_DIRECT_CHANGE_REQUIRED"
+  },
+  "completed": [
+    "SDK-side downstream propagation assessment recorded and merged in PR #127",
+    "Site SDK backend contract identified as semantically pertinent but externally non-admissible under current Site orchestration state",
+    "Publisher assessed as projection-only with no direct generic-manifest change required",
+    "admissibility-wiki SDK/external-framework doctrine identified as semantically pertinent",
+    "admissibility-wiki issue #66 notified through existing collision-control coordinator",
+    "StegGuardian assessed as downstream interpretation-only with no direct generic-manifest change required"
+  ],
+  "remaining": [
+    "Site-owned machine admission and bounded update of stale SDK preview/backend contract surfaces",
+    "admissibility-wiki coordinator admission and bounded processor-generic SDK interoperability doctrine update",
+    "exact-head native validation after each admitted downstream mutation",
+    "handoff reconciliation after each downstream completion"
+  ],
+  "manual_work_required": false,
+  "release_tag_required_now": false
+}
