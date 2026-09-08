@@ -67,6 +67,8 @@ tests/test_governance_navigation.py
 README.md
 .github/workflows/manifest-builder-source-validation.yml
 MANIFEST_BUILDER_MIRROR_HANDOFF.md
+tasks/SDK-MANIFEST-BUILDER-001.json
+StegVerse-Labs/.github:control/task-vectors/SDK-MANIFEST-BUILDER-001.json
 ```
 
 The navigation-test change is a whitespace-insensitive assertion correction for an already-valid wrapped guidance sentence; it changes no runtime or governance semantics.
@@ -101,6 +103,24 @@ wheel build/install/smoke test: PASS
 
 An initial focused run exposed an unrelated brittle whitespace assertion in `tests.test_governance_navigation`; the assertion was corrected to normalize wrapped whitespace, then the complete focused validation passed. No production source behavior was changed to mask that test failure.
 
+## COSV registration
+
+```text
+COSV profile: task.v1
+COSV vector: 71000000100110
+registry: StegVerse-Labs/.github/control/task-vectors/SDK-MANIFEST-BUILDER-001.json
+canonical task record: tasks/SDK-MANIFEST-BUILDER-001.json
+lifecycle: COMPLETE
+archive_ready: TRUE
+unassigned_work: 0
+blockers: 0
+evidence_complete: TRUE
+activated: TRUE
+propagated: FALSE
+```
+
+The vector follows the canonical `task.v1` position order `L R U I V G O C M T B E A P` and is evidence-bound to this completed workstream.
+
 ## Completion predicates
 
 ```text
@@ -118,6 +138,7 @@ focused tests: PASS
 existing ingress/navigation tests: PASS
 package artifact build/install/smoke: PASS
 PR merged to main: PASS
+COSV registered: PASS
 ```
 
 ## Current readiness
