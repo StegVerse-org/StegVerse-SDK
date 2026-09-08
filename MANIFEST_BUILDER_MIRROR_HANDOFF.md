@@ -5,14 +5,14 @@
 ```text
 organization: StegVerse-org
 repository: StegVerse-SDK
-branch: sdk-manifest-builder-001
+canonical_branch: main
 parent_handoff: GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
 workstream: SDK-MANIFEST-BUILDER-001
 credential_authority: TV/TVC
 GitHub runtime authority: NONE
 ```
 
-This scoped handoff controls implementation of the user/framework-facing Manifest Builder over the already-merged generic `stegverse.ingress-manifest.v1` contract.
+This scoped handoff records the completed user/framework-facing Manifest Builder over the merged generic `stegverse.ingress-manifest.v1` contract.
 
 ## Goal
 
@@ -43,34 +43,92 @@ source data + source identity
 -> existing option 0B ingress/runtime
 ```
 
-CLI target:
+Primary CLI:
 
 ```bash
 stegverse manifest build --input <source.json> --governance-request <request.json> --source-framework <name> --source-output-id <id> --return-depth result+evidence --output <manifest.json>
 ```
 
-## Preflight
+## Preflight determination
 
 - Existing scoped handoff inspected: `GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md`.
-- Existing builder implementation search: no canonical `build_manifest` / `manifest_builder` implementation found on `main`.
-- Existing 0B route/runtime/schema reused; no duplicate evaluator or governance engine permitted.
-- README impact: REQUIRED because this adds a public user-facing SDK construction interface and CLI capability. README must be updated in the same change set.
-- `pyproject.toml` impact: REQUIRED only if a new console script is added; prefer integration under existing `stegverse` command to avoid redundant entry points.
+- Existing builder implementation search found no canonical `build_manifest` / `manifest_builder` implementation on `main` before this workstream.
+- Existing 0B route/runtime/schema reused; no duplicate evaluator or governance engine introduced.
+- README impact was REQUIRED because this adds a public user-facing SDK construction interface and CLI capability; README was updated in the same change set.
+- No new console-script entry point was needed; the builder is integrated under the existing `stegverse` command.
+
+## Implemented files
+
+```text
+stegverse/manifest_builder.py
+stegverse/evaluator_console.py
+tests/test_manifest_builder.py
+tests/test_governance_navigation.py
+README.md
+.github/workflows/manifest-builder-source-validation.yml
+MANIFEST_BUILDER_MIRROR_HANDOFF.md
+```
+
+The navigation-test change is a whitespace-insensitive assertion correction for an already-valid wrapped guidance sentence; it changes no runtime or governance semantics.
+
+## Completion evidence
+
+```text
+PR: #125
+merge: f2d85e17ca50146f4234585561868d5b8818d1a4
+validated head: 59cd46dab52aa73293fd60d34b15ab08eb21299a
+
+Manifest Builder Source Validation (Non-Authorizing)
+run: 34278909616
+job: 102238648212
+result: SUCCESS
+builder tests: 5/5 PASS
+canonical ingress compatibility tests: PASS
+
+Evaluator Manifest Source Validation (Non-Authorizing)
+run: 34278909631
+result: SUCCESS
+
+Evaluator Contract Console Validation
+run: 34278909777
+result: SUCCESS
+
+SDK Package Artifact Validation (Non-Authorizing)
+run: 34278909861
+result: SUCCESS
+wheel build/install/smoke test: PASS
+```
+
+An initial focused run exposed an unrelated brittle whitespace assertion in `tests.test_governance_navigation`; the assertion was corrected to normalize wrapped whitespace, then the complete focused validation passed. No production source behavior was changed to mask that test failure.
 
 ## Completion predicates
 
 ```text
-Python build_manifest API exists
-CLI manifest build path exists
-payload is preserved byte-equivalent at JSON value level
-candidate is taken only from complete processor request
-hashes are deterministic
-installed route is selected explicitly
-return-depth aliases map deterministically to canonical return_projection
-built output passes validate_external_manifest()
-missing processor evidence fails closed
-README documents public usage
-focused tests PASS
-existing ingress/navigation tests PASS
-PR merged to main
+Python build_manifest API exists: PASS
+CLI manifest build path exists: PASS
+payload preserved at JSON value level: PASS
+candidate taken only from complete processor request: PASS
+hashes deterministic: PASS
+installed route selected explicitly: PASS
+return-depth aliases deterministic: PASS
+built output passes validate_external_manifest(): PASS
+missing processor evidence fails closed: PASS
+README documents public usage: PASS
+focused tests: PASS
+existing ingress/navigation tests: PASS
+package artifact build/install/smoke: PASS
+PR merged to main: PASS
 ```
+
+## Current readiness
+
+```text
+SDK-MANIFEST-BUILDER-001: COMPLETE_VALIDATED_MERGED
+current installed builder processing class: governance
+current downstream submission path: option 0B
+additional processor classes installed by this workstream: NONE
+new credential authority introduced: FALSE
+new runtime authority introduced: FALSE
+```
+
+The SDK is ready for an external framework to build a source-native manifest with `build_manifest(...)` or `stegverse manifest build ...`, then submit that output through the existing governed 0B path. Actual governance execution still depends on the complete processor-specific governance request and the existing sovereign runtime/custody path; the builder does not fabricate either.
