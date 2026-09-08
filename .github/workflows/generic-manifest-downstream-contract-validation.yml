@@ -1,0 +1,51 @@
+name: Generic Manifest Downstream Contract Validation (Non-Authorizing)
+
+on:
+  pull_request:
+    paths:
+      - 'SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md'
+      - 'tasks/SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003.json'
+      - 'scripts/check_generic_manifest_downstream_contract.py'
+      - '.github/workflows/generic-manifest-downstream-contract-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md'
+      - 'tasks/SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003.json'
+      - 'scripts/check_generic_manifest_downstream_contract.py'
+      - '.github/workflows/generic-manifest-downstream-contract-validation.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  contract-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prove validation has no runtime authority
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          echo 'credential_authority=TV/TVC'
+          echo 'github_token_runtime_authority=NONE'
+          echo 'authority_effect=NONE'
+      - name: Materialize exact source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Validate downstream propagation contract
+        run: |
+          set -eu
+          cd /tmp/source
+          python scripts/check_generic_manifest_downstream_contract.py
+      - name: Reassert bounded result
+        run: |
+          set -eu
+          echo 'This job validates SDK-side contract consistency only.'
+          echo 'It does not claim downstream deployment, Site admission, admissibility completion, custody, or governed activation.'
