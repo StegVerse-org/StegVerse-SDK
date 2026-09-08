@@ -3,6 +3,10 @@
 A manifest establishes the intended route. This module recognizes only published
 route declarations and never substitutes a different route. A recognized route
 must also have an installed runtime binding before execution may proceed.
+
+The caller-facing processing capability is intentionally separate from route
+mechanics. A route declares which installed processor capability it binds to;
+selecting that capability or route never grants authority.
 """
 from __future__ import annotations
 
@@ -26,6 +30,7 @@ _ROUTE_MATCH_FIELDS = tuple(field for field in _ROUTE_FIELDS if field != "route_
 PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
     CANONICAL_PRODUCTION_ROUTE_ID: {
         "route_id": CANONICAL_PRODUCTION_ROUTE_ID,
+        "processor_capability": "governance",
         "lane_class": "PRODUCTION_VALIDATION",
         "routing_surface": "CANONICAL_PRODUCTION",
         "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
@@ -92,10 +97,14 @@ def resolve_route_declaration(declaration: Any) -> dict[str, Any]:
         raise ValueError(f"manifest route is published but runtime binding is not installed: {route_id}")
 
     resolved = {field: published[field] for field in _ROUTE_FIELDS}
-    resolved["route_declaration_hash"] = canonical_sha256(resolved)
+    resolved["processor_capability"] = published["processor_capability"]
+    resolved["route_declaration_hash"] = canonical_sha256(
+        {field: resolved[field] for field in _ROUTE_FIELDS}
+    )
     resolved["runtime_binding"] = published["runtime_binding"]
     resolved["route_recognized"] = True
     resolved["route_substitution_permitted"] = False
+    resolved["route_selection_grants_authority"] = False
     return resolved
 
 
@@ -134,4 +143,7 @@ def validate_runtime_provenance(provenance: Any) -> dict[str, Any]:
     supplied_hash = provenance.get("route_declaration_hash")
     if supplied_hash is not None and supplied_hash != resolved["route_declaration_hash"]:
         raise ValueError("execution_provenance route_declaration_hash does not match resolved route")
+    supplied_capability = provenance.get("processor_capability")
+    if supplied_capability is not None and supplied_capability != resolved["processor_capability"]:
+        raise ValueError("execution_provenance processor_capability conflicts with resolved route")
     return resolved
