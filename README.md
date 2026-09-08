@@ -12,6 +12,41 @@ If StegVerse or the StegVerse SDK materially helps validate, augment, or improve
 
 Independent systems may also connect through governed interlocks that preserve each system's authority while allowing explicitly admitted evidence and state transitions to cross the boundary. Such a connection may help the external system, StegVerse, or both. Openness and interoperability do not grant execution authority; every consequential transition remains governed.
 
+### Generic manifested-data processing contract
+
+The SDK is also a machine-to-machine processing boundary for external frameworks. An external framework may submit its **own manifested data, whatever the source-native class**, select an installed StegVerse processing route such as governance, and choose how much of the resulting user-disclosable governance/state-transition evidence is returned.
+
+```text
+external framework
+-> source-native manifested data
+-> stegverse.ingress-manifest.v1
+-> declared installed processing route
+-> processor-specific evaluation
+-> canonical Master Records custody
+-> caller-selected artifact projection
+-> returned artifact + manifest_receipt_id
+```
+
+The submitted data class and the selected processing class are orthogonal. A relational-state object, scientific observation, financial event, agent output, device event, legal artifact, image-derived observation, or another manifested class remains the source framework's object. Selecting governance does **not** redefine the payload as a StegVerse-native action. For governance, `candidate` is the separate governance proposition being evaluated in relation to the manifested data, while the complete processor-specific governance state is carried under `extensions.stegverse_governance_request`. Missing processor evidence is not invented.
+
+Caller-facing artifact depth is controlled with `return_projection` while canonical custody remains unchanged:
+
+| Requested artifact depth | Projection |
+|---|---|
+| Governance artifact only | `SELECTED` governance/result transition classes |
+| Governance + selected transition result | `SELECTED` governance plus requested transition/result classes |
+| Full user-disclosable state-transition artifact | `ALL` |
+
+`NONE` is a minimal/locator return, not the governance-artifact-only mode. It does not suppress Master Records custody or erase transitions.
+
+Machine-readable ingress schema, full semantics, and an external-framework example:
+
+```text
+schemas/stegverse.ingress-manifest.v1.schema.json
+docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
+inspection/examples/external-framework-generic-manifest.json
+```
+
 ## 90-second start
 
 ```bash
@@ -180,11 +215,13 @@ reconstruction
 
 The sovereign run binds the normalized submitted manifest and the exact StegGate request with SHA-256 values in retained transaction metadata and returns `submitted_manifest_hash`, `governance_request_hash`, and a `result_binding_hash`. This makes the submitted experiment inspectable without converting its declared purpose or expectation into authority.
 
-Schema and worked example are also retained in the repository:
+Schema and worked examples are retained in the repository:
 
 ```text
 inspection/request.schema.json
 inspection/examples/governed-test-request.json
+schemas/stegverse.ingress-manifest.v1.schema.json
+inspection/examples/external-framework-generic-manifest.json
 ```
 
 ## No caller-managed protected runtime credentials
@@ -387,6 +424,9 @@ configuration != route augmentation
 evaluator identity != decision input
 expected observation != decision input
 GitHub != runtime authority
+payload class != processing class
+processing selection != authority
+caller projection != canonical custody
 ```
 
 ## Validate the checkout
@@ -401,6 +441,7 @@ python -m unittest tests.test_public_inspection_governed_binding
 python -m unittest tests.test_public_inspection_runtime
 python -m unittest tests.test_governance_ingress_runtime
 python -m unittest tests.test_cli_preformatted_manifest
+python -m unittest tests.test_generic_manifest_processing_contract
 pytest -q tests/test_evaluator_contract_console.py
 ```
 
