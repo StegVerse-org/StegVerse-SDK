@@ -1,7 +1,7 @@
 """User/framework-facing builder for canonical StegVerse ingress manifests.
 
 The builder is a construction and validation convenience layer only. It does not
-perform governance, infer missing governance evidence, grant authority, or alter
+perform governance, infer missing processor evidence, grant authority, or alter
 the semantic meaning of a caller's source-native payload.
 """
 from __future__ import annotations
@@ -13,15 +13,9 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
-from .governance_navigation import (
-    INGRESS_PROFILE,
-    canonical_sha256,
-    validate_external_manifest,
-)
-from .route_resolution import (
-    CANONICAL_PRODUCTION_ROUTE_ID,
-    PUBLISHED_ROUTES,
-)
+from .governance_navigation import INGRESS_PROFILE, canonical_sha256
+from .manifest_contract import validate_ingress_manifest
+from .route_resolution import CANONICAL_PRODUCTION_ROUTE_ID, PUBLISHED_ROUTES
 
 PROCESSOR_ROUTES = {
     "governance": CANONICAL_PRODUCTION_ROUTE_ID,
@@ -56,11 +50,14 @@ RETURN_DEPTHS = {
 
 
 def available_processors() -> tuple[str, ...]:
-    """Return processor names whose declared route is currently installed."""
+    """Return processor capabilities whose declared routes are installed."""
     installed = []
     for name, route_id in PROCESSOR_ROUTES.items():
         route = PUBLISHED_ROUTES.get(route_id) or {}
-        if route.get("runtime_installed") is True:
+        if (
+            route.get("runtime_installed") is True
+            and route.get("processor_capability") == name
+        ):
             installed.append(name)
     return tuple(sorted(installed))
 
@@ -70,12 +67,16 @@ def _route_declaration(process: str) -> dict[str, Any]:
     route_id = PROCESSOR_ROUTES.get(normalized)
     if route_id is None:
         raise ValueError(
-            f"unsupported processing class {process!r}; installed choices: "
+            f"unsupported processing capability {process!r}; installed choices: "
             + ", ".join(available_processors())
         )
     published = PUBLISHED_ROUTES.get(route_id)
     if not published or published.get("runtime_installed") is not True:
-        raise ValueError(f"processing class {normalized!r} has no installed runtime route")
+        raise ValueError(f"processing capability {normalized!r} has no installed runtime route")
+    if published.get("processor_capability") != normalized:
+        raise ValueError(
+            f"route {route_id!r} is not bound to processing capability {normalized!r}"
+        )
     return {
         "route_id": published["route_id"],
         "lane_class": published["lane_class"],
@@ -121,10 +122,10 @@ def build_manifest(
 ) -> dict[str, Any]:
     """Build a validated `stegverse.ingress-manifest.v1` object.
 
-    `data` remains the source-native payload. `processor_request` is separate and
-    must already contain the complete processor-specific evidence required by the
-    selected processing class. No missing judgment, signal, execution, capability,
-    continuity, approval, or permission state is inferred by this function.
+    `data` remains the source-native payload. `process` declares the caller-facing
+    processing capability. `processor_request` is separate and must already
+    contain the complete processor-specific evidence required by that capability.
+    No missing governance state is inferred by this function.
     """
     if not isinstance(source_framework, str) or not source_framework.strip():
         raise ValueError("source_framework is required")
@@ -133,10 +134,10 @@ def build_manifest(
 
     normalized_process = process.strip().lower()
     if normalized_process != "governance":
-        # Keep this explicit as new processors are registered rather than silently
-        # reusing governance semantics for foreign processing classes.
+        # New processor builders are added explicitly. Never reuse governance
+        # semantics merely because a route happens to exist.
         _route_declaration(normalized_process)
-        raise ValueError(f"processing class {normalized_process!r} has no builder binding")
+        raise ValueError(f"processing capability {normalized_process!r} has no builder binding")
 
     governance_request = _validate_governance_request(processor_request)
     candidate = deepcopy(dict(governance_request["candidate"]))
@@ -150,12 +151,17 @@ def build_manifest(
 
     timestamp = created_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     route = _route_declaration(normalized_process)
+    processing = {
+        "capability": normalized_process,
+        "route_id": route["route_id"],
+    }
     extensions: dict[str, Any] = {
         "stegverse_route": route,
         "stegverse_governance_request": governance_request,
         "manifest_builder": {
             "profile": "stegverse.manifest-builder.v1",
-            "processing_class": normalized_process,
+            "processing_capability": normalized_process,
+            "route_id": route["route_id"],
             "return_depth": depth_key,
             "source_semantic_custody": "EXTERNAL",
             "builder_grants_authority": False,
@@ -175,6 +181,7 @@ def build_manifest(
         "created_at": timestamp,
         "freshness": {},
         "payload": deepcopy(data),
+        "processing": processing,
         "candidate": candidate,
         "declared_intent": declared_intent
         or f"Process source-native manifested data through installed {normalized_process} processing.",
@@ -192,10 +199,9 @@ def build_manifest(
         "manifest_labels": dict(manifest_labels or {"mode": "NONE"}),
     }
 
-    # Validate using the same canonical 0B validator that execution will use.
-    # Discard its enriched internal representation and return the external ingress
-    # object, which remains valid for later 0B submission.
-    validate_external_manifest(manifest)
+    # Validate using the processor-generic ingress contract. Execution performs a
+    # separate installed-route and processor-binding resolution step.
+    validate_ingress_manifest(manifest)
     return manifest
 
 
