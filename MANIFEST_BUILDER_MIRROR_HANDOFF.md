@@ -13,7 +13,7 @@ credential_authority: TV/TVC
 GitHub runtime authority: NONE
 ```
 
-This scoped handoff records the completed user/framework-facing Manifest Builder over `stegverse.ingress-manifest.v1` and its compatibility with the processor-generic manifest correction.
+This scoped handoff records the completed user/framework-facing Manifest Builder over `stegverse.ingress-manifest.v1` and its validated compatibility with the processor-generic manifest correction.
 
 ## Goal
 
@@ -52,7 +52,7 @@ Primary CLI:
 stegverse manifest build --input <source.json> --governance-request <request.json> --source-framework <name> --source-output-id <id> --return-depth result+evidence --output <manifest.json>
 ```
 
-The currently installed builder capability remains `governance`. The builder now emits the caller-facing `processing` block separately from `extensions.stegverse_route`, verifies that the route registry binds that route to the selected processing capability, and validates output with the processor-generic `validate_ingress_manifest()` contract.
+The currently installed builder capability remains `governance`. The builder emits the caller-facing `processing` block separately from `extensions.stegverse_route`, verifies that the route registry binds that route to the selected processing capability, and validates output with the processor-generic `validate_ingress_manifest()` contract.
 
 ## Original completion evidence — SDK-MANIFEST-BUILDER-001
 
@@ -81,30 +81,43 @@ result: SUCCESS
 wheel build/install/smoke test: PASS
 ```
 
-## Processor-generic correction state
+## Processor-generic correction completion
 
 ```text
 correction_task: SDK-PROCESSOR-GENERIC-MANIFEST-002
-branch: fix/processor-generic-manifest-contract
-builder source: UPDATED_ON_BRANCH
-builder tests: UPDATED_ON_BRANCH
-README: UPDATED_ON_BRANCH
-validation: PENDING_PR
-merge: PENDING
+PR: #126
+validated_head: 771a28c7428c2adc92823b10f9bf031ecf2f710f
+merge: cb53cb0304efbd21e5a5700677c4f3fb8ef7b874
+builder source: COMPLETE_MERGED
+builder tests: COMPLETE_VALIDATED
+README: COMPLETE_MERGED
+validation: PASS
 manual user work: NONE
+```
+
+Correction validation:
+
+```text
+Manifest Builder Source Validation: 34280687649 SUCCESS
+Evaluator Manifest Source Validation: 34280687697 SUCCESS
+Evaluator Contract Console Validation: 34280687650 SUCCESS
+SDK Package Artifact Validation: 34280687651 SUCCESS
+builder tests: 5/5 PASS
+processor-generic manifest tests: 8/8 PASS
+wheel build/install/smoke: PASS
 ```
 
 Correction assertions for the builder:
 
 ```text
-build_manifest emits processing.capability=governance
-build_manifest emits processing.route_id matching extensions.stegverse_route.route_id
-installed route registry processor_capability must match requested process
-builder uses processor-generic validate_ingress_manifest()
-source-native payload remains unchanged at JSON value level
-governance candidate remains sourced only from complete processor_request
-missing governance evidence fails closed
-return-depth aliases remain deterministic
+build_manifest emits processing.capability=governance: PASS
+build_manifest emits processing.route_id matching extensions.stegverse_route.route_id: PASS
+installed route registry processor_capability must match requested process: PASS
+builder uses processor-generic validate_ingress_manifest(): PASS
+source-native payload remains unchanged at JSON value level: PASS
+governance candidate remains sourced only from complete processor_request: PASS
+missing governance evidence fails closed: PASS
+return-depth aliases remain deterministic: PASS
 builder grants authority: FALSE
 ```
 
@@ -124,18 +137,19 @@ activated: TRUE
 propagated: FALSE
 ```
 
-The original builder task remains complete. The processor-generic correction is a separate workstream and does not reopen or erase that historical completion evidence.
+The original builder task remains complete. The processor-generic correction is a separate completed workstream and does not reopen or erase that historical completion evidence.
 
 ## Current readiness
 
 ```text
 SDK-MANIFEST-BUILDER-001: COMPLETE_VALIDATED_MERGED
+SDK-PROCESSOR-GENERIC-MANIFEST-002: COMPLETE_VALIDATED_MERGED
 current installed builder processing capability: governance
 current downstream submission path: option 0B
 additional processor capabilities installed by correction: NONE
 new credential authority introduced: FALSE
 new runtime authority introduced: FALSE
-processor-generic correction merge state: PENDING
+processor-generic correction merge state: COMPLETE
 ```
 
-After `SDK-PROCESSOR-GENERIC-MANIFEST-002` validates and merges, the SDK builder remains the simple user-facing façade while `stegverse.ingress-manifest.v1` becomes structurally processor-generic beneath it. Actual governance execution still depends on the complete governance request and existing sovereign runtime/custody path; the builder does not fabricate either.
+The SDK builder remains the simple user-facing façade while `stegverse.ingress-manifest.v1` is structurally processor-generic beneath it. Actual governance execution still depends on the complete governance request and existing sovereign runtime/custody path; the builder does not fabricate either.
