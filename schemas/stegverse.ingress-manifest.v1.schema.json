@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stegverse.org/schemas/stegverse.ingress-manifest.v1.schema.json",
+  "title": "StegVerse ingress manifest v1",
+  "description": "Machine-to-machine ingress for externally manifested data. The source framework retains semantic custody of its payload. The manifest selects an installed processing route and a caller-facing evidence projection; neither choice grants authority or suppresses canonical Master Records custody.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_profile",
+    "manifest_profile_version",
+    "source_framework",
+    "source_output_id",
+    "created_at",
+    "candidate",
+    "declared_intent",
+    "requested_consequence",
+    "hashes",
+    "extensions"
+  ],
+  "properties": {
+    "manifest_profile": {"const": "stegverse.ingress-manifest.v1"},
+    "manifest_profile_version": {"const": "1"},
+    "source_framework": {"type": "string", "minLength": 1},
+    "source_instance": {"type": ["string", "null"]},
+    "source_output_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "minLength": 1},
+    "freshness": {"type": "object"},
+    "payload": {
+      "description": "The source framework's manifested native data. StegVerse does not require the payload to be a StegVerse-native semantic class.",
+      "type": ["object", "array", "string", "number", "boolean", "null"]
+    },
+    "payload_commitment": {
+      "description": "A source-provided commitment used instead of an inline payload.",
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate": {
+      "description": "The governance proposition bound to the selected processing route. This is separate from the source payload class; it does not redefine the payload's native semantics.",
+      "type": "object"
+    },
+    "declared_intent": {"type": "string", "minLength": 1},
+    "requested_consequence": {"type": "string", "minLength": 1},
+    "context_refs": {"type": "array", "items": {"type": "string"}},
+    "canonicalization_profile": {"type": "string"},
+    "hashes": {
+      "type": "object",
+      "required": ["candidate_sha256"],
+      "properties": {
+        "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": true
+    },
+    "attestation": {},
+    "extensions": {
+      "type": "object",
+      "required": ["stegverse_route", "stegverse_governance_request"],
+      "properties": {
+        "stegverse_route": {
+          "description": "The processing route selected by the caller. The current installed route is governance; future installed processors may be registered without changing the source payload class.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "route_id",
+            "lane_class",
+            "routing_surface",
+            "containment",
+            "sandbox_required",
+            "external_consequence_enabled"
+          ],
+          "properties": {
+            "route_id": {"const": "stegverse.route.canonical-governed.v1"},
+            "lane_class": {"const": "PRODUCTION_VALIDATION"},
+            "routing_surface": {"const": "CANONICAL_PRODUCTION"},
+            "containment": {"const": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE"},
+            "sandbox_required": {"const": false},
+            "external_consequence_enabled": {"const": false}
+          }
+        },
+        "stegverse_governance_request": {
+          "description": "Complete processor-specific governance input. The SDK does not synthesize missing judgment, signal, execution, capability, continuity, approval, or permission evidence.",
+          "type": "object",
+          "required": [
+            "candidate",
+            "judgment",
+            "signal",
+            "execution",
+            "capability",
+            "continuity",
+            "approval",
+            "permission_present"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "return_projection": {
+      "description": "Caller-facing artifact depth. NONE returns no transition-detail projection; SELECTED returns named transition classes; ALL returns all user-disclosable transition evidence. Canonical custody is unaffected.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {"type": "string", "enum": ["ALL", "SELECTED", "NONE"]},
+        "transition_classes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "manifest_labels": {"type": "object"}
+  },
+  "oneOf": [
+    {"required": ["payload"], "not": {"required": ["payload_commitment"]}},
+    {"required": ["payload_commitment"], "not": {"required": ["payload"]}}
+  ],
+  "allOf": [
+    {
+      "if": {"required": ["payload"]},
+      "then": {"properties": {"hashes": {"required": ["payload_sha256", "candidate_sha256"]}}}
+    }
+  ],
+  "$defs": {
+    "artifact_depth_mapping": {
+      "description": "Semantic mapping used by SDK documentation: governance artifact only = SELECTED governance classes; governance + transition = SELECTED governance plus transition/result classes; full state-transition artifact = ALL. NONE is a locator/minimal-return mode, not a governance-only artifact.",
+      "type": "object"
+    }
+  }
+}
