@@ -1,9 +1,13 @@
 """Executable bindings for SDK governance options 0B and 000.
 
-This module does not implement governance. It converts already-validated SDK
+This module does not implement governance. It converts an already-validated SDK
 input into the canonical sovereign validation request consumed by
 ``stegverse.sovereign_validation_runtime``. No credential is accepted here and
-no missing StegGate evidence is synthesized for an external manifest.
+no missing processor evidence is synthesized for an external manifest.
+
+The universal ingress envelope is processor-generic. This module is the current
+governance processor binding: processing intent is checked against the resolved
+installed route before any governance-specific request is constructed.
 """
 from __future__ import annotations
 
@@ -12,10 +16,12 @@ from typing import Any, Mapping
 
 from .governance_navigation import (
     DEMO_DATASET_PROFILE,
-    INGRESS_PROFILE,
     canonical_sha256,
     demo_output_manifest_shape,
-    validate_external_manifest,
+)
+from .manifest_contract import (
+    PROCESSING_CAPABILITY_GOVERNANCE,
+    validate_ingress_manifest,
 )
 from .route_resolution import (
     CANONICAL_PRODUCTION_ROUTE_ID,
@@ -27,9 +33,12 @@ from .route_resolution import (
 GOVERNANCE_REQUEST_EXTENSION = "stegverse_governance_request"
 
 
-def _execution_provenance(resolved_route: Mapping[str, Any], origin_surface: str, state_hash: str | None = None) -> dict[str, Any]:
+def _execution_provenance(
+    resolved_route: Mapping[str, Any], origin_surface: str, state_hash: str | None = None
+) -> dict[str, Any]:
     value = {
         "route_id": resolved_route["route_id"],
+        "processor_capability": resolved_route["processor_capability"],
         "route_declaration_hash": resolved_route["route_declaration_hash"],
         "lane_class": resolved_route["lane_class"],
         "routing_surface": resolved_route["routing_surface"],
@@ -66,20 +75,33 @@ def _bounded_request_id(prefix: str, source_output_id: str, digest: str) -> str:
 def _governance_request_from_manifest(
     canonical: Mapping[str, Any], resolved_route: Mapping[str, Any]
 ) -> tuple[dict[str, Any], str]:
+    if resolved_route.get("processor_capability") != PROCESSING_CAPABILITY_GOVERNANCE:
+        raise ValueError("resolved route is not bound to the governance processor")
+    processing = canonical.get("processing")
+    if not isinstance(processing, Mapping):
+        raise ValueError("canonical manifest processing block missing")
+    if processing.get("capability") != PROCESSING_CAPABILITY_GOVERNANCE:
+        raise ValueError("manifest processing capability does not select governance")
+    if processing.get("route_id") != resolved_route.get("route_id"):
+        raise ValueError("manifest processing route does not match resolved route")
+
     extensions = canonical.get("extensions")
     if not isinstance(extensions, Mapping):
         raise ValueError("0B executable manifest requires extensions to be an object")
     raw_request = extensions.get(GOVERNANCE_REQUEST_EXTENSION)
     if not isinstance(raw_request, Mapping):
         raise ValueError(
-            "0B executable manifest requires extensions."
+            "governance processing requires extensions."
             f"{GOVERNANCE_REQUEST_EXTENSION} containing the complete canonical StegGate request"
         )
     request = deepcopy(dict(raw_request))
     candidate = request.get("candidate")
     if not isinstance(candidate, Mapping):
         raise ValueError("0B governance request must contain candidate")
-    if canonical_sha256(candidate) != canonical_sha256(canonical["candidate"]):
+    manifest_candidate = canonical.get("candidate")
+    if not isinstance(manifest_candidate, Mapping):
+        raise ValueError("governance processing requires manifest candidate")
+    if canonical_sha256(candidate) != canonical_sha256(manifest_candidate):
         raise ValueError("0B manifest candidate does not match governance_request candidate")
 
     state_hash = governance_state_hash(request)
@@ -90,11 +112,13 @@ def _governance_request_from_manifest(
         "source_instance": canonical.get("source_instance"),
         "source_output_id": canonical["source_output_id"],
         "canonical_manifest_sha256": canonical["canonical_manifest_sha256"],
+        "processing_capability": processing["capability"],
         "ingress_mode": "external_manifest",
         "authority_effect": "NONE",
     }
     route_binding = {
         "route_id": resolved_route["route_id"],
+        "processor_capability": resolved_route["processor_capability"],
         "route_declaration_hash": resolved_route["route_declaration_hash"],
         "state_binding_hash": state_hash,
         "route_substitution_permitted": False,
@@ -118,17 +142,30 @@ def _governance_request_from_manifest(
 
 
 def external_manifest_to_public_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
-    """Bind a conforming 0B manifest to the route it explicitly declares.
+    """Bind a conforming 0B manifest to the installed processor route it declares.
 
-    Structural validity is not enough: executable 0B input must carry the full
-    canonical StegGate request and a published route declaration in ``extensions``.
-    The SDK resolves that declaration, binds the governance-relevant state to it,
-    and rejects unknown/conflicting routes instead of silently substituting a
-    default route.
+    The ingress envelope is validated without forcing payloads into governance
+    semantics. Executable routing then resolves an installed route, verifies that
+    the caller-facing processing capability matches that route's processor
+    binding, and dispatches to the processor-specific adapter. Today the installed
+    0B processor is governance. Unsupported routes/capabilities fail closed.
     """
-    canonical = validate_external_manifest(manifest)
+    canonical = validate_ingress_manifest(manifest)
     resolved_route = route_from_manifest(canonical)
-    governance_request, state_hash = _governance_request_from_manifest(canonical, resolved_route)
+    processing = canonical["processing"]
+    if processing["route_id"] != resolved_route["route_id"]:
+        raise ValueError("processing.route_id does not match resolved route")
+    if processing["capability"] != resolved_route["processor_capability"]:
+        raise ValueError("processing.capability does not match resolved route processor")
+
+    if resolved_route["processor_capability"] != PROCESSING_CAPABILITY_GOVERNANCE:
+        raise ValueError(
+            f"installed route has no SDK processor binding: {resolved_route['processor_capability']}"
+        )
+
+    governance_request, state_hash = _governance_request_from_manifest(
+        canonical, resolved_route
+    )
     digest = canonical["canonical_manifest_sha256"]
     input_data: dict[str, Any] = {
         "ingress_manifest_identity": governance_request["declared_context"]["sdk_ingress_manifest_identity"],
@@ -138,6 +175,7 @@ def external_manifest_to_public_request(manifest: Mapping[str, Any]) -> dict[str
         input_data["payload"] = canonical["payload"]
     else:
         input_data["payload_commitment"] = canonical["payload_commitment"]
+        input_data["payload_commitment_profile"] = canonical["payload_commitment_profile"]
 
     return {
         "schema_version": "1.0",
@@ -158,7 +196,10 @@ def external_manifest_to_public_request(manifest: Mapping[str, Any]) -> dict[str
         "return_projection": canonical["return_projection"]["mode"],
         "manifest_labels": canonical["manifest_labels"]["mode"] != "NONE",
         "authority_claim": False,
-        "notes": f"0B manifest {digest}; declared route resolved without substitution; validation does not grant authority",
+        "notes": (
+            f"0B manifest {digest}; processing={processing['capability']}; declared route "
+            "resolved without substitution; validation and selection do not grant authority"
+        ),
     }
 
 
@@ -255,30 +296,6 @@ def run_external_manifest(
     from .sovereign_validation_runtime import run_sovereign_validation
 
     request = external_manifest_to_public_request(manifest)
-    return run_sovereign_validation(request, custody_db=custody_db, host_identity=host_identity)
-
-
-def run_000_demo(*, custody_db: str, host_identity: str = "stegverse-sovereign-local") -> dict[str, Any]:
-    """Execute option 000 through the same canonical sovereign runtime as 0A/0B."""
-    from .sovereign_validation_runtime import run_sovereign_validation
-
-    shape = demo_output_manifest_shape()
-    result = run_sovereign_validation(
-        build_000_public_request(), custody_db=custody_db, host_identity=host_identity
+    return run_sovereign_validation(
+        request, custody_db=custody_db, host_identity=host_identity
     )
-    processing = dict(shape["demo_dataset_processing"])
-    processing.update({
-        "canonical_processing_status": "PROCESSED_CANONICAL_RUNTIME",
-        "manifest_receipt_id": result.get("manifest_receipt_id"),
-        "receipt_chain_head": result.get("route_receipt_chain_head"),
-        "governance_state": result.get("governance_state"),
-        "chain_verified": bool(result.get("chain_verified")),
-        "master_records_custody_status": result.get("master_records_custody_status"),
-        "external_side_effect": result.get("external_side_effect"),
-        "third_party_host_required": result.get("third_party_host_required"),
-        "do_not_claim_processed_until_receipts_exist": False,
-    })
-    shape["demo_dataset_processing"] = processing
-    shape["canonical_runtime_result"] = dict(result)
-    shape["demo_grants_authority"] = False
-    return shape
