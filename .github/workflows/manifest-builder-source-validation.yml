@@ -1,0 +1,56 @@
+name: Manifest Builder Source Validation (Non-Authorizing)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - stegverse/manifest_builder.py
+      - stegverse/evaluator_console.py
+      - tests/test_manifest_builder.py
+      - README.md
+      - MANIFEST_BUILDER_MIRROR_HANDOFF.md
+      - .github/workflows/manifest-builder-source-validation.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - stegverse/manifest_builder.py
+      - stegverse/evaluator_console.py
+      - tests/test_manifest_builder.py
+      - README.md
+      - MANIFEST_BUILDER_MIRROR_HANDOFF.md
+      - .github/workflows/manifest-builder-source-validation.yml
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+
+      - name: Validate Manifest Builder and canonical ingress compatibility
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m unittest tests.test_manifest_builder
+          python -m unittest tests.test_generic_manifest_processing_contract
+          python -m unittest tests.test_governance_navigation
+          python -m unittest tests.test_governance_ingress_runtime
+          python -m unittest tests.test_cli_preformatted_manifest
+          python -m py_compile stegverse/manifest_builder.py stegverse/evaluator_console.py
+
+      - name: Verify authority boundary
+        run: |
+          echo 'MANIFEST_BUILDER_SOURCE_VALIDATION_PASS'
+          echo 'Builder construction/validation grants no governance, execution, credential, release, or custody authority.'

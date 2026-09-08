@@ -47,6 +47,56 @@ docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
 inspection/examples/external-framework-generic-manifest.json
 ```
 
+### Manifest Builder
+
+Most users and external frameworks do not need to hand-author `stegverse.ingress-manifest.v1`. The SDK Manifest Builder constructs the canonical manifest from three user-facing choices: source-native data, the installed processing class, and the desired return depth. Processor-specific evidence is still supplied explicitly; the builder never invents missing governance facts.
+
+Python API:
+
+```python
+from stegverse.manifest_builder import build_manifest
+
+manifest = build_manifest(
+    data=source_native_object,
+    data_class="elan.relational-state.v1",
+    source_framework="ELAN",
+    source_output_id="elan-boundary-001",
+    process="governance",
+    processor_request=complete_governance_request,
+    return_depth="result+evidence",
+)
+```
+
+Primary CLI:
+
+```bash
+stegverse manifest build \
+  --input source.json \
+  --governance-request governance-request.json \
+  --source-framework ELAN \
+  --source-output-id elan-boundary-001 \
+  --data-class elan.relational-state.v1 \
+  --return-depth result+evidence \
+  --output elan-boundary-manifest.json
+```
+
+Return-depth aliases map deterministically to the canonical projection contract:
+
+| Builder return depth | Canonical projection |
+|---|---|
+| `result-only` | `SELECTED` governance evidence |
+| `result+evidence` | `SELECTED` governance plus relevant transition/custody evidence |
+| `full-trace` | `ALL` user-disclosable transition evidence |
+| `locator-only` | `NONE` transition-detail projection |
+
+The resulting file is submission-ready for the existing 0B route:
+
+```bash
+stegverse governance --select 0B --manifest elan-boundary-manifest.json
+```
+
+Builder construction and validation are not governance decisions and grant no authority. Source semantic custody remains external, while canonical Master Records custody remains independent of the caller-facing return depth.
+
 ## 90-second start
 
 ```bash
@@ -76,6 +126,7 @@ stegverse governance --select 0A
 stegverse governance --select 0B
 stegverse governance --select 1
 stegverse governance --select 2
+stegverse manifest build --help
 ```
 
 ### Pull up the evaluator contract from the console
@@ -442,6 +493,7 @@ python -m unittest tests.test_public_inspection_runtime
 python -m unittest tests.test_governance_ingress_runtime
 python -m unittest tests.test_cli_preformatted_manifest
 python -m unittest tests.test_generic_manifest_processing_contract
+python -m unittest tests.test_manifest_builder
 pytest -q tests/test_evaluator_contract_console.py
 ```
 
