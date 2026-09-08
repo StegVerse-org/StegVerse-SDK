@@ -20,6 +20,10 @@
       "relational_behavior": "withhold_intrusion"
     }
   },
+  "processing": {
+    "capability": "governance",
+    "route_id": "stegverse.route.canonical-governed.v1"
+  },
   "candidate": {
     "actor_class": "external_framework",
     "action": "evaluate_manifested_state",
@@ -27,7 +31,7 @@
     "scope": "governance_test",
     "parameters": {"external_side_effect": false}
   },
-  "declared_intent": "Evaluate the manifested relational-state representation through the published governance route without redefining ELAN-native semantics.",
+  "declared_intent": "Evaluate the manifested relational-state representation through the published governance processor without redefining ELAN-native semantics.",
   "requested_consequence": "Return governed evaluation evidence only; perform no external side effect.",
   "context_refs": [],
   "canonicalization_profile": "steggate.jcs.v1",

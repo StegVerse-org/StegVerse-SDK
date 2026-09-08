@@ -7,56 +7,75 @@ organization: StegVerse-org
 repository: StegVerse-SDK
 canonical_branch: main
 parent_handoff: SDK_MIRROR_HANDOFF.md
-workstream: SDK-GENERIC-MANIFEST-PROCESSING-001
+original_workstream: SDK-GENERIC-MANIFEST-PROCESSING-001
+correction_workstream: SDK-PROCESSOR-GENERIC-MANIFEST-002
 credential_authority: TV/TVC
 GitHub runtime authority: NONE
 ```
 
-This scoped handoff records the generalized external-framework manifest contract introduced from the canonical SDK state. It does not supersede unrelated SDK workstreams in `SDK_MIRROR_HANDOFF.md`.
+This scoped handoff records the generalized external-framework manifest contract and the processor-generic correction that follows its original payload-class generalization. It does not supersede unrelated SDK workstreams in `SDK_MIRROR_HANDOFF.md`.
 
-## Goal
+## Canonical goal
 
 Make the SDK contract explicit and executable for external frameworks that:
 
 1. retain their own semantic/data-class custody;
-2. submit manifested data of any JSON-representable source-native class or a payload commitment;
-3. select an installed StegVerse processing route independently of payload class;
-4. for governance, supply the complete processor-specific governance evidence/state without the SDK inventing missing semantics;
-5. choose the caller-facing artifact depth without suppressing canonical Master Records custody; and
-6. receive the selected governance/state-transition artifact plus `manifest_receipt_id`.
+2. submit manifested data of any JSON-representable source-native class or a profiled payload commitment;
+3. declare a caller-facing StegVerse processing capability independently of payload class;
+4. bind that capability to an installed runtime route without conflating capability with route mechanics;
+5. supply only the processor-specific evidence/state required by the selected processor;
+6. choose caller-facing artifact depth without suppressing canonical Master Records custody; and
+7. receive the selected processing/state-transition artifact plus `manifest_receipt_id`.
 
-## Contract
+## Corrected contract
 
 ```text
 external framework
 -> source-native manifested data
 -> stegverse.ingress-manifest.v1
--> extensions.stegverse_route
+-> processing.capability
+-> processing.route_id == extensions.stegverse_route.route_id
 -> processor-specific request/evidence
+-> installed processor/runtime binding
 -> canonical runtime + Master Records custody
 -> return_projection
 -> returned artifact + manifest_receipt_id
 ```
 
-Invariant:
+Invariants:
 
 ```text
-payload class != processing class
+payload class != processing capability
+processing capability != runtime route
 processing selection != authority
+route selection != authority
 caller projection != canonical custody
+governance fields globally required by universal ingress: FALSE
+unsupported processor/route execution: FALSE
 ```
 
-Current installed processing route:
+## Current installed processor
 
 ```text
-stegverse.route.canonical-governed.v1
+processing.capability: governance
+processing.route_id: stegverse.route.canonical-governed.v1
+processor-specific request: extensions.stegverse_governance_request
 ```
 
-Governance-specific complete request:
+Governance is the currently installed executable 0B processor. It no longer defines universal manifest requirements for future processors. `candidate` and `extensions.stegverse_governance_request` are conditional governance requirements rather than global ingress requirements.
+
+Existing v1 governance manifests that omit `processing` remain backward-compatible only when they declare `stegverse.route.canonical-governed.v1`; the SDK derives `processing.capability=governance` for that legacy case. Future/non-governance routes must declare `processing` explicitly.
+
+## Payload commitment contract
 
 ```text
-extensions.stegverse_governance_request
+inline payload -> hashes.payload_sha256
+commitment-only payload -> payload_commitment_profile + payload_commitment
+currently published commitment profile -> sha256
+sha256 commitment shape -> 64 lowercase hexadecimal characters
 ```
+
+Opaque unprofiled commitments are no longer treated as independently verifiable input.
 
 ## Artifact-depth semantics
 
@@ -76,19 +95,7 @@ minimal locator/no transition-detail projection
 
 `NONE` is not the governance-artifact-only mode. All modes preserve canonical custody.
 
-## Files installed
-
-```text
-README.md
-schemas/stegverse.ingress-manifest.v1.schema.json
-docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
-inspection/examples/external-framework-generic-manifest.json
-tests/test_generic_manifest_processing_contract.py
-.github/workflows/evaluator-manifest-source-validation.yml
-GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
-```
-
-## Merge and validation evidence
+## Original merge evidence — SDK-GENERIC-MANIFEST-PROCESSING-001
 
 ```text
 PR: #124
@@ -101,7 +108,6 @@ run: 34273262341
 job: 102219943870
 result: SUCCESS
 focused generic-manifest tests: 4/4 PASS
-existing ingress/runtime/route/CLI and evaluator-boundary suites: PASS
 
 Evaluator Contract Console Validation
 run: 34273262400
@@ -109,36 +115,65 @@ job: 102219944073
 result: SUCCESS
 ```
 
-The source-validation workflow explicitly ran `python -m unittest tests.test_generic_manifest_processing_contract` and retained the credential boundary:
+That merge correctly generalized source-native payload classes and caller artifact projection but still globally required governance-specific fields and hard-coded the governance route in the schema. `SDK-PROCESSOR-GENERIC-MANIFEST-002` corrects those residual couplings without rolling back the original work.
+
+## Processor-generic correction — SDK-PROCESSOR-GENERIC-MANIFEST-002
 
 ```text
-GITHUB_TOKEN absent from validation process
-GH_TOKEN absent from validation process
-PYPI_API_TOKEN absent from validation process
-GitHub runtime authority: NONE
+branch: fix/processor-generic-manifest-contract
+state: IMPLEMENTED_ON_BRANCH_VALIDATION_PENDING
+README impact: REQUIRED_AND_UPDATED
+release/tag: NOT YET ELIGIBLE
+manual user work: NONE
 ```
 
-## Readiness state
+### Files changed/added
 
 ```text
-README contract: COMPLETE_MERGED
-machine-readable 0B schema: COMPLETE_MERGED
-external-framework example: COMPLETE_MERGED
-focused contract tests: COMPLETE_VALIDATED_MERGED
-canonical existing 0B runtime binding: INSTALLED
-processing route / payload-class separation: COMPLETE_VALIDATED
-caller artifact-depth semantics: COMPLETE_DOCUMENTED_VALIDATED
-source validation: PASS
-contract-console validation: PASS
-merge: COMPLETE
-release/tag: NOT_REQUIRED_FOR_THIS CONTRACT-ONLY ADDITION UNLESS PACKAGE VERSION IS INTENTIONALLY CUT
+stegverse/manifest_contract.py                          NEW processor-generic structural validator
+schemas/stegverse.ingress-manifest.v1.schema.json       universal/conditional processor schema
+stegverse/route_resolution.py                           processor capability bound to installed route
+stegverse/governance_ingress_runtime.py                 explicit capability/route verification and processor dispatch boundary
+stegverse/manifest_builder.py                           emits processing capability separately from route
+inspection/examples/external-framework-generic-manifest.json
+ tests/test_generic_manifest_processing_contract.py
+ tests/test_manifest_builder.py
+ docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
+ README.md
+ .github/workflows/evaluator-manifest-source-validation.yml
+ .github/workflows/manifest-builder-source-validation.yml
+ GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
+ MANIFEST_BUILDER_MIRROR_HANDOFF.md
 ```
 
-The SDK is ready for an external framework to prepare a conforming `stegverse.ingress-manifest.v1` and submit it through option `0B`. Actual sovereign execution remains subject to the existing canonical runtime, governance evidence, and Master Records custody requirements; a documentation/schema merge does not manufacture a runtime result.
+### Required correction assertions
 
-## Downstream propagation assessment task
+```text
+source-native payload class survives canonicalization
+payload is not coerced into candidate/action semantics
+non-governance structural manifest does not require governance candidate/request
+unsupported non-installed processor route fails closed before execution
+processing capability and runtime route are separately declared and cross-checked
+governance processing still requires complete governance request and matching candidate
+legacy canonical-governed v1 manifest without processing remains compatible
+payload commitment requires explicit verification profile
+SELECTED/ALL/NONE projection semantics remain unchanged
+manifest/processing/route selection grants authority: FALSE
+Master Records custody suppression by projection: FALSE
+```
 
-After this merge, assess and update only where semantically pertinent:
+## Preflight determination
+
+- `SDK_MIRROR_HANDOFF.md` and this scoped handoff were read before mutation.
+- The existing Manifest Builder handoff was inspected because the builder emits the affected manifest profile.
+- No new evaluator, governance engine, credential authority, or custody path is introduced.
+- README impact is material because public manifest semantics change; README is updated in the same change set.
+- Existing `stegverse.ingress-manifest.v1` identity is preserved with backward-compatible governance derivation; no silent processor substitution is permitted.
+- Validation must cover the generic contract, builder, route resolution, current 0B runtime, CLI, and existing evaluator-manifest source lane before merge.
+
+## Downstream propagation assessment after merge
+
+Assess and update only where semantically pertinent:
 
 ```text
 StegVerse-Labs/Site

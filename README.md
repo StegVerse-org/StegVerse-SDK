@@ -14,20 +14,35 @@ Independent systems may also connect through governed interlocks that preserve e
 
 ### Generic manifested-data processing contract
 
-The SDK is also a machine-to-machine processing boundary for external frameworks. An external framework may submit its **own manifested data, whatever the source-native class**, select an installed StegVerse processing route such as governance, and choose how much of the resulting user-disclosable governance/state-transition evidence is returned.
+The SDK is also a machine-to-machine processing boundary for external frameworks. An external framework may submit its **own manifested data, whatever the source-native class**, declare the StegVerse processing capability it wants, bind that capability request to an installed runtime route, and choose how much of the resulting user-disclosable processing/state-transition evidence is returned.
 
 ```text
 external framework
 -> source-native manifested data
 -> stegverse.ingress-manifest.v1
--> declared installed processing route
+-> caller-facing processing capability
+-> declared installed runtime route
 -> processor-specific evaluation
 -> canonical Master Records custody
 -> caller-selected artifact projection
 -> returned artifact + manifest_receipt_id
 ```
 
-The submitted data class and the selected processing class are orthogonal. A relational-state object, scientific observation, financial event, agent output, device event, legal artifact, image-derived observation, or another manifested class remains the source framework's object. Selecting governance does **not** redefine the payload as a StegVerse-native action. For governance, `candidate` is the separate governance proposition being evaluated in relation to the manifested data, while the complete processor-specific governance state is carried under `extensions.stegverse_governance_request`. Missing processor evidence is not invented.
+The submitted data class, processing capability, runtime route, authority, returned artifact depth, and custody are separate dimensions. A relational-state object, scientific observation, financial event, agent output, device event, legal artifact, image-derived observation, or another manifested class remains the source framework's object.
+
+```text
+payload class != processing capability
+processing capability != runtime route
+processing selection != authority
+route selection != authority
+caller projection != canonical custody
+```
+
+New manifests declare caller-facing intent with `processing.capability` and bind it to `processing.route_id`. Runtime mechanics remain under `extensions.stegverse_route`. Existing v1 governance manifests that omit `processing` remain backward-compatible only for `stegverse.route.canonical-governed.v1`; future/non-governance processors must declare their processing capability explicitly.
+
+Selecting governance does **not** redefine the payload as a StegVerse-native action. For governance, `candidate` is the separate governance proposition being evaluated in relation to the manifested data, while the complete governance state is carried under `extensions.stegverse_governance_request`. Governance fields are conditional on governance processing rather than globally required by the universal envelope. Missing processor evidence is not invented.
+
+An inline payload is bound with `payload_sha256`. A commitment-only payload must declare `payload_commitment_profile`; the currently published independent-verification profile is `sha256` with a 64-character lowercase hexadecimal commitment.
 
 Caller-facing artifact depth is controlled with `return_projection` while canonical custody remains unchanged:
 
@@ -39,13 +54,16 @@ Caller-facing artifact depth is controlled with `return_projection` while canoni
 
 `NONE` is a minimal/locator return, not the governance-artifact-only mode. It does not suppress Master Records custody or erase transitions.
 
-Machine-readable ingress schema, full semantics, and an external-framework example:
+Machine-readable ingress schema, processor-generic validator, full semantics, and an external-framework example:
 
 ```text
 schemas/stegverse.ingress-manifest.v1.schema.json
+stegverse/manifest_contract.py
 docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
 inspection/examples/external-framework-generic-manifest.json
 ```
+
+Structural manifest validity does not imply that a processor or route is installed. Executable routing separately resolves the declared route and processor binding and fails closed for unsupported, incomplete, conflicting, or unavailable routes. The currently installed 0B processing capability is `governance` on `stegverse.route.canonical-governed.v1`.
 
 ### Manifest Builder
 
@@ -166,7 +184,7 @@ The equivalent credential-free module entry remains available:
 python -m stegverse.governance_ingress_cli 0B my-manifest.json
 ```
 
-`000` and `00` are optional human/LLM transparency surfaces. Option `0A` manifests raw/user request data through the SDK. Option `0B` validates and canonicalizes a supplied ingress manifest, verifies its bound governance request and candidate identity, and then delegates the accepted request to the canonical sovereign runtime. Invalid, incomplete, conflicting, or unsupported manifests fail closed rather than being converted by invented semantics.
+`000` and `00` are optional human/LLM transparency surfaces. Option `0A` manifests raw/user request data through the SDK. Option `0B` first validates the processor-generic ingress envelope, then resolves the declared installed route and processor binding. The currently installed 0B binding is governance, which additionally requires and verifies the governance request and candidate identity before delegating to the canonical sovereign runtime. Invalid, incomplete, conflicting, unsupported, or unavailable processor/route requests fail closed rather than being converted by invented semantics.
 
 ## Run the canonical governed TEST locally
 
@@ -321,7 +339,7 @@ one transaction identity across each route: PASS
 replay operation custody: PASS
 reconstruction operation custody: PASS
 replay/reconstruction consequence reexecution: FALSE
-third-party host required: FALSE
+third_party_host_required: FALSE
 ```
 
 The corresponding portable custody snapshot is retained by `master-records/orchestration` at `validation/evaluator-frozen-sovereign-custody-2026-08-13.zlib.b64`.
@@ -475,8 +493,12 @@ configuration != route augmentation
 evaluator identity != decision input
 expected observation != decision input
 GitHub != runtime authority
-payload class != processing class
+payload class != processing capability
+processing capability != runtime route
 processing selection != authority
+route selection != authority
+governance fields globally required by universal ingress: FALSE
+unsupported processor/route execution: FALSE
 caller projection != canonical custody
 ```
 

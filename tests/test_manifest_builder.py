@@ -5,13 +5,14 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from stegverse.governance_navigation import canonical_sha256, validate_external_manifest
+from stegverse.governance_navigation import canonical_sha256
 from stegverse.manifest_builder import (
     RETURN_DEPTHS,
     available_processors,
     build_manifest,
     main,
 )
+from stegverse.manifest_contract import validate_ingress_manifest
 
 
 def governance_request():
@@ -80,6 +81,11 @@ class ManifestBuilderTests(unittest.TestCase):
 
         self.assertEqual(manifest["payload"], payload)
         self.assertIsNot(manifest["payload"], payload)
+        self.assertEqual(manifest["processing"]["capability"], "governance")
+        self.assertEqual(
+            manifest["processing"]["route_id"],
+            manifest["extensions"]["stegverse_route"]["route_id"],
+        )
         self.assertEqual(manifest["candidate"], request["candidate"])
         self.assertNotEqual(manifest["payload"], manifest["candidate"])
         self.assertEqual(manifest["extensions"]["source_data_class"], "elan.relational-state.v1")
@@ -87,7 +93,7 @@ class ManifestBuilderTests(unittest.TestCase):
         self.assertFalse(manifest["extensions"]["manifest_builder"]["builder_grants_authority"])
         self.assertEqual(manifest["hashes"]["payload_sha256"], canonical_sha256(payload))
         self.assertEqual(manifest["hashes"]["candidate_sha256"], canonical_sha256(request["candidate"]))
-        validate_external_manifest(manifest)
+        validate_ingress_manifest(manifest)
 
     def test_return_depth_aliases_map_deterministically(self):
         request = governance_request()
@@ -139,8 +145,9 @@ class ManifestBuilderTests(unittest.TestCase):
             ])
             self.assertEqual(rc, 0)
             manifest = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["processing"]["capability"], "governance")
             self.assertEqual(manifest["return_projection"]["mode"], "ALL")
-            validate_external_manifest(manifest)
+            validate_ingress_manifest(manifest)
 
 
 if __name__ == "__main__":

@@ -14,6 +14,8 @@ on:
       - stegverse/sovereign_validation_runtime.py
       - stegverse/route_resolution.py
       - stegverse/governance_navigation.py
+      - stegverse/manifest_contract.py
+      - stegverse/manifest_builder.py
       - stegverse/governance_ingress_runtime.py
       - stegverse/governance_ingress_cli.py
       - stegverse/cli.py
@@ -32,6 +34,7 @@ on:
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - tests/test_public_inspection_request.py
       - tests/test_generic_manifest_processing_contract.py
+      - tests/test_manifest_builder.py
       - tests/test_evaluator_manifest_multilane_noninterference.py
       - tests/test_cross_framework_current_basis_manifest.py
       - tests/test_current_basis_sdk.py
@@ -48,6 +51,7 @@ on:
       - tests/test_evaluation_boundary_owner_packet.py
       - EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md
       - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
+      - MANIFEST_BUILDER_MIRROR_HANDOFF.md
       - PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
       - README.md
       - docs/SDK_CONSOLE.md
@@ -65,6 +69,8 @@ on:
       - stegverse/sovereign_validation_runtime.py
       - stegverse/route_resolution.py
       - stegverse/governance_navigation.py
+      - stegverse/manifest_contract.py
+      - stegverse/manifest_builder.py
       - stegverse/governance_ingress_runtime.py
       - stegverse/governance_ingress_cli.py
       - stegverse/cli.py
@@ -83,6 +89,7 @@ on:
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - tests/test_public_inspection_request.py
       - tests/test_generic_manifest_processing_contract.py
+      - tests/test_manifest_builder.py
       - tests/test_evaluator_manifest_multilane_noninterference.py
       - tests/test_cross_framework_current_basis_manifest.py
       - tests/test_current_basis_sdk.py
@@ -99,6 +106,7 @@ on:
       - tests/test_evaluation_boundary_owner_packet.py
       - EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md
       - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
+      - MANIFEST_BUILDER_MIRROR_HANDOFF.md
       - PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md
       - README.md
       - docs/SDK_CONSOLE.md
@@ -123,7 +131,7 @@ jobs:
           curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
           mkdir /tmp/source
           tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
-      - name: Validate public inspection, generic manifest ingress, and evaluator-neutral response tooling
+      - name: Validate public inspection, generic manifest ingress, builder, and evaluator-neutral response tooling
         run: |
           set -eu
           cd /tmp/source
@@ -133,6 +141,7 @@ jobs:
           python scripts/validate_public_inspection_request.py inspection/examples/cross-framework-current-basis-request.draft.json
           python -m unittest tests.test_public_inspection_request
           python -m unittest tests.test_generic_manifest_processing_contract
+          python -m unittest tests.test_manifest_builder
           python -m unittest tests.test_evaluator_manifest_multilane_noninterference
           python -m unittest tests.test_cross_framework_current_basis_manifest
           python -m unittest tests.test_current_basis_sdk
@@ -145,7 +154,7 @@ jobs:
           python -m unittest tests.test_evaluation_boundary_contract
           python -m unittest tests.test_evaluation_boundary_owner_packet
           python -m pytest -q tests/test_evaluation_boundary_response_packet.py tests/test_evaluation_boundary_r3_run_harness.py
-      - name: Compile evaluator-boundary, ingress, packet, and run-harness modules
+      - name: Compile evaluator-boundary, ingress, processor, packet, and run-harness modules
         run: |
           set -eu
           cd /tmp/source
@@ -154,6 +163,8 @@ jobs:
             stegverse/sovereign_validation_runtime.py \
             stegverse/route_resolution.py \
             stegverse/governance_navigation.py \
+            stegverse/manifest_contract.py \
+            stegverse/manifest_builder.py \
             stegverse/governance_ingress_runtime.py \
             stegverse/governance_ingress_cli.py \
             stegverse/cli.py \

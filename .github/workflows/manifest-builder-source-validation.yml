@@ -5,19 +5,31 @@ on:
     branches: [main]
     paths:
       - stegverse/manifest_builder.py
+      - stegverse/manifest_contract.py
+      - stegverse/route_resolution.py
       - stegverse/evaluator_console.py
+      - schemas/stegverse.ingress-manifest.v1.schema.json
       - tests/test_manifest_builder.py
+      - tests/test_generic_manifest_processing_contract.py
+      - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - README.md
       - MANIFEST_BUILDER_MIRROR_HANDOFF.md
+      - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
       - .github/workflows/manifest-builder-source-validation.yml
   pull_request:
     branches: [main]
     paths:
       - stegverse/manifest_builder.py
+      - stegverse/manifest_contract.py
+      - stegverse/route_resolution.py
       - stegverse/evaluator_console.py
+      - schemas/stegverse.ingress-manifest.v1.schema.json
       - tests/test_manifest_builder.py
+      - tests/test_generic_manifest_processing_contract.py
+      - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - README.md
       - MANIFEST_BUILDER_MIRROR_HANDOFF.md
+      - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
       - .github/workflows/manifest-builder-source-validation.yml
   workflow_dispatch:
 
@@ -47,8 +59,14 @@ jobs:
           python -m unittest tests.test_generic_manifest_processing_contract
           python -m unittest tests.test_governance_navigation
           python -m unittest tests.test_governance_ingress_runtime
+          python -m unittest tests.test_route_resolution
           python -m unittest tests.test_cli_preformatted_manifest
-          python -m py_compile stegverse/manifest_builder.py stegverse/evaluator_console.py
+          python -m py_compile \
+            stegverse/manifest_builder.py \
+            stegverse/manifest_contract.py \
+            stegverse/route_resolution.py \
+            stegverse/governance_ingress_runtime.py \
+            stegverse/evaluator_console.py
 
       - name: Verify authority boundary
         run: |
