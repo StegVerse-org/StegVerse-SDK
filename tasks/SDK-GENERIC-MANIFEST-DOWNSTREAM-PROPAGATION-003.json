@@ -2,9 +2,9 @@
   "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
   "originating_goal": "Propagate the processor-generic stegverse.ingress-manifest.v1 semantics only to downstream repositories that actually consume or document the SDK interoperability contract, without duplicating processor/runtime authority.",
   "repository": "StegVerse-org/StegVerse-SDK",
-  "source_branch": "tasks/generic-manifest-downstream-propagation",
+  "source_branch": "reconcile/generic-manifest-downstream-ownership",
   "target_branch": "main",
-  "state": "ASSESSMENT_COMPLETE_IMPLEMENTATION_PARTIALLY_ADMITTED",
+  "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
   "owner": "StegVerse-org/StegVerse-SDK",
   "credential_authority": "TV/TVC",
   "github_token_runtime_authority": "NONE",
@@ -19,22 +19,29 @@
   "assessment": {
     "StegVerse-Labs/Site": "REQUIRED_BUT_SITE_MACHINE_OWNED",
     "GCAT-BCAT-Engine/Publisher": "NO_DIRECT_CHANGE_REQUIRED",
-    "StegVerse-Labs/admissibility-wiki": "REQUIRED_WITH_EXISTING_COLLISION_CONTROL",
+    "StegVerse-Labs/admissibility-wiki": "REQUIRED_WORKER_OWNED",
     "StegVerse-002/stegguardian-wiki": "NO_DIRECT_CHANGE_REQUIRED"
   },
   "completed": [
-    "SDK-side downstream propagation assessment recorded and merged in PR #127",
+    "SDK-side downstream propagation assessment merged in PR #127",
+    "continuation task registered in PR #128",
+    "COSV registry entry merged in StegVerse-Labs/.github PR #1184",
     "Site SDK backend contract identified as semantically pertinent but externally non-admissible under current Site orchestration state",
+    "Site-owned admission dependency durably tracked by StegVerse-org/StegVerse-SDK issue #129 without granting Site mutation authority",
     "Publisher assessed as projection-only with no direct generic-manifest change required",
-    "admissibility-wiki SDK/external-framework doctrine identified as semantically pertinent",
-    "admissibility-wiki issue #66 notified through existing collision-control coordinator",
+    "admissibility-wiki propagation transferred through coordinator issue #66 and Worker D issue #65 under repository-native collision controls",
     "StegGuardian assessed as downstream interpretation-only with no direct generic-manifest change required"
   ],
   "remaining": [
-    "Site-owned machine admission and bounded update of stale SDK preview/backend contract surfaces",
-    "admissibility-wiki coordinator admission and bounded processor-generic SDK interoperability doctrine update",
-    "exact-head native validation after each admitted downstream mutation",
-    "handoff reconciliation after each downstream completion"
+    "Site machine-owned admission and bounded update of stale SDK preview/backend contract surfaces",
+    "admissibility-wiki Worker D/coordinator execution of bounded processor-generic SDK interoperability doctrine",
+    "exact-head native validation after each downstream mutation",
+    "public-surface observation after any downstream deployment",
+    "handoff and COSV reconciliation after each downstream completion"
+  ],
+  "public_surface_candidates": [
+    "https://stegverse-labs.github.io/Site/ecosystem-chat.html",
+    "https://stegverse-labs.github.io/admissibility-wiki/"
   ],
   "manual_work_required": false,
   "release_tag_required_now": false
