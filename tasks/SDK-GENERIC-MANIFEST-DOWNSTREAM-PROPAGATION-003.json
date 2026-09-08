@@ -2,7 +2,7 @@
   "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
   "originating_goal": "Propagate the processor-generic stegverse.ingress-manifest.v1 semantics only to downstream repositories that actually consume or document the SDK interoperability contract, without duplicating processor/runtime authority.",
   "repository": "StegVerse-org/StegVerse-SDK",
-  "source_branch": "docs/canonical-public-surface-domain",
+  "source_branch": "reconcile/generic-manifest-guard-evidence",
   "target_branch": "main",
   "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
   "owner": "StegVerse-org/StegVerse-SDK",
@@ -26,14 +26,18 @@
     "SDK-side downstream propagation assessment merged in PR #127",
     "continuation task registered in PR #128",
     "ownership reconciliation merged in PR #130",
+    "canonical public-surface correction merged in PR #131",
     "COSV registry entry merged in StegVerse-Labs/.github PR #1184",
     "COSV ownership reconciliation merged in StegVerse-Labs/.github PR #1185",
+    "canonical public-surface evidence bound in StegVerse-Labs/.github PR #1187",
     "Site SDK backend contract identified as semantically pertinent but externally non-admissible under current Site orchestration state",
     "Site-owned admission dependency durably tracked by StegVerse-org/StegVerse-SDK issue #129 without granting Site mutation authority",
     "Publisher assessed as projection-only with no direct generic-manifest change required",
     "admissibility-wiki propagation transferred through coordinator issue #66 and Worker D issue #65 under repository-native collision controls",
     "StegGuardian assessed as downstream interpretation-only with no direct generic-manifest change required",
-    "canonical public observation surface corrected to stegverse.org and live root/Ecosystem Chat reachability observed"
+    "canonical public observation surface corrected to stegverse.org and live root/Ecosystem Chat reachability observed",
+    "SDK-side downstream regression guard merged in PR #132",
+    "Generic Manifest Downstream Contract Validation run 34292303141 passed at exact PR head a44cd99dfbe2daceb2d6fa0c03895af1289a24bb"
   ],
   "remaining": [
     "Site machine-owned admission and bounded update of stale SDK preview/backend contract surfaces",
@@ -47,6 +51,16 @@
     "ecosystem_chat": "https://stegverse.org/ecosystem-chat.html",
     "dedicated_processor_generic_route": null,
     "raw_github_pages_is_canonical_public_surface": false
+  },
+  "sdk_side_guard": {
+    "script": "scripts/check_generic_manifest_downstream_contract.py",
+    "workflow": ".github/workflows/generic-manifest-downstream-contract-validation.yml",
+    "merged_pr": 132,
+    "merge_commit": "bd2768b2f5fc75e5f4d984cdf405bab517877cdf",
+    "validated_head": "a44cd99dfbe2daceb2d6fa0c03895af1289a24bb",
+    "workflow_run_id": 34292303141,
+    "result": "PASS",
+    "authority_effect": "NONE"
   },
   "manual_work_required": false,
   "release_tag_required_now": false
