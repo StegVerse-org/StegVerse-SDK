@@ -2,7 +2,7 @@
   "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
   "originating_goal": "Propagate the processor-generic stegverse.ingress-manifest.v1 semantics only to downstream repositories that actually consume or document the SDK interoperability contract, without duplicating processor/runtime authority.",
   "repository": "StegVerse-org/StegVerse-SDK",
-  "source_branch": "reconcile/generic-manifest-downstream-ownership",
+  "source_branch": "docs/canonical-public-surface-domain",
   "target_branch": "main",
   "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
   "owner": "StegVerse-org/StegVerse-SDK",
@@ -25,12 +25,15 @@
   "completed": [
     "SDK-side downstream propagation assessment merged in PR #127",
     "continuation task registered in PR #128",
+    "ownership reconciliation merged in PR #130",
     "COSV registry entry merged in StegVerse-Labs/.github PR #1184",
+    "COSV ownership reconciliation merged in StegVerse-Labs/.github PR #1185",
     "Site SDK backend contract identified as semantically pertinent but externally non-admissible under current Site orchestration state",
     "Site-owned admission dependency durably tracked by StegVerse-org/StegVerse-SDK issue #129 without granting Site mutation authority",
     "Publisher assessed as projection-only with no direct generic-manifest change required",
     "admissibility-wiki propagation transferred through coordinator issue #66 and Worker D issue #65 under repository-native collision controls",
-    "StegGuardian assessed as downstream interpretation-only with no direct generic-manifest change required"
+    "StegGuardian assessed as downstream interpretation-only with no direct generic-manifest change required",
+    "canonical public observation surface corrected to stegverse.org and live root/Ecosystem Chat reachability observed"
   ],
   "remaining": [
     "Site machine-owned admission and bounded update of stale SDK preview/backend contract surfaces",
@@ -39,10 +42,12 @@
     "public-surface observation after any downstream deployment",
     "handoff and COSV reconciliation after each downstream completion"
   ],
-  "public_surface_candidates": [
-    "https://stegverse-labs.github.io/Site/ecosystem-chat.html",
-    "https://stegverse-labs.github.io/admissibility-wiki/"
-  ],
+  "public_surface": {
+    "canonical_base": "https://stegverse.org/",
+    "ecosystem_chat": "https://stegverse.org/ecosystem-chat.html",
+    "dedicated_processor_generic_route": null,
+    "raw_github_pages_is_canonical_public_surface": false
+  },
   "manual_work_required": false,
   "release_tag_required_now": false
 }

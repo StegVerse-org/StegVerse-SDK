@@ -44,7 +44,9 @@ Future processors must not inherit governance-only input requirements merely bec
 source correction: StegVerse-org/StegVerse-SDK PR #126 COMPLETE_VALIDATED_MERGED
 assessment: StegVerse-org/StegVerse-SDK PR #127 MERGED
 continuation task registration: StegVerse-org/StegVerse-SDK PR #128 MERGED
+ownership reconciliation: StegVerse-org/StegVerse-SDK PR #130 MERGED
 COSV registration: StegVerse-Labs/.github PR #1184 MERGED
+COSV ownership reconciliation: StegVerse-Labs/.github PR #1185 MERGED
 Site dependency tracker: StegVerse-org/StegVerse-SDK issue #129 OPEN_TRACKING_ONLY
 admissibility coordinator: StegVerse-Labs/admissibility-wiki issue #66
 admissibility implementation owner: StegVerse-Labs/admissibility-wiki issue #65 / Worker D
@@ -97,17 +99,21 @@ action: preserve non-enforcement boundaries; do not duplicate processor semantic
 
 ## Publicly displayed surfaces
 
-Current public surfaces relevant to eventual downstream observation:
+Canonical public domain:
 
 ```text
-Site Ecosystem Chat:
-https://stegverse-labs.github.io/Site/ecosystem-chat.html
-
-Admissibility Wiki root:
-https://stegverse-labs.github.io/admissibility-wiki/
+https://stegverse.org/
 ```
 
-These are observation targets only. Their existence does not establish that processor-generic propagation has deployed there. A more specific admissibility doctrine URL must not be claimed until the Worker D change creates and deploys a concrete public route.
+Current public Ecosystem Chat observation target:
+
+```text
+https://stegverse.org/ecosystem-chat.html
+```
+
+These are the user-facing public observation surfaces for this continuation. Raw GitHub Pages URLs are deployment/provider implementation details and must not be presented as the canonical public surface in MANUAL WORK.
+
+The public root and Ecosystem Chat route are currently reachable. Their existence does not establish that processor-generic downstream propagation has completed. No dedicated processor-generic/admissibility public route is claimed until the downstream worker creates, deploys, and validates an actual `https://stegverse.org/...` route.
 
 ## Remaining files/modules by destination
 
@@ -154,6 +160,7 @@ no framework evaluation promotion from documentation alone
 no Guardian enforcement promotion from SDK semantics alone
 exact changed-head repository-native validation PASS
 public deployment observation only after deployment evidence exists
+canonical user-facing public URLs resolve through https://stegverse.org/
 ```
 
 ## Release/tag determination
@@ -173,7 +180,7 @@ StegGuardian release/tag: NOT TRIGGERED
 1. Observe Site orchestration for admission of the tracked SDK-preview/backend alignment; do not mutate externally.
 2. Observe Worker D / issue #65 and coordinator #66 for the bounded admissibility doctrine transition; do not compete with machine-owned framework work.
 3. When either downstream change lands, inspect exact-head native validation and deployment/public-route evidence.
-4. Record the concrete public URL only after the route is actually created and deployed.
+4. Record concrete public URLs only as https://stegverse.org/... after the route is actually created and deployed.
 5. Reconcile this handoff, task record, and COSV metrics after each downstream completion.
 ```
 
