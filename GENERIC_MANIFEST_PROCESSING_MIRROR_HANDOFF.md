@@ -75,7 +75,7 @@ currently published commitment profile -> sha256
 sha256 commitment shape -> 64 lowercase hexadecimal characters
 ```
 
-Opaque unprofiled commitments are no longer treated as independently verifiable input.
+Opaque unprofiled commitments are not treated as independently verifiable input.
 
 ## Artifact-depth semantics
 
@@ -121,43 +121,69 @@ That merge correctly generalized source-native payload classes and caller artifa
 
 ```text
 branch: fix/processor-generic-manifest-contract
-state: IMPLEMENTED_ON_BRANCH_VALIDATION_PENDING
+PR: #126
+validated head: 771a28c7428c2adc92823b10f9bf031ecf2f710f
+merge commit: cb53cb0304efbd21e5a5700677c4f3fb8ef7b874
+state: COMPLETE_VALIDATED_MERGED
 README impact: REQUIRED_AND_UPDATED
-release/tag: NOT YET ELIGIBLE
 manual user work: NONE
 ```
+
+Validation evidence for the exact merged PR head:
+
+```text
+Manifest Builder Source Validation (Non-Authorizing)
+run: 34280687649
+result: SUCCESS
+
+Evaluator Manifest Source Validation (Non-Authorizing)
+run: 34280687697
+result: SUCCESS
+focused processor-generic manifest tests: 8/8 PASS
+
+Evaluator Contract Console Validation
+run: 34280687650
+result: SUCCESS
+
+SDK Package Artifact Validation (Non-Authorizing)
+run: 34280687651
+result: SUCCESS
+wheel build/install/smoke: PASS
+```
+
+An initial branch revision accidentally omitted the pre-existing `run_000_demo` export and exposed three stale error-message expectations. Validation caught both classes of regression. The demo entry was restored, fail-closed error compatibility was preserved without weakening the new processing contract, and the exact final PR head passed all four validation lanes before merge.
 
 ### Files changed/added
 
 ```text
-stegverse/manifest_contract.py                          NEW processor-generic structural validator
+stegverse/manifest_contract.py                          processor-generic structural validator
 schemas/stegverse.ingress-manifest.v1.schema.json       universal/conditional processor schema
 stegverse/route_resolution.py                           processor capability bound to installed route
 stegverse/governance_ingress_runtime.py                 explicit capability/route verification and processor dispatch boundary
 stegverse/manifest_builder.py                           emits processing capability separately from route
 inspection/examples/external-framework-generic-manifest.json
- tests/test_generic_manifest_processing_contract.py
- tests/test_manifest_builder.py
- docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
- README.md
- .github/workflows/evaluator-manifest-source-validation.yml
- .github/workflows/manifest-builder-source-validation.yml
- GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
- MANIFEST_BUILDER_MIRROR_HANDOFF.md
+tests/test_generic_manifest_processing_contract.py
+tests/test_manifest_builder.py
+docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
+README.md
+.github/workflows/evaluator-manifest-source-validation.yml
+.github/workflows/manifest-builder-source-validation.yml
+GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
+MANIFEST_BUILDER_MIRROR_HANDOFF.md
 ```
 
-### Required correction assertions
+### Completed correction assertions
 
 ```text
-source-native payload class survives canonicalization
-payload is not coerced into candidate/action semantics
-non-governance structural manifest does not require governance candidate/request
-unsupported non-installed processor route fails closed before execution
-processing capability and runtime route are separately declared and cross-checked
-governance processing still requires complete governance request and matching candidate
-legacy canonical-governed v1 manifest without processing remains compatible
-payload commitment requires explicit verification profile
-SELECTED/ALL/NONE projection semantics remain unchanged
+source-native payload class survives canonicalization: PASS
+payload is not coerced into candidate/action semantics: PASS
+non-governance structural manifest does not require governance candidate/request: PASS
+unsupported non-installed processor route fails closed before execution: PASS
+processing capability and runtime route are separately declared and cross-checked: PASS
+governance processing still requires complete governance request and matching candidate: PASS
+legacy canonical-governed v1 manifest without processing remains compatible: PASS
+payload commitment requires explicit verification profile: PASS
+SELECTED/ALL/NONE projection semantics remain unchanged: PASS
 manifest/processing/route selection grants authority: FALSE
 Master Records custody suppression by projection: FALSE
 ```
@@ -166,12 +192,23 @@ Master Records custody suppression by projection: FALSE
 
 - `SDK_MIRROR_HANDOFF.md` and this scoped handoff were read before mutation.
 - The existing Manifest Builder handoff was inspected because the builder emits the affected manifest profile.
-- No new evaluator, governance engine, credential authority, or custody path is introduced.
-- README impact is material because public manifest semantics change; README is updated in the same change set.
+- No new evaluator, governance engine, credential authority, or custody path was introduced.
+- README impact was material because public manifest semantics changed; README was updated in the same change set.
 - Existing `stegverse.ingress-manifest.v1` identity is preserved with backward-compatible governance derivation; no silent processor substitution is permitted.
-- Validation must cover the generic contract, builder, route resolution, current 0B runtime, CLI, and existing evaluator-manifest source lane before merge.
+- Validation covered the generic contract, builder, route resolution, current 0B runtime, CLI, console, package artifact, and evaluator-manifest source lane before merge.
 
-## Downstream propagation assessment after merge
+## Readiness
+
+```text
+SDK-PROCESSOR-GENERIC-MANIFEST-002: COMPLETE_VALIDATED_MERGED
+processor-generic structural ingress: COMPLETE
+current executable 0B processor: governance
+future processor schema coupling to governance: REMOVED
+new processor installed by this workstream: NONE
+release/tag required solely for this correction: NO SEPARATE TAG REQUIRED; package artifact validation PASS
+```
+
+## Next integration goal
 
 Assess and update only where semantically pertinent:
 
