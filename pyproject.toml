@@ -40,7 +40,7 @@ dev = [
     "mypy>=1.0",
 ]
 governed-test = [
-    "stegcore==0.3.0",
+    "stegverse-stegcore==0.3.0",
     "stegverse-core-lite @ git+https://github.com/Data-Continuation/core-lite.git@72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8",
     "stegverse-master-records==0.2.0",
 ]
