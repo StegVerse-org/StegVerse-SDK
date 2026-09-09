@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
   "cosv": "71000000100110",
   "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
@@ -24,11 +24,14 @@
         "return_projection",
         "manifest_receipt_id"
       ],
-      "completion_requires": [
-        "repository-native exact-head validation PASS",
-        "public route observed under https://stegverse.org/ when user-facing",
-        "handoff reconciliation"
-      ],
+      "completion_evidence": {
+        "implementation_merge_ref": null,
+        "exact_head_validation_ref": null,
+        "handoff_reconciliation_ref": null,
+        "public_route": null,
+        "public_route_observed": false
+      },
+      "completion_predicate": "implementation_merge_ref && exact_head_validation_ref && handoff_reconciliation_ref && public_route_observed && public_route starts_with https://stegverse.org/",
       "complete": false
     },
     {
@@ -47,12 +50,15 @@
         "governance-specific fields are conditional",
         "unsupported or uninstalled processor-route execution fails closed"
       ],
-      "completion_requires": [
-        "worker/coordinator implementation record",
-        "repository-native exact-head validation PASS",
-        "public route observed under https://stegverse.org/ when user-facing",
-        "handoff reconciliation"
-      ],
+      "completion_evidence": {
+        "worker_or_coordinator_record_ref": null,
+        "implementation_merge_ref": null,
+        "exact_head_validation_ref": null,
+        "handoff_reconciliation_ref": null,
+        "public_route": null,
+        "public_route_observed": false
+      },
+      "completion_predicate": "worker_or_coordinator_record_ref && implementation_merge_ref && exact_head_validation_ref && handoff_reconciliation_ref && public_route_observed && public_route starts_with https://stegverse.org/",
       "complete": false
     }
   ],
@@ -66,6 +72,7 @@
       "disposition": "NO_DIRECT_CHANGE_REQUIRED"
     }
   ],
+  "completion_rule": "propagation_complete iff every required dependency has complete=true and every dependency completion_predicate is satisfied by non-null/true evidence fields",
   "propagation_complete": false,
   "authority_effect": "NONE"
 }
