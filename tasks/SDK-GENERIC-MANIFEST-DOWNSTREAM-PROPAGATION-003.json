@@ -62,14 +62,21 @@
     "StegGuardian assessed as downstream interpretation-only with no direct generic-manifest change required",
     "canonical public observation surface corrected to stegverse.org and live root/Ecosystem Chat reachability observed",
     "post-completion propagation audit registered as issue #139",
-    "reproducible-release documentation corrected so the governed-test dependency set is no longer described as anonymously public-installable"
+    "reproducible-release documentation corrected so the governed-test dependency set is no longer described as anonymously public-installable",
+    "StegCore public distribution renamed to stegverse-stegcore and PR #197 merged at 9a35f39b3425a2c3e9592a03b0362a417094b809 after package identity validation and publish-build validation passed",
+    "StegCore README documents pip install stegverse-stegcore while preserving stegcore as the Python import namespace",
+    "Master Records PR #85 Trusted Publishing support is merged and README now documents stegverse-master-records plus the frozen 0.2.0 coordinate",
+    "SDK PR #163 governed-test dependencies now target stegverse-stegcore==0.3.0 and stegverse-master-records==0.2.0",
+    "SDK PR #163 README stale public-repository wording corrected at branch commit b229a7a93a59bdd93e134ed1e219e482a81aefb1",
+    "SDK PR #163 package/artifact, manifest, evaluator-console, MCP, output-boundary, production-manifold, portable-package, and related validations passed on b229a7a93a59bdd93e134ed1e219e482a81aefb1",
+    "Anonymous Governed Runtime Install run 34329494516 correctly failed at the package-install step before identity or ELAN execution because exact PyPI releases are not yet published"
   ],
   "remaining": [
     "Site machine-owned admission and bounded update of stale SDK preview/backend contract surfaces",
     "admissibility-wiki Worker D/coordinator execution of bounded processor-generic SDK interoperability doctrine",
-    "README correction removing the stale claim that every governed-test dependency is pinned to a public repository commit",
-    "TVC/public-distribution continuation so complete governed-test installation no longer depends on protected source-repository visibility",
-    "successor release/version decision without retargeting the separately prepared v1.2.0 identity",
+    "publish exact immutable stegverse-stegcore 0.3.0 and stegverse-master-records 0.2.0 distributions only after the canonical TV/TVC release gate is satisfied",
+    "rerun SDK PR #163 anonymous governed-runtime install and ELAN Test 1 after both PyPI distributions are authentically published",
+    "define a coherent post-v1.2.0 SDK successor release identity across pyproject.toml, VERSION.json, release notes, and TVC without retargeting v1.2.0",
     "exact-head native validation after each downstream mutation",
     "public-surface observation after any downstream deployment",
     "handoff and COSV reconciliation after each downstream completion"
@@ -117,7 +124,9 @@
     "merge_commit": "4e1942b487972874ce310f4a9ec031f529fa1f09",
     "public_external_framework_preparation": "COMPLETE_VALIDATED_MERGED",
     "canonical_governed_execution_orchestration": "COMPLETE_VALIDATED_MERGED",
-    "anonymous_private_runtime_dependency_install": "NOT_AVAILABLE_BY_CURRENT_REPOSITORY_VISIBILITY",
+    "public_distribution_source_remediation": "IMPLEMENTED_VALIDATION_IN_PROGRESS",
+    "anonymous_governed_runtime_install": "BLOCKED_PENDING_EXACT_PYPI_RELEASES",
+    "anonymous_install_latest_run": 34329494516,
     "post_completion_audit_issue": 139
   },
   "manual_work_required": false,
