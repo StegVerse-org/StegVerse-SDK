@@ -10,8 +10,11 @@ EXPECTED_GOVERNED_DEPENDENCIES = {
     "stegverse-core-lite": "Data-Continuation/core-lite",
     "stegverse-master-records": "master-records/orchestration",
 }
+PUBLIC_DISTRIBUTION_ALIASES = {
+    "stegverse-stegcore": "stegcore",
+}
 PUBLIC_PACKAGE_RELEASE_BINDINGS = {
-    "stegcore": {
+    "stegverse-stegcore": {
         "0.3.0": {
             "repository": "StegVerse-Labs/StegCore",
             "commit_sha": "ef38410505b0ef3e84148892b1d6e3cdef20f300",
@@ -74,6 +77,7 @@ def parse_governed_test_git_pins(requirements: Iterable[str]) -> dict[str, dict[
         package, repository, commit = match.groups()
         pins[package.lower()] = {
             "package": package,
+            "distribution": package,
             "source": "git",
             "repository": repository,
             "commit_sha": commit.lower(),
@@ -90,18 +94,20 @@ def parse_governed_test_pins(requirements: Iterable[str]) -> dict[str, dict[str,
         match = _VERSION_PIN.match(text)
         if not match:
             continue
-        package, version = match.groups()
-        key = package.lower()
-        binding = PUBLIC_PACKAGE_RELEASE_BINDINGS.get(key, {}).get(version)
+        distribution, version = match.groups()
+        distribution_key = distribution.lower()
+        logical_package = PUBLIC_DISTRIBUTION_ALIASES.get(distribution_key, distribution_key)
+        binding = PUBLIC_PACKAGE_RELEASE_BINDINGS.get(distribution_key, {}).get(version)
         pin: dict[str, str] = {
-            "package": package,
+            "package": logical_package,
+            "distribution": distribution,
             "source": "package",
             "version": version,
         }
         if binding:
             pin["repository"] = binding["repository"]
             pin["commit_sha"] = binding["commit_sha"].lower()
-        pins[key] = pin
+        pins[logical_package] = pin
     return pins
 
 
@@ -132,6 +138,7 @@ def verify_governed_test_dependency_alignment(
         observations.append(
             {
                 "package": package,
+                "distribution": pin.get("distribution"),
                 "repository": repository,
                 "dependency_source": pin.get("source"),
                 "installed_pin_version": pin.get("version"),
@@ -173,6 +180,7 @@ def verify_installed_governed_test_dependency_alignment(
 __all__ = [
     "DEPENDENCY_ALIGNMENT_SCHEMA",
     "EXPECTED_GOVERNED_DEPENDENCIES",
+    "PUBLIC_DISTRIBUTION_ALIASES",
     "PUBLIC_PACKAGE_RELEASE_BINDINGS",
     "parse_governed_test_git_pins",
     "parse_governed_test_pins",
