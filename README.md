@@ -303,7 +303,7 @@ public caller credential authority: NONE
 protected runtime credential semantics: TV/TVC
 ```
 
-The optional governed-test dependencies are pinned to public repository commits. GitHub is a source-distribution surface here, not StegVerse runtime authority.
+The governed-test runtime dependencies now resolve through public distribution identities for StegCore (`stegverse-stegcore==0.3.0`) and Master Records (`stegverse-master-records==0.2.0`), while Core-Lite remains pinned to its public repository commit. GitHub source access is not required for the two formerly private runtime dependencies; runtime authority remains NONE.
 
 ## Frozen evaluator validation — T0 / T1-A / T1-B
 
