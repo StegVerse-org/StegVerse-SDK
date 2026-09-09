@@ -89,7 +89,7 @@ def main() -> None:
     if surface.get("raw_github_pages_is_canonical_public_surface") is not False:
         fail("raw GitHub Pages must not be canonical public surface")
 
-    if deps.get("schema_version") != "1.3.0":
+    if deps.get("schema_version") != "1.3.1":
         fail("unexpected dependency manifest schema_version")
     if deps.get("task_id") != TASK_ID or deps.get("cosv") != COSV or deps.get("state") != STATE:
         fail("dependency manifest identity/state mismatch")
@@ -120,8 +120,22 @@ def main() -> None:
         fail("Site contamination blocker tracking_ref mismatch")
     if contamination.get("site_issue_ref") != SITE_CONTAMINATION_ISSUE:
         fail("Site contamination blocker must bind canonical Site issue #1143")
-    if contamination.get("state") != "OPEN_MACHINE_OWNED_SITE_ISSUE_CREATED" and contamination.get("resolved") is not True:
-        fail("unresolved Site contamination blocker must record Site issue creation")
+    if contamination.get("state") != "DEPLOYED_CONTAMINATION_OBSERVED_MACHINE_OWNED" and contamination.get("resolved") is not True:
+        fail("unresolved Site contamination blocker must preserve deployed observation state")
+
+    live = contamination.get("deployed_contamination_observation")
+    if not isinstance(live, dict) or live.get("state") != "OBSERVED":
+        fail("deployed contamination observation missing")
+    if live.get("site_issue_comment_ref") != "StegVerse-Labs/Site:issue/1143#issuecomment-5596432980":
+        fail("Site live-observation evidence ref mismatch")
+    if live.get("sdk_issue_comment_ref") != "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5596433895":
+        fail("SDK live-observation evidence ref mismatch")
+    if live.get("co_mingled_with_ordinary_session_events") is not True:
+        fail("deployed observation must preserve co-mingling evidence")
+    if live.get("clean_default_path_observed") is not False:
+        fail("clean default path cannot be true before remediation")
+    if live.get("fixture_event_ids") != ["event:conectrr:handoff:001", "event:stegverse:evaluation:001"]:
+        fail("deployed observation fixture event IDs mismatch")
 
     queue = contamination.get("current_site_queue_blocker")
     if not isinstance(queue, dict):
@@ -149,10 +163,7 @@ def main() -> None:
     }
     if not isinstance(patch_files, dict) or not required_patch_files.issubset(patch_files):
         fail("Conectrr executable patch contract missing required Site files")
-    if patch.get("fixture_event_ids") != [
-        "event:conectrr:handoff:001",
-        "event:stegverse:evaluation:001",
-    ]:
+    if patch.get("fixture_event_ids") != ["event:conectrr:handoff:001", "event:stegverse:evaluation:001"]:
         fail("Conectrr fixture event IDs mismatch")
 
     required_resolution_evidence = [
@@ -225,6 +236,7 @@ def main() -> None:
     print("downstream_dependency_count=2")
     print("downstream_owner_transition_observed=false")
     print("site_conectrr_issue=StegVerse-Labs/Site#1143")
+    print("site_conectrr_deployed_contamination_observed=true")
     print("site_conectrr_executable_patch_contract=true")
     print(f"site_conectrr_contamination_resolved={str(contamination.get('resolved') is True).lower()}")
     print(f"site_completion_predicate_satisfied={str(site_ready).lower()}")
