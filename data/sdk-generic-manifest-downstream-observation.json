@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
+  "cosv": "71000000100110",
+  "observed_state": "NO_DOWNSTREAM_OWNER_TRANSITION",
+  "site": {
+    "repository": "StegVerse-Labs/Site",
+    "orchestration_state_ref": "StegVerse-Labs/Site:data/site-orchestration-state.json",
+    "repository_state": "OBSERVED_BLOCKED",
+    "active_task_count": 1,
+    "blocker_count": 1,
+    "external_tasks_allowed": false,
+    "external_session_ownership_allowed": false,
+    "admitted_tasks": [],
+    "conectrr_governance_contamination": {
+      "task_id": "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001",
+      "tracking_ref": "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5595193431",
+      "site_implementation_record_observed": false,
+      "default_fixture_injection_still_present_on_main": true,
+      "resolved": false
+    }
+  },
+  "admissibility": {
+    "repository": "StegVerse-Labs/admissibility-wiki",
+    "worker_issue": "StegVerse-Labs/admissibility-wiki:issue/65",
+    "coordinator_issue": "StegVerse-Labs/admissibility-wiki:issue/66",
+    "worker_state": "MACHINE_OWNED_DO_NOT_COMPETE",
+    "new_worker_implementation_record_observed": false,
+    "processor_generic_doctrine_transition_observed": false
+  },
+  "parent_effect": {
+    "site_completion_predicate_satisfied": false,
+    "admissibility_completion_predicate_satisfied": false,
+    "propagation_complete": false,
+    "authority_effect": "NONE"
+  }
+}
