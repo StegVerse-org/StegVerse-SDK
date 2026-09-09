@@ -1,4 +1,4 @@
-"""One-command external-framework execution path for the StegVerse SDK.
+"""One-command external-framework submission/execution path for the StegVerse SDK.
 
 This module composes existing SDK primitives. It does not implement governance,
 infer source-framework semantics, or grant authority. Source-native data remains
@@ -51,12 +51,7 @@ def prepare_external_framework_manifest(
     source_instance: str | None = None,
     created_at: str | None = None,
 ) -> dict[str, Any]:
-    """Build a submission-ready manifest and retain preregistration metadata.
-
-    ``evaluation_declaration`` is retained as manifest evidence metadata under
-    ``extensions``. It is deliberately not inserted into the governance request
-    and therefore is not an input to the StegGate decision model.
-    """
+    """Build a submission-ready manifest and retain preregistration metadata."""
     manifest = build_manifest(
         data=data,
         source_framework=source_framework,
@@ -78,6 +73,27 @@ def prepare_external_framework_manifest(
     return manifest
 
 
+def prepare_external_framework_submission(**kwargs: Any) -> dict[str, Any]:
+    """Return a portable submission bundle requiring only the public SDK package.
+
+    This path deliberately stops before canonical governed execution. It lets an
+    external framework produce the exact validated artifact StegVerse will process
+    without requiring access to private runtime dependency repositories.
+    """
+    manifest = prepare_external_framework_manifest(**kwargs)
+    return {
+        "schema": "stegverse.sdk.external-framework-submission.v1",
+        "status": "SUBMISSION_READY",
+        "source_framework": manifest["source_framework"],
+        "source_output_id": manifest["source_output_id"],
+        "processing": deepcopy(manifest["processing"]),
+        "return_projection": deepcopy(manifest["return_projection"]),
+        "manifest": manifest,
+        "execution_performed": False,
+        "manifest_receipt_id": None,
+    }
+
+
 def run_external_framework(
     *,
     data: Any,
@@ -95,7 +111,7 @@ def run_external_framework(
     replay: bool = True,
     reconstruct: bool = True,
 ) -> dict[str, Any]:
-    """Build, submit, and optionally replay/reconstruct one external-framework run."""
+    """Build, submit, and optionally replay/reconstruct one governed run."""
     from .governance_ingress_runtime import run_external_manifest
     from . import sovereign_validation_runtime
 
@@ -122,6 +138,7 @@ def run_external_framework(
 
     result: dict[str, Any] = {
         "schema": "stegverse.sdk.external-framework-run.v1",
+        "status": "EXECUTED",
         "source_framework": source_framework,
         "source_output_id": source_output_id,
         "processing": deepcopy(manifest["processing"]),
@@ -129,6 +146,7 @@ def run_external_framework(
         "manifest_receipt_id": manifest_receipt_id,
         "manifest": manifest,
         "governed_result": governed_result,
+        "execution_performed": True,
     }
     if replay:
         result["replay"] = sovereign_validation_runtime.replay_sovereign(
@@ -145,7 +163,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="stegverse external-run",
         description=(
-            "Build and execute a source-native external-framework manifest through "
+            "Prepare or execute source-native external-framework data through "
             "an installed StegVerse processor route."
         ),
     )
@@ -166,11 +184,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--process", default="governance", choices=("governance",))
     parser.add_argument("--return-depth", default="result+evidence", choices=sorted(RETURN_DEPTHS))
     parser.add_argument("--created-at")
+    parser.add_argument(
+        "--prepare-only",
+        action="store_true",
+        help="emit a validated portable submission bundle without requiring governed runtime dependencies",
+    )
     parser.add_argument("--custody-db", default=DEFAULT_CUSTODY_DB)
     parser.add_argument("--host-identity", default=DEFAULT_HOST_IDENTITY)
     parser.add_argument("--no-replay", action="store_true")
     parser.add_argument("--no-reconstruct", action="store_true")
-    parser.add_argument("--output", help="write complete run artifact to this path; default stdout")
+    parser.add_argument("--output", help="write the resulting artifact to this path; default stdout")
 
     args = parser.parse_args(argv)
     try:
@@ -179,7 +202,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.evaluation_declaration
             else None
         )
-        result = run_external_framework(
+        common = dict(
             data=_load_json(args.input),
             source_framework=args.source_framework,
             source_output_id=args.source_output_id,
@@ -190,11 +213,17 @@ def main(argv: list[str] | None = None) -> int:
             data_class=args.data_class,
             source_instance=args.source_instance,
             created_at=args.created_at,
-            custody_db=args.custody_db,
-            host_identity=args.host_identity,
-            replay=not args.no_replay,
-            reconstruct=not args.no_reconstruct,
         )
+        if args.prepare_only:
+            result = prepare_external_framework_submission(**common)
+        else:
+            result = run_external_framework(
+                **common,
+                custody_db=args.custody_db,
+                host_identity=args.host_identity,
+                replay=not args.no_replay,
+                reconstruct=not args.no_reconstruct,
+            )
         _write_json(result, args.output)
         return 0
     except (ValueError, RuntimeError) as exc:
