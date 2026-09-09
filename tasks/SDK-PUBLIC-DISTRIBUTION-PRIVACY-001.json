@@ -5,12 +5,12 @@
   "repository": "StegVerse-org/StegVerse-SDK",
   "branch": "main",
   "owner": "StegVerse-org/StegVerse-SDK consumer lane",
-  "upstream_owner": "StegVerse-Labs/TVC/tasks/TVC-PORTABLE-ARTIFACT-PUBLICATION-001.json",
-  "state": "BLOCKED",
+  "upstream_owner": "StegVerse-Labs/TVC release/publication chain",
+  "state": "BLOCKED_PENDING_EXACT_PUBLICATION_PROOF",
   "claim_state": "CLAIMED_FOR_INTEGRATION",
   "collision_scope": [
     "SDK governed-test dependency acquisition",
-    "portable artifact public locator binding",
+    "public distribution locator binding",
     "anonymous clean-install verification"
   ],
   "credential_authority": "TV/TVC",
@@ -20,23 +20,34 @@
     "pyproject.toml",
     "SDK_MIRROR_HANDOFF.md",
     "SDK_PUBLIC_DISTRIBUTION_PRIVACY_MIRROR_HANDOFF.md",
-    "docs/SDK_PORTABLE_PACKAGE_CONSOLE_MIRROR_HANDOFF.md",
-    "verified TVC immutable publication receipt"
+    "SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md",
+    "exact immutable public release provenance"
   ],
   "observed_dependency_state": {
-    "StegVerse-Labs/StegCore": "public direct git dependency",
-    "Data-Continuation/core-lite": "public direct git dependency",
-    "master-records/orchestration": "private direct git dependency"
+    "StegVerse-Labs/StegCore": "governed-test public distribution identity stegverse-stegcore==0.3.0 implemented in SDK PR #163; source/import namespace stegcore preserved; distribution rename merged in StegCore PR #197",
+    "Data-Continuation/core-lite": "public direct source dependency pinned to commit 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8",
+    "master-records/orchestration": "governed-test public distribution identity stegverse-master-records==0.2.0 implemented in SDK PR #163; exact frozen 0.2.0 candidate c524b1a0c1a43e49c70faeac7b67f78c5908e4e4; Trusted Publishing workflow merged in PR #85"
   },
-  "blocked_reason": "TVC immutable public publication/binding required before repository-source visibility can be removed from the public SDK acquisition contract.",
-  "release_condition": "Verified immutable TVC publication exists for required governed runtime artifacts and the SDK can acquire/install them without repository credentials or source-repo visibility.",
-  "next_executable_action": "On publication receipt, replace direct repository-source acquisition with exact immutable artifact/package locators and hashes, then run anonymous clean-environment install + governed-test + replay/reconstruction verification.",
+  "completed": [
+    "StegCore repository-source dependency removed from SDK governed-test branch in favor of stegverse-stegcore==0.3.0",
+    "Master Records private repository-source dependency removed from SDK governed-test branch in favor of stegverse-master-records==0.2.0",
+    "StegCore public distribution rename merged at 9a35f39b3425a2c3e9592a03b0362a417094b809",
+    "StegCore README documents public distribution install",
+    "Master Records release-bound Trusted Publishing workflow merged in PR #85",
+    "Master Records README documents public distribution and exact frozen 0.2.0 candidate",
+    "SDK README no longer falsely states that every governed-test dependency is a public repository commit",
+    "SDK anonymous install workflow installed in PR #163"
+  ],
+  "blocked_reason": "The former private-source visibility defect is remediated in source, but exact immutable public PyPI releases for stegverse-stegcore==0.3.0 and stegverse-master-records==0.2.0 are not yet observed; SDK anonymous governed-runtime install run 34329494516 therefore fails at package installation before runtime execution.",
+  "release_condition": "Exact immutable public distributions are published through the canonical TV/TVC-gated release path and the SDK anonymous clean install, governed ELAN Test 1, replay, and reconstruction all pass without repository credentials or protected source visibility.",
+  "next_executable_action": "Preserve SDK PR #163 as draft; after canonical exact releases are authentically published, rerun Anonymous Governed Runtime Install and require package identity, ELAN governed execution, Master Records custody, replay, and reconstruction PASS.",
   "fail_closed": true,
   "terminal_success": {
     "state": "COMPLETE",
     "requires": [
       "no direct private git dependency in public acquisition path",
       "no non-TV/TVC secret/token",
+      "exact public distribution provenance observed",
       "anonymous clean install PASS",
       "governed-test PASS",
       "replay PASS",
