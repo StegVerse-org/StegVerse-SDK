@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2.0",
+  "schema_version": "1.3.0",
   "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
   "cosv": "71000000100110",
   "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
@@ -27,10 +27,52 @@
       "active_subblockers": [
         {
           "id": "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001",
-          "state": "OPEN_MACHINE_OWNED",
+          "state": "OPEN_MACHINE_OWNED_SITE_ISSUE_CREATED",
           "tracking_ref": "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5595193431",
+          "site_issue_ref": "StegVerse-Labs/Site:issue/1143",
+          "site_issue_url": "https://github.com/StegVerse-Labs/Site/issues/1143",
           "source_file": "StegVerse-Labs/Site:assets/ecosystem-node-views.js",
           "offending_behavior": "production Ecosystem Chat unconditionally loads assets/conectrr-interop.js, which imports Conectrr fixture records into ordinary governed sessions",
+          "current_site_queue_blocker": {
+            "task_id": "SITE-0001-COHERENT-TRANSITION-THRESHOLD-ACTIVATION",
+            "site_repository_state": "OBSERVED_BLOCKED",
+            "heartbeat_work_state": "BLOCKED",
+            "heartbeat_system_health": "HEALTHY_BLOCKED",
+            "external_tasks_allowed": false,
+            "external_session_ownership_allowed": false,
+            "reason": "Site machine admission is waiting on the existing HIL live vertical-slice transition predicates; this does not alter the Conectrr remediation contract."
+          },
+          "executable_patch_contract": {
+            "default_mode": "NO_CONECTRR_FIXTURE",
+            "explicit_opt_in": "query parameter conectrr-fixture=1 or an equivalent dedicated explicit test surface",
+            "files": {
+              "assets/ecosystem-node-views.js": [
+                "replace unconditional document.body.appendChild(conectrr-interop loader) with explicit opt-in gating",
+                "do not request assets/conectrr-interop.js on the ordinary production path"
+              ],
+              "scripts/check_conectrr_browser_projection.py": [
+                "reject unconditional loader semantics",
+                "require explicit opt-in loader contract while retaining import/correlation checks"
+              ],
+              "scripts/check_conectrr_runtime_projection.py": [
+                "require explicit opt-in semantics instead of mere loader presence"
+              ],
+              "scripts/check_conectrr_live_routes.py": [
+                "verify Conectrr assets remain published without requiring default automatic execution"
+              ],
+              "scripts/check_conectrr_remote_browser.py": [
+                "first load default Ecosystem Chat and prove both Conectrr fixture event IDs are absent",
+                "then load explicit opt-in path and prove fixture render/correlation/replay PASS"
+              ],
+              "docs/CONECTRR_INTEROP_MIRROR_HANDOFF.md": [
+                "state that fixture execution is explicit test/demo behavior and is absent from normal production sessions"
+              ]
+            },
+            "fixture_event_ids": [
+              "event:conectrr:handoff:001",
+              "event:stegverse:evaluation:001"
+            ]
+          },
           "resolution_requires": [
             "default production path does not auto-load assets/conectrr-interop.js",
             "Conectrr fixture import is explicit opt-in and test/demo scoped",

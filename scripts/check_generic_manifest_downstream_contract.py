@@ -15,6 +15,7 @@ COSV = "71000000100110"
 STATE = "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING"
 PUBLIC_BASE = "https://stegverse.org/"
 SITE_CONTAMINATION_BLOCKER = "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001"
+SITE_CONTAMINATION_ISSUE = "StegVerse-Labs/Site:issue/1143"
 
 REQUIRED_HANDOFF = [
     PUBLIC_BASE,
@@ -88,7 +89,7 @@ def main() -> None:
     if surface.get("raw_github_pages_is_canonical_public_surface") is not False:
         fail("raw GitHub Pages must not be canonical public surface")
 
-    if deps.get("schema_version") != "1.2.0":
+    if deps.get("schema_version") != "1.3.0":
         fail("unexpected dependency manifest schema_version")
     if deps.get("task_id") != TASK_ID or deps.get("cosv") != COSV or deps.get("state") != STATE:
         fail("dependency manifest identity/state mismatch")
@@ -117,6 +118,43 @@ def main() -> None:
         fail("Site Conectrr governance contamination blocker missing")
     if contamination.get("tracking_ref") != "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5595193431":
         fail("Site contamination blocker tracking_ref mismatch")
+    if contamination.get("site_issue_ref") != SITE_CONTAMINATION_ISSUE:
+        fail("Site contamination blocker must bind canonical Site issue #1143")
+    if contamination.get("state") != "OPEN_MACHINE_OWNED_SITE_ISSUE_CREATED" and contamination.get("resolved") is not True:
+        fail("unresolved Site contamination blocker must record Site issue creation")
+
+    queue = contamination.get("current_site_queue_blocker")
+    if not isinstance(queue, dict):
+        fail("Site contamination blocker missing current_site_queue_blocker")
+    if queue.get("task_id") != "SITE-0001-COHERENT-TRANSITION-THRESHOLD-ACTIVATION":
+        fail("unexpected current Site queue blocker")
+    if queue.get("external_tasks_allowed") is not False or queue.get("external_session_ownership_allowed") is not False:
+        fail("Site queue blocker must preserve closed external admission")
+
+    patch = contamination.get("executable_patch_contract")
+    if not isinstance(patch, dict):
+        fail("Site contamination blocker missing executable_patch_contract")
+    if patch.get("default_mode") != "NO_CONECTRR_FIXTURE":
+        fail("Conectrr patch default mode must be NO_CONECTRR_FIXTURE")
+    if "conectrr-fixture=1" not in str(patch.get("explicit_opt_in")):
+        fail("Conectrr patch contract must include explicit opt-in semantics")
+    patch_files = patch.get("files")
+    required_patch_files = {
+        "assets/ecosystem-node-views.js",
+        "scripts/check_conectrr_browser_projection.py",
+        "scripts/check_conectrr_runtime_projection.py",
+        "scripts/check_conectrr_live_routes.py",
+        "scripts/check_conectrr_remote_browser.py",
+        "docs/CONECTRR_INTEROP_MIRROR_HANDOFF.md",
+    }
+    if not isinstance(patch_files, dict) or not required_patch_files.issubset(patch_files):
+        fail("Conectrr executable patch contract missing required Site files")
+    if patch.get("fixture_event_ids") != [
+        "event:conectrr:handoff:001",
+        "event:stegverse:evaluation:001",
+    ]:
+        fail("Conectrr fixture event IDs mismatch")
+
     required_resolution_evidence = [
         "implementation_merge_ref",
         "exact_head_validation_ref",
@@ -132,8 +170,6 @@ def main() -> None:
         fail("Site contamination blocker resolved without complete evidence")
     if contamination.get("resolved") is False and contamination_evidence_ready:
         fail("Site contamination blocker has complete evidence but resolved=false; reconcile state")
-    if contamination.get("resolved") is False and contamination.get("state") != "OPEN_MACHINE_OWNED":
-        fail("unresolved Site contamination blocker must remain OPEN_MACHINE_OWNED")
 
     site_ready = evidence_complete(site)
     wiki_ready = evidence_complete(wiki, require_worker_record=True)
@@ -188,6 +224,8 @@ def main() -> None:
     print("canonical_public_domain=https://stegverse.org/")
     print("downstream_dependency_count=2")
     print("downstream_owner_transition_observed=false")
+    print("site_conectrr_issue=StegVerse-Labs/Site#1143")
+    print("site_conectrr_executable_patch_contract=true")
     print(f"site_conectrr_contamination_resolved={str(contamination.get('resolved') is True).lower()}")
     print(f"site_completion_predicate_satisfied={str(site_ready).lower()}")
     print(f"admissibility_completion_predicate_satisfied={str(wiki_ready).lower()}")
