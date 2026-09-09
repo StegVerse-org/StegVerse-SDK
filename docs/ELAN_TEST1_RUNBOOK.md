@@ -21,18 +21,40 @@ ELAN remains source-native. Only observable output/state that ELAN legitimately 
 5. StegVerse governance disposition and resulting transition/non-transition
 6. retrospective reconstruction
 
-## Submission intent
+## Public fixtures
 
-Use the package Manifest Builder with:
+```text
+inspection/examples/elan-relational-state-test1.json
+inspection/examples/elan-governance-request.example.json
+inspection/examples/elan-evaluation-declaration-test1.json
+```
 
-- `source_framework=ELAN`
-- `data_class=elan.relational-state.v1`
-- `process=governance`
-- installed route `stegverse.route.canonical-governed.v1`
-- `return_depth=full-trace`
+The first file is source-native ELAN-observable data only. The governance request is a separate processor-specific input. The evaluator declaration is preregistered evidence metadata and is not inserted into the governance decision request.
 
-The evaluator declaration is preregistered before execution and retained as evidence metadata. It must not alter the governance disposition.
+## One-command SDK execution
+
+After installing the SDK with the governed-test dependencies, the complete package-level path is:
+
+```bash
+stegverse external-run \
+  --input inspection/examples/elan-relational-state-test1.json \
+  --governance-request inspection/examples/elan-governance-request.example.json \
+  --evaluation-declaration inspection/examples/elan-evaluation-declaration-test1.json \
+  --source-framework ELAN \
+  --source-output-id elan-emotional-ambiguity-silence-test-001 \
+  --data-class elan.relational-state.v1 \
+  --return-depth full-trace \
+  --output elan-test1-complete-run.json
+```
+
+This one command builds and validates `stegverse.ingress-manifest.v1`, binds governance to the installed `stegverse.route.canonical-governed.v1`, executes the canonical local governed test, records custody, returns the `manifest_receipt_id`, and performs replay plus reconstruction against that receipt by default.
+
+Use `--no-replay` or `--no-reconstruct` only when deliberately requesting a reduced local run. Caller-facing return depth does not suppress canonical custody.
+
+## Real test substitution rule
+
+The included governance request is a runnable SDK-path example. For the actual ELAN experiment, replace its example governance facts with the represented facts applicable to the experiment. Do not duplicate, reinterpret, or invent ELAN-native internal semantics inside the governance request.
 
 ## Completion proof
 
-The SDK completion gate requires exact-head evidence that the built manifest validates, resolves to the installed route, produces a governance result and `manifest_receipt_id`, records canonical custody, and supports replay plus reconstruction.
+The SDK completion gate requires exact-head evidence that the external-framework runner and public fixtures validate, source-native data remains unchanged, preregistration metadata remains outside the decision request, the route fails closed on invalid declarations, and a real governed-test installation can produce custody, receipt, replay, and reconstruction evidence.
