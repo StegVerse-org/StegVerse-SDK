@@ -1,0 +1,17 @@
+{
+  "what": "Evaluate an external relational-framework state while preserving source-native semantics.",
+  "how": "Manifest ELAN-observable state, bind it to the installed governance route, and retain exact-run evidence for replay and reconstruction.",
+  "why": "Test whether relational restraint and independent governance remain compositionally coherent without collapsing one into the other.",
+  "expected_observation": "ELAN and governance may point in different directions while each preserves its own responsibility.",
+  "requested_capabilities": [
+    "master_records_custody",
+    "replay",
+    "reconstruction"
+  ],
+  "requested_evidence": [
+    "governance_decision",
+    "manifest_receipt",
+    "route_receipts",
+    "exact_run_custody"
+  ]
+}
