@@ -1,0 +1,79 @@
+name: Anonymous Governed Runtime Install
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'pyproject.toml'
+      - 'stegverse/**'
+      - 'inspection/examples/elan-relational-state-test1.json'
+      - 'inspection/examples/elan-governance-request.example.json'
+      - 'inspection/examples/elan-evaluation-declaration-test1.json'
+      - '.github/workflows/anonymous-governed-test-install.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  anonymous-install-and-elan-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Materialize exact public SDK source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/sdk-source.tgz
+          mkdir /tmp/sdk-source
+          tar -xzf /tmp/sdk-source.tgz -C /tmp/sdk-source --strip-components=1
+
+      - name: Install complete governed test with no private-repository credential
+        run: |
+          set -euo pipefail
+          cd /tmp/sdk-source
+          unset GITHUB_TOKEN GH_TOKEN || true
+          git config --global --unset-all credential.helper || true
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[governed-test]"
+
+      - name: Verify public runtime package identities
+        run: |
+          python - <<'PY'
+          from importlib.metadata import version
+          assert version('stegcore') == '0.3.0'
+          assert version('stegverse-master-records') == '0.2.0'
+          print('ANONYMOUS_RUNTIME_PACKAGE_RESOLUTION_PASS')
+          PY
+
+      - name: Execute ELAN Test 1 through canonical governed runtime
+        run: |
+          set -euo pipefail
+          cd /tmp/sdk-source
+          rm -f /tmp/elan-anonymous.db /tmp/elan-anonymous.json
+          stegverse external-run \
+            --input inspection/examples/elan-relational-state-test1.json \
+            --governance-request inspection/examples/elan-governance-request.example.json \
+            --evaluation-declaration inspection/examples/elan-evaluation-declaration-test1.json \
+            --source-framework ELAN \
+            --source-output-id elan-emotional-ambiguity-silence-test-001 \
+            --data-class elan.relational-state.v1 \
+            --return-depth full-trace \
+            --custody-db /tmp/elan-anonymous.db \
+            --output /tmp/elan-anonymous.json
+
+      - name: Verify complete governed result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/elan-anonymous.json').read_text())
+          assert result['manifest_receipt_id']
+          assert result['governed_result']['master_records_custody_status'] == 'RECORDED'
+          assert result['replay']
+          assert result['reconstruction']
+          print('ANONYMOUS_GOVERNED_RUNTIME_E2E_PASS')
+          PY
