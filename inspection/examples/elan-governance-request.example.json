@@ -1,12 +1,64 @@
 {
   "candidate": {
-    "id": "elan-emotional-ambiguity-silence-test-001",
-    "class": "external.relational-state-evaluation"
+    "actor_class": "external_framework",
+    "action": "evaluate_relational_state",
+    "target": "elan-emotional-ambiguity-silence-test-001",
+    "scope": "test",
+    "parameters": {
+      "external_side_effect": false
+    }
   },
-  "state": {
+  "judgment": {
+    "refusal_available": true,
+    "operator_recoverability": "available",
+    "workload_state": "supported",
+    "time_pressure": "normal",
+    "isolation_state": "supported",
+    "evidence_refs": [
+      "elan:test1:observable-state"
+    ]
+  },
+  "signal": {
+    "admitted_signal_refs": [
+      "elan:test1:observable-state"
+    ],
+    "excluded_signal_refs": [],
+    "transformations": [],
+    "missing_inputs": [],
+    "uncertainty_state": "bounded",
+    "reference_state_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected_reference_state_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "reconstruction_available": true,
+    "transformation_provenance_complete": true
+  },
+  "execution": {
+    "actor_authority_current": true,
+    "policy_current": true,
+    "delegation_current": true,
+    "evidence_current": true,
+    "affected_entity_conditions_represented": true,
+    "recoverability_profile": "recoverable",
+    "validity_window_open": true,
+    "policy_ref": "elan:test1:governance-policy",
+    "delegation_ref": "elan:test1:bounded-evaluation",
+    "evidence_refs": [
+      "elan:test1:observable-state"
+    ]
+  },
+  "capability": {
+    "allowed": true
+  },
+  "continuity": {
+    "required": false
+  },
+  "approval": {
+    "required": false
+  },
+  "permission_present": true,
+  "declared_context": {
     "source_framework": "ELAN",
     "source_output_id": "elan-emotional-ambiguity-silence-test-001",
-    "source_data_class": "elan.relational-state.v1"
-  },
-  "note": "Complete this object only with governance facts required by the installed route. Do not duplicate or reinterpret ELAN-native semantics."
+    "source_data_class": "elan.relational-state.v1",
+    "note": "Example governance facts for SDK path validation only; replace with the tester's actual represented governance state for a real experiment."
+  }
 }
