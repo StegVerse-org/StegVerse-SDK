@@ -56,13 +56,15 @@ Basic SDK and development validation dependencies:
 python -m pip install -e ".[dev]"
 ```
 
-Canonical governed-test dependencies are deliberately pinned to exact public repository commits:
+The optional governed-test dependencies are pinned to exact repository commits, but the complete governed-test dependency set is **not anonymously installable from current repository source visibility**. At least the Master Records source dependency is private in current live repository metadata.
 
 ```bash
 python -m pip install -e ".[dev,governed-test]"
 ```
 
-The governed-test installation therefore requires Git plus network access to the pinned public repositories. That source-distribution requirement does not grant GitHub runtime authority.
+That command is therefore a source-repository installation path for callers that already have access to every pinned dependency. It must not be described as a credential-free public installation path. The public SDK `--prepare-only` external-framework submission path remains credential-free and does not require the private governed runtime dependency set.
+
+The canonical public-distribution target is an immutable TVC-admitted artifact/package path whose acquisition does not depend on source-repository visibility. Until that publication path is verified, repository privacy and anonymous governed-test installation remain separate concerns.
 
 ## Moving development source
 
@@ -86,3 +88,5 @@ credential authority = TV/TVC
 ```
 
 The authoritative release state remains `VERSION.json` plus `PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md`.
+
+Public-distribution privacy/repository-visibility continuation is tracked in `SDK_PUBLIC_DISTRIBUTION_PRIVACY_MIRROR_HANDOFF.md` and must be satisfied before claiming anonymous installation of the complete governed-test runtime dependency set.
