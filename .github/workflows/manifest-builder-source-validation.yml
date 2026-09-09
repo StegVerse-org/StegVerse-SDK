@@ -5,31 +5,45 @@ on:
     branches: [main]
     paths:
       - stegverse/manifest_builder.py
+      - stegverse/external_framework_runner.py
       - stegverse/manifest_contract.py
       - stegverse/route_resolution.py
       - stegverse/evaluator_console.py
       - schemas/stegverse.ingress-manifest.v1.schema.json
       - tests/test_manifest_builder.py
+      - tests/test_external_framework_runner.py
       - tests/test_generic_manifest_processing_contract.py
+      - inspection/examples/elan-relational-state-test1.json
+      - inspection/examples/elan-governance-request.example.json
+      - docs/ELAN_TEST1_RUNBOOK.md
+      - docs/SDK_COMPLETION_GATE_137.md
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - README.md
       - MANIFEST_BUILDER_MIRROR_HANDOFF.md
       - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
+      - SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md
       - .github/workflows/manifest-builder-source-validation.yml
   pull_request:
     branches: [main]
     paths:
       - stegverse/manifest_builder.py
+      - stegverse/external_framework_runner.py
       - stegverse/manifest_contract.py
       - stegverse/route_resolution.py
       - stegverse/evaluator_console.py
       - schemas/stegverse.ingress-manifest.v1.schema.json
       - tests/test_manifest_builder.py
+      - tests/test_external_framework_runner.py
       - tests/test_generic_manifest_processing_contract.py
+      - inspection/examples/elan-relational-state-test1.json
+      - inspection/examples/elan-governance-request.example.json
+      - docs/ELAN_TEST1_RUNBOOK.md
+      - docs/SDK_COMPLETION_GATE_137.md
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - README.md
       - MANIFEST_BUILDER_MIRROR_HANDOFF.md
       - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
+      - SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md
       - .github/workflows/manifest-builder-source-validation.yml
   workflow_dispatch:
 
@@ -56,6 +70,7 @@ jobs:
           set -eu
           cd /tmp/source
           python -m unittest tests.test_manifest_builder
+          python -m unittest tests.test_external_framework_runner
           python -m unittest tests.test_generic_manifest_processing_contract
           python -m unittest tests.test_governance_navigation
           python -m unittest tests.test_governance_ingress_runtime
@@ -63,6 +78,7 @@ jobs:
           python -m unittest tests.test_cli_preformatted_manifest
           python -m py_compile \
             stegverse/manifest_builder.py \
+            stegverse/external_framework_runner.py \
             stegverse/manifest_contract.py \
             stegverse/route_resolution.py \
             stegverse/governance_ingress_runtime.py \
@@ -71,4 +87,4 @@ jobs:
       - name: Verify authority boundary
         run: |
           echo 'MANIFEST_BUILDER_SOURCE_VALIDATION_PASS'
-          echo 'Builder construction/validation grants no governance, execution, credential, release, or custody authority.'
+          echo 'Builder/external runner construction and validation grant no governance, execution, credential, release, or custody authority.'
