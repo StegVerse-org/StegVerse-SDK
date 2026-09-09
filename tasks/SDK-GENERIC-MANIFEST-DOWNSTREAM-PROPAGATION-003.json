@@ -29,10 +29,10 @@
     "Master Records Trusted Publishing support merged in PR #85 with README maintenance and frozen 0.2.0 candidate c524b1a0c1a43e49c70faeac7b67f78c5908e4e4",
     "SDK PR #163 implemented public governed-test dependency identities and README correction, then was closed as superseded by aggregate PR #165",
     "SDK PR #165 defines distinct 1.3.0 SOURCE_CANDIDATE identity without retargeting frozen v1.2.0",
-    "SDK PR #165 adds SDK Component Version Validation and coherent pyproject.toml, VERSION.json, RELEASE_NOTES_1.3.0.md, validator, and successor handoff",
-    "SDK PR #165 exact head 9bd62e4a5389fce904c4cf749617a0fa572c47e4 passed SDK Component Version Validation 34331573455, Package Artifact 34331573314, Release Dependency Alignment 34331573345, External Framework Public Submission 34331573385, Evaluator Manifest 34331573251, Evaluator Contract 34331573317, Production Manifold 34331573242, Portable Package 34331573564, Portable Release Index 34331573325, Manifest Builder 34331573298, MCP 34331573256, Output Boundary 34331573479, Connect LLM 34331573305, and Communication Edge 34331573275",
-    "Anonymous Governed Runtime Install 34331573288 failed closed at pip install with exact error No matching distribution found for stegverse-stegcore==0.3.0; package identity verification and ELAN execution were correctly skipped",
-    "post-completion propagation audit issue #139 updated with successor and exact public-distribution blocker evidence"
+    "SDK PR #165 merge-base divergence repaired by merge commit b53fb8c26688c8ea02ac336c5b876b3e6aa189cb using current main c7666cf37ba8561e85298bc88d50d152aa565965 and the exact ten candidate blobs; comparison became behind_by=0 and PR mergeable=true",
+    "SDK PR #165 exact reconciled head b53fb8c26688c8ea02ac336c5b876b3e6aa189cb passed SDK Component Version Validation 34355771475, Package Artifact 34355771348, Release Dependency Alignment 34355771409, External Framework Public Submission 34355771364, Evaluator Manifest 34355771441, Evaluator Contract 34355771315, Production Manifold 34355771382, Portable Package 34355771396, Portable Release Index 34355771447, Manifest Builder 34355771439, MCP 34355771329, Output Boundary 34355771324, Connect LLM 34355771408, and Communication Edge 34355771365",
+    "Anonymous Governed Runtime Install 34355771357 failed closed at pip install with exact error No matching distribution found for stegverse-stegcore==0.3.0; package identity verification and ELAN execution were correctly skipped",
+    "PR #165 body and canonical handoff reconciled to the repaired exact head and validation evidence"
   ],
   "remaining": [
     "StegVerse-Labs/Site machine-owned admission and bounded SDK preview/backend contract propagation",
@@ -68,12 +68,15 @@
     "generic_manifest_pr": 138,
     "generic_manifest_merge": "4e1942b487972874ce310f4a9ec031f529fa1f09",
     "successor_pr": 165,
-    "successor_head": "9bd62e4a5389fce904c4cf749617a0fa572c47e4",
+    "successor_head": "b53fb8c26688c8ea02ac336c5b876b3e6aa189cb",
     "successor_version": "1.3.0",
     "successor_stage": "SOURCE_CANDIDATE",
     "source_validation": "PASS",
+    "merge_base_reconciliation": "PASS",
+    "mergeable_observed": true,
+    "behind_main_at_reconciliation": 0,
     "anonymous_governed_runtime_install": "FAIL_CLOSED_PENDING_STEGVERSE_STEGCORE_0_3_0_PUBLICATION",
-    "anonymous_install_latest_run": 34331573288,
+    "anonymous_install_latest_run": 34355771357,
     "post_completion_audit_issue": 139
   },
   "manual_work_required": false,

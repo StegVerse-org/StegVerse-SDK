@@ -51,8 +51,6 @@ The SDK preserves source-native data, evaluator preregistration outside the gove
 
 ## Public runtime distribution remediation
 
-StegCore and Master Records no longer need to remain direct protected-source dependencies in the public SDK candidate.
-
 ```text
 StegCore import namespace: stegcore
 StegCore public distribution: stegverse-stegcore
@@ -77,14 +75,14 @@ stegverse-core-lite @ git+https://github.com/Data-Continuation/core-lite.git@72b
 stegverse-master-records==0.2.0
 ```
 
-## Successor consolidation
+## Successor consolidation and merge-base repair
 
 SDK PR #163 is CLOSED / SUPERSEDED. Its public-distribution rewrite and README correction are incorporated into aggregate SDK PR #165.
 
 ```text
 aggregate successor PR: StegVerse-org/StegVerse-SDK#165
 branch: sdk-1.3.0-successor-candidate
-head: 9bd62e4a5389fce904c4cf749617a0fa572c47e4
+head: b53fb8c26688c8ea02ac336c5b876b3e6aa189cb
 candidate version: 1.3.0
 intended tag: v1.3.0
 version stage: SOURCE_CANDIDATE
@@ -93,7 +91,22 @@ v1.2.0 retargeting permitted: false
 release/tag/publication claim: NONE
 ```
 
-Candidate control files:
+The prior candidate head had become 7 commits behind current `main`, producing a GitHub `mergeable=false` report even though the candidate and main-side changed paths did not overlap. This was repaired without rewriting candidate semantics by creating merge commit `b53fb8c26688c8ea02ac336c5b876b3e6aa189cb` with the validated candidate as first parent and current main `c7666cf37ba8561e85298bc88d50d152aa565965` as second parent. The merge tree uses current-main state plus the exact ten candidate blobs.
+
+Post-repair comparison:
+
+```text
+base: main@c7666cf37ba8561e85298bc88d50d152aa565965
+head: b53fb8c26688c8ea02ac336c5b876b3e6aa189cb
+status: ahead
+ahead_by: 16
+behind_by: 0
+merge_base: c7666cf37ba8561e85298bc88d50d152aa565965
+PR mergeable: true
+changed files: exactly 10 intended candidate files
+```
+
+Candidate control files remain:
 
 ```text
 pyproject.toml
@@ -104,31 +117,31 @@ docs/SDK_1_3_0_SUCCESSOR_RELEASE_MIRROR_HANDOFF.md
 .github/workflows/component-version-validation.yml
 ```
 
-The new component-version workflow validates package/version/release-note coherence and preserves the immutable prior `v1.2.0` boundary.
+README maintenance remains incorporated and current.
 
-## Exact-head validation
+## Exact-head validation after merge-base repair
 
-Exact PR #165 head `9bd62e4a5389fce904c4cf749617a0fa572c47e4`:
+Exact PR #165 head `b53fb8c26688c8ea02ac336c5b876b3e6aa189cb`:
 
 ```text
-SDK Component Version Validation 34331573455 PASS
-SDK Package Artifact Validation 34331573314 PASS
-Release Dependency Alignment 34331573345 PASS
-External Framework Public Submission 34331573385 PASS
-Evaluator Manifest Source Validation 34331573251 PASS
-Evaluator Contract Console Validation 34331573317 PASS
-SDK Production Manifold Governance Validation 34331573242 PASS
-Portable Package Source Validation 34331573564 PASS
-Portable Release Index 34331573325 PASS
-Manifest Builder Source Validation 34331573298 PASS
-MCP Source Validation 34331573256 PASS
-SDK Output-Boundary Proof Validation 34331573479 PASS
-Connect my LLM Source Validation 34331573305 PASS
-Communication Edge SDK Demo Validation 34331573275 PASS
-Anonymous Governed Runtime Install 34331573288 FAIL_CLOSED_EXPECTED
+SDK Component Version Validation 34355771475 PASS
+SDK Package Artifact Validation 34355771348 PASS
+Release Dependency Alignment 34355771409 PASS
+External Framework Public Submission 34355771364 PASS
+Evaluator Manifest Source Validation 34355771441 PASS
+Evaluator Contract Console Validation 34355771315 PASS
+SDK Production Manifold Governance Validation 34355771382 PASS
+Portable Package Source Validation 34355771396 PASS
+Portable Release Index 34355771447 PASS
+Manifest Builder Source Validation 34355771439 PASS
+MCP Source Validation 34355771329 PASS
+SDK Output-Boundary Proof Validation 34355771324 PASS
+Connect my LLM Source Validation 34355771408 PASS
+Communication Edge SDK Demo Validation 34355771365 PASS
+Anonymous Governed Runtime Install 34355771357 FAIL_CLOSED_EXPECTED
 ```
 
-Exact anonymous-install failure:
+Exact anonymous-install failure remains:
 
 ```text
 materialize exact SDK source: PASS
@@ -139,11 +152,11 @@ ELAN Test 1 execution: SKIPPED
 complete governed result verification: SKIPPED
 ```
 
-This establishes that the first current public-distribution blocker is authentic publication of `stegverse-stegcore 0.3.0`. Private repository visibility is no longer the observed failure mode. Do not weaken the gate or infer Master Records publication status from the fact that pip stops at the first missing package.
+This proves the merge-base repair introduced no observed SDK source regression. The first current public-distribution blocker remains authentic publication of `stegverse-stegcore 0.3.0`. Private repository visibility is not the observed failure mode. Do not weaken the anonymous gate or infer Master Records publication status merely because pip stops at the first missing package.
 
 ## Release boundary
 
-PR #165 remains draft. Source-candidate validation is not release publication.
+PR #165 remains DRAFT despite being mergeable and source-valid. Source validation and mergeability are not release publication.
 
 Actual `v1.3.0` freeze/publication requires:
 
@@ -158,7 +171,7 @@ anonymous governed-runtime install PASS
 ELAN Test 1 custody/replay/reconstruction PASS
 ```
 
-The live TVC release-credential task remains `BLOCKED_DEPENDENCY` / `REQUESTED_NOT_GRANTED`; no tag or release may be fabricated.
+The live TVC release-credential task remains `BLOCKED_DEPENDENCY` / `REQUESTED_NOT_GRANTED`; no tag or release is created now.
 
 ## Downstream completion state
 
@@ -213,7 +226,7 @@ current Ecosystem Chat route: https://stegverse.org/ecosystem-chat.html
 dedicated processor-generic hosted route: NOT YET OBSERVED
 ```
 
-## Remaining work by destination
+## Remaining work
 
 ```text
 StegVerse-org/StegVerse-SDK:
@@ -242,7 +255,8 @@ StegVerse-002/stegguardian-wiki: none now
 ```text
 SDK-PROCESSOR-GENERIC-MANIFEST-002: COMPLETE_VALIDATED_MERGED
 SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE
-SDK 1.3.0 source candidate: EXACT_HEAD_SOURCE_VALIDATED_DRAFT_PR_165
+SDK 1.3.0 source candidate: EXACT_HEAD_SOURCE_VALIDATED_MERGEABLE_DRAFT_PR_165
+merge-base regression: RESOLVED
 SDK public distribution rewrite: INCORPORATED_IN_PR_165
 SDK README correction: INCORPORATED_IN_PR_165
 first proven anonymous-install blocker: stegverse-stegcore==0.3.0 NOT PUBLISHED
