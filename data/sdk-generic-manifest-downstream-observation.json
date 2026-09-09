@@ -1,8 +1,8 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
   "cosv": "71000000100110",
-  "observed_state": "NO_DOWNSTREAM_OWNER_TRANSITION",
+  "observed_state": "SITE_SUBBLOCKER_TRANSITION_OBSERVED",
   "site": {
     "repository": "StegVerse-Labs/Site",
     "orchestration_state_ref": "StegVerse-Labs/Site:data/site-orchestration-state.json",
@@ -15,9 +15,13 @@
     "conectrr_governance_contamination": {
       "task_id": "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001",
       "tracking_ref": "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5595193431",
-      "site_implementation_record_observed": false,
-      "default_fixture_injection_still_present_on_main": true,
-      "resolved": false
+      "site_implementation_record_observed": true,
+      "implementation_merge_ref": "StegVerse-Labs/Site:commit/1260262ba6ab7198b20bf5a04a93264089e203da",
+      "repository_controller_completion_ref": "StegVerse-Labs/Site:commit/e6991ed197cdde8fc78b62b879ba35165241253b",
+      "default_fixture_injection_still_present_on_main": false,
+      "clean_default_path_observed": true,
+      "public_observation_ref": "StegVerse-Labs/Site:issue/1143#issuecomment-5598275109",
+      "resolved": true
     }
   },
   "admissibility": {
@@ -31,6 +35,7 @@
   "parent_effect": {
     "site_completion_predicate_satisfied": false,
     "admissibility_completion_predicate_satisfied": false,
+    "site_conectrr_subblocker_resolved": true,
     "propagation_complete": false,
     "authority_effect": "NONE"
   }
