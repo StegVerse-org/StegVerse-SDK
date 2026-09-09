@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
   "cosv": "71000000100110",
   "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
@@ -24,6 +24,29 @@
         "return_projection",
         "manifest_receipt_id"
       ],
+      "active_subblockers": [
+        {
+          "id": "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001",
+          "state": "OPEN_MACHINE_OWNED",
+          "tracking_ref": "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5595193431",
+          "source_file": "StegVerse-Labs/Site:assets/ecosystem-node-views.js",
+          "offending_behavior": "production Ecosystem Chat unconditionally loads assets/conectrr-interop.js, which imports Conectrr fixture records into ordinary governed sessions",
+          "resolution_requires": [
+            "default production path does not auto-load assets/conectrr-interop.js",
+            "Conectrr fixture import is explicit opt-in and test/demo scoped",
+            "normal Ecosystem Chat regression proves zero Conectrr fixture events without opt-in",
+            "Conectrr opt-in validation remains PASS",
+            "exact-head Site validation PASS",
+            "deployed https://stegverse.org/ecosystem-chat.html ordinary governed interaction observed without Conectrr fixture records"
+          ],
+          "implementation_merge_ref": null,
+          "exact_head_validation_ref": null,
+          "default_no_fixture_regression_ref": null,
+          "opt_in_validation_ref": null,
+          "public_observation_ref": null,
+          "resolved": false
+        }
+      ],
       "completion_evidence": {
         "implementation_merge_ref": null,
         "exact_head_validation_ref": null,
@@ -31,7 +54,7 @@
         "public_route": null,
         "public_route_observed": false
       },
-      "completion_predicate": "implementation_merge_ref && exact_head_validation_ref && handoff_reconciliation_ref && public_route_observed && public_route starts_with https://stegverse.org/",
+      "completion_predicate": "all active_subblockers resolved && implementation_merge_ref && exact_head_validation_ref && handoff_reconciliation_ref && public_route_observed && public_route starts_with https://stegverse.org/",
       "complete": false
     },
     {
@@ -72,7 +95,7 @@
       "disposition": "NO_DIRECT_CHANGE_REQUIRED"
     }
   ],
-  "completion_rule": "propagation_complete iff every required dependency has complete=true and every dependency completion_predicate is satisfied by non-null/true evidence fields",
+  "completion_rule": "propagation_complete iff every required dependency has complete=true, every active subblocker is resolved, and every dependency completion_predicate is satisfied by non-null/true evidence fields",
   "propagation_complete": false,
   "authority_effect": "NONE"
 }
