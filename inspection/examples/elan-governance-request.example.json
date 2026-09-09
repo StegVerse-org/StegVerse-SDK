@@ -1,0 +1,12 @@
+{
+  "candidate": {
+    "id": "elan-emotional-ambiguity-silence-test-001",
+    "class": "external.relational-state-evaluation"
+  },
+  "state": {
+    "source_framework": "ELAN",
+    "source_output_id": "elan-emotional-ambiguity-silence-test-001",
+    "source_data_class": "elan.relational-state.v1"
+  },
+  "note": "Complete this object only with governance facts required by the installed route. Do not duplicate or reinterpret ELAN-native semantics."
+}
