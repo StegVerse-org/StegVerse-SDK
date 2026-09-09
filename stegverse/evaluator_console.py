@@ -5,6 +5,7 @@ import sys
 
 from . import cli
 from . import evaluator_contract
+from . import external_framework_runner
 from . import manifest_builder
 from . import production_release_set
 from . import test_procedure
@@ -29,6 +30,9 @@ def main(argv: list[str] | None = None) -> int:
         return test_procedure.main(args[1:])
     if args and args[0] in {"manifest", "manifest-builder"}:
         return manifest_builder.main(args[1:])
+    if args and args[0] in {"external-run", "framework-run"}:
+        _install_versioned_governance_wrapper()
+        return external_framework_runner.main(args[1:])
     if args and args[0] == "governance":
         _install_versioned_governance_wrapper()
     result = cli.main(args)
@@ -36,6 +40,7 @@ def main(argv: list[str] | None = None) -> int:
         print("Evaluator contract:    stegverse contract")
         print("Test procedure:        stegverse test-procedure")
         print("Manifest Builder:      stegverse manifest build --help")
+        print("External framework:    stegverse external-run --help")
         print("Contract schema:       stegverse contract --schema")
         print("Worked example:        stegverse contract --example")
         print("Current releases:      stegverse production-releases catalog")
