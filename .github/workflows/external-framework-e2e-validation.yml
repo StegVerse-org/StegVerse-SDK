@@ -1,4 +1,4 @@
-name: External Framework End-to-End Validation
+name: External Framework Public Submission Validation
 
 on:
   pull_request:
@@ -6,9 +6,6 @@ on:
     paths:
       - stegverse/external_framework_runner.py
       - stegverse/manifest_builder.py
-      - stegverse/governance_ingress_runtime.py
-      - stegverse/sovereign_validation_runtime.py
-      - stegverse/versioned_sovereign_runtime.py
       - stegverse/evaluator_console.py
       - inspection/examples/elan-relational-state-test1.json
       - inspection/examples/elan-governance-request.example.json
@@ -21,9 +18,9 @@ on:
 permissions: {}
 
 jobs:
-  external-framework-e2e:
+  external-framework-public-submission:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Materialize exact public source anonymously
         env:
@@ -37,19 +34,18 @@ jobs:
           mkdir /tmp/source
           tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
 
-      - name: Install SDK with canonical governed-test dependencies
+      - name: Install public SDK package surface
         run: |
           set -eu
           cd /tmp/source
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[dev,governed-test]"
+          python -m pip install -e ".[dev]"
 
-      - name: Execute ELAN external-framework path end-to-end
+      - name: Prepare ELAN submission without private runtime dependencies
         run: |
           set -eu
           cd /tmp/source
-          rm -f /tmp/elan-sdk-e2e.db /tmp/elan-sdk-e2e.json
           stegverse external-run \
+            --prepare-only \
             --input inspection/examples/elan-relational-state-test1.json \
             --governance-request inspection/examples/elan-governance-request.example.json \
             --evaluation-declaration inspection/examples/elan-evaluation-declaration-test1.json \
@@ -57,31 +53,32 @@ jobs:
             --source-output-id elan-emotional-ambiguity-silence-test-001 \
             --data-class elan.relational-state.v1 \
             --return-depth full-trace \
-            --custody-db /tmp/elan-sdk-e2e.db \
-            --output /tmp/elan-sdk-e2e.json
+            --output /tmp/elan-sdk-submission.json
 
-      - name: Verify receipt, custody, replay, reconstruction, and preregistration isolation
+      - name: Verify portable submission and preregistration isolation
         run: |
           set -eu
           python - <<'PY'
           import json
           from pathlib import Path
 
-          result = json.loads(Path('/tmp/elan-sdk-e2e.json').read_text())
-          assert result['schema'] == 'stegverse.sdk.external-framework-run.v1'
-          assert result['manifest_receipt_id']
-          assert result['governed_result']['master_records_custody_status'] == 'RECORDED'
-          assert result['replay']
-          assert result['reconstruction']
+          result = json.loads(Path('/tmp/elan-sdk-submission.json').read_text())
+          assert result['schema'] == 'stegverse.sdk.external-framework-submission.v1'
+          assert result['status'] == 'SUBMISSION_READY'
+          assert result['execution_performed'] is False
+          assert result['manifest_receipt_id'] is None
           manifest = result['manifest']
           assert manifest['payload']['test_id'] == 'elan-emotional-ambiguity-silence-test-001'
           assert manifest['extensions']['source_data_class'] == 'elan.relational-state.v1'
           assert manifest['extensions']['evaluation_declaration']
           assert 'evaluation_declaration' not in manifest['extensions']['stegverse_governance_request']
+          assert manifest['processing']['capability'] == 'governance'
+          assert manifest['processing']['route_id'] == 'stegverse.route.canonical-governed.v1'
           assert manifest['return_projection']['mode'] == 'ALL'
-          print('EXTERNAL_FRAMEWORK_E2E_VALIDATION_PASS')
+          print('EXTERNAL_FRAMEWORK_PUBLIC_SUBMISSION_VALIDATION_PASS')
           PY
 
-      - name: Completion boundary
+      - name: Public boundary
         run: |
-          echo 'Exact-head external-framework SDK path produced canonical custody, receipt, replay, and reconstruction evidence.'
+          echo 'External testers can produce a validated submission bundle with the public SDK only.'
+          echo 'Canonical governed execution remains a separate StegVerse runtime step and is not falsely claimed by this public validation lane.'
