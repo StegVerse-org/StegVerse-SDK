@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 HANDOFF = ROOT / "SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md"
 TASK = ROOT / "tasks" / "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003.json"
 DEPENDENCIES = ROOT / "data" / "sdk-generic-manifest-downstream-dependencies.json"
+OBSERVATION = ROOT / "data" / "sdk-generic-manifest-downstream-observation.json"
 
 TASK_ID = "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003"
 COSV = "71000000100110"
@@ -61,6 +62,7 @@ def main() -> None:
     handoff = HANDOFF.read_text(encoding="utf-8")
     task = json.loads(TASK.read_text(encoding="utf-8"))
     deps = json.loads(DEPENDENCIES.read_text(encoding="utf-8"))
+    observation = json.loads(OBSERVATION.read_text(encoding="utf-8"))
 
     for token in REQUIRED_HANDOFF:
         if token not in handoff:
@@ -141,6 +143,37 @@ def main() -> None:
         if item.get("complete") is False and ready:
             fail(f"{item.get('repository')} has complete evidence but complete=false; reconcile state")
 
+    if observation.get("schema_version") != "1.0.0" or observation.get("task_id") != TASK_ID or observation.get("cosv") != COSV:
+        fail("downstream observation identity mismatch")
+    if observation.get("observed_state") != "NO_DOWNSTREAM_OWNER_TRANSITION":
+        fail("observation must remain NO_DOWNSTREAM_OWNER_TRANSITION until new owner evidence is recorded")
+    observed_site = observation.get("site") or {}
+    if observed_site.get("repository_state") != "OBSERVED_BLOCKED":
+        fail("observed Site repository state mismatch")
+    if observed_site.get("external_tasks_allowed") is not False or observed_site.get("external_session_ownership_allowed") is not False:
+        fail("observation must not claim Site admission while source state rejects external ownership")
+    if observed_site.get("admitted_tasks") != []:
+        fail("observation must preserve empty Site admitted_tasks")
+    observed_contamination = observed_site.get("conectrr_governance_contamination") or {}
+    if observed_contamination.get("task_id") != SITE_CONTAMINATION_BLOCKER:
+        fail("observation contamination blocker identity mismatch")
+    if observed_contamination.get("default_fixture_injection_still_present_on_main") is not True:
+        fail("observation cannot clear fixture injection without Site implementation evidence")
+    if observed_contamination.get("resolved") is not False:
+        fail("observation cannot resolve Site contamination without required evidence")
+    observed_wiki = observation.get("admissibility") or {}
+    if observed_wiki.get("worker_state") != "MACHINE_OWNED_DO_NOT_COMPETE":
+        fail("observation admissibility worker state mismatch")
+    if observed_wiki.get("new_worker_implementation_record_observed") is not False or observed_wiki.get("processor_generic_doctrine_transition_observed") is not False:
+        fail("observation cannot claim admissibility transition without worker/coordinator evidence")
+    observed_parent = observation.get("parent_effect") or {}
+    if observed_parent.get("site_completion_predicate_satisfied") is not site_ready:
+        fail("observation Site completion predicate mismatch")
+    if observed_parent.get("admissibility_completion_predicate_satisfied") is not wiki_ready:
+        fail("observation admissibility completion predicate mismatch")
+    if observed_parent.get("propagation_complete") is not False or observed_parent.get("authority_effect") != "NONE":
+        fail("observation parent effect mismatch")
+
     expected_propagation = site_ready and wiki_ready
     if deps.get("propagation_complete") is not expected_propagation:
         fail("propagation_complete does not equal all required dependency completion predicates")
@@ -154,6 +187,7 @@ def main() -> None:
     print("PASS: processor-generic downstream propagation contract is internally consistent")
     print("canonical_public_domain=https://stegverse.org/")
     print("downstream_dependency_count=2")
+    print("downstream_owner_transition_observed=false")
     print(f"site_conectrr_contamination_resolved={str(contamination.get('resolved') is True).lower()}")
     print(f"site_completion_predicate_satisfied={str(site_ready).lower()}")
     print(f"admissibility_completion_predicate_satisfied={str(wiki_ready).lower()}")
