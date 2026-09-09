@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
+  "cosv": "71000000100110",
+  "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
+  "canonical_public_base": "https://stegverse.org/",
+  "dependencies": [
+    {
+      "repository": "StegVerse-Labs/Site",
+      "role": "public SDK submission/preview surface",
+      "required": true,
+      "owner": "Site machine orchestration",
+      "admission": "EXTERNAL_SESSION_MUTATION_DISALLOWED",
+      "tracking_ref": "StegVerse-org/StegVerse-SDK:issue/129",
+      "required_surfaces": [
+        "docs/ECOSYSTEM_CHAT_SDK_BACKEND_HANDOFF.md",
+        "fixtures/ecosystem-chat/sdk-form-payload.example.json",
+        "fixtures/ecosystem-chat/sdk-backend-response.example.json"
+      ],
+      "required_semantics": [
+        "processing.capability",
+        "processing.route_id",
+        "processor-specific extensions",
+        "return_projection",
+        "manifest_receipt_id"
+      ],
+      "completion_requires": [
+        "repository-native exact-head validation PASS",
+        "public route observed under https://stegverse.org/ when user-facing",
+        "handoff reconciliation"
+      ],
+      "complete": false
+    },
+    {
+      "repository": "StegVerse-Labs/admissibility-wiki",
+      "role": "public SDK interoperability doctrine/evaluation surface",
+      "required": true,
+      "owner": "Worker D / issue #65 under coordinator #66",
+      "admission": "MACHINE_OWNED_DO_NOT_COMPETE",
+      "tracking_ref": "StegVerse-Labs/admissibility-wiki:issue/65",
+      "required_semantics": [
+        "payload class != processing capability",
+        "processing capability != runtime route",
+        "processing selection != authority",
+        "route selection != authority",
+        "caller projection != canonical custody",
+        "governance-specific fields are conditional",
+        "unsupported or uninstalled processor-route execution fails closed"
+      ],
+      "completion_requires": [
+        "worker/coordinator implementation record",
+        "repository-native exact-head validation PASS",
+        "public route observed under https://stegverse.org/ when user-facing",
+        "handoff reconciliation"
+      ],
+      "complete": false
+    }
+  ],
+  "non_dependencies": [
+    {
+      "repository": "GCAT-BCAT-Engine/Publisher",
+      "disposition": "NO_DIRECT_CHANGE_REQUIRED"
+    },
+    {
+      "repository": "StegVerse-002/stegguardian-wiki",
+      "disposition": "NO_DIRECT_CHANGE_REQUIRED"
+    }
+  ],
+  "propagation_complete": false,
+  "authority_effect": "NONE"
+}
