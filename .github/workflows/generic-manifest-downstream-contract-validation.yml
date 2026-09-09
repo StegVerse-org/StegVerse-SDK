@@ -5,6 +5,7 @@ on:
     paths:
       - 'SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md'
       - 'tasks/SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003.json'
+      - 'data/sdk-generic-manifest-downstream-dependencies.json'
       - 'scripts/check_generic_manifest_downstream_contract.py'
       - '.github/workflows/generic-manifest-downstream-contract-validation.yml'
   push:
@@ -12,6 +13,7 @@ on:
     paths:
       - 'SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md'
       - 'tasks/SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003.json'
+      - 'data/sdk-generic-manifest-downstream-dependencies.json'
       - 'scripts/check_generic_manifest_downstream_contract.py'
       - '.github/workflows/generic-manifest-downstream-contract-validation.yml'
   workflow_dispatch:
@@ -47,5 +49,5 @@ jobs:
       - name: Reassert bounded result
         run: |
           set -eu
-          echo 'This job validates SDK-side contract consistency only.'
+          echo 'This job validates SDK-side contract and dependency-manifest consistency only.'
           echo 'It does not claim downstream deployment, Site admission, admissibility completion, custody, or governed activation.'
