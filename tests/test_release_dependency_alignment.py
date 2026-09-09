@@ -14,7 +14,7 @@ REQUIREMENTS = [
 ]
 
 PUBLIC_PACKAGE_REQUIREMENTS = [
-    'stegcore==0.3.0 ; extra == "governed-test"',
+    'stegverse-stegcore==0.3.0 ; extra == "governed-test"',
     f'stegverse-core-lite @ git+https://github.com/Data-Continuation/core-lite.git@{CORE_LITE_TVC_SOURCE_PARENT} ; extra == "governed-test"',
     'stegverse-master-records==0.2.0 ; extra == "governed-test"',
 ]
@@ -54,6 +54,7 @@ def test_public_package_versions_bind_to_exact_tvc_source_parents():
     assert result["verified"] is True
     assert result["reasons"] == ["ok"]
     by_package = {item["package"]: item for item in result["observations"]}
+    assert by_package["stegcore"]["distribution"] == "stegverse-stegcore"
     assert by_package["stegcore"]["dependency_source"] == "package"
     assert by_package["stegcore"]["installed_pin_version"] == "0.3.0"
     assert by_package["stegverse-master-records"]["dependency_source"] == "package"
@@ -62,7 +63,7 @@ def test_public_package_versions_bind_to_exact_tvc_source_parents():
 
 def test_unknown_public_package_version_fails_closed():
     bad = list(PUBLIC_PACKAGE_REQUIREMENTS)
-    bad[0] = 'stegcore==9.9.9 ; extra == "governed-test"'
+    bad[0] = 'stegverse-stegcore==9.9.9 ; extra == "governed-test"'
     result = verify_governed_test_dependency_alignment(bad, _receipt())
     assert result["verified"] is False
     assert "stegcore:public_package_binding_unknown" in result["reasons"]
