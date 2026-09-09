@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.3.0",
+  "schema_version": "1.3.1",
   "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
   "cosv": "71000000100110",
   "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
@@ -27,12 +27,25 @@
       "active_subblockers": [
         {
           "id": "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001",
-          "state": "OPEN_MACHINE_OWNED_SITE_ISSUE_CREATED",
+          "state": "DEPLOYED_CONTAMINATION_OBSERVED_MACHINE_OWNED",
           "tracking_ref": "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5595193431",
           "site_issue_ref": "StegVerse-Labs/Site:issue/1143",
           "site_issue_url": "https://github.com/StegVerse-Labs/Site/issues/1143",
           "source_file": "StegVerse-Labs/Site:assets/ecosystem-node-views.js",
           "offending_behavior": "production Ecosystem Chat unconditionally loads assets/conectrr-interop.js, which imports Conectrr fixture records into ordinary governed sessions",
+          "deployed_contamination_observation": {
+            "state": "OBSERVED",
+            "site_issue_comment_ref": "StegVerse-Labs/Site:issue/1143#issuecomment-5596432980",
+            "sdk_issue_comment_ref": "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5596433895",
+            "public_surface": "https://stegverse.org/",
+            "observed_window_utc": "2026-09-09T05:41:13Z/2026-09-09T05:41:26Z",
+            "fixture_event_ids": [
+              "event:conectrr:handoff:001",
+              "event:stegverse:evaluation:001"
+            ],
+            "co_mingled_with_ordinary_session_events": true,
+            "clean_default_path_observed": false
+          },
           "current_site_queue_blocker": {
             "task_id": "SITE-0001-COHERENT-TRANSITION-THRESHOLD-ACTIVATION",
             "site_repository_state": "OBSERVED_BLOCKED",
