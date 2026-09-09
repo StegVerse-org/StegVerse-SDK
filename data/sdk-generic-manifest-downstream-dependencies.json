@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.3.1",
+  "schema_version": "1.4.0",
   "task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
   "cosv": "71000000100110",
   "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
@@ -27,24 +27,29 @@
       "active_subblockers": [
         {
           "id": "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001",
-          "state": "DEPLOYED_CONTAMINATION_OBSERVED_MACHINE_OWNED",
+          "state": "RESOLVED_VALIDATED_DEPLOYED",
           "tracking_ref": "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5595193431",
           "site_issue_ref": "StegVerse-Labs/Site:issue/1143",
           "site_issue_url": "https://github.com/StegVerse-Labs/Site/issues/1143",
           "source_file": "StegVerse-Labs/Site:assets/ecosystem-node-views.js",
-          "offending_behavior": "production Ecosystem Chat unconditionally loads assets/conectrr-interop.js, which imports Conectrr fixture records into ordinary governed sessions",
+          "offending_behavior": "production Ecosystem Chat unconditionally loaded assets/conectrr-interop.js, which imported Conectrr fixture records into ordinary governed sessions before remediation",
           "deployed_contamination_observation": {
-            "state": "OBSERVED",
+            "state": "REMEDIATED_AND_CLEAN_PATH_OBSERVED",
             "site_issue_comment_ref": "StegVerse-Labs/Site:issue/1143#issuecomment-5596432980",
             "sdk_issue_comment_ref": "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5596433895",
-            "public_surface": "https://stegverse.org/",
+            "public_surface": "https://stegverse.org/ecosystem-chat.html",
             "observed_window_utc": "2026-09-09T05:41:13Z/2026-09-09T05:41:26Z",
             "fixture_event_ids": [
               "event:conectrr:handoff:001",
               "event:stegverse:evaluation:001"
             ],
             "co_mingled_with_ordinary_session_events": true,
-            "clean_default_path_observed": false
+            "clean_default_path_observed": true,
+            "clean_observation_window_utc": "2026-09-09T07:52:51Z/2026-09-09T07:52:59Z",
+            "clean_observation_ref": "StegVerse-Labs/Site:issue/1143#issuecomment-5598275109",
+            "clean_observation_source": "Safari webarchive of https://stegverse.org/ecosystem-chat.html",
+            "clean_observation_fixture_event_ids_present": false,
+            "clean_observation_conectrr_text_present": false
           },
           "current_site_queue_blocker": {
             "task_id": "SITE-0001-COHERENT-TRANSITION-THRESHOLD-ACTIVATION",
@@ -53,7 +58,7 @@
             "heartbeat_system_health": "HEALTHY_BLOCKED",
             "external_tasks_allowed": false,
             "external_session_ownership_allowed": false,
-            "reason": "Site machine admission is waiting on the existing HIL live vertical-slice transition predicates; this does not alter the Conectrr remediation contract."
+            "reason": "This queue blocker no longer blocks the already-completed Conectrr remediation; it remains an independent Site orchestration state."
           },
           "executable_patch_contract": {
             "default_mode": "NO_CONECTRR_FIXTURE",
@@ -94,12 +99,12 @@
             "exact-head Site validation PASS",
             "deployed https://stegverse.org/ecosystem-chat.html ordinary governed interaction observed without Conectrr fixture records"
           ],
-          "implementation_merge_ref": null,
-          "exact_head_validation_ref": null,
-          "default_no_fixture_regression_ref": null,
-          "opt_in_validation_ref": null,
-          "public_observation_ref": null,
-          "resolved": false
+          "implementation_merge_ref": "StegVerse-Labs/Site:commit/1260262ba6ab7198b20bf5a04a93264089e203da",
+          "exact_head_validation_ref": "StegVerse-Labs/Site:actions/run/34317414402",
+          "default_no_fixture_regression_ref": "StegVerse-Labs/Site:commit/e6991ed197cdde8fc78b62b879ba35165241253b#repository-task-observation.report.json",
+          "opt_in_validation_ref": "StegVerse-Labs/Site:commit/e6991ed197cdde8fc78b62b879ba35165241253b#repository-task-observation.report.json",
+          "public_observation_ref": "StegVerse-Labs/Site:issue/1143#issuecomment-5598275109",
+          "resolved": true
         }
       ],
       "completion_evidence": {
