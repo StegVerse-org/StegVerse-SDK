@@ -102,9 +102,21 @@ SDK completion issue: StegVerse-org/StegVerse-SDK issue #137 COMPLETION_READY_TO
 SDK completion PR: StegVerse-org/StegVerse-SDK PR #138 MERGED @ 4e1942b487972874ce310f4a9ec031f529fa1f09
 post-completion propagation audit: StegVerse-org/StegVerse-SDK issue #139 OPEN
 Site dependency tracker: StegVerse-org/StegVerse-SDK issue #129 OPEN_TRACKING_ONLY
+Site Conectrr remediation issue: StegVerse-Labs/Site issue #1143 RESOLVED
+Site Conectrr remediation PR: StegVerse-Labs/Site PR #1150 MERGED @ 1260262ba6ab7198b20bf5a04a93264089e203da
+Site Conectrr exact validated head: 45f4085cd0cd7ad99ed20bb6d0b9cea2d8184db0
+Site Conectrr controller completion: e6991ed197cdde8fc78b62b879ba35165241253b
+Site Conectrr clean public observation: StegVerse-Labs/Site#1143#issuecomment-5598275109
+SDK Site evidence mirror: StegVerse-org/StegVerse-SDK#129#issuecomment-5598277562
 admissibility coordinator: StegVerse-Labs/admissibility-wiki issue #66
 admissibility implementation owner: StegVerse-Labs/admissibility-wiki issue #65 / Worker D
 ```
+
+## Resolved Site Conectrr contamination sub-blocker
+
+`SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001` is resolved. Site PR #1150 removed default Conectrr fixture execution from ordinary Ecosystem Chat sessions while retaining explicit `?conectrr-fixture=1` test/demo execution. The rebased exact head `45f4085cd0cd7ad99ed20bb6d0b9cea2d8184db0` passed Site Handoff run `34317414408`, Bootstrap/application run `34317414402`, Heartbeat run `34317414414`, Canonical Gateway observation run `34317414404`, and gateway-binding run `34317414395`. The Site repository controller then advanced the task COMPLETE at `e6991ed197cdde8fc78b62b879ba35165241253b` with default loader and default fixture execution disabled.
+
+Authentic post-deploy evidence was supplied as a Safari `.webarchive` of `https://stegverse.org/ecosystem-chat.html` captured at approximately `2026-09-09T07:52:51Z`–`2026-09-09T07:52:59Z`. The governed stream contained an ordinary `What time Is it?` interaction and contained neither `event:conectrr:handoff:001` nor `event:stegverse:evaluation:001`; no `Conectrr`/`conectrr` text appeared. This closes the contamination sub-blocker only; it does not satisfy the separate Site generic-SDK-surface completion predicate.
 
 ## Downstream disposition
 
@@ -115,6 +127,7 @@ pertinent: YES
 required propagation: align the Site SDK preview/backend-facing manifest description with processing.capability, processing.route_id, processor-specific extensions, return_projection, manifest_receipt_id, and the portable submission boundary
 implementation boundary: Site remains preview/submission UI; no processor, evaluator, receipt, custody, or route authority
 tracking: StegVerse-org/StegVerse-SDK issue #129
+Conectrr contamination sub-blocker: RESOLVED_VALIDATED_DEPLOYED
 ```
 
 Site/public UI completion is downstream product work and is not part of the binary SDK package completion gate.
@@ -172,6 +185,8 @@ fixtures/ecosystem-chat/sdk-backend-response.example.json only if stale
 associated Site SDK checker/schema only if required by admitted Site-owned mutation
 ```
 
+The Conectrr fixture-contamination remediation is no longer remaining work.
+
 ### StegVerse-Labs/admissibility-wiki
 
 ```text
@@ -204,6 +219,7 @@ Post-completion verification issue #139 exists to audit pertinent propagation to
 SDK-PROCESSOR-GENERIC-MANIFEST-002: COMPLETE_VALIDATED_MERGED
 SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING
 SDK package completion: COMPLETE_VALIDATED_MERGED_PR_138
+Site Conectrr contamination sub-blocker: RESOLVED_VALIDATED_DEPLOYED
 public external-framework preparation: COMPLETE_VALIDATED_MERGED
 canonical governed execution orchestration: COMPLETE_VALIDATED_MERGED
 anonymous canonical runtime dependency installation: NOT_AVAILABLE_BY_CURRENT_PRIVATE_REPOSITORY_VISIBILITY
