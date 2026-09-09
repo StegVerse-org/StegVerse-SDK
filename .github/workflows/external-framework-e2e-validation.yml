@@ -1,0 +1,84 @@
+name: External Framework Public Submission Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - stegverse/external_framework_runner.py
+      - stegverse/manifest_builder.py
+      - stegverse/evaluator_console.py
+      - inspection/examples/elan-relational-state-test1.json
+      - inspection/examples/elan-governance-request.example.json
+      - inspection/examples/elan-evaluation-declaration-test1.json
+      - tests/test_external_framework_runner.py
+      - pyproject.toml
+      - .github/workflows/external-framework-e2e-validation.yml
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  external-framework-public-submission:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Materialize exact public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+
+      - name: Install public SDK package surface
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m pip install -e ".[dev]"
+
+      - name: Prepare ELAN submission without private runtime dependencies
+        run: |
+          set -eu
+          cd /tmp/source
+          stegverse external-run \
+            --prepare-only \
+            --input inspection/examples/elan-relational-state-test1.json \
+            --governance-request inspection/examples/elan-governance-request.example.json \
+            --evaluation-declaration inspection/examples/elan-evaluation-declaration-test1.json \
+            --source-framework ELAN \
+            --source-output-id elan-emotional-ambiguity-silence-test-001 \
+            --data-class elan.relational-state.v1 \
+            --return-depth full-trace \
+            --output /tmp/elan-sdk-submission.json
+
+      - name: Verify portable submission and preregistration isolation
+        run: |
+          set -eu
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(Path('/tmp/elan-sdk-submission.json').read_text())
+          assert result['schema'] == 'stegverse.sdk.external-framework-submission.v1'
+          assert result['status'] == 'SUBMISSION_READY'
+          assert result['execution_performed'] is False
+          assert result['manifest_receipt_id'] is None
+          manifest = result['manifest']
+          assert manifest['payload']['test_id'] == 'elan-emotional-ambiguity-silence-test-001'
+          assert manifest['extensions']['source_data_class'] == 'elan.relational-state.v1'
+          assert manifest['extensions']['evaluation_declaration']
+          assert 'evaluation_declaration' not in manifest['extensions']['stegverse_governance_request']
+          assert manifest['processing']['capability'] == 'governance'
+          assert manifest['processing']['route_id'] == 'stegverse.route.canonical-governed.v1'
+          assert manifest['return_projection']['mode'] == 'ALL'
+          print('EXTERNAL_FRAMEWORK_PUBLIC_SUBMISSION_VALIDATION_PASS')
+          PY
+
+      - name: Public boundary
+        run: |
+          echo 'External testers can produce a validated submission bundle with the public SDK only.'
+          echo 'Canonical governed execution remains a separate StegVerse runtime step and is not falsely claimed by this public validation lane.'

@@ -1,0 +1,21 @@
+{
+  "test_id": "elan-emotional-ambiguity-silence-test-001",
+  "events": [
+    {
+      "sequence": 1,
+      "human_event": "Something happened today that I probably should talk about, but I'm not sure I want advice. Part of me thinks I'm overreacting, and part of me thinks something is genuinely wrong."
+    },
+    {
+      "sequence": 2,
+      "human_event": "I don't know."
+    },
+    {
+      "sequence": 3,
+      "human_event": "SILENCE",
+      "observation": "No further conversational input for the preregistered interval."
+    }
+  ],
+  "elan_interpretation": null,
+  "elan_behavior": null,
+  "notes": "Populate only fields ELAN legitimately exposes; do not infer missing internal state."
+}
