@@ -14,7 +14,7 @@ credential_authority: TV/TVC
 GitHub runtime authority: NONE
 ```
 
-This handoff is the current source of truth for processor-generic downstream propagation and records the completed SDK package gate from issue #137 / PR #138.
+This handoff is the current source of truth for processor-generic downstream propagation and public governed-runtime distribution remediation.
 
 ## Canonical propagated semantics
 
@@ -41,7 +41,6 @@ processor-specific request: extensions.stegverse_governance_request
 ```text
 completion issue: StegVerse-org/StegVerse-SDK#137
 completion PR: StegVerse-org/StegVerse-SDK#138 MERGED
-validated PR head: 163703afcb246ac697fea860bd1f23f20ed6662d
 merge commit: 4e1942b487972874ce310f4a9ec031f529fa1f09
 one-command surface: stegverse external-run
 public preparation mode: --prepare-only
@@ -49,31 +48,72 @@ public submission schema: stegverse.sdk.external-framework-submission.v1
 executed run schema: stegverse.sdk.external-framework-run.v1
 ```
 
-Exact PR-head PASS evidence:
+The merged SDK package preserves source-native data, evaluator preregistration outside the governance decision request, declared processor/route binding, caller-selected return projection, fail-closed unsupported routing, canonical `manifest_receipt_id`, replay, and reconstruction.
+
+## Public runtime distribution remediation
+
+The earlier repository-source installation boundary has been materially remediated without making private source repositories public.
 
 ```text
-Manifest Builder Source Validation: run 34308291805 PASS
-Evaluator Contract Console Validation: run 34308291869 PASS
-Generic Manifest Downstream Contract Validation: run 34308291808 PASS
-External Framework Public Submission Validation: run 34308291802 PASS
-SDK Package Artifact Validation: run 34308291902 PASS
+StegCore source/import namespace: stegcore
+StegCore public distribution: stegverse-stegcore
+StegCore distribution version targeted by SDK: 0.3.0
+StegCore distribution rename PR: StegVerse-Labs/StegCore#197 MERGED
+StegCore merge: 9a35f39b3425a2c3e9592a03b0362a417094b809
+StegCore README public-install documentation: COMPLETE
+
+Master Records public distribution: stegverse-master-records
+Master Records version targeted by SDK: 0.2.0
+Master Records exact frozen release candidate: c524b1a0c1a43e49c70faeac7b67f78c5908e4e4
+Master Records source parent: 03312236c115bc814024d700810391340648601f
+Master Records Trusted Publishing PR: master-records/orchestration#85 MERGED
+Master Records README public-install documentation: COMPLETE
+
+SDK governed-test dependency branch: public-runtime-package-dependencies
+SDK PR: StegVerse-org/StegVerse-SDK#163 DRAFT
+SDK exact current branch head after README correction: b229a7a93a59bdd93e134ed1e219e482a81aefb1
+SDK dependency identities:
+  stegverse-stegcore==0.3.0
+  stegverse-master-records==0.2.0
+  stegverse-core-lite @ public source commit 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+SDK README stale public-repository wording: CORRECTED
 ```
 
-The SDK package now provides one external-framework path that preserves source-native data, retains evaluator preregistration outside the governance decision request, binds the declared installed governance route, preserves caller-selected return projection, fails closed on invalid processor/route evidence, requires a canonical `manifest_receipt_id` after governed execution, and supports replay plus reconstruction from that receipt.
+StegCore PR #197 exact-head package identity validation and publish-build validation passed before merge. Master Records has the release-bound Trusted Publishing workflow and registered publisher path, but the exact immutable 0.2.0 release is not yet observed as published.
 
-The credential-free `--prepare-only` path emits the exact validated portable submission bundle using public SDK dependencies only. It does not claim execution or fabricate a receipt.
+## Anonymous governed-runtime installation gate
 
-## Canonical runtime dependency boundary
+SDK PR #163 contains `.github/workflows/anonymous-governed-test-install.yml`. It strips GitHub credentials, anonymously materializes the SDK PR source, installs `.[governed-test]`, verifies distribution identities, executes ELAN Test 1 through `stegverse external-run`, and then requires Master Records custody, replay, and reconstruction evidence.
 
-An attempted anonymous governed-runtime CI installation established a real distribution boundary: pinned StegCore and Master Records dependencies are currently private repositories, while Core-Lite is public. The SDK therefore does not claim that arbitrary anonymous callers can locally install the complete canonical governed runtime today.
+Latest exact-head observation:
 
 ```text
-PUBLIC_EXTERNAL_SUBMISSION_PREPARATION: COMPLETE_VALIDATED_MERGED
-CANONICAL_GOVERNED_EXECUTION_ORCHESTRATION: COMPLETE_VALIDATED_MERGED
-ANONYMOUS_INSTALL_OF_PRIVATE_CANONICAL_RUNTIME_DEPS: NOT_AVAILABLE_BY_CURRENT_REPOSITORY_VISIBILITY
+head: b229a7a93a59bdd93e134ed1e219e482a81aefb1
+Anonymous Governed Runtime Install: run 34329494516 FAILURE
+failure step: Install complete governed test with no private-repository credential
+package identity verification: SKIPPED after install failure
+ELAN Test 1 execution: SKIPPED after install failure
+complete governed result verification: SKIPPED after install failure
 ```
 
-No private repository is to be made public, copied into the SDK, or exposed merely to make anonymous CI pass without a separate explicit repository-visibility/release decision.
+This is the expected current failure mode while the exact PyPI distributions are not yet authentically published. The branch's package/artifact, evaluator-console, manifest-builder, MCP, output-boundary, portable-package, production-manifold, and related SDK validations passed on the same head. Do not weaken the anonymous-install gate or convert publication absence into a false PASS.
+
+## Release boundary
+
+The separately frozen SDK `v1.2.0` identity remains immutable and must not be retargeted to moving `main`, PR #138, or PR #163.
+
+A post-1.2.0 successor release identity must be coherent across:
+
+```text
+pyproject.toml
+VERSION.json
+release notes
+TVC successor release policy
+exact immutable tag/release coordinate
+Trusted Publisher/PyPI provenance
+```
+
+Changing only `pyproject.toml` is not an acceptable release decision. Actual package publication remains subject to the canonical TV/TVC release gate; source validation, GitHub merge, Trusted Publisher registration, or this chat session do not fabricate a GRANTED release authorization.
 
 ## Reproducible ELAN Test 1 assets
 
@@ -85,38 +125,8 @@ docs/ELAN_TEST1_RUNBOOK.md
 stegverse/external_framework_runner.py
 tests/test_external_framework_runner.py
 .github/workflows/external-framework-e2e-validation.yml
+.github/workflows/anonymous-governed-test-install.yml
 ```
-
-The source fixture contains only ELAN-observable/source-native data. The governance request is a separate processor-specific example. The evaluator declaration is separately retained evidence metadata.
-
-## Durable continuation evidence
-
-```text
-source correction: StegVerse-org/StegVerse-SDK PR #126 COMPLETE_VALIDATED_MERGED
-assessment: StegVerse-org/StegVerse-SDK PR #127 MERGED
-continuation task registration: StegVerse-org/StegVerse-SDK PR #128 MERGED
-ownership reconciliation: StegVerse-org/StegVerse-SDK PR #130 MERGED
-COSV registration: StegVerse-Labs/.github PR #1184 MERGED
-COSV ownership reconciliation: StegVerse-Labs/.github PR #1185 MERGED
-SDK completion issue: StegVerse-org/StegVerse-SDK issue #137 COMPLETION_READY_TO_CLOSE
-SDK completion PR: StegVerse-org/StegVerse-SDK PR #138 MERGED @ 4e1942b487972874ce310f4a9ec031f529fa1f09
-post-completion propagation audit: StegVerse-org/StegVerse-SDK issue #139 OPEN
-Site dependency tracker: StegVerse-org/StegVerse-SDK issue #129 OPEN_TRACKING_ONLY
-Site Conectrr remediation issue: StegVerse-Labs/Site issue #1143 RESOLVED
-Site Conectrr remediation PR: StegVerse-Labs/Site PR #1150 MERGED @ 1260262ba6ab7198b20bf5a04a93264089e203da
-Site Conectrr exact validated head: 45f4085cd0cd7ad99ed20bb6d0b9cea2d8184db0
-Site Conectrr controller completion: e6991ed197cdde8fc78b62b879ba35165241253b
-Site Conectrr clean public observation: StegVerse-Labs/Site#1143#issuecomment-5598275109
-SDK Site evidence mirror: StegVerse-org/StegVerse-SDK#129#issuecomment-5598277562
-admissibility coordinator: StegVerse-Labs/admissibility-wiki issue #66
-admissibility implementation owner: StegVerse-Labs/admissibility-wiki issue #65 / Worker D
-```
-
-## Resolved Site Conectrr contamination sub-blocker
-
-`SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001` is resolved. Site PR #1150 removed default Conectrr fixture execution from ordinary Ecosystem Chat sessions while retaining explicit `?conectrr-fixture=1` test/demo execution. The rebased exact head `45f4085cd0cd7ad99ed20bb6d0b9cea2d8184db0` passed Site Handoff run `34317414408`, Bootstrap/application run `34317414402`, Heartbeat run `34317414414`, Canonical Gateway observation run `34317414404`, and gateway-binding run `34317414395`. The Site repository controller then advanced the task COMPLETE at `e6991ed197cdde8fc78b62b879ba35165241253b` with default loader and default fixture execution disabled.
-
-Authentic post-deploy evidence was supplied as a Safari `.webarchive` of `https://stegverse.org/ecosystem-chat.html` captured at approximately `2026-09-09T07:52:51Z`–`2026-09-09T07:52:59Z`. The governed stream contained an ordinary `What time Is it?` interaction and contained neither `event:conectrr:handoff:001` nor `event:stegverse:evaluation:001`; no `Conectrr`/`conectrr` text appeared. This closes the contamination sub-blocker only; it does not satisfy the separate Site generic-SDK-surface completion predicate.
 
 ## Downstream disposition
 
@@ -127,10 +137,15 @@ pertinent: YES
 required propagation: align the Site SDK preview/backend-facing manifest description with processing.capability, processing.route_id, processor-specific extensions, return_projection, manifest_receipt_id, and the portable submission boundary
 implementation boundary: Site remains preview/submission UI; no processor, evaluator, receipt, custody, or route authority
 tracking: StegVerse-org/StegVerse-SDK issue #129
+current Site state: OBSERVED_BLOCKED
+external_tasks_allowed: false
+external_session_ownership_allowed: false
+admitted task count for this propagation: 0
 Conectrr contamination sub-blocker: RESOLVED_VALIDATED_DEPLOYED
+completion predicate: FALSE
 ```
 
-Site/public UI completion is downstream product work and is not part of the binary SDK package completion gate.
+Site/public UI completion remains Site-owned. Do not collide with its machine-owned task lane.
 
 ### GCAT-BCAT-Engine/Publisher
 
@@ -147,8 +162,13 @@ pertinent: YES
 required propagation: bounded processor-generic SDK interoperability doctrine
 coordinator: issue #66
 implementation owner: Worker D / issue #65
-worker state: MACHINE_OWNED_DO_NOT_COMPETE
+transfer comment: #65 issuecomment-5592480056
+public-route constraint transfer: #65 issuecomment-5593234328
+worker-owned completion transition observed: false
+completion predicate: FALSE
 ```
+
+Do not duplicate Worker D's owned implementation lane.
 
 ### StegVerse-002/stegguardian-wiki
 
@@ -163,17 +183,34 @@ action: preserve non-enforcement boundaries; do not duplicate processor semantic
 ```text
 canonical public domain: https://stegverse.org/
 current Ecosystem Chat observation: https://stegverse.org/ecosystem-chat.html
+dedicated processor-generic public route: NOT YET OBSERVED
 ```
 
-No dedicated processor-generic hosted submission route is claimed until Site creates, deploys, and validates an actual `https://stegverse.org/...` route. The SDK package/CLI does not depend on that hosted UI.
-
-## Remaining files/modules by destination
+## Remaining work by destination
 
 ### StegVerse-org/StegVerse-SDK
 
 ```text
-README wording still contains a stale statement that governed-test dependencies are public and should be corrected in a successor documentation/release change.
-release/version decision must not reuse or retarget the separately prepared v1.2.0 identity.
+PR #163: keep draft until exact public runtime distributions exist and anonymous install + ELAN E2E passes
+release/version: define coherent post-v1.2.0 successor identity without retargeting v1.2.0
+README stale dependency wording: COMPLETE
+```
+
+### StegVerse-Labs/StegCore
+
+```text
+public distribution rename: COMPLETE_MERGED
+README maintenance: COMPLETE
+exact immutable publication: pending canonical release gate
+```
+
+### master-records/orchestration
+
+```text
+Trusted Publishing workflow: COMPLETE_MERGED
+README maintenance: COMPLETE
+0.2.0 frozen release candidate: c524b1a0c1a43e49c70faeac7b67f78c5908e4e4
+exact immutable publication: pending canonical release gate
 ```
 
 ### StegVerse-Labs/Site
@@ -184,8 +221,6 @@ fixtures/ecosystem-chat/sdk-form-payload.example.json only if stale
 fixtures/ecosystem-chat/sdk-backend-response.example.json only if stale
 associated Site SDK checker/schema only if required by admitted Site-owned mutation
 ```
-
-The Conectrr fixture-contamination remediation is no longer remaining work.
 
 ### StegVerse-Labs/admissibility-wiki
 
@@ -207,22 +242,18 @@ none required now
 none required now
 ```
 
-## Release/tag determination
-
-`pyproject.toml` declares `1.2.0`, but `v1.2.0` is a separately prepared exact successor release identity recorded in `docs/SDK_1_2_0_SUCCESSOR_RELEASE_MIRROR_HANDOFF.md` and must not be moved to current `main` or PR #138. PR #138 adds a new public CLI capability, so any release carrying it requires a successor version/release candidate rather than retargeting `v1.2.0`.
-
-Post-completion verification issue #139 exists to audit pertinent propagation to Site, Publisher, admissibility-wiki, and stegGuardian after the successor release decision.
-
-## Status
+## Current status
 
 ```text
 SDK-PROCESSOR-GENERIC-MANIFEST-002: COMPLETE_VALIDATED_MERGED
-SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING
-SDK package completion: COMPLETE_VALIDATED_MERGED_PR_138
-Site Conectrr contamination sub-blocker: RESOLVED_VALIDATED_DEPLOYED
-public external-framework preparation: COMPLETE_VALIDATED_MERGED
-canonical governed execution orchestration: COMPLETE_VALIDATED_MERGED
-anonymous canonical runtime dependency installation: NOT_AVAILABLE_BY_CURRENT_PRIVATE_REPOSITORY_VISIBILITY
-hosted Site submission UI: DOWNSTREAM_NOT_SDK_PACKAGE_BLOCKER
+SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE / DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING
+SDK package generic-manifest completion: COMPLETE_VALIDATED_MERGED_PR_138
+StegCore public distribution rename: COMPLETE_MERGED
+Master Records Trusted Publishing support: COMPLETE_MERGED
+SDK governed-test public distribution dependency rewrite: IMPLEMENTED_IN_DRAFT_PR_163
+SDK README stale dependency claim: CORRECTED
+anonymous governed-runtime install: BLOCKED_PENDING_EXACT_PYPI_RELEASES
+Site completion predicate: FALSE / MACHINE_OWNED
+admissibility completion predicate: FALSE / WORKER_OWNED
 manual user work: NONE
 ```
