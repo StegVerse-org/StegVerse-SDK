@@ -31,9 +31,28 @@ inspection/examples/elan-evaluation-declaration-test1.json
 
 The first file is source-native ELAN-observable data only. The governance request is a separate processor-specific input. The evaluator declaration is preregistered evidence metadata and is not inserted into the governance decision request.
 
-## One-command SDK execution
+## External tester: one-command public preparation
 
-After installing the SDK with the governed-test dependencies, the complete package-level path is:
+An external framework creator can install the public SDK surface and produce the exact validated submission bundle without access to StegCore or Master Records repositories:
+
+```bash
+stegverse external-run \
+  --prepare-only \
+  --input inspection/examples/elan-relational-state-test1.json \
+  --governance-request inspection/examples/elan-governance-request.example.json \
+  --evaluation-declaration inspection/examples/elan-evaluation-declaration-test1.json \
+  --source-framework ELAN \
+  --source-output-id elan-emotional-ambiguity-silence-test-001 \
+  --data-class elan.relational-state.v1 \
+  --return-depth full-trace \
+  --output elan-test1-submission.json
+```
+
+The result is `stegverse.sdk.external-framework-submission.v1` with `status=SUBMISSION_READY`. It contains the source-native payload, processing/route declaration, preregistration metadata, and return projection. It does not fabricate a receipt or claim governed execution.
+
+## StegVerse runtime: one-command governed execution
+
+In an environment where the canonical pinned governed-test dependencies are installed, remove `--prepare-only` and use the same inputs:
 
 ```bash
 stegverse external-run \
@@ -47,9 +66,9 @@ stegverse external-run \
   --output elan-test1-complete-run.json
 ```
 
-This one command builds and validates `stegverse.ingress-manifest.v1`, binds governance to the installed `stegverse.route.canonical-governed.v1`, executes the canonical local governed test, records custody, returns the `manifest_receipt_id`, and performs replay plus reconstruction against that receipt by default.
+This path builds and validates `stegverse.ingress-manifest.v1`, binds governance to `stegverse.route.canonical-governed.v1`, executes the canonical local governed test, records custody, returns `manifest_receipt_id`, and performs replay plus reconstruction by default.
 
-Use `--no-replay` or `--no-reconstruct` only when deliberately requesting a reduced local run. Caller-facing return depth does not suppress canonical custody.
+The canonical governed runtime currently depends on pinned StegCore and Master Records repositories that are not anonymous-public Git dependencies. That affects who can execute the private canonical runtime locally; it does not prevent an external tester from preparing the exact portable SDK submission. The SDK must not claim that `--prepare-only` is governance execution.
 
 ## Real test substitution rule
 
@@ -57,4 +76,4 @@ The included governance request is a runnable SDK-path example. For the actual E
 
 ## Completion proof
 
-The SDK completion gate requires exact-head evidence that the external-framework runner and public fixtures validate, source-native data remains unchanged, preregistration metadata remains outside the decision request, the route fails closed on invalid declarations, and a real governed-test installation can produce custody, receipt, replay, and reconstruction evidence.
+The SDK completion gate requires exact-head evidence that the public external-framework preparation path works anonymously, the source-native payload remains unchanged, preregistration stays outside the governance decision request, return projection and route binding are deterministic, and unsupported/incomplete declarations fail closed. Canonical governed execution evidence remains receipt/custody/replay/reconstruction evidence from a runtime environment with the pinned dependencies installed.
