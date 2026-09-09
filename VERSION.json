@@ -2,58 +2,45 @@
   "schema_version": "1.0.0",
   "component_id": "STEGVERSE-SDK",
   "repository": "StegVerse-org/StegVerse-SDK",
-  "component_version": "1.1.0",
-  "version_stage": "RELEASE_CANDIDATE",
+  "component_version": "1.3.0",
+  "version_stage": "SOURCE_CANDIDATE",
   "release": {
     "tag": null,
     "commit": null,
     "release_evidence": []
   },
   "release_candidate": {
-    "target_tag": "v1.1.0",
-    "frozen_commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
-    "frozen_tree": "d9ddda3dbe942324c921051d89ec19eec3970b16",
-    "artifact_validation_run": 32251339936,
-    "artifact_validation_state": "PASS",
+    "target_tag": "v1.3.0",
+    "source_parent": "b229a7a93a59bdd93e134ed1e219e482a81aefb1",
+    "candidate_branch": "sdk-1.3.0-successor-candidate",
+    "frozen_commit": null,
+    "artifact_validation_run": null,
+    "artifact_validation_state": "PENDING",
     "tag_publication": "NOT_YET_AUTHORIZED",
     "package_publication": "NOT_YET_PUBLISHED"
   },
-  "development_line": {
-    "version": "1.2.0.dev0",
-    "base_release_candidate": "1.1.0",
-    "base_frozen_commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
-    "moving_branch": "main",
-    "release_identity": false,
-    "note": "Post-freeze main development must not be represented as the frozen 1.1.0 candidate."
+  "prior_frozen_release_identity": {
+    "version": "1.2.0",
+    "tag": "v1.2.0",
+    "release_commit": "beaabe0a06ef32f0f62fbe6bc360463b245bff61",
+    "retargeting_permitted": false
   },
-  "validated_capabilities": [
-    {
-      "capability_id": "SDK-PACKAGE-ARTIFACT-VALIDATION-1.1.0",
-      "state": "PASS",
-      "validated_pr_head": "2d70d6e2279aecc3195d52086e6b259a4629d620",
-      "merge_commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
-      "validated_tree": "d9ddda3dbe942324c921051d89ec19eec3970b16"
-    }
-  ],
+  "validated_capabilities": [],
   "runtime": {
     "state": "PENDING",
     "evidence": [
-      "PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md"
+      "SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md"
     ],
-    "next_required_state": "TVC_SUCCESSOR_AGGREGATE_RELEASE_VERIFIED_THEN_EXACT_GOVERNED_RUN"
+    "next_required_state": "EXACT_PUBLIC_RUNTIME_DISTRIBUTIONS_PUBLISHED_THEN_ANONYMOUS_GOVERNED_RUNTIME_INSTALL_PASS"
   },
   "activation": {
     "state": "PENDING",
     "evidence": [
-      "PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md"
+      "SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md"
     ],
-    "current_projection": "EXACT_GOVERNED_RUN_PROHIBITED_UNTIL_AGGREGATE_RELEASE_VERIFIED"
+    "current_projection": "SOURCE_CANDIDATE_ONLY_NO_RELEASE_OR_ACTIVATION_CLAIM"
   },
-  "superseded_release_candidates": [
-    "v1.0.13-oda3-r1",
-    "v1.0.13-evaluation-r2"
-  ],
-  "source_of_truth": "PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md",
+  "source_of_truth": "docs/SDK_1_3_0_SUCCESSOR_RELEASE_MIRROR_HANDOFF.md",
   "version_contract": "StegVerse-Labs/Site:docs/ECOSYSTEM_COMPONENT_VERSION_CONTRACT.md",
   "credential_authority": "TV/TVC",
   "release_authority": "TV/TVC",
