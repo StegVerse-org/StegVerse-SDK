@@ -8,6 +8,7 @@ from unittest.mock import patch
 from stegverse.external_framework_runner import (
     EVALUATION_DECLARATION_EXTENSION,
     prepare_external_framework_manifest,
+    prepare_external_framework_submission,
     run_external_framework,
 )
 
@@ -69,45 +70,46 @@ class ExternalFrameworkRunnerTests(unittest.TestCase):
             "expected_observation": "relational and governance outputs may differ",
             "requested_evidence": ["governance_decision", "manifest_receipt"],
         }
-        request = governance_request()
         manifest = prepare_external_framework_manifest(
             data={"silence_observed": True, "response_withheld": True},
             data_class="elan.relational-state.v1",
             source_framework="ELAN",
             source_output_id="elan-test-001",
-            processor_request=request,
+            processor_request=governance_request(),
             evaluation_declaration=declaration,
             return_depth="full-trace",
             created_at="2026-09-08T20:00:00Z",
         )
-
-        self.assertEqual(
-            manifest["extensions"][EVALUATION_DECLARATION_EXTENSION], declaration
-        )
+        self.assertEqual(manifest["extensions"][EVALUATION_DECLARATION_EXTENSION], declaration)
         self.assertNotIn(
             EVALUATION_DECLARATION_EXTENSION,
             manifest["extensions"]["stegverse_governance_request"],
         )
-        self.assertEqual(manifest["payload"]["silence_observed"], True)
+        self.assertTrue(manifest["payload"]["silence_observed"])
         self.assertEqual(manifest["return_projection"]["mode"], "ALL")
 
+    def test_prepare_only_bundle_requires_no_runtime_receipt(self):
+        result = prepare_external_framework_submission(
+            data={"native": True},
+            data_class="elan.relational-state.v1",
+            source_framework="ELAN",
+            source_output_id="elan-prepare-001",
+            processor_request=governance_request(),
+            evaluation_declaration={"what": "fixed test"},
+            return_depth="full-trace",
+            created_at="2026-09-08T20:00:00Z",
+        )
+        self.assertEqual(result["status"], "SUBMISSION_READY")
+        self.assertFalse(result["execution_performed"])
+        self.assertIsNone(result["manifest_receipt_id"])
+        self.assertEqual(result["manifest"]["payload"], {"native": True})
+        self.assertEqual(result["manifest"]["return_projection"]["mode"], "ALL")
+
     def test_public_elan_fixtures_build_without_semantic_repacking(self):
-        source = json.loads(
-            (ROOT / "inspection/examples/elan-relational-state-test1.json").read_text(
-                encoding="utf-8"
-            )
-        )
-        request = json.loads(
-            (ROOT / "inspection/examples/elan-governance-request.example.json").read_text(
-                encoding="utf-8"
-            )
-        )
-        declaration = json.loads(
-            (ROOT / "inspection/examples/elan-evaluation-declaration-test1.json").read_text(
-                encoding="utf-8"
-            )
-        )
-        manifest = prepare_external_framework_manifest(
+        source = json.loads((ROOT / "inspection/examples/elan-relational-state-test1.json").read_text(encoding="utf-8"))
+        request = json.loads((ROOT / "inspection/examples/elan-governance-request.example.json").read_text(encoding="utf-8"))
+        declaration = json.loads((ROOT / "inspection/examples/elan-evaluation-declaration-test1.json").read_text(encoding="utf-8"))
+        result = prepare_external_framework_submission(
             data=source,
             source_framework="ELAN",
             source_output_id="elan-emotional-ambiguity-silence-test-001",
@@ -117,30 +119,23 @@ class ExternalFrameworkRunnerTests(unittest.TestCase):
             return_depth="full-trace",
             created_at="2026-09-08T20:00:00Z",
         )
+        manifest = result["manifest"]
         self.assertEqual(manifest["payload"], source)
         self.assertEqual(manifest["extensions"]["source_data_class"], "elan.relational-state.v1")
-        self.assertEqual(
-            manifest["extensions"][EVALUATION_DECLARATION_EXTENSION], declaration
-        )
+        self.assertEqual(manifest["extensions"][EVALUATION_DECLARATION_EXTENSION], declaration)
         self.assertEqual(manifest["return_projection"]["mode"], "ALL")
 
     @patch("stegverse.sovereign_validation_runtime.reconstruct_sovereign")
     @patch("stegverse.sovereign_validation_runtime.replay_sovereign")
     @patch("stegverse.governance_ingress_runtime.run_external_manifest")
-    def test_one_call_runs_receipt_replay_and_reconstruction(
-        self, run_manifest, replay, reconstruct
-    ):
+    def test_one_call_runs_receipt_replay_and_reconstruction(self, run_manifest, replay, reconstruct):
         run_manifest.return_value = {
             "manifest_receipt_id": "MR-TEST-001",
             "governance_state": "ADMIT",
             "master_records_custody_status": "RECORDED",
         }
         replay.return_value = {"manifest_receipt_id": "MR-TEST-001", "replayed": True}
-        reconstruct.return_value = {
-            "manifest_receipt_id": "MR-TEST-001",
-            "reconstructed": True,
-        }
-
+        reconstruct.return_value = {"manifest_receipt_id": "MR-TEST-001", "reconstructed": True}
         result = run_external_framework(
             data={"native_semantics": ["presence", "restraint"]},
             data_class="elan.relational-state.v1",
@@ -152,8 +147,8 @@ class ExternalFrameworkRunnerTests(unittest.TestCase):
             created_at="2026-09-08T20:00:00Z",
             custody_db="/tmp/sdk-completion-test.db",
         )
-
         self.assertEqual(result["manifest_receipt_id"], "MR-TEST-001")
+        self.assertTrue(result["execution_performed"])
         self.assertEqual(result["governed_result"]["master_records_custody_status"], "RECORDED")
         self.assertTrue(result["replay"]["replayed"])
         self.assertTrue(result["reconstruction"]["reconstructed"])
