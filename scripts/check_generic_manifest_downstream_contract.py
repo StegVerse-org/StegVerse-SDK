@@ -36,6 +36,19 @@ def fail(message: str) -> None:
     raise SystemExit(f"FAIL: {message}")
 
 
+def evidence_complete(item: dict, require_worker_record: bool = False) -> bool:
+    ev = item.get("completion_evidence")
+    if not isinstance(ev, dict):
+        fail(f"{item.get('repository')} completion_evidence missing")
+    required = ["implementation_merge_ref", "exact_head_validation_ref", "handoff_reconciliation_ref"]
+    if require_worker_record:
+        required.insert(0, "worker_or_coordinator_record_ref")
+    scalar_ok = all(isinstance(ev.get(k), str) and ev.get(k).strip() for k in required)
+    route = ev.get("public_route")
+    route_ok = isinstance(route, str) and route.startswith(PUBLIC_BASE) and ev.get("public_route_observed") is True
+    return scalar_ok and route_ok
+
+
 def main() -> None:
     handoff = HANDOFF.read_text(encoding="utf-8")
     task = json.loads(TASK.read_text(encoding="utf-8"))
@@ -48,10 +61,8 @@ def main() -> None:
         if host in handoff:
             fail(f"handoff exposes provider URL as canonical public surface: {host}")
 
-    if task.get("task_id") != TASK_ID:
-        fail("unexpected task_id")
-    if task.get("state") != STATE:
-        fail("task state must remain dependency-execution-pending until downstream evidence lands")
+    if task.get("task_id") != TASK_ID or task.get("state") != STATE:
+        fail("task identity/state mismatch")
     if task.get("manual_work_required") is not False:
         fail("manual_work_required must remain false")
 
@@ -59,7 +70,7 @@ def main() -> None:
     if not isinstance(surface, dict):
         fail("public_surface must be an object")
     if surface.get("canonical_base") != PUBLIC_BASE:
-        fail("canonical public base must be https://stegverse.org/")
+        fail("canonical public base mismatch")
     if surface.get("ecosystem_chat") != "https://stegverse.org/ecosystem-chat.html":
         fail("Ecosystem Chat public route must use stegverse.org")
     if surface.get("dedicated_processor_generic_route") is not None:
@@ -67,55 +78,50 @@ def main() -> None:
     if surface.get("raw_github_pages_is_canonical_public_surface") is not False:
         fail("raw GitHub Pages must not be canonical public surface")
 
-    if deps.get("schema_version") != "1.0.0":
+    if deps.get("schema_version") != "1.1.0":
         fail("unexpected dependency manifest schema_version")
-    if deps.get("task_id") != TASK_ID or deps.get("cosv") != COSV:
-        fail("dependency manifest identity mismatch")
-    if deps.get("state") != STATE:
-        fail("dependency manifest state mismatch")
-    if deps.get("canonical_public_base") != PUBLIC_BASE:
-        fail("dependency manifest canonical public base mismatch")
-    if deps.get("propagation_complete") is not False:
-        fail("propagation_complete cannot be true while dependencies remain incomplete")
-    if deps.get("authority_effect") != "NONE":
-        fail("dependency manifest authority_effect must remain NONE")
+    if deps.get("task_id") != TASK_ID or deps.get("cosv") != COSV or deps.get("state") != STATE:
+        fail("dependency manifest identity/state mismatch")
+    if deps.get("canonical_public_base") != PUBLIC_BASE or deps.get("authority_effect") != "NONE":
+        fail("dependency manifest public-base/authority mismatch")
 
     dependencies = deps.get("dependencies")
     if not isinstance(dependencies, list) or len(dependencies) != 2:
-        fail("dependency manifest must contain exactly the two required downstream dependencies")
+        fail("dependency manifest must contain exactly two dependencies")
     by_repo = {item.get("repository"): item for item in dependencies if isinstance(item, dict)}
 
     site = by_repo.get("StegVerse-Labs/Site")
-    if not site:
-        fail("Site dependency missing")
-    if site.get("owner") != "Site machine orchestration":
-        fail("Site dependency owner mismatch")
-    if site.get("admission") != "EXTERNAL_SESSION_MUTATION_DISALLOWED":
-        fail("Site admission must remain externally disallowed until source state changes")
-    if site.get("complete") is not False:
-        fail("Site dependency cannot be complete before admitted implementation evidence")
-
     wiki = by_repo.get("StegVerse-Labs/admissibility-wiki")
-    if not wiki:
-        fail("admissibility-wiki dependency missing")
-    if "Worker D / issue #65" not in str(wiki.get("owner")):
-        fail("admissibility dependency owner mismatch")
-    if wiki.get("admission") != "MACHINE_OWNED_DO_NOT_COMPETE":
-        fail("admissibility dependency admission mismatch")
-    if wiki.get("complete") is not False:
-        fail("admissibility dependency cannot be complete before worker evidence")
+    if not site or not wiki:
+        fail("required dependency missing")
+    if site.get("owner") != "Site machine orchestration" or site.get("admission") != "EXTERNAL_SESSION_MUTATION_DISALLOWED":
+        fail("Site ownership/admission mismatch")
+    if "Worker D / issue #65" not in str(wiki.get("owner")) or wiki.get("admission") != "MACHINE_OWNED_DO_NOT_COMPETE":
+        fail("admissibility ownership/admission mismatch")
 
-    remaining = task.get("remaining") or []
-    joined = "\n".join(str(item) for item in remaining)
-    if "Site machine-owned admission" not in joined:
-        fail("Site machine-owned dependency is not preserved")
-    if "Worker D" not in joined:
-        fail("admissibility Worker D dependency is not preserved")
+    site_ready = evidence_complete(site)
+    wiki_ready = evidence_complete(wiki, require_worker_record=True)
+    for item, ready in ((site, site_ready), (wiki, wiki_ready)):
+        if item.get("complete") is True and not ready:
+            fail(f"{item.get('repository')} marked complete without satisfying completion evidence")
+        if item.get("complete") is False and ready:
+            fail(f"{item.get('repository')} has complete evidence but complete=false; reconcile state")
+
+    expected_propagation = site_ready and wiki_ready
+    if deps.get("propagation_complete") is not expected_propagation:
+        fail("propagation_complete does not equal all required dependency completion predicates")
+    if expected_propagation:
+        fail("current parent task must not be complete until task/handoff/COSV are reconciled in same transition")
+
+    remaining = "\n".join(str(item) for item in (task.get("remaining") or []))
+    if "Site machine-owned admission" not in remaining or "Worker D" not in remaining:
+        fail("task remaining dependencies not preserved")
 
     print("PASS: processor-generic downstream propagation contract is internally consistent")
     print("canonical_public_domain=https://stegverse.org/")
     print("downstream_dependency_count=2")
-    print("dedicated_processor_generic_route=UNDEPLOYED")
+    print(f"site_completion_predicate_satisfied={str(site_ready).lower()}")
+    print(f"admissibility_completion_predicate_satisfied={str(wiki_ready).lower()}")
     print("propagation_complete=false")
     print("authority_effect=NONE")
 
