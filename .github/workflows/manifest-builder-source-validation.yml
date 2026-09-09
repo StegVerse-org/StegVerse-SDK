@@ -15,6 +15,7 @@ on:
       - tests/test_generic_manifest_processing_contract.py
       - inspection/examples/elan-relational-state-test1.json
       - inspection/examples/elan-governance-request.example.json
+      - inspection/examples/elan-evaluation-declaration-test1.json
       - docs/ELAN_TEST1_RUNBOOK.md
       - docs/SDK_COMPLETION_GATE_137.md
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
@@ -37,6 +38,7 @@ on:
       - tests/test_generic_manifest_processing_contract.py
       - inspection/examples/elan-relational-state-test1.json
       - inspection/examples/elan-governance-request.example.json
+      - inspection/examples/elan-evaluation-declaration-test1.json
       - docs/ELAN_TEST1_RUNBOOK.md
       - docs/SDK_COMPLETION_GATE_137.md
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
