@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
@@ -8,6 +10,9 @@ from stegverse.external_framework_runner import (
     prepare_external_framework_manifest,
     run_external_framework,
 )
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def governance_request():
@@ -84,6 +89,39 @@ class ExternalFrameworkRunnerTests(unittest.TestCase):
             manifest["extensions"]["stegverse_governance_request"],
         )
         self.assertEqual(manifest["payload"]["silence_observed"], True)
+        self.assertEqual(manifest["return_projection"]["mode"], "ALL")
+
+    def test_public_elan_fixtures_build_without_semantic_repacking(self):
+        source = json.loads(
+            (ROOT / "inspection/examples/elan-relational-state-test1.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        request = json.loads(
+            (ROOT / "inspection/examples/elan-governance-request.example.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        declaration = json.loads(
+            (ROOT / "inspection/examples/elan-evaluation-declaration-test1.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        manifest = prepare_external_framework_manifest(
+            data=source,
+            source_framework="ELAN",
+            source_output_id="elan-emotional-ambiguity-silence-test-001",
+            processor_request=request,
+            evaluation_declaration=declaration,
+            data_class="elan.relational-state.v1",
+            return_depth="full-trace",
+            created_at="2026-09-08T20:00:00Z",
+        )
+        self.assertEqual(manifest["payload"], source)
+        self.assertEqual(manifest["extensions"]["source_data_class"], "elan.relational-state.v1")
+        self.assertEqual(
+            manifest["extensions"][EVALUATION_DECLARATION_EXTENSION], declaration
+        )
         self.assertEqual(manifest["return_projection"]["mode"], "ALL")
 
     @patch("stegverse.sovereign_validation_runtime.reconstruct_sovereign")
