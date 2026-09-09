@@ -1,0 +1,87 @@
+name: External Framework End-to-End Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - stegverse/external_framework_runner.py
+      - stegverse/manifest_builder.py
+      - stegverse/governance_ingress_runtime.py
+      - stegverse/sovereign_validation_runtime.py
+      - stegverse/versioned_sovereign_runtime.py
+      - stegverse/evaluator_console.py
+      - inspection/examples/elan-relational-state-test1.json
+      - inspection/examples/elan-governance-request.example.json
+      - inspection/examples/elan-evaluation-declaration-test1.json
+      - tests/test_external_framework_runner.py
+      - pyproject.toml
+      - .github/workflows/external-framework-e2e-validation.yml
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  external-framework-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Materialize exact public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+
+      - name: Install SDK with canonical governed-test dependencies
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,governed-test]"
+
+      - name: Execute ELAN external-framework path end-to-end
+        run: |
+          set -eu
+          cd /tmp/source
+          rm -f /tmp/elan-sdk-e2e.db /tmp/elan-sdk-e2e.json
+          stegverse external-run \
+            --input inspection/examples/elan-relational-state-test1.json \
+            --governance-request inspection/examples/elan-governance-request.example.json \
+            --evaluation-declaration inspection/examples/elan-evaluation-declaration-test1.json \
+            --source-framework ELAN \
+            --source-output-id elan-emotional-ambiguity-silence-test-001 \
+            --data-class elan.relational-state.v1 \
+            --return-depth full-trace \
+            --custody-db /tmp/elan-sdk-e2e.db \
+            --output /tmp/elan-sdk-e2e.json
+
+      - name: Verify receipt, custody, replay, reconstruction, and preregistration isolation
+        run: |
+          set -eu
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(Path('/tmp/elan-sdk-e2e.json').read_text())
+          assert result['schema'] == 'stegverse.sdk.external-framework-run.v1'
+          assert result['manifest_receipt_id']
+          assert result['governed_result']['master_records_custody_status'] == 'RECORDED'
+          assert result['replay']
+          assert result['reconstruction']
+          manifest = result['manifest']
+          assert manifest['payload']['test_id'] == 'elan-emotional-ambiguity-silence-test-001'
+          assert manifest['extensions']['source_data_class'] == 'elan.relational-state.v1'
+          assert manifest['extensions']['evaluation_declaration']
+          assert 'evaluation_declaration' not in manifest['extensions']['stegverse_governance_request']
+          assert manifest['return_projection']['mode'] == 'ALL'
+          print('EXTERNAL_FRAMEWORK_E2E_VALIDATION_PASS')
+          PY
+
+      - name: Completion boundary
+        run: |
+          echo 'Exact-head external-framework SDK path produced canonical custody, receipt, replay, and reconstruction evidence.'
