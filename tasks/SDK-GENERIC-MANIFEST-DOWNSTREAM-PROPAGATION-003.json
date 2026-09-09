@@ -34,6 +34,8 @@
     "Site Conectrr governance contamination promoted to a machine-enforced completion sub-blocker in PR #136",
     "public external-framework submission/package completion merged in PR #138 at 4e1942b487972874ce310f4a9ec031f529fa1f09",
     "downstream owner observation snapshot merged in PR #159 at f13b72b9121c3c156ae68bcd8c8e8f9466182c10",
+    "Site-native remediation issue StegVerse-Labs/Site#1143 created for SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001",
+    "Site #1143 executable patch contract bound into downstream dependency manifest schema 1.3.0",
     "Generic Manifest Downstream Contract Validation run 34292303141 PASS",
     "Generic Manifest Downstream Contract Validation run 34292383040 PASS",
     "Generic Manifest Downstream Contract Validation run 34300632443 PASS",
@@ -60,7 +62,7 @@
   ],
   "remaining": [
     "Site machine-owned admission and bounded update of stale SDK preview/backend contract surfaces",
-    "Site machine-owned resolution of SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001 with default no-fixture regression, explicit opt-in validation, exact-head validation, and deployed stegverse.org observation",
+    "Site machine-owned implementation of Site #1143 / SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001 using the executable patch contract in data/sdk-generic-manifest-downstream-dependencies.json",
     "admissibility-wiki Worker D/coordinator execution of bounded processor-generic SDK interoperability doctrine",
     "README correction removing the stale claim that every governed-test dependency is pinned to a public repository commit",
     "TVC/public-distribution continuation so complete governed-test installation no longer depends on protected source-repository visibility",
@@ -88,8 +90,10 @@
   },
   "dependency_manifest": {
     "path": "data/sdk-generic-manifest-downstream-dependencies.json",
-    "schema_version": "1.2.0",
+    "schema_version": "1.3.0",
     "site_conectrr_subblocker": "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001",
+    "site_conectrr_issue": "StegVerse-Labs/Site#1143",
+    "site_conectrr_executable_patch_contract_bound": true,
     "site_complete": false,
     "admissibility_complete": false,
     "propagation_complete": false
