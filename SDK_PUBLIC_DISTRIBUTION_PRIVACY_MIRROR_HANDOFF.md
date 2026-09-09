@@ -1,6 +1,6 @@
 # SDK Public Distribution Privacy Mirror Handoff
 
-Updated: 2026-08-17T09:45:00-05:00
+Updated: 2026-09-09T03:36:29-05:00
 
 ## Canonical authority
 
@@ -9,127 +9,164 @@ goal_id: SDK-PUBLIC-DISTRIBUTION-PRIVACY-001
 repository: StegVerse-org/StegVerse-SDK
 branch: main
 parent_handoff: SDK_MIRROR_HANDOFF.md
-originating_goal: preserve the SDK as the public aperture while allowing implementation repositories to become private
+originating_goal: preserve the SDK as the public aperture while allowing implementation repositories to remain private
 credential_authority: TV/TVC
 NON-TV/TVC secret/token authority: PROHIBITED
 GitHub token runtime authority: NONE
 publication_authority: StegVerse-Labs/TVC
-state: ACTIVE_BLOCKED_ON_PUBLIC_DISTRIBUTION_RECONCILIATION
+state: BLOCKED_PENDING_EXACT_PUBLICATION_PROOF
 ```
 
-## Directly observed defect
+## Current dependency boundary
 
-`pyproject.toml` currently defines:
+The original defect was a public SDK governed-test path that directly depended on protected repository source. That source-level defect has now been remediated in the active SDK distribution branch without making private repositories public.
+
+Current SDK PR #163 governed-test identities:
 
 ```text
-[project.optional-dependencies].governed-test
-  stegcore @ git+https://github.com/StegVerse-Labs/StegCore.git@083557...
-  stegverse-core-lite @ git+https://github.com/Data-Continuation/core-lite.git@72bdb0...
-  stegverse-master-records @ git+https://github.com/master-records/orchestration.git@6626c6...
+stegverse-stegcore==0.3.0
+stegverse-core-lite @ git+https://github.com/Data-Continuation/core-lite.git@72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+stegverse-master-records==0.2.0
 ```
 
-Live repository metadata observed during this goal:
+StegCore retains Python import/module namespace `stegcore`; its public distribution identity is `stegverse-stegcore`.
+
+## Completed source remediation
 
 ```text
-StegVerse-Labs/StegCore: public
-Data-Continuation/core-lite: public
-master-records/orchestration: private
+StegCore distribution rename PR: StegVerse-Labs/StegCore#197 MERGED
+StegCore merge: 9a35f39b3425a2c3e9592a03b0362a417094b809
+StegCore README public install documentation: COMPLETE
+StegCore targeted distribution: stegverse-stegcore==0.3.0
+
+Master Records Trusted Publishing PR: master-records/orchestration#85 MERGED
+Master Records targeted distribution: stegverse-master-records==0.2.0
+Master Records exact frozen candidate: c524b1a0c1a43e49c70faeac7b67f78c5908e4e4
+Master Records source parent: 03312236c115bc814024d700810391340648601f
+Master Records README public install documentation: COMPLETE
+
+SDK public dependency rewrite: StegVerse-org/StegVerse-SDK#163 DRAFT
+SDK README stale repository-visibility statement: CORRECTED
+SDK branch evidence head after README correction: b229a7a93a59bdd93e134ed1e219e482a81aefb1
 ```
 
-Therefore the current repository-source dependency contract is inconsistent with a fully anonymous public governed-test installation path. The README statement that governed-test dependencies are pinned to public repository commits is not true for the Master Records dependency in current live metadata.
+Repository visibility is no longer the intended acquisition mechanism for StegCore or Master Records on the governed-test branch.
 
-This is a distribution/privacy defect, not authority permission to make Master Records public or to use a GitHub token. It must be resolved by removing public SDK installation dependence on protected repository-source visibility.
+## Remaining publication proof blocker
+
+Source remediation is not equivalent to public artifact availability. Exact immutable publication has not yet been observed through the canonical release path.
+
+SDK PR #163 contains an anonymous installation/E2E gate that:
+
+```text
+materializes exact public SDK source with no GitHub credential
+-> pip install -e .[governed-test]
+-> verify stegverse-stegcore==0.3.0
+-> verify stegverse-master-records==0.2.0
+-> execute ELAN Test 1 through stegverse external-run
+-> require manifest_receipt_id
+-> require Master Records custody RECORDED
+-> require replay
+-> require reconstruction
+```
+
+Latest observation:
+
+```text
+Anonymous Governed Runtime Install: run 34329494516 FAILURE
+exact SDK head: b229a7a93a59bdd93e134ed1e219e482a81aefb1
+source materialization: PASS
+package installation: FAIL
+package identity verification: SKIPPED
+ELAN governed execution: SKIPPED
+replay/reconstruction verification: SKIPPED
+```
+
+The current fail-closed interpretation is `BLOCKED_PENDING_EXACT_PUBLICATION_PROOF`. Do not weaken the gate or infer runtime failure from an installation-stage failure.
 
 ## Required architecture
 
 ```text
 public StegVerse SDK
 -> immutable TVC-admitted public distribution artifacts
--> exact package hash / receipt verification
+-> exact version/provenance verification
 -> install locally
--> no GitHub repository credential required
+-> no protected repository credential required
 -> runtime/governance authority remains local StegVerse + TV/TVC
 ```
 
-Repository visibility must become irrelevant to public package acquisition.
+Repository visibility must remain irrelevant to StegCore/Master Records public package acquisition.
 
-## Existing canonical continuation to reuse
+## Release boundary
 
-Do not create a parallel publisher.
+Trusted Publisher registration and a merged release workflow are transport prerequisites, not release authorization.
 
-```text
-StegVerse-Labs/TVC/docs/PORTABLE_ARTIFACT_PUBLICATION_MIRROR_HANDOFF.md
-  task: TVC-PORTABLE-ARTIFACT-PUBLICATION-001
-  current state: BLOCKED_DEPENDENCY
-  blocker: TVC_MANAGED_EPHEMERAL_PUBLICATION_CAPABILITY_NOT_PRESENT
+The canonical TVC successor-release handoff currently preserves a fail-closed release gate. No GitHub source mutation, workflow PASS, connector credential, or chat session may fabricate a TV/TVC GRANTED authorization, SKAP custody proof, interlock receipt, immutable tag/release, or aggregate release receipt.
 
-StegVerse-org/StegVerse-SDK/docs/SDK_PORTABLE_PACKAGE_CONSOLE_MIRROR_HANDOFF.md
-  goal: SDK-PORTABLE-ARTIFACT-BINDING-002
-  current state: DISTINCT_CONSUMER_WAITING_ON_CANONICAL_TVC_PUBLICATION
-```
+The separately prepared SDK `v1.2.0` identity must not be moved or retargeted. Current generic-manifest/public-distribution work requires a coherent post-v1.2.0 successor identity before an SDK release containing it can be tagged.
 
 ## Collision boundary
 
 Do not:
 
-- make `master-records/orchestration` public merely to repair public SDK installation;
-- use `GITHUB_TOKEN`, `GH_TOKEN`, or another non-TV/TVC credential to fetch protected source;
-- duplicate StegCore, Core-Lite, Master Records, TV, TVC, publication, evaluator, or custody authority inside the SDK;
-- claim StegCore/Core-Lite are safe to privatize while the SDK still fetches their repository source directly;
-- claim the current governed-test extra is anonymously installable until exact evidence proves it.
+- make `master-records/orchestration` public merely to repair SDK installation;
+- use `GITHUB_TOKEN`, `GH_TOKEN`, or another non-TV/TVC credential to fetch protected source as a substitute for public distribution;
+- duplicate StegCore, Core-Lite, Master Records, TV, TVC, publication, evaluator, or custody logic inside the SDK;
+- claim an exact public distribution exists merely because its Trusted Publisher is configured;
+- claim the governed-test extra is anonymously installable until the exact anonymous install/E2E gate passes;
+- retarget the frozen SDK `v1.2.0` release identity.
 
 ## Execution ownership
 
 ```yaml
 - task_id: SDK-PUBLIC-DISTRIBUTION-PRIVACY-001
   role: CLAIMED_FOR_INTEGRATION
-  owner: StegVerse-org/StegVerse-SDK + StegVerse-Labs/TVC publication chain
-  collision_scope: public SDK dependency acquisition and immutable artifact binding only
-  release_condition: public credential-free acquisition of exact required artifacts is verified and governed-test no longer depends on repository-source visibility
-  next_action: consume TVC immutable publication receipt when available; replace direct repository-source dependency assumptions with exact artifact/package binding; validate anonymous install
+  owner: StegVerse-org/StegVerse-SDK consumer lane
+  collision_scope: SDK governed-test dependency acquisition, public distribution binding, anonymous clean-install verification
+  release_condition: exact public distributions are verified and anonymous install + governed ELAN E2E + replay/reconstruction pass
+  next_action: preserve PR #163 draft until exact publication; rerun its anonymous gate after canonical release publication
 
-- task_id: TVC-PORTABLE-ARTIFACT-PUBLICATION-001
-  role: MACHINE_OWNED_BLOCKED_DEPENDENCY
-  owner: StegVerse-Labs/TVC repository heartbeat / sole-host StegVerse control plane
-  release_condition: TVC-managed publication capability materializes exact private source and exact candidate, validates, publishes immutable artifacts, and verifies locators/hashes
-  next_action: canonical TVC machine lane continues; no token workaround
+- release/publication lane
+  role: TV/TVC-GATED
+  owner: StegVerse-Labs/TVC release chain
+  release_condition: canonical TV/TVC release predicates are satisfied and immutable artifacts are authentically published
+  next_action: no credential workaround from the SDK lane
 ```
 
 ## Privatization eligibility gates
 
 ```text
-StegVerse-Labs/StegCore -> NOT YET ELIGIBLE
-  blockers:
-    - SDK governed-test direct git dependency remains
-    - SDK release index currently consumes public StegCore GitHub Releases API
-  eligibility:
-    - TVC immutable public publication verified
-    - SDK artifact/index binding updated to a public locator independent of repo visibility
-    - anonymous install/download verification PASS
+StegVerse-Labs/StegCore -> NOT YET VERIFIED ELIGIBLE
+  source dependency blocker: REMEDIATED_IN_SDK_PR_163
+  remaining gates:
+    - exact stegverse-stegcore 0.3.0 public publication observed
+    - anonymous governed-test installation PASS
+    - any other public GitHub release-index coupling separately reconciled if still applicable
 
 Data-Continuation/core-lite -> NOT YET ELIGIBLE
   blocker:
-    - SDK governed-test direct git dependency remains
+    - SDK governed-test still intentionally pins its public repository source
   eligibility:
     - public immutable package/artifact acquisition independent of source repo visibility PASS
 
-master-records/orchestration -> ALREADY PRIVATE
-  required correction:
-    - public SDK path must not imply anonymous direct git acquisition of this repo
-    - exact public distributable artifact or another TVC-authorized credential-free package path must carry the required local implementation
+master-records/orchestration -> SOURCE MAY REMAIN PRIVATE
+  source dependency blocker: REMEDIATED_IN_SDK_PR_163
+  remaining gates:
+    - exact stegverse-master-records 0.2.0 public publication observed
+    - anonymous governed-test installation PASS
 ```
 
 ## Validation ladder
 
 ```text
-1 static dependency inspection
-2 artifact/package manifest validation
-3 exact hash/receipt verification
-4 anonymous clean-environment SDK install
-5 governed-test local deterministic execution
-6 replay/reconstruction
-7 no credential-like environment input required
-8 post-privatization install regression
+1 static dependency inspection: PASS for StegCore/Master Records rewrite in PR #163
+2 artifact/package manifest validation: SOURCE VALIDATIONS PASS / PUBLICATION NOT YET PROVEN
+3 exact public version/provenance verification: PENDING
+4 anonymous clean-environment SDK install: FAIL_CLOSED_PENDING_PUBLICATION
+5 governed-test local deterministic execution: NOT REACHED BY ANONYMOUS GATE
+6 replay/reconstruction: NOT REACHED BY ANONYMOUS GATE
+7 no credential-like environment input required: ENFORCED BY WORKFLOW
+8 post-privatization install regression: PENDING
 ```
 
 No higher level is implied by a lower one.
@@ -137,28 +174,29 @@ No higher level is implied by a lower one.
 ## Current completion
 
 ```text
-source defect identified: COMPLETE
-canonical upstream publication owner located: COMPLETE
-collision boundary installed: COMPLETE
-credential boundary preserved: COMPLETE
-public artifact publication: PENDING_MACHINE_OWNED
-SDK immutable artifact binding: PENDING_UPSTREAM_PUBLICATION
-anonymous clean install proof: PENDING
-StegCore privatization eligibility: BLOCKED
-Core-Lite privatization eligibility: BLOCKED
-Master Records privacy preservation: CURRENTLY_PRIVATE / PUBLIC_ACQUISITION_DEFECT_PENDING
+original distribution/privacy defect identified: COMPLETE
+StegCore source-dependency remediation: COMPLETE_IN_DRAFT_SDK_PR
+Master Records source-dependency remediation: COMPLETE_IN_DRAFT_SDK_PR
+StegCore distribution rename: COMPLETE_MERGED
+Master Records Trusted Publishing workflow: COMPLETE_MERGED
+repository README maintenance: COMPLETE for StegCore and Master Records
+SDK README visibility correction: COMPLETE_IN_DRAFT_PR
+exact immutable PyPI publication: PENDING_TV_TVC_GATE
+anonymous clean install proof: FAIL_CLOSED_PENDING_PUBLICATION
+ELAN governed E2E through anonymous install: PENDING_AFTER_INSTALL
+replay/reconstruction proof: PENDING_AFTER_INSTALL
 ```
 
 ## Canonical continuation
 
 ```text
-MERGED INTO:
-StegVerse-Labs/TVC/docs/PORTABLE_ARTIFACT_PUBLICATION_MIRROR_HANDOFF.md
--> StegVerse-org/StegVerse-SDK/docs/SDK_PORTABLE_PACKAGE_CONSOLE_MIRROR_HANDOFF.md
+StegVerse-Labs/TVC/docs/POST_RETURN_SUCCESSOR_RELEASE_PREPARATION_MIRROR_HANDOFF.md
+-> SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md
+-> StegVerse-org/StegVerse-SDK#163
 -> this handoff for repository-privacy eligibility
 -> StegVerse-Labs/.github/docs/REPOSITORY_VISIBILITY_BOUNDARY_MIRROR_HANDOFF.md
 ```
 
 ## Archive condition
 
-This scoped SDK integration state is durable. The parent repository-visibility session is not archive-ready until remaining estate classifications are transferred and its active claim is released or merged into machine/current-authority continuation.
+This lane remains active until exact public distribution provenance and the anonymous clean-install/governed-E2E/replay/reconstruction chain are verified. Source remediation alone is not archive completion.
