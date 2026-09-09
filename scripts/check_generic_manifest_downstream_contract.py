@@ -16,6 +16,9 @@ STATE = "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING"
 PUBLIC_BASE = "https://stegverse.org/"
 SITE_CONTAMINATION_BLOCKER = "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001"
 SITE_CONTAMINATION_ISSUE = "StegVerse-Labs/Site:issue/1143"
+SITE_CONTAMINATION_MERGE = "StegVerse-Labs/Site:commit/1260262ba6ab7198b20bf5a04a93264089e203da"
+SITE_CONTAMINATION_CONTROLLER = "StegVerse-Labs/Site:commit/e6991ed197cdde8fc78b62b879ba35165241253b"
+SITE_CLEAN_OBSERVATION = "StegVerse-Labs/Site:issue/1143#issuecomment-5598275109"
 
 REQUIRED_HANDOFF = [
     PUBLIC_BASE,
@@ -89,7 +92,7 @@ def main() -> None:
     if surface.get("raw_github_pages_is_canonical_public_surface") is not False:
         fail("raw GitHub Pages must not be canonical public surface")
 
-    if deps.get("schema_version") != "1.3.1":
+    if deps.get("schema_version") != "1.4.0":
         fail("unexpected dependency manifest schema_version")
     if deps.get("task_id") != TASK_ID or deps.get("cosv") != COSV or deps.get("state") != STATE:
         fail("dependency manifest identity/state mismatch")
@@ -120,20 +123,26 @@ def main() -> None:
         fail("Site contamination blocker tracking_ref mismatch")
     if contamination.get("site_issue_ref") != SITE_CONTAMINATION_ISSUE:
         fail("Site contamination blocker must bind canonical Site issue #1143")
-    if contamination.get("state") != "DEPLOYED_CONTAMINATION_OBSERVED_MACHINE_OWNED" and contamination.get("resolved") is not True:
-        fail("unresolved Site contamination blocker must preserve deployed observation state")
+    if contamination.get("resolved") is not True or contamination.get("state") != "RESOLVED_VALIDATED_DEPLOYED":
+        fail("Site contamination blocker must be resolved only after deployed clean-path evidence")
 
     live = contamination.get("deployed_contamination_observation")
-    if not isinstance(live, dict) or live.get("state") != "OBSERVED":
-        fail("deployed contamination observation missing")
+    if not isinstance(live, dict) or live.get("state") != "REMEDIATED_AND_CLEAN_PATH_OBSERVED":
+        fail("remediated deployed contamination observation missing")
     if live.get("site_issue_comment_ref") != "StegVerse-Labs/Site:issue/1143#issuecomment-5596432980":
-        fail("Site live-observation evidence ref mismatch")
+        fail("Site original live-observation evidence ref mismatch")
     if live.get("sdk_issue_comment_ref") != "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5596433895":
-        fail("SDK live-observation evidence ref mismatch")
+        fail("SDK original live-observation evidence ref mismatch")
     if live.get("co_mingled_with_ordinary_session_events") is not True:
-        fail("deployed observation must preserve co-mingling evidence")
-    if live.get("clean_default_path_observed") is not False:
-        fail("clean default path cannot be true before remediation")
+        fail("deployed observation must preserve original co-mingling evidence")
+    if live.get("clean_default_path_observed") is not True:
+        fail("clean default path must be observed after remediation")
+    if live.get("clean_observation_ref") != SITE_CLEAN_OBSERVATION:
+        fail("clean default-path public observation ref mismatch")
+    if live.get("clean_observation_fixture_event_ids_present") is not False:
+        fail("clean default-path observation cannot contain fixture event IDs")
+    if live.get("clean_observation_conectrr_text_present") is not False:
+        fail("clean default-path observation cannot contain Conectrr text")
     if live.get("fixture_event_ids") != ["event:conectrr:handoff:001", "event:stegverse:evaluation:001"]:
         fail("deployed observation fixture event IDs mismatch")
 
@@ -177,10 +186,12 @@ def main() -> None:
         isinstance(contamination.get(key), str) and contamination.get(key).strip()
         for key in required_resolution_evidence
     )
-    if contamination.get("resolved") is True and not contamination_evidence_ready:
-        fail("Site contamination blocker resolved without complete evidence")
-    if contamination.get("resolved") is False and contamination_evidence_ready:
-        fail("Site contamination blocker has complete evidence but resolved=false; reconcile state")
+    if not contamination_evidence_ready:
+        fail("Site contamination blocker resolution evidence incomplete")
+    if contamination.get("implementation_merge_ref") != SITE_CONTAMINATION_MERGE:
+        fail("Site contamination merge evidence mismatch")
+    if contamination.get("public_observation_ref") != SITE_CLEAN_OBSERVATION:
+        fail("Site contamination public observation evidence mismatch")
 
     site_ready = evidence_complete(site)
     wiki_ready = evidence_complete(wiki, require_worker_record=True)
@@ -190,24 +201,33 @@ def main() -> None:
         if item.get("complete") is False and ready:
             fail(f"{item.get('repository')} has complete evidence but complete=false; reconcile state")
 
-    if observation.get("schema_version") != "1.0.0" or observation.get("task_id") != TASK_ID or observation.get("cosv") != COSV:
+    if observation.get("schema_version") != "1.1.0" or observation.get("task_id") != TASK_ID or observation.get("cosv") != COSV:
         fail("downstream observation identity mismatch")
-    if observation.get("observed_state") != "NO_DOWNSTREAM_OWNER_TRANSITION":
-        fail("observation must remain NO_DOWNSTREAM_OWNER_TRANSITION until new owner evidence is recorded")
+    if observation.get("observed_state") != "SITE_SUBBLOCKER_TRANSITION_OBSERVED":
+        fail("observation must record Site sub-blocker transition")
     observed_site = observation.get("site") or {}
     if observed_site.get("repository_state") != "OBSERVED_BLOCKED":
         fail("observed Site repository state mismatch")
     if observed_site.get("external_tasks_allowed") is not False or observed_site.get("external_session_ownership_allowed") is not False:
-        fail("observation must not claim Site admission while source state rejects external ownership")
-    if observed_site.get("admitted_tasks") != []:
-        fail("observation must preserve empty Site admitted_tasks")
+        fail("observation must preserve current Site external-admission state")
     observed_contamination = observed_site.get("conectrr_governance_contamination") or {}
     if observed_contamination.get("task_id") != SITE_CONTAMINATION_BLOCKER:
         fail("observation contamination blocker identity mismatch")
-    if observed_contamination.get("default_fixture_injection_still_present_on_main") is not True:
-        fail("observation cannot clear fixture injection without Site implementation evidence")
-    if observed_contamination.get("resolved") is not False:
-        fail("observation cannot resolve Site contamination without required evidence")
+    if observed_contamination.get("site_implementation_record_observed") is not True:
+        fail("observation must record Site implementation evidence")
+    if observed_contamination.get("implementation_merge_ref") != SITE_CONTAMINATION_MERGE:
+        fail("observation Site implementation merge ref mismatch")
+    if observed_contamination.get("repository_controller_completion_ref") != SITE_CONTAMINATION_CONTROLLER:
+        fail("observation Site controller completion ref mismatch")
+    if observed_contamination.get("default_fixture_injection_still_present_on_main") is not False:
+        fail("observation must clear default fixture injection after merged remediation")
+    if observed_contamination.get("clean_default_path_observed") is not True:
+        fail("observation must record clean public default path")
+    if observed_contamination.get("public_observation_ref") != SITE_CLEAN_OBSERVATION:
+        fail("observation public clean-path ref mismatch")
+    if observed_contamination.get("resolved") is not True:
+        fail("observation must mark Site contamination resolved")
+
     observed_wiki = observation.get("admissibility") or {}
     if observed_wiki.get("worker_state") != "MACHINE_OWNED_DO_NOT_COMPETE":
         fail("observation admissibility worker state mismatch")
@@ -218,6 +238,8 @@ def main() -> None:
         fail("observation Site completion predicate mismatch")
     if observed_parent.get("admissibility_completion_predicate_satisfied") is not wiki_ready:
         fail("observation admissibility completion predicate mismatch")
+    if observed_parent.get("site_conectrr_subblocker_resolved") is not True:
+        fail("observation parent effect must record Site Conectrr sub-blocker resolution")
     if observed_parent.get("propagation_complete") is not False or observed_parent.get("authority_effect") != "NONE":
         fail("observation parent effect mismatch")
 
@@ -230,15 +252,17 @@ def main() -> None:
     remaining = "\n".join(str(item) for item in (task.get("remaining") or []))
     if "Site machine-owned admission" not in remaining or "Worker D" not in remaining:
         fail("task remaining dependencies not preserved")
+    if "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001" in remaining:
+        fail("resolved Site contamination blocker must not remain in task remaining list")
 
     print("PASS: processor-generic downstream propagation contract is internally consistent")
     print("canonical_public_domain=https://stegverse.org/")
     print("downstream_dependency_count=2")
-    print("downstream_owner_transition_observed=false")
+    print("site_subblocker_transition_observed=true")
     print("site_conectrr_issue=StegVerse-Labs/Site#1143")
     print("site_conectrr_deployed_contamination_observed=true")
-    print("site_conectrr_executable_patch_contract=true")
-    print(f"site_conectrr_contamination_resolved={str(contamination.get('resolved') is True).lower()}")
+    print("site_conectrr_clean_default_path_observed=true")
+    print("site_conectrr_contamination_resolved=true")
     print(f"site_completion_predicate_satisfied={str(site_ready).lower()}")
     print(f"admissibility_completion_predicate_satisfied={str(wiki_ready).lower()}")
     print("propagation_complete=false")
