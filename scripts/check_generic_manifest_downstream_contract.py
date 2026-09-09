@@ -13,6 +13,7 @@ TASK_ID = "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003"
 COSV = "71000000100110"
 STATE = "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING"
 PUBLIC_BASE = "https://stegverse.org/"
+SITE_CONTAMINATION_BLOCKER = "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001"
 
 REQUIRED_HANDOFF = [
     PUBLIC_BASE,
@@ -36,6 +37,13 @@ def fail(message: str) -> None:
     raise SystemExit(f"FAIL: {message}")
 
 
+def active_subblockers_resolved(item: dict) -> bool:
+    blockers = item.get("active_subblockers") or []
+    if not isinstance(blockers, list):
+        fail(f"{item.get('repository')} active_subblockers must be a list")
+    return all(isinstance(blocker, dict) and blocker.get("resolved") is True for blocker in blockers)
+
+
 def evidence_complete(item: dict, require_worker_record: bool = False) -> bool:
     ev = item.get("completion_evidence")
     if not isinstance(ev, dict):
@@ -46,7 +54,7 @@ def evidence_complete(item: dict, require_worker_record: bool = False) -> bool:
     scalar_ok = all(isinstance(ev.get(k), str) and ev.get(k).strip() for k in required)
     route = ev.get("public_route")
     route_ok = isinstance(route, str) and route.startswith(PUBLIC_BASE) and ev.get("public_route_observed") is True
-    return scalar_ok and route_ok
+    return scalar_ok and route_ok and active_subblockers_resolved(item)
 
 
 def main() -> None:
@@ -78,7 +86,7 @@ def main() -> None:
     if surface.get("raw_github_pages_is_canonical_public_surface") is not False:
         fail("raw GitHub Pages must not be canonical public surface")
 
-    if deps.get("schema_version") != "1.1.0":
+    if deps.get("schema_version") != "1.2.0":
         fail("unexpected dependency manifest schema_version")
     if deps.get("task_id") != TASK_ID or deps.get("cosv") != COSV or deps.get("state") != STATE:
         fail("dependency manifest identity/state mismatch")
@@ -98,6 +106,32 @@ def main() -> None:
         fail("Site ownership/admission mismatch")
     if "Worker D / issue #65" not in str(wiki.get("owner")) or wiki.get("admission") != "MACHINE_OWNED_DO_NOT_COMPETE":
         fail("admissibility ownership/admission mismatch")
+
+    site_blockers = site.get("active_subblockers")
+    if not isinstance(site_blockers, list):
+        fail("Site active_subblockers missing")
+    contamination = next((b for b in site_blockers if isinstance(b, dict) and b.get("id") == SITE_CONTAMINATION_BLOCKER), None)
+    if not contamination:
+        fail("Site Conectrr governance contamination blocker missing")
+    if contamination.get("tracking_ref") != "StegVerse-org/StegVerse-SDK:issue/129#issuecomment-5595193431":
+        fail("Site contamination blocker tracking_ref mismatch")
+    required_resolution_evidence = [
+        "implementation_merge_ref",
+        "exact_head_validation_ref",
+        "default_no_fixture_regression_ref",
+        "opt_in_validation_ref",
+        "public_observation_ref",
+    ]
+    contamination_evidence_ready = all(
+        isinstance(contamination.get(key), str) and contamination.get(key).strip()
+        for key in required_resolution_evidence
+    )
+    if contamination.get("resolved") is True and not contamination_evidence_ready:
+        fail("Site contamination blocker resolved without complete evidence")
+    if contamination.get("resolved") is False and contamination_evidence_ready:
+        fail("Site contamination blocker has complete evidence but resolved=false; reconcile state")
+    if contamination.get("resolved") is False and contamination.get("state") != "OPEN_MACHINE_OWNED":
+        fail("unresolved Site contamination blocker must remain OPEN_MACHINE_OWNED")
 
     site_ready = evidence_complete(site)
     wiki_ready = evidence_complete(wiki, require_worker_record=True)
@@ -120,6 +154,7 @@ def main() -> None:
     print("PASS: processor-generic downstream propagation contract is internally consistent")
     print("canonical_public_domain=https://stegverse.org/")
     print("downstream_dependency_count=2")
+    print(f"site_conectrr_contamination_resolved={str(contamination.get('resolved') is True).lower()}")
     print(f"site_completion_predicate_satisfied={str(site_ready).lower()}")
     print(f"admissibility_completion_predicate_satisfied={str(wiki_ready).lower()}")
     print("propagation_complete=false")
