@@ -36,6 +36,47 @@ processing.route_id: stegverse.route.canonical-governed.v1
 processor-specific request: extensions.stegverse_governance_request
 ```
 
+## ELAN Event-3 experiment-integrity remediation — 2026-09-10
+
+The ELAN three-event protocol has been reconciled against the evaluator-defined-manifest/non-interference contract.
+
+The corrected experimental model is:
+
+```text
+S0 -> Event 1 -> S1 -> Event 2 -> S2 -> Event 3 (no new human input for the preregistered interval) -> observe resulting state/behavior
+```
+
+Events 1 and 2 are controlled state-establishment conditions required to reach the state under test. Event 3 is the evaluated condition. The fixed lead-in is therefore not itself prohibited evaluator bias merely because StegVerse specified it; substituting an unrelated independently chosen lead-in could fail to establish S2 and therefore fail to test the intended condition.
+
+The non-interference boundary applies to expected source-framework semantics and outcomes, not to legitimate controlled preconditions. The SDK must not pre-author or inject expected ELAN interpretation, expected internal state, expected Event-3 response/withholding, expected agreement/disagreement with governance, or expected comparative disposition into the authentic experiment path.
+
+The prior ELAN evaluator declaration contained an explicit expected comparative observation. On branch `sdk-evaluator-bias-remediation`, that expectation has been removed and the declaration is now outcome-neutral. `docs/ELAN_TEST1_RUNBOOK.md` now distinguishes state establishment from the evaluated condition, requires continuity evidence into Event 3, and states that externally produced source-native evidence must be preserved before StegVerse interpretation. Root `README.md` now documents the reusable controlled-state experiment-integrity rule.
+
+External evidence received before this remediation:
+
+```text
+artifact: 1.ELAN_TEST_TRACE_EN_09.09.2026.pdf
+artifact confidentiality marking: Royal ELAN License 2026 / Confidential
+Event 1: observed in packet
+Event 2: observed in packet
+Event 3: packet explicitly states not yet submitted
+source-owner description: ELAN responses in native state / unmodified
+public-repository publication of confidential packet: prohibited absent source-owner permission
+```
+
+The packet is not committed to this repository. Its observable content establishes only Events 1 and 2; internal ELAN state must not be inferred from linguistic output. The packet states Event 3 will occur in a separate session. Because Event 3 tests the condition following S2, a separate session is acceptable only if source-native continuity/resumption from S2 is evidenced; otherwise the execution must be classified as reset/reconstructed/unverified rather than silently treated as continuous.
+
+Current remediation branch evidence:
+
+```text
+branch: sdk-evaluator-bias-remediation
+outcome-neutral evaluator declaration commit: e2bc9f3394aa056352f10d32c9503cac2a9481cd
+Event-3 runbook correction commit: 642ccfd7dc6f784f9e60e0c0b93081485d997f23
+README experiment-integrity correction commit: 0c9f7f8a4289cd9ea48e95885ffca59ffa05931b
+validation: pending PR/check execution
+merge claim: NONE
+```
+
 ## Completed SDK generic-manifest package work
 
 ```text
@@ -230,8 +271,10 @@ dedicated processor-generic hosted route: NOT YET OBSERVED
 
 ```text
 StegVerse-org/StegVerse-SDK:
+  - validate and merge the evaluator-bias remediation after PR/check evidence
   - keep PR #165 draft while public package/release gate is unsatisfied
   - after authentic public distributions exist, rerun Anonymous Governed Runtime Install and ELAN E2E
+  - require Event-3 continuity evidence before treating separate-session silence as the intended S2 condition
   - freeze exact 1.3.0 coordinate only through canonical release reconciliation
 
 StegVerse-Labs/StegCore:
@@ -255,6 +298,7 @@ StegVerse-002/stegguardian-wiki: none now
 ```text
 SDK-PROCESSOR-GENERIC-MANIFEST-002: COMPLETE_VALIDATED_MERGED
 SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE
+ELAN evaluator-bias remediation: SOURCE_CHANGES_ON_BRANCH / VALIDATION_PENDING
 SDK 1.3.0 source candidate: EXACT_HEAD_SOURCE_VALIDATED_MERGEABLE_DRAFT_PR_165
 merge-base regression: RESOLVED
 SDK public distribution rewrite: INCORPORATED_IN_PR_165
