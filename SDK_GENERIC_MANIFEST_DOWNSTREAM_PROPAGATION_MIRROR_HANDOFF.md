@@ -10,6 +10,7 @@ parent_handoff: GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
 source_goal: SDK-PROCESSOR-GENERIC-MANIFEST-002
 source_cosv: 71000000100110
 continuation_goal: SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003
+coordination_state: DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING
 credential_authority: TV/TVC
 GitHub runtime authority: NONE
 ```
@@ -73,7 +74,8 @@ branch: sdk-evaluator-bias-remediation
 outcome-neutral evaluator declaration commit: e2bc9f3394aa056352f10d32c9503cac2a9481cd
 Event-3 runbook correction commit: 642ccfd7dc6f784f9e60e0c0b93081485d997f23
 README experiment-integrity correction commit: 0c9f7f8a4289cd9ea48e95885ffca59ffa05931b
-validation: pending PR/check execution
+PR: #166 DRAFT
+validation: PR head before invariant repair had 4 PASS / 1 FAIL; failure was only missing canonical handoff state token and is repaired in the current head
 merge claim: NONE
 ```
 
@@ -298,7 +300,7 @@ StegVerse-002/stegguardian-wiki: none now
 ```text
 SDK-PROCESSOR-GENERIC-MANIFEST-002: COMPLETE_VALIDATED_MERGED
 SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE
-ELAN evaluator-bias remediation: SOURCE_CHANGES_ON_BRANCH / VALIDATION_PENDING
+ELAN evaluator-bias remediation: SOURCE_CHANGES_ON_BRANCH / REVALIDATION_PENDING
 SDK 1.3.0 source candidate: EXACT_HEAD_SOURCE_VALIDATED_MERGEABLE_DRAFT_PR_165
 merge-base regression: RESOLVED
 SDK public distribution rewrite: INCORPORATED_IN_PR_165
