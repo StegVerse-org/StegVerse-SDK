@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-import pytest
+import unittest
 
 from stegverse.external_interlock_ingress_binding import (
     BINDING_PROFILE,
@@ -97,79 +97,55 @@ def ingress_manifest(*, unresolved: bool = False):
     return attach_state_transition_evidence(manifest, transition)
 
 
-def test_canonical_ingress_remains_universal_payload_inside_transport_control():
-    ingress = ingress_manifest()
-    request = build_ingress_bound_interlock_request(
-        ingress_manifest=ingress,
-        source_organization_id="StegVerse",
-        target_organization_id="Independent-Workspace-Provider",
-        operation="OBSERVE_EXTERNAL_RESOURCE",
-        authority_ref="TV/TVC:fixture",
-        experiment_id="WORKSPACE-GENERIC-INTR-001",
-    )
-    interaction = request["payload"]["manifest"]
-    nested = interaction["payload"]["canonical_ingress_manifest"]
-    assert interaction["schema"] == "stegverse.external_organization.interaction_manifest.v1"
-    assert interaction["payload"]["binding_profile"] == BINDING_PROFILE
-    assert nested["manifest_profile"] == "stegverse.ingress-manifest.v1"
-    assert nested["extensions"]["stegverse_state_transition"]["readiness"] == "READY"
-    assert request["canonical_ingress_grants_transport_authority"] is False
-    assert request["sdk_mints_intr_receipt"] is False
-    assert request["sdk_claims_delivery"] is False
-    validate_ingress_bound_interlock_request(request)
+class ExternalInterlockIngressBindingTests(unittest.TestCase):
+    def build_request(self, *, unresolved: bool = False):
+        return build_ingress_bound_interlock_request(
+            ingress_manifest=ingress_manifest(unresolved=unresolved),
+            source_organization_id="Entity-A",
+            target_organization_id="Entity-B",
+            operation="OBSERVE_EXTERNAL_RESOURCE",
+            authority_ref="TV/TVC:fixture",
+            experiment_id="WORKSPACE-GENERIC-INTR-001",
+        )
+
+    def test_canonical_ingress_remains_universal_payload_inside_transport_control(self):
+        request = self.build_request()
+        interaction = request["payload"]["manifest"]
+        nested = interaction["payload"]["canonical_ingress_manifest"]
+        self.assertEqual(interaction["schema"], "stegverse.external_organization.interaction_manifest.v1")
+        self.assertEqual(interaction["payload"]["binding_profile"], BINDING_PROFILE)
+        self.assertEqual(nested["manifest_profile"], "stegverse.ingress-manifest.v1")
+        self.assertEqual(nested["extensions"]["stegverse_state_transition"]["readiness"], "READY")
+        self.assertFalse(request["canonical_ingress_grants_transport_authority"])
+        self.assertFalse(request["sdk_mints_intr_receipt"])
+        self.assertFalse(request["sdk_claims_delivery"])
+        validate_ingress_bound_interlock_request(request)
+
+    def test_probe_required_state_survives_transport_binding_without_becoming_ready(self):
+        request = self.build_request(unresolved=True)
+        state = request["payload"]["manifest"]["payload"]["canonical_ingress_manifest"]["extensions"]["stegverse_state_transition"]
+        self.assertEqual(state["readiness"], "PROBE_REQUIRED")
+        self.assertIn("predicate:authorization_current:evidence_unresolved", state["probe_reasons"])
+        validate_ingress_bound_interlock_request(request)
+
+    def test_nested_ingress_tamper_fails_before_transport_acceptance(self):
+        bad = copy.deepcopy(self.build_request())
+        bad["payload"]["manifest"]["payload"]["canonical_ingress_manifest"]["payload"]["observation"]["marker"] = "tampered"
+        with self.assertRaises(ValueError):
+            validate_ingress_bound_interlock_request(bad)
+
+    def test_binding_hash_tamper_fails_even_when_nested_manifest_is_unchanged(self):
+        bad = copy.deepcopy(self.build_request())
+        bad["bindings"]["canonical_ingress_sha256"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "bindings.canonical_ingress_sha256"):
+            validate_ingress_bound_interlock_request(bad)
+
+    def test_transport_control_tamper_fails_without_invoking_runtime(self):
+        bad = copy.deepcopy(self.build_request())
+        bad["sdk_claims_delivery"] = True
+        with self.assertRaisesRegex(ValueError, "sdk_claims_delivery mismatch"):
+            validate_ingress_bound_interlock_request(bad)
 
 
-def test_probe_required_state_survives_transport_binding_without_becoming_ready():
-    request = build_ingress_bound_interlock_request(
-        ingress_manifest=ingress_manifest(unresolved=True),
-        source_organization_id="Entity-A",
-        target_organization_id="Entity-B",
-        operation="OBSERVE_EXTERNAL_RESOURCE",
-        authority_ref="TV/TVC:fixture",
-    )
-    state = request["payload"]["manifest"]["payload"]["canonical_ingress_manifest"]["extensions"]["stegverse_state_transition"]
-    assert state["readiness"] == "PROBE_REQUIRED"
-    assert "predicate:authorization_current:evidence_unresolved" in state["probe_reasons"]
-    validate_ingress_bound_interlock_request(request)
-
-
-def test_nested_ingress_tamper_fails_before_transport_acceptance():
-    request = build_ingress_bound_interlock_request(
-        ingress_manifest=ingress_manifest(),
-        source_organization_id="Entity-A",
-        target_organization_id="Entity-B",
-        operation="OBSERVE_EXTERNAL_RESOURCE",
-        authority_ref="TV/TVC:fixture",
-    )
-    bad = copy.deepcopy(request)
-    bad["payload"]["manifest"]["payload"]["canonical_ingress_manifest"]["payload"]["observation"]["marker"] = "tampered"
-    with pytest.raises(ValueError):
-        validate_ingress_bound_interlock_request(bad)
-
-
-def test_binding_hash_tamper_fails_even_when_nested_manifest_is_unchanged():
-    request = build_ingress_bound_interlock_request(
-        ingress_manifest=ingress_manifest(),
-        source_organization_id="Entity-A",
-        target_organization_id="Entity-B",
-        operation="OBSERVE_EXTERNAL_RESOURCE",
-        authority_ref="TV/TVC:fixture",
-    )
-    bad = copy.deepcopy(request)
-    bad["bindings"]["canonical_ingress_sha256"] = "0" * 64
-    with pytest.raises(ValueError, match="bindings.canonical_ingress_sha256"):
-        validate_ingress_bound_interlock_request(bad)
-
-
-def test_transport_control_tamper_fails_without_invoking_runtime():
-    request = build_ingress_bound_interlock_request(
-        ingress_manifest=ingress_manifest(),
-        source_organization_id="Entity-A",
-        target_organization_id="Entity-B",
-        operation="OBSERVE_EXTERNAL_RESOURCE",
-        authority_ref="TV/TVC:fixture",
-    )
-    bad = copy.deepcopy(request)
-    bad["sdk_claims_delivery"] = True
-    with pytest.raises(ValueError, match="sdk_claims_delivery mismatch"):
-        validate_ingress_bound_interlock_request(bad)
+if __name__ == "__main__":
+    unittest.main()
