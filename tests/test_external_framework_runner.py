@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from stegverse.external_framework_runner import (
     EVALUATION_DECLARATION_EXTENSION,
+    EXPERIMENT_MANIFEST_EXTENSION,
     prepare_external_framework_manifest,
     prepare_external_framework_submission,
     run_external_framework,
@@ -88,6 +89,30 @@ class ExternalFrameworkRunnerTests(unittest.TestCase):
         self.assertTrue(manifest["payload"]["silence_observed"])
         self.assertEqual(manifest["return_projection"]["mode"], "ALL")
 
+    def test_experiment_manifest_is_retained_unchanged_outside_governance_request(self):
+        experiment = {
+            "schema_version": "stegverse.experiment-manifest.v1",
+            "experiment_id": "fixture-experiment-001",
+            "protocol": {
+                "state_establishment": ["E1", "E2"],
+                "evaluated_condition": "E3",
+            },
+        }
+        manifest = prepare_external_framework_manifest(
+            data={"native": True},
+            data_class="fixture.native.v1",
+            source_framework="fixture",
+            source_output_id="fixture-001",
+            processor_request=governance_request(),
+            experiment_manifest=experiment,
+            created_at="2026-09-08T20:00:00Z",
+        )
+        self.assertEqual(manifest["extensions"][EXPERIMENT_MANIFEST_EXTENSION], experiment)
+        self.assertNotIn(
+            EXPERIMENT_MANIFEST_EXTENSION,
+            manifest["extensions"]["stegverse_governance_request"],
+        )
+
     def test_prepare_only_bundle_requires_no_runtime_receipt(self):
         result = prepare_external_framework_submission(
             data={"native": True},
@@ -109,12 +134,14 @@ class ExternalFrameworkRunnerTests(unittest.TestCase):
         source = json.loads((ROOT / "inspection/examples/elan-relational-state-test1.json").read_text(encoding="utf-8"))
         request = json.loads((ROOT / "inspection/examples/elan-governance-request.example.json").read_text(encoding="utf-8"))
         declaration = json.loads((ROOT / "inspection/examples/elan-evaluation-declaration-test1.json").read_text(encoding="utf-8"))
+        experiment = json.loads((ROOT / "inspection/examples/elan-test1-experiment-manifest.json").read_text(encoding="utf-8"))
         result = prepare_external_framework_submission(
             data=source,
             source_framework="ELAN",
             source_output_id="elan-emotional-ambiguity-silence-test-001",
             processor_request=request,
             evaluation_declaration=declaration,
+            experiment_manifest=experiment,
             data_class="elan.relational-state.v1",
             return_depth="full-trace",
             created_at="2026-09-08T20:00:00Z",
@@ -123,6 +150,7 @@ class ExternalFrameworkRunnerTests(unittest.TestCase):
         self.assertEqual(manifest["payload"], source)
         self.assertEqual(manifest["extensions"]["source_data_class"], "elan.relational-state.v1")
         self.assertEqual(manifest["extensions"][EVALUATION_DECLARATION_EXTENSION], declaration)
+        self.assertEqual(manifest["extensions"][EXPERIMENT_MANIFEST_EXTENSION], experiment)
         self.assertEqual(manifest["return_projection"]["mode"], "ALL")
 
     @patch("stegverse.sovereign_validation_runtime.reconstruct_sovereign")
