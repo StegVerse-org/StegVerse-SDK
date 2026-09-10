@@ -7,7 +7,7 @@ Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
 Implementation PR: `#174`
 Implementation branch: `shared-docs-ephemeral-workspace`
-Status: `ACTIVE / SOURCE_IMPLEMENTATION_IN_VALIDATION`
+Status: `ACTIVE / SOURCE_IMPLEMENTATION_VALIDATED / MERGE_PENDING`
 
 ## Controlling architecture
 
@@ -54,28 +54,21 @@ MIR witness/OTS capability remains `TO-BUILD` unless authentic executable eviden
 
 Required behavior must remain operable from one current mobile device. Additional devices/displays may enhance the experience but may not become a prerequisite for the governed workflow.
 
-## Source implementation added in PR #174
+## Source implementation in PR #174
 
 PR #174 introduces `stegverse.state-transition-evidence.v1` as a provider-neutral manifest extension helper under the existing `extensions` boundary. The outer manifest remains `stegverse.ingress-manifest.v1`; no new processing route, credential authority, Shared Docs-specific API, or runtime authority is introduced.
 
-Implemented files:
+Implemented/maintained files:
 
 ```text
 stegverse/state_transition_evidence.py
 tests/test_state_transition_evidence.py
 .github/workflows/manifest-builder-source-validation.yml
+README.md
+docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md
 ```
 
-The profile records:
-
-- stable `transition_id`;
-- `state_domain`;
-- `prior_state_ref` and `new_state_ref`;
-- `change_type`;
-- known `applicable_predicates` with applicability and evidence state;
-- `ambiguities`;
-- `discovered_unknowns`;
-- derived readiness and deterministic probe reasons.
+The profile records stable transition identity, state domain, prior/new state references, change type, known applicable predicates, ambiguity, discovered unknowns, derived readiness, and deterministic probe reasons.
 
 Readiness is fail-closed:
 
@@ -98,35 +91,32 @@ unknown_unknown_policy: ENFORCE_AFTER_DISCOVERY_AS_KNOWN_STATE
 
 This implements the state representation/readiness discipline only. It does not itself execute probes, govern a transition, materialize a WorkSpace, synchronize a document, or write MIR/Master Records.
 
-## Test coverage added
+## Test coverage
 
-`tests/test_state_transition_evidence.py` covers:
+`tests/test_state_transition_evidence.py` covers all-known predicates satisfied, unknown applicability, open ambiguity, discovered-unknown resolution, contradictory READY claims, invalid not-applicable evidence combinations, a Shared Docs-shaped external document observation preserving the universal manifest/source payload, and null-prior initial materialization.
 
-1. all represented applicable predicates satisfied -> `READY`;
-2. unknown predicate applicability -> `PROBE_REQUIRED`;
-3. open ambiguity -> `PROBE_REQUIRED`;
-4. discovered unknown -> `PROBE_REQUIRED` until resolved;
-5. contradictory caller claim of `READY` -> rejected;
-6. invalid NOT_APPLICABLE/evidence combination -> rejected;
-7. Shared Docs-shaped external document observation attaches without changing manifest class or source-native payload;
-8. initial materialization may have `prior_state_ref: null`.
+The Manifest Builder Source Validation workflow executes and compiles the new module/test.
 
-The Manifest Builder Source Validation workflow was extended to execute and compile the new module/test.
+## Exact-head validation evidence before final handoff reconciliation
 
-## Validation evidence
-
-Exact PR #174 head after the initial three source/CI commits was `05a0f4b2014aeaa9dca39e2a1c47e9f17c83873a`.
-
-Observed GitHub Actions evidence on that head:
+PR #174 head `7fefb84ea4c2468590ae15bd023733691e6f31b0` was observed mergeable and passed every affected suite:
 
 ```text
-Manifest Builder Source Validation run 34531438582: SUCCESS
-SDK Package Artifact Validation run 34531438495: in progress at last observation
+Manifest Builder Source Validation 34531613979: SUCCESS
+Evaluator Manifest Source Validation 34531614031: SUCCESS
+Evaluator Contract Console Validation 34531614050: SUCCESS
+SDK Package Artifact Validation 34531614028: SUCCESS
+  - wheel/sdist build: PASS
+  - exact wheel isolated install + smoke test: PASS
 ```
 
-The local assistant container could not clone GitHub because DNS resolution for `github.com` was unavailable. This is a local tool-network condition, not an SDK test failure; hosted exact-head validation is the usable evidence path.
+README diff versus `main` was verified as `+34 / -0`; existing README content was not removed. The branch comparison before this final handoff-only commit was five commits ahead and zero behind.
 
-## Authentic Shared Docs capability predicates
+This handoff reconciliation changes documentation only, so the final merge gate must observe the checks on the resulting head rather than reusing the prior SHA as exact-head evidence.
+
+The local assistant container could not clone GitHub because DNS resolution for `github.com` was unavailable. This is a local tool-network condition, not an SDK test failure; hosted exact-head validation is the evidence path used here.
+
+## Authentic Shared Docs capability predicates still open
 
 The first authentic capability test still requires evidence that:
 
@@ -148,7 +138,8 @@ The first authentic capability test still requires evidence that:
 ```text
 Generic ingress architecture: IMPLEMENTED / previously merged
 State-transition evidence profile: IMPLEMENTED IN PR #174
-Fail-closed READY vs PROBE_REQUIRED derivation: SOURCE IMPLEMENTED / HOSTED TEST PASS
+Fail-closed READY vs PROBE_REQUIRED derivation: SOURCE IMPLEMENTED / HOSTED TEST PASS on pre-reconciliation head
+README maintenance: COMPLETE
 Shared Docs bespoke API requirement: NONE ESTABLISHED
 Shared Docs live synchronization runtime: NOT PROVEN
 StegOS/StegNode ephemeral projection runtime: NOT PROVEN
@@ -163,19 +154,14 @@ one-device authentic end-to-end execution: NOT PROVEN
 
 Do not promote source/CI validation, provider observation, or design convergence into runtime completion.
 
-## README maintenance
-
-The prior design-only session correctly found no README change necessary. PR #174 now adds a public generic state-transition evidence helper/profile, so README maintenance is required before this implementation PR is merge-ready. The README must document the extension as evidence-only/non-authorizing and distinguish derived `READY`/`PROBE_REQUIRED` from actual transition execution or admission.
-
 ## Next actions
 
-1. Complete README maintenance for the new public state-transition evidence helper/profile.
-2. Observe all exact-head PR #174 validations after documentation commits settle.
-3. Repair any failing validation rather than weakening the fail-closed model.
-4. Inspect current executable Interlock/InTr and StegOS/StegNode surfaces for the smallest actual ephemeral projection consumer.
-5. Add an executable provider-neutral Shared Docs observation adapter/harness only where the external system needs a bridge to the existing manifested boundary.
-6. Bind MIR and Master Records only through authentic executable interfaces; retain `TO-BUILD` / `NOT PROVEN` where no interface exists.
-7. Construct the authentic live-edit + expiry/revocation + single-device test and retain exact evidence.
+1. Observe exact-head PR #174 validations after this handoff reconciliation and merge if green/mergeable.
+2. After merge, record the merge SHA here and in applicable task coordination state.
+3. Inspect current executable Interlock/InTr and StegOS/StegNode surfaces for the smallest actual ephemeral projection consumer.
+4. Add an executable provider-neutral Shared Docs observation adapter/harness only where the external system needs a bridge to the existing manifested boundary.
+5. Bind MIR and Master Records only through authentic executable interfaces; retain `TO-BUILD` / `NOT PROVEN` where no interface exists.
+6. Construct the authentic live-edit + expiry/revocation + single-device test and retain exact evidence.
 
 ## Human action
 
