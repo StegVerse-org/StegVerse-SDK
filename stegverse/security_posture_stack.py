@@ -17,7 +17,7 @@ RESOLUTION_SCHEMA = "stegos.intr-security-posture-resolution.v1"
 def build_security_posture_request(
     *,
     task_id: str,
-    selected_tier: str = "SECURE",
+    selected_tier: str | None = None,
     organization_minimum_tier: str = "SECURE",
     data_class: str | None = None,
     channel: str | None = None,
@@ -25,16 +25,18 @@ def build_security_posture_request(
     """Describe posture inputs for Interlock/InTr without asserting a final tier."""
     if not task_id:
         raise SecurityPostureError("security_posture_task_id_required")
-    for name, tier in (("selected_tier", selected_tier), ("organization_minimum_tier", organization_minimum_tier)):
-        if tier not in TIER_TO_POSTURE:
-            raise SecurityPostureError(f"unsupported_security_posture_{name}:{tier}")
-    selected = resolve_security_posture(TIER_TO_POSTURE[selected_tier])
+    if organization_minimum_tier not in TIER_TO_POSTURE:
+        raise SecurityPostureError(f"unsupported_security_posture_organization_minimum_tier:{organization_minimum_tier}")
+    if selected_tier is not None and selected_tier not in TIER_TO_POSTURE:
+        raise SecurityPostureError(f"unsupported_security_posture_selected_tier:{selected_tier}")
+    selected = resolve_security_posture(TIER_TO_POSTURE[selected_tier]) if selected_tier is not None else None
     return {
         "schema": REQUEST_SCHEMA,
         "task_id": task_id,
         "selected_tier": selected_tier,
-        "selected_posture_id": selected["posture_id"],
-        "selected_posture_sha256": selected["posture_sha256"],
+        "selected_posture_id": selected["posture_id"] if selected else None,
+        "selected_posture_sha256": selected["posture_sha256"] if selected else None,
+        "selection_present": selected_tier is not None,
         "organization_minimum_tier": organization_minimum_tier,
         "data_class": data_class,
         "channel": channel,
@@ -80,18 +82,25 @@ def project_intr_posture_resolution(resolution: Mapping[str, Any]) -> dict[str, 
 
 def select_posture_stack(*, task_id: str = "PREVIEW_ONLY", organization_minimum_tier: str = "SECURE", data_class: str | None = None, channel: str | None = None, selected_tier: str | None = None) -> dict[str, Any]:
     """Backward-compatible SDK request preview; not an authoritative posture resolution."""
-    chosen = selected_tier or "SECURE"
     request = build_security_posture_request(
         task_id=task_id,
-        selected_tier=chosen,
+        selected_tier=selected_tier,
         organization_minimum_tier=organization_minimum_tier,
         data_class=data_class,
         channel=channel,
     )
+    selected_posture = None
+    if selected_tier is not None:
+        selected_posture = {
+            "tier": selected_tier,
+            "posture_id": request["selected_posture_id"],
+            "selection_present": True,
+        }
     return {
         "schema": "stegverse.sdk.security-posture-request-preview.v1",
         "request": request,
-        "selected_posture": {"tier": chosen, "posture_id": request["selected_posture_id"], "selection_present": selected_tier is not None},
+        "selected_posture": selected_posture,
+        "selection_present": selected_tier is not None,
         "automatic_posture": None,
         "effective_posture": None,
         "resolution_required_from": "INTERLOCK_INTR",
