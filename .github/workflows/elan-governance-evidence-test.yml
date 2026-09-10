@@ -30,6 +30,8 @@ jobs:
       - name: Run ELAN manifest to governance evidence test
         id: run_test
         continue-on-error: true
+        env:
+          PYTHONPATH: .
         run: python scripts/run_elan_manifest_governance_evidence_test.py
       - name: Preserve dependency and execution evidence
         if: always()
