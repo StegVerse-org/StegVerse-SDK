@@ -5,89 +5,38 @@ Organization: `StegVerse-org`
 Repository: `StegVerse-SDK`
 Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
-Prior implementation: `PR #174 MERGED`
-Prior merge SHA: `ee8f7023d74d70fa762e3982776c27c1e372a1f7`
-Current branch: `workspace-generic-intr-binding-v2`
-Status: `ACTIVE / GENERIC INGRESS-TO-INTR BINDING IMPLEMENTED / VALIDATION PENDING`
+Status: `ACTIVE / GENERIC MANIFEST-TO-INTR BRIDGE MERGED / WORKSPACE RESOURCE CONSUMER PENDING`
 
-## Controlling architecture
+## Completed implementation chain
 
-The Shared Docs experiment reuses the existing generic-manifest + Interlock/InTr architecture. It does not create a bespoke Shared Docs API or caller-specific manifest class.
+### State-transition evidence
 
-```text
-entity
-  -> source-native data
-  -> stegverse.ingress-manifest.v1
-       -> extensions.stegverse_state_transition
-  -> external Interlock transport-control envelope
-  -> InTr admitted ingress
-  -> organization-local capability consumer
-  -> bounded projection/output
-```
+SDK PR #174 merged at `ee8f7023d74d70fa762e3982776c27c1e372a1f7`.
 
-The canonical `stegverse.ingress-manifest.v1` remains the universal manifested-data envelope. `stegverse.external_organization.interaction_manifest.v1` is transport/bootstrap control metadata only; it must not become a parallel universal payload schema.
+It added provider-neutral `stegverse.state-transition-evidence.v1` under the existing `stegverse.ingress-manifest.v1` `extensions` boundary. Unknown applicability, unresolved applicable evidence, open ambiguity, or discovered unresolved unknowns force `PROBE_REQUIRED`; contradictory `READY` claims fail closed.
 
-Identity, relationship, credentials, current state, and requested capability may affect admissibility. They do not change the universal manifest class merely because the communicating entity differs.
+### Canonical ingress to external Interlock binding
 
-## Completed prior source implementation
+SDK PR #176 merged at `7047e67d21173e800f78d4468519dba87992b16d`.
 
-PR #174 merged `stegverse.state-transition-evidence.v1` under the existing ingress-manifest `extensions` boundary. Readiness is fail-closed:
-
-```text
-known applicable predicate + SATISFIED evidence -> may contribute to READY
-known applicable predicate + unresolved evidence -> PROBE_REQUIRED
-predicate applicability UNKNOWN -> PROBE_REQUIRED
-open ambiguity -> PROBE_REQUIRED
-open discovered unknown -> PROBE_REQUIRED
-all represented applicable predicates satisfied + all ambiguity/discoveries resolved -> READY
-caller READY contradicting derived state -> reject
-```
-
-The evidence profile grants no authority and preserves the rule that a genuinely unknown unknown can only become enforceable after discovery makes it known state.
-
-Final PR #174 validation was green on the exact pre-merge head, and merge completed at `ee8f7023d74d70fa762e3982776c27c1e372a1f7`.
-
-## Executable consumer trace
-
-Cross-repository inspection located an actual organization-local receiver pattern in:
-
-```text
-StegVerse-002/.github
-resident-runtime/self_characterization_surface.py
-```
-
-That surface:
-
-- accepts an already-admitted InTr ingress envelope;
-- validates request class, transport, destination, exact manifest bindings, and authority boundaries;
-- resolves only its organization-local entity/principal binding;
-- invokes the sovereign resident principal only after those checks;
-- retains Master Records as required evidence/custody semantics.
-
-It is intentionally operation-specific to self-characterization and is not itself a generic WorkSpace receiver. Its existence proves the transport-to-org-local-consumer pattern, not Shared Docs runtime completion.
-
-The matching SDK producer-side bootstrap remains `stegverse/external_interlock_bootstrap.py`. It constructs request/control artifacts but explicitly does not perform transport, mint InTr receipts, transfer authority, or claim delivery.
-
-## Current implementation: canonical ingress to external Interlock binding
-
-The branch adds:
+It added:
 
 ```text
 stegverse/external_interlock_ingress_binding.py
 tests/test_external_interlock_ingress_binding.py
 ```
 
-The adapter validates the canonical ingress manifest first, computes its canonical SHA-256, then places that exact validated ingress object inside the existing external interaction manifest payload. The external Interlock request binds both the interaction-manifest identity/hash and the canonical ingress profile/hash.
+The adapter validates the exact ingress wire manifest, hash-binds that exact object, and places it inside the existing `stegverse.external_organization.interaction_manifest.v1` transport/control artifact.
 
-This means:
+The separation is now executable source behavior:
 
 ```text
 external interaction manifest = transport/control artifact
-canonical ingress manifest     = manifested-data artifact
-state-transition evidence      = canonical ingress extension
+stegverse.ingress-manifest.v1 = universal manifested-data artifact
+stegverse.state-transition-evidence.v1 = state evidence inside canonical ingress
 ```
 
-The adapter explicitly records:
+The request records:
 
 ```text
 authority_transfer: false
@@ -96,25 +45,54 @@ sdk_claims_delivery: false
 canonical_ingress_grants_transport_authority: false
 ```
 
-Validation rejects altered transport-control semantics, interaction-manifest hash mismatch, nested canonical-ingress tampering, canonical-ingress binding mismatch, operation mismatch, and authority-field mutation before any runtime/transport claim can be accepted.
+A `PROBE_REQUIRED` state survives transport binding without promotion. Nested-ingress tampering, binding tampering, interaction-manifest tampering, operation mismatch, and authority-field mutation fail validation.
 
-A `PROBE_REQUIRED` state is preserved unchanged through the transport binding; wrapping a manifest cannot promote readiness.
+### Validation repairs
 
-## Focused test predicates
+The first PR #176 source-validation run failed because the new tests were pytest-style functions while the workflow invoked `python -m unittest`; unittest discovered zero tests. The tests were converted to the repository's unittest convention.
 
-`tests/test_external_interlock_ingress_binding.py` verifies:
+The next run exposed a substantive serialization bug: the adapter nested the enriched return value of `validate_ingress_manifest()`, which contains validator-derived internal fields that are not legal caller-supplied top-level wire fields. The adapter was corrected to validate the submitted wire object but transport/hash-bind the exact valid wire manifest itself. Derived validation state is not serialized back into the universal envelope.
 
-1. canonical `stegverse.ingress-manifest.v1` remains nested as the actual manifested-data payload;
-2. `stegverse.external_organization.interaction_manifest.v1` remains transport/control metadata;
-3. state-transition `READY` remains exact when legitimately derived;
-4. `PROBE_REQUIRED` survives transport binding without promotion;
-5. nested canonical-ingress tampering fails;
-6. canonical-ingress hash-binding tampering fails;
-7. transport control cannot be mutated to claim SDK delivery authority.
+Final exact-head evidence before merge:
 
-The existing Manifest Builder Source Validation workflow is updated to run and compile the new adapter/test anonymously from the exact PR source.
+```text
+PR #176 exact head: 913f652d5ebd3c4479ba64b31316916d60ba92dc
+Manifest Builder Source Validation 34536379000: SUCCESS
+SDK Package Artifact Validation 34536379094: SUCCESS
+PR mergeable before merge: true
+merge: SUCCESS
+merge SHA: 7047e67d21173e800f78d4468519dba87992b16d
+```
 
-README maintenance was reviewed. This adapter adds no new public processing capability identifier, route, universal manifest field, user-facing WorkSpace surface, or runtime claim; the existing README generic-manifest and Interlock separation already describes the controlling semantics. No redundant README edit is required at this source-adapter stage. README must be updated when a new public capability/route/surface or externally observable WorkSpace runtime behavior is actually introduced.
+README review remains current: this SDK adapter introduced no new public processing capability identifier, runtime route, universal manifest field, user-facing WorkSpace surface, or runtime claim. Existing README semantics already document generic manifested-data processing and Interlock separation. README must change when an externally observable WorkSpace capability/surface is introduced.
+
+## Cross-repository runtime dispatch repair
+
+Tracing the organization federation path found a real genericity defect in `StegVerse-org/.github`.
+
+`org-kernel/kernel.py::dispatch` already selected registered `INTERNAL_ENDPOINT` services generically, but production `org-boundary/runtime/process_boundary.py` executed a configured `endpoint_adapter` only when the service ID was exactly `stegverse-org.stegverse-sdk`.
+
+StegVerse-org/.github PR #9 removed that service-ID special case and merged at `d8baefb8674ebed00bbbf9784c54e092a5b1a04d` after `Internal Endpoint Dispatch Validation` run `34536206284` succeeded.
+
+The production boundary processor now executes any registry-declared `INTERNAL_ENDPOINT` adapter while requiring the adapter path to resolve inside the organization repository root. Unknown services, missing adapters, external-path adapters, and failed adapters remain fail-closed. README and `docs/ORG_FEDERATION_GENERIC_ENDPOINT_ADAPTER_MIRROR_HANDOFF.md` were maintained in that repository.
+
+This means a future WorkSpace endpoint can use the existing service registry + Interlock/InTr organization boundary without adding another service-ID branch to the boundary processor.
+
+## Current executable path
+
+```text
+source-native external resource observation
+  -> stegverse.ingress-manifest.v1
+       -> stegverse.state-transition-evidence.v1
+  -> stegverse.external-interlock-ingress-binding.v1
+  -> external interaction transport/control manifest
+  -> organization federation packet/frame
+  -> federation gateway / InTr ingress
+  -> registry-selected INTERNAL_ENDPOINT
+  -> registry-declared organization-local endpoint_adapter
+```
+
+Every layer through endpoint-adapter selection now has an executable source path. What remains missing for WorkSpace is the actual provider-neutral resource/projection consumer behind that adapter and authentic external-provider execution evidence.
 
 ## Current proof boundary
 
@@ -122,46 +100,53 @@ README maintenance was reviewed. This adapter adds no new public processing capa
 Generic ingress architecture: IMPLEMENTED / MERGED
 State-transition evidence profile: IMPLEMENTED / VALIDATED / MERGED
 Fail-closed READY vs PROBE_REQUIRED derivation: IMPLEMENTED / VALIDATED / MERGED
-Canonical ingress -> external Interlock binding: SOURCE IMPLEMENTED / VALIDATION PENDING
-External Interlock bootstrap request construction: EXISTS / NON-TRANSPORT
-Organization-local InTr consumer pattern: LOCATED / AUTHENTIC SOURCE
-Generic WorkSpace organization-local consumer: NOT YET IMPLEMENTED
-Shared Docs bespoke API requirement: NONE ESTABLISHED
+Canonical ingress -> external Interlock binding: IMPLEMENTED / VALIDATED / MERGED
+Registry-driven organization INTERNAL_ENDPOINT adapter dispatch: IMPLEMENTED / VALIDATED / MERGED
+External Interlock bootstrap: EXISTS / NON-TRANSPORT
+Federation gateway transport implementation: EXISTS
+Generic WorkSpace external-resource consumer: NOT YET IMPLEMENTED
+Active probe execution for WorkSpace predicates: NOT YET IMPLEMENTED
 Shared Docs live synchronization runtime: NOT PROVEN
-StegOS/StegNode ephemeral projection runtime: NOT PROVEN
-active probe execution: NOT PROVEN
-MIR transition reporting: NOT PROVEN
+StegOS/StegNode ephemeral projection runtime for Shared Docs: NOT PROVEN
+MIR transition reporting for this experiment: NOT PROVEN
 MIR external witness/OTS: TO-BUILD
 Master Records authentic custody/reconstruction for this experiment: NOT PROVEN
-expiry/revocation runtime enforcement: NOT PROVEN
-one-device authentic end-to-end execution: NOT PROVEN
+Expiry/revocation runtime enforcement for WorkSpace: NOT PROVEN
+One-device authentic end-to-end execution: NOT PROVEN
 ```
 
-Do not promote source validation, request construction, provider observation, or design convergence into runtime completion.
+No source, CI, request construction, or provider observation is to be promoted into an authentic runtime claim.
 
-## Ephemeral WorkSpace model
+## Controlling WorkSpace invariants
 
 ```text
-source content: durable under authoritative external system
-WorkSpace/StegOS projection: ephemeral and bounded
-updates: live/synchronized only while current admission remains valid
-MIR: historical state-transition record keeper
-Master Records: independent StegVerse custody/replay/reconstruction evidence
+Anything that changes is a state transition.
+source content remains authoritative under the external system.
+WorkSpace/StegOS projection is ephemeral and bounded.
+live synchronization exists only while current admission remains valid.
+ephemeral content does not imply ephemeral transition history.
+MIR and Master Records retain distinct custody/authority roles.
+required behavior must remain complete on one current mobile device.
 ```
 
-Anything that changes is a state transition. Expiry, renewal, revocation, edit observation, synchronization, probe result, authorization change, projection creation, and projection destruction are transitions.
+Expiry, renewal, revocation, edit observation, synchronization, probe result, authorization change, projection creation, refresh, and destruction are state transitions.
 
-Ephemeral content does not imply ephemeral transition history. Required behavior must remain operable from one current mobile device; a second user-operated device is not an admissible dependency.
+## Next executable target
 
-## Next actions
+Do not introduce a Shared Docs-specific API or service schema unless actual provider inspection proves an adapter is required.
 
-1. Run hosted exact-head source/package/evaluator validation for the generic ingress-to-InTr adapter and merge if green.
-2. Trace the federation gateway ingress dispatch that selects the organization-local consumer; identify the narrow generic service-registration surface rather than cloning the self-characterization consumer.
-3. Implement a provider-neutral external-resource projection consumer with explicit operations such as observe/materialize/refresh/revoke only if the existing service-dispatch layer lacks equivalent generic capability.
-4. Bind actual probe execution so `PROBE_REQUIRED` can transition to later READY only after durable evidence resolves the relevant predicate/ambiguity/discovery.
-5. Bind MIR and Master Records through authentic executable interfaces without conflating custody/authority.
-6. Construct the authentic live-edit + probe + expiry/revocation + teardown + one-device experiment.
+The next source unit should be a provider-neutral organization-local external-resource endpoint adapter/consumer that:
+
+1. consumes the already-bound canonical ingress object;
+2. rejects `PROBE_REQUIRED` for materialization until an explicit probe result resolves the represented condition;
+3. supports bounded lifecycle operations needed by the experiment (`OBSERVE`, `MATERIALIZE`, `REFRESH`, `REVOKE`/`EXPIRE`, `DESTROY`) without claiming provider behavior;
+4. records deterministic resource/projection bindings and prior/new state references;
+5. provides hooks/interfaces for authentic provider read/refresh/revoke operations rather than embedding Shared Docs semantics;
+6. leaves InTr receipt minting, governance/admission authority, MIR custody, and Master Records custody with their owning systems;
+7. can later be driven through the one-device experiment path.
+
+After that source consumer is validated, bind the authentic external provider adapter and perform the controlled live-edit + probe + expiry/revocation + teardown test.
 
 ## Human action
 
-None is required for current source implementation, validation, and receiver/dispatch tracing. Richard Whitney's participation becomes necessary only when an authentic test requires authorized access to his independently controlled Shared Docs runtime or consent to attach an Interlock/InTr participant/adapter to it.
+None is required for the next provider-neutral source implementation. Richard Whitney's participation becomes necessary only when authentic Shared Docs access/consent is required for the live provider-backed experiment.
