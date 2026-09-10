@@ -62,7 +62,19 @@ generic external-run experiment-manifest support: 0e87727d215c4af9e64935e5516525
 experiment-manifest regression coverage: 2e9eb07bb0c1aadc0bc11fcdeebbf8ee5a94fc8c
 runbook manifest-boundary correction: e4aa2215c91c218a5ee8cf7af1b9d72d780028d8
 evaluator declaration separation: ba91c2ef102bf6c6787b78996125162caec8134f
+exact validated head: fc198266570f24a4c7bba57dfb63b1f5adaf1bc2
 merge claim: NONE
+```
+
+Exact-head PR #166 validation:
+
+```text
+Generic Manifest Downstream Contract Validation 34489612531 PASS
+Evaluator Manifest Source Validation 34489612534 PASS
+Manifest Builder Source Validation 34489612514 PASS
+External Framework Public Submission Validation 34489612580 PASS
+Evaluator Contract Console Validation 34489612530 PASS
+SDK Package Artifact Validation 34489612526 PASS
 ```
 
 The confidential source-owner ELAN PDF remains outside the public repository. No runtime outcome is inferred from it.
@@ -122,87 +134,7 @@ v1.2.0 retargeting permitted: false
 release/tag/publication claim: NONE
 ```
 
-The prior candidate head had become 7 commits behind current `main`, producing a GitHub `mergeable=false` report even though the candidate and main-side changed paths did not overlap. This was repaired without rewriting candidate semantics by creating merge commit `b53fb8c26688c8ea02ac336c5b876b3e6aa189cb` with the validated candidate as first parent and current main `c7666cf37ba8561e85298bc88d50d152aa565965` as second parent. The merge tree uses current-main state plus the exact ten candidate blobs.
-
-Post-repair comparison:
-
-```text
-base: main@c7666cf37ba8561e85298bc88d50d152aa565965
-head: b53fb8c26688c8ea02ac336c5b876b3e6aa189cb
-status: ahead
-ahead_by: 16
-behind_by: 0
-merge_base: c7666cf37ba8561e85298bc88d50d152aa565965
-PR mergeable: true
-changed files: exactly 10 intended candidate files
-```
-
-Candidate control files remain:
-
-```text
-pyproject.toml
-VERSION.json
-RELEASE_NOTES_1.3.0.md
-scripts/check_component_version.py
-docs/SDK_1_3_0_SUCCESSOR_RELEASE_MIRROR_HANDOFF.md
-.github/workflows/component-version-validation.yml
-```
-
-README maintenance remains incorporated and current.
-
-## Exact-head validation after merge-base repair
-
-Exact PR #165 head `b53fb8c26688c8ea02ac336c5b876b3e6aa189cb`:
-
-```text
-SDK Component Version Validation 34355771475 PASS
-SDK Package Artifact Validation 34355771348 PASS
-Release Dependency Alignment 34355771409 PASS
-External Framework Public Submission 34355771364 PASS
-Evaluator Manifest Source Validation 34355771441 PASS
-Evaluator Contract Console Validation 34355771315 PASS
-SDK Production Manifold Governance Validation 34355771382 PASS
-Portable Package Source Validation 34355771396 PASS
-Portable Release Index 34355771447 PASS
-Manifest Builder Source Validation 34355771439 PASS
-MCP Source Validation 34355771329 PASS
-SDK Output-Boundary Proof Validation 34355771324 PASS
-Connect my LLM Source Validation 34355771408 PASS
-Communication Edge SDK Demo Validation 34355771365 PASS
-Anonymous Governed Runtime Install 34355771357 FAIL_CLOSED_EXPECTED
-```
-
-Exact anonymous-install failure remains:
-
-```text
-materialize exact SDK source: PASS
-pip install -e .[governed-test]: FAIL
-pip error: No matching distribution found for stegverse-stegcore==0.3.0
-package identity verification: SKIPPED
-ELAN Test 1 execution: SKIPPED
-complete governed result verification: SKIPPED
-```
-
-This proves the merge-base repair introduced no observed SDK source regression. The first current public-distribution blocker remains authentic publication of `stegverse-stegcore 0.3.0`. Private repository visibility is not the observed failure mode. Do not weaken the anonymous gate or infer Master Records publication status merely because pip stops at the first missing package.
-
-## Release boundary
-
-PR #165 remains DRAFT despite being mergeable and source-valid. Source validation and mergeability are not release publication.
-
-Actual `v1.3.0` freeze/publication requires:
-
-```text
-exact candidate freeze reconciliation
-TVC successor policy updated to the new SDK coordinate
-current TV/TVC GRANTED release authorization
-required SKAP double-interlock resident evidence
-immutable GitHub tag/release
-Trusted Publisher PyPI provenance
-anonymous governed-runtime install PASS
-ELAN Test 1 custody/replay/reconstruction PASS
-```
-
-The live TVC release-credential task remains `BLOCKED_DEPENDENCY` / `REQUESTED_NOT_GRANTED`; no tag or release is created now.
+PR #165 remains DRAFT. Its source validation passed, but anonymous governed-runtime installation is still blocked by missing public distribution `stegverse-stegcore==0.3.0`.
 
 ## Downstream completion state
 
@@ -261,11 +193,11 @@ dedicated processor-generic hosted route: NOT YET OBSERVED
 
 ```text
 StegVerse-org/StegVerse-SDK:
-  - complete exact-head validation of PR #166 for generic experiment-manifest retention
-  - merge PR #166 only if required checks pass
+  - merge PR #166 after exact-head validation if repository merge policy admits it
   - keep PR #165 draft while public package/release gate is unsatisfied
-  - after authentic public distributions exist, rerun Anonymous Governed Runtime Install and ELAN E2E using caller-declared experiment manifest
-  - freeze exact 1.3.0 coordinate only through canonical release reconciliation
+  - prepare ELAN Test 1 through the public SDK surface using the caller-authored experiment manifest and exact externally supplied source evidence
+  - do not claim complete ELAN governed execution until Event 3 source evidence and experiment-applicable governance facts are available
+  - after authentic public distributions exist, rerun Anonymous Governed Runtime Install and complete governed E2E custody/replay/reconstruction
 
 StegVerse-Labs/StegCore:
   - authentic immutable/public publication of stegverse-stegcore 0.3.0 under canonical release gate
@@ -278,9 +210,6 @@ StegVerse-Labs/Site:
 
 StegVerse-Labs/admissibility-wiki:
   - Worker D-owned processor-generic interoperability doctrine propagation
-
-GCAT-BCAT-Engine/Publisher: none now
-StegVerse-002/stegguardian-wiki: none now
 ```
 
 ## Current status
@@ -288,10 +217,10 @@ StegVerse-002/stegguardian-wiki: none now
 ```text
 SDK-PROCESSOR-GENERIC-MANIFEST-002: COMPLETE_VALIDATED_MERGED
 SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE
-PR #166 experiment-manifest architecture correction: SOURCE_CHANGED / EXACT_HEAD_VALIDATION_PENDING
+experiment-manifest remediation: EXACT_HEAD_VALIDATION_PASS / PR_166_DRAFT_PENDING_MERGE
 SDK 1.3.0 source candidate: EXACT_HEAD_SOURCE_VALIDATED_MERGEABLE_DRAFT_PR_165
-merge-base regression: RESOLVED
 first proven anonymous-install blocker: stegverse-stegcore==0.3.0 NOT PUBLISHED
+ELAN Test 1 source evidence: EVENTS_1_2_OBSERVED / EVENT_3_PENDING
 Site completion predicate: FALSE / MACHINE_OWNED
 admissibility completion predicate: FALSE / WORKER_OWNED
 manual user work: NONE
