@@ -128,7 +128,7 @@ def _validate_execution_provenance(value: Any) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         raise PublicInspectionRequestError("execution_provenance must be an object")
     allowed = {
-        "route_id", "route_declaration_hash", "state_binding_hash",
+        "route_id", "processor_capability", "route_declaration_hash", "state_binding_hash",
         "lane_class", "routing_surface", "containment", "sandbox_required",
         "sandbox_tier", "origin_surface", "external_consequence_enabled",
         "execution_host_class", "execution_host_identity", "third_party_host_required",
@@ -146,6 +146,13 @@ def _validate_execution_provenance(value: Any) -> dict[str, Any]:
     route_id = value.get("route_id")
     if route_id is not None and (not isinstance(route_id, str) or not route_id.strip() or len(route_id) > 200):
         raise PublicInspectionRequestError("invalid execution_provenance.route_id")
+    processor_capability = value.get("processor_capability")
+    if processor_capability is not None and (
+        not isinstance(processor_capability, str)
+        or not processor_capability.strip()
+        or len(processor_capability) > 120
+    ):
+        raise PublicInspectionRequestError("invalid execution_provenance.processor_capability")
     _validate_sha256_hex(value.get("route_declaration_hash"), "execution_provenance.route_declaration_hash")
     _validate_sha256_hex(value.get("state_binding_hash"), "execution_provenance.state_binding_hash")
     if not isinstance(value.get("sandbox_required"), bool) or not isinstance(value.get("external_consequence_enabled"), bool):
