@@ -5,70 +5,32 @@ Organization: `StegVerse-org`
 Repository: `StegVerse-SDK`
 Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
-Implementation PR: `#174`
-Implementation branch: `shared-docs-ephemeral-workspace`
-Status: `ACTIVE / SOURCE_IMPLEMENTATION_VALIDATED / MERGE_PENDING`
+Implementation PR: `#174 MERGED`
+Merge SHA: `ee8f7023d74d70fa762e3982776c27c1e372a1f7`
+Status: `ACTIVE / STATE-EVIDENCE SOURCE IMPLEMENTATION MERGED / RUNTIME WORKSPACE PROOF PENDING`
 
 ## Controlling architecture
 
-The Shared Docs experiment reuses the existing generic-manifest + Interlock/InTr architecture. It does not create a bespoke Shared Docs API or a new caller-specific manifest class.
+The Shared Docs experiment reuses the existing generic-manifest + Interlock/InTr architecture. It does not create a bespoke Shared Docs API or caller-specific manifest class.
 
 ```text
 entity
   -> source-native data
   -> stegverse.ingress-manifest.v1
-  -> correctly shaped transition evidence
+  -> provider-neutral state-transition evidence
   -> Interlock/InTr / installed processing route
   -> admitted projection/output
 ```
 
-Identity, relationship, credentials, current state, and requested capability may change admissibility. They do not change the universal manifest class merely because the communicating entity differs.
+Identity, relationship, credentials, current state, and requested capability may affect admissibility. They do not change the universal manifest class merely because the communicating entity differs.
 
-The inter-Entity rule is universal: ambiguity and discovered unknowns that affect readiness must be representable as state. A genuinely unknown unknown cannot be enforced before discovery; once discovered, it becomes known state and must be incorporated before a later READY classification.
-
-## Universal state-transition rule
+## Universal transition/readiness rule
 
 ```text
 Anything that changes is a state transition.
 ```
 
-This includes document edits, synchronization updates, login/session creation, renewal, expiry, revocation, permission/scope changes, identity/device/node changes, projection creation/refresh/destruction, and incorporation of newly discovered unknowns into known state.
-
-A timer is a transition trigger, not a side channel. Expiry, renewal, and revocation are transitions.
-
-## Ephemeral WorkSpace model
-
-```text
-source content: durable under authoritative external system
-WorkSpace/StegOS projection: ephemeral and bounded
-updates: live/synchronized only while current admission remains valid
-MIR: historical state-transition record keeper
-Master Records: independent StegVerse custody/replay/reconstruction evidence
-```
-
-Ephemeral content does not imply ephemeral transition history. The projection must not silently become a second authoritative document store.
-
-MIR witness/OTS capability remains `TO-BUILD` unless authentic executable evidence proves otherwise. Master Records must not be represented as a substitute for MIR authority.
-
-## Mobile-first invariant
-
-Required behavior must remain operable from one current mobile device. Additional devices/displays may enhance the experience but may not become a prerequisite for the governed workflow.
-
-## Source implementation in PR #174
-
-PR #174 introduces `stegverse.state-transition-evidence.v1` as a provider-neutral manifest extension helper under the existing `extensions` boundary. The outer manifest remains `stegverse.ingress-manifest.v1`; no new processing route, credential authority, Shared Docs-specific API, or runtime authority is introduced.
-
-Implemented/maintained files:
-
-```text
-stegverse/state_transition_evidence.py
-tests/test_state_transition_evidence.py
-.github/workflows/manifest-builder-source-validation.yml
-README.md
-docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md
-```
-
-The profile records stable transition identity, state domain, prior/new state references, change type, known applicable predicates, ambiguity, discovered unknowns, derived readiness, and deterministic probe reasons.
+PR #174 merged `stegverse.state-transition-evidence.v1` under the existing ingress-manifest `extensions` boundary. It records transition identity, state domain, prior/new state references, change type, applicable predicates, ambiguities, discovered unknowns, derived readiness, and deterministic probe reasons.
 
 Readiness is fail-closed:
 
@@ -82,68 +44,96 @@ all represented applicable predicates satisfied + all ambiguity/discoveries reso
 caller READY contradicting derived state -> reject
 ```
 
-The helper also records:
+The helper records `evidence_grants_authority: false` and `unknown_unknown_policy: ENFORCE_AFTER_DISCOVERY_AS_KNOWN_STATE`. A genuinely unknown unknown cannot be enforced before discovery; after discovery it becomes known state and must be resolved before later READY classification.
+
+This is state representation/readiness discipline only. It does not itself execute probes, govern transitions, perform transport, materialize a WorkSpace, synchronize documents, mint InTr receipts, or write MIR/Master Records.
+
+## Files merged by PR #174
 
 ```text
-evidence_grants_authority: false
-unknown_unknown_policy: ENFORCE_AFTER_DISCOVERY_AS_KNOWN_STATE
+stegverse/state_transition_evidence.py
+tests/test_state_transition_evidence.py
+.github/workflows/manifest-builder-source-validation.yml
+README.md
+docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md
 ```
 
-This implements the state representation/readiness discipline only. It does not itself execute probes, govern a transition, materialize a WorkSpace, synchronize a document, or write MIR/Master Records.
+README maintenance is complete. The README change was verified before merge as additive (`+34 / -0`) with no existing README content removed.
 
-## Test coverage
+## Final exact-head validation before merge
 
-`tests/test_state_transition_evidence.py` covers all-known predicates satisfied, unknown applicability, open ambiguity, discovered-unknown resolution, contradictory READY claims, invalid not-applicable evidence combinations, a Shared Docs-shaped external document observation preserving the universal manifest/source payload, and null-prior initial materialization.
-
-The Manifest Builder Source Validation workflow executes and compiles the new module/test.
-
-## Exact-head validation evidence before final handoff reconciliation
-
-PR #174 head `7fefb84ea4c2468590ae15bd023733691e6f31b0` was observed mergeable and passed every affected suite:
+Final PR head: `58e3b9a4f8e718dec9495a6c6b3c6cb824c823fa`
 
 ```text
-Manifest Builder Source Validation 34531613979: SUCCESS
-Evaluator Manifest Source Validation 34531614031: SUCCESS
-Evaluator Contract Console Validation 34531614050: SUCCESS
-SDK Package Artifact Validation 34531614028: SUCCESS
-  - wheel/sdist build: PASS
-  - exact wheel isolated install + smoke test: PASS
+Manifest Builder Source Validation 34531713582: SUCCESS
+Evaluator Contract Console Validation 34531713574: SUCCESS
+SDK Package Artifact Validation 34531713581: SUCCESS
+Evaluator Manifest Source Validation 34531713580: SUCCESS
+PR mergeable: true
+PR draft state before merge: false
+merge: SUCCESS
+merge SHA: ee8f7023d74d70fa762e3982776c27c1e372a1f7
 ```
 
-README diff versus `main` was verified as `+34 / -0`; existing README content was not removed. The branch comparison before this final handoff-only commit was five commits ahead and zero behind.
+Package validation included wheel/sdist construction and exact-wheel isolated install/smoke testing.
 
-This handoff reconciliation changes documentation only, so the final merge gate must observe the checks on the resulting head rather than reusing the prior SHA as exact-head evidence.
+The assistant's local container could not clone GitHub because local DNS resolution for `github.com` was unavailable. This was not treated as SDK failure; GitHub-hosted exact-head validation supplied the execution evidence above.
 
-The local assistant container could not clone GitHub because DNS resolution for `github.com` was unavailable. This is a local tool-network condition, not an SDK test failure; hosted exact-head validation is the evidence path used here.
+## Current executable-surface inspection
+
+Inspection after the source implementation identified `stegverse/external_interlock_bootstrap.py` as the nearest existing SDK bridge toward the runtime-facing experiment. It can build manifest/receipt-bound external-organization Interlock requests using InTr semantics, but its contract explicitly states:
+
+```text
+sdk_mints_intr_receipt: false
+sdk_claims_delivery: false
+authority_transfer: false
+```
+
+The module is therefore a request/bootstrap construction surface, not proof of transport. Search found no separate SDK consumer for `build_external_interlock_request` outside that module on the inspected default-branch index. The next step is not to pretend the builder is runtime; it is to locate/bind the canonical executable Interlock/InTr consumer that can accept such a request, then determine whether the state-transition evidence should be projected into that boundary or whether an existing canonical ingress adapter already performs the mapping.
+
+This is also a useful architecture check: `stegverse.external_organization.interaction_manifest.v1` must not become a competing universal payload envelope. Any use in the WorkSpace path must remain a transport/bootstrap control artifact around or translated into the canonical `stegverse.ingress-manifest.v1` semantics, not a caller-specific replacement.
+
+## Ephemeral WorkSpace model
+
+```text
+source content: durable under authoritative external system
+WorkSpace/StegOS projection: ephemeral and bounded
+updates: live/synchronized only while current admission remains valid
+MIR: historical state-transition record keeper
+Master Records: independent StegVerse custody/replay/reconstruction evidence
+```
+
+Ephemeral content does not imply ephemeral transition history. MIR witness/OTS capability remains `TO-BUILD` unless authentic executable evidence proves otherwise. Master Records must not be represented as a substitute for MIR authority.
+
+Required behavior must remain operable from one current mobile device; a second user-operated device is not an admissible dependency.
 
 ## Authentic Shared Docs capability predicates still open
 
-The first authentic capability test still requires evidence that:
-
-1. a correctly shaped generic manifest admits an external document/resource request through the ordinary path;
-2. a bounded ephemeral projection is materialized without transferring authoritative custody;
-3. a deterministic current document marker/hash is observed;
-4. the authoritative document is edited live;
-5. the new observation is represented as a linked state transition using the same generic manifest class;
-6. ambiguity/unknown applicability cannot be silently inferred READY and produces durable probe/evidence state;
-7. the changed projection synchronizes while authorization remains admissible;
-8. expiry or revocation changes state and further access fails closed;
-9. the ephemeral projection is destroyed;
-10. MIR receives required historical transition evidence when an executable MIR interface exists;
-11. Master Records independently retains reconstructable evidence when an executable custody path exists;
-12. the user-driven flow remains possible from one current mobile device.
+1. A correctly shaped generic manifest is consumed by the actual executable Interlock/InTr path.
+2. A bounded external-document projection is materialized without transferring authoritative custody.
+3. A deterministic current document marker/hash is observed.
+4. The authoritative document is edited live.
+5. The changed observation is represented as a linked state transition using the same generic manifest class.
+6. Ambiguity/unknown applicability produces durable `PROBE_REQUIRED` evidence and an actual probe path can resolve it before READY.
+7. The projection synchronizes while authorization remains admissible.
+8. Expiry or revocation changes state and further access fails closed.
+9. Ephemeral projection material is destroyed when no longer admitted.
+10. MIR receives historical transition evidence through an authentic executable interface.
+11. Master Records independently retains reconstructable evidence through an authentic executable interface.
+12. The user-driven end-to-end flow remains possible from one current mobile device.
 
 ## Current proof boundary
 
 ```text
-Generic ingress architecture: IMPLEMENTED / previously merged
-State-transition evidence profile: IMPLEMENTED IN PR #174
-Fail-closed READY vs PROBE_REQUIRED derivation: SOURCE IMPLEMENTED / HOSTED TEST PASS on pre-reconciliation head
+Generic ingress architecture: IMPLEMENTED / MERGED
+State-transition evidence profile: IMPLEMENTED / VALIDATED / MERGED
+Fail-closed READY vs PROBE_REQUIRED derivation: IMPLEMENTED / VALIDATED / MERGED
 README maintenance: COMPLETE
 Shared Docs bespoke API requirement: NONE ESTABLISHED
+external_interlock_bootstrap request construction: EXISTS / NON-TRANSPORT
+canonical executable Interlock/InTr consumer for this WorkSpace path: NOT YET BOUND
 Shared Docs live synchronization runtime: NOT PROVEN
 StegOS/StegNode ephemeral projection runtime: NOT PROVEN
-Interlock/InTr execution of this Shared Docs transition profile: NOT PROVEN
 active probe execution: NOT PROVEN
 MIR transition reporting: NOT PROVEN
 MIR external witness/OTS: TO-BUILD
@@ -152,17 +142,17 @@ expiry/revocation runtime enforcement: NOT PROVEN
 one-device authentic end-to-end execution: NOT PROVEN
 ```
 
-Do not promote source/CI validation, provider observation, or design convergence into runtime completion.
+Do not promote source/CI validation, request construction, provider observation, or design convergence into runtime completion.
 
 ## Next actions
 
-1. Observe exact-head PR #174 validations after this handoff reconciliation and merge if green/mergeable.
-2. After merge, record the merge SHA here and in applicable task coordination state.
-3. Inspect current executable Interlock/InTr and StegOS/StegNode surfaces for the smallest actual ephemeral projection consumer.
-4. Add an executable provider-neutral Shared Docs observation adapter/harness only where the external system needs a bridge to the existing manifested boundary.
-5. Bind MIR and Master Records only through authentic executable interfaces; retain `TO-BUILD` / `NOT PROVEN` where no interface exists.
-6. Construct the authentic live-edit + expiry/revocation + single-device test and retain exact evidence.
+1. Trace the canonical executable consumer for manifest-bound external Interlock/InTr requests across the relevant StegVerse repositories.
+2. Reconcile `external_organization.interaction_manifest.v1` with the canonical generic ingress boundary so it cannot become a parallel universal envelope.
+3. Bind `stegverse.state-transition-evidence.v1` into the existing executable transition path at the narrowest non-authorizing adapter boundary.
+4. Add an executable provider-neutral external-document observation/projection harness only if the existing canonical path lacks the required adapter.
+5. Bind MIR and Master Records only through authentic executable interfaces; retain `TO-BUILD` / `NOT PROVEN` where no such interface exists.
+6. Construct the authentic live-edit + probe + expiry/revocation + one-device experiment and retain exact evidence.
 
 ## Human action
 
-None is required for current source implementation and validation. Richard Whitney's participation becomes necessary only when an authentic test requires authorized access to his independently controlled Shared Docs runtime or attachment of an Interlock/InTr participant/adapter to it.
+None is required for current repository inspection and executable-path tracing. Richard Whitney's participation is required only when an authentic test needs authorized access to his independently controlled Shared Docs runtime or consent to attach an Interlock/InTr participant/adapter to it.
