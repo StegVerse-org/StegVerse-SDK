@@ -13,7 +13,10 @@ import json
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from .evaluator_manifest_builder import build_evaluator_governance_manifest
+from .evaluator_manifest_builder import (
+    EVALUATION_DECLARATION_EXTENSION,
+    build_evaluator_governance_manifest,
+)
 from .manifest_builder import RETURN_DEPTHS
 
 DEFAULT_CUSTODY_DB = "./stegverse-master-records-validation.db"
