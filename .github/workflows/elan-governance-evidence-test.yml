@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/run_elan_manifest_governance_evidence_test.py'
+      - 'stegverse/public_inspection.py'
       - '.github/workflows/elan-governance-evidence-test.yml'
   workflow_dispatch:
 
