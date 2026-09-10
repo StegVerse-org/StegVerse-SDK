@@ -7,10 +7,12 @@ on:
       - stegverse/manifest_builder.py
       - stegverse/external_framework_runner.py
       - stegverse/manifest_contract.py
+      - stegverse/state_transition_evidence.py
       - stegverse/route_resolution.py
       - stegverse/evaluator_console.py
       - schemas/stegverse.ingress-manifest.v1.schema.json
       - tests/test_manifest_builder.py
+      - tests/test_state_transition_evidence.py
       - tests/test_external_framework_runner.py
       - tests/test_generic_manifest_processing_contract.py
       - inspection/examples/elan-relational-state-test1.json
@@ -19,6 +21,7 @@ on:
       - docs/ELAN_TEST1_RUNBOOK.md
       - docs/SDK_COMPLETION_GATE_137.md
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
+      - docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md
       - README.md
       - MANIFEST_BUILDER_MIRROR_HANDOFF.md
       - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
@@ -30,10 +33,12 @@ on:
       - stegverse/manifest_builder.py
       - stegverse/external_framework_runner.py
       - stegverse/manifest_contract.py
+      - stegverse/state_transition_evidence.py
       - stegverse/route_resolution.py
       - stegverse/evaluator_console.py
       - schemas/stegverse.ingress-manifest.v1.schema.json
       - tests/test_manifest_builder.py
+      - tests/test_state_transition_evidence.py
       - tests/test_external_framework_runner.py
       - tests/test_generic_manifest_processing_contract.py
       - inspection/examples/elan-relational-state-test1.json
@@ -42,6 +47,7 @@ on:
       - docs/ELAN_TEST1_RUNBOOK.md
       - docs/SDK_COMPLETION_GATE_137.md
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
+      - docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md
       - README.md
       - MANIFEST_BUILDER_MIRROR_HANDOFF.md
       - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
@@ -72,6 +78,7 @@ jobs:
           set -eu
           cd /tmp/source
           python -m unittest tests.test_manifest_builder
+          python -m unittest tests.test_state_transition_evidence
           python -m unittest tests.test_external_framework_runner
           python -m unittest tests.test_generic_manifest_processing_contract
           python -m unittest tests.test_governance_navigation
@@ -82,6 +89,7 @@ jobs:
             stegverse/manifest_builder.py \
             stegverse/external_framework_runner.py \
             stegverse/manifest_contract.py \
+            stegverse/state_transition_evidence.py \
             stegverse/route_resolution.py \
             stegverse/governance_ingress_runtime.py \
             stegverse/evaluator_console.py
@@ -89,4 +97,4 @@ jobs:
       - name: Verify authority boundary
         run: |
           echo 'MANIFEST_BUILDER_SOURCE_VALIDATION_PASS'
-          echo 'Builder/external runner construction and validation grant no governance, execution, credential, release, or custody authority.'
+          echo 'Builder/external runner/state-transition evidence construction and validation grant no governance, execution, credential, release, or custody authority.'
