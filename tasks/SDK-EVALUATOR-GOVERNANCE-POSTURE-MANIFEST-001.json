@@ -2,9 +2,9 @@
   "task_id": "SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001",
   "originating_goal": "Integrate the SDK Manifest Builder with governance processing and the Interlock/InTr security-posture request contract for evaluator testing without contaminating source-native observations or preregistration evidence.",
   "repository": "StegVerse-org/StegVerse-SDK",
-  "source_branch": "sdk-evaluator-governance-posture-manifest-001",
+  "source_branch": "sdk-evaluator-governance-posture-test-evidence-001",
   "target_branch": "main",
-  "state": "ACTIVE_IMPLEMENTATION",
+  "state": "ACTIVE_RUNTIME_PROOF_PENDING_PUBLIC_DISTRIBUTION",
   "owner": "StegVerse-org/StegVerse-SDK",
   "credential_authority": "TV/TVC",
   "github_token_runtime_authority": "NONE",
@@ -18,7 +18,27 @@
     "NO_LOCAL_EFFECTIVE_POSTURE_RESOLUTION_IN_MANIFEST_BUILDER",
     "GOVERNANCE_PROCESSOR_ROUTE_DECLARED",
     "RETURN_PROJECTION_CALLER_SELECTED",
-    "EVALUATOR_PREPARE_ONLY_PATH_VALIDATED"
+    "EVALUATOR_PREPARE_ONLY_PATH_VALIDATED",
+    "MANIFEST_BUILT_VALIDATED",
+    "GOVERNANCE_TRANSITION_REQUEST_MATERIALIZED",
+    "INTR_TEST_BINDING_MATERIALIZED"
+  ],
+  "latest_evidence_run": {
+    "workflow_run_id": 34539775942,
+    "head_sha": "8ce364370813e47fe7b787e9db1b6a09dbfa4f46",
+    "event_3_synthesized": false,
+    "manifest_sha256": "1f2b204fc55a22fe0ba533a1825d2bc11a8a1427d70fa8191776c71f4c323bc3",
+    "transition_request_sha256": "3d06812c7d1c1967cdded761c1245db4cc4587b275c5944b6de89bb0ac67909b",
+    "intr_posture_binding_sha256": "9c0df3c370b6a1927af25e8318bc2ea38e0608e6f5eeb3bed2451c11a1a429a1",
+    "governance_execution": "FAIL_CLOSED_MISSING_CANONICAL_RUNTIME_PACKAGES",
+    "authentic_live_stegos_intr_proven": false
+  },
+  "remaining": [
+    "canonical TV/TVC-gated public runtime package publication",
+    "clean governed runtime materialization",
+    "canonical governance execution",
+    "live StegOS/InTr posture resolution",
+    "governance custody replay reconstruction evidence"
   ],
   "manual_work_required": false
 }
