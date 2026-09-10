@@ -1,32 +1,53 @@
 import pytest
 
 from stegverse.security_posture import SecurityPostureError
-from stegverse.security_posture_stack import select_posture_stack
+from stegverse.security_posture_stack import build_security_posture_request, project_intr_posture_resolution, select_posture_stack
+
+TASK = "FEDERAL-HEALTH-PII-EXCEEDANCE-HARDENING-001"
 
 
-def test_automatic_floor_is_distinct_from_selected_posture():
-    result = select_posture_stack(data_class="PII", selected_tier="HIGHEST")
-    assert result["automatic_posture"]["tier"] == "HIGH"
+def test_sdk_request_carries_inputs_not_authoritative_final_posture():
+    result = build_security_posture_request(task_id=TASK, selected_tier="HIGHEST", data_class="PII", channel="KV-SKAP")
+    assert result["selected_tier"] == "HIGHEST"
+    assert result["authoritative_automatic_posture"] is None
+    assert result["authoritative_effective_posture"] is None
+    assert result["resolution_authority"] == "INTERLOCK_INTR"
+    assert result["authority_effect"] == "NONE_REQUEST_INPUT_ONLY"
+
+
+def test_preview_does_not_compute_automatic_or_effective_posture():
+    result = select_posture_stack(task_id=TASK, data_class="PII", selected_tier="HIGHEST")
+    assert result["automatic_posture"] is None
+    assert result["effective_posture"] is None
     assert result["selected_posture"]["tier"] == "HIGHEST"
-    assert result["effective_posture"]["tier"] == "HIGHEST"
-    assert result["selected_posture"]["selection_present"] is True
+    assert result["resolution_required_from"] == "INTERLOCK_INTR"
 
 
-def test_no_selection_defaults_to_automatic_floor_without_claiming_explicit_selection():
-    result = select_posture_stack(data_class="PII")
-    assert result["automatic_posture"]["tier"] == "HIGH"
-    assert result["selected_posture"]["tier"] == "HIGH"
-    assert result["selected_posture"]["selection_present"] is False
-    assert result["effective_posture"]["tier"] == "HIGH"
+def test_projection_preserves_intr_result_without_reinterpretation():
+    resolution = {
+        "schema": "stegos.intr-security-posture-resolution.v1",
+        "automatic_posture": {"tier": "HIGH", "posture_id": "stegverse.security.high.v1"},
+        "selected_posture": {"tier": "HIGHEST", "posture_id": "stegverse.security.health-pii-high.v1"},
+        "effective_posture": {"tier": "HIGHEST", "posture_id": "stegverse.security.health-pii-high.v1"},
+        "posture_instance": {"instance_id": "INTR-SP-example", "instance_sha256": "abc"},
+        "resolution_authority": "INTERLOCK_INTR",
+        "credential_authority": "TV/TVC",
+    }
+    projected = project_intr_posture_resolution(resolution)
+    assert projected["automatic_posture"]["tier"] == "HIGH"
+    assert projected["selected_posture"]["tier"] == "HIGHEST"
+    assert projected["effective_posture"]["tier"] == "HIGHEST"
+    assert projected["sdk_reinterpreted_posture"] is False
 
 
-def test_selection_below_automatic_floor_fails_closed():
-    with pytest.raises(SecurityPostureError, match="below_automatic_floor"):
-        select_posture_stack(data_class="ePHI", selected_tier="HIGH")
-
-
-def test_kv_skap_automatic_floor_cannot_be_weakened():
-    result = select_posture_stack(channel="KV-SKAP")
-    assert result["automatic_posture"]["tier"] == "HIGHEST"
-    assert result["selectable_tiers"] == ["HIGHEST"]
-    assert result["downgrade_below_automatic_floor_allowed"] is False
+def test_projection_rejects_invalid_downgrade_from_intr_result():
+    resolution = {
+        "schema": "stegos.intr-security-posture-resolution.v1",
+        "automatic_posture": {"tier": "HIGHEST", "posture_id": "stegverse.security.health-pii-high.v1"},
+        "selected_posture": {"tier": "HIGH", "posture_id": "stegverse.security.high.v1"},
+        "effective_posture": {"tier": "HIGHEST", "posture_id": "stegverse.security.health-pii-high.v1"},
+        "posture_instance": {},
+        "resolution_authority": "INTERLOCK_INTR",
+    }
+    with pytest.raises(SecurityPostureError, match="contains_downgrade"):
+        project_intr_posture_resolution(resolution)
