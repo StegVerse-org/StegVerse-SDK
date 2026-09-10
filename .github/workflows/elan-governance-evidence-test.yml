@@ -20,19 +20,24 @@ jobs:
           python-version: '3.12'
       - name: Install current SDK source
         run: python -m pip install -e .
-      - name: Install published governed runtime distributions
+      - name: Attempt published governed runtime distributions
+        id: runtime_install
+        continue-on-error: true
         run: |
-          python -m pip install --upgrade stegverse-stegcore stegverse-core-lite stegverse-master-records
+          set -o pipefail
+          python -m pip install --upgrade stegverse-stegcore stegverse-core-lite stegverse-master-records 2>&1 | tee /tmp/governed-runtime-install.log
           python -m pip freeze | grep -Ei 'stegverse|stegcore|core-lite|master-records' | sort | tee /tmp/governed-runtime-distributions.txt
       - name: Run ELAN manifest to governance evidence test
         id: run_test
         continue-on-error: true
         run: python scripts/run_elan_manifest_governance_evidence_test.py
-      - name: Preserve installed distribution identities
+      - name: Preserve dependency and execution evidence
         if: always()
         run: |
           mkdir -p evidence/elan/2026-09-10-governance-test
+          cp /tmp/governed-runtime-install.log evidence/elan/2026-09-10-governance-test/00-governed-runtime-install.log 2>/dev/null || true
           cp /tmp/governed-runtime-distributions.txt evidence/elan/2026-09-10-governance-test/00-installed-distributions.txt 2>/dev/null || true
+          printf 'runtime_install_outcome=%s\nrun_test_outcome=%s\n' '${{ steps.runtime_install.outcome }}' '${{ steps.run_test.outcome }}' > evidence/elan/2026-09-10-governance-test/00-workflow-outcomes.txt
       - name: Inventory evidence artifacts
         if: always()
         run: |
