@@ -1,10 +1,10 @@
 """Evaluator governance execution with authoritative Interlock/InTr posture binding.
 
 The SDK constructs the exact governance transition request but never resolves its
-security posture. When posture-bound execution is requested, this module invokes
-StegOS Interlock/InTr's resolver (or an injected resolver for deterministic tests),
-verifies the exact task/payload/transition bindings, then executes the unchanged
-transition request through the existing sovereign governance runtime.
+security posture. Posture-free execution preserves the existing governance ingress
+runtime path. Posture-bound execution invokes StegOS Interlock/InTr's resolver (or
+an injected resolver for deterministic tests), verifies exact task/payload/transition
+bindings, then executes the unchanged transition request.
 """
 from __future__ import annotations
 
@@ -37,22 +37,33 @@ def run_evaluator_governance_manifest(
     intr_posture_resolver: Resolver | None = None,
     posture_observed_at: str | None = None,
 ) -> dict[str, Any]:
-    """Resolve posture at InTr, then run the exact unchanged governance request."""
+    """Preserve legacy execution unless posture-bound InTr resolution is requested."""
+    extensions = manifest.get("extensions") or {}
+    posture_requested = isinstance(extensions, Mapping) and extensions.get("security_posture_request") is not None
+    if not posture_requested:
+        from .governance_ingress_runtime import run_external_manifest
+        governed_result = run_external_manifest(
+            manifest,
+            custody_db=custody_db,
+            host_identity=host_identity,
+        )
+        result = deepcopy(dict(governed_result))
+        result["intr_security_posture_binding"] = None
+        result["posture_bound_execution"] = False
+        result["sdk_resolved_posture"] = False
+        return result
+
     from .sovereign_validation_runtime import run_sovereign_validation
 
     transition_request = external_manifest_to_public_request(manifest)
-    extensions = manifest.get("extensions") or {}
-    posture_requested = isinstance(extensions, Mapping) and extensions.get("security_posture_request") is not None
-    posture_binding = None
-    if posture_requested:
-        resolver = intr_posture_resolver or _load_intr_resolver()
-        observed_at = posture_observed_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        posture_binding = resolve_manifest_posture(
-            manifest=manifest,
-            transition_request=transition_request,
-            resolver=resolver,
-            observed_at=observed_at,
-        )
+    resolver = intr_posture_resolver or _load_intr_resolver()
+    observed_at = posture_observed_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    posture_binding = resolve_manifest_posture(
+        manifest=manifest,
+        transition_request=transition_request,
+        resolver=resolver,
+        observed_at=observed_at,
+    )
 
     # Execute the exact request whose SHA-256 was supplied to Interlock/InTr.
     governed_result = run_sovereign_validation(
@@ -62,7 +73,7 @@ def run_evaluator_governance_manifest(
     )
     result = deepcopy(dict(governed_result))
     result["intr_security_posture_binding"] = posture_binding
-    result["posture_bound_execution"] = posture_binding is not None
+    result["posture_bound_execution"] = True
     result["sdk_resolved_posture"] = False
     return result
 
