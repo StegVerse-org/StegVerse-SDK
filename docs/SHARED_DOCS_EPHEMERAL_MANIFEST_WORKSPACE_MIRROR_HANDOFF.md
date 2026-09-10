@@ -3,266 +3,180 @@
 Updated: 2026-09-10
 Organization: `StegVerse-org`
 Repository: `StegVerse-SDK`
-Goal: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
+Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
-Status: `ACTIVE / DESIGN_AND_CAPABILITY_TEST_PREPARATION`
+Implementation PR: `#174`
+Implementation branch: `shared-docs-ephemeral-workspace`
+Status: `ACTIVE / SOURCE_IMPLEMENTATION_IN_VALIDATION`
 
-## Purpose
+## Controlling architecture
 
-This handoff captures the 2026-09-10 convergence around using the already-solved generic-manifest + Interlock/InTr architecture to test live, synchronized, ephemeral access to an independently controlled collaborative document system (Richard Whitney's Shared Docs) without requiring a bespoke Shared Docs API.
-
-This is a bounded continuation record. It does not claim that Shared Docs is integrated, that a StegOS/StegNode instance has been materialized on Richard's device, or that an authentic cross-system runtime test has completed.
-
-## Core conclusion
-
-The Shared Docs experiment is not a new manifest problem and should not create a parallel access protocol.
-
-The existing generic-manifest semantics remain controlling:
+The Shared Docs experiment reuses the existing generic-manifest + Interlock/InTr architecture. It does not create a bespoke Shared Docs API or a new caller-specific manifest class.
 
 ```text
-payload class != processing capability
-processing capability != runtime route
-processing selection != authority
-route selection != authority
-caller projection != canonical custody
-governance-specific fields are not universal manifest requirements
+entity
+  -> source-native data
+  -> stegverse.ingress-manifest.v1
+  -> correctly shaped transition evidence
+  -> Interlock/InTr / installed processing route
+  -> admitted projection/output
 ```
 
-Any requester that can present the correctly shaped manifested request through the applicable Interlock/InTr path should be evaluated by the same contract. The caller may be StegVerse, Richard's LLM, another AI/entity, another external framework, or a future StegOS/StegNode participant. Caller identity matters only insofar as identity and current state affect admissibility, authorization, scope, or return projection.
+Identity, relationship, credentials, current state, and requested capability may change admissibility. They do not change the universal manifest class merely because the communicating entity differs.
 
-No caller-specific Shared Docs API is required merely because the caller differs.
+The inter-Entity rule is universal: ambiguity and discovered unknowns that affect readiness must be representable as state. A genuinely unknown unknown cannot be enforced before discovery; once discovered, it becomes known state and must be incorporated before a later READY classification.
 
-## WorkSpace candidate observation
-
-Richard Whitney's Shared Docs platform was observed during a real collaborative drafting session to provide a useful WorkSpace substrate/candidate interaction model, including:
-
-- owner/editor sharing;
-- direct document sharing;
-- live editing;
-- autosave;
-- collision-safe concurrent editing behavior as reported by Richard;
-- mobile/iPhone usability;
-- shared persistent artifact state.
-
-Richard stated that he developed the document platform himself.
-
-This observation establishes only candidate/reference value. It does not establish reuse rights, StegVerse ownership, integration rights, or a completed StegVerse WorkSpace implementation.
-
-## Mobile-first invariant
-
-The session reinforced the StegVerse constraint that required functionality must not depend on a second user-operated device.
-
-Candidate WorkSpace invariant:
-
-```text
-Capability may scale with additional displays/devices;
-required functionality must remain complete on one user device.
-```
-
-Desktop, split-screen, multi-display, or keyboard support may enhance the experience but must not become a prerequisite for the core governed workflow.
-
-## Universal state-transition invariant
-
-The controlling state rule established in this session is:
+## Universal state-transition rule
 
 ```text
 Anything that changes is a state transition.
 ```
 
-There is no separate class of hidden or ordinary mutation outside the transition model. Relevant state domains remain distinct, including:
+This includes document edits, synchronization updates, login/session creation, renewal, expiry, revocation, permission/scope changes, identity/device/node changes, projection creation/refresh/destruction, and incorporation of newly discovered unknowns into known state.
 
-- document state;
-- authorization/login/session state;
-- ephemeral projection state;
-- StegOS/StegNode state;
-- discovered/known-state classification;
-- governance/admissibility state where applicable.
+A timer is a transition trigger, not a side channel. Expiry, renewal, and revocation are transitions.
 
-Examples of transitions include document edits, synchronization updates, login creation, renewal, expiry, revocation, permission/scope changes, node-continuity changes, projection creation, projection refresh, projection destruction, and incorporation of newly discovered unknowns into known state.
-
-A timer is a transition trigger, not a side channel. Renewal is a state transition. Revocation is a state transition. Expiry is a state transition. A session refresh that changes authority, scope, evidence, or expiry is a state transition.
-
-## Ephemeral live-projection model
-
-The desired WorkSpace/StegOS behavior is:
+## Ephemeral WorkSpace model
 
 ```text
-source content: durable under the authoritative external system
-access/materialization: ephemeral in StegOS/StegNode
-updates: live/synchronized during the admitted lifetime
-transition history: durable as required by the record/evidence architecture
+source content: durable under authoritative external system
+WorkSpace/StegOS projection: ephemeral and bounded
+updates: live/synchronized only while current admission remains valid
+MIR: historical state-transition record keeper
+Master Records: independent StegVerse custody/replay/reconstruction evidence
 ```
 
-The ephemeral instance must not silently become a second durable document store.
+Ephemeral content does not imply ephemeral transition history. The projection must not silently become a second authoritative document store.
 
-A bounded projection may contain only the content/resource scope admitted for that requester and task/session. It remains synchronized while access is admissible. When access leaves an admissible state, synchronization stops and ephemeral content, indexes, handles, caches, and temporary session material are destroyed according to policy.
+MIR witness/OTS capability remains `TO-BUILD` unless authentic executable evidence proves otherwise. Master Records must not be represented as a substitute for MIR authority.
 
-The effective projection lifetime is state-dependent. A time limit remains valid, but time is only one condition capable of causing the authorization state to transition. Owner revocation, changed scope, changed identity/device/node evidence, task completion, or other governing conditions may transition access earlier.
+## Mobile-first invariant
 
-## Manifest semantics for external file/workspace access
+Required behavior must remain operable from one current mobile device. Additional devices/displays may enhance the experience but may not become a prerequisite for the governed workflow.
 
-The Shared Docs resource should be treated as source-native external data/resources represented through the generic manifest, not as a special StegVerse-native object merely because StegVerse accesses it.
+## Source implementation added in PR #174
 
-The manifest must be of the correct shape for the requested operation regardless of requester. The specific exact schema fields must be derived from the existing generic manifest contract rather than introducing caller-specific fields.
+PR #174 introduces `stegverse.state-transition-evidence.v1` as a provider-neutral manifest extension helper under the existing `extensions` boundary. The outer manifest remains `stegverse.ingress-manifest.v1`; no new processing route, credential authority, Shared Docs-specific API, or runtime authority is introduced.
 
-At minimum, the manifested request must be able to bind the applicable concepts already required by the generic architecture, including:
-
-- requester/entity identity or reference when identity is materially applicable;
-- source/resource reference or source-native object binding;
-- requested processing/capability;
-- route binding where required;
-- relevant state/evidence inputs;
-- requested return projection;
-- processor-specific extension only when that processor requires it.
-
-The generic-manifest rule remains that unsupported/uninstalled processing or route execution fails closed rather than inventing missing semantics.
-
-## Interlock/InTr role
-
-No bespoke Shared Docs REST API is required if the independently controlled system can participate through the existing manifested Interlock/InTr boundary.
-
-Conceptually:
+Implemented files:
 
 ```text
-requesting entity
-  -> correctly shaped manifest
-  -> Interlock/InTr
-  -> admitted processing / authorization
-  -> bounded external resource access or projection
-  -> caller-selected returned projection
+stegverse/state_transition_evidence.py
+tests/test_state_transition_evidence.py
+.github/workflows/manifest-builder-source-validation.yml
 ```
 
-For live collaboration, source changes can cause new state observations/transitions and update the ephemeral projection while the authorization state remains admissible.
+The profile records:
 
-This does not mean every external system must internally implement StegVerse semantics. An adjacent participant/adapter may bridge the system to the Interlock/InTr boundary while preserving the external system's internal implementation and authoritative custody.
+- stable `transition_id`;
+- `state_domain`;
+- `prior_state_ref` and `new_state_ref`;
+- `change_type`;
+- known `applicable_predicates` with applicability and evidence state;
+- `ambiguities`;
+- `discovered_unknowns`;
+- derived readiness and deterministic probe reasons.
 
-## MIR and Master Records separation
-
-MIR is the historical record-keeping system for state transitions in this architecture.
-
-StegOS and StegNode should report every state transition to MIR in the same sense that StegVerse runtime transitions are also retained through the applicable Master Records path.
-
-The records must remain separate in authority:
+Readiness is fail-closed:
 
 ```text
-transition source
-  -> direct transition report to MIR
-  -> independent applicable StegVerse Master Records retention/custody
+known applicable predicate + SATISFIED evidence -> may contribute to READY
+known applicable predicate + unresolved evidence -> PROBE_REQUIRED
+predicate applicability UNKNOWN -> PROBE_REQUIRED
+open ambiguity -> PROBE_REQUIRED
+open discovered unknown -> PROBE_REQUIRED
+all represented applicable predicates satisfied + all ambiguity/discoveries resolved -> READY
+caller READY contradicting derived state -> reject
 ```
 
-Master Records must not become a substitute for MIR's authoritative historical custody, and StegVerse must not ingest MIR's historical stream as an alternate MIR history store. The same transition may be independently evidenced/custodied by both systems for their respective purposes.
-
-Controlling principle:
+The helper also records:
 
 ```text
-ephemeral content does not imply ephemeral transition history
+evidence_grants_authority: false
+unknown_unknown_policy: ENFORCE_AFTER_DISCOVERY_AS_KNOWN_STATE
 ```
 
-The document itself may disappear from the StegOS ephemeral projection after teardown while the fact that the relevant state transitions occurred remains durably evidenced according to the MIR/Master Records separation-of-powers model.
+This implements the state representation/readiness discipline only. It does not itself execute probes, govern a transition, materialize a WorkSpace, synchronize a document, or write MIR/Master Records.
 
-## Candidate lifecycle
+## Test coverage added
 
-A first bounded capability lifecycle can be modeled conceptually as:
+`tests/test_state_transition_evidence.py` covers:
+
+1. all represented applicable predicates satisfied -> `READY`;
+2. unknown predicate applicability -> `PROBE_REQUIRED`;
+3. open ambiguity -> `PROBE_REQUIRED`;
+4. discovered unknown -> `PROBE_REQUIRED` until resolved;
+5. contradictory caller claim of `READY` -> rejected;
+6. invalid NOT_APPLICABLE/evidence combination -> rejected;
+7. Shared Docs-shaped external document observation attaches without changing manifest class or source-native payload;
+8. initial materialization may have `prior_state_ref: null`.
+
+The Manifest Builder Source Validation workflow was extended to execute and compile the new module/test.
+
+## Validation evidence
+
+Exact PR #174 head after the initial three source/CI commits was `05a0f4b2014aeaa9dca39e2a1c47e9f17c83873a`.
+
+Observed GitHub Actions evidence on that head:
 
 ```text
-REQUESTED
-  -> AUTHORIZED
-  -> MATERIALIZED
-  -> SYNCHRONIZED
-  -> UPDATED*          # zero or more live source changes
-  -> EXPIRED | REVOKED
-  -> DESTROYED
+Manifest Builder Source Validation run 34531438582: SUCCESS
+SDK Package Artifact Validation run 34531438495: in progress at last observation
 ```
 
-Every actual change in the applicable state domain is a transition. The labels above are illustrative state names, not a new canonical schema claim.
+The local assistant container could not clone GitHub because DNS resolution for `github.com` was unavailable. This is a local tool-network condition, not an SDK test failure; hosted exact-head validation is the usable evidence path.
 
-## Authentic capability test
+## Authentic Shared Docs capability predicates
 
-The first useful experiment should prove behavior, not merely source readiness.
+The first authentic capability test still requires evidence that:
 
-Target experiment:
+1. a correctly shaped generic manifest admits an external document/resource request through the ordinary path;
+2. a bounded ephemeral projection is materialized without transferring authoritative custody;
+3. a deterministic current document marker/hash is observed;
+4. the authoritative document is edited live;
+5. the new observation is represented as a linked state transition using the same generic manifest class;
+6. ambiguity/unknown applicability cannot be silently inferred READY and produces durable probe/evidence state;
+7. the changed projection synchronizes while authorization remains admissible;
+8. expiry or revocation changes state and further access fails closed;
+9. the ephemeral projection is destroyed;
+10. MIR receives required historical transition evidence when an executable MIR interface exists;
+11. Master Records independently retains reconstructable evidence when an executable custody path exists;
+12. the user-driven flow remains possible from one current mobile device.
 
-1. A Shared Docs document is made available to a requester through a correctly shaped manifested request and admitted Interlock/InTr path.
-2. A bounded ephemeral projection is materialized without transferring permanent authoritative document custody to StegVerse.
-3. The requester reads a deterministic document marker/current section and computes or returns a content binding/hash suitable for freshness comparison.
-4. The authoritative Shared Docs document is edited live.
-5. The ephemeral projection observes/synchronizes the changed state while authorization remains admissible.
-6. The requester reads the new marker/content binding and distinguishes it from the prior state.
-7. Access expires or is revoked as a state transition.
-8. Further access fails closed.
-9. The ephemeral projection is destroyed.
-10. MIR and the applicable Master Records path retain the required transition history/evidence without requiring permanent retention of the projected document contents.
-
-A stronger comparative variant has Richard's LLM and StegVerse independently access the same live document under their own correctly shaped manifested requests and compare current title/section/hash observations before and after a controlled edit.
-
-## What this experiment would establish if authentic runtime evidence succeeds
-
-A successful authentic run could establish, subject to exact evidence:
-
-- generic-manifest applicability to a live external collaborative resource;
-- Interlock/InTr-mediated access without a bespoke per-caller API;
-- externally authoritative content with ephemeral StegOS/StegNode projection;
-- live synchronized update observation;
-- state-dependent login/access expiry and revocation;
-- caller-independent manifest shape with state-dependent results;
-- durable transition record/evidence while projected content remains ephemeral;
-- a credible first WorkSpace interoperability pattern for independently developed systems.
-
-It would not, by itself, establish that Shared Docs is the final StegVerse WorkSpace product, that every external system can interoperate without an adapter, or that all security/privacy/governance predicates for production deployment are complete.
-
-## MIR x StegVerse contract implications
-
-The separation-of-powers contract should eventually make explicit, without changing the already-agreed role split, that:
-
-- StegOS/StegNode transition producers report state transitions to MIR for historical custody;
-- StegVerse may independently retain required evidence/records in Master Records for StegVerse custody, replay, reconstruction, and governance support;
-- independent Master Records custody does not make StegVerse the authoritative historical custodian of MIR history;
-- provenance/recording of a transition does not itself grant governance or execution authority;
-- ephemeral content/data projection can terminate while durable transition evidence remains.
-
-This session also identified that MIR's external witness/OTS anchoring remains TO-BUILD per Richard's correction: MIR currently has an internal chain and fire-and-forget announcement behavior, but no captured signed witness/OTS proof should be represented as already implemented.
-
-## README review
-
-`README.md` was reviewed at session close. Its existing sections already document:
-
-- independent systems connecting through governed interlocks while preserving authority;
-- the generic manifested-data processing boundary;
-- separation of payload class, processing capability, runtime route, authority, caller projection, and canonical custody;
-- source-native data preservation;
-- fail-closed unsupported routing.
-
-No README modification is required merely to record this proposed Shared Docs capability experiment because the experiment applies those existing public semantics rather than changing the SDK's published interface or runtime contract. If implementation later adds a new public capability identifier, route, manifest field, user-facing WorkSpace surface, or externally observable runtime behavior, README maintenance becomes required with that implementation.
-
-## Existing implementation boundary
-
-The parent SDK handoff remains authoritative for actual implementation/release state. At session close:
+## Current proof boundary
 
 ```text
-SDK-PROCESSOR-GENERIC-MANIFEST-002: COMPLETE_VALIDATED_MERGED
-SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE
-SDK 1.3.0 candidate: source-valid draft/release-gated per parent handoff
-Shared Docs WorkSpace authentic runtime test: NOT YET EXECUTED
+Generic ingress architecture: IMPLEMENTED / previously merged
+State-transition evidence profile: IMPLEMENTED IN PR #174
+Fail-closed READY vs PROBE_REQUIRED derivation: SOURCE IMPLEMENTED / HOSTED TEST PASS
 Shared Docs bespoke API requirement: NONE ESTABLISHED
-Interlock/InTr manifested access reuse: DESIGN CONVERGED / AUTHENTIC TEST PENDING
-StegOS/StegNode ephemeral projection implementation for this resource: NOT YET PROVEN
-MIR transition-reporting integration for this experiment: NOT YET PROVEN
+Shared Docs live synchronization runtime: NOT PROVEN
+StegOS/StegNode ephemeral projection runtime: NOT PROVEN
+Interlock/InTr execution of this Shared Docs transition profile: NOT PROVEN
+active probe execution: NOT PROVEN
+MIR transition reporting: NOT PROVEN
+MIR external witness/OTS: TO-BUILD
+Master Records authentic custody/reconstruction for this experiment: NOT PROVEN
+expiry/revocation runtime enforcement: NOT PROVEN
+one-device authentic end-to-end execution: NOT PROVEN
 ```
 
-Do not convert this design convergence into a runtime-completion claim.
+Do not promote source/CI validation, provider observation, or design convergence into runtime completion.
 
-## Next-session continuation
+## README maintenance
 
-Next session should begin from this handoff and the parent SDK generic-manifest handoff, then:
+The prior design-only session correctly found no README change necessary. PR #174 now adds a public generic state-transition evidence helper/profile, so README maintenance is required before this implementation PR is merge-ready. The README must document the extension as evidence-only/non-authorizing and distinguish derived `READY`/`PROBE_REQUIRED` from actual transition execution or admission.
 
-1. verify the current canonical `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003` task state before any mutation;
-2. inspect the current generic ingress-manifest schema/processor semantics and identify the exact existing shape applicable to external resource access without inventing Shared Docs-specific fields;
-3. inspect current Interlock/InTr and StegOS/StegNode executable surfaces for the smallest authentic path that can materialize a bounded ephemeral projection;
-4. determine whether any existing route/capability can perform the test now or whether a new capability implementation is required;
-5. bind state-transition reporting to MIR and independent Master Records evidence surfaces without conflating authority;
-6. construct an authentic live-edit/expiry-or-revocation test with explicit completion predicates and evidence requirements;
-7. do not require a bespoke Shared Docs API unless actual inspection proves the external system needs an adapter surface to reach Interlock/InTr.
+## Next actions
+
+1. Complete README maintenance for the new public state-transition evidence helper/profile.
+2. Observe all exact-head PR #174 validations after documentation commits settle.
+3. Repair any failing validation rather than weakening the fail-closed model.
+4. Inspect current executable Interlock/InTr and StegOS/StegNode surfaces for the smallest actual ephemeral projection consumer.
+5. Add an executable provider-neutral Shared Docs observation adapter/harness only where the external system needs a bridge to the existing manifested boundary.
+6. Bind MIR and Master Records only through authentic executable interfaces; retain `TO-BUILD` / `NOT PROVEN` where no interface exists.
+7. Construct the authentic live-edit + expiry/revocation + single-device test and retain exact evidence.
 
 ## Human action
 
-None required to continue source inspection/design reconciliation. Richard's participation becomes necessary only when an authentic test requires access to his independently controlled Shared Docs runtime/device or consent to attach an Interlock/InTr participant to it.
+None is required for current source implementation and validation. Richard Whitney's participation becomes necessary only when an authentic test requires authorized access to his independently controlled Shared Docs runtime or attachment of an Interlock/InTr participant/adapter to it.
