@@ -4,8 +4,10 @@ This module keeps `stegverse.ingress-manifest.v1` as the universal manifested-da
 envelope. The external-organization interaction object remains transport/control
 metadata around that canonical ingress object; it is not a competing payload class.
 
-The helpers validate and hash-bind the canonical ingress before transport. They do
-not perform InTr transport, mint receipts, grant authority, or claim delivery.
+The helpers validate and hash-bind the exact ingress wire manifest before transport.
+Validator-derived/internal fields are not serialized back into the universal envelope.
+The helpers do not perform InTr transport, mint receipts, grant authority, or claim
+delivery.
 """
 from __future__ import annotations
 
@@ -24,6 +26,14 @@ from .manifest_contract import validate_ingress_manifest
 BINDING_PROFILE = "stegverse.external-interlock-ingress-binding.v1"
 
 
+def _validated_wire_manifest(ingress_manifest: Mapping[str, Any]) -> dict[str, Any]:
+    if not isinstance(ingress_manifest, Mapping):
+        raise ValueError("ingress_manifest must be an object")
+    wire = deepcopy(dict(ingress_manifest))
+    validate_ingress_manifest(wire)
+    return wire
+
+
 def build_ingress_bound_interlock_request(
     *,
     ingress_manifest: Mapping[str, Any],
@@ -33,20 +43,20 @@ def build_ingress_bound_interlock_request(
     authority_ref: str,
     experiment_id: str | None = None,
 ) -> dict[str, Any]:
-    """Wrap a validated canonical ingress manifest in external Interlock control metadata."""
+    """Wrap the exact validated ingress wire manifest in external Interlock control metadata."""
     authority = str(authority_ref or "").strip()
     if not authority:
         raise ValueError("authority_ref is required")
 
-    canonical_ingress = validate_ingress_manifest(ingress_manifest)
-    ingress_hash = canonical_sha256(canonical_ingress)
+    wire_ingress = _validated_wire_manifest(ingress_manifest)
+    ingress_hash = canonical_sha256(wire_ingress)
     interaction = build_external_interaction_manifest(
         source_organization_id=source_organization_id,
         target_organization_id=target_organization_id,
         operation=operation,
         payload={
             "binding_profile": BINDING_PROFILE,
-            "canonical_ingress_manifest": canonical_ingress,
+            "canonical_ingress_manifest": wire_ingress,
             "canonical_ingress_sha256": ingress_hash,
         },
         experiment_id=experiment_id,
@@ -65,7 +75,7 @@ def build_ingress_bound_interlock_request(
             "target_organization_id": target_organization_id,
             "interaction_manifest_id": interaction["manifest_id"],
             "interaction_manifest_sha256": interaction["manifest_sha256"],
-            "canonical_ingress_profile": canonical_ingress["manifest_profile"],
+            "canonical_ingress_profile": wire_ingress["manifest_profile"],
             "canonical_ingress_sha256": ingress_hash,
         },
         "authority_transfer": False,
@@ -77,7 +87,7 @@ def build_ingress_bound_interlock_request(
 
 
 def validate_ingress_bound_interlock_request(request: Mapping[str, Any]) -> dict[str, Any]:
-    """Validate the control envelope and exact nested canonical-ingress binding."""
+    """Validate the control envelope and exact nested canonical-ingress wire binding."""
     if not isinstance(request, Mapping):
         raise ValueError("request must be an object")
     expected = {
@@ -120,8 +130,8 @@ def validate_ingress_bound_interlock_request(request: Mapping[str, Any]) -> dict
     nested = interaction_payload.get("canonical_ingress_manifest")
     if not isinstance(nested, Mapping):
         raise ValueError("canonical ingress manifest missing")
-    canonical_ingress = validate_ingress_manifest(nested)
-    actual_ingress_hash = canonical_sha256(canonical_ingress)
+    wire_ingress = _validated_wire_manifest(nested)
+    actual_ingress_hash = canonical_sha256(wire_ingress)
     if interaction_payload.get("canonical_ingress_sha256") != actual_ingress_hash:
         raise ValueError("canonical ingress SHA-256 mismatch")
 
@@ -134,7 +144,7 @@ def validate_ingress_bound_interlock_request(request: Mapping[str, Any]) -> dict
         "target_organization_id": (interaction.get("target") or {}).get("organization_id"),
         "interaction_manifest_id": interaction.get("manifest_id"),
         "interaction_manifest_sha256": claimed_interaction_hash,
-        "canonical_ingress_profile": canonical_ingress.get("manifest_profile"),
+        "canonical_ingress_profile": wire_ingress.get("manifest_profile"),
         "canonical_ingress_sha256": actual_ingress_hash,
     }
     for key, value in expected_bindings.items():
