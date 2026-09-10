@@ -131,6 +131,23 @@ required behavior must remain complete on one current mobile device.
 
 Expiry, renewal, revocation, edit observation, synchronization, probe result, authorization change, projection creation, refresh, and destruction are state transitions.
 
+## Session collision-prevention coordination
+
+Canonical coordination rule: `docs/SESSION_COLLISION_COORDINATION_RULE.md`.
+
+Before progressing any coincident session or narrower task that overlaps this lane, reconcile it against the GitHub Task Registry and the applicable broader/global handoff. When the broader/global task owns the remaining overlapping scope and all unique work/evidence from the narrower session has been durably transferred, that narrower session/task must transition to `INACTIVE`, identify the controlling Global Task ID and Handoff Task ID, and stop progressing the work.
+
+Required disposition:
+
+```text
+STATUS: INACTIVE
+coordinated_with_global_task_id: <canonical broader/global Goal Task ID>
+coordinated_with_handoff_task_id: <canonical broader/global *_MIRROR_HANDOFF.md path>
+work_progression_allowed: false
+```
+
+`INACTIVE` means coordination ownership moved; it does not mean the underlying work is complete. The controlling global task may remain `ACTIVE`. A coincident session must not continue simply because it can still access its branch, prompt history, or prior handoff. Re-activation requires explicit canonical ownership transfer or decomposition into a genuinely separate canonical Goal Task ID.
+
 ## Next executable target
 
 Do not introduce a Shared Docs-specific API or service schema unless actual provider inspection proves an adapter is required.
