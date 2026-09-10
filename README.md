@@ -65,6 +65,39 @@ inspection/examples/external-framework-generic-manifest.json
 
 Structural manifest validity does not imply that a processor or route is installed. Executable routing separately resolves the declared route and processor binding and fails closed for unsupported, incomplete, conflicting, or unavailable routes. The currently installed 0B processing capability is `governance` on `stegverse.route.canonical-governed.v1`.
 
+### Generic state-transition evidence
+
+Inter-Entity state changes can be represented without creating a new ingress-manifest class. `stegverse.state-transition-evidence.v1` attaches under `extensions.stegverse_state_transition` and records transition identity, prior/new state references, known applicable predicates, ambiguity, and discovered unknowns. The evidence profile is provider-neutral and non-authorizing; it does not itself execute a probe, admit a transition, materialize a WorkSpace, or grant runtime authority.
+
+Readiness is derived fail-closed. An unresolved applicable predicate, unknown predicate applicability, open ambiguity, or open discovered unknown forces `PROBE_REQUIRED`. `READY` is only derivable when every represented applicable predicate is satisfied and every recorded ambiguity/discovered unknown is resolved. A caller claim that contradicts the derived readiness is rejected. Genuinely unknown unknowns cannot be enforced before discovery; after discovery they become known state and must be resolved before later READY classification.
+
+```python
+from stegverse.state_transition_evidence import attach_state_transition_evidence
+
+manifest = attach_state_transition_evidence(
+    manifest,
+    {
+        "profile": "stegverse.state-transition-evidence.v1",
+        "transition_id": "workspace-transition-002",
+        "state_domain": "external_document_projection",
+        "prior_state_ref": "sha256:before",
+        "new_state_ref": "sha256:after",
+        "change_type": "LIVE_EDIT",
+        "applicable_predicates": [
+            {
+                "predicate_id": "session_admitted",
+                "applicability": "APPLICABLE",
+                "evidence_status": "SATISFIED",
+            }
+        ],
+        "ambiguities": [],
+        "discovered_unknowns": [],
+    },
+)
+```
+
+The outer object remains `stegverse.ingress-manifest.v1`, so caller identity or provider choice does not create a bespoke manifest class. Source/CI validation of this evidence profile must not be promoted into a claim that Interlock/InTr, a provider, MIR, Master Records, or an ephemeral WorkSpace actually executed the represented transition.
+
 ### Manifest Builder
 
 Most users and external frameworks do not need to hand-author `stegverse.ingress-manifest.v1`. The SDK Manifest Builder constructs the canonical manifest from three user-facing choices: source-native data, the installed processing class, and the desired return depth. Processor-specific evidence is still supplied explicitly; the builder never invents missing governance facts.
@@ -516,6 +549,7 @@ python -m unittest tests.test_governance_ingress_runtime
 python -m unittest tests.test_cli_preformatted_manifest
 python -m unittest tests.test_generic_manifest_processing_contract
 python -m unittest tests.test_manifest_builder
+python -m unittest tests.test_state_transition_evidence
 pytest -q tests/test_evaluator_contract_console.py
 ```
 
