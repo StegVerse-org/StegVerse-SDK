@@ -27,6 +27,7 @@ route selection != authority
 caller projection != canonical custody
 governance-specific fields are not universal manifest requirements
 unsupported or uninstalled processor/route execution fails closed
+DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING
 ```
 
 Current executable processor:
@@ -37,47 +38,34 @@ processing.route_id: stegverse.route.canonical-governed.v1
 processor-specific request: extensions.stegverse_governance_request
 ```
 
-## ELAN Event-3 experiment-integrity remediation — 2026-09-10
+## Experiment-manifest correction — 2026-09-10
 
-The ELAN three-event protocol has been reconciled against the evaluator-defined-manifest/non-interference contract.
+The experiment-specific ELAN Event-3 protocol is no longer treated as SDK behavior. The SDK now exposes one generic caller-facing `--experiment-manifest` input on `stegverse external-run`. When supplied, the caller-authored object is retained unchanged under `extensions.experiment_manifest` in the generated `stegverse.ingress-manifest.v1` and remains separate from the processor-specific governance request.
 
-The corrected experimental model is:
-
-```text
-S0 -> Event 1 -> S1 -> Event 2 -> S2 -> Event 3 (no new human input for the preregistered interval) -> observe resulting state/behavior
-```
-
-Events 1 and 2 are controlled state-establishment conditions required to reach the state under test. Event 3 is the evaluated condition. The fixed lead-in is therefore not itself prohibited evaluator bias merely because StegVerse specified it; substituting an unrelated independently chosen lead-in could fail to establish S2 and therefore fail to test the intended condition.
-
-The non-interference boundary applies to expected source-framework semantics and outcomes, not to legitimate controlled preconditions. The SDK must not pre-author or inject expected ELAN interpretation, expected internal state, expected Event-3 response/withholding, expected agreement/disagreement with governance, or expected comparative disposition into the authentic experiment path.
-
-The prior ELAN evaluator declaration contained an explicit expected comparative observation. On branch `sdk-evaluator-bias-remediation`, that expectation has been removed and the declaration is now outcome-neutral. `docs/ELAN_TEST1_RUNBOOK.md` now distinguishes state establishment from the evaluated condition, requires continuity evidence into Event 3, and states that externally produced source-native evidence must be preserved before StegVerse interpretation. Root `README.md` now documents the reusable controlled-state experiment-integrity rule.
-
-External evidence received before this remediation:
+The ELAN-specific protocol is declared in:
 
 ```text
-artifact: 1.ELAN_TEST_TRACE_EN_09.09.2026.pdf
-artifact confidentiality marking: Royal ELAN License 2026 / Confidential
-Event 1: observed in packet
-Event 2: observed in packet
-Event 3: packet explicitly states not yet submitted
-source-owner description: ELAN responses in native state / unmodified
-public-repository publication of confidential packet: prohibited absent source-owner permission
+inspection/examples/elan-test1-experiment-manifest.json
 ```
 
-The packet is not committed to this repository. Its observable content establishes only Events 1 and 2; internal ELAN state must not be inferred from linguistic output. The packet states Event 3 will occur in a separate session. Because Event 3 tests the condition following S2, a separate session is acceptable only if source-native continuity/resumption from S2 is evidenced; otherwise the execution must be classified as reset/reconstructed/unverified rather than silently treated as continuous.
+That manifest declares the controlled state-establishment sequence, evaluated condition, continuity requirements, non-interference statements, requested processing, and requested evidence. Changing those experiment-specific values does not require SDK code changes or a special runtime route.
 
-Current remediation branch evidence:
+The source payload, governance request, evaluator declaration, and experiment manifest remain separate inputs. The evaluator declaration now refers to the caller-declared experiment protocol rather than embedding it. The runbook now documents this separation and passes `--experiment-manifest` explicitly.
+
+Branch implementation evidence:
 
 ```text
 branch: sdk-evaluator-bias-remediation
-outcome-neutral evaluator declaration commit: e2bc9f3394aa056352f10d32c9503cac2a9481cd
-Event-3 runbook correction commit: 642ccfd7dc6f784f9e60e0c0b93081485d997f23
-README experiment-integrity correction commit: 0c9f7f8a4289cd9ea48e95885ffca59ffa05931b
 PR: #166 DRAFT
-validation: PR head before invariant repair had 4 PASS / 1 FAIL; failure was only missing canonical handoff state token and is repaired in the current head
+experiment manifest creation: 1b14080d9c558e2a12ed9e1da906478450e21fc1
+generic external-run experiment-manifest support: 0e87727d215c4af9e64935e551652550d7576f59
+experiment-manifest regression coverage: 2e9eb07bb0c1aadc0bc11fcdeebbf8ee5a94fc8c
+runbook manifest-boundary correction: e4aa2215c91c218a5ee8cf7af1b9d72d780028d8
+evaluator declaration separation: ba91c2ef102bf6c6787b78996125162caec8134f
 merge claim: NONE
 ```
+
+The confidential source-owner ELAN PDF remains outside the public repository. No runtime outcome is inferred from it.
 
 ## Completed SDK generic-manifest package work
 
@@ -90,7 +78,7 @@ submission schema: stegverse.sdk.external-framework-submission.v1
 executed schema: stegverse.sdk.external-framework-run.v1
 ```
 
-The SDK preserves source-native data, evaluator preregistration outside the governance decision request, declared processor/route binding, caller-selected return projection, fail-closed unsupported routing, canonical `manifest_receipt_id`, replay, and reconstruction.
+The SDK preserves source-native data, evaluator preregistration outside the governance decision request, caller-authored experiment metadata outside the governance decision request, declared processor/route binding, caller-selected return projection, fail-closed unsupported routing, canonical `manifest_receipt_id`, replay, and reconstruction.
 
 ## Public runtime distribution remediation
 
@@ -273,10 +261,10 @@ dedicated processor-generic hosted route: NOT YET OBSERVED
 
 ```text
 StegVerse-org/StegVerse-SDK:
-  - validate and merge the evaluator-bias remediation after PR/check evidence
+  - complete exact-head validation of PR #166 for generic experiment-manifest retention
+  - merge PR #166 only if required checks pass
   - keep PR #165 draft while public package/release gate is unsatisfied
-  - after authentic public distributions exist, rerun Anonymous Governed Runtime Install and ELAN E2E
-  - require Event-3 continuity evidence before treating separate-session silence as the intended S2 condition
+  - after authentic public distributions exist, rerun Anonymous Governed Runtime Install and ELAN E2E using caller-declared experiment manifest
   - freeze exact 1.3.0 coordinate only through canonical release reconciliation
 
 StegVerse-Labs/StegCore:
@@ -300,11 +288,9 @@ StegVerse-002/stegguardian-wiki: none now
 ```text
 SDK-PROCESSOR-GENERIC-MANIFEST-002: COMPLETE_VALIDATED_MERGED
 SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE
-ELAN evaluator-bias remediation: SOURCE_CHANGES_ON_BRANCH / REVALIDATION_PENDING
+PR #166 experiment-manifest architecture correction: SOURCE_CHANGED / EXACT_HEAD_VALIDATION_PENDING
 SDK 1.3.0 source candidate: EXACT_HEAD_SOURCE_VALIDATED_MERGEABLE_DRAFT_PR_165
 merge-base regression: RESOLVED
-SDK public distribution rewrite: INCORPORATED_IN_PR_165
-SDK README correction: INCORPORATED_IN_PR_165
 first proven anonymous-install blocker: stegverse-stegcore==0.3.0 NOT PUBLISHED
 Site completion predicate: FALSE / MACHINE_OWNED
 admissibility completion predicate: FALSE / WORKER_OWNED
