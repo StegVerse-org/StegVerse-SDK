@@ -75,7 +75,7 @@ class EvaluatorManifestBuilderTests(unittest.TestCase):
 
     def test_authorizing_posture_request_is_rejected(self):
         bad={"schema":"stegverse.sdk.security-posture-request.v1","task_id":"EVAL-4","selected_tier":None,"selection_present":False,"organization_minimum_tier":"SECURE","data_class":None,"channel":None,"authority_effect":"GRANT"}
-        with self.assertRaisesRegex(ValueError,"non-authorizing"):
+        with self.assertRaisesRegex(ValueError,"sdk_posture_request_must_be_non_authorizing"):
             build_evaluator_governance_manifest(
                 data={"value":1},source_framework="fixture",source_output_id="4",
                 governance_request=governance_request(),security_posture_request=bad,
