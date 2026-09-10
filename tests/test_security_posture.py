@@ -7,13 +7,16 @@ from stegverse.security_posture import (
     HEALTH_PII_HIGH_V1,
     SecurityPostureError,
     attach_security_posture,
+    instantiate_task_security_posture,
     resolve_security_posture,
+    select_effective_posture,
     validate_runtime_attestation,
+    validate_task_security_posture_instance,
 )
 
 
-def _attestation():
-    posture = resolve_security_posture("stegverse.security.health-pii-high.v1")
+def _attestation(posture_id="stegverse.security.health-pii-high.v1"):
+    posture = resolve_security_posture(posture_id)
     return {
         "schema": ATTESTATION_SCHEMA,
         "posture_id": posture["posture_id"],
@@ -26,6 +29,7 @@ def _attestation():
 def test_current_health_pii_posture_is_resolvable_and_versioned():
     posture = resolve_security_posture("stegverse.security.health-pii-high.v1")
     assert posture["version"] == 1
+    assert posture["tier"] == "HIGHEST"
     assert posture["upgrade_policy"]["allow_silent_downgrade"] is False
     assert posture["requirements"]["credential_authority"] == "TV/TVC"
     assert posture["requirements"]["encryption_at_rest"] is True
@@ -37,6 +41,7 @@ def test_manifest_gets_reference_not_experiment_specific_security_fields():
     attached = attach_security_posture(manifest, "stegverse.security.health-pii-high.v1")
     ref = attached["extensions"]["security_posture"]
     assert ref["posture_id"] == "stegverse.security.health-pii-high.v1"
+    assert ref["tier"] == "HIGHEST"
     assert "requirements" not in ref
     assert attached["data"] == {"opaque": True}
 
@@ -86,3 +91,77 @@ def test_unenforced_prohibition_and_unknown_posture_fail_closed():
 
     with pytest.raises(SecurityPostureError, match="unsupported_security_posture"):
         resolve_security_posture("stegverse.security.health-pii-high.v99")
+
+
+def test_evaluator_can_select_secure_when_no_stronger_floor_applies():
+    selected = select_effective_posture(
+        requested_tier="SECURE",
+        organization_minimum_tier="SECURE",
+        data_class="general",
+        channel="SDK",
+    )
+    assert selected["effective_tier"] == "SECURE"
+    assert selected["posture_id"] == "stegverse.security.secure.v1"
+
+
+def test_organization_minimum_elevates_evaluator_request():
+    selected = select_effective_posture(
+        requested_tier="SECURE",
+        organization_minimum_tier="HIGH",
+    )
+    assert selected["effective_tier"] == "HIGH"
+    assert selected["posture_id"] == "stegverse.security.high.v1"
+
+
+def test_sensitive_data_elevates_posture_independent_of_evaluator_request():
+    pii = select_effective_posture(requested_tier="SECURE", data_class="PII")
+    ephi = select_effective_posture(requested_tier="SECURE", data_class="ePHI")
+    assert pii["effective_tier"] == "HIGH"
+    assert ephi["effective_tier"] == "HIGHEST"
+
+
+def test_kv_skap_is_unconditionally_highest():
+    selected = select_effective_posture(
+        requested_tier="SECURE",
+        organization_minimum_tier="SECURE",
+        data_class="general",
+        channel="KV-SKAP",
+    )
+    assert selected["effective_tier"] == "HIGHEST"
+    assert selected["channel_minimum_tier"] == "HIGHEST"
+    assert selected["posture_id"] == "stegverse.security.health-pii-high.v1"
+
+
+def test_task_posture_instance_is_ephemeral_nontransferable_and_expires():
+    instance = instantiate_task_security_posture(
+        task_id="TASK-EVALUATOR-1",
+        requested_tier="HIGH",
+        organization_minimum_tier="SECURE",
+        issued_at="2026-09-10T16:00:00Z",
+        ttl_seconds=900,
+    )
+    assert instance["effective_tier"] == "HIGH"
+    assert instance["transferable"] is False
+    assert instance["reusable_across_tasks"] is False
+    admitted = validate_task_security_posture_instance(
+        instance, task_id="TASK-EVALUATOR-1", observed_at="2026-09-10T16:14:59Z"
+    )
+    assert admitted["status"] == "INSTANCE_ACTIVE"
+
+    with pytest.raises(SecurityPostureError, match="task_mismatch"):
+        validate_task_security_posture_instance(
+            instance, task_id="TASK-EVALUATOR-2", observed_at="2026-09-10T16:01:00Z"
+        )
+    with pytest.raises(SecurityPostureError, match="instance_expired"):
+        validate_task_security_posture_instance(
+            instance, task_id="TASK-EVALUATOR-1", observed_at="2026-09-10T16:15:00Z"
+        )
+
+
+def test_ephemeral_posture_ttl_is_bounded():
+    with pytest.raises(SecurityPostureError, match="ttl_out_of_bounds"):
+        instantiate_task_security_posture(
+            task_id="TASK-EVALUATOR-1",
+            issued_at="2026-09-10T16:00:00Z",
+            ttl_seconds=3601,
+        )
