@@ -1,7 +1,7 @@
 {
-  "what": "Evaluate externally produced relational-framework evidence while preserving source-native semantics.",
-  "how": "Manifest the externally produced source-native evidence, bind it to the installed governance route, and retain exact-run evidence for replay and reconstruction.",
-  "why": "Evaluate the submitted evidence under the published SDK processing contract without predefining the external framework's interpretation, behavior, or comparative outcome.",
+  "what": "Evaluate externally produced relational-framework evidence under the caller-declared experiment protocol.",
+  "how": "Use the experiment protocol supplied in extensions.experiment_manifest, preserve source-native evidence unchanged, bind governance to the installed route, and retain exact-run evidence for replay and reconstruction.",
+  "why": "Evaluate the submitted evidence without predefining the external framework's interpretation, behavior, internal state, or comparative outcome.",
   "requested_capabilities": [
     "master_records_custody",
     "replay",
