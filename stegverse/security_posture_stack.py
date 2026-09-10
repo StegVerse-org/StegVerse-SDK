@@ -1,73 +1,100 @@
-"""Two-layer task security posture semantics.
+"""SDK security-posture request and projection helpers.
 
-The ecosystem computes a non-downgradable automatic posture floor from organization,
-data class, and channel requirements. A caller may separately select a posture at or
-above that floor. The effective posture is the stronger of automatic and selected.
+The SDK may describe caller-selected posture and posture-resolution inputs, and may
+render authoritative results returned by Interlock/InTr. It does not resolve or mint
+the authoritative automatic/effective posture for a transition.
 """
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Mapping
 
-from .security_posture import (
-    DATA_CLASS_MINIMUM_TIER,
-    CHANNEL_MINIMUM_TIER,
-    TIER_TO_POSTURE,
-    SecurityPostureError,
-    _tier_rank,
-    resolve_security_posture,
-)
+from .security_posture import TIER_TO_POSTURE, SecurityPostureError, _tier_rank, resolve_security_posture
+
+REQUEST_SCHEMA = "stegverse.sdk.security-posture-request.v1"
+RESOLUTION_SCHEMA = "stegos.intr-security-posture-resolution.v1"
 
 
-def select_posture_stack(
+def build_security_posture_request(
     *,
+    task_id: str,
+    selected_tier: str = "SECURE",
     organization_minimum_tier: str = "SECURE",
     data_class: str | None = None,
     channel: str | None = None,
-    selected_tier: str | None = None,
 ) -> dict[str, Any]:
-    """Return automatic, selected, and effective posture identities separately."""
-    automatic_candidates = [organization_minimum_tier]
-    if data_class in DATA_CLASS_MINIMUM_TIER:
-        automatic_candidates.append(DATA_CLASS_MINIMUM_TIER[data_class])
-    if channel in CHANNEL_MINIMUM_TIER:
-        automatic_candidates.append(CHANNEL_MINIMUM_TIER[channel])
-
-    automatic_tier = max(automatic_candidates, key=_tier_rank)
-    automatic = resolve_security_posture(TIER_TO_POSTURE[automatic_tier])
-
-    chosen_tier = selected_tier or automatic_tier
-    if _tier_rank(chosen_tier) < _tier_rank(automatic_tier):
-        raise SecurityPostureError("selected_security_posture_below_automatic_floor")
-    selected = resolve_security_posture(TIER_TO_POSTURE[chosen_tier])
-
-    effective_tier = max([automatic_tier, chosen_tier], key=_tier_rank)
-    effective = resolve_security_posture(TIER_TO_POSTURE[effective_tier])
-
-    selectable_tiers = [tier for tier in TIER_TO_POSTURE if _tier_rank(tier) >= _tier_rank(automatic_tier)]
+    """Describe posture inputs for Interlock/InTr without asserting a final tier."""
+    if not task_id:
+        raise SecurityPostureError("security_posture_task_id_required")
+    for name, tier in (("selected_tier", selected_tier), ("organization_minimum_tier", organization_minimum_tier)):
+        if tier not in TIER_TO_POSTURE:
+            raise SecurityPostureError(f"unsupported_security_posture_{name}:{tier}")
+    selected = resolve_security_posture(TIER_TO_POSTURE[selected_tier])
     return {
-        "schema": "stegverse.sdk.security-posture-stack.v1",
-        "automatic_posture": {
-            "tier": automatic_tier,
-            "posture_id": automatic["posture_id"],
-            "posture_sha256": automatic["posture_sha256"],
-            "basis": {
-                "organization_minimum_tier": organization_minimum_tier,
-                "data_class_minimum_tier": DATA_CLASS_MINIMUM_TIER.get(data_class),
-                "channel_minimum_tier": CHANNEL_MINIMUM_TIER.get(channel),
-            },
-        },
-        "selected_posture": {
-            "tier": chosen_tier,
-            "posture_id": selected["posture_id"],
-            "posture_sha256": selected["posture_sha256"],
-            "selection_present": selected_tier is not None,
-        },
-        "effective_posture": {
-            "tier": effective_tier,
-            "posture_id": effective["posture_id"],
-            "posture_sha256": effective["posture_sha256"],
-        },
-        "selectable_tiers": selectable_tiers,
+        "schema": REQUEST_SCHEMA,
+        "task_id": task_id,
+        "selected_tier": selected_tier,
+        "selected_posture_id": selected["posture_id"],
+        "selected_posture_sha256": selected["posture_sha256"],
+        "organization_minimum_tier": organization_minimum_tier,
+        "data_class": data_class,
+        "channel": channel,
+        "authoritative_automatic_posture": None,
+        "authoritative_effective_posture": None,
+        "resolution_authority": "INTERLOCK_INTR",
+        "credential_authority": "TV/TVC",
+        "authority_effect": "NONE_REQUEST_INPUT_ONLY",
+    }
+
+
+def project_intr_posture_resolution(resolution: Mapping[str, Any]) -> dict[str, Any]:
+    """Render the authoritative InTr result without reinterpreting it."""
+    if resolution.get("schema") != RESOLUTION_SCHEMA:
+        raise SecurityPostureError("invalid_intr_posture_resolution_schema")
+    if resolution.get("resolution_authority") != "INTERLOCK_INTR":
+        raise SecurityPostureError("intr_posture_resolution_authority_required")
+    automatic = resolution.get("automatic_posture")
+    selected = resolution.get("selected_posture")
+    effective = resolution.get("effective_posture")
+    if not all(isinstance(value, Mapping) for value in (automatic, selected, effective)):
+        raise SecurityPostureError("intr_posture_resolution_incomplete")
+    for value in (automatic, selected, effective):
+        tier = str(value.get("tier") or "")
+        if tier not in TIER_TO_POSTURE:
+            raise SecurityPostureError("intr_posture_resolution_tier_invalid")
+    if _tier_rank(str(selected["tier"])) < _tier_rank(str(automatic["tier"])):
+        raise SecurityPostureError("intr_posture_resolution_contains_downgrade")
+    if _tier_rank(str(effective["tier"])) != max(_tier_rank(str(automatic["tier"])), _tier_rank(str(selected["tier"]))):
+        raise SecurityPostureError("intr_posture_effective_tier_inconsistent")
+    return {
+        "schema": "stegverse.sdk.security-posture-ui-projection.v1",
+        "automatic_posture": dict(automatic),
+        "selected_posture": dict(selected),
+        "effective_posture": dict(effective),
+        "posture_instance": dict(resolution.get("posture_instance") or {}),
+        "resolution_authority": "INTERLOCK_INTR",
+        "credential_authority": "TV/TVC",
+        "sdk_reinterpreted_posture": False,
+        "authority_effect": "NONE_UI_PROJECTION_ONLY",
+    }
+
+
+def select_posture_stack(*, task_id: str = "PREVIEW_ONLY", organization_minimum_tier: str = "SECURE", data_class: str | None = None, channel: str | None = None, selected_tier: str | None = None) -> dict[str, Any]:
+    """Backward-compatible SDK request preview; not an authoritative posture resolution."""
+    chosen = selected_tier or "SECURE"
+    request = build_security_posture_request(
+        task_id=task_id,
+        selected_tier=chosen,
+        organization_minimum_tier=organization_minimum_tier,
+        data_class=data_class,
+        channel=channel,
+    )
+    return {
+        "schema": "stegverse.sdk.security-posture-request-preview.v1",
+        "request": request,
+        "selected_posture": {"tier": chosen, "posture_id": request["selected_posture_id"], "selection_present": selected_tier is not None},
+        "automatic_posture": None,
+        "effective_posture": None,
+        "resolution_required_from": "INTERLOCK_INTR",
         "downgrade_below_automatic_floor_allowed": False,
-        "authority_effect": "NONE_ADMISSION_EVIDENCE_ONLY",
+        "authority_effect": "NONE_REQUEST_PREVIEW_ONLY",
     }
