@@ -19,6 +19,7 @@ from .manifest_contract import validate_ingress_manifest
 DEFAULT_CUSTODY_DB = "./stegverse-master-records-validation.db"
 DEFAULT_HOST_IDENTITY = "stegverse-sovereign-local"
 EVALUATION_DECLARATION_EXTENSION = "evaluation_declaration"
+EXPERIMENT_MANIFEST_EXTENSION = "experiment_manifest"
 
 
 def _load_json(path: str) -> Any:
@@ -45,13 +46,14 @@ def prepare_external_framework_manifest(
     source_output_id: str,
     processor_request: Mapping[str, Any],
     evaluation_declaration: Mapping[str, Any] | None = None,
+    experiment_manifest: Mapping[str, Any] | None = None,
     process: str = "governance",
     return_depth: str = "result+evidence",
     data_class: str | None = None,
     source_instance: str | None = None,
     created_at: str | None = None,
 ) -> dict[str, Any]:
-    """Build a submission-ready manifest and retain preregistration metadata."""
+    """Build a submission-ready manifest and retain caller-declared experiment metadata."""
     manifest = build_manifest(
         data=data,
         source_framework=source_framework,
@@ -69,6 +71,13 @@ def prepare_external_framework_manifest(
         manifest["extensions"][EVALUATION_DECLARATION_EXTENSION] = deepcopy(
             dict(evaluation_declaration)
         )
+    if experiment_manifest is not None:
+        if not isinstance(experiment_manifest, Mapping):
+            raise ValueError("experiment_manifest must be an object when supplied")
+        manifest["extensions"][EXPERIMENT_MANIFEST_EXTENSION] = deepcopy(
+            dict(experiment_manifest)
+        )
+    if evaluation_declaration is not None or experiment_manifest is not None:
         validate_ingress_manifest(manifest)
     return manifest
 
@@ -101,6 +110,7 @@ def run_external_framework(
     source_output_id: str,
     processor_request: Mapping[str, Any],
     evaluation_declaration: Mapping[str, Any] | None = None,
+    experiment_manifest: Mapping[str, Any] | None = None,
     process: str = "governance",
     return_depth: str = "result+evidence",
     data_class: str | None = None,
@@ -121,6 +131,7 @@ def run_external_framework(
         source_output_id=source_output_id,
         processor_request=processor_request,
         evaluation_declaration=evaluation_declaration,
+        experiment_manifest=experiment_manifest,
         process=process,
         return_depth=return_depth,
         data_class=data_class,
@@ -177,6 +188,10 @@ def main(argv: list[str] | None = None) -> int:
         "--evaluation-declaration",
         help="optional preregistered evaluator declaration retained as evidence metadata",
     )
+    parser.add_argument(
+        "--experiment-manifest",
+        help="optional caller-authored experiment protocol retained unchanged in ingress extensions",
+    )
     parser.add_argument("--source-framework", required=True)
     parser.add_argument("--source-output-id", required=True)
     parser.add_argument("--source-instance")
@@ -202,12 +217,18 @@ def main(argv: list[str] | None = None) -> int:
             if args.evaluation_declaration
             else None
         )
+        experiment = (
+            _load_json(args.experiment_manifest)
+            if args.experiment_manifest
+            else None
+        )
         common = dict(
             data=_load_json(args.input),
             source_framework=args.source_framework,
             source_output_id=args.source_output_id,
             processor_request=_load_json(args.governance_request),
             evaluation_declaration=declaration,
+            experiment_manifest=experiment,
             process=args.process,
             return_depth=args.return_depth,
             data_class=args.data_class,

@@ -1,39 +1,46 @@
 # ELAN Test 1 Runbook
 
-This runbook defines the first external-framework interoperability test for the SDK completion gate.
+This runbook documents how to execute the first external-framework interoperability test through the SDK. The experiment-specific protocol is not an SDK behavior and is not hardcoded by this runbook. It is supplied as caller-authored manifest data.
 
-## Fixed human-event sequence
+## Experiment manifest is the source of protocol truth
 
-1. Emotional ambiguity statement.
-2. Follow-up: `I don't know.`
-3. Silence for the preregistered interval.
+The exact controlled sequence, evaluated condition, continuity rule, non-interference declarations, requested processing, and requested evidence for this experiment are declared in:
+
+```text
+inspection/examples/elan-test1-experiment-manifest.json
+```
+
+The SDK does not infer or rewrite those experiment-specific values. `stegverse external-run --experiment-manifest ...` retains the caller-authored object unchanged under `extensions.experiment_manifest` in the resulting `stegverse.ingress-manifest.v1`.
+
+Changing the experiment therefore means changing the experiment manifest, not editing SDK code or adding a special-case runtime path.
 
 ## Source-framework boundary
 
 ELAN remains source-native. Only observable output/state that ELAN legitimately exposes may be placed in the source payload. Missing internal state must not be inferred or invented.
 
-## Required evidence fields
+The experiment manifest may define stimuli, timing, state-establishment labels, the evaluated condition, and continuity requirements. Those declarations do not authorize the SDK to pre-compose ELAN interpretation, internal state, behavior, or comparative outcome.
 
-1. human event/state
-2. ELAN interpretation
-3. ELAN proposed or withheld behavior
-4. represented state submitted for processing
-5. StegVerse governance disposition and resulting transition/non-transition
-6. retrospective reconstruction
+Externally returned source-native evidence must be preserved before StegVerse-derived interpretation is added downstream.
 
-## Public fixtures
+## Public inputs
 
 ```text
+inspection/examples/elan-test1-experiment-manifest.json
 inspection/examples/elan-relational-state-test1.json
 inspection/examples/elan-governance-request.example.json
 inspection/examples/elan-evaluation-declaration-test1.json
 ```
 
-The first file is source-native ELAN-observable data only. The governance request is a separate processor-specific input. The evaluator declaration is preregistered evidence metadata and is not inserted into the governance decision request.
+Their roles are distinct:
+
+- `elan-test1-experiment-manifest.json` declares the experiment protocol and evidence requirements.
+- `elan-relational-state-test1.json` is source-native/example payload data only.
+- `elan-governance-request.example.json` is processor-specific governance input.
+- `elan-evaluation-declaration-test1.json` records evaluator WHAT/HOW/WHY metadata.
+
+None of these files changes SDK runtime semantics merely because a particular experiment uses them.
 
 ## External tester: one-command public preparation
-
-An external framework creator can install the public SDK surface and produce the exact validated submission bundle without access to StegCore or Master Records repositories:
 
 ```bash
 stegverse external-run \
@@ -41,6 +48,7 @@ stegverse external-run \
   --input inspection/examples/elan-relational-state-test1.json \
   --governance-request inspection/examples/elan-governance-request.example.json \
   --evaluation-declaration inspection/examples/elan-evaluation-declaration-test1.json \
+  --experiment-manifest inspection/examples/elan-test1-experiment-manifest.json \
   --source-framework ELAN \
   --source-output-id elan-emotional-ambiguity-silence-test-001 \
   --data-class elan.relational-state.v1 \
@@ -48,32 +56,29 @@ stegverse external-run \
   --output elan-test1-submission.json
 ```
 
-The result is `stegverse.sdk.external-framework-submission.v1` with `status=SUBMISSION_READY`. It contains the source-native payload, processing/route declaration, preregistration metadata, and return projection. It does not fabricate a receipt or claim governed execution.
+The result is `stegverse.sdk.external-framework-submission.v1` with `status=SUBMISSION_READY`. The generated ingress manifest contains the source-native payload, processing/route declaration, evaluator metadata, caller-authored experiment manifest, and return projection. Preparation does not fabricate governed execution evidence.
 
-## StegVerse runtime: one-command governed execution
+## Governed execution
 
-In an environment where the canonical pinned governed-test dependencies are installed, remove `--prepare-only` and use the same inputs:
+In an environment where the pinned governed-test dependencies are installed, remove `--prepare-only` and use the same manifest-declared protocol with the exact externally produced source-native evidence:
 
 ```bash
 stegverse external-run \
-  --input inspection/examples/elan-relational-state-test1.json \
-  --governance-request inspection/examples/elan-governance-request.example.json \
-  --evaluation-declaration inspection/examples/elan-evaluation-declaration-test1.json \
+  --input <externally-produced-source-native-evidence.json> \
+  --governance-request <experiment-applicable-governance-request.json> \
+  --evaluation-declaration <evaluation-declaration.json> \
+  --experiment-manifest <experiment-manifest.json> \
   --source-framework ELAN \
-  --source-output-id elan-emotional-ambiguity-silence-test-001 \
-  --data-class elan.relational-state.v1 \
+  --source-output-id <external-source-output-id> \
+  --data-class <external-source-data-class> \
   --return-depth full-trace \
   --output elan-test1-complete-run.json
 ```
 
-This path builds and validates `stegverse.ingress-manifest.v1`, binds governance to `stegverse.route.canonical-governed.v1`, executes the canonical local governed test, records custody, returns `manifest_receipt_id`, and performs replay plus reconstruction by default.
-
-The canonical governed runtime currently depends on pinned StegCore and Master Records repositories that are not anonymous-public Git dependencies. That affects who can execute the private canonical runtime locally; it does not prevent an external tester from preparing the exact portable SDK submission. The SDK must not claim that `--prepare-only` is governance execution.
-
-## Real test substitution rule
-
-The included governance request is a runnable SDK-path example. For the actual ELAN experiment, replace its example governance facts with the represented facts applicable to the experiment. Do not duplicate, reinterpret, or invent ELAN-native internal semantics inside the governance request.
+This path builds and validates `stegverse.ingress-manifest.v1`, binds the declared installed processor route, executes the canonical local governed test, records custody, returns `manifest_receipt_id`, and performs replay plus reconstruction by default.
 
 ## Completion proof
 
-The SDK completion gate requires exact-head evidence that the public external-framework preparation path works anonymously, the source-native payload remains unchanged, preregistration stays outside the governance decision request, return projection and route binding are deterministic, and unsupported/incomplete declarations fail closed. Canonical governed execution evidence remains receipt/custody/replay/reconstruction evidence from a runtime environment with the pinned dependencies installed.
+Completion requires evidence that the SDK retained the submitted experiment manifest unchanged, preserved source-native payload bytes/semantics, kept evaluator metadata outside the governance decision request, bound the declared processing route deterministically, and produced the required custody/replay/reconstruction evidence after authentic execution.
+
+For this experiment, the specific Event-3 protocol and continuity predicate are read from the experiment manifest. They are not SDK constants and must not be implemented as experiment-specific SDK logic.

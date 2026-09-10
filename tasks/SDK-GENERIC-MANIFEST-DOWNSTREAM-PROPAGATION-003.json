@@ -4,7 +4,7 @@
   "repository": "StegVerse-org/StegVerse-SDK",
   "source_branch": "main",
   "target_branch": "main",
-  "state": "ACTIVE_DOWNSTREAM_AND_PUBLICATION_DEPENDENCIES_PENDING",
+  "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
   "owner": "StegVerse-org/StegVerse-SDK",
   "credential_authority": "TV/TVC",
   "github_token_runtime_authority": "NONE",
@@ -32,13 +32,16 @@
     "SDK PR #165 merge-base divergence repaired by merge commit b53fb8c26688c8ea02ac336c5b876b3e6aa189cb using current main c7666cf37ba8561e85298bc88d50d152aa565965 and the exact ten candidate blobs; comparison became behind_by=0 and PR mergeable=true",
     "SDK PR #165 exact reconciled head b53fb8c26688c8ea02ac336c5b876b3e6aa189cb passed SDK Component Version Validation 34355771475, Package Artifact 34355771348, Release Dependency Alignment 34355771409, External Framework Public Submission 34355771364, Evaluator Manifest 34355771441, Evaluator Contract 34355771315, Production Manifold 34355771382, Portable Package 34355771396, Portable Release Index 34355771447, Manifest Builder 34355771439, MCP 34355771329, Output Boundary 34355771324, Connect LLM 34355771408, and Communication Edge 34355771365",
     "Anonymous Governed Runtime Install 34355771357 failed closed at pip install with exact error No matching distribution found for stegverse-stegcore==0.3.0; package identity verification and ELAN execution were correctly skipped",
-    "PR #165 body and canonical handoff reconciled to the repaired exact head and validation evidence"
+    "PR #165 body and canonical handoff reconciled to the repaired exact head and validation evidence",
+    "PR #166 source remediation distinguishes Events 1-2 as controlled state establishment from Event 3 as the evaluated condition, removes the ELAN expected comparative observation, requires separate-session continuity evidence, and maintains README plus canonical handoff; validation pending exact-head completion"
   ],
   "remaining": [
     "StegVerse-Labs/Site machine-owned admission and bounded SDK preview/backend contract propagation",
     "StegVerse-Labs/admissibility-wiki Worker D/coordinator processor-generic interoperability doctrine propagation",
     "authentic immutable/public publication of stegverse-stegcore 0.3.0 after canonical TV/TVC release gate",
     "authentic immutable/public publication of stegverse-master-records 0.2.0 after canonical TV/TVC release gate; current anonymous pip resolution has not reached this dependency yet",
+    "complete PR #166 exact-head validation and merge the ELAN Event-3 experiment-integrity remediation if all required checks pass",
+    "obtain Event-3 continuity evidence before treating a separate-session silence run as continuation from the S2 state established by Events 1-2",
     "rerun PR #165 Anonymous Governed Runtime Install after exact public distributions exist and require package identity plus ELAN custody/replay/reconstruction PASS",
     "freeze exact SDK 1.3.0 candidate and update TVC successor policy only through canonical release reconciliation",
     "public-surface observation after downstream deployment and handoff/COSV reconciliation after each completion"

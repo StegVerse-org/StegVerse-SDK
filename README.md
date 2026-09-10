@@ -232,6 +232,22 @@ The governance and custody transitions are real TEST evidence; the test does not
 
 A tester or evaluator does not need to disclose a proposed test to a StegVerse developer so the developer can construct a special route. If the published SDK already exposes the required capability, the evaluator can declare the experiment in the request manifest and submit it through the published governed routing contract.
 
+### Controlled-state experiment integrity
+
+A fixed evaluator-authored stimulus sequence is compatible with this contract when the sequence is required to establish the state whose later transition is being tested. In that case, the lead-in is a controlled precondition, not a predeclared result. For example, a protocol may intentionally establish `S0 -> E1 -> S1 -> E2 -> S2` and then evaluate what occurs during `E3` from S2.
+
+The SDK must not convert that controlled lead-in into pre-authored source-framework semantics. In particular, SDK fixtures, examples, or developer-authored declarations must not prescribe an external framework's expected interpretation, internal state, response, withheld response, agreement/disagreement with governance, or comparative outcome. Source-native output returned by the external framework is preserved before StegVerse-derived interpretation is added downstream.
+
+If the evaluated condition occurs in a separate session, continuity with the state established by the controlled lead-in must be evidenced or explicitly classified as reset/reconstructed/unverified. A new session is not automatically equivalent to continuation of the state under test.
+
+```text
+controlled stimulus != expected source behavior
+state-establishment sequence != source-state invention
+source-native observation != StegVerse interpretation
+separate session != proven state continuity
+expected comparative outcome != experimental evidence
+```
+
 The optional `evaluation_declaration` records the evaluator's **WHAT / HOW / WHY** before execution:
 
 ```json
