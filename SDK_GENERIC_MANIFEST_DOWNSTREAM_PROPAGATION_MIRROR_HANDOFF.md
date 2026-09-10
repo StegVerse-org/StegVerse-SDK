@@ -40,44 +40,22 @@ processor-specific request: extensions.stegverse_governance_request
 
 ## Experiment-manifest correction — 2026-09-10
 
-The experiment-specific ELAN Event-3 protocol is no longer treated as SDK behavior. The SDK now exposes one generic caller-facing `--experiment-manifest` input on `stegverse external-run`. When supplied, the caller-authored object is retained unchanged under `extensions.experiment_manifest` in the generated `stegverse.ingress-manifest.v1` and remains separate from the processor-specific governance request.
+Experiment-specific protocol data belongs in the caller-authored experiment manifest rather than SDK behavior. `stegverse external-run --experiment-manifest <json>` retains that object unchanged under `extensions.experiment_manifest`, outside both source-native payload data and `extensions.stegverse_governance_request`. Changing an experiment therefore changes its manifest, not SDK code or a special runtime route.
 
-The ELAN-specific protocol is declared in:
+ELAN Test 1 declares the E1/E2 state-establishment sequence, E3 evaluated condition, continuity requirements, non-interference statements, requested processing, and requested evidence in `inspection/examples/elan-test1-experiment-manifest.json`. The evaluator declaration remains separate WHAT/HOW/WHY metadata. The ELAN runbook consumes the caller-authored manifest rather than defining special SDK execution semantics.
 
-```text
-inspection/examples/elan-test1-experiment-manifest.json
-```
+The confidential source-owner packet remains outside this repository. Observable evidence received so far is limited to Events 1 and 2; the packet explicitly states Event 3 has not yet been submitted. No missing ELAN internal state is inferred.
 
-That manifest declares the controlled state-establishment sequence, evaluated condition, continuity requirements, non-interference statements, requested processing, and requested evidence. Changing those experiment-specific values does not require SDK code changes or a special runtime route.
-
-The source payload, governance request, evaluator declaration, and experiment manifest remain separate inputs. The evaluator declaration now refers to the caller-declared experiment protocol rather than embedding it. The runbook now documents this separation and passes `--experiment-manifest` explicitly.
-
-Branch implementation evidence:
+PR #166 exact-head validation at `53e17cd67e7b2b27f0ffc0fa880d9f480c6cd202`:
 
 ```text
-branch: sdk-evaluator-bias-remediation
-PR: #166 DRAFT
-experiment manifest creation: 1b14080d9c558e2a12ed9e1da906478450e21fc1
-generic external-run experiment-manifest support: 0e87727d215c4af9e64935e551652550d7576f59
-experiment-manifest regression coverage: 2e9eb07bb0c1aadc0bc11fcdeebbf8ee5a94fc8c
-runbook manifest-boundary correction: e4aa2215c91c218a5ee8cf7af1b9d72d780028d8
-evaluator declaration separation: ba91c2ef102bf6c6787b78996125162caec8134f
-exact validated head: fc198266570f24a4c7bba57dfb63b1f5adaf1bc2
-merge claim: NONE
+Evaluator Contract Console Validation 34491261898 PASS
+Generic Manifest Downstream Contract Validation 34491261810 PASS
+Manifest Builder Source Validation 34491261813 PASS
+Evaluator Manifest Source Validation 34491261878 PASS
+External Framework Public Submission Validation 34491261847 PASS
+SDK Package Artifact Validation 34491261869 PASS
 ```
-
-Exact-head PR #166 validation:
-
-```text
-Generic Manifest Downstream Contract Validation 34489612531 PASS
-Evaluator Manifest Source Validation 34489612534 PASS
-Manifest Builder Source Validation 34489612514 PASS
-External Framework Public Submission Validation 34489612580 PASS
-Evaluator Contract Console Validation 34489612530 PASS
-SDK Package Artifact Validation 34489612526 PASS
-```
-
-The confidential source-owner ELAN PDF remains outside the public repository. No runtime outcome is inferred from it.
 
 ## Completed SDK generic-manifest package work
 
@@ -118,9 +96,7 @@ stegverse-core-lite @ git+https://github.com/Data-Continuation/core-lite.git@72b
 stegverse-master-records==0.2.0
 ```
 
-## Successor consolidation and merge-base repair
-
-SDK PR #163 is CLOSED / SUPERSEDED. Its public-distribution rewrite and README correction are incorporated into aggregate SDK PR #165.
+## SDK successor state
 
 ```text
 aggregate successor PR: StegVerse-org/StegVerse-SDK#165
@@ -129,12 +105,10 @@ head: b53fb8c26688c8ea02ac336c5b876b3e6aa189cb
 candidate version: 1.3.0
 intended tag: v1.3.0
 version stage: SOURCE_CANDIDATE
-prior frozen SDK identity: v1.2.0 / beaabe0a06ef32f0f62fbe6bc360463b245bff61
-v1.2.0 retargeting permitted: false
 release/tag/publication claim: NONE
 ```
 
-PR #165 remains DRAFT. Its source validation passed, but anonymous governed-runtime installation is still blocked by missing public distribution `stegverse-stegcore==0.3.0`.
+PR #165 remains DRAFT. Its source validation passed, but anonymous governed-runtime installation remains blocked by missing public distribution `stegverse-stegcore==0.3.0`.
 
 ## Downstream completion state
 
@@ -150,8 +124,6 @@ current machine blocker: SITE-0001-COHERENT-TRANSITION-THRESHOLD-ACTIVATION
 completion predicate: FALSE
 ```
 
-Conectrr contamination is resolved. Site remains machine-owned; do not collide with its task lane.
-
 ### StegVerse-Labs/admissibility-wiki
 
 ```text
@@ -159,26 +131,8 @@ pertinent: YES
 required propagation: bounded processor-generic SDK interoperability doctrine
 coordinator: issue #66
 implementation owner: Worker D / issue #65
-transfer comment: #65 issuecomment-5592480056
-public-route constraint: #65 issuecomment-5593234328
 worker transition observed: false
 completion predicate: FALSE
-```
-
-Do not duplicate Worker D implementation.
-
-### GCAT-BCAT-Engine/Publisher
-
-```text
-pertinent: NO_DIRECT_CONTRACT_CHANGE
-action: preserve Site-derived projection-only boundary
-```
-
-### StegVerse-002/stegguardian-wiki
-
-```text
-pertinent: NO_DIRECT_CONTRACT_CHANGE
-action: preserve downstream interpretation-only boundary
 ```
 
 ## Public surfaces
@@ -217,7 +171,7 @@ StegVerse-Labs/admissibility-wiki:
 ```text
 SDK-PROCESSOR-GENERIC-MANIFEST-002: COMPLETE_VALIDATED_MERGED
 SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE
-experiment-manifest remediation: EXACT_HEAD_VALIDATION_PASS / PR_166_DRAFT_PENDING_MERGE
+experiment-manifest remediation: EXACT_HEAD_VALIDATION_PASS / PR_166_READY_FOR_MERGE_RECONCILIATION
 SDK 1.3.0 source candidate: EXACT_HEAD_SOURCE_VALIDATED_MERGEABLE_DRAFT_PR_165
 first proven anonymous-install blocker: stegverse-stegcore==0.3.0 NOT PUBLISHED
 ELAN Test 1 source evidence: EVENTS_1_2_OBSERVED / EVENT_3_PENDING
