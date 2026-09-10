@@ -1,9 +1,12 @@
+from pathlib import Path
+
 import pytest
 
 from stegverse.security_posture import SecurityPostureError
 from stegverse.security_posture_stack import build_security_posture_request, project_intr_posture_resolution, select_posture_stack
 
 TASK = "FEDERAL-HEALTH-PII-EXCEEDANCE-HARDENING-001"
+ROOT = Path(__file__).parents[1]
 
 
 def test_sdk_request_carries_inputs_not_authoritative_final_posture():
@@ -51,3 +54,10 @@ def test_projection_rejects_invalid_downgrade_from_intr_result():
     }
     with pytest.raises(SecurityPostureError, match="contains_downgrade"):
         project_intr_posture_resolution(resolution)
+
+
+def test_posture_authority_contract_is_documented_in_canonical_sdk_handoff():
+    handoff = (ROOT / "docs" / "FEDERAL_HEALTH_PII_EXCEEDANCE_HARDENING_MIRROR_HANDOFF.md").read_text(encoding="utf-8")
+    assert "posture_resolution_authority: Interlock/InTr" in handoff
+    assert "SDK describes posture-resolution inputs" in handoff
+    assert "does not compute or mint the authoritative automatic/effective posture" in handoff
