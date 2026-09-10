@@ -3,13 +3,13 @@
 Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `IMPLEMENTED_VALIDATED_AWAITING_MERGE`
+Status: `SOURCE_INTEGRATION_COMPLETE_RUNTIME_PROOF_PENDING`
 
 ## Objective
 
-Integrate evaluator-facing SDK manifest construction with the current governance processor route and the authoritative Interlock/InTr security-posture request contract without adding evaluator-specific evidence fields or allowing the SDK to resolve final posture.
+Integrate evaluator-facing SDK manifest construction with the governance processor and authoritative Interlock/InTr security-posture contract without adding evaluator-specific evidence fields or allowing the SDK to resolve final posture.
 
-## Implemented separation
+## Implemented path
 
 ```text
 source-native evaluator data
@@ -17,71 +17,76 @@ source-native evaluator data
 + optional evaluator preregistration declaration
 + optional SDK security-posture request inputs
 -> canonical ingress manifest
--> governance route
--> Interlock/InTr authoritative posture resolution
+-> exact governance transition request
+-> authoritative Interlock/InTr posture resolver
+-> exact task + payload SHA-256 + transition-request SHA-256 binding verification
+-> unchanged governance request execution
+-> posture binding + governance result + normal replay/reconstruction
 ```
 
-The evaluator declaration remains outside `extensions.stegverse_governance_request`. The security-posture request remains outside governance evidence and carries only non-authorizing request inputs. The evaluator composition layer does not derive `automatic_posture`, `effective_posture`, posture instance identity, or posture digest.
+The evaluator declaration remains outside `extensions.stegverse_governance_request`. The posture request remains outside governance evidence and carries only non-authorizing request inputs. The SDK never derives authoritative automatic/effective posture or mints a posture instance.
 
 ## Source
 
 ```text
 stegverse/security_posture_request.py
 stegverse/evaluator_manifest_builder.py
+stegverse/intr_posture_runtime_bridge.py
+stegverse/evaluator_governance_runtime.py
+stegverse/external_framework_runner.py
 tests/test_evaluator_manifest_builder.py
+tests/test_intr_posture_runtime_bridge.py
+tests/test_intr_posture_runtime_crossrepo.py
+tests/test_external_framework_posture_runtime.py
+tests/fixtures/stegos_intr_security_posture_resolution_84ddc96e.py
 .github/workflows/evaluator-governance-posture-manifest.yml
+.github/workflows/evaluator-governance-runtime-binding.yml
 ```
 
-The existing processor-generic `stegverse.manifest_builder.build_manifest()` remains the canonical manifest constructor. `build_evaluator_governance_manifest()` composes the independent evaluator inputs around that builder rather than adding experiment-specific requirements to the universal manifest contract.
+## One-command evaluator surface
 
-## Posture request contract
+`stegverse external-run` now accepts `--security-posture-request`. In `--prepare-only` mode the request is retained without posture resolution. During execution, a posture-bearing manifest requires the canonical StegOS Interlock/InTr resolver (`stegos.intr_security_posture_resolution.resolve_task_security_posture`) or an explicitly injected resolver callback for deterministic testing. Missing resolver fails closed.
+
+Posture-free external-run preserves the prior `governance_ingress_runtime.run_external_manifest` compatibility path.
+
+## Binding invariants
+
+- posture request schema: `stegverse.sdk.security-posture-request.v1`;
+- `selection_present=false` cannot carry a selected tier;
+- SDK does not compute automatic/effective posture;
+- resolver output must identify `INTERLOCK_INTR` as resolution authority;
+- returned posture instance must bind the exact task ID;
+- returned posture instance must bind the exact payload SHA-256;
+- returned posture instance must bind the exact transition-request SHA-256;
+- the governance request executed after resolution is the unchanged request whose digest was supplied to InTr;
+- evaluator preregistration remains outside governance decision evidence.
+
+## Validation and merge evidence
+
+Manifest-builder composition PR #172 merged at `7aaf0ea4a3a4b133941a8b16ffd410817746a6ee`.
+
+Runtime binding PR #173 merged at `b9beedcbbed3b09ed7620ac6de6f51788c6567a1` after exact-head `c5d41998bb39f9af1bb127a0e74b1c8bffd50dd4` passed:
 
 ```text
-schema = stegverse.sdk.security-posture-request.v1
-selection_present = true|false
-selected_tier = SECURE|HIGH|HIGHEST|null
-organization_minimum_tier = SECURE|HIGH|HIGHEST
-data_class = optional source classification
-channel = optional transport channel
-authority_effect = NONE_REQUEST_INPUT_ONLY
+Evaluator Governance Runtime Binding Validation 34522799912: PASS
+- SDK runtime bridge tests: PASS
+- exact StegOS InTr compatibility snapshot test: PASS
+- evaluator manifest + existing Manifest Builder regressions: PASS
+
+Manifest Builder Source Validation 34522799896: PASS
+External Framework Public Submission Validation 34522799991: PASS
+SDK Package Artifact Validation 34522800019: PASS
 ```
 
-When `selection_present=false`, `selected_tier` must be absent/null. The SDK therefore cannot recreate the pre-StegOS-#325 fabricated SECURE selection behavior. Interlock/InTr determines the automatic floor and effective posture.
-
-## Validation
-
-PR #172 exact head before this handoff reconciliation: `a31f99ea247b99bbbb8e2ca146e5e16bff690269`.
-
-```text
-Evaluator Governance Posture Manifest Validation run 34517464907: PASS
-- five evaluator/posture separation and negative tests: PASS
-- existing Manifest Builder regression tests: PASS
-
-SDK Package Artifact Validation run 34517464750: PASS
-- exact wheel build/install/smoke validation: PASS
-- non-authorizing package boundary retained: PASS
-```
-
-An earlier workflow attempt failed only because the workflow imported the package before installing its normal `requests` dependency; after adding `python -m pip install -e .`, the actual evaluator integration tests ran. A subsequent single test failure was an assertion-text mismatch (`non-authorizing` vs canonical `sdk_posture_request_must_be_non_authorizing`); the implementation correctly rejected the authorizing request and only the test expectation was corrected.
-
-## Completion predicates
-
-- source-native payload unchanged: PASS;
-- governance processor request complete and separate: PASS;
-- evaluator declaration remains preregistration metadata only: PASS;
-- SDK posture request remains non-authorizing and separate: PASS;
-- no local effective-posture resolution by evaluator manifest builder: PASS;
-- explicit and no-selection posture semantics represented without local policy resolution: PASS;
-- malformed/authorizing/contradictory posture input fails closed: PASS;
-- package artifact compatibility: PASS.
+The StegOS compatibility fixture is an exact test-only snapshot of `StegVerse-Labs/StegOS@84ddc96e38d6a5156becd91fb49da7dd14047bca`, source path `stegos/intr_security_posture_resolution.py`, Git blob `e7f1e89abad89008f5dbba736621bbd23a294aa0`. It exists only because the private StegOS repository cannot be anonymously cloned by SDK CI; runtime code still imports the live `stegos` module and does not execute the snapshot.
 
 ## README review
 
-The existing README already documents the processor-generic Manifest Builder, governance request separation, evaluator-defined manifests, and preregistration non-interference. This child adds a dedicated canonical handoff for the new posture-request input so the universal README contract is not rewritten into an evaluator-specific schema.
+The existing README already documents the Manifest Builder, `stegverse external-run`, evaluator-defined manifests, processor-specific governance request separation, evaluator preregistration non-interference, and caller-selected return projection. The new `--security-posture-request` option is exposed by `stegverse external-run --help`; this handoff carries the detailed posture-runtime contract so the processor-generic README is not rewritten around one evaluator/security integration.
 
-## Remaining boundary
+## Remaining evidence boundary
 
-Source integration and CI do not prove a live evaluator execution through the new StegOS Interlock/InTr resolver. Runtime evaluator proof should submit a manifest produced by this composition layer, observe an InTr-resolved posture instance bound to the exact task/payload/transition request, then retain governance/custody/replay/reconstruction evidence without predefining favorable experimental observations.
+Source integration is complete and validated. The remaining predicate is authentic runtime evidence from a materialized environment containing both the SDK governed runtime and live StegOS Interlock/InTr resolver: submit one evaluator manifest, retain the returned InTr posture instance, verify its exact task/payload/transition bindings, then retain governance/custody/replay/reconstruction evidence. CI/snapshot compatibility does not by itself prove that authentic runtime event.
 
 ## Manual work
 
