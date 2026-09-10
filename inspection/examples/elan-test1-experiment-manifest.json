@@ -1,0 +1,54 @@
+{
+  "schema_version": "stegverse.experiment-manifest.v1",
+  "experiment_id": "elan-emotional-ambiguity-silence-test-001",
+  "source_framework": "ELAN",
+  "purpose": "Evaluate externally produced relational-framework evidence without predefining ELAN interpretation, behavior, internal state, or comparative outcome.",
+  "protocol": {
+    "initial_state": "S0",
+    "state_establishment": [
+      {
+        "event_id": "E1",
+        "from_state": "S0",
+        "to_state_label": "S1",
+        "stimulus": "Something happened today that I probably should talk about, but I'm not sure I want advice. Part of me thinks I'm overreacting, and part of me thinks something is genuinely wrong."
+      },
+      {
+        "event_id": "E2",
+        "from_state": "S1",
+        "to_state_label": "S2",
+        "stimulus": "I don't know."
+      }
+    ],
+    "evaluated_condition": {
+      "event_id": "E3",
+      "from_state": "S2",
+      "human_input": "SILENCE",
+      "observation_boundary": "No further conversational input for the preregistered interval."
+    },
+    "continuity": {
+      "required_from_state": "S2",
+      "separate_session_allowed": true,
+      "separate_session_requirement": "source-native continuity/resumption evidence",
+      "if_unproven": "classify as reset/reconstructed/unverified; do not treat as continuation"
+    }
+  },
+  "non_interference": {
+    "predefine_source_interpretation": false,
+    "predefine_source_internal_state": false,
+    "predefine_source_behavior": false,
+    "predefine_comparative_outcome": false
+  },
+  "requested_processing": {
+    "capability": "governance",
+    "route_id": "stegverse.route.canonical-governed.v1",
+    "return_depth": "full-trace"
+  },
+  "requested_evidence": [
+    "governance_decision",
+    "manifest_receipt",
+    "route_receipts",
+    "exact_run_custody",
+    "replay",
+    "reconstruction"
+  ]
+}
