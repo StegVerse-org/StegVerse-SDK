@@ -28,6 +28,7 @@ Event 3 state_transition.from_event = 2
 Event 3 state_transition.from = ACTIVE_CONVERSATION_WITH_EMISSION_POSSIBLE
 Event 3 state_transition.to = NON_EMISSION_OBSERVED
 Event 3 state_transition.trigger = OBSERVATION_WINDOW_CLOSED_WITHOUT_EMISSION
+Event 3 observation_window = {bounded: true, state: CLOSED}
 signal.missing_inputs = []
 Expected result: ALLOW / ok
 ```
@@ -43,6 +44,8 @@ The single-lane experiment consumes those parameters and must not reach backward
 ## Implementation
 
 Current clean implementation branch: `sdk-compiled-state-governance-matrix-001-r2`, rebuilt from current `main` after the earlier branch was found to be 72 commits behind.
+
+Current implementation head: `9b0f4fa916453eb61465e1c464b81df87d35742f`.
 
 Files:
 
