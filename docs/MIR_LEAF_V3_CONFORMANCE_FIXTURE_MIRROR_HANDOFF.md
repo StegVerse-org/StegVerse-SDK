@@ -4,8 +4,9 @@ Updated: 2026-09-11
 Goal Task ID: `MIR-LEAF-V3-CONFORMANCE-FIXTURE-001`
 Parent Task ID: `MIR-STEGVERSE-SEPARATION-OF-POWERS-EVIDENCE-CONTRACT-001`
 Issue: `StegVerse-org/StegVerse-SDK#213`
+PR: `StegVerse-org/StegVerse-SDK#214`
 COSV ID: `NOT_YET_ESTABLISHED`
-Status: `ACTIVE / FIXTURE + TWO INDEPENDENT REPRODUCERS IMPLEMENTED / MIR REPRODUCTION PENDING`
+Status: `ACTIVE / FROZEN FIXTURE + STEGVERSE + NEUTRAL REPRODUCTION + COUNTERPART COMPARATOR IMPLEMENTED / MIR REPRODUCTION PENDING`
 
 ## Goal
 
@@ -29,6 +30,10 @@ The frozen v0.3 contract defines:
 Canonical fixture:
 
 `fixtures/mir_leaf_v3_conformance_fixture_v1.json`
+
+Frozen expected result:
+
+`fixtures/mir_leaf_v3_conformance_expected_result_v1.json`
 
 The fixture freezes five event inputs. Each event contains exact `salt_base64` and exact `canonical_event_core_base64` bytes. It deliberately does **not** invent or redefine MIR's semantic event serializer; the event-core bytes are already canonical for this conformance vector.
 
@@ -60,6 +65,22 @@ A standalone JavaScript implementation that imports no StegVerse Python implemen
 
 This provides the third-implementation side of the 12.8 seam without pretending to be MIR.
 
+## Counterpart reproduction and exact comparison
+
+MIR/Richard reproduction instructions are now explicit in:
+
+`docs/MIR_LEAF_V3_COUNTERPART_REPRODUCTION_GUIDE.md`
+
+The guide requires MIR to use its own implementation over the exact frozen fixture bytes and return at least the ordered leaf hashes, Merkle root, and checkpoint tip.
+
+StegVerse-side exact comparison is implemented in:
+
+`tools/compare_mir_leaf_v3_result.py`
+
+The comparator fails closed when any required field is missing or differs from the frozen expected result. It also rejects premature `PROVIDED` proof status or non-empty witnesses before 12.5/12.6 are actually shipped.
+
+No MIR result may be synthesized, copied from the expected vector, or inferred from the StegVerse/neutral result.
+
 ## Validation
 
 `tests/test_mir_leaf_v3_conformance.py` covers:
@@ -74,23 +95,30 @@ This provides the third-implementation side of the 12.8 seam without pretending 
 - premature witness claim fail-closed;
 - false `PROVIDED` proof claim fail-closed.
 
+`tests/test_compare_mir_leaf_v3_result.py` additionally covers exact counterpart match, leaf mismatch, missing checkpoint tip, premature proof claims, and witness claims.
+
 Dedicated workflow:
 
 `.github/workflows/mir-leaf-v3-conformance.yml`
 
-The workflow installs Python and Node, executes the conformance suite, and emits the neutral reproducer result.
+At head `ebd1afa030563b8e65d81f007581fc7b45e11ffe`, after fixing the initially missing SDK dependency install step:
+
+- MIR Leaf v3 Conformance Validation run `34653016906` — PASS;
+- SDK Package Artifact Validation run `34653016856` — PASS.
+
+Subsequent counterpart-comparison additions require fresh exact-head validation before merge.
 
 ## Completion boundary
 
 Section 12.8 is **not complete** merely because StegVerse and the neutral implementation match. Completion requires an authentic MIR implementation to consume these exact frozen fixture bytes and independently return the same leaf hashes, Merkle root, and checkpoint tip.
 
-No MIR result may be synthesized or inferred from the StegVerse/neutral result.
+The retained counterpart comparison must then report exact agreement.
 
 ## Next actions
 
-1. validate the current branch through the dedicated exact-head workflow;
-2. reconcile README navigation to the fixture documentation;
+1. validate the latest exact branch head after counterpart-comparison additions;
+2. reconcile README navigation to the fixture/reproduction documentation;
 3. establish canonical COSV/task registration without changing proof authority;
-4. deliver the frozen fixture to MIR/Richard for independent reproduction;
-5. retain MIR's authentic result and compare exact leaf/root/tip values;
+4. deliver the frozen fixture and counterpart reproduction guide to MIR/Richard;
+5. retain MIR's authentic result and run the exact comparator;
 6. declare 12.8 complete only after all three implementations match.
