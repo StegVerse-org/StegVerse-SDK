@@ -15,6 +15,9 @@ COSV: 71000000100110
 credential_authority: TV/TVC
 GitHub runtime authority: NONE
 coordination_state: ACTIVE
+legacy_task_state_invariant: DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING
+canonical_public_base: https://stegverse.org/
+current_ecosystem_chat_route: https://stegverse.org/ecosystem-chat.html
 ```
 
 This handoff is the canonical SDK root for processor-generic downstream propagation and the WorkSpace/external-collaboration continuation. The current Task Registry truth is `StegVerse-Labs/.github:data/canonical-task-records/SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003.json`; the portable resident-dispatch mirror is `StegVerse-Labs/.github:docs/SDK_WORKSPACE_EXTERNAL_COLLAB_PORTABLE_DISPATCH_MIRROR_HANDOFF.md`.
