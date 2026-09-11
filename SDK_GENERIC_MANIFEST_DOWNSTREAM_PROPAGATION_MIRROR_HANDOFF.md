@@ -154,6 +154,15 @@ StegVerse-Labs/TVC #396: dedicated zero-credential resident InTr carrier for ext
 
 Do not open competing implementations for those owned lanes. Reuse their evidence and only reconcile it here after merge/validation/runtime proof.
 
+## Canonical public surfaces
+
+```text
+canonical public base: https://stegverse.org/
+current Ecosystem Chat route: https://stegverse.org/ecosystem-chat.html
+dedicated processor-generic public route: NOT YET OBSERVED
+raw GitHub Pages URL is canonical public surface: FALSE
+```
+
 ## Public runtime distribution boundary
 
 ```text
