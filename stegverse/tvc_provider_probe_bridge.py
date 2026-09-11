@@ -66,7 +66,11 @@ def _digest_text(value: str) -> str:
 def _require_sha256(value: Any, label: str) -> str:
     if not isinstance(value, str) or not value.startswith("sha256:") or len(value) != 71:
         raise ValueError(f"{label} invalid")
-    return value
+    try:
+        int(value[7:], 16)
+    except ValueError as exc:
+        raise ValueError(f"{label} invalid") from exc
+    return value.lower()
 
 
 def _validate_common_result(result: Mapping[str, Any]) -> None:
@@ -182,6 +186,21 @@ def _validate_external_collaboration_result(result: Mapping[str, Any]) -> dict[s
         raise ValueError("TVC external collaboration provider observation may not assign readiness")
     _require_sha256(result.get("provider_observation_sha256"), "TVC external collaboration provider observation hash")
 
+    observed_resource = observation.get("observation")
+    if not isinstance(observed_resource, Mapping):
+        raise ValueError("TVC external collaboration nested resource observation required")
+    if observed_resource.get("provider_file_id") != provider_file_id:
+        raise ValueError("TVC external collaboration nested resource identity mismatch")
+    provider_version_id = observed_resource.get("version")
+    if not isinstance(provider_version_id, str) or not provider_version_id.strip():
+        raise ValueError("TVC external collaboration provider version required")
+    provider_content_sha256 = observed_resource.get("content_sha256")
+    if provider_content_sha256 is not None:
+        provider_content_sha256 = _require_sha256(
+            provider_content_sha256,
+            "TVC external collaboration provider content SHA-256",
+        )
+
     broker_receipt = result.get("broker_use_receipt")
     if not isinstance(broker_receipt, Mapping) or broker_receipt.get("decision") != "ALLOW_OPERATION_RESULT":
         raise ValueError("TVC external collaboration broker use receipt invalid")
@@ -192,16 +211,20 @@ def _validate_external_collaboration_result(result: Mapping[str, Any]) -> dict[s
     if broker_receipt.get("secret_material_returned") is not False:
         raise ValueError("TVC external collaboration broker secret return prohibited")
 
-    return {
+    normalized = {
         "request_id": request_id,
         "request_sha256": request_hash,
         "binding_id": binding_id,
         "provider_file_id": provider_file_id,
+        "provider_version_id": provider_version_id.strip(),
         "probe_reason_sha256": probe_reason_sha256,
         "lease_receipt_sha256": lease_receipt_sha256,
         "source": "StegVerse-Labs/TVC:external-collaboration-google-drive-probe",
         "source_schema": TVC_EXTERNAL_COLLAB_GOOGLE_DRIVE_RESULT_SCHEMA,
     }
+    if provider_content_sha256 is not None:
+        normalized["provider_content_sha256"] = provider_content_sha256
+    return normalized
 
 
 def validate_google_drive_tvc_result(value: Mapping[str, Any]) -> dict[str, Any]:
@@ -262,8 +285,11 @@ def google_drive_probe_result_from_tvc(
     }
     if "provider_file_id" in validated:
         probe["provider_file_id"] = validated["provider_file_id"]
+        probe["provider_version_id"] = validated["provider_version_id"]
         probe["provider_probe_reason_sha256"] = validated["probe_reason_sha256"]
         probe["durable_replay_required"] = True
+        if "provider_content_sha256" in validated:
+            probe["provider_content_sha256"] = validated["provider_content_sha256"]
     if normalized_reason.endswith(":applicability_unknown"):
         if applicability not in {"APPLICABLE", "NOT_APPLICABLE"}:
             raise ValueError("applicability probe requires resolved applicability")

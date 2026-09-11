@@ -61,6 +61,49 @@ def create_provider_observation(
     return payload
 
 
+def provider_observation_from_active_probe(probe: Mapping[str, Any]) -> dict[str, Any]:
+    """Convert secret-free TVC-backed active-probe evidence into freeze evidence.
+
+    Provider reachability/version evidence alone is insufficient. Exact freeze
+    binding requires a SHA-256 digest of the reviewed content. If the TVC-backed
+    provider result does not carry that digest, this adapter fails closed rather
+    than deriving a digest from mutable metadata or provider version labels.
+    """
+    if not isinstance(probe, Mapping):
+        raise SharedDocsProviderFreezeError("active provider probe must be an object")
+    if probe.get("provider") != "google_drive":
+        raise SharedDocsProviderFreezeError("unsupported provider probe")
+    if probe.get("credential_authority") != "TV/TVC":
+        raise SharedDocsProviderFreezeError("provider authority must remain TV/TVC")
+    if probe.get("provider_operation_authority_transferred") is not False:
+        raise SharedDocsProviderFreezeError("provider operation authority transfer prohibited")
+    provider_file_id = probe.get("provider_file_id")
+    provider_version_id = probe.get("provider_version_id")
+    if not isinstance(provider_file_id, str) or not provider_file_id.strip():
+        raise SharedDocsProviderFreezeError("provider document identity unavailable")
+    if not isinstance(provider_version_id, str) or not provider_version_id.strip():
+        raise SharedDocsProviderFreezeError("provider version unavailable")
+    content_sha256 = probe.get("provider_content_sha256")
+    if content_sha256 is None:
+        raise SharedDocsProviderFreezeError(
+            "provider content SHA-256 unavailable for exact freeze binding"
+        )
+    evidence_ref = probe.get("evidence_ref")
+    observed_at = probe.get("observed_at")
+    if not isinstance(evidence_ref, str) or not evidence_ref.strip():
+        raise SharedDocsProviderFreezeError("provider evidence reference required")
+    if not isinstance(observed_at, str) or not observed_at.strip():
+        raise SharedDocsProviderFreezeError("provider observed_at required")
+    return create_provider_observation(
+        provider="GOOGLE_DRIVE",
+        provider_document_id=provider_file_id,
+        provider_version_id=provider_version_id,
+        content_digest=_require_sha256(content_sha256, "provider content SHA-256"),
+        observed_at=observed_at,
+        observation_ref=evidence_ref,
+    )
+
+
 def validate_provider_observation(value: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         raise SharedDocsProviderFreezeError("provider observation must be an object")
@@ -191,6 +234,7 @@ __all__ = [
     "FREEZE_PROJECTION_SCHEMA",
     "SharedDocsProviderFreezeError",
     "create_provider_observation",
+    "provider_observation_from_active_probe",
     "validate_provider_observation",
     "bind_provider_revision",
     "project_freeze_metadata",

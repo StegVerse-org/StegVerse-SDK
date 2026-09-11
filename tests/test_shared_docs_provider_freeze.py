@@ -8,6 +8,7 @@ from stegverse.shared_docs_provider_freeze import (
     bind_provider_revision,
     create_provider_observation,
     project_freeze_metadata,
+    provider_observation_from_active_probe,
     successor_from_admitted_provider_edit,
     validate_provider_observation,
 )
@@ -47,6 +48,21 @@ def observation_for(revision, *, version="provider-v1", content_digest=None):
     )
 
 
+def active_probe_for(revision, *, include_content=True):
+    probe = {
+        "provider": "google_drive",
+        "provider_file_id": "drive-file-001",
+        "provider_version_id": "42",
+        "observed_at": "2026-09-11T15:03:00Z",
+        "evidence_ref": "tvc:google-drive:request:receipt",
+        "credential_authority": "TV/TVC",
+        "provider_operation_authority_transferred": False,
+    }
+    if include_content:
+        probe["provider_content_sha256"] = revision["content_digest"]
+    return probe
+
+
 class SharedDocsProviderFreezeTests(unittest.TestCase):
     def test_provider_observation_is_deterministic_and_evidence_only(self):
         revision = base_revision()
@@ -66,6 +82,24 @@ class SharedDocsProviderFreezeTests(unittest.TestCase):
         self.assertEqual(binding["provider_version_id"], "provider-v1")
         self.assertEqual(binding["provider_authority"], "TV/TVC")
         self.assertEqual(binding["transition_authority"], "Interlock/InTr")
+
+    def test_tvc_backed_active_probe_materializes_exact_provider_observation(self):
+        revision = base_revision()
+        observation = provider_observation_from_active_probe(active_probe_for(revision))
+        self.assertEqual(observation["provider"], "GOOGLE_DRIVE")
+        self.assertEqual(observation["provider_document_id"], "drive-file-001")
+        self.assertEqual(observation["provider_version_id"], "42")
+        self.assertEqual(observation["content_digest"], revision["content_digest"])
+        binding = bind_provider_revision(revision, observation)
+        self.assertEqual(binding["revision_id"], revision["revision_id"])
+
+    def test_tvc_backed_metadata_without_content_sha_cannot_be_promoted_to_freeze_binding(self):
+        revision = base_revision()
+        with self.assertRaisesRegex(
+            SharedDocsProviderFreezeError,
+            "content SHA-256 unavailable",
+        ):
+            provider_observation_from_active_probe(active_probe_for(revision, include_content=False))
 
     def test_provider_digest_mismatch_fails_closed(self):
         revision = base_revision()
