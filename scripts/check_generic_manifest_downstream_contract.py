@@ -12,7 +12,9 @@ OBSERVATION = ROOT / "data" / "sdk-generic-manifest-downstream-observation.json"
 
 TASK_ID = "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003"
 COSV = "71000000100110"
-STATE = "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING"
+DEPENDENCY_STATE = "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING"
+TASK_STATE = "REMAINING_WORK_DURABLY_TRANSFERRED_TO_SDK_WORKSPACE_EXTCOLLAB_AUTHENTIC_RUNTIME_004"
+SUCCESSOR_TASK_ID = "SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004"
 PUBLIC_BASE = "https://stegverse.org/"
 SITE_CONTAMINATION_BLOCKER = "SITE-CONECTRR-GOVERNANCE-CONTAMINATION-001"
 SITE_CONTAMINATION_ISSUE = "StegVerse-Labs/Site:issue/1143"
@@ -29,7 +31,7 @@ REQUIRED_HANDOFF = [
     "route selection != authority",
     "caller projection != canonical custody",
     "unsupported or uninstalled processor/route execution fails closed",
-    STATE,
+    DEPENDENCY_STATE,
 ]
 
 FORBIDDEN_PUBLIC_HOSTS = (
@@ -75,8 +77,17 @@ def main() -> None:
         if host in handoff:
             fail(f"handoff exposes provider URL as canonical public surface: {host}")
 
-    if task.get("task_id") != TASK_ID or task.get("state") != STATE:
+    if task.get("task_id") != TASK_ID or task.get("state") != TASK_STATE:
         fail("task identity/state mismatch")
+    if task.get("lifecycle") != "RETIRED" or task.get("goal_prompt_count_final") != 20:
+        fail("parent retirement/prompt-ceiling mismatch")
+    successor = task.get("successor_task")
+    if not isinstance(successor, dict) or successor.get("task_id") != SUCCESSOR_TASK_ID:
+        fail("active successor identity missing")
+    if successor.get("coordination_state") != "ACTIVE":
+        fail("successor must be ACTIVE after parent prompt ceiling")
+    if task.get("retirement_disposition") != "PROMPT_CEILING_REACHED_REMAINING_WORK_TRANSFERRED_TO_SUCCESSOR":
+        fail("parent retirement disposition mismatch")
     if task.get("manual_work_required") is not False:
         fail("manual_work_required must remain false")
 
@@ -94,7 +105,7 @@ def main() -> None:
 
     if deps.get("schema_version") != "1.4.0":
         fail("unexpected dependency manifest schema_version")
-    if deps.get("task_id") != TASK_ID or deps.get("cosv") != COSV or deps.get("state") != STATE:
+    if deps.get("task_id") != TASK_ID or deps.get("cosv") != COSV or deps.get("state") != DEPENDENCY_STATE:
         fail("dependency manifest identity/state mismatch")
     if deps.get("canonical_public_base") != PUBLIC_BASE or deps.get("authority_effect") != "NONE":
         fail("dependency manifest public-base/authority mismatch")
