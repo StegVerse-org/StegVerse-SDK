@@ -4,9 +4,10 @@ Updated: 2026-09-11
 Organization: `StegVerse-org`
 Repository: `StegVerse-SDK`
 Goal Task ID: `SHARED-DOCS-MULTIPARTY-FREEZE-001`
+COSV: `71000000100110`
 Parent / adjacent task: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent WorkSpace handoff: `docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md`
-Status: `ACTIVE / SOURCE IMPLEMENTATION IN PROGRESS`
+Status: `ACTIVE / SOURCE IMPLEMENTED / EXACT-HEAD VALIDATION IN PROGRESS`
 
 ## Goal
 
@@ -131,16 +132,55 @@ provider storage != collective freeze proof
 
 Provider/TVC authority remains responsible for provider mutations. Interlock/InTr remains responsible for governed transitions where applicable. Master Records may retain/reconstruct freeze provenance but does not become the document editor or reviewer.
 
-## Initial implementation scope
+## Implemented source
 
-1. Add deterministic provider-neutral revision/freeze state model.
-2. Add canonical content digest binding.
-3. Add per-reviewer freeze receipt validation.
-4. Add `ALL_ELIGIBLE` collective-freeze evaluator.
-5. Add edit-to-successor-revision operation that resets current-review freezes while preserving prior frozen provenance.
-6. Add reviewer-set / policy change review-epoch reset.
-7. Add deterministic tests for partial freeze, bilateral/all-reviewer freeze, stale-revision freeze rejection, edit-after-freeze, reviewer-set change, and historical frozen-revision preservation.
-8. Update `README.md` because this changes Shared Docs externally meaningful collaboration semantics.
+SDK PR `#202` installs:
+
+```text
+stegverse/shared_docs_freeze.py
+tests/test_shared_docs_freeze.py
+.github/workflows/shared-docs-multiparty-freeze-validation.yml
+README.md
+docs/SHARED_DOCS_MULTIPARTY_FREEZE_MIRROR_HANDOFF.md
+```
+
+Implemented behavior includes exact SHA-256 content binding, deterministic per-reviewer freeze receipts, `ALL_ELIGIBLE` evaluation, stale revision/digest rejection, edit-to-successor revision semantics, reviewer-set review-epoch reset, and preservation of prior frozen provenance.
+
+The README now documents the externally meaningful Shared Docs collaboration semantics and includes the focused unit-test command.
+
+## Canonical coordination registration
+
+Canonical task registration merged through `StegVerse-Labs/.github` PR `#1430` at merge commit:
+
+```text
+8c46421bab695d99f2cc6c419fdda11512fa99e8
+```
+
+The task is `ACTIVE` in the canonical Task Registry shard.
+
+COSV task projection `71000000100110` merged through `.github` PR `#1431` at merge commit:
+
+```text
+b8a8899a9ba6171b4279578afb3f38d85dbf5c4b
+```
+
+Task/COSV registration is coordination only and grants no execution authority.
+
+## Validation history
+
+The first dedicated Shared Docs validation run `34568617386` failed before executing any freeze-state assertion because a bare Python runner imported the SDK package without installing its declared runtime dependency `requests`.
+
+```text
+failure_class: VALIDATION_ENVIRONMENT_DEPENDENCY_MISSING
+implementation assertion failure: NO
+reported error: ModuleNotFoundError: No module named 'requests'
+```
+
+`pyproject.toml` already declares `requests>=2.28.0`. The workflow was repaired to install the SDK (`python -m pip install -e .`) before executing `python -m unittest tests.test_shared_docs_freeze`.
+
+That repair is committed on SDK PR `#202`; exact-head revalidation is now the required next predicate. No source-validation PASS is claimed until the dedicated exact-head workflow passes.
+
+Existing SDK validation surfaces on the preceding implementation head passed, including WorkSpace Active Probe, Manifest Builder, External Collaboration runtime-proof-contract validation, Evaluator Manifest, Evaluator Contract Console, and SDK Package Artifact validation. These passes do not substitute for the dedicated freeze-state test on the final head.
 
 ## MIR v0.3 motivating case
 
@@ -151,12 +191,24 @@ The bilaterally frozen MIR × StegVerse Separation-of-Powers Evidence Contract v
 - mutual acceptance established bilateral freeze;
 - a later status-display change should not silently mutate the previously reviewed normative text.
 
-This is a motivating example only; the module must remain generic and provider-neutral.
+This is a motivating example only; the module remains generic and provider-neutral.
 
 ## Completion boundary
 
-Source completion requires deterministic tests demonstrating all invariants above. Runtime/provider synchronization is a separate proof class and must not be inferred from source/CI validation.
+Source completion requires an exact-head PASS of the deterministic Shared Docs freeze tests and the applicable repository validation surfaces, followed by merge of SDK PR `#202`. Runtime/provider synchronization is a separate proof class and must not be inferred from source/CI validation.
 
-## Current state
+## Current state / next action
 
-Handoff created first as required. Source implementation, tests, README update, canonical task registration, PR validation, and merge remain pending.
+```text
+canonical task registration: MERGED
+COSV projection: MERGED
+source implementation: PRESENT ON PR #202
+README integration: PRESENT ON PR #202
+dedicated validation first run: FAILED — runner dependency setup only
+dependency remediation: COMMITTED
+exact-head post-remediation validation: IN PROGRESS / PENDING OBSERVATION
+SDK PR #202 merge: NOT YET CLAIMED
+provider/runtime synchronization: NOT CLAIMED
+```
+
+Next: observe the exact-head dedicated Shared Docs Multiparty Freeze Validation and the applicable SDK workflows. Merge PR #202 only after the final head is green, then reconcile this handoff with the merge evidence without promoting source validation into provider/runtime proof.
