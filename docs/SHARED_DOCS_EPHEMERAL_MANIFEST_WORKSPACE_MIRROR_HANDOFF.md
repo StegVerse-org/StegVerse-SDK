@@ -6,7 +6,7 @@ Repository: `StegVerse-SDK`
 Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
 COSV: `71000000100110`
-Status: `ACTIVE / GATEWAY SOURCE MERGED / AUTHENTIC RESIDENT CONSUMPTION + PUBLIC DISTRIBUTION NEXT`
+Status: `ACTIVE / GATEWAY + CMC-029 SOURCE RECONCILED / AUTHENTIC RESIDENT + TV/TVC RELEASE AUTHORITY NEXT`
 
 ## Canonical architecture
 
@@ -28,7 +28,7 @@ Canonical authority rules remain unchanged:
 Task Registry = coordination only
 WorkerCoordinator = claim/fence authority
 Interlock/InTr = governed transition authority
-TV/TVC = credential/provider authority
+TV/TVC = credential/provider/release authority
 Master Records = observed reality / reconstruction authority
 Service Gateway #72 = bounded sovereign HTTP ingress owner
 GitHub Actions = validation/evidence transport only
@@ -44,10 +44,11 @@ The previously recorded source/validation chain through SDK #195, TVC #397, `.gi
 - `.github` #1393 merged `312a31976bf5e794aa3912c2aa2c9ce0016c1102`, carrying exact portable dispatch for `sdk_workspace_external_collab_client_secret_reseal` and `sdk_workspace_external_collab_consent_listener` without creating runtime authority.
 - SDK #196 merged `e55c0e415759a3f2baf2d553f403a3729719f891`; exact-head SDK validations `34560810500`, `34560810440`, and `34560810392` passed.
 - `.github` #1402 merged `c2d03c776895ab99fa99ed49ca7c9ca9256d45cf`, preserving the fail-closed observation that neither exact resident consumption receipt had been observed and the authorized remote runtime was offline.
-- `StegVerse-org/LLM-adapter` #332 merged `9ab7e019eaf694f20c978ce65ad7a2d5c886010a` from exact head `5d199cfc11be410f03c884cd70278d81d956c9f5`. Exact-head runs `34563524745`, `34563524752`, and `34563524742` passed.
-- SDK #199 merged `19db2775b6dbcd361f8329b6b0710699f4467462`, reconciling the merged Gateway source into the canonical SDK/task state; exact-head runs `34566917409`, `34566917412`, and `34566917413` passed.
+- `StegVerse-org/LLM-adapter` #332 merged `9ab7e019eaf694f20c978ce65ad7a2d5c886010a` from exact head `5d199cfc11be410f03c884cd70278d81d956c9f5`; exact-head runs `34563524745`, `34563524752`, and `34563524742` passed.
+- SDK #199 merged `19db2775b6dbcd361f8329b6b0710699f4467462`, reconciling the merged Gateway source into canonical SDK/task state; exact-head runs `34566917409`, `34566917412`, and `34566917413` passed.
+- TVC #403 merged `24bb1eacc137b7d0f2a621622857de7089cf6f9a` from exact head `c02ce7e71bbbcf6fae317344c25b84c0626825e9`; TVC Credential Model Consistency Validation `34567336581` passed. It removes the stale CMC-029 requirement to wait for SHWP-DURABLE-RUNTIME-ACTIVATION/G18 terminalization. Current canonical `.github` state makes G18 housekeeping only, not a downstream gate, and the existing TVC machine-owner worker contains no G18-completion predicate.
 
-LLM-adapter #332 implements the already-authorized three-route Service Gateway source contract:
+LLM-adapter #332 implements the authorized three-route Service Gateway source contract:
 
 ```text
 GET /tvc/external-collaboration/google-drive/consent/begin
@@ -56,36 +57,47 @@ GET /tvc/external-collaboration/google-drive/consent/health
 same-host upstream: http://127.0.0.1:8786
 ```
 
-The Gateway source is bounded to GET-only transport, exact callback query-key admission, direct loopback transport with environment proxies disabled, no redirect following, bounded response-header forwarding, and fail-closed listener-unreachable behavior. This proves source implementation/validation only; it does not prove listener health, native TLS adoption, public HTTPS reachability, client-secret custody, Google consent, provider contact, or WorkSpace readiness.
+The Gateway source is bounded to GET-only transport, exact callback query-key admission, direct loopback transport with environment proxies disabled, no redirect following, bounded response-header forwarding, and fail-closed listener-unreachable behavior. CMC-029 separately supplies exact one-hostname public WebPKI HTTP-01 source under TV/TVC resident authority. Neither source merge proves authentic runtime reachability.
 
 ## Fresh authentic-runtime observation
 
-A new reconciliation on 2026-09-11 rechecked all currently available authentic evidence channels:
+A reconciliation on 2026-09-11 rechecked all currently available authentic evidence channels:
 
 - repository-tracked sovereign-host receipt paths: neither exact receipt present;
 - connected retained Google Drive evidence: no exact reseal receipt and no exact listener receipt found;
 - authorized remote resident-machine connector: no online device available.
 
-Therefore source delivery remains distinct from resident execution. No client-secret custody, resident-seal liveness, listener health, public callback reachability, Google consent, provider execution, or one-device completion claim is made.
+The remote resident was checked again after Gateway merge and remained unavailable. This does not reinstate G18 as a prerequisite, require another physical machine, or authorize a hosted substitute.
 
-## Public distribution continuation
+## Public distribution continuation and authority correction
 
-The canonical task record still identified `stegverse-stegcore==0.3.0_NOT_PUBLISHED` as the first proven public-distribution blocker. Fresh verification established:
+The canonical owner task still requires both public distributions only **after the canonical TV/TVC release gate**. StegCore source readiness remains:
 
 ```text
-StegVerse-Labs/StegCore main source version: 0.3.0
-exact release-ready source commit: 282f30e9e46efc3a8d0d867f48e08c3aa6534e22
+StegVerse-Labs/StegCore source version: 0.3.0
+release-ready source commit: 282f30e9e46efc3a8d0d867f48e08c3aa6534e22
 public distribution name: stegverse-stegcore
 required tag: v0.3.0
-trusted-publishing workflow: .github/workflows/publish-pypi.yml
-v0.3.0 tag observed: NO
-GitHub Release v0.3.0 observed: NO
+v0.3.0 tag/release observed: NO
 public stegverse-stegcore==0.3.0 observed: NO
 ```
 
-Separate propagation-verification task `STEGCORE-PYPI-PROPAGATION-VERIFICATION-001` was created as `StegVerse-Labs/StegCore#203`. Its canonical handoff is `StegVerse-Labs/StegCore:docs/STEGCORE_PYPI_PROPAGATION_VERIFICATION_MIRROR_HANDOFF.md`, committed at `74237301e01a104f0470403d141abdcccdb82bc3`.
+Separate verification task `STEGCORE-PYPI-PROPAGATION-VERIFICATION-001` exists as `StegVerse-Labs/StegCore#203`, with canonical handoff `docs/STEGCORE_PYPI_PROPAGATION_VERIFICATION_MIRROR_HANDOFF.md`. It is **verification-only** and grants no publication authority.
 
-The available GitHub connector in this session exposes no GitHub Release creation mutation, so publication itself is not claimed. Once release `v0.3.0` is published against the exact release candidate commit, issue #203 owns verification of trusted publishing, public PyPI propagation, anonymous installation, downstream SDK install, and propagation checks for `StegVerse-Labs/Site`, `GCAT-BCAT-Engine/Publisher`, `StegVerse-Labs/admissibility-wiki`, and `StegVerse-Labs/stegguardian-wiki`.
+Fresh TV/TVC authority reconciliation establishes:
+
+```text
+TVC task: TVC-POST-RETURN-SKAP-RELEASE-CREDENTIAL-126
+state: BLOCKED_DEPENDENCY
+TV request: tv-request-post-return-sovereign-proof-r1-ephemeral-release-credential
+TV request status: REQUESTED_NOT_GRANTED
+GitHub token substitution: PROHIBITED
+manual release publication as substitute authority: PROHIBITED
+```
+
+Issue #203 was explicitly corrected with comment `5630094824`: do not trigger or instruct release publication until authentic TV/TVC GRANTED authorization plus the required resident SKAP/double-Interlock release authority exist. After the canonical release operation lawfully publishes the exact tag/release, #203 owns propagation verification only.
+
+Therefore the earlier handoff instruction telling the owner to manually publish GitHub Release `v0.3.0` is superseded and removed.
 
 ## Current proof boundary
 
@@ -97,10 +109,13 @@ Resident reseal dispatcher source: MERGED / VALIDATED
 Resident consent-listener dispatcher source: MERGED / VALIDATED
 Portable exact dispatch: MERGED / VALIDATED
 Service Gateway three-route source: MERGED / VALIDATED
+CMC-029 one-hostname WebPKI source + machine-owner binding: MERGED / VALIDATED
+G18 terminalization required for CMC-029/downstream admission: FALSE
 Authentic resident reseal receipt: NOT OBSERVED
 Authentic resident listener receipt: NOT OBSERVED
 Target external-collaboration client-secret custody/readback: NOT PROVEN
 Resident listener health on 127.0.0.1:8786: NOT PROVEN
+CMC-029 live issuance/TLS adoption: NOT PROVEN
 Sovereign stegverse.org callback/public HTTPS reachability: NOT PROVEN
 Owner-present Google consent/session: NOT PROVEN
 Authoritative provider-file probe: NOT PROVEN
@@ -109,7 +124,8 @@ MIR transition reporting: NOT PROVEN
 Master Records reconstruction: NOT PROVEN
 One-current-device end-to-end proof: NOT PROVEN
 Downstream propagation complete: FALSE
-StegCore public distribution release-ready: TRUE
+StegCore source release-ready: TRUE
+TV/TVC release authorization granted: FALSE
 StegCore v0.3.0 release published: FALSE
 Public distributions complete: FALSE
 ```
@@ -126,24 +142,22 @@ receipts/sovereign-host/sdk-workspace-external-collab-consent-listener.latest.js
 1. Observe the existing authorized sovereign resident consume the two already-merged exact selectors; do not create a hosted substitute or duplicate resident runtime.
 2. For reseal, accept only authentic `TARGET_ALREADY_PRESENT`, `COMPLETED`, or exact `BLOCKED`; validate target custody/readback without overwrite.
 3. For listener, accept only authentic `SERVICE_ALREADY_HEALTHY`, `COMPLETED` with `loopback_health_verified=true`, or exact `BLOCKED`; remediate only the reported resident prerequisite.
-4. After listener health, bind/observe the already-merged Service Gateway #332 source through the existing CMC-029/native-TLS `stegverse.org` runtime and independently prove the three public routes with no callback-query leakage.
-5. Only after target client-secret custody and sovereign callback reachability are both proven, perform owner-present Google consent on the current iPhone.
-6. Execute one exact authoritative provider-file metadata probe and retain secret-free durable replay/use evidence.
-7. Feed the provider result through SDK normalization/active-probe predicate re-evaluation, then complete lifecycle/MIR, Master Records reconstruction, and one-device evidence.
-8. Publish StegCore GitHub Release `v0.3.0` against exact commit `282f30e9e46efc3a8d0d867f48e08c3aa6534e22`; issue #203 then verifies PyPI/public propagation and downstream consumers.
-9. Reconcile all completed evidence into this goal and close downstream propagation only when both authentic runtime and public-distribution predicates are proven.
+4. On that same existing resident, if Gateway TLS adoption is absent, allow the already-bound TVC machine owner to execute exact CMC-029. Do not wait for G18 terminalization. Stop after authentic TLS adoption so the existing Gateway owner can reconcile/restart.
+5. Independently prove the merged Service Gateway #332 public routes through `stegverse.org` with no callback-query leakage.
+6. Only after target client-secret custody and sovereign callback reachability are both proven, perform owner-present Google consent on the current iPhone.
+7. Execute one exact authoritative provider-file metadata probe and retain secret-free durable replay/use evidence; feed it through SDK normalization/active-probe re-evaluation, lifecycle/MIR, Master Records reconstruction, and one-device proof.
+8. Separately, wait for authentic TV/TVC GRANTED release authority and resident SKAP/double-Interlock release evidence; the canonical TVC release operation—not a manual substitute—may then publish the exact successor release set.
+9. After lawful StegCore publication, issue #203 verifies PyPI/public propagation, anonymous installation, and applicable downstream consumers.
+10. Close this goal only after authentic runtime, downstream propagation, and public-distribution predicates are all proven.
 
 ## Collision boundary
 
-Do not create a competing resident runtime, Service Gateway, tunnel, callback implementation, credential path, hosted executor, Heartbeat execution authority, or alternate package publication mechanism. `StegVerse-org/LLM-adapter#72` remains the Gateway owner; TV/TVC remains credential/provider authority; StegCore's existing trusted-publishing workflow remains the public package publication path.
+Do not create a competing resident runtime, Service Gateway, tunnel, callback implementation, credential path, hosted executor, Heartbeat execution authority, alternate package publication mechanism, or manual release-authority bypass. `StegVerse-org/LLM-adapter#72` remains the Gateway owner; TV/TVC remains credential/provider/release authority.
 
 ## README review
 
-`README.md` remains accurate. The newly merged Gateway and release-readiness work changes source/distribution readiness but does not establish a new public runtime capability, so no README wording change is required at this stage.
+`README.md` remains accurate. These changes reconcile authority/dependency state but do not establish a new public runtime capability, so no README wording change is required.
 
 ## Human action
 
-Two future owner actions are conditionally required, neither should be performed early:
-
-1. For the public-distribution lane, publish GitHub Release `v0.3.0` in `StegVerse-Labs/StegCore` targeting exact commit `282f30e9e46efc3a8d0d867f48e08c3aa6534e22`; use the existing Releases UI and make no source/code change.
-2. Do not initiate Google consent until authentic target client-secret custody and sovereign callback reachability are both proven.
+None now. Do not initiate Google consent and do not manually publish StegCore `v0.3.0`. Google consent waits for authentic target client-secret custody plus sovereign callback reachability; package publication waits for authentic TV/TVC GRANTED release authority and the required resident SKAP/double-Interlock evidence.
