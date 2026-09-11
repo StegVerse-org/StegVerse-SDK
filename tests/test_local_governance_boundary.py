@@ -44,4 +44,13 @@ def test_local_boundary_requires_no_governance_runtime_packages():
     assert artifact["external_package_materialization_required"] is False
     assert artifact["third_party_evaluator_execution"] is False
     assert artifact["authority_effect"] == "NONE"
-    assert artifact["intr_security_posture_binding"]["binding_verified"] is True
+
+    binding = artifact["intr_security_posture_binding"]
+    assert binding["schema"] == "stegverse.sdk.intr-posture-runtime-binding.v1"
+    assert binding["resolution_authority"] == "INTERLOCK_INTR"
+    assert binding["sdk_resolved_posture"] is False
+    assert binding["authority_effect"] == "NONE_VERIFICATION_AND_BINDING_ONLY"
+    instance = binding["projection"]["posture_instance"]
+    assert instance["task_id"] == binding["task_id"]
+    assert instance["payload_sha256"] == binding["payload_sha256"]
+    assert instance["transition_request_sha256"] == binding["transition_request_sha256"]
