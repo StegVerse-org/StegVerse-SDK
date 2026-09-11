@@ -4,7 +4,7 @@
   "repository": "StegVerse-org/StegVerse-SDK",
   "source_branch": "main",
   "target_branch": "main",
-  "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_AUTHENTIC_WORKSPACE_RUNTIME_PENDING",
+  "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
   "lifecycle": "ACTIVE",
   "owner": "StegVerse-org/StegVerse-SDK",
   "credential_authority": "TV/TVC",
