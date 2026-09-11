@@ -5,7 +5,7 @@ Organization: `StegVerse-org`
 Repository: `StegVerse-SDK`
 Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
-Status: `ACTIVE / ORGANIZATION-LOCAL ENDPOINT BINDING MERGED / ACTIVE PROBE VALIDATION PENDING`
+Status: `ACTIVE / ACTIVE PROBE MERGED / TVC PROVIDER EVIDENCE BRIDGE VALIDATION PENDING`
 
 ## Canonical architecture
 
@@ -13,144 +13,103 @@ Status: `ACTIVE / ORGANIZATION-LOCAL ENDPOINT BINDING MERGED / ACTIVE PROBE VALI
 source-native external resource observation
   -> stegverse.ingress-manifest.v1
        -> stegverse.state-transition-evidence.v1
-  -> stegverse.external-interlock-ingress-binding.v1
-  -> external interaction transport/control manifest
-  -> organization federation packet/frame
-  -> federation gateway / InTr ingress
+  -> external Interlock/InTr binding
+  -> organization federation boundary
   -> registry-selected INTERNAL_ENDPOINT
-  -> registry-declared organization-local endpoint_adapter
   -> provider-neutral WorkSpace resource consumer
-  -> runtime-supplied active probe executor when current represented state is PROBE_REQUIRED
+  -> runtime-supplied active probe executor when PROBE_REQUIRED
+  -> secret-free TVC-owned provider evidence bridge
 ```
 
-The universal ingress manifest remains the manifested-data artifact. External interaction manifests remain transport/control artifacts. State-transition evidence and probe evidence remain non-authorizing. Provider observations do not become governance authority, InTr receipt authority, MIR custody, or Master Records custody.
+Provider observations and probe evidence remain non-authorizing. Provider credential/OAuth authority remains outside the SDK.
 
 ## Completed implementation chain
 
 ```text
 SDK PR #174: state-transition evidence MERGED at ee8f7023d74d70fa762e3982776c27c1e372a1f7
 SDK PR #176: canonical ingress -> external Interlock binding MERGED at 7047e67d21173e800f78d4468519dba87992b16d
-StegVerse-org/.github PR #9: provider-neutral INTERNAL_ENDPOINT dispatch MERGED at d8baefb8674ebed00bbbf9784c54e092a5b1a04d
-SDK PR #178: collision-prevention coordination rule MERGED at 8a2dfe07294daacaa5d44d4777e94def182d8d78
+StegVerse-org/.github PR #9: generic INTERNAL_ENDPOINT dispatch MERGED at d8baefb8674ebed00bbbf9784c54e092a5b1a04d
+SDK PR #178: collision-prevention coordination MERGED at 8a2dfe07294daacaa5d44d4777e94def182d8d78
 SDK PR #179: provider-neutral WorkSpace resource consumer MERGED at 07ceb1f131dd8fd27b3b8c89ab747e58aa55e55c
-StegVerse-org/.github PR #10: organization-local WorkSpace endpoint binding MERGED at b851996afc5c5323d0d0db970dd46e511bd36338
+StegVerse-org/.github PR #10: WorkSpace endpoint binding MERGED at b851996afc5c5323d0d0db970dd46e511bd36338
+SDK PR #181: provider-neutral active probe execution MERGED at 5c8a3c0246a0ae48e498c10f85d9eee0a2d1ba2c
 ```
 
-PR #10 exact validated head `7fb6783ec7bbfbdc249dfdba45b7c454ae0beed4` passed:
+PR #181 code-head validation:
 
 ```text
-WorkSpace Internal Endpoint Binding Validation 34545811959: PASS
-Internal Endpoint Dispatch Validation 34545811830: PASS
+WorkSpace Active Probe Validation 34545991378: PASS
+Manifest Builder Source Validation 34545991321: PASS
+SDK Package Artifact Validation 34545991339: PASS
 ```
 
-The organization registry now exposes `stegverse-org.workspace-resource-consumer` as an `INTERNAL_ENDPOINT` using `resident-runtime/workspace_resource_consumer_adapter.py`. The adapter is organization-local and delegates projection semantics to the installed canonical SDK consumer rather than copying that logic into the boundary repository.
+## Existing Google Drive authority — reuse, do not duplicate
 
-## Provider-neutral WorkSpace consumer contract
+Ecosystem search found an existing TVC Google Drive owner-consent/credential path. `StegVerse-Labs/TVC:tvc_personal_kv_google_drive_runtime.py` performs bounded `personal_kv_materialize` through a TVC capability lease and non-exportable vault broker. Its current lease remains deliberately Personal-KV-specific (`kvpb_*`, consumer `StegVerse-Labs/.github`, approved scope including `_System/Workspace/**`). This WorkSpace lane does not broaden that lease.
 
-Source:
+The related Service Gateway query-secret-safe source hardening is owned by `StegVerse-org/LLM-adapter#271`; implementation PR #328 has merged. Authentic deployed-ingress evidence remains separate and must not be inferred from source merge.
+
+## TVC provider evidence bridge candidate
+
+Branch `workspace-tvc-provider-probe-bridge` adds:
 
 ```text
-stegverse/workspace_resource_consumer.py
-stegverse/active_probe_execution.py
-tests/test_workspace_resource_consumer.py
-tests/test_active_probe_execution.py
+stegverse/tvc_provider_probe_bridge.py
+tests/test_tvc_provider_probe_bridge.py
+.github/workflows/workspace-tvc-provider-probe-bridge-validation.yml
 ```
 
-Supported lifecycle operations remain:
+The bridge accepts only an already-produced, secret-free TVC Google Drive materialization result and projects it into `stegverse.active-probe-result.v1`. It does not issue leases, perform OAuth, request credentials, call Google, or execute TVC provider operations.
+
+Fail-closed rules include:
 
 ```text
-OBSERVE
-MATERIALIZE
-REFRESH
-REVOKE
-EXPIRE
-DESTROY
+exact TVC result schema required
+provider == GOOGLE_DRIVE
+credential_authority == TV/TVC
+credential_material_exported == false
+provider_operation_authority_transferred == false
+runtime_activation_claimed == false
+authority_effect == NONE_RESULT_EVIDENCE_ONLY
+broker decision == ALLOW_OPERATION_RESULT
+protected fields/values rejected
+active-probe output authority_effect == NONE
 ```
 
-`MATERIALIZE` and `REFRESH` require derived transition readiness `READY`. Without a runtime probe executor, `PROBE_REQUIRED` fails closed. `REVOKE`, `EXPIRE`, and `DESTROY` remain available for teardown even after readiness degrades.
-
-## Active probe candidate
-
-SDK PR #181 implements provider-neutral active probe execution.
-
-The probe executor is supplied by the runtime integration layer and is never read from caller manifest data. Each returned probe result must:
-
-```text
-profile: stegverse.active-probe-result.v1
-bind the exact derived probe reason
-carry observed_at
-carry evidence_ref
-carry source
-outcome: SATISFIED or UNRESOLVED
-authority_effect: NONE
-```
-
-Successful probe evidence can resolve only represented unresolved predicate/applicability/ambiguity/discovered-unknown state. The code then removes prior derived readiness fields and invokes the canonical state-transition normalizer again. Therefore neither caller data nor probe output can directly assign READY.
-
-Current regression coverage requires:
-
-```text
-PROBE_REQUIRED + SATISFIED runtime probe -> canonical re-derivation may become READY
-UNRESOLVED probe -> remains fail-closed
-probe authority_effect != NONE -> rejected
-probe reason mismatch -> rejected
-already READY -> probe executor not invoked
-```
-
-This is source/CI evidence only. No authentic external provider probe has executed yet.
+The canonical active-probe engine still verifies the exact derived probe reason and re-derives readiness. A valid TVC result therefore cannot directly assign `READY`.
 
 ## Current proof boundary
 
 ```text
 Generic ingress architecture: IMPLEMENTED / MERGED
-State-transition evidence profile: IMPLEMENTED / VALIDATED / MERGED
-Canonical ingress -> external Interlock binding: IMPLEMENTED / VALIDATED / MERGED
-Registry-driven INTERNAL_ENDPOINT adapter dispatch: IMPLEMENTED / VALIDATED / MERGED
-Provider-neutral WorkSpace resource consumer: IMPLEMENTED / VALIDATED / MERGED
-Organization-local consumer binding: IMPLEMENTED / VALIDATED / MERGED
-Active provider-neutral probe execution source: IMPLEMENTED / VALIDATION PENDING IN PR #181
-Authentic external-provider probe: NOT PROVEN
-Shared Docs live synchronization runtime: NOT PROVEN
-StegOS/StegNode ephemeral projection runtime: NOT PROVEN
+State-transition evidence: IMPLEMENTED / VALIDATED / MERGED
+Ingress -> external Interlock binding: IMPLEMENTED / VALIDATED / MERGED
+Generic INTERNAL_ENDPOINT dispatch: IMPLEMENTED / VALIDATED / MERGED
+WorkSpace resource consumer: IMPLEMENTED / VALIDATED / MERGED
+Organization-local WorkSpace endpoint binding: IMPLEMENTED / VALIDATED / MERGED
+Provider-neutral active probe execution: IMPLEMENTED / VALIDATED / MERGED
+TVC secret-free provider evidence bridge: IMPLEMENTED / VALIDATION PENDING
+Authentic Google provider probe: NOT PROVEN
+Shared Docs live synchronization: NOT PROVEN
 MIR transition reporting: NOT PROVEN
-MIR external witness/OTS: TO-BUILD
 Master Records authentic custody/reconstruction: NOT PROVEN
-Expiry/revocation authentic runtime enforcement: NOT PROVEN
 One-device authentic end-to-end execution: NOT PROVEN
 ```
 
-No source, CI, request construction, or provider observation is to be promoted into an authentic runtime claim.
-
-## Controlling WorkSpace invariants
-
-```text
-Anything that changes is a state transition.
-Source content remains authoritative under the external system.
-WorkSpace/StegOS projection is ephemeral and bounded.
-Live synchronization exists only while current admission remains valid.
-Ephemeral content does not imply ephemeral transition history.
-MIR and Master Records retain distinct custody/authority roles.
-Required behavior must remain complete on one current mobile device.
-Caller assertion cannot satisfy a current probe requirement.
-Probe evidence does not confer authority.
-```
-
-Expiry, renewal, revocation, edit observation, synchronization, probe result, authorization change, projection creation, refresh, and destruction are state transitions.
-
 ## README maintenance
 
-README was reviewed for this source unit. The active-probe implementation does not introduce a new public processing capability identifier, universal ingress class, CLI/runtime route, or user-facing WorkSpace product surface. Existing README language already states that state-transition evidence itself does not execute a probe and that `PROBE_REQUIRED` is fail-closed. A README source change becomes required when an externally observable WorkSpace/provider probe surface is introduced.
+README was reviewed. This bridge is an internal evidence adapter and does not create a new public CLI, processing capability, universal manifest class, runtime route, or user-facing WorkSpace surface. No README source change is required for this bounded unit. A public provider/WorkSpace interface must update README when introduced.
 
 ## Next executable sequence
 
-1. Validate and merge SDK PR #181.
-2. Reconcile canonical SDK handoff/task registry with PR #181 merge evidence.
-3. Bind a real external-provider probe adapter under explicit provider consent/authority.
-4. Execute controlled `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY` transitions.
-5. Retain MIR transition reporting and independent Master Records custody/reconstruction evidence.
-6. Verify the entire path on one current mobile device.
-7. Only after authentic runtime evidence exists, claim Shared Docs/StegOS WorkSpace runtime behavior.
+1. Validate and merge the TVC provider evidence bridge.
+2. Reconcile task/COSV evidence.
+3. Determine whether TVC can expose an admitted read/probe operation for the exact Shared Docs experiment without broadening the Personal-KV lease incorrectly.
+4. Keep Service Gateway deployed-ingress evidence as a separate prerequisite for owner-present Google authorization.
+5. Once authentic provider access exists, execute `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY`.
+6. Retain MIR transition reporting and independent Master Records custody/reconstruction evidence.
+7. Verify the complete path on one current mobile device.
 
 ## Human action
 
-None is required for provider-neutral active-probe source work. External-provider authorization/consent becomes relevant only when authentic provider-backed execution begins.
+None for this source bridge. Owner-present Google authorization is required only when the authentic provider-backed experiment begins.
