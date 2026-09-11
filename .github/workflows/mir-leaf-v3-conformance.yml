@@ -1,0 +1,31 @@
+name: MIR Leaf v3 Conformance Validation
+
+on:
+  pull_request:
+    paths:
+      - 'fixtures/mir_leaf_v3_conformance_fixture_v1.json'
+      - 'stegverse/mir_leaf_v3.py'
+      - 'tools/mir_leaf_v3_neutral_reproducer.mjs'
+      - 'tests/test_mir_leaf_v3_conformance.py'
+      - 'docs/MIR_LEAF_V3_CONFORMANCE_FIXTURE_MIRROR_HANDOFF.md'
+      - '.github/workflows/mir-leaf-v3-conformance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run StegVerse and neutral conformance tests
+        run: python -m unittest tests.test_mir_leaf_v3_conformance
+      - name: Emit neutral result
+        run: node tools/mir_leaf_v3_neutral_reproducer.mjs fixtures/mir_leaf_v3_conformance_fixture_v1.json
