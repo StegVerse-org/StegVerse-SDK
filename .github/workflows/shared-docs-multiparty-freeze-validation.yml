@@ -1,0 +1,31 @@
+name: Shared Docs Multiparty Freeze Validation
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/shared_docs_freeze.py'
+      - 'tests/test_shared_docs_freeze.py'
+      - 'docs/SHARED_DOCS_MULTIPARTY_FREEZE_MIRROR_HANDOFF.md'
+      - 'README.md'
+      - '.github/workflows/shared-docs-multiparty-freeze-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate deterministic Shared Docs freeze state machine
+        run: python -m unittest tests.test_shared_docs_freeze
+      - name: Record non-authorizing validation boundary
+        run: |
+          echo 'source_validation=PASS'
+          echo 'provider_sync_claimed=false'
+          echo 'runtime_execution_claimed=false'
+          echo 'authority_effect=NONE'
