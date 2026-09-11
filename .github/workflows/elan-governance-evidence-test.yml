@@ -1,10 +1,11 @@
-name: ELAN Local SDK Governance Boundary Test
+name: ELAN Local SDK Governance Experiment
 
 on:
   pull_request:
     paths:
       - 'scripts/run_elan_manifest_governance_evidence_test.py'
       - 'stegverse/local_governance_boundary.py'
+      - 'stegverse/local_governance_experiment.py'
       - 'stegverse/public_inspection.py'
       - 'tests/test_local_governance_boundary.py'
       - '.github/workflows/elan-governance-evidence-test.yml'
@@ -14,7 +15,7 @@ permissions:
   contents: read
 
 jobs:
-  local-boundary-test:
+  local-governance-experiment:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,16 +28,34 @@ jobs:
         env:
           PYTHONPATH: .
         run: python -m pytest -q tests/test_local_governance_boundary.py tests/test_intr_posture_runtime_bridge.py tests/test_evaluator_manifest_builder.py
-      - name: Run ELAN-shaped local SDK boundary evidence test
+      - name: Run ELAN local SDK through governance experiment
         env:
           PYTHONPATH: .
         run: python scripts/run_elan_manifest_governance_evidence_test.py
+      - name: Assert governance path evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('evidence/elan/2026-09-10-governance-test/15-summary.json')
+          s=json.loads(p.read_text())
+          assert s['boundary_consumed'] is True
+          assert s['governance_state'] == 'DENY'
+          assert s['governance_reason'] == 'signal.inputs_incomplete'
+          assert s['executor_invoked'] is False
+          assert s['route_transition_count'] == 10
+          assert s['chain_verified'] is True
+          assert s['custody_status'] == 'RECORDED'
+          assert s['replay_deterministic_match'] is True
+          assert s['reconstruction_chain_verified'] is True
+          assert s['result_returned'] is True
+          PY
       - name: Inventory evidence artifacts
         run: |
           find evidence/elan/2026-09-10-governance-test -maxdepth 1 -type f -print -exec sha256sum {} \;
       - name: Upload evidence artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: elan-local-sdk-governance-boundary-test
+          name: elan-local-sdk-governance-experiment
           path: evidence/elan/2026-09-10-governance-test/
           if-no-files-found: error
