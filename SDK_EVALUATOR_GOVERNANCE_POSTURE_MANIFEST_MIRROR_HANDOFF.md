@@ -3,21 +3,21 @@
 Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `SOURCE_INTEGRATION_COMPLETE_LOCAL_BOUNDARY_PROOF_IN_PROGRESS`
+Status: `LOCAL_SDK_TO_GOVERNANCE_BOUNDARY_PROVEN`
 
 ## Objective
 
 Establish the local SDK -> governance boundary using source-native test data, the canonical manifest builder, exact governance transition construction, and Interlock/InTr posture binding without introducing third-party evaluator execution, public-distribution acquisition, or evaluator-specific evidence contamination.
 
-The local test is intentionally earlier than third-party evaluator compatibility. No third party is executing the ÉLAN test in this lane. ÉLAN Events 1 and 2 are source-native test material used by the local SDK only.
+The local test is intentionally earlier than third-party evaluator compatibility. No third party executes the ÉLAN test in this lane. ÉLAN Events 1 and 2 are source-native test material used by the local SDK only.
 
-## Local boundary under test
+## Proven local boundary
 
 ```text
 source-native local test data
 + governance processor request
-+ optional evaluator-style declaration retained as metadata only
-+ optional SDK security-posture request inputs
++ evaluator-style declaration retained as metadata only
++ SDK security-posture request inputs
 -> canonical ingress manifest
 -> exact governance transition request
 -> injected local Interlock/InTr posture resolver
@@ -26,20 +26,7 @@ source-native local test data
 -> READY_FOR_GOVERNANCE_CONSUMPTION
 ```
 
-At this stage the test MUST NOT imply:
-
-```text
-third-party evaluator execution
-public package publication/acquisition
-live deployed StegOS runtime proof
-governance consumption
-StegCore execution
-Master Records custody
-replay
-reconstruction
-```
-
-Those are downstream tests after this boundary is established.
+The boundary proof does not imply governance consumption, StegCore execution, Master Records custody, replay, reconstruction, live deployed StegOS runtime proof, public package publication/acquisition, or third-party evaluator execution.
 
 ## Source
 
@@ -91,37 +78,65 @@ The StegOS compatibility fixture is an exact test-only snapshot of `StegVerse-La
 - evaluator-style WHAT/HOW/WHY metadata is not a governance decision input;
 - boundary preparation grants no governance/execution authority.
 
-## Correction of 2026-09-10 test framing
+## Corrected test framing
 
-PR #177 initially attempted to continue from successful manifest/InTr construction directly into `run_external_framework`, which caused the CI harness to attempt public governed-runtime package acquisition. That conflated two separate local tests:
+PR #177 initially attempted to continue from successful manifest/InTr construction directly into `run_external_framework`, which conflated:
 
 ```text
 A. SDK -> governance boundary establishment
 B. full local governance-runtime execution
 ```
 
-For the current lane only A is in scope.
+For this lane, A is now independently proven. The earlier run `34539775942` remains diagnostic only; it exposed a genuine `processor_capability` validator skew that PR #177 repairs, but its package-acquisition failure is not a blocker for boundary establishment.
 
-The earlier run `34539775942` remains useful diagnostic evidence because it proved manifest construction, transition construction, and deterministic InTr binding and exposed a genuine `processor_capability` validator skew. PR #177 repaired that skew. However, the later missing-package failure is no longer treated as a blocker for this boundary test because package publication/acquisition is outside the scope of establishing A.
+## Exact successful boundary evidence
 
-## Corrected local evidence harness
+Current exact head before this handoff update: `9b3943934d1154a00c5cc87826bb3a0c00bd72de`.
 
-PR #177 now adds `stegverse/local_governance_boundary.py`. It emits:
+Workflow:
 
 ```text
-schema: stegverse.sdk.local-governance-boundary/v1
-boundary: SDK_TO_GOVERNANCE
-boundary_state: READY_FOR_GOVERNANCE_CONSUMPTION
-execution_scope: LOCAL_SDK_BOUNDARY_TEST
-exact_request_preserved: true
-governance_execution_performed: false
-governance_result_claimed: false
-external_package_materialization_required: false
-third_party_evaluator_execution: false
-authority_effect: NONE
+ELAN Local SDK Governance Boundary Test
+run: 34553895610
+job: local-boundary-test
+result: PASS
 ```
 
-The revised test sequence is:
+The run passed:
+
+```text
+Install current SDK source only: PASS
+Focused local SDK boundary tests: PASS
+ÉLAN-shaped local SDK boundary evidence test: PASS
+Evidence inventory: PASS
+Artifact upload: PASS
+```
+
+Uploaded artifact:
+
+```text
+name: elan-local-sdk-governance-boundary-test
+artifact id: 10181792404
+artifact digest: sha256:888917ebf4a639ecb16b83ac899e09ca8083d3ca23c17cf0fc27046dd803cdf1
+```
+
+The artifact contains:
+
+```text
+00-source-native-input.json
+01-governance-request.json
+02-security-posture-request.json
+03-evaluation-declaration.json
+04-manifest.json
+05-transition-request.json
+06-intr-posture-binding.json
+07-sdk-governance-boundary-handoff.json
+08-state-transitions.json
+09-summary.json
+10-results-documentation.md
+```
+
+Observed state sequence:
 
 ```text
 SOURCE_NATIVE_CAPTURED
@@ -134,32 +149,46 @@ SOURCE_NATIVE_CAPTURED
 -> GOVERNANCE_CONSUMPTION_NOT_EXECUTED_IN_THIS_BOUNDARY_TEST
 ```
 
-The workflow installs only the current SDK source plus pytest. It does not install `stegverse-stegcore`, Core-Lite, Master Records, or any other external governed-runtime distribution.
+Summary outcome:
+
+```text
+LOCAL_SDK_GOVERNANCE_BOUNDARY_PROVEN
+boundary_state: READY_FOR_GOVERNANCE_CONSUMPTION
+external_package_materialization_required: false
+third_party_evaluator_execution: false
+governance_execution_performed: false
+```
+
+## Third-party-view documentation
+
+The screenshot set derived from run `34553895610` represents what a third-party SDK user would see at the SDK surface while preserving the actual local test semantics. It includes:
+
+```text
+1 Manifest Builder input
+2 completed manifest
+3 governance transition request
+4 Interlock/InTr posture binding
+5 SDK -> governance boundary READY
+6 state-transition trace
+```
+
+No governance-result screenshot is produced from this run because governance did not consume the handoff. A later governance-consumption run must provide that evidence before any result screen is documented.
 
 ## Relationship to StegOS/Node and state-transition protocols
 
-Universal InTr transport and the inter-Entity epistemic/state-transition protocol remain relevant to the shape of the boundary, but they do not enlarge the current test scope. The local SDK test establishes the exact manifested handoff and its non-authorizing InTr/posture binding. Governance-side consumption is the next integration test.
+Universal InTr transport and the inter-Entity epistemic/state-transition protocol shape the boundary but do not enlarge the current test scope. Transport receipt, posture binding, semantic incorporation, governance admission, execution, custody, replay, and reconstruction remain distinct states. No downstream state is inferred merely because the SDK boundary artifact exists.
 
-Transport receipt, posture binding, semantic incorporation, governance admission, execution, custody, replay, and reconstruction remain distinct states. No downstream state is inferred merely because the SDK boundary artifact exists.
-
-## README reconciliation
-
-README must distinguish the new local SDK -> governance boundary test from the existing full local governed-runtime test. The full governed-runtime section may continue to describe its canonical runtime dependencies; those dependencies are not prerequisites for the earlier boundary-establishment test.
-
-## Remaining evidence boundary
-
-For this goal's immediate local boundary lane:
+## Remaining work for this goal
 
 ```text
-1 execute exact-head revised local-only workflow
-2 retain exact manifest, transition request, InTr binding, and SDK_TO_GOVERNANCE handoff artifact
-3 verify focused regression tests
-4 generate screenshots only from the revised local-only evidence
-5 reconcile README wording
-6 merge PR #177 only after exact-head validation
+1 reconcile README wording so local boundary testing and full local governed-runtime testing are explicitly distinct
+2 validate this exact newest handoff head
+3 merge PR #177 when exact-head validation is green and branch/base are reconciled
+4 create/continue the next integration lane for governance-side consumption of the exact READY_FOR_GOVERNANCE_CONSUMPTION artifact
+5 only after governance consumption is proven, document governance decision/result/custody/replay/reconstruction screens
 ```
 
-After this is green, the next separate integration step is governance-side consumption of the exact handoff artifact. Third-party evaluator execution remains later still.
+Third-party evaluator execution remains a later compatibility test after the SDK/governance boundary and governance-side consumer are established.
 
 ## Manual work
 
