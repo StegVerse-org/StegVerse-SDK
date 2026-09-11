@@ -98,6 +98,32 @@ manifest = attach_state_transition_evidence(
 
 The outer object remains `stegverse.ingress-manifest.v1`, so caller identity or provider choice does not create a bespoke manifest class. Source/CI validation of this evidence profile must not be promoted into a claim that Interlock/InTr, a provider, MIR, Master Records, or an ephemeral WorkSpace actually executed the represented transition.
 
+### Shared Docs multiparty freeze
+
+Shared Docs now has a provider-neutral revision-freeze state model. Each eligible reviewer freezes the exact revision and SHA-256 content digest they reviewed. The default policy is `ALL_ELIGIBLE`: one reviewer's freeze produces `PARTIALLY_FROZEN`; the revision becomes collectively `FROZEN` only when every eligible reviewer has frozen that same revision, digest, review epoch, and policy.
+
+A frozen revision is immutable provenance. Editing the logical document never rewrites that frozen revision. Instead, the edit creates a successor revision, preserves the prior frozen receipts, and resets the current revision to `REVIEW_OPEN` with no inherited reviewer acceptance. Changing the eligible-reviewer set or freeze policy likewise requires a new review epoch/revision.
+
+```text
+reviewer freeze != edit authority
+individual freeze != collective freeze
+collective freeze != governance authority
+content change != inherited acceptance
+frozen revision N + edit -> frozen provenance N + REVIEW_OPEN revision N+1
+```
+
+Lifecycle status should be projected as metadata rather than embedded in the reviewed content bytes; otherwise changing a visible status line is itself a content mutation and correctly requires a new review revision.
+
+Implementation and tests:
+
+```text
+stegverse/shared_docs_freeze.py
+tests/test_shared_docs_freeze.py
+docs/SHARED_DOCS_MULTIPARTY_FREEZE_MIRROR_HANDOFF.md
+```
+
+The state model is coordination/provenance only. Provider mutations still require the applicable provider/TVC authority, governed transitions still require Interlock/InTr where applicable, and Master Records reconstruction does not make Master Records a reviewer or editor.
+
 ### Manifest Builder
 
 Most users and external frameworks do not need to hand-author `stegverse.ingress-manifest.v1`. The SDK Manifest Builder constructs the canonical manifest from three user-facing choices: source-native data, the installed processing class, and the desired return depth. Processor-specific evidence is still supplied explicitly; the builder never invents missing governance facts.
@@ -550,6 +576,7 @@ python -m unittest tests.test_cli_preformatted_manifest
 python -m unittest tests.test_generic_manifest_processing_contract
 python -m unittest tests.test_manifest_builder
 python -m unittest tests.test_state_transition_evidence
+python -m unittest tests.test_shared_docs_freeze
 pytest -q tests/test_evaluator_contract_console.py
 ```
 
