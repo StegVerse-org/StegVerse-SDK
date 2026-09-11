@@ -14,7 +14,7 @@ continuation_goal: SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003
 COSV: 71000000100110
 credential_authority: TV/TVC
 GitHub runtime authority: NONE
-coordination_state: ACTIVE
+coordination_state: RETIRED
 legacy_task_state_invariant: DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING
 canonical_public_base: https://stegverse.org/
 current_ecosystem_chat_route: https://stegverse.org/ecosystem-chat.html
@@ -141,9 +141,13 @@ GitHub Actions: VALIDATION / EVIDENCE TRANSPORT ONLY
 
 Reuse these lanes. Do not create a competing Gateway, tunnel, reverse proxy, WorkerCoordinator, resident executor, scheduler, credential path, or hosted fallback.
 
-## Next executable sequence
+## Successor transfer
 
-1. Observe the existing authorized resident consume `sdk_workspace_external_collab_client_secret_reseal`; accept only authentic `TARGET_ALREADY_PRESENT`, `COMPLETED`, or exact `BLOCKED` receipt evidence.
+Parent prompt ceiling: `20/20`. Remaining work is canonically transferred to active task `SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004` with handoff `StegVerse-Labs/.github:docs/SDK_WORKSPACE_EXTCOLLAB_AUTHENTIC_RUNTIME_004_MIRROR_HANDOFF.md`. This is a coordination transfer only and does not establish runtime proof.
+
+## Successor-owned executable sequence
+
+1. Resolve the successor through the canonical runtime-profile resolver, then observe the existing authorized resident consume `sdk_workspace_external_collab_client_secret_reseal`; accept only authentic `TARGET_ALREADY_PRESENT`, `COMPLETED`, or exact `BLOCKED` receipt evidence.
 2. Independently observe `sdk_workspace_external_collab_consent_listener`; accept only authentic `SERVICE_ALREADY_HEALTHY`, `COMPLETED` with exact loopback health, or exact `BLOCKED` evidence.
 3. For `BLOCKED`, remediate only the exact resident prerequisite through its canonical owner; do not create a substitute executor.
 4. After target-purpose custody/readback and listener health exist, require authentic sovereign `stegverse.org` ingress/callback reachability through Service Gateway #72.
@@ -153,7 +157,8 @@ Reuse these lanes. Do not create a competing Gateway, tunnel, reverse proxy, Wor
 ## Current status
 
 ```text
-SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE
+SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: RETIRED / TRANSFERRED AT 20/20
+SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004: ACTIVE
 COSV: 71000000100110
 SDK #196: MERGED / EXACT VALIDATION PASS
 SDK #199: MERGED / EXACT VALIDATION PASS
