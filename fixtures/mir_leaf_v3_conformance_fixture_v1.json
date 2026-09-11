@@ -1,0 +1,53 @@
+{
+  "schema": "stegverse.mir-leaf-v3-conformance-fixture/v1",
+  "fixture_id": "MIR-LEAF-V3-CONFORMANCE-FIXTURE-001-F1",
+  "contract_section": "12.8",
+  "leaf_scheme": "mir.leaf.v3",
+  "tree_profile": "rfc6962-mth-v1",
+  "checkpoint_profile": "mir.checkpoint-tip.v0.3",
+  "notes": "canonical_event_core_base64 contains already-canonical event-core bytes. This fixture does not redefine MIR event serialization; it freezes exact bytes solely for cross-implementation proof conformance.",
+  "events": [
+    {
+      "event_index": 0,
+      "salt_base64": "AAECAwQFBgcICQoLDA0ODw==",
+      "canonical_event_core_base64": "ZXZlbnQtMDAwMXxhY3Rvcj1hbHBoYXxhY3Rpb249Q1JFQVRFfHN1YmplY3Q9ZG9jLUF8YXQ9MjAyNi0wOS0xMVQyMDowMDowMFo=",
+      "expected_leaf_hash": "sha256:3df9910404f9d224cdd83e0e8eb6dccdc18f5482bb5fd24dbf3bb0451fa9b5ba"
+    },
+    {
+      "event_index": 1,
+      "salt_base64": "EBESExQVFhcYGRobHB0eHw==",
+      "canonical_event_core_base64": "ZXZlbnQtMDAwMnxhY3Rvcj1iZXRhfGFjdGlvbj1SRVZJRVd8c3ViamVjdD1kb2MtQXxhdD0yMDI2LTA5LTExVDIwOjAxOjAwWg==",
+      "expected_leaf_hash": "sha256:0a3f8899d8ad397a64ba4ca703534be688601b95997c262f5f586699018d3d3f"
+    },
+    {
+      "event_index": 2,
+      "salt_base64": "ICEiIyQlJicoKSorLC0uLw==",
+      "canonical_event_core_base64": "ZXZlbnQtMDAwM3xhY3Rvcj1hbHBoYXxhY3Rpb249UkVWSVNFfHN1YmplY3Q9ZG9jLUF8YXQ9MjAyNi0wOS0xMVQyMDowMjowMFo=",
+      "expected_leaf_hash": "sha256:2cbaad0f35370a114628a585e443c9f3b2e634674945e50a569d6376a551b190"
+    },
+    {
+      "event_index": 3,
+      "salt_base64": "MDEyMzQ1Njc4OTo7PD0+Pw==",
+      "canonical_event_core_base64": "ZXZlbnQtMDAwNHxhY3Rvcj1iZXRhfGFjdGlvbj1GUkVFWkV8c3ViamVjdD1kb2MtQXxhdD0yMDI2LTA5LTExVDIwOjAzOjAwWg==",
+      "expected_leaf_hash": "sha256:ded3a77a9e23c60a7e61f85ae077671b71f236c542bd57f578f2bc505a8c9ea8"
+    },
+    {
+      "event_index": 4,
+      "salt_base64": "QEFCQ0RFRkdISUpLTE1OTw==",
+      "canonical_event_core_base64": "ZXZlbnQtMDAwNXxhY3Rvcj1zeXN0ZW18YWN0aW9uPUNIRUNLUE9JTlR8c3ViamVjdD1kb2MtQXxhdD0yMDI2LTA5LTExVDIwOjA0OjAwWg==",
+      "expected_leaf_hash": "sha256:f5bf6289c3d93129f5dbfaa2b85d6133635daed01de42fe2878f6d963846184d"
+    }
+  ],
+  "checkpoint": {
+    "seq": 42,
+    "rangeStart": "2026-09-11T20:00:00Z",
+    "rangeEnd": "2026-09-11T20:04:00Z",
+    "eventCount": 5,
+    "prevTip": null,
+    "expected_merkle_root": "sha256:bd0eb01fccc1d88942f2fb465d27f212afb98f5b0aee47faf370ea0bf21a5a94",
+    "expected_tip": "sha256:683eac81cfd934700c7ebe8eb4da668f2d44ae95c0cfe74d6d157993324f2ad8"
+  },
+  "proof_status": "UNAVAILABLE",
+  "witnesses": [],
+  "authority_effect": "NONE_CONFORMANCE_EVIDENCE_ONLY"
+}
