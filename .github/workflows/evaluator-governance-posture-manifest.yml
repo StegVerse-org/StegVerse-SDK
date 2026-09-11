@@ -1,0 +1,29 @@
+name: Evaluator Governance Posture Manifest Validation
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/evaluator_manifest_builder.py'
+      - 'stegverse/security_posture_request.py'
+      - 'tests/test_evaluator_manifest_builder.py'
+      - 'SDK_EVALUATOR_GOVERNANCE_POSTURE_MANIFEST_MIRROR_HANDOFF.md'
+      - '.github/workflows/evaluator-governance-posture-manifest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install SDK runtime dependencies
+        run: python -m pip install -e .
+      - name: Run evaluator manifest integration tests
+        run: python -m unittest tests.test_evaluator_manifest_builder -v
+      - name: Run existing manifest builder regression tests
+        run: python -m unittest tests.test_manifest_builder -v

@@ -1,0 +1,24 @@
+{
+  "task_id": "SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001",
+  "originating_goal": "Integrate the SDK Manifest Builder with governance processing and the Interlock/InTr security-posture request contract for evaluator testing without contaminating source-native observations or preregistration evidence.",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "source_branch": "sdk-evaluator-governance-posture-manifest-001",
+  "target_branch": "main",
+  "state": "ACTIVE_IMPLEMENTATION",
+  "owner": "StegVerse-org/StegVerse-SDK",
+  "credential_authority": "TV/TVC",
+  "github_token_runtime_authority": "NONE",
+  "parent_task": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
+  "source_handoff": "SDK_EVALUATOR_GOVERNANCE_POSTURE_MANIFEST_MIRROR_HANDOFF.md",
+  "expected_predicates": [
+    "SOURCE_NATIVE_PAYLOAD_UNCHANGED",
+    "EVALUATOR_DECLARATION_OUTSIDE_GOVERNANCE_REQUEST",
+    "SDK_POSTURE_REQUEST_NON_AUTHORIZING",
+    "SDK_POSTURE_REQUEST_SEPARATE_FROM_GOVERNANCE_EVIDENCE",
+    "NO_LOCAL_EFFECTIVE_POSTURE_RESOLUTION_IN_MANIFEST_BUILDER",
+    "GOVERNANCE_PROCESSOR_ROUTE_DECLARED",
+    "RETURN_PROJECTION_CALLER_SELECTED",
+    "EVALUATOR_PREPARE_ONLY_PATH_VALIDATED"
+  ],
+  "manual_work_required": false
+}
