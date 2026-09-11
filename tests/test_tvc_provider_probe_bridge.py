@@ -24,6 +24,25 @@ def tvc_result():
     }
 
 
+def workspace_tvc_result():
+    return {
+        "schema": "stegverse.tvc.workspace-google-drive-probe-result/v1",
+        "request_id": "workspace-request-1234567890abcdef",
+        "request_sha256": "sha256:" + "c" * 64,
+        "binding_id": "kvpb_workspace_test",
+        "provider": "GOOGLE_DRIVE",
+        "workspace_scope": ["_System/Workspace/**"],
+        "delegated_operation": "personal_kv_materialize",
+        "delegated_result": tvc_result(),
+        "credential_authority": "TV/TVC",
+        "credential_material_exported": False,
+        "provider_operation_authority_transferred": False,
+        "provider_mutation_performed": False,
+        "runtime_activation_claimed": False,
+        "authority_effect": "NONE_RESULT_EVIDENCE_ONLY",
+    }
+
+
 class TvcProviderProbeBridgeTests(unittest.TestCase):
     def test_secret_free_tvc_result_projects_to_non_authorizing_active_probe(self):
         probe = google_drive_probe_result_from_tvc(
@@ -36,6 +55,19 @@ class TvcProviderProbeBridgeTests(unittest.TestCase):
         self.assertFalse(probe["credential_material_exported"])
         self.assertFalse(probe["provider_operation_authority_transferred"])
         self.assertEqual(probe["authority_effect"], "NONE")
+        self.assertEqual(probe["source_schema"], "stegverse.tvc.personal-kv-google-drive-materialization-result/v1")
+
+    def test_workspace_specific_tvc_result_projects_without_losing_provenance(self):
+        probe = google_drive_probe_result_from_tvc(
+            reason="predicate:authorization_current:evidence_unresolved",
+            tvc_result=workspace_tvc_result(),
+            observed_at="2026-09-11T01:05:00Z",
+        )
+        self.assertEqual(probe["outcome"], "SATISFIED")
+        self.assertEqual(probe["source"], "StegVerse-Labs/TVC:workspace-google-drive-probe")
+        self.assertEqual(probe["source_schema"], "stegverse.tvc.workspace-google-drive-probe-result/v1")
+        self.assertEqual(probe["provider_request_sha256"], "sha256:" + "c" * 64)
+        self.assertEqual(probe["provider_binding_id"], "kvpb_workspace_test")
 
     def test_bridge_output_is_accepted_by_canonical_active_probe_execution(self):
         req = request(unresolved=True)
@@ -45,8 +77,8 @@ class TvcProviderProbeBridgeTests(unittest.TestCase):
         def executor(reason, _manifest):
             return google_drive_probe_result_from_tvc(
                 reason=reason,
-                tvc_result=tvc_result(),
-                observed_at="2026-09-11T00:40:00Z",
+                tvc_result=workspace_tvc_result(),
+                observed_at="2026-09-11T01:05:00Z",
             )
 
         resolved = execute_active_probes(
@@ -58,23 +90,33 @@ class TvcProviderProbeBridgeTests(unittest.TestCase):
         self.assertEqual(resolved["readiness_after_probe"], "READY")
 
     def test_credential_material_is_rejected(self):
-        bad = tvc_result()
-        bad["broker_response"]["access_token"] = "ya29.must-not-cross"
+        bad = workspace_tvc_result()
+        bad["delegated_result"]["broker_response"]["access_token"] = "ya29.must-not-cross"
         with self.assertRaisesRegex(ValueError, "protected TVC result"):
             google_drive_probe_result_from_tvc(
                 reason="predicate:authorization_current:evidence_unresolved",
                 tvc_result=bad,
-                observed_at="2026-09-11T00:40:00Z",
+                observed_at="2026-09-11T01:05:00Z",
             )
 
     def test_authority_transfer_is_rejected(self):
-        bad = tvc_result()
+        bad = workspace_tvc_result()
         bad["provider_operation_authority_transferred"] = True
         with self.assertRaisesRegex(ValueError, "authority transfer prohibited"):
             google_drive_probe_result_from_tvc(
                 reason="predicate:authorization_current:evidence_unresolved",
                 tvc_result=bad,
-                observed_at="2026-09-11T00:40:00Z",
+                observed_at="2026-09-11T01:05:00Z",
+            )
+
+    def test_workspace_scope_expansion_is_rejected(self):
+        bad = workspace_tvc_result()
+        bad["workspace_scope"] = ["_System/Workspace/**", "_Entities/**"]
+        with self.assertRaisesRegex(ValueError, "WorkSpace result scope mismatch"):
+            google_drive_probe_result_from_tvc(
+                reason="predicate:authorization_current:evidence_unresolved",
+                tvc_result=bad,
+                observed_at="2026-09-11T01:05:00Z",
             )
 
     def test_wrong_tvc_schema_is_rejected(self):
