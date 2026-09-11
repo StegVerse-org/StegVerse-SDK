@@ -4,66 +4,48 @@ Updated: 2026-09-11
 Goal Task ID: `SHARED-DOCS-PROVIDER-FREEZE-INTEGRATION-001`
 Parent Task ID: `SHARED-DOCS-MULTIPARTY-FREEZE-001`
 COSV: `71000000100110`
-Status: `ACTIVE / PROVIDER-NEUTRAL BINDING MERGED / TVC EVIDENCE SEAM IN VALIDATION`
+Status: `ACTIVE / PROVIDER BINDING + TVC VERSION SEAM MERGED / CONTENT-INTEGRITY OBSERVATION NEXT`
 
 ## Goal
 
 Integrate the merged provider-neutral multiparty freeze state machine with Shared Docs provider observations and admitted document mutations without transferring provider, governance, custody, or execution authority.
 
-## Starting evidence
+## Merged evidence
 
-Parent source implementation is merged on SDK `main` at:
+Parent Shared Docs freeze source merged at:
 
 ```text
 d505e937dd9f5e531c56427d7477e026789e4769
 ```
 
-Parent exact-head validation includes dedicated Shared Docs freeze run `34568759924` PASS plus all applicable SDK lanes PASS.
-
-## Provider-neutral binding merge
-
-SDK PR `#209` merged at:
+Provider-neutral freeze binding SDK PR `#209` merged at:
 
 ```text
 5d3c882eb975720651bfac7f2b08dc3f4da4cdfc
 ```
 
-Its exact head `0a685e673293a5e8738c7a6fc841827b7cc49d15` passed:
+Exact head `0a685e673293a5e8738c7a6fc841827b7cc49d15` passed:
 
 - Shared Docs Provider Freeze Integration Validation `34635628063`;
 - SDK Package Artifact Validation `34635628245`.
 
-That merge establishes source-level provider observation/binding semantics only. It does not prove an authentic provider observation, provider mutation, provider-side freeze enforcement, resident execution, or external synchronization.
+TVC provider-version evidence seam SDK PR `#210` merged at:
 
-## Provider seam inspection
+```text
+6eab366b96474b5146e51da7d4062b5a061cb707
+```
 
-The existing SDK provider seam is `stegverse/tvc_provider_probe_bridge.py`. It consumes secret-free TVC-owned Google Drive evidence and preserves these constraints:
+Exact head `abc58f07832356cbf19cb0a64b9942d85565d42d` passed:
 
-- credential authority remains `TV/TVC`;
-- SDK does not obtain provider credentials or execute provider operations in the bridge;
-- provider results are evidence-only;
-- external collaboration probes are read-only and may not assign readiness;
-- provider mutation authority is not transferred.
+- WorkSpace TVC Provider Probe Bridge Validation `34635986800`;
+- SDK Package Artifact Validation `34635986945`;
+- Shared Docs Provider Freeze Integration Validation `34635987038`.
 
-The current TVC external-collaboration broker observation already carries Google Drive `version` inside the nested provider observation. The SDK previously discarded that field when normalizing the probe. It does not currently carry a canonical SHA-256 of reviewed content.
+## Current implemented contract
 
-## Current TVC evidence-seam implementation
+The SDK now has provider-neutral evidence-only Shared Docs freeze binding and an explicit TVC-backed intake seam.
 
-Branch `shared-docs-provider-freeze-tvc-binding-001` now:
-
-1. validates the nested TVC provider resource observation;
-2. requires and projects exact `provider_version_id` from the TVC-backed Google Drive metadata result;
-3. optionally projects `provider_content_sha256` only when that exact SHA-256 is actually present;
-4. adds `provider_observation_from_active_probe()` as the Shared Docs intake seam;
-5. fails closed when provider metadata has version/reachability but no exact reviewed-content SHA-256;
-6. prohibits deriving a content hash from mutable metadata, names, timestamps, provider version labels, or observation hashes;
-7. preserves `TV/TVC` provider authority and prohibits provider-operation authority transfer.
-
-This means the already-shipped metadata probe can establish exact provider resource/version evidence, but cannot yet be promoted to an exact freeze binding unless a trustworthy content SHA-256 is also supplied by an admitted TVC/provider operation.
-
-## Provider-neutral observation contract
-
-The merged provider observation contract binds:
+A provider observation binds:
 
 ```text
 provider
@@ -78,9 +60,9 @@ authority_effect = NONE_EVIDENCE_ONLY
 observation_sha256
 ```
 
-The revision binding binds that observation to exact Shared Docs `document_id + revision_id + review_epoch + content_digest` and records `TV/TVC` as provider authority and `Interlock/InTr` as transition authority. The binding itself grants neither authority.
+The binding attaches that exact observation to Shared Docs `document_id + revision_id + review_epoch + content_digest` and records `TV/TVC` as provider authority and `Interlock/InTr` as transition authority. The binding grants neither authority.
 
-Freeze-state projection is metadata-only and records:
+Freeze-state projection is metadata-only:
 
 ```text
 reviewed_bytes_mutated = false
@@ -88,52 +70,36 @@ provider_write_performed = false
 authority_effect = NONE_METADATA_PROJECTION_ONLY
 ```
 
-## Admitted edit semantics
+An admitted provider-observed content mutation may create a successor only when provider identity/document identity are unchanged, provider version advances, reviewed-content digest changes, and an explicit admitted `Interlock/InTr` transition reference is supplied. The prior frozen revision remains immutable provenance; the successor starts `REVIEW_OPEN` with no inherited freeze receipts.
 
-A provider-observed content mutation may create a Shared Docs successor only when all of the following hold:
+## TVC evidence seam
 
-1. the current revision and prior provider binding agree exactly;
-2. provider identity and provider document identity are unchanged;
-3. provider version advances;
-4. reviewed content digest changes;
-5. an explicit admitted `Interlock/InTr` transition reference is supplied;
-6. the new provider observation still declares `TV/TVC` provider authority and evidence-only posture.
+The existing `stegverse/tvc_provider_probe_bridge.py` now validates the nested Google Drive resource observation and preserves exact provider `version` as `provider_version_id`.
 
-The prior frozen revision remains immutable provenance. The successor starts `REVIEW_OPEN` with no inherited freeze receipts and binds the newly observed provider version/content digest.
+If an exact `provider_content_sha256` is supplied by TVC/provider evidence, it is projected. If it is absent, `provider_observation_from_active_probe()` fails closed with `provider content SHA-256 unavailable for exact freeze binding`.
 
-## Integration requirements
+The SDK MUST NOT infer reviewed-content identity from mutable metadata, file names, timestamps, provider version labels, MD5 metadata, or the hash of the metadata observation itself.
 
-1. Map provider document identity/version metadata to canonical logical `document_id` and immutable `revision_id` without treating provider mutable names as revision identity.
-2. Bind exact provider-observed content digest to the freeze-state revision.
-3. Accept reviewer freeze actions only for the exact current revision/digest/review epoch.
-4. Project `REVIEW_OPEN`, `PARTIALLY_FROZEN`, and `FROZEN` as lifecycle metadata without silently changing reviewed document bytes.
-5. When an admitted content mutation occurs, create a successor revision and reset reviewer freezes while retaining prior frozen provenance.
-6. Reject stale/replayed reviewer freezes against superseded provider versions.
-7. Preserve provider/TVC mutation authority and Interlock/InTr transition authority; the freeze module does not write provider content by itself.
-8. Retain enough secret-free evidence for Master Records reconstruction of revision lineage and freeze receipts.
-9. Preserve one-current-device operation; no second user-operated device is introduced.
+## Remaining content-integrity work
 
-## Deterministic fixture coverage
+The current shipped external-collaboration Google Drive probe is metadata-only. It can prove provider resource identity/version and read-only reachability, but it does not yet produce the exact canonical SHA-256 of reviewed content required for a freeze binding.
 
-Tests now cover:
+The next implementation step is therefore a separate read-only TV/TVC provider content-integrity operation that:
 
-- deterministic provider observation hashing;
-- exact provider-version/revision/content-digest binding;
-- TVC-backed active-probe -> Shared Docs observation when exact content SHA-256 exists;
-- explicit rejection of TVC metadata-only evidence when exact content SHA-256 is absent;
-- content-digest mismatch rejection;
-- metadata projection without byte mutation/provider write;
-- admitted edit -> unfrozen successor while frozen prior is preserved;
-- required Interlock/InTr admission reference;
-- same provider-version replay rejection;
-- provider-document identity-change rejection;
-- TVC provider evidence bridge regression validation;
-- base Shared Docs freeze-state regression validation.
+1. binds the same provider document ID and provider version;
+2. uses an explicitly versioned canonical content profile;
+3. computes SHA-256 inside the non-exportable provider/vault execution path;
+4. returns only the secret-free digest/profile/version evidence needed by Shared Docs;
+5. performs no provider mutation and transfers no provider authority;
+6. fails `CONTENT_DIGEST_UNAVAILABLE` for unsupported provider content types rather than substituting metadata-derived hashes;
+7. remains operable from the one current user device with no second user-operated machine.
+
+For Google-native documents, no canonical export representation is assumed yet; the content profile must be explicitly defined before those bytes can satisfy exact freeze binding. For ordinary downloadable files, exact downloaded bytes can be a candidate profile once implemented and validated.
 
 ## Proof classes
 
-Source adapter validation, provider observation, provider content-integrity observation, provider mutation, resident execution, and external provider synchronization are separate evidence classes. A source test or provider metadata read MUST NOT be promoted into proof that the provider enforced a freeze or performed an edit.
+Source validation, provider metadata observation, provider content-integrity observation, provider mutation, resident execution, and external provider synchronization remain separate proof classes. None may be promoted into another without corresponding evidence.
 
 ## Current next action
 
-Validate and merge the TVC evidence-seam SDK change if exact-head CI remains green. After that, the remaining provider-observation gap is narrow and explicit: TV/TVC must produce an admitted, secret-free exact reviewed-content SHA-256 tied to the same provider document/version. That digest must be computed from an explicitly defined canonical content profile rather than inferred from Google Drive metadata. No authentic content-integrity observation is claimed yet.
+Implement and validate the bounded TV/TVC read-only content-integrity observation contract, beginning with exact-byte downloadable Google Drive resources. Do not claim authentic content-integrity observation until a real provider result supplies the same document/version plus exact canonical SHA-256.
