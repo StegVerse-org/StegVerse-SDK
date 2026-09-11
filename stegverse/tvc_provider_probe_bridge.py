@@ -16,6 +16,10 @@ from .active_probe_execution import ACTIVE_PROBE_RESULT_PROFILE
 TVC_PERSONAL_KV_GOOGLE_DRIVE_RESULT_SCHEMA = (
     "stegverse.tvc.personal-kv-google-drive-materialization-result/v1"
 )
+TVC_WORKSPACE_GOOGLE_DRIVE_RESULT_SCHEMA = (
+    "stegverse.tvc.workspace-google-drive-probe-result/v1"
+)
+WORKSPACE_SCOPE = ["_System/Workspace/**"]
 
 _PROTECTED_MARKERS = (
     "access_token",
@@ -46,13 +50,7 @@ def _reject_protected(value: Any, path: str = "tvc_result") -> None:
             raise ValueError(f"protected TVC result value prohibited: {path}")
 
 
-def validate_google_drive_tvc_result(value: Mapping[str, Any]) -> dict[str, Any]:
-    if not isinstance(value, Mapping):
-        raise ValueError("TVC provider result must be an object")
-    result = deepcopy(dict(value))
-    _reject_protected(result)
-    if result.get("schema") != TVC_PERSONAL_KV_GOOGLE_DRIVE_RESULT_SCHEMA:
-        raise ValueError("unsupported TVC Google Drive result schema")
+def _validate_common_result(result: Mapping[str, Any]) -> None:
     if result.get("provider") != "GOOGLE_DRIVE":
         raise ValueError("TVC Google Drive provider identity mismatch")
     if result.get("credential_authority") != "TV/TVC":
@@ -65,6 +63,10 @@ def validate_google_drive_tvc_result(value: Mapping[str, Any]) -> dict[str, Any]
         raise ValueError("source bridge cannot accept runtime activation claim")
     if result.get("authority_effect") != "NONE_RESULT_EVIDENCE_ONLY":
         raise ValueError("TVC result must remain evidence-only")
+
+
+def _validate_personal_kv_result(result: Mapping[str, Any]) -> dict[str, Any]:
+    _validate_common_result(result)
     request_id = result.get("request_id")
     request_hash = result.get("request_sha256")
     binding_id = result.get("binding_id")
@@ -80,7 +82,60 @@ def validate_google_drive_tvc_result(value: Mapping[str, Any]) -> dict[str, Any]
     broker = result.get("broker_response")
     if not isinstance(broker, Mapping) or broker.get("decision") != "ALLOW_OPERATION_RESULT":
         raise ValueError("TVC broker result not allowed")
-    return result
+    return {
+        "request_id": request_id,
+        "request_sha256": request_hash,
+        "binding_id": binding_id,
+        "lease_receipt_sha256": receipt_hash,
+        "source": "StegVerse-Labs/TVC:personal-kv-google-drive-materialization",
+        "source_schema": TVC_PERSONAL_KV_GOOGLE_DRIVE_RESULT_SCHEMA,
+    }
+
+
+def _validate_workspace_result(result: Mapping[str, Any]) -> dict[str, Any]:
+    _validate_common_result(result)
+    if result.get("workspace_scope") != WORKSPACE_SCOPE:
+        raise ValueError("TVC WorkSpace result scope mismatch")
+    if result.get("delegated_operation") != "personal_kv_materialize":
+        raise ValueError("TVC WorkSpace delegated operation mismatch")
+    if result.get("provider_mutation_performed") is not False:
+        raise ValueError("TVC WorkSpace provider mutation prohibited")
+    delegated = result.get("delegated_result")
+    if not isinstance(delegated, Mapping):
+        raise ValueError("TVC WorkSpace delegated result required")
+    if delegated.get("schema") != TVC_PERSONAL_KV_GOOGLE_DRIVE_RESULT_SCHEMA:
+        raise ValueError("TVC WorkSpace delegated result schema invalid")
+    normalized = _validate_personal_kv_result(delegated)
+    request_id = result.get("request_id")
+    request_hash = result.get("request_sha256")
+    binding_id = result.get("binding_id")
+    if not isinstance(request_id, str) or len(request_id) < 16:
+        raise ValueError("TVC WorkSpace request_id invalid")
+    if not isinstance(request_hash, str) or not request_hash.startswith("sha256:") or len(request_hash) != 71:
+        raise ValueError("TVC WorkSpace request_sha256 invalid")
+    if binding_id != normalized["binding_id"]:
+        raise ValueError("TVC WorkSpace binding mismatch")
+    return {
+        "request_id": request_id,
+        "request_sha256": request_hash,
+        "binding_id": binding_id,
+        "lease_receipt_sha256": normalized["lease_receipt_sha256"],
+        "source": "StegVerse-Labs/TVC:workspace-google-drive-probe",
+        "source_schema": TVC_WORKSPACE_GOOGLE_DRIVE_RESULT_SCHEMA,
+    }
+
+
+def validate_google_drive_tvc_result(value: Mapping[str, Any]) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError("TVC provider result must be an object")
+    result = deepcopy(dict(value))
+    _reject_protected(result)
+    schema = result.get("schema")
+    if schema == TVC_PERSONAL_KV_GOOGLE_DRIVE_RESULT_SCHEMA:
+        return _validate_personal_kv_result(result)
+    if schema == TVC_WORKSPACE_GOOGLE_DRIVE_RESULT_SCHEMA:
+        return _validate_workspace_result(result)
+    raise ValueError("unsupported TVC Google Drive result schema")
 
 
 def google_drive_probe_result_from_tvc(
@@ -111,7 +166,8 @@ def google_drive_probe_result_from_tvc(
             f"tvc:google-drive:{validated['request_id']}:"
             f"{validated['lease_receipt_sha256']}"
         ),
-        "source": "StegVerse-Labs/TVC:personal-kv-google-drive-materialization",
+        "source": validated["source"],
+        "source_schema": validated["source_schema"],
         "provider": "google_drive",
         "provider_request_sha256": validated["request_sha256"],
         "provider_binding_id": validated["binding_id"],
@@ -131,6 +187,8 @@ def google_drive_probe_result_from_tvc(
 
 __all__ = [
     "TVC_PERSONAL_KV_GOOGLE_DRIVE_RESULT_SCHEMA",
+    "TVC_WORKSPACE_GOOGLE_DRIVE_RESULT_SCHEMA",
+    "WORKSPACE_SCOPE",
     "google_drive_probe_result_from_tvc",
     "validate_google_drive_tvc_result",
 ]
