@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/run_elan_manifest_governance_evidence_test.py'
       - 'scripts/run_elan_observed_silence_governance_test.py'
+      - 'scripts/run_compiled_state_governance_matrix_test.py'
       - 'stegverse/local_governance_boundary.py'
       - 'stegverse/local_governance_experiment.py'
       - 'stegverse/public_inspection.py'
@@ -38,8 +39,7 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          p=Path('evidence/elan/2026-09-10-governance-test/15-summary.json')
-          s=json.loads(p.read_text())
+          s=json.loads(Path('evidence/elan/2026-09-10-governance-test/15-summary.json').read_text())
           assert s['boundary_consumed'] is True
           assert s['governance_state'] == 'DENY'
           assert s['governance_reason'] == 'signal.inputs_incomplete'
@@ -60,8 +60,7 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          p=Path('evidence/elan/2026-09-11-observed-silence-test/14-summary.json')
-          s=json.loads(p.read_text())
+          s=json.loads(Path('evidence/elan/2026-09-11-observed-silence-test/14-summary.json').read_text())
           assert s['event_3_representation'] == 'OBSERVABLE_NON_EMISSION_STATE_TRANSITION'
           assert s['event_3_intent'] == 'UNDETERMINED'
           assert s['event_3_semantic_interpretation'] == 'UNRESOLVED'
@@ -76,6 +75,31 @@ jobs:
           assert s['replay_deterministic_match'] is True
           assert s['reconstruction_chain_verified'] is True
           assert s['result_returned'] is True
+          PY
+      - name: Run compiled-state Event 3 matrix
+        env:
+          PYTHONPATH: .
+        run: python scripts/run_compiled_state_governance_matrix_test.py
+      - name: Assert compiled-state terminal distinction
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s=json.loads(Path('evidence/elan/2026-09-11-compiled-state-governance-matrix/03-summary.json').read_text())
+          assert s['upstream_parameters_reinterpreted'] is False
+          no_signal=s['no_signal']
+          silence=s['observed_silence']
+          assert no_signal['event_3']['predecessor_event'] == 2
+          assert no_signal['missing_inputs'] == ['event_3:no_signal']
+          assert no_signal['governance_state'] == 'DENY'
+          assert no_signal['governance_reason'] == 'signal.inputs_incomplete'
+          assert silence['event_3']['predecessor_event'] == 2
+          assert silence['event_3']['state_transition']['from_event'] == 2
+          assert silence['event_3']['state_transition']['to'] == 'NON_EMISSION_OBSERVED'
+          assert silence['event_3']['state_transition']['trigger'] == 'OBSERVATION_WINDOW_CLOSED_WITHOUT_EMISSION'
+          assert silence['missing_inputs'] == []
+          assert silence['governance_state'] == 'ALLOW'
+          assert silence['governance_reason'] == 'ok'
           PY
       - name: Assert controlled comparison
         run: |
@@ -93,6 +117,7 @@ jobs:
         run: |
           find evidence/elan/2026-09-10-governance-test -maxdepth 1 -type f -print -exec sha256sum {} \;
           find evidence/elan/2026-09-11-observed-silence-test -maxdepth 1 -type f -print -exec sha256sum {} \;
+          find evidence/elan/2026-09-11-compiled-state-governance-matrix -maxdepth 1 -type f -print -exec sha256sum {} \;
       - name: Upload baseline evidence artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -104,4 +129,10 @@ jobs:
         with:
           name: elan-local-sdk-governance-observed-silence
           path: evidence/elan/2026-09-11-observed-silence-test/
+          if-no-files-found: error
+      - name: Upload compiled-state matrix evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: elan-compiled-state-governance-matrix
+          path: evidence/elan/2026-09-11-compiled-state-governance-matrix/
           if-no-files-found: error
