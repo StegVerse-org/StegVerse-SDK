@@ -73,7 +73,7 @@ README remains processor-generic and already documents manifested-data processin
 
 ## Current continuation
 
-Create the clean PR from `sdk-compiled-state-governance-matrix-001-r2`; exact-head CI must execute the matrix and retain its evidence artifact. Merge only after exact-head evidence proves NO_SIGNAL -> DENY and OBSERVED_SILENCE_FROM_EVENT_2 -> ALLOW without upstream reinterpretation.
+Clean branch prepared through `06aaca6259b7c3975d32c95e4949fa48eeee6285`; open the clean PR, require exact-head CI to execute the matrix and retain its evidence artifact, then merge only after exact-head evidence proves NO_SIGNAL -> DENY and OBSERVED_SILENCE_FROM_EVENT_2 -> ALLOW without upstream reinterpretation.
 
 ## Manual work
 
