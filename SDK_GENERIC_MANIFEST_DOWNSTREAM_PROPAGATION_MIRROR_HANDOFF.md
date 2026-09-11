@@ -114,6 +114,14 @@ One-device authentic end-to-end execution: NOT PROVEN
 
 Source, CI, merge, or request construction must not be promoted into provider/runtime proof.
 
+## Public surfaces
+
+```text
+canonical public domain: https://stegverse.org/
+current Ecosystem Chat route: https://stegverse.org/ecosystem-chat.html
+dedicated processor-generic public route: NOT YET OBSERVED
+```
+
 ## Public runtime distribution boundary
 
 ```text
