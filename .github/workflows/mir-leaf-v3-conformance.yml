@@ -4,9 +4,12 @@ on:
   pull_request:
     paths:
       - 'fixtures/mir_leaf_v3_conformance_fixture_v1.json'
+      - 'fixtures/mir_leaf_v3_conformance_expected_result_v1.json'
       - 'stegverse/mir_leaf_v3.py'
       - 'tools/mir_leaf_v3_neutral_reproducer.mjs'
+      - 'tools/compare_mir_leaf_v3_result.py'
       - 'tests/test_mir_leaf_v3_conformance.py'
+      - 'tests/test_compare_mir_leaf_v3_result.py'
       - 'docs/MIR_LEAF_V3_CONFORMANCE_FIXTURE_MIRROR_HANDOFF.md'
       - '.github/workflows/mir-leaf-v3-conformance.yml'
   workflow_dispatch:
@@ -27,7 +30,9 @@ jobs:
           node-version: '22'
       - name: Install SDK dependencies
         run: python -m pip install -e .
-      - name: Run StegVerse and neutral conformance tests
-        run: python -m unittest tests.test_mir_leaf_v3_conformance
+      - name: Run conformance and counterpart-comparison tests
+        run: python -m unittest tests.test_mir_leaf_v3_conformance tests.test_compare_mir_leaf_v3_result
       - name: Emit neutral result
-        run: node tools/mir_leaf_v3_neutral_reproducer.mjs fixtures/mir_leaf_v3_conformance_fixture_v1.json
+        run: node tools/mir_leaf_v3_neutral_reproducer.mjs fixtures/mir_leaf_v3_conformance_fixture_v1.json > /tmp/neutral-result.json
+      - name: Compare neutral result to frozen expected vector
+        run: python tools/compare_mir_leaf_v3_result.py /tmp/neutral-result.json
