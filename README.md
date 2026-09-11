@@ -4,6 +4,32 @@ The StegVerse SDK is a public governance experiment and validation environment f
 
 A request, manifest, model output, validation result, receipt, or receipt locator does **not** become execution authority merely because it validates.
 
+## Contents
+
+- [Open testing and governed interoperability](#open-testing-and-governed-interoperability)
+  - [Generic manifested-data processing contract](#generic-manifested-data-processing-contract)
+  - [Generic state-transition evidence](#generic-state-transition-evidence)
+  - [Shared Docs multiparty freeze](#shared-docs-multiparty-freeze)
+  - [Manifest Builder](#manifest-builder)
+  - [Evaluator evidence-report presentation](#evaluator-evidence-report-presentation)
+- [90-second start](#90-second-start)
+- [Run the canonical governed TEST locally](#run-the-canonical-governed-test-locally)
+- [Evaluator-defined manifests, fixed testing route](#evaluator-defined-manifests-fixed-testing-route)
+- [No caller-managed protected runtime credentials](#no-caller-managed-protected-runtime-credentials)
+- [Frozen evaluator validation — T0 / T1-A / T1-B](#frozen-evaluator-validation--t0--t1-a--t1-b)
+- [Replay — option 1](#replay--option-1)
+- [Reconstruction — option 2](#reconstruction--option-2)
+- [Public inspection requests](#public-inspection-requests)
+- [Focused subsystem experiments](#focused-subsystem-experiments)
+- [Self-characterization trajectory lane](#self-characterization-trajectory-lane)
+- [Local model/runtime ownership](#local-modelruntime-ownership)
+- [Core invariants](#core-invariants)
+- [Validate the checkout](#validate-the-checkout)
+- [Repository control files](#repository-control-files)
+- [Active cross-framework current-basis comparison — v0.4](#active-cross-framework-current-basis-comparison--v04)
+
+Supporting docs should link directly to the relevant section above whenever possible so evaluators land on the capability being discussed rather than at a repository root.
+
 ## Open testing and governed interoperability
 
 StegVerse is meant to be inspected, challenged, and used by people and independent systems. Anyone may use the SDK, exercise the published governance lanes, inspect the governing principles and evidence, and reach their own conclusions.
@@ -173,6 +199,24 @@ stegverse governance --select 0B --manifest elan-boundary-manifest.json
 ```
 
 Builder construction and validation are not governance decisions and grant no authority. Source semantic custody remains external, while canonical Master Records custody remains independent of the caller-facing return depth.
+
+### Evaluator evidence-report presentation
+
+Evaluator-facing reports can now use a general Publisher evidence package rather than an SDK-specific renderer. The SDK supplies authentic test inputs and evidence; `GCAT-BCAT-Engine/Publisher` owns the reusable renderer.
+
+A strong report can present the complete path from Manifest Builder through primary result, replay, reconstruction, screenshot walkthrough, evidence ledger, SDK usage instructions, and roadmap while keeping every claim tied to retained references.
+
+Supported presentation formats are PDF, HTML, DOCX, Markdown, and JSON. Format changes presentation, not the evidence basis or authority semantics.
+
+Start with the dedicated guide:
+
+`docs/SDK_EVIDENCE_REPORT_PRESENTATION.md`
+
+The general Publisher contract is:
+
+`GCAT-BCAT-Engine/Publisher/docs/GENERAL_EVIDENCE_REPORT_PIPELINE.md`
+
+Rendering remains non-authorizing and `GENERATED_VALIDATED_NOT_PUBLISHED` until a separate publication process authorizes publication.
 
 ## 90-second start
 
@@ -585,7 +629,6 @@ Full console documentation: `docs/SDK_CONSOLE.md`.
 ## Repository control files
 
 Files matching `*_MIRROR_HANDOFF.md` preserve implementation continuity, validation state, task ownership, supersession, and archive conditions. They are project-control records, not evaluator commands. The public SDK should remain usable from this README plus installed console/help output without a private instruction channel.
-
 
 ## Active cross-framework current-basis comparison — v0.4
 
