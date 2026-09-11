@@ -15,7 +15,7 @@ GitHub runtime authority: NONE
 coordination_state: DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING
 ```
 
-This handoff is the current root source of truth for processor-generic downstream propagation, public governed-runtime distribution remediation, and coordination with the WorkSpace continuation handoff at `docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md`.
+This handoff is the current root source of truth for processor-generic downstream propagation, public governed-runtime distribution remediation, and the WorkSpace continuation at `docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md`.
 
 ## Canonical processor-generic semantics
 
@@ -35,19 +35,31 @@ Current executable processor remains governance on `stegverse.route.canonical-go
 
 ```text
 Generic manifest package PR #138: MERGED
-State-transition evidence PR #174: MERGED
-Canonical ingress -> external Interlock binding PR #176: MERGED
-Collision-prevention coordination PR #178: MERGED
-Provider-neutral WorkSpace resource consumer PR #179: MERGED
-PR #179 merge: 07ceb1f131dd8fd27b3b8c89ab747e58aa55e55c
-PR #179 exact validated head: 7a98cf776b13d90794cc330762bfd25761b8f501
-Manifest Builder Source Validation 34545309589: PASS
-SDK Package Artifact Validation 34545309554: PASS
+State-transition evidence PR #174: MERGED at ee8f7023d74d70fa762e3982776c27c1e372a1f7
+Canonical ingress -> external Interlock binding PR #176: MERGED at 7047e67d21173e800f78d4468519dba87992b16d
+Collision-prevention coordination PR #178: MERGED at 8a2dfe07294daacaa5d44d4777e94def182d8d78
+Provider-neutral WorkSpace resource consumer PR #179: MERGED at 07ceb1f131dd8fd27b3b8c89ab747e58aa55e55c
+Organization generic endpoint dispatch PR StegVerse-org/.github#9: MERGED at d8baefb8674ebed00bbbf9784c54e092a5b1a04d
+Organization-local WorkSpace endpoint binding PR StegVerse-org/.github#10: MERGED at b851996afc5c5323d0d0db970dd46e511bd36338
+Provider-neutral active probe execution PR #181: MERGED at 5c8a3c0246a0ae48e498c10f85d9eee0a2d1ba2c
 ```
 
-The WorkSpace consumer now supports bounded `OBSERVE`, `MATERIALIZE`, `REFRESH`, `REVOKE`, `EXPIRE`, and `DESTROY` source behavior. `MATERIALIZE` and `REFRESH` fail closed unless transition readiness is `READY`; teardown operations remain available if readiness becomes `PROBE_REQUIRED`. Provider hooks remain evidence-only and confer no governance, InTr receipt, MIR custody, or Master Records custody authority.
+Validation evidence for the two newest units:
 
-This is source/CI evidence only. Shared Docs live synchronization, StegOS/StegNode ephemeral projection runtime, MIR transition reporting, Master Records authentic custody/reconstruction, expiry/revocation runtime enforcement, and one-device end-to-end execution remain unproven.
+```text
+StegVerse-org/.github#10 exact head 7fb6783ec7bbfbdc249dfdba45b7c454ae0beed4
+WorkSpace Internal Endpoint Binding Validation 34545811959: PASS
+Internal Endpoint Dispatch Validation 34545811830: PASS
+
+SDK #181 code head 9c2153ef9ecd14d4985ea697bcc2e326b58faa31
+WorkSpace Active Probe Validation 34545991378: PASS
+Manifest Builder Source Validation 34545991321: PASS
+SDK Package Artifact Validation 34545991339: PASS
+```
+
+The organization registry now exposes `stegverse-org.workspace-resource-consumer` as a generic `INTERNAL_ENDPOINT`. Its local adapter delegates to the installed canonical SDK WorkSpace consumer instead of duplicating projection semantics. `MATERIALIZE`/`REFRESH` may now use a runtime-supplied active probe executor when represented state is `PROBE_REQUIRED`; probe results must bind the exact derived reason, carry current evidence metadata, remain `authority_effect: NONE`, and readiness is re-derived by the canonical state-transition normalizer. Caller assertions cannot directly turn `PROBE_REQUIRED` into `READY`.
+
+This remains source/CI evidence only. Authentic provider access, live synchronization, StegOS/StegNode projection runtime, MIR reporting, Master Records custody/reconstruction, expiry/revocation runtime enforcement, and one-device end-to-end execution remain unproven.
 
 ## Public runtime distribution boundary
 
@@ -68,39 +80,14 @@ Actual SDK 1.3.0 release still requires TV/TVC release authorization, required S
 
 ## Downstream ownership and collision prevention
 
-### StegVerse-Labs/Site
-
 ```text
-pertinent: YES
-current repository state: OBSERVED_BLOCKED
-external_tasks_allowed: false
-external_session_ownership_allowed: false
-current machine blocker: SITE-0001-COHERENT-TRANSITION-THRESHOLD-ACTIVATION
-completion predicate: FALSE
-```
-
-Site Conectrr contamination is resolved. Site remains machine-owned; external sessions must not duplicate or collide with that work.
-
-### StegVerse-Labs/admissibility-wiki
-
-```text
-pertinent: YES
-implementation owner: Worker D / issue #65
-coordinator: issue #66
-worker transition observed: false
-completion predicate: FALSE
-```
-
-Do not duplicate Worker D implementation.
-
-### Other downstream repositories
-
-```text
+StegVerse-Labs/Site: REQUIRED / MACHINE_OWNED / completion FALSE
+StegVerse-Labs/admissibility-wiki: REQUIRED / Worker D OWNED / completion FALSE
 GCAT-BCAT-Engine/Publisher: NO_DIRECT_CONTRACT_CHANGE
 StegVerse-002/stegguardian-wiki: NO_DIRECT_CONTRACT_CHANGE
 ```
 
-Canonical collision rule: a narrower/coincident session whose remaining scope is owned by a broader/global task must first transfer unique evidence, then transition to `INACTIVE`, identify the controlling Global Task ID and Handoff Task ID, and stop progressing overlapping work unless ownership is explicitly transferred back.
+Site Conectrr contamination remains resolved. External sessions must not duplicate Site or Worker D-owned implementation. Canonical collision rule: a narrower/coincident session whose remaining scope is owned by a broader/global task must transfer unique evidence, transition to `INACTIVE`, identify the controlling Global Task ID and Handoff Task ID, and stop progressing overlap unless ownership is explicitly transferred back.
 
 ## Public surfaces
 
@@ -112,13 +99,13 @@ dedicated processor-generic route: NOT YET OBSERVED
 
 ## Next executable sequence
 
-The next WorkSpace source target is no longer consumer implementation. It is organization-local binding:
-
-1. Read `StegVerse-org/.github:docs/ORG_FEDERATION_GENERIC_ENDPOINT_ADAPTER_MIRROR_HANDOFF.md` and reconcile current ownership before changes.
-2. Bind the merged provider-neutral WorkSpace consumer into the registry-declared organization-local `INTERNAL_ENDPOINT` adapter slot without inventing a Shared Docs-specific universal schema.
-3. Validate endpoint selection, organization-root containment, fail-closed unsupported routing, and non-authorizing behavior.
-4. Add active probe execution so `PROBE_REQUIRED` can be resolved by authentic current evidence rather than caller assertion.
-5. Only later bind authentic external-provider access and execute the controlled live lifecycle experiment.
+1. Reconcile canonical COSV/task evidence for the merged organization-local WorkSpace binding and active-probe unit.
+2. Search the ecosystem for an existing provider-specific Shared Docs/Drive adapter before creating another provider authority path.
+3. If no suitable provider adapter exists, create the narrow provider binding without adding a provider-specific universal manifest class or weakening active-probe evidence rules.
+4. Execute authentic provider-backed `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY` transitions once provider access is explicitly available.
+5. Retain MIR transition reporting and independent Master Records custody/reconstruction evidence.
+6. Verify the complete path on one current mobile device.
+7. Continue observing Site/Worker D and public-runtime publication dependencies without colliding with their owners.
 
 ## Current status
 
@@ -126,16 +113,13 @@ The next WorkSpace source target is no longer consumer implementation. It is org
 SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE
 coordination state: DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING
 provider-neutral WorkSpace consumer: IMPLEMENTED / VALIDATED / MERGED
-organization-local WorkSpace consumer binding: PENDING
-active probe execution: PENDING
+organization-local WorkSpace consumer binding: IMPLEMENTED / VALIDATED / MERGED
+active probe execution: IMPLEMENTED / VALIDATED / MERGED
+authentic provider probe: NOT PROVEN
 Site completion predicate: FALSE / MACHINE_OWNED
 admissibility completion predicate: FALSE / WORKER_OWNED
 propagation complete: FALSE
 manual user work: NONE
 ```
 
-README review remains current. The merged WorkSpace source unit did not introduce a new public processing capability identifier, universal ingress class, runtime route, or user-facing WorkSpace surface. README must be updated when such an externally observable capability/surface is introduced.
-
-## Session boundary
-
-Goal Prompt Count 12 is a clean handoff point. Continue this same ACTIVE goal in a new ChatGPT session from the organization-local endpoint binding sequence above; do not open or progress a coincident implementation session for that binding unless canonical ownership is explicitly separated.
+README review remains current. These source units do not introduce a new public processing capability identifier, universal ingress class, CLI/runtime route, or user-facing WorkSpace product surface. README must be changed when an externally observable WorkSpace/provider surface is introduced.
