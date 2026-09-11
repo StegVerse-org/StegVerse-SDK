@@ -5,7 +5,7 @@ Organization: `StegVerse-org`
 Repository: `StegVerse-SDK`
 Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
-Status: `ACTIVE / EXTERNAL-COLLAB PROVIDER PROBE SOURCE CHAIN MERGED / AUTHENTIC OWNER-PRESENT EXECUTION NEXT`
+Status: `ACTIVE / ONE-DEVICE EXTERNAL-COLLAB CONSENT SOURCE MERGED / PURPOSE-SPECIFIC CLIENT-SECRET CUSTODY + RESIDENT REACHABILITY NEXT`
 
 ## Canonical architecture
 
@@ -18,8 +18,11 @@ source-native external resource observation
   -> registry-selected INTERNAL_ENDPOINT
   -> provider-neutral WorkSpace resource consumer
   -> runtime-supplied active probe executor when PROBE_REQUIRED
-  -> TVC external-collaboration consent/session
-  -> distinct TV/TVC/SKAP custody + vault ref
+  -> TVC one-device external-collaboration owner-consent surface
+       -> purpose-specific Google OAuth client-secret SKAP use boundary
+       -> provider-native authorization-code exchange
+       -> external-collaboration refresh/session custody
+       -> dedicated resident vault ref/provider slot
   -> exact provider-file metadata probe with durable pre-provider replay consumption
   -> SDK secret-free TVC evidence bridge
   -> active-probe engine re-derives readiness from complete predicate state
@@ -30,6 +33,7 @@ Canonical external-resource rules:
 ```text
 technical token reach != consent authority
 Personal-KV consent != external-collaboration consent
+Personal-KV OAuth client-secret seal purpose != external-collaboration OAuth client-secret seal purpose
 KV _System/Workspace/** observation != authoritative external Shared Doc proof
 TVC/provider/broker evidence != readiness authority
 ```
@@ -51,6 +55,7 @@ TVC/provider/broker evidence != readiness authority
 - stegfin-governance PR #96 — exact external-file metadata probe broker extension with durable pre-provider replay consumption — merged `66c1abbcc74a0a53fe6436b1fa003759acacaad6`; validations `34551171043`, `34551171019`, `34551171073`, `34551171066` PASS.
 - TVC PR #385 — exact external-file probe lease/runtime — merged `4a3cc09dc5e85c051b9820dd83f6b2373e6316a7`; validation `34551154748` PASS.
 - SDK PR #186 — external-collaboration TVC result bridge support — merged `f2f9a7f385477c8096a50fc223333240060e0a2f`; validations `34551543442`, `34551543443`, `34551543452`, `34551543495` PASS.
+- TVC PR #390 — one-current-device external-collaboration Google owner-consent activation composition plus distinct external-collaboration OAuth client-secret use boundary — merged `4c6df450b5a5925f74672e273d64b87d3e459808`; exact final head `8eb3ccf4af5335b723e5ba06d85e54596443578c` passed External Collaboration Google Drive One-Device Activation Validation `34552694050` and TVC Credential Model Consistency Validation `34552694044`.
 
 TVC PR #382 and stegfin-governance PR #94 remain intentionally closed/unmerged after authority reconciliation. TVC PR #380 is also closed/unmerged as superseded by the distinct external-collaboration chain.
 
@@ -59,13 +64,20 @@ TVC PR #382 and stegfin-governance PR #94 remain intentionally closed/unmerged a
 Credential class: `TVC-EXTERNAL-COLLAB-GOOGLE-DRIVE-OWNER-SESSION-001`  
 Purpose: `EXTERNAL_COLLABORATIVE_RESOURCE_READ_ONLY`  
 OAuth state purpose prefix: `extcollab.*`  
+Canonical callback: `https://stegverse.org/tvc/google-drive/external-collaboration/callback`  
+OAuth client-secret SKAP purpose: `google_drive.external_collaboration.client_secret`  
 Session schema: `stegverse.tvc.google-drive-external-collaboration-access-session/v1`  
+Refresh SKAP purpose: `google_drive.external_collaboration.refresh`  
 Vault ref: `vault://tvc/providers/google-drive/external-collaboration-session`  
 Provider key: `google_drive_external_collaboration`  
 Operation: `external_collaboration_resource_probe`  
 WorkSpace binding: `wsprobe_*`  
 TVC result: `stegverse.tvc.external-collaboration-google-drive-probe-result/v1`  
 Broker observation: `stegverse.tvc.google-drive-external-collaboration-metadata-probe/v1`
+
+The one-device activation composition exposes only a Google authorization URL and secret-free begin/completion receipts. It explicitly reports `second_user_operated_device_required=false`. Provider callback code, OAuth client secret, access token, refresh token, and broker session remain transient inside TV/TVC and are not returned to the browser.
+
+Inspection during PR #390 found the pre-existing Google client-secret adapter is purpose-bound to `google_drive.personal_kv.client_secret` and explicitly rejects purpose drift. PR #390 therefore added a distinct external-collaboration client-secret use adapter instead of silently reusing the Personal-KV SKAP object. The provider-native Google OAuth transport implementation itself remains shared.
 
 The probe binds the exact provider file ID and active-probe reason, is single-use with lease duration <=300 seconds, performs metadata GET only, downloads no document content, exports no credential material, grants no provider mutation authority, and does not assign readiness. Durable replay is recorded before provider invocation so failed or uncertain provider calls cannot reuse the same lease after restart.
 
@@ -79,14 +91,18 @@ SDK PR #186 validates the exact external result/broker schemas, `wsprobe_*`, pro
 Generic ingress + Interlock binding: IMPLEMENTED / VALIDATED / MERGED
 Generic WorkSpace consumer + org endpoint: IMPLEMENTED / VALIDATED / MERGED
 Active-probe execution: IMPLEMENTED / VALIDATED / MERGED
-Personal-KV WorkSpace probe: IMPLEMENTED / VALIDATED / MERGED / KV-SCOPED ONLY
 External-collaboration consent/session class: IMPLEMENTED / VALIDATED / MERGED
-External-collaboration SKAP refresh/session custody: IMPLEMENTED / VALIDATED / MERGED
+External-collaboration refresh/session custody source: IMPLEMENTED / VALIDATED / MERGED
 External-collaboration vault-agent ref/provider slot: IMPLEMENTED / VALIDATED / MERGED
 Exact external-file TVC lease/runtime: IMPLEMENTED / VALIDATED / MERGED
 Exact external-file durable broker operation: IMPLEMENTED / VALIDATED / MERGED
 SDK external-collaboration provider-result bridge: IMPLEMENTED / VALIDATED / MERGED
+One-device owner-consent begin/callback composition source: IMPLEMENTED / VALIDATED / MERGED
+External-collaboration OAuth client-secret use source: IMPLEMENTED / VALIDATED / MERGED
+Authentic external-collaboration OAuth client-secret SKAP ciphertext custody: NOT PROVEN
+Authentic resident/reachable canonical callback route: NOT PROVEN
 Authentic owner-present external-collaboration consent: NOT PROVEN
+Authentic active external-collaboration session: NOT PROVEN
 Authentic authoritative provider-file probe: NOT PROVEN
 Shared Docs live synchronization/content refresh: NOT PROVEN
 MIR transition reporting: NOT PROVEN
@@ -98,17 +114,18 @@ Source/CI/merge must not be promoted into provider runtime proof.
 
 ## README review
 
-`README.md` remains accurate for this source chain. The SDK remains a non-authorizing client/integration surface rather than credential, transport, or final-governance authority. README must be updated when an externally observable Shared Docs/WorkSpace workflow is introduced.
+`README.md` remains accurate for this source chain. The SDK remains a non-authorizing client/integration surface rather than credential, transport, or final-governance authority. TVC README review in PR #390 found no public README change was required while the route remains source-only; TVC README must change when the begin/callback becomes authentically deployed/reachable as a user-facing workflow.
 
 ## Next executable sequence
 
-1. Determine whether a correctly scoped external-collaboration Google owner session is already authentically active.
-2. If no such session exists, execute owner-present consent through the distinct external-collaboration controller on the current device.
-3. Execute one authentic exact provider-file metadata probe through the merged TVC lease/runtime and durable broker and retain the secret-free result/use receipt.
-4. Feed the exact result through the SDK bridge and active-probe engine; verify `PROBE_REQUIRED -> READY` only when the named unresolved predicate is actually satisfied and no other applicable predicate remains unresolved.
-5. Continue `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY` using the authoritative external resource, not a KV substitute.
-6. Retain MIR reporting, independent Master Records custody/reconstruction, and one-current-device evidence.
+1. Inspect resident evidence for a sealed Google OAuth client-secret object with exact purpose `google_drive.external_collaboration.client_secret`. Do not infer it from the existing Personal-KV-purpose object.
+2. If absent, establish a TV/TVC-authorized purpose-specific SKAP custody transition for the Google OAuth application credential without exposing plaintext to chat, GitHub, browser storage, argv, or ordinary environment variables.
+3. Materialize the merged one-device activation composition on the resident TV/TVC boundary and bind the canonical StegVerse HTTPS callback.
+4. Only after client-secret custody and callback reachability are proven, initiate owner-present Google consent on the current iPhone.
+5. Execute one authentic exact provider-file metadata probe and retain the secret-free TVC result plus durable broker use receipt.
+6. Feed the exact result through the SDK bridge and active-probe engine; verify `PROBE_REQUIRED -> READY` only when the named unresolved predicate is actually satisfied and no other applicable predicate remains unresolved.
+7. Continue `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY` using the authoritative external resource, retaining MIR reporting, independent Master Records custody/reconstruction, and one-current-device evidence.
 
 ## Human action
 
-None for source/handoff reconciliation. Owner-present Google authorization is required only if no correctly scoped external-collaboration session already exists when authentic provider execution begins.
+None yet. Do not initiate Google consent until the purpose-specific external-collaboration OAuth client-secret custody and resident callback reachability are authentically proven ready.
