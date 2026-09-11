@@ -45,7 +45,13 @@ The single-lane experiment consumes those parameters and must not reach backward
 
 Current clean implementation branch: `sdk-compiled-state-governance-matrix-001-r2`, rebuilt from current `main` after the earlier branch was found to be 72 commits behind.
 
-Current implementation head: `9b0f4fa916453eb61465e1c464b81df87d35742f`.
+Implementation sequence on the clean branch:
+
+```text
+fffcb8b9daca3f8483d286b61698639b3cc84409  matrix script + handoff materialized on current main
+c58dd34ffec18a2db1d05913addb0734c6f8e716  CI updated to execute compiled-state matrix
+9b0f4fa916453eb61465e1c464b81df87d35742f  Event 3 silence assertions tightened to exact Event 2 transition
+```
 
 Files:
 
