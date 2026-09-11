@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/run_elan_manifest_governance_evidence_test.py'
+      - 'scripts/run_elan_observed_silence_governance_test.py'
       - 'stegverse/local_governance_boundary.py'
       - 'stegverse/local_governance_experiment.py'
       - 'stegverse/public_inspection.py'
@@ -28,11 +29,11 @@ jobs:
         env:
           PYTHONPATH: .
         run: python -m pytest -q tests/test_local_governance_boundary.py tests/test_intr_posture_runtime_bridge.py tests/test_evaluator_manifest_builder.py
-      - name: Run ELAN local SDK through governance experiment
+      - name: Run baseline ELAN local SDK governance experiment
         env:
           PYTHONPATH: .
         run: python scripts/run_elan_manifest_governance_evidence_test.py
-      - name: Assert governance path evidence
+      - name: Assert baseline missing-input evidence
         run: |
           python - <<'PY'
           import json
@@ -50,12 +51,57 @@ jobs:
           assert s['reconstruction_chain_verified'] is True
           assert s['result_returned'] is True
           PY
+      - name: Run observed-silence ELAN local SDK governance experiment
+        env:
+          PYTHONPATH: .
+        run: python scripts/run_elan_observed_silence_governance_test.py
+      - name: Assert observed silence is admitted as state
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('evidence/elan/2026-09-11-observed-silence-test/14-summary.json')
+          s=json.loads(p.read_text())
+          assert s['event_3_representation'] == 'OBSERVABLE_NON_EMISSION_STATE_TRANSITION'
+          assert s['event_3_intent'] == 'UNDETERMINED'
+          assert s['event_3_semantic_interpretation'] == 'UNRESOLVED'
+          assert s['event_3_in_missing_inputs'] is False
+          assert s['boundary_consumed'] is True
+          assert s['governance_state'] == 'ALLOW'
+          assert s['governance_reason'] == 'ok'
+          assert s['executor_invoked'] is True
+          assert s['route_transition_count'] == 10
+          assert s['chain_verified'] is True
+          assert s['custody_status'] == 'RECORDED'
+          assert s['replay_deterministic_match'] is True
+          assert s['reconstruction_chain_verified'] is True
+          assert s['result_returned'] is True
+          PY
+      - name: Assert controlled comparison
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          baseline=json.loads(Path('evidence/elan/2026-09-10-governance-test/15-summary.json').read_text())
+          silence=json.loads(Path('evidence/elan/2026-09-11-observed-silence-test/14-summary.json').read_text())
+          assert baseline['governance_state'] == 'DENY'
+          assert baseline['governance_reason'] == 'signal.inputs_incomplete'
+          assert silence['governance_state'] == 'ALLOW'
+          assert silence['governance_reason'] == 'ok'
+          PY
       - name: Inventory evidence artifacts
         run: |
           find evidence/elan/2026-09-10-governance-test -maxdepth 1 -type f -print -exec sha256sum {} \;
-      - name: Upload evidence artifacts
+          find evidence/elan/2026-09-11-observed-silence-test -maxdepth 1 -type f -print -exec sha256sum {} \;
+      - name: Upload baseline evidence artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: elan-local-sdk-governance-experiment
+          name: elan-local-sdk-governance-baseline
           path: evidence/elan/2026-09-10-governance-test/
+          if-no-files-found: error
+      - name: Upload observed-silence evidence artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: elan-local-sdk-governance-observed-silence
+          path: evidence/elan/2026-09-11-observed-silence-test/
           if-no-files-found: error
