@@ -5,7 +5,7 @@ Organization: `StegVerse-org`
 Repository: `StegVerse-SDK`
 Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
-Status: `ACTIVE / CONSENT SOURCE CANONICALLY RECONCILED / CLIENT-SECRET RESEAL SOURCE MERGED / AUTHENTIC RESIDENT EXECUTION NEXT`
+Status: `ACTIVE / CONSENT + RESEAL SOURCE RECONCILED / SDK VALIDATION PASS / AUTHENTIC RESIDENT EXECUTION NEXT`
 
 ## Canonical architecture
 
@@ -60,6 +60,7 @@ source/CI/merge != authentic resident execution
 - TVC PR #395 — reconciled later HTTP/listener/public-route layers back to PR #390 authority, removed Personal-KV client-secret adapter reuse, fixed the canonical callback path, and made callback/begin/health query handling fail closed — merged `7451550d2d0506a5c091853805db22ad5211fd1b`; final validation `34553560515` PASS.
 - Service Gateway machine owner `StegVerse-org/LLM-adapter#72` transfer comment `5628280311` was corrected to the PR #390 callback/purpose after #395 merged; no competing Gateway branch was opened from this lane.
 - TVC PR #397 — resident-only purpose-to-purpose SKAP reseal from an existing Personal-KV Google client-secret ciphertext into `google_drive.external_collaboration.client_secret`, with no plaintext CLI/environment input and no source ciphertext mutation — merged `15f2e1afc9bb65d506241f3c9f0a4ce4bec1f46c`; final validation `34553843142` PASS.
+- SDK PR #188 reconciles this handoff and canonical task record with TVC #395/#397. Exact reconciliation head `c7b23897c144710aa4bce4767868d624fcf50d82` passed Generic Manifest Downstream Contract `34554036793`, Manifest Builder Source `34554036710`, WorkSpace TVC Provider Probe Bridge `34554036705`, and WorkSpace Active Probe `34554036706`.
 
 TVC PR #382 and stegfin-governance PR #94 remain intentionally closed/unmerged after authority reconciliation. TVC PR #380 remains closed/unmerged as superseded by the distinct external-collaboration chain.
 
@@ -84,7 +85,7 @@ The browser-facing owner-presence surface exposes only a Google authorization UR
 
 ## Purpose-specific client-secret custody transition
 
-PR #397 resolves the source gap without broadening consent authority. The existing Personal-KV sealed object cannot simply be relabeled because purpose is part of the cryptographic AAD. The new resident-only transition therefore performs:
+PR #397 resolves the source gap without broadening consent authority. The existing Personal-KV sealed object cannot simply be relabeled because purpose is part of the cryptographic AAD. The resident-only transition performs:
 
 ```text
 existing Personal-KV custody receipt
@@ -119,6 +120,7 @@ One-device owner-consent activation source: IMPLEMENTED / VALIDATED / MERGED
 External-collaboration OAuth client-secret use source: IMPLEMENTED / VALIDATED / MERGED
 Canonical HTTP/listener/route reconciliation: IMPLEMENTED / VALIDATED / MERGED
 Purpose-specific client-secret reseal source: IMPLEMENTED / VALIDATED / MERGED
+SDK canonical-record reconciliation: VALIDATED / MERGE PENDING
 Authentic Personal-KV source client-secret ciphertext available on resident: NOT PROVEN
 Authentic resident-seal liveness for reseal execution: NOT PROVEN
 Authentic external-collaboration client-secret SKAP ciphertext custody: NOT PROVEN
@@ -154,15 +156,16 @@ CMC-029 WebPKI HTTP-01 remains the sovereign `stegverse.org` TLS path. Cloudflar
 
 ## Next executable sequence
 
-1. On the existing authorized TVC resident lane, observe whether the target external-collaboration client-secret custody receipt already exists. If it exists, validate it rather than overwriting it.
-2. If the target is absent, verify the existing Personal-KV source custody receipt and current resident-seal liveness, then execute the merged PR #397 reseal exactly once. Retain the secret-free reseal receipt and exact target custody/readback evidence.
-3. Prove `GoogleDriveExternalCollaborationClientSecretUse` can resolve the new target only inside its bounded callback without plaintext export.
-4. Install/start the merged resident consent listener on `127.0.0.1:8786` through the existing TVC resident execution owner and retain health evidence.
-5. Let machine-owned Service Gateway #72 implement the corrected three-route contract; do not create a competing Gateway. Use CMC-029 for the sovereign `stegverse.org` certificate and independently verify public HTTPS reachability.
-6. Only after client-secret custody and callback reachability are proven, initiate owner-present Google consent on the current iPhone.
-7. Execute one authentic exact provider-file metadata probe and retain the secret-free TVC result plus durable broker-use receipt.
-8. Feed the exact result through SDK #186 and the active-probe engine; verify `PROBE_REQUIRED -> READY` only when the named unresolved predicate is actually satisfied and no other applicable predicate remains unresolved.
-9. Continue `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY`, retaining MIR reporting, independent Master Records custody/reconstruction, and one-current-device evidence.
+1. Merge SDK PR #188 only if this handoff-bearing head remains green.
+2. On the existing authorized TVC resident lane, observe whether the target external-collaboration client-secret custody receipt already exists. If it exists, validate it rather than overwriting it.
+3. If the target is absent, verify the existing Personal-KV source custody receipt and current resident-seal liveness, then execute the merged PR #397 reseal exactly once. Retain the secret-free reseal receipt and exact target custody/readback evidence.
+4. Prove `GoogleDriveExternalCollaborationClientSecretUse` can resolve the new target only inside its bounded callback without plaintext export.
+5. Install/start the merged resident consent listener on `127.0.0.1:8786` through the existing TVC resident execution owner and retain health evidence.
+6. Let machine-owned Service Gateway #72 implement the corrected three-route contract; do not create a competing Gateway. Use CMC-029 for the sovereign `stegverse.org` certificate and independently verify public HTTPS reachability.
+7. Only after client-secret custody and callback reachability are proven, initiate owner-present Google consent on the current iPhone.
+8. Execute one authentic exact provider-file metadata probe and retain the secret-free TVC result plus durable broker-use receipt.
+9. Feed the exact result through SDK #186 and the active-probe engine; verify `PROBE_REQUIRED -> READY` only when the named unresolved predicate is actually satisfied and no other applicable predicate remains unresolved.
+10. Continue `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY`, retaining MIR reporting, independent Master Records custody/reconstruction, and one-current-device evidence.
 
 ## Human action
 
