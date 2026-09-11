@@ -5,7 +5,7 @@ Organization: `StegVerse-org`
 Repository: `StegVerse-SDK`
 Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
-Status: `ACTIVE / SOURCE + PROOF CONTRACT RECONCILED / AUTHENTIC RESIDENT EXECUTION NEXT`
+Status: `ACTIVE / RESIDENT RESEAL + CONSENT-LISTENER REQUESTS MERGED / AUTHENTIC RESIDENT CONSUMPTION NEXT`
 
 ## Canonical architecture
 
@@ -62,9 +62,12 @@ source/CI/merge != authentic resident execution
 - TVC #396 exact sovereign InTr carrier for the purpose-specific external-collaboration client-secret ingress — merged `bff7bbbb58bb474cbe44e148b2061a14351de84e`.
 - TVC #397 resident-only purpose-to-purpose client-secret reseal into `google_drive.external_collaboration.client_secret` — merged `15f2e1afc9bb65d506241f3c9f0a4ce4bec1f46c`.
 - Service Gateway owner `StegVerse-org/LLM-adapter#72` canonical transfer comment `5628280311` corrected to the PR #390 callback/purpose; no competing Gateway branch is authorized from this lane.
+- StegVerse-Labs/.github #1370 resident reseal request/consumer + canonical dispatcher binding — merged `de09dcb3f74c19e3f891704f4db33db915ee61c6`.
+- StegVerse-Labs/.github #1382 resident consent-listener installation/health request + consumer + canonical dispatcher binding — merged `f791bf2fa3eacfcdf7e9459916eec991293eb2c1`; exact final source head `fa560f09e7003b3a9d16e73c1390335c9dc726a1` passed listener `34558002459`, organization-control `34558002391`, Heartbeat `34558002427`, reseal regression `34558002497`, deterministic suite `34558002382`, cross-framework `34558002425`, and DeepSeek `34558002480`.
 - SDK #188 WorkSpace external-collaboration consent/reseal reconciliation — MERGED.
 - SDK #189 authentic external-collaboration runtime proof contract — MERGED at `ce67583e6e42eced35716f8460176f6c9e892f66`; exact-head validation runs `34554329799`, `34554329833`, `34554329801` PASS.
 - SDK #190 root-handoff reconciliation of runtime proof gate/current machine-owned lanes — MERGED.
+- SDK #193 later canonical reconciliation — MERGED `f5348c4de881ac8c66cb9b59b3fc0d6911266ad2`.
 
 TVC #380/#382 and stegfin-governance #94 remain intentionally closed/unmerged where their earlier Personal-KV reuse premise conflicted with the canonical external-collaboration boundary.
 
@@ -92,6 +95,7 @@ Two source-complete paths exist; runtime state selects one and must not duplicat
 ```text
 A. existing authentic Personal-KV ciphertext + current resident seal
    -> PR #397 resident-only purpose reseal
+   -> .github #1370 exact resident request/consumer
    -> external-collaboration target ciphertext + custody receipt
 
 B. no admissible reusable source custody
@@ -101,6 +105,25 @@ B. no admissible reusable source custody
 ```
 
 Neither source path proves authentic target custody until executed on the authorized resident and independently read back/validated.
+
+## Resident consent-listener path
+
+The TVC listener source remains exact loopback `127.0.0.1:8786`. `.github #1382` now supplies an independent bounded resident request/consumer that:
+
+- pins `scripts/install_external_collab_google_drive_consent_service.py` by Git blob `dae00dbec1a79d611a3184e185e04e6f29110348`;
+- carries only `STEGVERSE_GOOGLE_DRIVE_CLIENT_ID`, `STEGVERSE_OWNER_BINDING_DIGEST`, and `STEGVERSE_STEGFIN_SOURCE_ROOT` as non-secret inputs;
+- recognizes an already-healthy exact listener before installation;
+- requires TVC resident root authority for installation;
+- accepts completion only after exact loopback health reports the external-collaboration purpose and no credential/provider-contact/runtime-activation claim;
+- grants no public HTTPS, Gateway, Google-consent, provider, credential, GitHub-token, HeartBeat, signing, broadcast, or readiness authority.
+
+Expected resident receipt:
+
+```text
+receipts/sovereign-host/sdk-workspace-external-collab-consent-listener.latest.json
+```
+
+As of this reconciliation, that receipt was not observed in repository evidence or connected retained Drive evidence, so authentic listener installation/health remains unproven.
 
 ## Authentic runtime proof contract
 
@@ -115,10 +138,14 @@ Generic ingress/Interlock/WorkSpace/active-probe chain: IMPLEMENTED / VALIDATED 
 Dedicated external-collaboration consent/session/custody/probe source chain: IMPLEMENTED / VALIDATED / MERGED
 Purpose-specific client-secret ingress + sovereign InTr carrier: IMPLEMENTED / VALIDATED / MERGED
 Purpose-specific resident reseal source: IMPLEMENTED / VALIDATED / MERGED
+Resident reseal dispatcher request/consumer: IMPLEMENTED / VALIDATED / MERGED
+Resident consent-listener installer request/consumer: IMPLEMENTED / VALIDATED / MERGED
 Authentic runtime proof contract: IMPLEMENTED / VALIDATED / MERGED
 Authentic external-collaboration client-secret SKAP ciphertext custody: NOT PROVEN
 Authentic source Personal-KV custody + resident-seal liveness for reseal: NOT PROVEN
+Authentic reseal resident consumption receipt: NOT OBSERVED
 Authentic purpose-specific InTr ingress execution: NOT PROVEN
+Authentic consent-listener resident consumption receipt: NOT OBSERVED
 Authentic resident consent listener installation/health on 127.0.0.1:8786: NOT PROVEN
 Authentic public stegverse.org callback route / CMC-029 TLS: NOT PROVEN
 Authentic owner-present external-collaboration consent: NOT PROVEN
@@ -135,7 +162,7 @@ One-device end-to-end proof: NOT PROVEN
 Do not compete with current machine-owned owners:
 
 - `StegVerse-org/LLM-adapter#72` — sovereign Service Gateway/native TLS path and corrected three-route consent contract.
-- `StegVerse-Labs/.github#1370` — current applicable resident/coordinator execution lane recorded by the root handoff.
+- `StegVerse-Labs/.github` canonical resident dispatcher — selectors `sdk_workspace_external_collab_client_secret_reseal` and `sdk_workspace_external_collab_consent_listener` are now merged source requests awaiting authentic resident consumption.
 - TVC runtime owners consuming the already-merged source units; no second resident runtime should be created.
 
 Exact public route contract remains:
@@ -151,15 +178,14 @@ CMC-029 WebPKI HTTP-01 remains the sovereign `stegverse.org` TLS path. Cloudflar
 
 ## Next executable sequence
 
-1. On the existing authorized TVC resident, observe whether target `google_drive.external_collaboration.client_secret` custody already exists and validate rather than overwrite it.
-2. If absent, choose exactly one admissible custody transition based on observed state: PR #397 reseal when authentic Personal-KV source custody + resident-seal liveness exist; otherwise PR #394/#396 purpose-specific ingress.
-3. Retain secret-free custody/transition receipts and exact target readback/use evidence.
-4. Install/start the merged consent listener on `127.0.0.1:8786` through the existing resident execution owner and retain authentic health evidence.
-5. Let machine-owned Service Gateway #72 implement the exact three-route contract and CMC-029 TLS path; independently verify public reachability with no callback-query leakage.
-6. Only after custody and callback reachability are proven, execute owner-present Google consent on the current iPhone.
-7. Execute one authentic exact provider-file metadata probe and retain the secret-free TVC result plus durable broker-use receipt.
-8. Feed the exact result through the SDK bridge/active-probe engine and verify readiness changes only after complete applicable-predicate evaluation.
-9. Continue `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY`, retaining MIR, Master Records reconstruction, and one-current-device evidence.
+1. Observe the existing sovereign resident dispatcher consume `sdk_workspace_external_collab_client_secret_reseal` and `sdk_workspace_external_collab_consent_listener`; do not create hosted substitutes or duplicate runtimes.
+2. For reseal: if `TARGET_ALREADY_PRESENT`, validate exact target custody/readback without overwrite; if `BLOCKED`, remediate only the exact canonical prerequisite; if `COMPLETED`, retain the TV/TVC secret-free reseal result and target custody evidence.
+3. For listener: accept only `SERVICE_ALREADY_HEALTHY` or `COMPLETED` with `loopback_health_verified=true`; if `BLOCKED`, remediate only the exact non-secret/source/root prerequisite.
+4. Let machine-owned Service Gateway #72 implement the exact three-route contract and CMC-029 TLS path; independently verify public reachability with no callback-query leakage.
+5. Only after custody and callback reachability are proven, execute owner-present Google consent on the current iPhone.
+6. Execute one authentic exact provider-file metadata probe and retain the secret-free TVC result plus durable broker-use receipt.
+7. Feed the exact result through the SDK bridge/active-probe engine and verify readiness changes only after complete applicable-predicate evaluation.
+8. Continue `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY`, retaining MIR, Master Records reconstruction, and one-current-device evidence.
 
 ## README review
 
