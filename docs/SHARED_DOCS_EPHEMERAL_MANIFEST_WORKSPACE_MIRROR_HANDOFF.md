@@ -6,7 +6,7 @@ Repository: `StegVerse-SDK`
 Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
 COSV: `71000000100110`
-Status: `ACTIVE / GATEWAY + CMC-029 SOURCE RECONCILED / AUTHENTIC RESIDENT + TV/TVC RELEASE AUTHORITY NEXT`
+Status: `RETIRED / 20-PROMPT CEILING REACHED / REMAINING WORK TRANSFERRED TO SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004`
 
 ## Canonical architecture
 
@@ -73,13 +73,13 @@ The remote resident therefore remains unavailable. This does not reinstate G18 a
 ## Coordination continuation state
 
 ```text
-parent SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE / 19 of 20
-successor SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004: INACTIVE / PRE-STAGED
-successor activation condition: PARENT_GOAL_PROMPT_COUNT_REACHES_20
-premature activation PR .github #1426: CLOSED WITHOUT MERGE
+parent SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: RETIRED / 20 of 20
+successor SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004: ACTIVE
+successor activation condition: SATISFIED
+activation reconciliation PR: StegVerse-Labs/.github #1443
 ```
 
-The successor remains a prepared handoff only. Parent evidence work continues through its final allowed prompt; reaching the prompt ceiling changes coordination ownership but does not itself prove runtime execution or satisfy any remaining predicate.
+The successor now owns every unresolved authentic-runtime, custody, callback, consent, provider, reconstruction, propagation, and publication predicate. This transfer changes coordination ownership only; it does not prove runtime execution or satisfy any remaining predicate.
 
 ## Public distribution continuation and authority correction
 
@@ -149,9 +149,11 @@ receipts/sovereign-host/sdk-workspace-external-collab-client-secret-reseal.lates
 receipts/sovereign-host/sdk-workspace-external-collab-consent-listener.latest.json
 ```
 
-## Next executable sequence
+## Successor-owned executable sequence
 
-1. Observe the existing authorized sovereign resident consume the two already-merged exact selectors; do not create a hosted substitute or duplicate resident runtime.
+Continue only under `SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004` and its canonical `.github` handoff.
+
+1. Resolve the successor through the canonical runtime-profile resolver, then observe the existing authorized sovereign resident consume the two already-merged exact selectors; do not create a hosted substitute or duplicate resident runtime.
 2. For reseal, accept only authentic `TARGET_ALREADY_PRESENT`, `COMPLETED`, or exact `BLOCKED`; validate target custody/readback without overwrite.
 3. For listener, accept only authentic `SERVICE_ALREADY_HEALTHY`, `COMPLETED` with `loopback_health_verified=true`, or exact `BLOCKED`; remediate only the reported resident prerequisite.
 4. On that same existing resident, if Gateway TLS adoption is absent, allow the already-bound TVC machine owner to execute exact CMC-029. Do not wait for G18 terminalization. Stop after authentic TLS adoption so the existing Gateway owner can reconcile/restart.
