@@ -5,7 +5,7 @@ Organization: `StegVerse-org`
 Repository: `StegVerse-SDK`
 Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
-Status: `ACTIVE / TVC PROVIDER EVIDENCE BRIDGE MERGED / AUTHENTIC PROVIDER PROBE NEXT`
+Status: `ACTIVE / WORKSPACE-SPECIFIC TVC PROBE PATH MERGED / AUTHENTIC PROVIDER PROBE NEXT`
 
 ## Canonical architecture
 
@@ -18,10 +18,13 @@ source-native external resource observation
   -> registry-selected INTERNAL_ENDPOINT
   -> provider-neutral WorkSpace resource consumer
   -> runtime-supplied active probe executor when PROBE_REQUIRED
-  -> secret-free TVC-owned provider evidence bridge
+  -> TVC WorkSpace-specific Google Drive probe adapter
+       -> existing Personal-KV read-only provider primitive
+       -> existing non-exportable TVC vault broker path
+  -> SDK secret-free TVC provider evidence bridge
 ```
 
-Provider observations and probe evidence remain non-authorizing. Provider credential/OAuth authority remains outside the SDK.
+The WorkSpace provider path reuses the existing TVC Google Drive owner session without creating a second OAuth stack and without broadening provider scope. The adapter requires exactly `_System/Workspace/**` and remains read-only.
 
 ## Completed implementation chain
 
@@ -34,51 +37,29 @@ SDK PR #179: provider-neutral WorkSpace resource consumer MERGED at 07ceb1f131dd
 StegVerse-org/.github PR #10: WorkSpace endpoint binding MERGED at b851996afc5c5323d0d0db970dd46e511bd36338
 SDK PR #181: provider-neutral active probe execution MERGED at 5c8a3c0246a0ae48e498c10f85d9eee0a2d1ba2c
 SDK PR #182: TVC Google Drive result evidence bridge MERGED at 43519567d036d1d87d5866ae825ffee54acec08f
+TVC PR #381: WorkSpace-specific Google Drive probe adapter MERGED at bcf872cf0ce24a2cc653aabdaa8b25c34d0e4402
+SDK PR #184: WorkSpace-specific TVC result bridge support MERGED at 97b2a5f018a261dc27370448fa1eb73644418d66
 ```
 
-PR #182 exact head `960a272e205883b98e02b8c245ae8c092200d8da` passed:
+Validation:
 
 ```text
-WorkSpace TVC Provider Probe Bridge Validation 34546368572: PASS
-Manifest Builder Source Validation 34546368470: PASS
-SDK Package Artifact Validation 34546368416: PASS
-WorkSpace Active Probe Validation 34546368390: PASS
+TVC WorkSpace Google Drive Probe Validation 34548963700: PASS
+SDK WorkSpace TVC Provider Probe Bridge Validation 34549046178: PASS
+SDK Package Artifact Validation 34549046169: PASS
 ```
 
-## Existing Google Drive authority — reuse, do not duplicate
+## Provider probe composition
 
-The ecosystem already contains a TVC Google Drive owner-consent/credential path. `StegVerse-Labs/TVC:tvc_personal_kv_google_drive_runtime.py` performs bounded `personal_kv_materialize` through a TVC capability lease and non-exportable vault broker. Its current lease remains deliberately Personal-KV-specific (`kvpb_*`, consumer `StegVerse-Labs/.github`, approved scope including `_System/Workspace/**`). This WorkSpace lane does not broaden that lease.
-
-The related Service Gateway query-secret-safe source hardening is owned by `StegVerse-org/LLM-adapter#271`; implementation PR #328 has merged. Authentic deployed-ingress evidence remains separate and must not be inferred from source merge.
-
-## TVC provider evidence bridge
-
-Merged SDK source:
+The new TVC adapter exposes:
 
 ```text
-stegverse/tvc_provider_probe_bridge.py
-tests/test_tvc_provider_probe_bridge.py
-.github/workflows/workspace-tvc-provider-probe-bridge-validation.yml
+request: stegverse.tvc.workspace-google-drive-probe-request/v1
+result:  stegverse.tvc.workspace-google-drive-probe-result/v1
+scope:   ["_System/Workspace/**"]
 ```
 
-The bridge accepts only an already-produced, secret-free TVC Google Drive materialization result and projects it into `stegverse.active-probe-result.v1`. It does not issue leases, perform OAuth, request credentials, call Google, or execute TVC provider operations.
-
-Fail-closed rules include:
-
-```text
-exact TVC result schema required
-provider == GOOGLE_DRIVE
-credential_authority == TV/TVC
-credential_material_exported == false
-provider_operation_authority_transferred == false
-runtime_activation_claimed == false
-authority_effect == NONE_RESULT_EVIDENCE_ONLY
-broker decision == ALLOW_OPERATION_RESULT
-protected fields/values rejected
-active-probe output authority_effect == NONE
-```
-
-The canonical active-probe engine still verifies the exact derived probe reason and re-derives readiness. A valid TVC result therefore cannot directly assign `READY`.
+It composes over the already-admitted `personal_kv_materialize` read primitive. This is a stricter semantic wrapper, not a scope expansion. It rejects provider mutation, credential export, and provider-operation authority transfer. The SDK bridge accepts both historical Personal-KV materialization results and the new WorkSpace-specific result, while retaining the originating source schema/provenance in active-probe evidence.
 
 ## Current proof boundary
 
@@ -90,7 +71,8 @@ Generic INTERNAL_ENDPOINT dispatch: IMPLEMENTED / VALIDATED / MERGED
 WorkSpace resource consumer: IMPLEMENTED / VALIDATED / MERGED
 Organization-local WorkSpace endpoint binding: IMPLEMENTED / VALIDATED / MERGED
 Provider-neutral active probe execution: IMPLEMENTED / VALIDATED / MERGED
-TVC secret-free provider evidence bridge: IMPLEMENTED / VALIDATED / MERGED
+TVC WorkSpace-specific provider probe adapter: IMPLEMENTED / VALIDATED / MERGED
+SDK WorkSpace-specific TVC provider evidence bridge: IMPLEMENTED / VALIDATED / MERGED
 Authentic Google provider probe: NOT PROVEN
 Shared Docs live synchronization: NOT PROVEN
 MIR transition reporting: NOT PROVEN
@@ -98,19 +80,18 @@ Master Records authentic custody/reconstruction: NOT PROVEN
 One-device authentic end-to-end execution: NOT PROVEN
 ```
 
-## README maintenance
+## State-transition model
 
-README was reviewed. This bridge is an internal evidence adapter and does not create a new public CLI, processing capability, universal manifest class, runtime route, or user-facing WorkSpace surface. No README source change is required for this bounded unit. A public provider/WorkSpace interface must update README when introduced.
+Document Share is treated as an ordinary governed abstract. A live edit, autosave, recipient/share change, authorization change, refresh, revocation, expiry, or destruction is a candidate state transition. Interlock/InTr evaluates the complete applicable governance matrix for that transition context before the resultant state is admitted. Authority is one governed attribute within that matrix, not a fixed property assigned by component class.
 
 ## Next executable sequence
 
-1. Reconcile root task/COSV evidence for PR #182.
-2. Determine whether TVC can expose an admitted read/probe operation for the exact Shared Docs experiment without broadening the Personal-KV lease incorrectly.
-3. Keep Service Gateway deployed-ingress evidence as a separate prerequisite for owner-present Google authorization.
-4. Once authentic provider access exists, execute `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY`.
-5. Retain MIR transition reporting and independent Master Records custody/reconstruction evidence.
-6. Verify the complete path on one current mobile device.
+1. Execute one authentic owner-present WorkSpace Google Drive probe through the merged TVC adapter and retain the exact secret-free result.
+2. Feed that result through the merged SDK TVC bridge and active-probe engine; verify `PROBE_REQUIRED -> READY` only when the exact unresolved predicate is satisfied.
+3. Execute the Shared Docs lifecycle: `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY`.
+4. Retain the state-transition sequence, MIR reporting, and independent Master Records custody/reconstruction evidence.
+5. Verify the complete path on one current mobile device.
 
 ## Human action
 
-None for source and coordination work. Owner-present Google authorization becomes necessary only at the authentic provider-backed execution boundary.
+None for source/coordination work. Owner-present Google authorization is required only when the authentic provider-backed probe is executed and no current admitted session is already available.
