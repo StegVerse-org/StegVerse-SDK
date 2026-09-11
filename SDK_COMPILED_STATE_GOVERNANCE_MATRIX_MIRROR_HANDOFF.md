@@ -78,11 +78,11 @@ OBSERVED_SILENCE as Event 2 -> Event 3 NON_EMISSION_OBSERVED -> ALLOW / ok
 upstream_parameters_reinterpreted = false
 ```
 
-After validation, the only change from the validated executable head to PR head `58558dc08ba6799a5f15cb6bdc6ea8632ba05088` was this handoff documentation. PR #203 merged to `main` at `8878a7d4d8c0348ceef10e6d2acbb41a1a597233`.
+After validation, the only change from the validated executable head to PR head `58558dc08ba6799a5f15cb6bdc6ea8632ba05088` was handoff documentation. PR #203 merged to `main` at `8878a7d4d8c0348ceef10e6d2acbb41a1a597233`, and documentation closeout PR #204 merged at `3ac2f09a4ff820f50b1995c5b180a7ac64de60cd`.
 
 ## Registry state
 
-Canonical successor registration merged in `StegVerse-Labs/.github` PR #1436 at `7c9cc5332748477c5cf75d27b674b7b7721c9ee3`. The final coordination closeout should retire the task with the validation run, artifact digest, and SDK merge recorded.
+Canonical successor registration merged in `StegVerse-Labs/.github` PR #1436 at `7c9cc5332748477c5cf75d27b674b7b7721c9ee3`. Final coordination PR #1438 merged at `8fbdade1424ba06a1e35c5578ed831d4f923f25e`; the Task Registry now records `coordination_state: RETIRED`, `checkout_state: COMPLETED`, the exact validation run/artifact evidence, the SDK merge, and `remaining_predicate: NONE`.
 
 ## README review
 
@@ -90,7 +90,7 @@ README was reviewed and remains correctly processor-generic: it documents manife
 
 ## Completion
 
-The successor experiment is complete, validated, and merged. The canonical outcome is now evidence-backed: silence is admitted only when manifested as the Event 2 -> Event 3 observed non-emission transition; absence of Event 3 remains missing signal and denies.
+The successor experiment is complete, validated, merged, and retired. The canonical outcome is evidence-backed: silence is admitted only when manifested as the Event 2 -> Event 3 observed non-emission transition; absence of Event 3 remains missing signal and denies.
 
 ## Manual work
 
