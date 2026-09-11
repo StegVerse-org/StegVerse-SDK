@@ -3,90 +3,155 @@
 Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `SOURCE_INTEGRATION_COMPLETE_RUNTIME_PROOF_PENDING`
+Status: `LOCAL_COMPARATIVE_SILENCE_EXPERIMENT_PROVEN`
 
 ## Objective
 
-Integrate evaluator-facing SDK manifest construction with the governance processor and authoritative Interlock/InTr security-posture contract without adding evaluator-specific evidence fields or allowing the SDK to resolve final posture.
+Prove the local SDK experiment path from ÉLAN-shaped source data through canonical manifest construction, exact governance transition construction, Interlock/InTr posture binding, governance consumption, returned governed result, route evidence, exact-run custody, replay, and reconstruction without third-party evaluator execution or public package publication; then compare two Event 3 representations under the same governance evaluator.
 
-## Implemented path
+## Baseline run: Event 3 not submitted
 
-```text
-source-native evaluator data
-+ governance processor request
-+ optional evaluator preregistration declaration
-+ optional SDK security-posture request inputs
--> canonical ingress manifest
--> exact governance transition request
--> authoritative Interlock/InTr posture resolver
--> exact task + payload SHA-256 + transition-request SHA-256 binding verification
--> unchanged governance request execution
--> posture binding + governance result + normal replay/reconstruction
-```
-
-The evaluator declaration remains outside `extensions.stegverse_governance_request`. The posture request remains outside governance evidence and carries only non-authorizing request inputs. The SDK never derives authoritative automatic/effective posture or mints a posture instance.
-
-## Source
+The original source trace explicitly said Event 3 was silence but had not yet been submitted. The baseline SDK test correctly did not synthesize that future event and represented its absence as:
 
 ```text
-stegverse/security_posture_request.py
-stegverse/evaluator_manifest_builder.py
-stegverse/intr_posture_runtime_bridge.py
-stegverse/evaluator_governance_runtime.py
-stegverse/external_framework_runner.py
-tests/test_evaluator_manifest_builder.py
-tests/test_intr_posture_runtime_bridge.py
-tests/test_intr_posture_runtime_crossrepo.py
-tests/test_external_framework_posture_runtime.py
-tests/fixtures/stegos_intr_security_posture_resolution_84ddc96e.py
-.github/workflows/evaluator-governance-posture-manifest.yml
-.github/workflows/evaluator-governance-runtime-binding.yml
+signal.missing_inputs = ["event_3:not_submitted"]
 ```
 
-## One-command evaluator surface
-
-`stegverse external-run` now accepts `--security-posture-request`. In `--prepare-only` mode the request is retained without posture resolution. During execution, a posture-bearing manifest requires the canonical StegOS Interlock/InTr resolver (`stegos.intr_security_posture_resolution.resolve_task_security_posture`) or an explicitly injected resolver callback for deterministic testing. Missing resolver fails closed.
-
-Posture-free external-run preserves the prior `governance_ingress_runtime.run_external_manifest` compatibility path.
-
-## Binding invariants
-
-- posture request schema: `stegverse.sdk.security-posture-request.v1`;
-- `selection_present=false` cannot carry a selected tier;
-- SDK does not compute automatic/effective posture;
-- resolver output must identify `INTERLOCK_INTR` as resolution authority;
-- returned posture instance must bind the exact task ID;
-- returned posture instance must bind the exact payload SHA-256;
-- returned posture instance must bind the exact transition-request SHA-256;
-- the governance request executed after resolution is the unchanged request whose digest was supplied to InTr;
-- evaluator preregistration remains outside governance decision evidence.
-
-## Validation and merge evidence
-
-Manifest-builder composition PR #172 merged at `7aaf0ea4a3a4b133941a8b16ffd410817746a6ee`.
-
-Runtime binding PR #173 merged at `b9beedcbbed3b09ed7620ac6de6f51788c6567a1` after exact-head `c5d41998bb39f9af1bb127a0e74b1c8bffd50dd4` passed:
+Observed baseline result:
 
 ```text
-Evaluator Governance Runtime Binding Validation 34522799912: PASS
-- SDK runtime bridge tests: PASS
-- exact StegOS InTr compatibility snapshot test: PASS
-- evaluator manifest + existing Manifest Builder regressions: PASS
-
-Manifest Builder Source Validation 34522799896: PASS
-External Framework Public Submission Validation 34522799991: PASS
-SDK Package Artifact Validation 34522800019: PASS
+governance_state: DENY
+reason_code: signal.inputs_incomplete
+executor_invoked: false
+external_side_effect: false
 ```
 
-The StegOS compatibility fixture is an exact test-only snapshot of `StegVerse-Labs/StegOS@84ddc96e38d6a5156becd91fb49da7dd14047bca`, source path `stegos/intr_security_posture_resolution.py`, Git blob `e7f1e89abad89008f5dbba736621bbd23a294aa0`. It exists only because the private StegOS repository cannot be anonymously cloned by SDK CI; runtime code still imports the live `stegos` module and does not execute the snapshot.
+Historical successful baseline run:
 
-## README review
+```text
+workflow: ELAN Local SDK Governance Experiment
+run: 34560172540
+head: c6a8a29e404ddd7ed01dc706fcba3d4452e2fe17
+artifact id: 10184019620
+artifact digest: sha256:f804ace1f0eb965977d9ca6c3dab5d4cdc74ddf675bb3548c9a556b3d12f82c1
+manifest receipt: MR-A6180341ED34E36D2682A37C398DC5D5031D398D9AE73007DD9333B712E1A68A
+```
 
-The existing README already documents the Manifest Builder, `stegverse external-run`, evaluator-defined manifests, processor-specific governance request separation, evaluator preregistration non-interference, and caller-selected return projection. The new `--security-posture-request` option is exposed by `stegverse external-run --help`; this handoff carries the detailed posture-runtime contract so the processor-generic README is not rewritten around one evaluator/security integration.
+## Comparative rerun: Event 3 as observable silence
 
-## Remaining evidence boundary
+A second controlled local test preserves Events 1 and 2 and changes only the Event 3 representation. Event 3 is supplied as an observation with a bounded closed observation window:
 
-Source integration is complete and validated. The remaining predicate is authentic runtime evidence from a materialized environment containing both the SDK governed runtime and live StegOS Interlock/InTr resolver: submit one evaluator manifest, retain the returned InTr posture instance, verify its exact task/payload/transition bindings, then retain governance/custody/replay/reconstruction evidence. CI/snapshot compatibility does not by itself prove that authentic runtime event.
+```text
+class: OBSERVATION
+state_transition:
+  from: ACTIVE_CONVERSATION_WITH_EMISSION_POSSIBLE
+  to: NON_EMISSION_OBSERVED
+emission_observed: false
+observation_window:
+  bounded: true
+  state: CLOSED
+intent: UNDETERMINED
+semantic_interpretation: UNRESOLVED
+```
+
+The governance request admits the Events 1-3 evidence reference and sets:
+
+```text
+missing_inputs: []
+```
+
+No emotional meaning, motive, refusal, incapacity, or intent is inferred from silence.
+
+### Exact successful comparative run
+
+```text
+PR: #197
+branch: sdk-evaluator-governance-observed-silence-001
+head: 9f708514e8ae3f42b098d1dadfa7713d661fa78d
+workflow run: 34565096417
+job: 103155480385
+result: PASS
+```
+
+Exact-head workflow steps passed:
+
+```text
+Install current SDK source only: PASS
+Focused local SDK boundary tests: PASS
+Baseline ELAN governance experiment: PASS
+Baseline missing-input assertions: PASS
+Observed-silence ELAN governance experiment: PASS
+Observed-silence state assertions: PASS
+Controlled comparison assertions: PASS
+Evidence inventory: PASS
+Baseline artifact upload: PASS
+Observed-silence artifact upload: PASS
+```
+
+Observed-silence artifact:
+
+```text
+name: elan-local-sdk-governance-observed-silence
+artifact id: 10185708511
+artifact digest: sha256:2b1a4114b727941787b251b92f08a2b86d1e5959d07eada9877d6bb0d8f2a68f
+```
+
+Rerun assertions proved:
+
+```text
+event_3_representation: OBSERVABLE_NON_EMISSION_STATE_TRANSITION
+event_3_intent: UNDETERMINED
+event_3_semantic_interpretation: UNRESOLVED
+event_3_in_missing_inputs: false
+boundary_consumed: true
+governance_state: ALLOW
+governance_reason: ok
+executor_invoked: true
+route_transition_count: 10
+chain_verified: true
+custody_status: RECORDED
+replay_deterministic_match: true
+reconstruction_chain_verified: true
+result_returned: true
+```
+
+## Controlled comparison
+
+```text
+BASELINE
+Event 3 = NOT_SUBMITTED -> signal.missing_inputs
+Result = DENY / signal.inputs_incomplete
+
+RERUN
+Event 3 = admitted observable NON_EMISSION_OBSERVED state transition
+Result = ALLOW / ok
+
+Controlled difference = representation of Event 3
+Governance evaluator code = unchanged
+```
+
+This comparison demonstrates that the local governance semantics can proceed when silence is presented as admitted observable state rather than as absent required evidence. It does not establish why the participant was silent, whether the silence carried a specific emotional meaning, or whether every future silence should be admissible. Those remain contextual evidence questions.
+
+## Local governance continuation scope
+
+`stegverse/local_governance_experiment.py` remains a test-only semantic snapshot of the exact pinned governed-test source basis:
+
+```text
+StegVerse-Labs/StegCore@ef38410505b0ef3e84148892b1d6e3cdef20f300
+Data-Continuation/core-lite@72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+master-records/orchestration@03312236c115bc814024d700810391340648601f
+```
+
+This proves local comparative experiment semantics and evidence-path behavior. It does not claim deployment of those private packages, a live cross-repository runtime instance, or third-party evaluator execution.
+
+## Remaining work
+
+```text
+1 preserve the baseline and comparative rerun as separate immutable evidence sets
+2 reconcile stacked PR #197 into PR #177 after exact-head review
+3 keep live/private-package runtime proof as a separate predicate
+4 use future silence tests to distinguish observed non-emission from missing transport, timeout, refusal, incapacity, or contextual response without preassigning intent
+```
 
 ## Manual work
 
