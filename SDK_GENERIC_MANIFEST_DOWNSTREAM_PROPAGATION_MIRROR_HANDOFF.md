@@ -42,9 +42,10 @@ Provider-neutral WorkSpace resource consumer PR #179: MERGED at 07ceb1f131dd8fd2
 Organization generic endpoint dispatch PR StegVerse-org/.github#9: MERGED at d8baefb8674ebed00bbbf9784c54e092a5b1a04d
 Organization-local WorkSpace endpoint binding PR StegVerse-org/.github#10: MERGED at b851996afc5c5323d0d0db970dd46e511bd36338
 Provider-neutral active probe execution PR #181: MERGED at 5c8a3c0246a0ae48e498c10f85d9eee0a2d1ba2c
+TVC Google Drive result -> WorkSpace active-probe evidence bridge PR #182: MERGED at 43519567d036d1d87d5866ae825ffee54acec08f
 ```
 
-Validation evidence for the two newest units:
+Validation evidence for the newest WorkSpace units:
 
 ```text
 StegVerse-org/.github#10 exact head 7fb6783ec7bbfbdc249dfdba45b7c454ae0beed4
@@ -55,11 +56,17 @@ SDK #181 code head 9c2153ef9ecd14d4985ea697bcc2e326b58faa31
 WorkSpace Active Probe Validation 34545991378: PASS
 Manifest Builder Source Validation 34545991321: PASS
 SDK Package Artifact Validation 34545991339: PASS
+
+SDK #182 exact head 960a272e205883b98e02b8c245ae8c092200d8da
+WorkSpace TVC Provider Probe Bridge Validation 34546368572: PASS
+Manifest Builder Source Validation 34546368470: PASS
+SDK Package Artifact Validation 34546368416: PASS
+WorkSpace Active Probe Validation 34546368390: PASS
 ```
 
-The organization registry now exposes `stegverse-org.workspace-resource-consumer` as a generic `INTERNAL_ENDPOINT`. Its local adapter delegates to the installed canonical SDK WorkSpace consumer instead of duplicating projection semantics. `MATERIALIZE`/`REFRESH` may now use a runtime-supplied active probe executor when represented state is `PROBE_REQUIRED`; probe results must bind the exact derived reason, carry current evidence metadata, remain `authority_effect: NONE`, and readiness is re-derived by the canonical state-transition normalizer. Caller assertions cannot directly turn `PROBE_REQUIRED` into `READY`.
+The organization registry exposes `stegverse-org.workspace-resource-consumer` as a generic `INTERNAL_ENDPOINT`. Its local adapter delegates to the installed canonical SDK WorkSpace consumer instead of duplicating projection semantics. `MATERIALIZE`/`REFRESH` may use a runtime-supplied active probe executor when represented state is `PROBE_REQUIRED`; probe results bind the exact derived reason, carry current evidence metadata, remain `authority_effect: NONE`, and readiness is re-derived by the canonical state-transition normalizer. Caller assertions cannot directly turn `PROBE_REQUIRED` into `READY`.
 
-This remains source/CI evidence only. Authentic provider access, live synchronization, StegOS/StegNode projection runtime, MIR reporting, Master Records custody/reconstruction, expiry/revocation runtime enforcement, and one-device end-to-end execution remain unproven.
+PR #182 reuses existing TVC Google Drive authority without creating a second OAuth, provider credential, lease, or provider-operation stack. The SDK consumes only an already-produced secret-free TVC result, rejects credential-bearing or authority-transferring evidence, and projects admissible result evidence into the canonical active-probe shape. This is still source/CI evidence: authentic provider access, live synchronization, StegOS/StegNode projection runtime, MIR reporting, Master Records custody/reconstruction, expiry/revocation runtime enforcement, and one-device end-to-end execution remain unproven.
 
 ## Public runtime distribution boundary
 
@@ -99,10 +106,10 @@ dedicated processor-generic route: NOT YET OBSERVED
 
 ## Next executable sequence
 
-1. Reconcile canonical COSV/task evidence for the merged organization-local WorkSpace binding and active-probe unit.
-2. Search the ecosystem for an existing provider-specific Shared Docs/Drive adapter before creating another provider authority path.
-3. If no suitable provider adapter exists, create the narrow provider binding without adding a provider-specific universal manifest class or weakening active-probe evidence rules.
-4. Execute authentic provider-backed `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY` transitions once provider access is explicitly available.
+1. Reconcile canonical COSV/task evidence for SDK PR #182 merge and validation evidence.
+2. Determine whether TVC can expose an admitted read/probe operation for the exact Shared Docs experiment without incorrectly broadening the Personal-KV Google Drive lease.
+3. Keep Service Gateway deployed-ingress evidence separate from SDK source evidence; do not infer authentic owner-present Google authorization from source merge.
+4. Execute authentic provider-backed `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY` transitions once explicit provider access is available.
 5. Retain MIR transition reporting and independent Master Records custody/reconstruction evidence.
 6. Verify the complete path on one current mobile device.
 7. Continue observing Site/Worker D and public-runtime publication dependencies without colliding with their owners.
@@ -115,6 +122,7 @@ coordination state: DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PEN
 provider-neutral WorkSpace consumer: IMPLEMENTED / VALIDATED / MERGED
 organization-local WorkSpace consumer binding: IMPLEMENTED / VALIDATED / MERGED
 active probe execution: IMPLEMENTED / VALIDATED / MERGED
+TVC secret-free provider evidence bridge: IMPLEMENTED / VALIDATED / MERGED
 authentic provider probe: NOT PROVEN
 Site completion predicate: FALSE / MACHINE_OWNED
 admissibility completion predicate: FALSE / WORKER_OWNED
