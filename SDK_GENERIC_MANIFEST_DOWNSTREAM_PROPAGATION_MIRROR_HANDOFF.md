@@ -10,8 +10,8 @@ repository: StegVerse-SDK
 canonical_branch: main
 parent_handoff: GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
 source_goal: SDK-PROCESSOR-GENERIC-MANIFEST-002
-source_cosv: 71000000100110
 continuation_goal: SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003
+COSV: 71000000100110
 credential_authority: TV/TVC
 GitHub runtime authority: NONE
 coordination_state: DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING
@@ -33,39 +33,41 @@ unsupported or uninstalled processor/route execution fails closed
 
 The current executable processor remains governance on `stegverse.route.canonical-governed.v1`; processor-specific governance request state remains under `extensions.stegverse_governance_request`.
 
-## WorkSpace / external-collaboration implementation chain
+## Current merged WorkSpace / external-collaboration chain
+
+The source/CI chain is merged and validated through:
+
+- SDK #174 state-transition evidence.
+- SDK #176 canonical ingress -> external Interlock binding.
+- StegVerse-org/.github #9 generic INTERNAL_ENDPOINT dispatch.
+- SDK #179 provider-neutral WorkSpace resource consumer.
+- StegVerse-org/.github #10 WorkSpace endpoint binding.
+- SDK #181 provider-neutral active-probe execution.
+- SDK #182 secret-free TVC provider-evidence bridge.
+- TVC #381 KV-scoped `_System/Workspace/**` semantic probe only; not authoritative external Shared Docs proof.
+- SDK #184 WorkSpace-specific TVC result bridge.
+- TVC #383 distinct external-collaboration consent/session class.
+- stegfin-governance #95 distinct external-collaboration vault ref/provider slot.
+- TVC #384 distinct external-collaboration SKAP refresh/session custody.
+- stegfin-governance #96 exact metadata-only provider probe plus durable pre-provider replay consumption.
+- TVC #385 exact external-file probe lease/runtime.
+- SDK #186 external-collaboration TVC result bridge.
+- TVC #390 one-current-device external-collaboration owner-consent composition plus distinct OAuth client-secret SKAP purpose.
+- TVC #395 canonical HTTP/listener/public-route reconciliation to PR #390 authority and corrected callback path.
+- TVC #397 resident-only purpose-specific Google client-secret ciphertext reseal into `google_drive.external_collaboration.client_secret`.
+- SDK #189 authentic external-collaboration runtime proof contract, merged at `ce67583e6e42eced35716f8460176f6c9e892f66` after exact-head validation PASS.
+
+SDK #189 exact head `da11a4f77c5085bd3d9e9c07b28d252ac3a671f2` passed:
 
 ```text
-SDK #174 state-transition evidence: MERGED ee8f7023d74d70fa762e3982776c27c1e372a1f7
-SDK #176 canonical ingress -> external Interlock binding: MERGED 7047e67d21173e800f78d4468519dba87992b16d
-StegVerse-org/.github #9 generic INTERNAL_ENDPOINT dispatch: MERGED d8baefb8674ebed00bbbf9784c54e092a5b1a04d
-SDK #179 provider-neutral WorkSpace resource consumer: MERGED 07ceb1f131dd8fd27b3b8c89ab747e58aa55e55c
-StegVerse-org/.github #10 WorkSpace endpoint binding: MERGED b851996afc5c5323d0d0db970dd46e511bd36338
-SDK #181 provider-neutral active-probe execution: MERGED 5c8a3c0246a0ae48e498c10f85d9eee0a2d1ba2c
-SDK #182 secret-free TVC provider evidence bridge: MERGED 43519567d036d1d87d5866ae825ffee54acec08f
-TVC #381 Personal-KV _System/Workspace/** semantic probe: MERGED bcf872cf0ce24a2cc653aabdaa8b25c34d0e4402 / KV-SCOPED ONLY
-SDK #184 WorkSpace-specific TVC result bridge: MERGED 97b2a5f018a261dc27370448fa1eb73644418d66
-TVC #383 distinct external-collaboration consent/session class: MERGED ccbeae7ab03c23045b92db3a293b562422980cac
-stegfin-governance #95 distinct external-collaboration vault ref/provider slot: MERGED 35a058488c0a2a3dddeafdb59befcd19488e3c2a
-TVC #384 distinct external-collaboration SKAP refresh/session custody: MERGED b7e8fd3f3f498e2cae6efb01c511a68d6ab7bd8c
-stegfin-governance #96 exact metadata-only provider probe + durable pre-provider replay: MERGED 66c1abbcc74a0a53fe6436b1fa003759acacaad6
-TVC #385 exact external-file probe lease/runtime: MERGED 4a3cc09dc5e85c051b9820dd83f6b2373e6316a7
-SDK #186 external-collaboration TVC result bridge: MERGED f2f9a7f385477c8096a50fc223333240060e0a2f
-SDK #189 authentic-runtime proof gate: OPEN
+External Collaboration Authentic Runtime Proof Contract Validation 34554329799: PASS
+Generic Manifest Downstream Contract Validation 34554329833: PASS
+Manifest Builder Source Validation 34554329801: PASS
 ```
 
-SDK #186 exact-head validations all passed:
+README review remains current. The present changes are internal evidence/runtime contracts and do not introduce a new public SDK capability identifier, universal ingress class, CLI/runtime route, or user-facing WorkSpace product surface.
 
-```text
-WorkSpace TVC Provider Probe Bridge Validation 34551543442: PASS
-SDK Package Artifact Validation 34551543443: PASS
-Manifest Builder Source Validation 34551543452: PASS
-WorkSpace Active Probe Validation 34551543495: PASS
-```
-
-TVC #382 and stegfin-governance #94 remain intentionally closed and unmerged because they attempted to reuse Personal-KV consent for arbitrary external collaborative files. TVC #380 is also closed unmerged as superseded.
-
-## External-collaboration boundary
+## External-collaboration authority boundary
 
 ```text
 credential class: TVC-EXTERNAL-COLLAB-GOOGLE-DRIVE-OWNER-SESSION-001
@@ -73,10 +75,10 @@ purpose: EXTERNAL_COLLABORATIVE_RESOURCE_READ_ONLY
 OAuth state purpose: extcollab.*
 provider slot: google_drive_external_collaboration
 vault ref: vault://tvc/providers/google-drive/external-collaboration-session
+client-secret SKAP purpose: google_drive.external_collaboration.client_secret
 operation: external_collaboration_resource_probe
 binding prefix: wsprobe_
-TVC result: stegverse.tvc.external-collaboration-google-drive-probe-result/v1
-broker observation: stegverse.tvc.google-drive-external-collaboration-metadata-probe/v1
+public callback: https://stegverse.org/tvc/google-drive/external-collaboration/callback
 ```
 
 Controlling rules:
@@ -84,34 +86,36 @@ Controlling rules:
 ```text
 technical token reach != consent authority
 Personal-KV consent != external-collaboration consent
+Personal-KV client-secret custody != external-collaboration client-secret custody
 KV _System/Workspace/** observation != authoritative external Shared Doc proof
 TVC/provider/broker evidence != readiness authority
+source/CI/merge != authentic runtime proof
 ```
-
-The exact provider probe binds one provider file ID and one active-probe reason, is single-use with lease duration <=300 seconds, performs metadata GET only, downloads no document content, exports no credential material, grants no provider mutation authority, and cannot assign readiness. Durable replay is consumed before provider invocation. The SDK validates the exact result and projects only non-authorizing active-probe evidence; the active-probe engine recomputes readiness after complete predicate evaluation.
 
 ## Authentic runtime proof gate
 
-PR #189 introduces `docs/EXTERNAL_COLLAB_AUTHENTIC_RUNTIME_PROOF_CONTRACT.md`, a deterministic validator, and dedicated CI. This contract converts the remaining runtime gap into an exact evidence predicate without claiming runtime execution.
-
-A qualifying authentic proof lineage must bind:
+`docs/EXTERNAL_COLLAB_AUTHENTIC_RUNTIME_PROOF_CONTRACT.md` is the exact evidence contract. A qualifying lineage must bind:
 
 ```text
-owner-present external-collaboration consent/session
--> dedicated TV/TVC/SKAP vault provider slot/ref
+authentic resident source/client-secret custody + current resident seal liveness
+-> purpose-specific ciphertext reseal when target custody is absent
+-> exact external-collaboration client-secret target custody/readback
+-> resident callback/listener reachability
+-> owner-present external-collaboration consent/session
+-> dedicated TV/TVC/SKAP provider slot/ref
 -> fresh wsprobe_* binding + exact provider file ID + exact active-probe reason
 -> single-use TVC lease + durable pre-provider replay consumption
 -> authentic metadata-only/read-only provider response
 -> secret-free TVC result + durable broker use receipt
 -> SDK evidence normalization with no readiness assignment
--> active-probe full predicate re-evaluation
--> OBSERVE -> MATERIALIZE -> REFRESH -> REVOKE/EXPIRE -> DESTROY evidence
+-> full active-probe predicate re-evaluation
+-> OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY
 -> MIR transition reporting
 -> independent Master Records custody/reconstruction
 -> one-current-device continuity evidence
 ```
 
-Repository, CI, request construction, or a passing proof-contract validator is not authentic provider/runtime proof. The contract carries `authority_effect: NONE`.
+The proof contract carries `authority_effect: NONE`; passing repository validation is not runtime proof.
 
 ## Current proof boundary
 
@@ -119,14 +123,17 @@ Repository, CI, request construction, or a passing proof-contract validator is n
 Generic ingress + Interlock binding: IMPLEMENTED / VALIDATED / MERGED
 Generic WorkSpace consumer + organization endpoint: IMPLEMENTED / VALIDATED / MERGED
 Active-probe execution: IMPLEMENTED / VALIDATED / MERGED
-Personal-KV WorkSpace semantic probe: IMPLEMENTED / VALIDATED / MERGED / KV-SCOPED ONLY
-External-collaboration consent/session class: IMPLEMENTED / VALIDATED / MERGED
-External-collaboration SKAP refresh/session custody: IMPLEMENTED / VALIDATED / MERGED
-External-collaboration resident vault ref/provider slot: IMPLEMENTED / VALIDATED / MERGED
-Exact external-file TVC lease/runtime: IMPLEMENTED / VALIDATED / MERGED
-Exact external-file durable broker operation: IMPLEMENTED / VALIDATED / MERGED
+External-collaboration consent/session source: IMPLEMENTED / VALIDATED / MERGED
+External-collaboration SKAP refresh/session custody source: IMPLEMENTED / VALIDATED / MERGED
+External-collaboration exact provider probe source: IMPLEMENTED / VALIDATED / MERGED
 SDK external-collaboration provider-result bridge: IMPLEMENTED / VALIDATED / MERGED
-Authentic-runtime proof contract: IMPLEMENTED ON PR #189 / VALIDATION PENDING
+One-device activation source: IMPLEMENTED / VALIDATED / MERGED
+Client-secret purpose-specific reseal source: IMPLEMENTED / VALIDATED / MERGED
+Authentic-runtime proof contract: IMPLEMENTED / VALIDATED / MERGED
+External-collaboration client-secret ciphertext custody on authorized resident: NOT PROVEN
+Authorized-resident Personal-KV source client-secret custody: NOT PROVEN
+Resident seal liveness for reseal: NOT PROVEN
+External-collaboration callback resident reachability: NOT PROVEN
 Authentic owner-present external-collaboration consent: NOT PROVEN
 Authentic authoritative provider-file probe: NOT PROVEN
 Shared Docs live synchronization/content refresh: NOT PROVEN
@@ -135,65 +142,57 @@ Master Records authentic custody/reconstruction: NOT PROVEN
 One-device authentic end-to-end execution: NOT PROVEN
 ```
 
-## Public surfaces
+## Current ownership / collision prevention
 
 ```text
-canonical public domain: https://stegverse.org/
+StegVerse-Labs/Site: REQUIRED / MACHINE_OWNED / completion FALSE
+StegVerse-Labs/admissibility-wiki: REQUIRED / Worker D OWNED / completion FALSE
+StegVerse-org/LLM-adapter#72: machine-owned corrected three-route callback/Gateway contract
+StegVerse-Labs/.github #1370: resident dispatcher path for external-collab client-secret reseal
+StegVerse-Labs/TVC #396: dedicated zero-credential resident InTr carrier for external-collab client-secret ingress
+```
+
+Do not open competing implementations for those owned lanes. Reuse their evidence and only reconcile it here after merge/validation/runtime proof.
+
+## Canonical public surfaces
+
+```text
+canonical public base: https://stegverse.org/
 current Ecosystem Chat route: https://stegverse.org/ecosystem-chat.html
 dedicated processor-generic public route: NOT YET OBSERVED
+raw GitHub Pages URL is canonical public surface: FALSE
 ```
 
 ## Public runtime distribution boundary
 
 ```text
-StegCore public distribution: stegverse-stegcore
-StegCore target version: 0.3.0
-StegCore rename PR #197: MERGED
-Master Records public distribution: stegverse-master-records
-Master Records target version: 0.2.0
-Master Records Trusted Publishing PR #85: MERGED
-SDK successor PR #165: SOURCE_CANDIDATE / DRAFT
-SDK successor version: 1.3.0
-first proven anonymous-install blocker: stegverse-stegcore==0.3.0 NOT PUBLISHED
+StegCore public distribution: stegverse-stegcore 0.3.0 / source rename merged / public publication still pending
+Master Records public distribution: stegverse-master-records 0.2.0 / Trusted Publishing source merged / public publication still pending
+SDK successor PR #165: 1.3.0 SOURCE_CANDIDATE
+anonymous governed-runtime install: FAIL_CLOSED pending exact public distributions
 release/tag/publication claim: NONE
 ```
 
-Actual SDK 1.3.0 release still requires TV/TVC release authorization, required SKAP evidence, immutable tag/release, public Trusted Publisher provenance, anonymous governed-runtime install PASS, and ELAN custody/replay/reconstruction PASS. Do not weaken the anonymous installation gate.
-
-## Downstream ownership
-
-```text
-StegVerse-Labs/Site: REQUIRED / MACHINE_OWNED / completion FALSE
-StegVerse-Labs/admissibility-wiki: REQUIRED / Worker D OWNED / completion FALSE
-GCAT-BCAT-Engine/Publisher: NO_DIRECT_CONTRACT_CHANGE
-StegVerse-002/stegguardian-wiki: NO_DIRECT_CONTRACT_CHANGE
-```
-
-External sessions must not duplicate Site or Worker D-owned implementation.
-
 ## Next executable sequence
 
-1. Validate PR #189 at exact head and merge only if green and mergeable.
-2. Determine whether a correctly scoped external-collaboration Google owner session is already authentically active. Do not infer this from source or CI.
-3. If absent, execute owner-present consent through the distinct external-collaboration controller on the current device.
-4. Execute one authentic exact provider-file metadata probe through the merged TVC lease/runtime and durable broker; retain the secret-free result/use receipt.
-5. Feed that exact result through the SDK bridge and active-probe engine; verify `PROBE_REQUIRED -> READY` only when the named predicate is actually satisfied and no other applicable predicate remains unresolved.
-6. Continue the authoritative-provider `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY` lifecycle.
-7. Retain MIR transition reporting, independent Master Records custody/reconstruction, and one-current-device evidence.
-8. Continue observing Site/Worker D and public-runtime publication dependencies without colliding with their owners.
+1. Let the machine-owned resident reseal/ingress lanes complete without collision: StegVerse-Labs/.github #1370 and TVC #396.
+2. Reconcile their exact merge and validation evidence into this handoff and the task record.
+3. On the authorized TVC resident, determine whether exact external-collaboration client-secret custody already exists; if absent, prove source Personal-KV client-secret custody plus resident seal liveness and execute the merged purpose-specific reseal exactly once.
+4. Retain the secret-free reseal receipt plus exact target custody/readback evidence.
+5. Install/start the merged TVC resident consent listener on `127.0.0.1:8786` through the existing resident execution owner and retain authentic health/callback reachability evidence.
+6. Only then execute owner-present Google consent on the current iPhone.
+7. Execute one authentic exact external provider-file metadata probe and feed the secret-free result through the SDK bridge/active-probe engine.
+8. Complete authoritative-provider lifecycle, MIR transition reporting, independent Master Records custody/reconstruction, and one-current-device proof.
+9. Continue observing Site/Worker D and public-runtime publication dependencies without taking over their owned implementation lanes.
 
 ## Current status
 
 ```text
 SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE
 COSV: 71000000100110
+SDK #189: MERGED / EXACT-HEAD VALIDATED
 propagation complete: FALSE
-PR #189: OPEN / VALIDATION PENDING
 authentic owner-present external-collaboration consent: NOT PROVEN
 authentic provider probe: NOT PROVEN
 manual user work required now: NONE
 ```
-
-## README maintenance
-
-Root `README.md` was reviewed for PR #189. Its existing generic manifested-data processing and generic state-transition evidence sections already state that source/CI evidence does not prove provider, MIR, Master Records, or WorkSpace runtime execution. PR #189 introduces an internal evidence contract rather than a new public capability identifier, ingress class, public CLI/runtime route, or user-facing WorkSpace surface, so no README text change is required at this stage. README must change when an externally observable Shared Docs/WorkSpace workflow is introduced.
