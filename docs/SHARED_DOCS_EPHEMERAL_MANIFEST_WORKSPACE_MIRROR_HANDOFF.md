@@ -47,6 +47,7 @@ The previously recorded source/validation chain through SDK #195, TVC #397, `.gi
 - `StegVerse-org/LLM-adapter` #332 merged `9ab7e019eaf694f20c978ce65ad7a2d5c886010a` from exact head `5d199cfc11be410f03c884cd70278d81d956c9f5`; exact-head runs `34563524745`, `34563524752`, and `34563524742` passed.
 - SDK #199 merged `19db2775b6dbcd361f8329b6b0710699f4467462`, reconciling the merged Gateway source into canonical SDK/task state; exact-head runs `34566917409`, `34566917412`, and `34566917413` passed.
 - TVC #403 merged `24bb1eacc137b7d0f2a621622857de7089cf6f9a` from exact head `c02ce7e71bbbcf6fae317344c25b84c0626825e9`; TVC Credential Model Consistency Validation `34567336581` passed. It removes the stale CMC-029 requirement to wait for SHWP-DURABLE-RUNTIME-ACTIVATION/G18 terminalization. Current canonical `.github` state makes G18 housekeeping only, not a downstream gate, and the existing TVC machine-owner worker contains no G18-completion predicate.
+- `.github` #1422 merged `e11ceed84081cbe2fa6621f50a50322c25ef3d48`, restoring the successor task `SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004` to `INACTIVE`/pre-staged until the parent reaches its actual 20-prompt ceiling. Premature activation PR #1426 was closed without merge on 2026-09-11 after reconciliation established the parent is still ACTIVE at 19/20.
 
 LLM-adapter #332 implements the authorized three-route Service Gateway source contract:
 
@@ -61,13 +62,24 @@ The Gateway source is bounded to GET-only transport, exact callback query-key ad
 
 ## Fresh authentic-runtime observation
 
-A reconciliation on 2026-09-11 rechecked all currently available authentic evidence channels:
+A fresh reconciliation on 2026-09-11, after closing the premature child-activation PR, rechecked all currently available authentic evidence channels:
 
-- repository-tracked sovereign-host receipt paths: neither exact receipt present;
-- connected retained Google Drive evidence: no exact reseal receipt and no exact listener receipt found;
-- authorized remote resident-machine connector: no online device available.
+- repository-tracked sovereign-host receipt paths: neither exact receipt present; filename matches resolve only to handoff documentation;
+- connected retained Google Drive evidence: exact searches returned no reseal receipt and no listener receipt;
+- authorized remote resident-machine connector: returned an empty device list.
 
-The remote resident was checked again after Gateway merge and remained unavailable. This does not reinstate G18 as a prerequisite, require another physical machine, or authorize a hosted substitute.
+The remote resident therefore remains unavailable. This does not reinstate G18 as a prerequisite, require another physical machine, authorize a hosted substitute, or permit child-task activation before the parent reaches 20/20.
+
+## Coordination continuation state
+
+```text
+parent SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE / 19 of 20
+successor SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004: INACTIVE / PRE-STAGED
+successor activation condition: PARENT_GOAL_PROMPT_COUNT_REACHES_20
+premature activation PR .github #1426: CLOSED WITHOUT MERGE
+```
+
+The successor remains a prepared handoff only. Parent evidence work continues through its final allowed prompt; reaching the prompt ceiling changes coordination ownership but does not itself prove runtime execution or satisfy any remaining predicate.
 
 ## Public distribution continuation and authority correction
 
