@@ -4,8 +4,8 @@
   "repository": "StegVerse-org/StegVerse-SDK",
   "source_branch": "main",
   "target_branch": "main",
-  "state": "DOWNSTREAM_WORK_DURABLY_TRANSFERRED_DEPENDENCY_EXECUTION_PENDING",
-  "lifecycle": "ACTIVE",
+  "state": "REMAINING_WORK_DURABLY_TRANSFERRED_TO_SDK_WORKSPACE_EXTCOLLAB_AUTHENTIC_RUNTIME_004",
+  "lifecycle": "RETIRED",
   "owner": "StegVerse-org/StegVerse-SDK",
   "credential_authority": "TV/TVC",
   "github_token_runtime_authority": "NONE",
@@ -160,5 +160,13 @@
     "anonymous_install_latest_run": 34355771357
   },
   "manual_work_required": false,
-  "release_tag_required_now": false
+  "release_tag_required_now": false,
+  "goal_prompt_count_final": 20,
+  "retirement_disposition": "PROMPT_CEILING_REACHED_REMAINING_WORK_TRANSFERRED_TO_SUCCESSOR",
+  "successor_task": {
+    "task_id": "SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004",
+    "registry_ref": "StegVerse-Labs/.github:data/canonical-task-records/SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004.json",
+    "handoff_ref": "StegVerse-Labs/.github:docs/SDK_WORKSPACE_EXTCOLLAB_AUTHENTIC_RUNTIME_004_MIRROR_HANDOFF.md",
+    "coordination_state": "ACTIVE"
+  }
 }
