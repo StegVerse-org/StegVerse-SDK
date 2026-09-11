@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import unittest
 
 from stegverse.active_probe_execution import execute_active_probes
@@ -43,6 +44,65 @@ def workspace_tvc_result():
     }
 
 
+def external_tvc_result(reason="predicate:authorization_current:evidence_unresolved"):
+    reason_hash = "sha256:" + hashlib.sha256(reason.encode("utf-8")).hexdigest()
+    binding = "wsprobe_" + "d" * 24
+    file_id = "external-provider-file-0123456789"
+    observation = {
+        "schema": "stegverse.tvc.google-drive-external-collaboration-metadata-probe/v1",
+        "provider": "GOOGLE_DRIVE",
+        "binding_id": binding,
+        "provider_file_id": file_id,
+        "owner_binding_digest": "sha256:" + "e" * 64,
+        "probe_reason_sha256": reason_hash,
+        "observation": {
+            "provider_file_id": file_id,
+            "name": "Shared Design Doc",
+            "mime_type": "application/vnd.google-apps.document",
+            "modified_time": "2026-09-11T01:20:00Z",
+            "version": "42",
+            "trashed": False,
+        },
+        "observation_sha256": "sha256:" + "f" * 64,
+        "metadata_only": True,
+        "read_only": True,
+        "provider_mutation_performed": False,
+        "credential_material_returned": False,
+        "credential_authority": "TV/TVC",
+        "credential_class": "TVC-EXTERNAL-COLLAB-GOOGLE-DRIVE-OWNER-SESSION-001",
+        "credential_purpose": "EXTERNAL_COLLABORATIVE_RESOURCE_READ_ONLY",
+        "readiness_assigned": False,
+        "authority_effect": "NONE_PROVIDER_OBSERVATION_ONLY",
+    }
+    return {
+        "schema": "stegverse.tvc.external-collaboration-google-drive-probe-result/v1",
+        "request_id": "external-request-1234567890abcdef",
+        "request_sha256": "sha256:" + "1" * 64,
+        "binding_id": binding,
+        "provider": "GOOGLE_DRIVE",
+        "provider_file_id": file_id,
+        "probe_reason_sha256": reason_hash,
+        "provider_observation": observation,
+        "provider_observation_sha256": "sha256:" + "2" * 64,
+        "broker_use_receipt": {
+            "decision": "ALLOW_OPERATION_RESULT",
+            "single_use_consumed": True,
+            "durable_replay_recorded": True,
+            "durable_replay_consumed_before_provider_call": True,
+            "secret_material_returned": False,
+        },
+        "lease_receipt_sha256": "sha256:" + "3" * 64,
+        "credential_class": "TVC-EXTERNAL-COLLAB-GOOGLE-DRIVE-OWNER-SESSION-001",
+        "credential_purpose": "EXTERNAL_COLLABORATIVE_RESOURCE_READ_ONLY",
+        "credential_authority": "TV/TVC",
+        "credential_material_exported": False,
+        "provider_operation_authority_transferred": False,
+        "readiness_assigned": False,
+        "runtime_activation_claimed": False,
+        "authority_effect": "NONE_RESULT_EVIDENCE_ONLY",
+    }
+
+
 class TvcProviderProbeBridgeTests(unittest.TestCase):
     def test_secret_free_tvc_result_projects_to_non_authorizing_active_probe(self):
         probe = google_drive_probe_result_from_tvc(
@@ -69,6 +129,49 @@ class TvcProviderProbeBridgeTests(unittest.TestCase):
         self.assertEqual(probe["provider_request_sha256"], "sha256:" + "c" * 64)
         self.assertEqual(probe["provider_binding_id"], "kvpb_workspace_test")
 
+    def test_external_collaboration_result_projects_exact_file_and_reason(self):
+        reason = "predicate:authorization_current:evidence_unresolved"
+        probe = google_drive_probe_result_from_tvc(
+            reason=reason,
+            tvc_result=external_tvc_result(reason),
+            observed_at="2026-09-11T01:35:00Z",
+        )
+        self.assertEqual(probe["source"], "StegVerse-Labs/TVC:external-collaboration-google-drive-probe")
+        self.assertEqual(probe["source_schema"], "stegverse.tvc.external-collaboration-google-drive-probe-result/v1")
+        self.assertEqual(probe["provider_binding_id"], "wsprobe_" + "d" * 24)
+        self.assertEqual(probe["provider_file_id"], "external-provider-file-0123456789")
+        self.assertTrue(probe["durable_replay_required"])
+        self.assertEqual(probe["provider_probe_reason_sha256"], "sha256:" + hashlib.sha256(reason.encode()).hexdigest())
+        self.assertNotIn("readiness", probe)
+
+    def test_external_collaboration_reason_drift_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "does not match active-probe reason"):
+            google_drive_probe_result_from_tvc(
+                reason="predicate:different:evidence_unresolved",
+                tvc_result=external_tvc_result(),
+                observed_at="2026-09-11T01:35:00Z",
+            )
+
+    def test_external_collaboration_requires_durable_pre_provider_replay_evidence(self):
+        bad = external_tvc_result()
+        bad["broker_use_receipt"]["durable_replay_consumed_before_provider_call"] = False
+        with self.assertRaisesRegex(ValueError, "durable replay evidence required"):
+            google_drive_probe_result_from_tvc(
+                reason="predicate:authorization_current:evidence_unresolved",
+                tvc_result=bad,
+                observed_at="2026-09-11T01:35:00Z",
+            )
+
+    def test_external_collaboration_broker_cannot_assign_readiness(self):
+        bad = external_tvc_result()
+        bad["provider_observation"]["readiness_assigned"] = True
+        with self.assertRaisesRegex(ValueError, "may not assign readiness"):
+            google_drive_probe_result_from_tvc(
+                reason="predicate:authorization_current:evidence_unresolved",
+                tvc_result=bad,
+                observed_at="2026-09-11T01:35:00Z",
+            )
+
     def test_bridge_output_is_accepted_by_canonical_active_probe_execution(self):
         req = request(unresolved=True)
         ingress = req["payload"]["manifest"]["payload"]["canonical_ingress_manifest"]
@@ -77,8 +180,8 @@ class TvcProviderProbeBridgeTests(unittest.TestCase):
         def executor(reason, _manifest):
             return google_drive_probe_result_from_tvc(
                 reason=reason,
-                tvc_result=workspace_tvc_result(),
-                observed_at="2026-09-11T01:05:00Z",
+                tvc_result=external_tvc_result(reason),
+                observed_at="2026-09-11T01:35:00Z",
             )
 
         resolved = execute_active_probes(
@@ -90,13 +193,13 @@ class TvcProviderProbeBridgeTests(unittest.TestCase):
         self.assertEqual(resolved["readiness_after_probe"], "READY")
 
     def test_credential_material_is_rejected(self):
-        bad = workspace_tvc_result()
-        bad["delegated_result"]["broker_response"]["access_token"] = "ya29.must-not-cross"
+        bad = external_tvc_result()
+        bad["provider_observation"]["access_token"] = "ya29.must-not-cross"
         with self.assertRaisesRegex(ValueError, "protected TVC result"):
             google_drive_probe_result_from_tvc(
                 reason="predicate:authorization_current:evidence_unresolved",
                 tvc_result=bad,
-                observed_at="2026-09-11T01:05:00Z",
+                observed_at="2026-09-11T01:35:00Z",
             )
 
     def test_authority_transfer_is_rejected(self):

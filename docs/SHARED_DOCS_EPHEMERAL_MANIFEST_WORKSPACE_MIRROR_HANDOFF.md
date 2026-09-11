@@ -5,7 +5,7 @@ Organization: `StegVerse-org`
 Repository: `StegVerse-SDK`
 Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Parent handoff: `SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md`
-Status: `ACTIVE / EXTERNAL-COLLAB CONSENT CLASS MERGED / SEALED SESSION + EXACT PROVIDER PROBE BINDING NEXT`
+Status: `ACTIVE / EXTERNAL-COLLAB EXACT PROVIDER PROBE CHAIN SOURCE-COMPLETE / AUTHENTIC OWNER-PRESENT EXECUTION NEXT`
 
 ## Canonical architecture
 
@@ -18,135 +18,98 @@ source-native external resource observation
   -> registry-selected INTERNAL_ENDPOINT
   -> provider-neutral WorkSpace resource consumer
   -> runtime-supplied active probe executor when PROBE_REQUIRED
-  -> TVC provider evidence path
-       -> consent/session class appropriate to the authoritative external resource
-       -> non-exportable TV/TVC/SKAP custody + vault broker
-       -> exact provider-resource probe
-  -> SDK secret-free TVC provider evidence bridge
+  -> TVC external-collaboration consent/session
+  -> distinct TV/TVC/SKAP custody + vault ref
+  -> exact provider-file metadata probe with durable pre-provider replay consumption
+  -> SDK secret-free TVC evidence bridge
+  -> active-probe engine derives resultant readiness from the complete predicate state
 ```
 
-The canonical external-resource rule is now explicit:
+Canonical external-resource rules:
 
 ```text
 technical token reach != consent authority
-Personal-KV consent != arbitrary external-collaboration consent
-KV `_System/Workspace/**` observation != proof of the authoritative external Shared Doc
+Personal-KV consent != external-collaboration consent
+KV _System/Workspace/** observation != authoritative external Shared Doc proof
+TVC/provider/broker evidence != readiness authority
 ```
-
-A provider token or OAuth scope must not be reused outside the consent-purpose/credential class that authorized its use merely because the provider would technically accept the request.
 
 ## Completed implementation chain
 
-```text
-SDK PR #174: state-transition evidence MERGED at ee8f7023d74d70fa762e3982776c27c1e372a1f7
-SDK PR #176: canonical ingress -> external Interlock binding MERGED at 7047e67d21173e800f78d4468519dba87992b16d
-StegVerse-org/.github PR #9: generic INTERNAL_ENDPOINT dispatch MERGED at d8baefb8674ebed00bbbf9784c54e092a5b1a04d
-SDK PR #178: collision-prevention coordination MERGED at 8a2dfe07294daacaa5d44d4777e94def182d8d78
-SDK PR #179: provider-neutral WorkSpace resource consumer MERGED at 07ceb1f131dd8fd27b3b8c89ab747e58aa55e55c
-StegVerse-org/.github PR #10: WorkSpace endpoint binding MERGED at b851996afc5c5323d0d0db970dd46e511bd36338
-SDK PR #181: provider-neutral active probe execution MERGED at 5c8a3c0246a0ae48e498c10f85d9eee0a2d1ba2c
-SDK PR #182: TVC Google Drive result evidence bridge MERGED at 43519567d036d1d87d5866ae825ffee54acec08f
-TVC PR #381: Personal-KV `_System/Workspace/**` WorkSpace semantic probe adapter MERGED at bcf872cf0ce24a2cc653aabdaa8b25c34d0e4402
-SDK PR #184: WorkSpace-specific TVC result bridge support MERGED at 97b2a5f018a261dc27370448fa1eb73644418d66
-TVC PR #383: distinct external-collaboration Google Drive owner-session class MERGED at ccbeae7ab03c23045b92db3a293b562422980cac
-```
+- SDK PR #174 — state-transition evidence — merged `ee8f7023d74d70fa762e3982776c27c1e372a1f7`.
+- SDK PR #176 — canonical ingress -> external Interlock binding — merged `7047e67d21173e800f78d4468519dba87992b16d`.
+- StegVerse-org/.github PR #9 — generic INTERNAL_ENDPOINT dispatch — merged `d8baefb8674ebed00bbbf9784c54e092a5b1a04d`.
+- SDK PR #179 — provider-neutral WorkSpace resource consumer — merged `07ceb1f131dd8fd27b3b8c89ab747e58aa55e55c`.
+- StegVerse-org/.github PR #10 — WorkSpace endpoint binding — merged `b851996afc5c5323d0d0db970dd46e511bd36338`.
+- SDK PR #181 — provider-neutral active-probe execution — merged `5c8a3c0246a0ae48e498c10f85d9eee0a2d1ba2c`.
+- SDK PR #182 — TVC provider evidence bridge — merged `43519567d036d1d87d5866ae825ffee54acec08f`.
+- TVC PR #381 — Personal-KV `_System/Workspace/**` semantic probe only — merged `bcf872cf0ce24a2cc653aabdaa8b25c34d0e4402`; validation `34548963700 SUCCESS`.
+- SDK PR #184 — WorkSpace-specific TVC result bridge — merged `97b2a5f018a261dc27370448fa1eb73644418d66`; validations `34549046178`, `34549046169` SUCCESS.
+- TVC PR #383 — distinct external-collaboration consent/session class — merged `ccbeae7ab03c23045b92db3a293b562422980cac`; validation `34549493296 SUCCESS`.
+- stegfin-governance PR #95 — distinct external-collaboration resident vault ref/provider slot — merged `35a058488c0a2a3dddeafdb59befcd19488e3c2a`; final no-token/governance validations SUCCESS.
+- TVC PR #384 — distinct external-collaboration SKAP refresh custody, consent controller, and vault-session consumer — merged `b7e8fd3f3f498e2cae6efb01c511a68d6ab7bd8c`; validation `34550176643 SUCCESS`.
+- stegfin-governance PR #96 — exact external-file metadata probe broker extension with durable pre-provider replay consumption — merged `66c1abbcc74a0a53fe6436b1fa003759acacaad6`; dedicated validation `34551171043 SUCCESS`, full StegWallet validation `34551171019 SUCCESS`, governance `34551171073 SUCCESS`, iOS/no-token `34551171066 SUCCESS`.
+- TVC PR #385 — exact external-file probe lease/runtime — merged `4a3cc09dc5e85c051b9820dd83f6b2373e6316a7`; exact-head validation `34551154748 SUCCESS`.
+- SDK PR #186 — external-collaboration TVC result bridge support — current source head before this handoff update `e884f178156d7c96ffcd9b395ce3d44457058a96`; WorkSpace TVC Provider Probe Bridge Validation `34551443310 SUCCESS`; SDK Package Artifact Validation `34551443358 SUCCESS`.
 
-Validation evidence includes:
+Two earlier drafts remain intentionally closed and are not evidence: TVC PR #382 and stegfin-governance PR #94. They attempted to reuse Personal-KV consent for arbitrary external files and were rejected after authority reconciliation.
 
-```text
-TVC WorkSpace Google Drive Probe Validation 34548963700: PASS
-SDK WorkSpace TVC Provider Probe Bridge Validation 34549046178: PASS
-SDK Package Artifact Validation 34549046169: PASS
-TVC PR #383 exact validated head: 0e3e2fa0272bb747438ee0f9a996546629d1427d
-TVC Credential Model Consistency Validation 34549493296: PASS
-```
+## External-collaboration provider contract
 
-## Correct interpretation of TVC PR #381
+Credential class: `TVC-EXTERNAL-COLLAB-GOOGLE-DRIVE-OWNER-SESSION-001`  
+Purpose: `EXTERNAL_COLLABORATIVE_RESOURCE_READ_ONLY`  
+OAuth state purpose prefix: `extcollab.*`  
+Session schema: `stegverse.tvc.google-drive-external-collaboration-access-session/v1`  
+Vault ref: `vault://tvc/providers/google-drive/external-collaboration-session`  
+Provider key: `google_drive_external_collaboration`  
+Operation: `external_collaboration_resource_probe`  
+WorkSpace binding: `wsprobe_*`  
+TVC result: `stegverse.tvc.external-collaboration-google-drive-probe-result/v1`  
+Broker observation: `stegverse.tvc.google-drive-external-collaboration-metadata-probe/v1`
 
-PR #381 exposes:
+The probe binds the exact provider file ID and exact active-probe reason, is single-use with lease duration <=300 seconds, performs metadata GET only, downloads no document content, exports no credential material, grants no provider mutation authority, and does not assign readiness. Durable replay is recorded before provider invocation so failed or uncertain provider calls cannot reuse the same lease after restart.
 
-```text
-request: stegverse.tvc.workspace-google-drive-probe-request/v1
-result:  stegverse.tvc.workspace-google-drive-probe-result/v1
-scope:   ["_System/Workspace/**"]
-underlying credential class: TVC-PERSONAL-KV-GOOGLE-DRIVE-OWNER-SESSION-037
-underlying binding class: kvpb_*
-```
+## SDK bridge rule
 
-It composes over the already-admitted Personal-KV `personal_kv_materialize` read primitive. That is valid and useful for content already within the authoritative Personal-KV `_System/Workspace/**` boundary.
-
-It is **not** evidence that an independently controlled external Shared Doc is authorized, observed, or synchronized. Copying or projecting an external document into KV cannot substitute for probing the authoritative external resource when the experiment requires external-system authority and live provider state.
-
-## External-collaboration consent correction
-
-Inspection after PR #381 showed that the existing owner session is explicitly credential class:
-
-```text
-TVC-PERSONAL-KV-GOOGLE-DRIVE-OWNER-SESSION-037
-```
-
-Even though its provider scope is Google `drive.readonly`, using it for arbitrary external collaborative resources would broaden the consent purpose. Two draft attempts to do so were therefore closed without merge:
-
-```text
-StegVerse-Labs/TVC PR #382: CLOSED / NOT MERGED
-StegVerse-Labs/stegfin-governance PR #94: CLOSED / NOT MERGED
-```
-
-They are not capability evidence.
-
-TVC PR #383 then implemented the corrected model with distinct credential class:
-
-```text
-TVC-EXTERNAL-COLLAB-GOOGLE-DRIVE-OWNER-SESSION-001
-purpose: EXTERNAL_COLLABORATIVE_RESOURCE_READ_ONLY
-broker session schema: stegverse.tvc.google-drive-external-collaboration-access-session/v1
-OAuth state purpose binding: extcollab.*
-```
-
-PR #383 reuses the same Google OAuth transport and protected refresh-store interfaces; it does not create a second OAuth implementation. The distinction is consent/policy/session identity, not duplicated provider machinery.
-
-Its source preserves exact `drive.readonly`, StegVerse HTTPS callback restrictions, protected refresh custody, secret-free receipts, non-mutation, and distinct lifecycle identity through authorization completion, refresh, and revocation.
+SDK PR #186 validates the exact external result/broker schemas, `wsprobe_*`, provider file ID, reason digest, credential class/purpose, metadata-only/read-only posture, no mutation, no credential return, and durable pre-provider replay evidence. It then produces an ordinary canonical active-probe result. It does not include a readiness decision. The active-probe engine alone recomputes readiness after exact reason matching and the complete predicate state are evaluated.
 
 ## Current proof boundary
 
 ```text
-Generic ingress architecture: IMPLEMENTED / MERGED
-State-transition evidence: IMPLEMENTED / VALIDATED / MERGED
-Ingress -> external Interlock binding: IMPLEMENTED / VALIDATED / MERGED
-Generic INTERNAL_ENDPOINT dispatch: IMPLEMENTED / VALIDATED / MERGED
-WorkSpace resource consumer: IMPLEMENTED / VALIDATED / MERGED
-Organization-local WorkSpace endpoint binding: IMPLEMENTED / VALIDATED / MERGED
-Provider-neutral active probe execution: IMPLEMENTED / VALIDATED / MERGED
-TVC Personal-KV `_System/Workspace/**` probe adapter: IMPLEMENTED / VALIDATED / MERGED / KV-SCOPED ONLY
-SDK WorkSpace-specific TVC provider evidence bridge: IMPLEMENTED / VALIDATED / MERGED
-External-collaboration Google Drive consent/session class: IMPLEMENTED / VALIDATED / MERGED
-External-collaboration sealed resident access-session materialization: NOT YET BOUND
-External-collaboration vault-agent secret reference: NOT YET BOUND
-External-collaboration exact provider-file probe lease/broker operation: NOT YET BOUND
-Authentic owner-present external-collaboration Google consent: NOT PROVEN
-Authentic authoritative Shared Docs provider probe: NOT PROVEN
-Shared Docs live synchronization: NOT PROVEN
+Generic ingress + Interlock binding: IMPLEMENTED / VALIDATED / MERGED
+Generic WorkSpace consumer + org endpoint: IMPLEMENTED / VALIDATED / MERGED
+Active-probe execution: IMPLEMENTED / VALIDATED / MERGED
+Personal-KV WorkSpace probe: IMPLEMENTED / VALIDATED / MERGED / KV-SCOPED ONLY
+External-collaboration consent/session class: IMPLEMENTED / VALIDATED / MERGED
+External-collaboration SKAP refresh/session custody: IMPLEMENTED / VALIDATED / MERGED
+External-collaboration vault-agent ref/provider slot: IMPLEMENTED / VALIDATED / MERGED
+Exact external-file TVC lease/runtime: IMPLEMENTED / VALIDATED / MERGED
+Exact external-file durable broker operation: IMPLEMENTED / VALIDATED / MERGED
+SDK external-collaboration provider-result bridge: IMPLEMENTED / VALIDATED / PR #186 MERGE PENDING
+Authentic owner-present external-collaboration consent: NOT PROVEN
+Authentic authoritative provider-file probe: NOT PROVEN
+Shared Docs live synchronization/content refresh: NOT PROVEN
 MIR transition reporting: NOT PROVEN
 Master Records authentic custody/reconstruction: NOT PROVEN
 One-device authentic end-to-end execution: NOT PROVEN
 ```
 
-Source, CI, merge, Personal-KV observation, or technical provider-token scope must not be promoted into external Shared Docs runtime proof.
+Source/CI/merge must not be promoted into provider runtime proof.
 
-## State-transition model
+## README review
 
-Document Share is treated as an ordinary governed abstract. A live edit, autosave, recipient/share change, authorization change, consent/session activation, refresh, revocation, expiry, projection creation, synchronization, or destruction is a candidate state transition. Interlock/InTr evaluates the complete applicable governance matrix for that transition context before the resultant state is admitted. Authority is one governed attribute within that matrix, not a fixed property assigned by component class.
+`README.md` remains accurate for this source unit. Existing SDK documentation already defines the SDK as a non-authorizing client/integration surface rather than credential, transport, or final governance authority. PR #186 extends an existing internal evidence bridge and does not expose a new public runtime capability. README should be updated when an externally observable Shared Docs activation/workflow is introduced.
 
 ## Next executable sequence
 
-1. Bind `stegverse.tvc.google-drive-external-collaboration-access-session/v1` into the existing TV/TVC/SKAP protected-session materialization path under a distinct non-exportable vault reference.
-2. Add an exact external-resource read/probe lease and resident broker operation that accepts only that external-collaboration session class; do not fall back to `personal_kv_materialize`, `kvpb_*`, or Personal-KV root/scope semantics.
-3. Bind provider file identity + active-probe reason and retain secret-free provider metadata/state evidence with durable single-use replay protection.
-4. Execute owner-present consent only after those source/admission boundaries are validated.
-5. Execute one authentic authoritative external Shared Docs provider probe and feed the result through the merged SDK TVC evidence bridge/active-probe engine; verify `PROBE_REQUIRED -> READY` only when the exact unresolved predicate is satisfied.
-6. Execute the Shared Docs lifecycle: `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY`.
-7. Retain state-transition sequence, MIR reporting, independent Master Records custody/reconstruction evidence, and prove the complete flow on one current mobile device.
+1. Complete final exact-head validation and merge SDK PR #186.
+2. Reconcile the SDK owner task and central COSV vector with TVC #384/#385, stegfin #95/#96, and SDK #186 evidence.
+3. Determine whether a correctly scoped external-collaboration Google owner session is already authentically active. If not, execute the owner-present consent flow through the distinct external-collaboration controller on the current device.
+4. Execute one authentic exact provider-file metadata probe through the merged TVC lease/runtime and durable resident broker; retain the secret-free result/use receipt.
+5. Feed that exact result through the SDK bridge and active-probe engine; verify `PROBE_REQUIRED -> READY` only when the named unresolved predicate is actually satisfied and no other applicable predicate remains unresolved.
+6. Continue `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY` using the authoritative external resource, not a KV substitute.
+7. Retain MIR reporting, independent Master Records custody/reconstruction, and one-current-device evidence.
 
 ## Human action
 
-None for the next source/custody/broker-binding work. Owner-present Google authorization is required only when the authentic external-collaboration session is activated and no correctly scoped current session exists.
+None for source merge/reconciliation. Owner-present Google authorization is required only if no correctly scoped external-collaboration session already exists when authentic provider execution begins.
