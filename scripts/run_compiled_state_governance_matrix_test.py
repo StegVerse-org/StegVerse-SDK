@@ -176,8 +176,10 @@ assert no_signal["governance_reason"] == "signal.inputs_incomplete"
 
 assert observed_silence["event_3"]["predecessor_event"] == 2
 assert observed_silence["event_3"]["state_transition"]["from_event"] == 2
+assert observed_silence["event_3"]["state_transition"]["from"] == "ACTIVE_CONVERSATION_WITH_EMISSION_POSSIBLE"
 assert observed_silence["event_3"]["state_transition"]["to"] == "NON_EMISSION_OBSERVED"
 assert observed_silence["event_3"]["state_transition"]["trigger"] == "OBSERVATION_WINDOW_CLOSED_WITHOUT_EMISSION"
+assert observed_silence["event_3"]["observation_window"] == {"bounded": True, "state": "CLOSED"}
 assert observed_silence["missing_inputs"] == []
 assert observed_silence["governance_state"] == "ALLOW"
 assert observed_silence["governance_reason"] == "ok"
