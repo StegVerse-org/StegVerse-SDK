@@ -1,0 +1,19 @@
+{
+  "schema": "stegverse.mir-leaf-v3-conformance-expected-result/v1",
+  "fixture_id": "MIR-LEAF-V3-CONFORMANCE-FIXTURE-001-F1",
+  "leaf_scheme": "mir.leaf.v3",
+  "tree_profile": "rfc6962-mth-v1",
+  "checkpoint_profile": "mir.checkpoint-tip.v0.3",
+  "leaf_hashes": [
+    "sha256:3df9910404f9d224cdd83e0e8eb6dccdc18f5482bb5fd24dbf3bb0451fa9b5ba",
+    "sha256:0a3f8899d8ad397a64ba4ca703534be688601b95997c262f5f586699018d3d3f",
+    "sha256:2cbaad0f35370a114628a585e443c9f3b2e634674945e50a569d6376a551b190",
+    "sha256:ded3a77a9e23c60a7e61f85ae077671b71f236c542bd57f578f2bc505a8c9ea8",
+    "sha256:f5bf6289c3d93129f5dbfaa2b85d6133635daed01de42fe2878f6d963846184d"
+  ],
+  "merkle_root": "sha256:bd0eb01fccc1d88942f2fb465d27f212afb98f5b0aee47faf370ea0bf21a5a94",
+  "checkpoint_tip": "sha256:683eac81cfd934700c7ebe8eb4da668f2d44ae95c0cfe74d6d157993324f2ad8",
+  "proof_status": "UNAVAILABLE",
+  "witnesses": [],
+  "authority_effect": "NONE_CONFORMANCE_EVIDENCE_ONLY"
+}
