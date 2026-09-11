@@ -3,28 +3,43 @@
 Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `SOURCE_INTEGRATION_COMPLETE_RUNTIME_PROOF_PENDING`
+Status: `SOURCE_INTEGRATION_COMPLETE_LOCAL_BOUNDARY_PROOF_IN_PROGRESS`
 
 ## Objective
 
-Integrate evaluator-facing SDK manifest construction with the governance processor and authoritative Interlock/InTr security-posture contract without adding evaluator-specific evidence fields or allowing the SDK to resolve final posture.
+Establish the local SDK -> governance boundary using source-native test data, the canonical manifest builder, exact governance transition construction, and Interlock/InTr posture binding without introducing third-party evaluator execution, public-distribution acquisition, or evaluator-specific evidence contamination.
 
-## Implemented path
+The local test is intentionally earlier than third-party evaluator compatibility. No third party is executing the ÉLAN test in this lane. ÉLAN Events 1 and 2 are source-native test material used by the local SDK only.
+
+## Local boundary under test
 
 ```text
-source-native evaluator data
+source-native local test data
 + governance processor request
-+ optional evaluator preregistration declaration
++ optional evaluator-style declaration retained as metadata only
 + optional SDK security-posture request inputs
 -> canonical ingress manifest
 -> exact governance transition request
--> authoritative Interlock/InTr posture resolver
+-> injected local Interlock/InTr posture resolver
 -> exact task + payload SHA-256 + transition-request SHA-256 binding verification
--> unchanged governance request execution
--> posture binding + governance result + normal replay/reconstruction
+-> explicit SDK_TO_GOVERNANCE boundary handoff
+-> READY_FOR_GOVERNANCE_CONSUMPTION
 ```
 
-The evaluator declaration remains outside `extensions.stegverse_governance_request`. The posture request remains outside governance evidence and carries only non-authorizing request inputs. The SDK never derives authoritative automatic/effective posture or mints a posture instance.
+At this stage the test MUST NOT imply:
+
+```text
+third-party evaluator execution
+public package publication/acquisition
+live deployed StegOS runtime proof
+governance consumption
+StegCore execution
+Master Records custody
+replay
+reconstruction
+```
+
+Those are downstream tests after this boundary is established.
 
 ## Source
 
@@ -32,6 +47,7 @@ The evaluator declaration remains outside `extensions.stegverse_governance_reque
 stegverse/security_posture_request.py
 stegverse/evaluator_manifest_builder.py
 stegverse/intr_posture_runtime_bridge.py
+stegverse/local_governance_boundary.py
 stegverse/evaluator_governance_runtime.py
 stegverse/external_framework_runner.py
 stegverse/public_inspection.py
@@ -40,31 +56,14 @@ tests/test_evaluator_manifest_builder.py
 tests/test_intr_posture_runtime_bridge.py
 tests/test_intr_posture_runtime_crossrepo.py
 tests/test_external_framework_posture_runtime.py
+tests/test_local_governance_boundary.py
 tests/fixtures/stegos_intr_security_posture_resolution_84ddc96e.py
 .github/workflows/evaluator-governance-posture-manifest.yml
 .github/workflows/evaluator-governance-runtime-binding.yml
 .github/workflows/elan-governance-evidence-test.yml
 ```
 
-## One-command evaluator surface
-
-`stegverse external-run` accepts `--security-posture-request`. In `--prepare-only` mode the request is retained without posture resolution. During execution, a posture-bearing manifest requires the canonical StegOS Interlock/InTr resolver (`stegos.intr_security_posture_resolution.resolve_task_security_posture`) or an explicitly injected resolver callback for deterministic testing. Missing resolver fails closed.
-
-Posture-free external-run preserves the prior `governance_ingress_runtime.run_external_manifest` compatibility path.
-
-## Binding invariants
-
-- posture request schema: `stegverse.sdk.security-posture-request.v1`;
-- `selection_present=false` cannot carry a selected tier;
-- SDK does not compute automatic/effective posture;
-- resolver output must identify `INTERLOCK_INTR` as resolution authority;
-- returned posture instance must bind the exact task ID;
-- returned posture instance must bind the exact payload SHA-256;
-- returned posture instance must bind the exact transition-request SHA-256;
-- the governance request executed after resolution is the unchanged request whose digest was supplied to InTr;
-- evaluator preregistration remains outside governance decision evidence.
-
-## Validation and merge evidence
+## Existing runtime integration
 
 Manifest-builder composition PR #172 merged at `7aaf0ea4a3a4b133941a8b16ffd410817746a6ee`.
 
@@ -77,60 +76,90 @@ External Framework Public Submission Validation 34522799991: PASS
 SDK Package Artifact Validation 34522800019: PASS
 ```
 
-The StegOS compatibility fixture is an exact test-only snapshot of `StegVerse-Labs/StegOS@84ddc96e38d6a5156becd91fb49da7dd14047bca`, source path `stegos/intr_security_posture_resolution.py`, Git blob `e7f1e89abad89008f5dbba736621bbd23a294aa0`. Runtime code still imports the live `stegos` module and does not execute the snapshot.
+The StegOS compatibility fixture is an exact test-only snapshot of `StegVerse-Labs/StegOS@84ddc96e38d6a5156becd91fb49da7dd14047bca`, source path `stegos/intr_security_posture_resolution.py`, Git blob `e7f1e89abad89008f5dbba736621bbd23a294aa0`. It is compatibility evidence only. Local boundary execution uses an explicitly injected deterministic resolver callback.
 
-## 2026-09-10 ÉLAN evidence execution
+## Binding invariants
 
-PR #177 (`sdk-evaluator-governance-posture-test-evidence-001`) executes the source-native ÉLAN Test Trace Events 1 and 2. Event 3 remains explicitly `NOT_SUBMITTED`; no synthetic silence event is introduced. The evaluator declaration leaves `expected_observation` null.
+- posture request schema: `stegverse.sdk.security-posture-request.v1`;
+- `selection_present=false` cannot carry a selected tier;
+- SDK does not compute automatic/effective posture;
+- resolver output identifies `INTERLOCK_INTR` as resolution authority;
+- returned posture instance binds the exact task ID;
+- returned posture instance binds the exact payload SHA-256;
+- returned posture instance binds the exact transition-request SHA-256;
+- the exact transition request placed at the governance boundary is unchanged after binding;
+- evaluator-style WHAT/HOW/WHY metadata is not a governance decision input;
+- boundary preparation grants no governance/execution authority.
 
-The evidence harness emits exact files for each state boundary and uploads them as a GitHub Actions artifact. Run `34539775942` on head `8ce364370813e47fe7b787e9db1b6a09dbfa4f46` established:
+## Correction of 2026-09-10 test framing
+
+PR #177 initially attempted to continue from successful manifest/InTr construction directly into `run_external_framework`, which caused the CI harness to attempt public governed-runtime package acquisition. That conflated two separate local tests:
 
 ```text
-SOURCE_NATIVE_CAPTURED: PASS
-GOVERNANCE_REQUEST_DECLARED: PASS
-POSTURE_REQUEST_DECLARED_NON_AUTHORIZING: PASS
-MANIFEST_BUILT_VALIDATED: PASS
-GOVERNANCE_TRANSITION_REQUEST_MATERIALIZED: PASS
-INTR_POSTURE_BOUND_TEST_DOUBLE: PASS
-GOVERNANCE_EXECUTION: FAIL_CLOSED_MISSING_CANONICAL_RUNTIME_PACKAGES
+A. SDK -> governance boundary establishment
+B. full local governance-runtime execution
 ```
 
-The run preserved 13 evidence files. Important exact artifact hashes from that run include:
+For the current lane only A is in scope.
+
+The earlier run `34539775942` remains useful diagnostic evidence because it proved manifest construction, transition construction, and deterministic InTr binding and exposed a genuine `processor_capability` validator skew. PR #177 repaired that skew. However, the later missing-package failure is no longer treated as a blocker for this boundary test because package publication/acquisition is outside the scope of establishing A.
+
+## Corrected local evidence harness
+
+PR #177 now adds `stegverse/local_governance_boundary.py`. It emits:
 
 ```text
-04-manifest.json
-  sha256:1f2b204fc55a22fe0ba533a1825d2bc11a8a1427d70fa8191776c71f4c323bc3
-05-transition-request.json
-  sha256:3d06812c7d1c1967cdded761c1245db4cc4587b275c5944b6de89bb0ac67909b
-06-intr-posture-binding.json
-  sha256:9c0df3c370b6a1927af25e8318bc2ea38e0608e6f5eeb3bed2451c11a1a429a1
+schema: stegverse.sdk.local-governance-boundary/v1
+boundary: SDK_TO_GOVERNANCE
+boundary_state: READY_FOR_GOVERNANCE_CONSUMPTION
+execution_scope: LOCAL_SDK_BOUNDARY_TEST
+exact_request_preserved: true
+governance_execution_performed: false
+governance_result_claimed: false
+external_package_materialization_required: false
+third_party_evaluator_execution: false
+authority_effect: NONE
 ```
 
-An earlier run exposed a contract skew where `governance_ingress_runtime` emitted `execution_provenance.processor_capability` while `public_inspection` rejected that field. PR #177 repairs the validator to accept and bound processor capability in execution provenance. The next run passed that validator boundary and reached canonical runtime component loading.
+The revised test sequence is:
 
-The current execution failure is not an ÉLAN payload or manifest validation failure. The runner cannot materialize the canonical governed runtime because `stegverse-stegcore` is not yet available from the public package index. This matches `SDK_PUBLIC_DISTRIBUTION_PRIVACY_MIRROR_HANDOFF.md`, where exact public `stegverse-stegcore==0.3.0` publication remains pending the TV/TVC release gate. The evidence test does not bypass that release gate with protected-source credentials.
+```text
+SOURCE_NATIVE_CAPTURED
+-> LOCAL_GOVERNANCE_REQUEST_DECLARED
+-> POSTURE_REQUEST_DECLARED_NON_AUTHORIZING
+-> MANIFEST_BUILT_VALIDATED
+-> GOVERNANCE_TRANSITION_REQUEST_MATERIALIZED
+-> LOCAL_INTR_POSTURE_BINDING_VERIFIED
+-> SDK_TO_GOVERNANCE_BOUNDARY_READY
+-> GOVERNANCE_CONSUMPTION_NOT_EXECUTED_IN_THIS_BOUNDARY_TEST
+```
 
-## README review
+The workflow installs only the current SDK source plus pytest. It does not install `stegverse-stegcore`, Core-Lite, Master Records, or any other external governed-runtime distribution.
 
-The README documents the Manifest Builder, `stegverse external-run`, evaluator-defined manifests, processor-specific governance request separation, evaluator preregistration non-interference, and caller-selected return projection. PR #177 adds a bounded evidence-test note so the new test artifact path and its fail-closed runtime-publication boundary are discoverable without making ÉLAN semantics part of the generic SDK contract.
+## Relationship to StegOS/Node and state-transition protocols
+
+Universal InTr transport and the inter-Entity epistemic/state-transition protocol remain relevant to the shape of the boundary, but they do not enlarge the current test scope. The local SDK test establishes the exact manifested handoff and its non-authorizing InTr/posture binding. Governance-side consumption is the next integration test.
+
+Transport receipt, posture binding, semantic incorporation, governance admission, execution, custody, replay, and reconstruction remain distinct states. No downstream state is inferred merely because the SDK boundary artifact exists.
+
+## README reconciliation
+
+README must distinguish the new local SDK -> governance boundary test from the existing full local governed-runtime test. The full governed-runtime section may continue to describe its canonical runtime dependencies; those dependencies are not prerequisites for the earlier boundary-establishment test.
 
 ## Remaining evidence boundary
 
-The current test has authentic SDK source execution through completed manifest, governance transition request, and deterministic InTr binding. It has **not** executed the canonical StegCore governance runtime because the exact public governed-runtime distributions are not yet materialized in the clean runner, and it has not used live StegOS/InTr.
-
-Remaining predicates are:
+For this goal's immediate local boundary lane:
 
 ```text
-1 exact immutable stegverse-stegcore / Master Records public distribution publication through the canonical TV/TVC release chain
-2 clean-environment governed runtime materialization
-3 same source-native ÉLAN manifest executed through canonical governance
-4 live StegOS/InTr posture instance retained with exact task/payload/transition bindings
-5 governance result + manifest receipt + Master Records custody retained
-6 replay retained
-7 reconstruction retained
+1 execute exact-head revised local-only workflow
+2 retain exact manifest, transition request, InTr binding, and SDK_TO_GOVERNANCE handoff artifact
+3 verify focused regression tests
+4 generate screenshots only from the revised local-only evidence
+5 reconcile README wording
+6 merge PR #177 only after exact-head validation
 ```
 
-CI/test-double compatibility does not prove the live runtime predicates.
+After this is green, the next separate integration step is governance-side consumption of the exact handoff artifact. Third-party evaluator execution remains later still.
 
 ## Manual work
 
