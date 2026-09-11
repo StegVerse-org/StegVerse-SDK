@@ -40,11 +40,7 @@ def compiled_input(event_3_mode: str):
         },
     }
     if event_3_mode == "NO_SIGNAL":
-        base["event_3"] = {
-            "event": 3,
-            "predecessor_event": 2,
-            "status": "NOT_SUBMITTED",
-        }
+        base["event_3"] = {"event": 3, "predecessor_event": 2, "status": "NOT_SUBMITTED"}
     elif event_3_mode == "OBSERVED_SILENCE":
         base["event_3"] = {
             "event": 3,
@@ -66,8 +62,10 @@ def compiled_input(event_3_mode: str):
 
 def run_case(case_name: str, event_3_mode: str):
     source_native = compiled_input(event_3_mode)
-    signal_ref = f"source:compiled-state:event-2-to-3:{event_3_mode.lower()}"
+    predecessor_ref = "source:compiled-state:event-2"
+    event_3_ref = f"source:compiled-state:event-2-to-3:{event_3_mode.lower()}"
     missing_inputs = ["event_3:no_signal"] if event_3_mode == "NO_SIGNAL" else []
+    admitted_refs = [predecessor_ref] if missing_inputs else [predecessor_ref, event_3_ref]
 
     governance_request = {
         "candidate": {
@@ -83,10 +81,10 @@ def run_case(case_name: str, event_3_mode: str):
             "workload_state": "supported",
             "time_pressure": "normal",
             "isolation_state": "supported",
-            "evidence_refs": [signal_ref],
+            "evidence_refs": admitted_refs,
         },
         "signal": {
-            "admitted_signal_refs": [] if missing_inputs else [signal_ref],
+            "admitted_signal_refs": admitted_refs,
             "excluded_signal_refs": [],
             "transformations": [],
             "missing_inputs": missing_inputs,
@@ -106,7 +104,7 @@ def run_case(case_name: str, event_3_mode: str):
             "validity_window_open": True,
             "policy_ref": "compiled-state-governance-matrix-test",
             "delegation_ref": "local-sdk-test-only",
-            "evidence_refs": [signal_ref],
+            "evidence_refs": admitted_refs,
         },
         "capability": {"allowed": True},
         "continuity": {"required": False},
@@ -141,19 +139,13 @@ def run_case(case_name: str, event_3_mode: str):
         data_class="stegverse.compiled-state-governance-input/v1",
         created_at="2026-09-11T05:30:00Z",
     )
-    boundary = prepare_local_governance_boundary(
-        manifest,
-        intr_posture_resolver=fake_intr_resolver,
-        observed_at="2026-09-11T05:30:00Z",
-    )
-    continuation = consume_local_governance_handoff(
-        boundary,
-        custody_db=OUT / f"{case_name}-custody.db",
-    )
+    boundary = prepare_local_governance_boundary(manifest, intr_posture_resolver=fake_intr_resolver, observed_at="2026-09-11T05:30:00Z")
+    continuation = consume_local_governance_handoff(boundary, custody_db=OUT / f"{case_name}-custody.db")
     result = {
         "case": case_name,
         "event_3_mode": event_3_mode,
         "event_3": source_native["event_3"],
+        "admitted_signal_refs": admitted_refs,
         "missing_inputs": missing_inputs,
         "governance_state": continuation["governance_decision"]["governance_state"],
         "governance_reason": continuation["governance_decision"]["reason_code"],
@@ -170,6 +162,7 @@ no_signal = run_case("01-no-signal", "NO_SIGNAL")
 observed_silence = run_case("02-observed-silence", "OBSERVED_SILENCE")
 
 assert no_signal["event_3"]["predecessor_event"] == 2
+assert no_signal["admitted_signal_refs"] == ["source:compiled-state:event-2"]
 assert no_signal["missing_inputs"] == ["event_3:no_signal"]
 assert no_signal["governance_state"] == "DENY"
 assert no_signal["governance_reason"] == "signal.inputs_incomplete"
