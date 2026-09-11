@@ -1,0 +1,24 @@
+name: External Collaboration Authentic Runtime Proof Contract Validation
+
+on:
+  pull_request:
+    paths:
+      - 'docs/EXTERNAL_COLLAB_AUTHENTIC_RUNTIME_PROOF_CONTRACT.md'
+      - 'scripts/check_external_collab_authentic_runtime_proof_contract.py'
+      - '.github/workflows/external-collab-authentic-runtime-proof-contract-validation.yml'
+      - 'SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md'
+      - 'README.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/check_external_collab_authentic_runtime_proof_contract.py

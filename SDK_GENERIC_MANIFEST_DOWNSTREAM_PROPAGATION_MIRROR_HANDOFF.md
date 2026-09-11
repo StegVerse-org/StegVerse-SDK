@@ -51,6 +51,7 @@ TVC #384 distinct external-collaboration SKAP refresh/session custody: MERGED b7
 stegfin-governance #96 exact metadata-only provider probe + durable pre-provider replay: MERGED 66c1abbcc74a0a53fe6436b1fa003759acacaad6
 TVC #385 exact external-file probe lease/runtime: MERGED 4a3cc09dc5e85c051b9820dd83f6b2373e6316a7
 SDK #186 external-collaboration TVC result bridge: MERGED f2f9a7f385477c8096a50fc223333240060e0a2f
+SDK #189 authentic-runtime proof gate: OPEN
 ```
 
 SDK #186 exact-head validations all passed:
@@ -62,9 +63,7 @@ Manifest Builder Source Validation 34551543452: PASS
 WorkSpace Active Probe Validation 34551543495: PASS
 ```
 
-Two noncanonical attempts remain intentionally closed and unmerged: TVC #382 and stegfin-governance #94. They attempted to reuse Personal-KV consent for arbitrary external collaborative files. That model is prohibited.
-
-TVC #380 is also closed unmerged as superseded. Its Personal-KV reuse premise cannot govern independently controlled external collaborative resources.
+TVC #382 and stegfin-governance #94 remain intentionally closed and unmerged because they attempted to reuse Personal-KV consent for arbitrary external collaborative files. TVC #380 is also closed unmerged as superseded.
 
 ## External-collaboration boundary
 
@@ -91,6 +90,29 @@ TVC/provider/broker evidence != readiness authority
 
 The exact provider probe binds one provider file ID and one active-probe reason, is single-use with lease duration <=300 seconds, performs metadata GET only, downloads no document content, exports no credential material, grants no provider mutation authority, and cannot assign readiness. Durable replay is consumed before provider invocation. The SDK validates the exact result and projects only non-authorizing active-probe evidence; the active-probe engine recomputes readiness after complete predicate evaluation.
 
+## Authentic runtime proof gate
+
+PR #189 introduces `docs/EXTERNAL_COLLAB_AUTHENTIC_RUNTIME_PROOF_CONTRACT.md`, a deterministic validator, and dedicated CI. This contract converts the remaining runtime gap into an exact evidence predicate without claiming runtime execution.
+
+A qualifying authentic proof lineage must bind:
+
+```text
+owner-present external-collaboration consent/session
+-> dedicated TV/TVC/SKAP vault provider slot/ref
+-> fresh wsprobe_* binding + exact provider file ID + exact active-probe reason
+-> single-use TVC lease + durable pre-provider replay consumption
+-> authentic metadata-only/read-only provider response
+-> secret-free TVC result + durable broker use receipt
+-> SDK evidence normalization with no readiness assignment
+-> active-probe full predicate re-evaluation
+-> OBSERVE -> MATERIALIZE -> REFRESH -> REVOKE/EXPIRE -> DESTROY evidence
+-> MIR transition reporting
+-> independent Master Records custody/reconstruction
+-> one-current-device continuity evidence
+```
+
+Repository, CI, request construction, or a passing proof-contract validator is not authentic provider/runtime proof. The contract carries `authority_effect: NONE`.
+
 ## Current proof boundary
 
 ```text
@@ -104,6 +126,7 @@ External-collaboration resident vault ref/provider slot: IMPLEMENTED / VALIDATED
 Exact external-file TVC lease/runtime: IMPLEMENTED / VALIDATED / MERGED
 Exact external-file durable broker operation: IMPLEMENTED / VALIDATED / MERGED
 SDK external-collaboration provider-result bridge: IMPLEMENTED / VALIDATED / MERGED
+Authentic-runtime proof contract: IMPLEMENTED ON PR #189 / VALIDATION PENDING
 Authentic owner-present external-collaboration consent: NOT PROVEN
 Authentic authoritative provider-file probe: NOT PROVEN
 Shared Docs live synchronization/content refresh: NOT PROVEN
@@ -111,8 +134,6 @@ MIR transition reporting: NOT PROVEN
 Master Records authentic custody/reconstruction: NOT PROVEN
 One-device authentic end-to-end execution: NOT PROVEN
 ```
-
-Source, CI, merge, or request construction must not be promoted into provider/runtime proof.
 
 ## Public surfaces
 
@@ -152,13 +173,14 @@ External sessions must not duplicate Site or Worker D-owned implementation.
 
 ## Next executable sequence
 
-1. Determine whether a correctly scoped external-collaboration Google owner session is already authentically active. Do not infer this from source or CI.
-2. If absent, execute owner-present consent through the distinct external-collaboration controller on the current device.
-3. Execute one authentic exact provider-file metadata probe through the merged TVC lease/runtime and durable broker; retain the secret-free result/use receipt.
-4. Feed that exact result through the SDK bridge and active-probe engine; verify `PROBE_REQUIRED -> READY` only when the named predicate is actually satisfied and no other applicable predicate remains unresolved.
-5. Continue the authoritative-provider `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY` lifecycle.
-6. Retain MIR transition reporting, independent Master Records custody/reconstruction, and one-current-device evidence.
-7. Continue observing Site/Worker D and public-runtime publication dependencies without colliding with their owners.
+1. Validate PR #189 at exact head and merge only if green and mergeable.
+2. Determine whether a correctly scoped external-collaboration Google owner session is already authentically active. Do not infer this from source or CI.
+3. If absent, execute owner-present consent through the distinct external-collaboration controller on the current device.
+4. Execute one authentic exact provider-file metadata probe through the merged TVC lease/runtime and durable broker; retain the secret-free result/use receipt.
+5. Feed that exact result through the SDK bridge and active-probe engine; verify `PROBE_REQUIRED -> READY` only when the named predicate is actually satisfied and no other applicable predicate remains unresolved.
+6. Continue the authoritative-provider `OBSERVE -> MATERIALIZE -> live edit -> REFRESH -> authorization/probe change -> REVOKE/EXPIRE -> DESTROY` lifecycle.
+7. Retain MIR transition reporting, independent Master Records custody/reconstruction, and one-current-device evidence.
+8. Continue observing Site/Worker D and public-runtime publication dependencies without colliding with their owners.
 
 ## Current status
 
@@ -166,6 +188,7 @@ External sessions must not duplicate Site or Worker D-owned implementation.
 SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003: ACTIVE
 COSV: 71000000100110
 propagation complete: FALSE
+PR #189: OPEN / VALIDATION PENDING
 authentic owner-present external-collaboration consent: NOT PROVEN
 authentic provider probe: NOT PROVEN
 manual user work required now: NONE
@@ -173,4 +196,4 @@ manual user work required now: NONE
 
 ## README maintenance
 
-Root README remains current for the source units above. They do not introduce a new public processing capability identifier, universal ingress class, public CLI/runtime route, or user-facing WorkSpace surface. README must change when an externally observable Shared Docs/WorkSpace workflow is introduced.
+Root `README.md` was reviewed for PR #189. Its existing generic manifested-data processing and generic state-transition evidence sections already state that source/CI evidence does not prove provider, MIR, Master Records, or WorkSpace runtime execution. PR #189 introduces an internal evidence contract rather than a new public capability identifier, ingress class, public CLI/runtime route, or user-facing WorkSpace surface, so no README text change is required at this stage. README must change when an externally observable Shared Docs/WorkSpace workflow is introduced.
