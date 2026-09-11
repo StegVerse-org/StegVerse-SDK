@@ -43,9 +43,9 @@ The single-lane experiment consumes those parameters and must not reach backward
 
 ## Implementation
 
-Current clean implementation branch: `sdk-compiled-state-governance-matrix-001-r2`, rebuilt from current `main` after the earlier branch was found to be 72 commits behind.
+Clean branch: `sdk-compiled-state-governance-matrix-001-r2`, rebuilt from current `main` after the earlier branch was found to be 72 commits behind.
 
-Implementation sequence on the clean branch:
+Implementation sequence:
 
 ```text
 fffcb8b9daca3f8483d286b61698639b3cc84409  matrix script + handoff materialized on current main
@@ -71,9 +71,9 @@ PR #177 merged the predecessor experiment stack to `main` at `77732ef42505cb801c
 
 README remains processor-generic and already documents manifested-data processing, generic state-transition evidence, manifest construction, governance-route boundaries, and the rule that missing processor evidence is not invented. This task-specific Event 2 -> Event 3 test contract remains in the canonical handoff rather than rewriting README around one experiment.
 
-## Remaining evidence boundary
+## Current continuation
 
-Open a clean PR from `sdk-compiled-state-governance-matrix-001-r2`, require exact-head CI to execute the compiled-state matrix, retain the generated evidence artifact, and merge only after the exact head proves NO_SIGNAL -> DENY and OBSERVED_SILENCE_FROM_EVENT_2 -> ALLOW without upstream reinterpretation.
+Create the clean PR from `sdk-compiled-state-governance-matrix-001-r2`; exact-head CI must execute the matrix and retain its evidence artifact. Merge only after exact-head evidence proves NO_SIGNAL -> DENY and OBSERVED_SILENCE_FROM_EVENT_2 -> ALLOW without upstream reinterpretation.
 
 ## Manual work
 
