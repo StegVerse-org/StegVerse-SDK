@@ -13,16 +13,18 @@ This experiment does not infer intent, responsiveness, cause, medical meaning, l
 
 ## Canonical Event 3 rule
 
-The manifest must encode Event 3 relative to Event 2.
+The manifest encodes Event 3 relative to Event 2.
 
 ```text
 CASE A — NO SIGNAL / NOT SUBMITTED
+Event 2 remains admitted compiled evidence.
 Event 3 predecessor_event = 2
 Event 3 has no admitted observed state
 signal.missing_inputs = [event_3:no_signal]
 Expected result: DENY / signal.inputs_incomplete
 
 CASE B — OBSERVED SILENCE
+Event 2 remains admitted compiled evidence.
 Event 3 predecessor_event = 2
 Event 3 state_transition.from_event = 2
 Event 3 state_transition.from = ACTIVE_CONVERSATION_WITH_EMISSION_POSSIBLE
@@ -51,17 +53,46 @@ Implementation sequence:
 fffcb8b9daca3f8483d286b61698639b3cc84409  matrix script + handoff materialized on current main
 c58dd34ffec18a2db1d05913addb0734c6f8e716  CI updated to execute compiled-state matrix
 9b0f4fa916453eb61465e1c464b81df87d35742f  Event 3 silence assertions tightened to exact Event 2 transition
+c5fbea3f738bd9446d3d43323961fb644924385d  clean PR #203 opened
+377dda35e7d8e3c17e806d31db2712835a4e27f7  repaired NO_SIGNAL fixture to preserve admitted Event 2 evidence while marking only Event 3 missing
 ```
 
-Files:
+The initial PR #203 exact-head run `34611277482` failed at the new matrix because the first NO_SIGNAL fixture accidentally supplied no admitted signal refs; governance therefore correctly denied earlier with `signal.none_admitted`. That was a fixture construction error, not the intended test boundary.
+
+The repair retained Event 2 as admitted compiled evidence in both cases and varied only the Event 3 terminal state. Exact-head run `34611435186` on `377dda35e7d8e3c17e806d31db2712835a4e27f7` passed:
 
 ```text
-scripts/run_compiled_state_governance_matrix_test.py
-.github/workflows/elan-governance-evidence-test.yml
-SDK_COMPILED_STATE_GOVERNANCE_MATRIX_MIRROR_HANDOFF.md
+focused local SDK boundary tests: PASS
+baseline missing Event 3 experiment: PASS
+observed-silence Event 3 experiment: PASS
+compiled-state Event 3 matrix: PASS
+compiled-state terminal assertions: PASS
+controlled comparison: PASS
+evidence inventory: PASS
+all evidence uploads: PASS
 ```
 
-The matrix script generates two manifests using the same governance evaluator and asserts only the terminal Event 3 distinction described above. CI also preserves the predecessor baseline and observed-silence experiments.
+Compiled-state matrix artifact:
+
+```text
+name: elan-compiled-state-governance-matrix
+artifact id: 10269041130
+digest: sha256:2bc6091bf9ebe94c2717f0af1e1cf7130b883217ce91d8c0ac4f838597a272ce
+run: 34611435186
+head: 377dda35e7d8e3c17e806d31db2712835a4e27f7
+```
+
+The exact controlled result is:
+
+```text
+NO_SIGNAL after Event 2 -> DENY / signal.inputs_incomplete
+OBSERVED_SILENCE as Event 2 -> Event 3 NON_EMISSION_OBSERVED -> ALLOW / ok
+upstream_parameters_reinterpreted = false
+```
+
+## Registry state
+
+Canonical successor registration merged in `StegVerse-Labs/.github` PR #1436 at `7c9cc5332748477c5cf75d27b674b7b7721c9ee3` with coordination state `ACTIVE` and checkout state `CHECKED_OUT`.
 
 ## Predecessor evidence
 
@@ -73,7 +104,7 @@ README remains processor-generic and already documents manifested-data processin
 
 ## Current continuation
 
-Clean branch prepared through `06aaca6259b7c3975d32c95e4949fa48eeee6285`; open the clean PR, require exact-head CI to execute the matrix and retain its evidence artifact, then merge only after exact-head evidence proves NO_SIGNAL -> DENY and OBSERVED_SILENCE_FROM_EVENT_2 -> ALLOW without upstream reinterpretation.
+PR #203 now contains the repaired, evidence-backed matrix. Revalidate the new documentation head if CI attaches, then merge PR #203. After merge, update the canonical task record from ACTIVE/CHECKED_OUT to the completed coordination state with the merge and artifact evidence.
 
 ## Manual work
 
