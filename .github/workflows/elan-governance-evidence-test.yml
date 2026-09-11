@@ -1,10 +1,12 @@
-name: ELAN Governance Evidence Test
+name: ELAN Local SDK Governance Boundary Test
 
 on:
   pull_request:
     paths:
       - 'scripts/run_elan_manifest_governance_evidence_test.py'
+      - 'stegverse/local_governance_boundary.py'
       - 'stegverse/public_inspection.py'
+      - 'tests/test_local_governance_boundary.py'
       - '.github/workflows/elan-governance-evidence-test.yml'
   workflow_dispatch:
 
@@ -12,46 +14,29 @@ permissions:
   contents: read
 
 jobs:
-  evidence-test:
+  local-boundary-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install current SDK source
-        run: python -m pip install -e .
-      - name: Attempt published governed runtime distributions
-        id: runtime_install
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          python -m pip install --upgrade stegverse-stegcore stegverse-core-lite stegverse-master-records 2>&1 | tee /tmp/governed-runtime-install.log
-          python -m pip freeze | grep -Ei 'stegverse|stegcore|core-lite|master-records' | sort | tee /tmp/governed-runtime-distributions.txt
-      - name: Run ELAN manifest to governance evidence test
-        id: run_test
-        continue-on-error: true
+      - name: Install current SDK source only
+        run: python -m pip install -e . pytest
+      - name: Run focused local SDK boundary tests
+        env:
+          PYTHONPATH: .
+        run: python -m pytest -q tests/test_local_governance_boundary.py tests/test_intr_posture_runtime_bridge.py tests/test_evaluator_manifest_builder.py
+      - name: Run ELAN-shaped local SDK boundary evidence test
         env:
           PYTHONPATH: .
         run: python scripts/run_elan_manifest_governance_evidence_test.py
-      - name: Preserve dependency and execution evidence
-        if: always()
-        run: |
-          mkdir -p evidence/elan/2026-09-10-governance-test
-          cp /tmp/governed-runtime-install.log evidence/elan/2026-09-10-governance-test/00-governed-runtime-install.log 2>/dev/null || true
-          cp /tmp/governed-runtime-distributions.txt evidence/elan/2026-09-10-governance-test/00-installed-distributions.txt 2>/dev/null || true
-          printf 'runtime_install_outcome=%s\nrun_test_outcome=%s\n' '${{ steps.runtime_install.outcome }}' '${{ steps.run_test.outcome }}' > evidence/elan/2026-09-10-governance-test/00-workflow-outcomes.txt
       - name: Inventory evidence artifacts
-        if: always()
         run: |
-          find evidence/elan/2026-09-10-governance-test -maxdepth 1 -type f -print -exec sha256sum {} \; || true
+          find evidence/elan/2026-09-10-governance-test -maxdepth 1 -type f -print -exec sha256sum {} \;
       - name: Upload evidence artifacts
-        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: elan-governance-evidence-test
+          name: elan-local-sdk-governance-boundary-test
           path: evidence/elan/2026-09-10-governance-test/
           if-no-files-found: error
-      - name: Enforce test result
-        if: steps.run_test.outcome != 'success'
-        run: exit 1
