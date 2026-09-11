@@ -3,124 +3,107 @@
 Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `LOCAL_SDK_TO_GOVERNANCE_BOUNDARY_PROVEN`
+Status: `LOCAL_EXPERIMENT_PATH_TRAVERSED_GOVERNANCE_DENY`
 
 ## Objective
 
-Establish the local SDK -> governance boundary using source-native test data, the canonical manifest builder, exact governance transition construction, and Interlock/InTr posture binding without introducing third-party evaluator execution, public-distribution acquisition, or evaluator-specific evidence contamination.
+Prove the local SDK experiment path from source-native ÉLAN test data through canonical manifest construction, exact governance transition construction, Interlock/InTr posture binding, SDK->governance handoff, local governance consumption, returned governed result, route evidence, exact-run custody, replay, and reconstruction without third-party evaluator execution or public package publication.
 
-The local test is intentionally earlier than third-party evaluator compatibility. No third party executes the ÉLAN test in this lane. ÉLAN Events 1 and 2 are source-native test material used by the local SDK only.
-
-## Proven local boundary
+## Proven sequence
 
 ```text
-source-native local test data
-+ governance processor request
-+ evaluator-style declaration retained as metadata only
-+ SDK security-posture request inputs
--> canonical ingress manifest
--> exact governance transition request
--> injected local Interlock/InTr posture resolver
--> exact task + payload SHA-256 + transition-request SHA-256 binding verification
--> explicit SDK_TO_GOVERNANCE boundary handoff
--> READY_FOR_GOVERNANCE_CONSUMPTION
+SOURCE_NATIVE_CAPTURED
+-> LOCAL_GOVERNANCE_REQUEST_DECLARED
+-> POSTURE_REQUEST_DECLARED_NON_AUTHORIZING
+-> MANIFEST_BUILT_VALIDATED
+-> GOVERNANCE_TRANSITION_REQUEST_MATERIALIZED
+-> LOCAL_INTR_POSTURE_BINDING_VERIFIED
+-> SDK_TO_GOVERNANCE_BOUNDARY_READY
+-> GOVERNANCE_CONSUMED
+-> GOVERNANCE_DECISION_DENY
+-> ROUTE_TRANSITIONS_RECORDED
+-> MASTER_RECORDS_STYLE_EXACT_RUN_CUSTODY_RECORDED
+-> REPLAY_COMPLETED
+-> RECONSTRUCTION_COMPLETED
+-> RESULT_RETURNED_TO_SDK
 ```
 
-The boundary proof does not imply governance consumption, StegCore execution, Master Records custody, replay, reconstruction, live deployed StegOS runtime proof, public package publication/acquisition, or third-party evaluator execution.
-
-## Source
+The submitted governance request preserves ÉLAN Event 3 as missing rather than synthesizing it:
 
 ```text
-stegverse/security_posture_request.py
-stegverse/evaluator_manifest_builder.py
-stegverse/intr_posture_runtime_bridge.py
-stegverse/local_governance_boundary.py
-stegverse/evaluator_governance_runtime.py
-stegverse/external_framework_runner.py
-stegverse/public_inspection.py
-scripts/run_elan_manifest_governance_evidence_test.py
-tests/test_evaluator_manifest_builder.py
-tests/test_intr_posture_runtime_bridge.py
-tests/test_intr_posture_runtime_crossrepo.py
-tests/test_external_framework_posture_runtime.py
-tests/test_local_governance_boundary.py
-tests/fixtures/stegos_intr_security_posture_resolution_84ddc96e.py
-.github/workflows/evaluator-governance-posture-manifest.yml
-.github/workflows/evaluator-governance-runtime-binding.yml
-.github/workflows/elan-governance-evidence-test.yml
+signal.missing_inputs = ["event_3:not_submitted"]
 ```
 
-## Existing runtime integration
-
-Manifest-builder composition PR #172 merged at `7aaf0ea4a3a4b133941a8b16ffd410817746a6ee`.
-
-Runtime binding PR #173 merged at `b9beedcbbed3b09ed7620ac6de6f51788c6567a1` after exact-head `c5d41998bb39f9af1bb127a0e74b1c8bffd50dd4` passed:
+The pinned canonical three-layer semantics deny on any declared missing signal input. The observed local governed result is therefore:
 
 ```text
-Evaluator Governance Runtime Binding Validation 34522799912: PASS
-Manifest Builder Source Validation 34522799896: PASS
-External Framework Public Submission Validation 34522799991: PASS
-SDK Package Artifact Validation 34522800019: PASS
+governance_state: DENY
+reason_code: signal.inputs_incomplete
+executor_invoked: false
+external_side_effect: false
 ```
 
-The StegOS compatibility fixture is an exact test-only snapshot of `StegVerse-Labs/StegOS@84ddc96e38d6a5156becd91fb49da7dd14047bca`, source path `stegos/intr_security_posture_resolution.py`, Git blob `e7f1e89abad89008f5dbba736621bbd23a294aa0`. It is compatibility evidence only. Local boundary execution uses an explicitly injected deterministic resolver callback.
+## Local governance continuation scope
 
-## Binding invariants
+`stegverse/local_governance_experiment.py` is a test-only semantic snapshot of the exact pinned governed-test source basis. It consumes the exact `READY_FOR_GOVERNANCE_CONSUMPTION` handoff and does not fabricate a success result or bypass the restrictive governance ordering.
 
-- posture request schema: `stegverse.sdk.security-posture-request.v1`;
-- `selection_present=false` cannot carry a selected tier;
-- SDK does not compute automatic/effective posture;
-- resolver output identifies `INTERLOCK_INTR` as resolution authority;
-- returned posture instance binds the exact task ID;
-- returned posture instance binds the exact payload SHA-256;
-- returned posture instance binds the exact transition-request SHA-256;
-- the exact transition request placed at the governance boundary is unchanged after binding;
-- evaluator-style WHAT/HOW/WHY metadata is not a governance decision input;
-- boundary preparation grants no governance/execution authority.
-
-## Corrected test framing
-
-PR #177 initially attempted to continue from successful manifest/InTr construction directly into `run_external_framework`, which conflated:
+Pinned source basis:
 
 ```text
-A. SDK -> governance boundary establishment
-B. full local governance-runtime execution
+StegVerse-Labs/StegCore@ef38410505b0ef3e84148892b1d6e3cdef20f300
+Data-Continuation/core-lite@72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
+master-records/orchestration@03312236c115bc814024d700810391340648601f
 ```
 
-For this lane, A is now independently proven. The earlier run `34539775942` remains diagnostic only; it exposed a genuine `processor_capability` validator skew that PR #177 repairs, but its package-acquisition failure is not a blocker for boundary establishment.
+This proves the local experiment semantics and evidence path. It does not claim deployment of those private packages, a live cross-repository runtime instance, or third-party evaluator execution.
 
-## Exact successful boundary evidence
-
-Current exact head before this handoff update: `9b3943934d1154a00c5cc87826bb3a0c00bd72de`.
+## Exact successful run
 
 Workflow:
 
 ```text
-ELAN Local SDK Governance Boundary Test
-run: 34553895610
-job: local-boundary-test
+ELAN Local SDK Governance Experiment
+run: 34560172540
+head: c6a8a29e404ddd7ed01dc706fcba3d4452e2fe17
 result: PASS
 ```
 
-The run passed:
+Passed steps:
 
 ```text
 Install current SDK source only: PASS
 Focused local SDK boundary tests: PASS
-ÉLAN-shaped local SDK boundary evidence test: PASS
+ELAN local SDK through governance experiment: PASS
+Assert governance path evidence: PASS
 Evidence inventory: PASS
 Artifact upload: PASS
 ```
 
-Uploaded artifact:
+Artifact:
 
 ```text
-name: elan-local-sdk-governance-boundary-test
-artifact id: 10181792404
-artifact digest: sha256:888917ebf4a639ecb16b83ac899e09ca8083d3ca23c17cf0fc27046dd803cdf1
+name: elan-local-sdk-governance-experiment
+artifact id: 10184019620
+artifact digest: sha256:f804ace1f0eb965977d9ca6c3dab5d4cdc74ddf675bb3548c9a556b3d12f82c1
 ```
 
-The artifact contains:
+Observed result:
+
+```text
+boundary_consumed: true
+governance_state: DENY
+governance_reason: signal.inputs_incomplete
+executor_invoked: false
+route_transition_count: 10
+chain_verified: true
+custody_status: RECORDED
+replay_deterministic_match: true
+reconstruction_chain_verified: true
+result_returned: true
+manifest_receipt_id: MR-A6180341ED34E36D2682A37C398DC5D5031D398D9AE73007DD9333B712E1A68A
+```
+
+## Evidence files
 
 ```text
 00-source-native-input.json
@@ -131,64 +114,40 @@ The artifact contains:
 05-transition-request.json
 06-intr-posture-binding.json
 07-sdk-governance-boundary-handoff.json
-08-state-transitions.json
-09-summary.json
-10-results-documentation.md
+08-governance-decision.json
+09-route-receipts.json
+10-exact-run-custody.json
+11-replay.json
+12-reconstruction.json
+13-returned-result.json
+14-state-transitions.json
+15-summary.json
+16-results-documentation.md
+local-governance-custody.db
 ```
 
-Observed state sequence:
+## Architectural interpretation
+
+Transport/posture binding, governance consumption, governance disposition, route transition recording, custody, replay, reconstruction, and returned result are distinct states. This run demonstrates each of those states in the local experiment path. A `DENY` is a successful governed result for this experiment because the missing Event 3 remains visible and causes the restrictive governance layer to refuse progression rather than allowing the SDK to manufacture missing evidence.
+
+## README maintenance
+
+README must distinguish:
+
+1. local SDK boundary preparation;
+2. local governance experiment continuation using pinned canonical semantics;
+3. full installed private-package governed runtime;
+4. later third-party evaluator compatibility.
+
+## Remaining work
 
 ```text
-SOURCE_NATIVE_CAPTURED
--> LOCAL_GOVERNANCE_REQUEST_DECLARED
--> POSTURE_REQUEST_DECLARED_NON_AUTHORIZING
--> MANIFEST_BUILT_VALIDATED
--> GOVERNANCE_TRANSITION_REQUEST_MATERIALIZED
--> LOCAL_INTR_POSTURE_BINDING_VERIFIED
--> SDK_TO_GOVERNANCE_BOUNDARY_READY
--> GOVERNANCE_CONSUMPTION_NOT_EXECUTED_IN_THIS_BOUNDARY_TEST
+1 validate the newest documentation head after this handoff/README reconciliation
+2 reconcile PR #177 with current base if needed
+3 merge PR #177 only after exact-head validations are green
+4 keep third-party evaluator execution as a later compatibility lane
+5 if required, separately prove the same path against a live materialized private-package governance runtime without changing the experiment payload
 ```
-
-Summary outcome:
-
-```text
-LOCAL_SDK_GOVERNANCE_BOUNDARY_PROVEN
-boundary_state: READY_FOR_GOVERNANCE_CONSUMPTION
-external_package_materialization_required: false
-third_party_evaluator_execution: false
-governance_execution_performed: false
-```
-
-## Third-party-view documentation
-
-The screenshot set derived from run `34553895610` represents what a third-party SDK user would see at the SDK surface while preserving the actual local test semantics. It includes:
-
-```text
-1 Manifest Builder input
-2 completed manifest
-3 governance transition request
-4 Interlock/InTr posture binding
-5 SDK -> governance boundary READY
-6 state-transition trace
-```
-
-No governance-result screenshot is produced from this run because governance did not consume the handoff. A later governance-consumption run must provide that evidence before any result screen is documented.
-
-## Relationship to StegOS/Node and state-transition protocols
-
-Universal InTr transport and the inter-Entity epistemic/state-transition protocol shape the boundary but do not enlarge the current test scope. Transport receipt, posture binding, semantic incorporation, governance admission, execution, custody, replay, and reconstruction remain distinct states. No downstream state is inferred merely because the SDK boundary artifact exists.
-
-## Remaining work for this goal
-
-```text
-1 reconcile README wording so local boundary testing and full local governed-runtime testing are explicitly distinct
-2 validate this exact newest handoff head
-3 merge PR #177 when exact-head validation is green and branch/base are reconciled
-4 create/continue the next integration lane for governance-side consumption of the exact READY_FOR_GOVERNANCE_CONSUMPTION artifact
-5 only after governance consumption is proven, document governance decision/result/custody/replay/reconstruction screens
-```
-
-Third-party evaluator execution remains a later compatibility test after the SDK/governance boundary and governance-side consumer are established.
 
 ## Manual work
 
