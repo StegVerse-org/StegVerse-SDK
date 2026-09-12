@@ -59,6 +59,7 @@ stegverse-comm-demo = "stegverse.communication_edge_cli:main"
 stegverse-verify-governance = "stegverse.portable_governance_verifier_cli:main"
 stegverse-governance-exchange = "stegverse.portable_governance_exchange_cli:main"
 stegverse-self-characterization = "stegverse.self_characterization_cli:main"
+stegverse-diagnostic = "stegverse.ecosystem_diagnostic_cli:main"
 
 [project.urls]
 Homepage = "https://github.com/StegVerse-org/StegVerse-SDK"
