@@ -1,8 +1,8 @@
 """User/framework-facing builder for canonical StegVerse ingress manifests.
 
 The builder is a construction and validation convenience layer only. It does not
-perform governance, infer missing processor evidence, grant authority, or alter
-the semantic meaning of a caller's source-native payload.
+perform governance, diagnostics, infer missing processor evidence, grant authority,
+or alter the semantic meaning of a caller's source-native payload.
 """
 from __future__ import annotations
 
@@ -13,12 +13,18 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
+from .ecosystem_diagnostic_runtime import REQUEST_EXTENSION, validate_diagnostic_request
 from .governance_navigation import INGRESS_PROFILE, canonical_sha256
 from .manifest_contract import validate_ingress_manifest
-from .route_resolution import CANONICAL_PRODUCTION_ROUTE_ID, PUBLISHED_ROUTES
+from .route_resolution import (
+    CANONICAL_PRODUCTION_ROUTE_ID,
+    ECOSYSTEM_DIAGNOSTIC_ROUTE_ID,
+    PUBLISHED_ROUTES,
+)
 
 PROCESSOR_ROUTES = {
     "governance": CANONICAL_PRODUCTION_ROUTE_ID,
+    "ecosystem_diagnostic": ECOSYSTEM_DIAGNOSTIC_ROUTE_ID,
 }
 
 GOVERNANCE_REQUEST_FIELDS = (
@@ -36,28 +42,25 @@ RETURN_DEPTHS = {
     "result-only": {"mode": "SELECTED", "transition_classes": ["governance"]},
     "result+evidence": {
         "mode": "SELECTED",
-        "transition_classes": [
-            "ingestion",
-            "governance",
-            "consequence",
-            "return_ingestion",
-            "custody",
-        ],
+        "transition_classes": ["ingestion", "governance", "consequence", "return_ingestion", "custody"],
     },
+    "full-trace": {"mode": "ALL", "transition_classes": []},
+    "locator-only": {"mode": "NONE", "transition_classes": []},
+}
+
+DIAGNOSTIC_RETURN_DEPTHS = {
+    "result-only": {"mode": "SELECTED", "transition_classes": ["diagnostic"]},
+    "result+evidence": {"mode": "SELECTED", "transition_classes": ["ingestion", "diagnostic", "custody"]},
     "full-trace": {"mode": "ALL", "transition_classes": []},
     "locator-only": {"mode": "NONE", "transition_classes": []},
 }
 
 
 def available_processors() -> tuple[str, ...]:
-    """Return processor capabilities whose declared routes are installed."""
     installed = []
     for name, route_id in PROCESSOR_ROUTES.items():
         route = PUBLISHED_ROUTES.get(route_id) or {}
-        if (
-            route.get("runtime_installed") is True
-            and route.get("processor_capability") == name
-        ):
+        if route.get("runtime_installed") is True and route.get("processor_capability") == name:
             installed.append(name)
     return tuple(sorted(installed))
 
@@ -74,9 +77,7 @@ def _route_declaration(process: str) -> dict[str, Any]:
     if not published or published.get("runtime_installed") is not True:
         raise ValueError(f"processing capability {normalized!r} has no installed runtime route")
     if published.get("processor_capability") != normalized:
-        raise ValueError(
-            f"route {route_id!r} is not bound to processing capability {normalized!r}"
-        )
+        raise ValueError(f"route {route_id!r} is not bound to processing capability {normalized!r}")
     return {
         "route_id": published["route_id"],
         "lane_class": published["lane_class"],
@@ -95,13 +96,18 @@ def _validate_governance_request(value: Mapping[str, Any] | None) -> dict[str, A
         )
     missing = [field for field in GOVERNANCE_REQUEST_FIELDS if field not in value]
     if missing:
-        raise ValueError(
-            "processor_request is missing required governance fields: " + ", ".join(missing)
-        )
+        raise ValueError("processor_request is missing required governance fields: " + ", ".join(missing))
     candidate = value.get("candidate")
     if not isinstance(candidate, Mapping):
         raise ValueError("processor_request.candidate must be an object")
     return deepcopy(dict(value))
+
+
+def _projection_for(process: str, depth_key: str) -> dict[str, Any]:
+    source = DIAGNOSTIC_RETURN_DEPTHS if process == "ecosystem_diagnostic" else RETURN_DEPTHS
+    if depth_key not in source:
+        raise ValueError(f"unsupported return_depth {depth_key!r}; choices: " + ", ".join(sorted(source)))
+    return deepcopy(source[depth_key])
 
 
 def build_manifest(
@@ -120,52 +126,39 @@ def build_manifest(
     requested_consequence: str | None = None,
     manifest_labels: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Build a validated `stegverse.ingress-manifest.v1` object.
-
-    `data` remains the source-native payload. `process` declares the caller-facing
-    processing capability. `processor_request` is separate and must already
-    contain the complete processor-specific evidence required by that capability.
-    No missing governance state is inferred by this function.
-    """
     if not isinstance(source_framework, str) or not source_framework.strip():
         raise ValueError("source_framework is required")
     if not isinstance(source_output_id, str) or not source_output_id.strip():
         raise ValueError("source_output_id is required")
 
     normalized_process = process.strip().lower()
-    if normalized_process != "governance":
-        # New processor builders are added explicitly. Never reuse governance
-        # semantics merely because a route happens to exist.
-        _route_declaration(normalized_process)
+    route = _route_declaration(normalized_process)
+    extensions: dict[str, Any] = {"stegverse_route": route}
+    candidate = None
+    hashes: dict[str, Any] = {"payload_sha256": canonical_sha256(data)}
+
+    if normalized_process == "governance":
+        normalized_request = _validate_governance_request(processor_request)
+        candidate = deepcopy(dict(normalized_request["candidate"]))
+        hashes["candidate_sha256"] = canonical_sha256(candidate)
+        extensions["stegverse_governance_request"] = normalized_request
+    elif normalized_process == "ecosystem_diagnostic":
+        normalized_request = validate_diagnostic_request(processor_request)
+        extensions[REQUEST_EXTENSION] = normalized_request
+    else:
         raise ValueError(f"processing capability {normalized_process!r} has no builder binding")
 
-    governance_request = _validate_governance_request(processor_request)
-    candidate = deepcopy(dict(governance_request["candidate"]))
-
     depth_key = return_depth.strip().lower()
-    if depth_key not in RETURN_DEPTHS:
-        raise ValueError(
-            f"unsupported return_depth {return_depth!r}; choices: "
-            + ", ".join(sorted(RETURN_DEPTHS))
-        )
-
+    return_projection = _projection_for(normalized_process, depth_key)
     timestamp = created_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    route = _route_declaration(normalized_process)
-    processing = {
-        "capability": normalized_process,
+    processing = {"capability": normalized_process, "route_id": route["route_id"]}
+    extensions["manifest_builder"] = {
+        "profile": "stegverse.manifest-builder.v1",
+        "processing_capability": normalized_process,
         "route_id": route["route_id"],
-    }
-    extensions: dict[str, Any] = {
-        "stegverse_route": route,
-        "stegverse_governance_request": governance_request,
-        "manifest_builder": {
-            "profile": "stegverse.manifest-builder.v1",
-            "processing_capability": normalized_process,
-            "route_id": route["route_id"],
-            "return_depth": depth_key,
-            "source_semantic_custody": "EXTERNAL",
-            "builder_grants_authority": False,
-        },
+        "return_depth": depth_key,
+        "source_semantic_custody": "EXTERNAL",
+        "builder_grants_authority": False,
     }
     if data_class is not None:
         if not isinstance(data_class, str) or not data_class.strip():
@@ -182,25 +175,21 @@ def build_manifest(
         "freshness": {},
         "payload": deepcopy(data),
         "processing": processing,
-        "candidate": candidate,
         "declared_intent": declared_intent
         or f"Process source-native manifested data through installed {normalized_process} processing.",
         "requested_consequence": requested_consequence
         or "Return the requested StegVerse processing artifact; no caller-authored authority is created.",
         "context_refs": list(context_refs or []),
         "canonicalization_profile": "steggate.jcs.v1",
-        "hashes": {
-            "payload_sha256": canonical_sha256(data),
-            "candidate_sha256": canonical_sha256(candidate),
-        },
+        "hashes": hashes,
         "attestation": None,
         "extensions": extensions,
-        "return_projection": deepcopy(RETURN_DEPTHS[depth_key]),
+        "return_projection": return_projection,
         "manifest_labels": dict(manifest_labels or {"mode": "NONE"}),
     }
+    if candidate is not None:
+        manifest["candidate"] = candidate
 
-    # Validate using the processor-generic ingress contract. Execution performs a
-    # separate installed-route and processor-binding resolution step.
     validate_ingress_manifest(manifest)
     return manifest
 
@@ -223,18 +212,12 @@ def _write_json(value: Any, path: str | None) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        prog="stegverse manifest",
-        description="Build canonical StegVerse ingress manifests from source-native data.",
-    )
+    parser = argparse.ArgumentParser(prog="stegverse manifest", description="Build canonical StegVerse ingress manifests from source-native data.")
     sub = parser.add_subparsers(dest="command", required=True)
     build = sub.add_parser("build", help="build and validate a canonical ingress manifest")
     build.add_argument("--input", required=True, help="JSON file containing source-native data")
-    build.add_argument(
-        "--governance-request",
-        required=True,
-        help="JSON file containing the complete processor-specific governance request",
-    )
+    build.add_argument("--processor-request", help="JSON file containing the complete selected processor request")
+    build.add_argument("--governance-request", help="legacy alias for --processor-request when --process=governance")
     build.add_argument("--source-framework", required=True)
     build.add_argument("--source-output-id", required=True)
     build.add_argument("--source-instance")
@@ -247,13 +230,18 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "build":
         try:
+            request_path = args.processor_request or args.governance_request
+            if not request_path:
+                raise ValueError("--processor-request is required (or --governance-request for governance compatibility)")
+            if args.process != "governance" and args.governance_request and not args.processor_request:
+                raise ValueError("non-governance processing requires --processor-request")
             manifest = build_manifest(
                 data=_load_json(args.input),
                 source_framework=args.source_framework,
                 source_output_id=args.source_output_id,
                 source_instance=args.source_instance,
                 data_class=args.data_class,
-                processor_request=_load_json(args.governance_request),
+                processor_request=_load_json(request_path),
                 process=args.process,
                 return_depth=args.return_depth,
                 created_at=args.created_at,
