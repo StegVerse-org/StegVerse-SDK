@@ -1,0 +1,29 @@
+{
+  "task_id": "MIR-STEGVERSE-HISTORICAL-ACCOUNTING-RUN-002",
+  "parent_task_id": "MIR-STEGVERSE-SEPARATION-OF-POWERS-EVIDENCE-CONTRACT-001",
+  "cosv_id": "50000000100000",
+  "issue": 217,
+  "status": "ACTIVE_EXECUTION_PENDING",
+  "goal": "Execute the frozen StegVerse governance -> MIR historical accounting -> StegVerse delta validation -> Publisher Run-2 trajectory without semantic reinterpretation.",
+  "canonical_governance_input": "inspection/examples/governed-test-request.json",
+  "handoff": "docs/MIR_STEGVERSE_HISTORICAL_ACCOUNTING_RUN_002_MIRROR_HANDOFF.md",
+  "required_phases": [
+    "STEGVERSE_GOVERNANCE_EXECUTION",
+    "STEGVERSE_HISTORY_RETENTION",
+    "STEGVERSE_TO_MIR_HANDOFF",
+    "MIR_HISTORICAL_ACCOUNTING",
+    "MIR_TO_STEGVERSE_RETURN",
+    "STEGVERSE_DELTA_VALIDATION",
+    "REPLAY_RECONSTRUCTION",
+    "PUBLISHER_REPORT"
+  ],
+  "supporting_not_driver": [
+    "MIR_STANDING_EVIDENCE",
+    "MIR_LEAF_V3_CONFORMANCE"
+  ],
+  "runtime_authority": "SOVEREIGN_RESIDENT_ONLY",
+  "github_actions_runtime_authority": "NONE",
+  "credential_authority": "TV/TVC",
+  "publisher_completion_requires_authentic_evidence": true,
+  "interpretation_remediation_deferred_until_after_test": true
+}
