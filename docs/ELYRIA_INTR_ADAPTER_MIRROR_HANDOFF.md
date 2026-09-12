@@ -5,7 +5,7 @@ Repository: `StegVerse-org/StegVerse-SDK`
 Goal Task ID: `SDK-ELYRIA-INTR-ADAPTER-001`
 COSV: `71000000100112`
 Canonical coordination handoff: `StegVerse-Labs/.github:docs/SDK_ELYRIA_INTR_ADAPTER_MIRROR_HANDOFF.md`
-Status: `ACTIVE / FRAMEWORK CODEC SOURCE IMPLEMENTED / VALIDATION PENDING`
+Status: `ACTIVE / FRAMEWORK CODEC SOURCE IMPLEMENTED / REUSED SDK VALIDATION GREEN ON PREVIOUS EXACT HEAD / FINAL EXACT-HEAD RERUN PENDING`
 
 ## Reuse boundary
 
@@ -55,17 +55,29 @@ The adapter intentionally records `foreign_signature_verified_by_stegverse=false
 ```text
 stegverse/elyria_framework_adapter.py
 tests/test_elyria_framework_adapter.py
+.github/workflows/package-artifact-validation.yml  # existing workflow reused; no new workflow
 ```
 
 Tests cover exact HTTP-body preservation, required source-native evidence fields, all four documented public verdicts, authority non-promotion, movement identity mismatch, original-input mutation, unknown verdicts, replay identity/check fields, no-bind closure assertion handling, dependency-injected transport, and pre-transport identity failure.
+
+## Validation evidence
+
+PR `StegVerse-org/StegVerse-SDK#222` reached exact head `ec800a9b1d00508f1cd0dad051208e16b9553403` with existing `SDK Package Artifact Validation (Non-Authorizing)` run `34709082764` SUCCESS. Its `Validate Elyria framework-side translation binding` step passed, together with existing trusted-publisher, portable-governance, self-characterization, build, wheel metadata, isolated-install, and console-smoke steps.
+
+The repository's existing package validation workflow was then extended only to include this adapter test and this handoff in its existing path/validation surface; no new workflow, transport, authority plane, or runtime was created. Because those documentation/validation bindings advance the branch head after run `34709082764`, merge still requires a fresh exact-head SUCCESS.
+
+## README review
+
+Root `README.md` was reviewed. Its existing `Open testing and governed interoperability` and `Generic manifested-data processing contract` sections already state the required generic external-framework model, existing governed interlocks, processor/route separation, and non-authority semantics. No Elyria-specific README path or bespoke protocol description is added because doing so would incorrectly imply a new internal communication path; the framework-specific implementation is documented here while README remains generically accurate.
 
 ## Current proof boundary
 
 ```text
 framework-side codec source: IMPLEMENTED
-framework-specific deterministic tests: ADDED / CI NOT YET OBSERVED
-existing StegVerse protocol reuse: SOURCE-DESIGN BOUND
+framework-specific deterministic tests: PASS on SDK run 34709082764 at ec800a9b1d00508f1cd0dad051208e16b9553403
+existing StegVerse protocol reuse: SOURCE + CI BOUND
 new InTr protocol created: FALSE
+final exact-head validation after handoff/workflow binding: PENDING
 authentic public Elyria network round trip: NOT OBSERVED
 production private Veritas substrate interoperability: NOT CLAIMED
 runtime activation: NOT CLAIMED
@@ -73,11 +85,10 @@ runtime activation: NOT CLAIMED
 
 ## Next sequence
 
-1. Run the repository test/validation lanes against the exact branch head.
-2. Repair only adapter-local compatibility failures; do not create a new internal route to make the fixture pass.
-3. Merge only after required SDK validation is green.
-4. Then add an authentic public Elyria transport observation separately if a reachable authorized endpoint is actually exercised; do not infer network/runtime proof from deterministic injected-transport tests.
-5. Update canonical Task Registry/handoff with exact PR, head, validation, and merge evidence.
+1. Require the reused SDK validation workflow to pass on the final PR head.
+2. Merge PR #222 only after that exact-head success.
+3. Update the canonical Task Registry/handoff with the SDK merge and validation evidence.
+4. Add an authentic public Elyria transport observation separately only if a real reachable public endpoint is actually exercised; do not infer network/runtime proof from deterministic injected-transport tests.
 
 ## Manual work
 
