@@ -6,8 +6,7 @@ Updated: 2026-09-11
 Goal Task ID: SDK-ECOSYSTEM-DIAGNOSTIC-PROCESSOR-001
 Parent Goal Task ID: ECOSYSTEM-CONTINUITY-EVALUATOR-001
 COSV: 71000000101000
-Branch: feature/ecosystem-diagnostic-processor-001
-State: SOURCE IMPLEMENTED / VALIDATION PENDING
+State: SOURCE MERGED+VALIDATED / PERIODIC ECE BRIDGE+AUTHENTIC RUNTIME PENDING
 Authority effect: NONE_DIAGNOSTIC_ONLY
 GitHub runtime authority: NONE
 Credential authority: TV/TVC
@@ -17,7 +16,29 @@ Credential authority: TV/TVC
 
 Install a first-class `ecosystem_diagnostic` processor in the generic SDK manifested-data path. The processor standardizes diagnostic request/result transport and preserves authentic observation states; it does not derive ecosystem continuity, perform repair, mutate providers, acquire credentials, or grant transition authority.
 
-## Installed source on this branch
+## Merge and validation evidence
+
+PR #219 merged at `50fa9ca306ada6f75fb928281e2bf495ebb08ce8` from exact head `19f573c54c39298e266caa4fe63d7706c9d09d34`.
+
+Exact-head PASS runs:
+
+```text
+MCP Source Validation: 34670488331
+Manifest Builder Source Validation: 34670488339
+Portable Package Source Validation: 34670488380
+External Framework Public Submission Validation: 34670488297
+Portable Release Index: 34670488334
+Connect my LLM Source Validation: 34670488353
+Evaluator Contract Console Validation: 34670488636
+SDK Production Manifold Governance Validation: 34670488263
+Release Dependency Alignment Validation: 34670488338
+Evaluator Manifest Source Validation: 34670488333
+Communication Edge SDK Demo Validation: 34670488287
+SDK Package Artifact Validation: 34670488313
+SDK Output-Boundary Proof Validation: 34670488212
+```
+
+## Installed source
 
 ```text
 schemas/stegverse.ecosystem-diagnostic-request.v1.schema.json
@@ -38,11 +59,14 @@ processing.capability = ecosystem_diagnostic
 processing.route_id = stegverse.route.ecosystem-diagnostic.v1
 runtime binding = stegverse.ecosystem_diagnostic_runtime.execute_manifest
 CLI = stegverse-diagnostic --manifest <manifest.json>
+request schema = stegverse.ecosystem-diagnostic-request.v1
+result schema = stegverse.ecosystem-diagnostic-result.v1
 authority effect = NONE_DIAGNOSTIC_ONLY
 mutation_permitted = false
+continuity_state_present = false
 ```
 
-`stegverse manifest build --process ecosystem_diagnostic --processor-request diagnostic-request.json ...` constructs the same universal `stegverse.ingress-manifest.v1`; it does not create a diagnostic-specific ingress envelope.
+`stegverse manifest build --process ecosystem_diagnostic --processor-request diagnostic-request.json ...` constructs the same universal `stegverse.ingress-manifest.v1`; it does not create a diagnostic-specific ingress envelope and does not require governance candidate/request fields.
 
 ## Diagnostic semantics
 
@@ -59,17 +83,7 @@ UNREACHABLE
 PROBE_REQUIRED
 ```
 
-Missing observation packets remain `NOT_OBSERVED`. If the request pre-registers evidence expectations and a claimed PASS/FAIL/DEGRADED/STALE/UNREACHABLE observation has no evidence references, the processor emits `PROBE_REQUIRED` instead of accepting an unsupported claim.
-
-The result explicitly sets:
-
-```text
-mutation_performed = false
-authority_effect = NONE_DIAGNOSTIC_ONLY
-continuity_state_present = false
-```
-
-ECE remains responsible for dependency-aware continuity interpretation across retained diagnostic results over time.
+Missing observation packets remain `NOT_OBSERVED`. If the request pre-registers evidence expectations and a claimed PASS/FAIL/DEGRADED/STALE/UNREACHABLE observation has no evidence references, the processor emits `PROBE_REQUIRED` instead of accepting an unsupported claim. Backed observation state/evidence is preserved without the SDK calculating continuity.
 
 ## Trust boundaries
 
@@ -79,26 +93,30 @@ ECE remains responsible for dependency-aware continuity interpretation across re
 - diagnostic observation != continuity determination;
 - diagnostic result != remediation authority;
 - repair receipt != recovery proof;
-- source/CI != authentic runtime execution.
+- source/CI/package artifact != authentic runtime execution.
 
-## Validation predicates
+## Current proof boundary
 
-- governance manifest construction remains backward-compatible;
-- installed processor registry exposes governance + ecosystem_diagnostic;
-- diagnostic manifests do not require governance candidate/request fields;
-- route resolution binds exactly to the diagnostic runtime;
-- missing observation -> NOT_OBSERVED;
-- pre-registered evidence without evidence refs -> PROBE_REQUIRED;
-- authentic backed observation state/evidence is preserved without reinterpretation;
-- v1 mutation request is rejected;
-- diagnostic result contains no continuity state.
+```text
+SDK schemas: MERGED / EXACT VALIDATION PASS
+SDK installed diagnostic route: MERGED / EXACT VALIDATION PASS
+Manifest Builder diagnostic binding: MERGED / EXACT VALIDATION PASS
+SDK diagnostic runtime handler source: MERGED / EXACT VALIDATION PASS
+stegverse-diagnostic CLI source: MERGED / EXACT VALIDATION PASS
+Healer periodic ECE -> SDK diagnostic bridge: NOT IMPLEMENTED
+Exact SDK diagnostic-result bytes bound into ECE/Master Records chain: NOT PROVEN
+Authentic resident SDK diagnostic request/result: NOT OBSERVED
+```
 
-## Remaining work after source validation
+## Exact next sequence
 
-1. Merge SDK source only after exact-head SDK validation passes.
-2. Update canonical Task/COSV evidence with merge and validation refs.
-3. Modify the Healer periodic ECE cycle to build/execute the SDK diagnostic manifest first and transform its diagnostic-result artifact into ECE observation input.
-4. Preserve exact diagnostic-result bytes/evidence identity into the ECE/Master Records chain.
-5. Observe one authentic resident SDK diagnostic request/result before claiming the SDK diagnostic lane operational.
+1. Modify the existing Healer periodic ECE cycle to build a canonical `ecosystem_diagnostic` manifest from registered ECE predicates plus the current authentic observation bundle.
+2. Execute the manifest through the installed SDK diagnostic processor and retain exact diagnostic-result bytes/hash under the resident ECE cycle.
+3. Transform only SDK result observations into ECE observation input; the SDK result must never supply or override ECE continuity state.
+4. Bind SDK result identity/hash into ECE evaluation and Master Records custody/reconstruction evidence.
+5. Preserve `NOT_OBSERVED` when authentic observation packets are absent.
+6. Observe one authentic resident SDK diagnostic request/result before claiming this lane operational.
 
-Source merge alone does not establish item 5.
+## Documentation maintenance
+
+The root README still contains older prose stating governance is the only installed processor. A patch-safe README update remains required; do not replace or truncate the large README merely for bookkeeping.
