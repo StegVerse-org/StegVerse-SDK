@@ -1,0 +1,25 @@
+name: Manifest Relational Invariant Concurrency Validation
+
+on:
+  pull_request:
+    paths:
+      - 'tests/test_manifest_relational_invariant_concurrency.py'
+      - 'docs/MANIFEST_RELATIONAL_INVARIANT_CONCURRENCY_MIRROR_HANDOFF.md'
+      - '.github/workflows/manifest-relational-invariant-concurrency.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install SDK
+        run: python -m pip install -e .
+      - name: Validate manifest source and relationship invariants under concurrent fan-in
+        run: python -m unittest tests.test_manifest_relational_invariant_concurrency
