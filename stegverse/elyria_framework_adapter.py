@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Optional
 
 
 class ElyriaFrameworkAdapterError(ValueError):
@@ -213,7 +213,7 @@ class ElyriaFrameworkAdapter:
     """Dependency-injected Elyria binding for the existing external-adapter shell."""
 
     assess_transport: AssessmentTransport
-    replay_transport: ReplayTransport | None = None
+    replay_transport: Optional[ReplayTransport] = None
 
     def assess(
         self, movement: Mapping[str, Any], *, transition_identity: Mapping[str, Any]
