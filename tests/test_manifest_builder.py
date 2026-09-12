@@ -120,8 +120,8 @@ class ManifestBuilderTests(unittest.TestCase):
                 processor_request=request,
             )
 
-    def test_current_processor_registry_exposes_governance_only(self):
-        self.assertEqual(available_processors(), ("governance",))
+    def test_current_processor_registry_exposes_installed_processors(self):
+        self.assertEqual(available_processors(), ("ecosystem_diagnostic", "governance"))
 
     def test_cli_build_writes_submission_ready_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
