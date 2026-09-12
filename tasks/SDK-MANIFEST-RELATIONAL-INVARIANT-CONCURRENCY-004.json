@@ -1,0 +1,31 @@
+{
+  "task_id": "SDK-MANIFEST-RELATIONAL-INVARIANT-CONCURRENCY-004",
+  "parent_task_id": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "issue": 215,
+  "status": "ACTIVE",
+  "cosv": null,
+  "objective": "Verify that already-manifested source data and governance-relevant source-native relationships remain exact and isolated when multiple submissions share one SDK/Universal InTr processing route concurrently.",
+  "invariants": [
+    "SOURCE_DATA_DECLARED_BEFORE_GOVERNANCE",
+    "RELATIONSHIPS_DECLARED_BEFORE_GOVERNANCE",
+    "TRANSPORT_CONCURRENCY_CREATES_NO_RELATIONSHIP",
+    "SHARED_ROUTE_DOES_NOT_COLLAPSE_MANIFEST_IDENTITY",
+    "SOURCE_NATIVE_RELATIONSHIPS_PRESERVED_UNCHANGED",
+    "RELATIONSHIP_MUTATION_CHANGES_MANIFEST_COMMITMENT",
+    "ARRIVAL_ORDER_DOES_NOT_CHANGE_MANIFEST_SEMANTICS"
+  ],
+  "authority": {
+    "credential_authority": "TV/TVC",
+    "github_actions_runtime_authority": "NONE",
+    "transport_grants_governance_authority": false,
+    "manifest_validity_grants_governance_authority": false,
+    "ci_grants_runtime_authority": false
+  },
+  "completion": {
+    "deterministic_concurrency_tests": false,
+    "sdk_package_validation": false,
+    "merged": false,
+    "authentic_resident_concurrent_execution": false
+  }
+}
