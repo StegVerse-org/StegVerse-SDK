@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "stegverse.ecosystem-diagnostic-request.v1",
+  "title": "StegVerse Ecosystem Diagnostic Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "diagnostic_request_id", "scope", "tests", "mutation_permitted"],
+  "properties": {
+    "schema": {"const": "stegverse.ecosystem-diagnostic-request.v1"},
+    "diagnostic_request_id": {"type": "string", "minLength": 1},
+    "scope": {"enum": ["component", "repository", "runtime", "ecosystem"]},
+    "mutation_permitted": {"const": false},
+    "expected_evidence_fields": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "tests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["test_id", "component_id", "predicate_id", "authority_owner"],
+        "properties": {
+          "test_id": {"type": "string", "minLength": 1},
+          "component_id": {"type": "string", "minLength": 1},
+          "predicate_id": {"type": "string", "minLength": 1},
+          "authority_owner": {"type": "string", "minLength": 1},
+          "observation": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["state"],
+            "properties": {
+              "state": {"enum": ["PASS", "FAIL", "DEGRADED", "UNKNOWN", "NOT_OBSERVED", "STALE", "UNREACHABLE", "PROBE_REQUIRED"]},
+              "observed_at": {"type": ["string", "null"]},
+              "evidence_refs": {"type": "array", "items": {"type": "string"}},
+              "evidence_age_seconds": {"type": ["integer", "null"], "minimum": 0},
+              "detail": {"type": ["string", "null"]}
+            }
+          }
+        }
+      }
+    }
+  }
+}
