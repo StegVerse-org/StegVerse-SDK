@@ -28,14 +28,8 @@ PROCESSOR_ROUTES = {
 }
 
 GOVERNANCE_REQUEST_FIELDS = (
-    "candidate",
-    "judgment",
-    "signal",
-    "execution",
-    "capability",
-    "continuity",
-    "approval",
-    "permission_present",
+    "candidate", "judgment", "signal", "execution", "capability",
+    "continuity", "approval", "permission_present",
 )
 
 RETURN_DEPTHS = {
@@ -54,6 +48,9 @@ DIAGNOSTIC_RETURN_DEPTHS = {
     "full-trace": {"mode": "ALL", "transition_classes": []},
     "locator-only": {"mode": "NONE", "transition_classes": []},
 }
+
+DEFAULT_PUBLISHER_PACKAGE_PROFILE = "stegverse.publisher.evidence-report-package/v1"
+DEFAULT_FRAMEWORK_EGRESS_SURFACE = "LLM_ADAPTER"
 
 
 def available_processors() -> tuple[str, ...]:
@@ -110,6 +107,38 @@ def _projection_for(process: str, depth_key: str) -> dict[str, Any]:
     return deepcopy(source[depth_key])
 
 
+def _completion_contract(
+    *,
+    initiator_class: str,
+    initiator_ref: str,
+    publisher_required: bool,
+    publisher_package_profile: str,
+    egress_surface: str,
+) -> dict[str, Any]:
+    for label, value in (
+        ("initiator_class", initiator_class),
+        ("initiator_ref", initiator_ref),
+        ("publisher_package_profile", publisher_package_profile),
+        ("egress_surface", egress_surface),
+    ):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{label} is required")
+    return {
+        "direction": "SOUTH",
+        "initiator": {"class": initiator_class.strip(), "ref": initiator_ref.strip()},
+        "publisher": {
+            "stage": "PUBLISHER",
+            "required": bool(publisher_required),
+            "package_profile": publisher_package_profile.strip(),
+        },
+        "egress": {
+            "final_stegverse_transition_surface": egress_surface.strip(),
+            "transport": "INTERLOCK_INTR",
+            "far_side_transition_required": True,
+        },
+    }
+
+
 def build_manifest(
     *,
     data: Any,
@@ -125,6 +154,11 @@ def build_manifest(
     declared_intent: str | None = None,
     requested_consequence: str | None = None,
     manifest_labels: Mapping[str, Any] | None = None,
+    initiator_class: str = "external_framework",
+    initiator_ref: str | None = None,
+    publisher_required: bool = False,
+    publisher_package_profile: str = DEFAULT_PUBLISHER_PACKAGE_PROFILE,
+    egress_surface: str = DEFAULT_FRAMEWORK_EGRESS_SURFACE,
 ) -> dict[str, Any]:
     if not isinstance(source_framework, str) or not source_framework.strip():
         raise ValueError("source_framework is required")
@@ -178,13 +212,20 @@ def build_manifest(
         "declared_intent": declared_intent
         or f"Process source-native manifested data through installed {normalized_process} processing.",
         "requested_consequence": requested_consequence
-        or "Return the requested StegVerse processing artifact; no caller-authored authority is created.",
+        or "Complete the manifested governed communication lifecycle and return the requested artifact without caller-authored authority.",
         "context_refs": list(context_refs or []),
         "canonicalization_profile": "steggate.jcs.v1",
         "hashes": hashes,
         "attestation": None,
         "extensions": extensions,
         "return_projection": return_projection,
+        "completion": _completion_contract(
+            initiator_class=initiator_class,
+            initiator_ref=initiator_ref or source_framework,
+            publisher_required=publisher_required,
+            publisher_package_profile=publisher_package_profile,
+            egress_surface=egress_surface,
+        ),
         "manifest_labels": dict(manifest_labels or {"mode": "NONE"}),
     }
     if candidate is not None:
@@ -224,6 +265,11 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--data-class")
     build.add_argument("--process", default="governance", choices=sorted(PROCESSOR_ROUTES))
     build.add_argument("--return-depth", default="result+evidence", choices=sorted(RETURN_DEPTHS))
+    build.add_argument("--initiator-class", default="external_framework")
+    build.add_argument("--initiator-ref")
+    build.add_argument("--publisher-required", action="store_true")
+    build.add_argument("--publisher-package-profile", default=DEFAULT_PUBLISHER_PACKAGE_PROFILE)
+    build.add_argument("--egress-surface", default=DEFAULT_FRAMEWORK_EGRESS_SURFACE)
     build.add_argument("--created-at")
     build.add_argument("--output", help="write manifest JSON to this path; default stdout")
 
@@ -244,6 +290,11 @@ def main(argv: list[str] | None = None) -> int:
                 processor_request=_load_json(request_path),
                 process=args.process,
                 return_depth=args.return_depth,
+                initiator_class=args.initiator_class,
+                initiator_ref=args.initiator_ref,
+                publisher_required=args.publisher_required,
+                publisher_package_profile=args.publisher_package_profile,
+                egress_surface=args.egress_surface,
                 created_at=args.created_at,
             )
             _write_json(manifest, args.output)
