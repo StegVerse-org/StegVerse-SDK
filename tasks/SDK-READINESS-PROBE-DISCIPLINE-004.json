@@ -1,0 +1,12 @@
+{
+  "task_id": "SDK-READINESS-PROBE-DISCIPLINE-004",
+  "parent_task": "SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "source_branch": "main",
+  "target_branch": "main",
+  "state": "ACTIVE_IMPLEMENTATION",
+  "source_handoff": "SDK_READINESS_PROBE_DISCIPLINE_MIRROR_HANDOFF.md",
+  "originating_goal": "Prevent narrower SDK/source-governance success from being composed into unsupported end-to-end READY state by enforcing cumulative applicable predicates and durable probe evidence.",
+  "completion_rule": "All identified applicable readiness predicates must be satisfied, unknown or ambiguous readiness-affecting predicates must force PROBE_REQUIRED, discovered predicates must join the state set, and UNKNOWN transitions must carry durable probe evidence before READY can be emitted.",
+  "manual_work_required": false
+}
