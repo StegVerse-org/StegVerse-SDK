@@ -4,6 +4,27 @@ The StegVerse SDK is a public governance experiment and validation environment f
 
 A request, manifest, model output, validation result, receipt, or receipt locator does **not** become execution authority merely because it validates.
 
+## Canonical complete-manifest SOUTH lifecycle
+
+For machine-to-machine and evaluator-facing communication, a processing result is not automatically the terminal communication state. A **complete communication manifest** binds the original initiating request/entity, any required Publisher presentation/evidence stage, the final StegVerse-side egress transition surface, the Interlock/InTr egress, and the required far-side transition. The complete governed communication direction toward ecosystem egress is referred to as **SOUTH**.
+
+```text
+manifest-selected processing
+-> canonical custody / replay / reconstruction as declared
+-> Publisher presentation/evidence stage when required
+-> SDK binds Publisher/result output to the original initiating request/entity
+-> final StegVerse-side egress transition surface
+-> Interlock/InTr egress
+-> far-side Interlock/InTr transition
+-> terminal communication state
+```
+
+For an external-framework path whose protocol translation is owned by `StegVerse-org/LLM-adapter`, the LLM Adapter is the **final StegVerse-side state transition** before Interlock/InTr egress. It may translate the SDK result into the framework-native protocol, but it may not change evidence semantics, become evidence authority, select processing retroactively, or claim the terminal far-side transition. The complete communication is terminal only after the corresponding far-side Interlock/InTr transition is observed.
+
+New builder-generated manifests include a machine-readable `completion` block for this lifecycle. Legacy v1 manifests that omit `completion` remain structurally valid for backward compatibility, but they are explicitly **not** classified as complete communication manifests merely because processing returned a result.
+
+Publisher is therefore part of the complete manifest when the request requires presentation/evaluator evidence, just as the final egress transition is part of the complete manifest. Publisher renders authentic retained evidence; it does not become governance, transition, credential, processor-selection, or evidence authority. Interlock/InTr remains the governed ingress/egress transition seam, and TV/TVC remains credential authority where credentials are required.
+
 ## Open testing and governed interoperability
 
 StegVerse is meant to be inspected, challenged, and used by people and independent systems. Anyone may use the SDK, exercise the published governance lanes, inspect the governing principles and evidence, and reach their own conclusions.

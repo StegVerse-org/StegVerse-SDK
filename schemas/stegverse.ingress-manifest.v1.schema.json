@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://stegverse.org/schemas/stegverse.ingress-manifest.v1.schema.json",
   "title": "StegVerse ingress manifest v1",
-  "description": "Processor-generic machine-to-machine ingress for externally manifested data. The source framework retains semantic custody of its payload. Processing capability, runtime route, and caller-facing evidence projection are distinct; none grants authority or suppresses canonical Master Records custody.",
+  "description": "Processor-generic machine-to-machine ingress for externally manifested data. The source framework retains semantic custody of its payload. Processing capability, runtime route, caller-facing evidence projection, presentation stage, and governed southbound completion are distinct; none grants authority or suppresses canonical Master Records custody.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -107,6 +107,44 @@
       "properties": {
         "mode": {"type": "string", "enum": ["ALL", "SELECTED", "NONE"]},
         "transition_classes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "completion": {
+      "description": "Complete governed communication lifecycle through presentation, SDK return assembly, ecosystem egress, Interlock/InTr, and the far-side transition. Legacy v1 manifests may omit this block but are not complete communication manifests.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["direction", "initiator", "publisher", "egress"],
+      "properties": {
+        "direction": {"const": "SOUTH"},
+        "initiator": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["class", "ref"],
+          "properties": {
+            "class": {"type": "string", "minLength": 1},
+            "ref": {"type": "string", "minLength": 1}
+          }
+        },
+        "publisher": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["stage", "required", "package_profile"],
+          "properties": {
+            "stage": {"const": "PUBLISHER"},
+            "required": {"type": "boolean"},
+            "package_profile": {"type": "string", "minLength": 1}
+          }
+        },
+        "egress": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["final_stegverse_transition_surface", "transport", "far_side_transition_required"],
+          "properties": {
+            "final_stegverse_transition_surface": {"type": "string", "minLength": 1},
+            "transport": {"const": "INTERLOCK_INTR"},
+            "far_side_transition_required": {"const": true}
+          }
+        }
       }
     },
     "manifest_labels": {"type": "object"}
