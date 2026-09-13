@@ -49,19 +49,23 @@ Terminal resolution states are:
 
 Human clarification is additional evidence. It does not automatically become truth and does not automatically force a single surviving interpretation.
 
-## Consequence-divergence gate
+`SINGLE_SURVIVING_INTERPRETATION` means that every other materially plausible interpretation represented by the resolution process has been eliminated with retained reasons. `UNRESOLVED_INTERPRETATION_SET` means that two or more materially plausible interpretations still survive. Consequence equivalence does not convert an unresolved interpretation set into semantic resolution.
 
-Before admission to InTr, the bridge MUST evaluate whether surviving interpretation candidates can produce materially different governance consequences.
+## Consequence analysis
 
-- If surviving candidates are consequence-equivalent, the bridge MAY admit the shared governed representation while preserving unresolved semantics in the receipt.
-- If surviving candidates are consequence-divergent, the bridge MUST NOT collapse them into one governed state. It MUST return `RESOLUTION_REQUIRED` and identify the unresolved candidates and the additional evidence or clarification needed to eliminate alternatives.
+Before admission to InTr, the bridge MUST compare the consequence classes associated with all surviving interpretation candidates.
+
+- If surviving candidates are consequence-divergent, the receipt MUST record that divergence because the unresolved semantics are already known to be consequential.
+- If surviving candidates are consequence-equivalent, the receipt MUST record that equivalence as diagnostic evidence, but equivalence MUST NOT be used as a shortcut for semantic resolution.
+- Whenever more than one materially plausible interpretation survives, the bridge MUST return `RESOLUTION_REQUIRED`, preserve the surviving set, and identify or request additional evidence or clarification capable of eliminating alternatives.
+
+Consequence comparison therefore prioritizes and explains unresolved ambiguity; it does not select an interpretation and does not authorize admission by itself.
 
 ## InTr admission
 
-The bridge may produce `READY_FOR_INTR_ADMISSION` only when either:
+The bridge may produce `READY_FOR_INTR_ADMISSION` only when exactly one materially plausible interpretation survives and the envelope declares `SINGLE_SURVIVING_INTERPRETATION`.
 
-1. one materially plausible interpretation survives; or
-2. multiple surviving interpretations are consequence-equivalent for the requested governed transition.
+If zero candidates survive, the envelope is invalid because the represented candidate manifold is incomplete or internally exhausted and must be reconstructed. If two or more candidates survive, the state remains unresolved and the bridge MUST return `RESOLUTION_REQUIRED` whether their current consequence classes are equivalent or divergent.
 
 Transport itself grants no governance, execution, transition, publication, custody, or semantic authority.
 
