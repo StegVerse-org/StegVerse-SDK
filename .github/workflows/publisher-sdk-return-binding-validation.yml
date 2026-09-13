@@ -1,0 +1,46 @@
+name: Publisher SDK Return Binding Validation (Non-Authorizing)
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/publisher_return_binding.py'
+      - 'tests/test_publisher_return_binding.py'
+      - 'docs/PUBLISHER_SDK_RETURN_BINDING.md'
+      - 'README.md'
+      - '.github/workflows/publisher-sdk-return-binding-validation.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert validation-only authority boundary
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          echo 'PUBLISHER_SDK_RETURN_BINDING_GITHUB_AUTHORITY=NONE'
+          echo 'PUBLISHER_SDK_RETURN_BINDING_RUNTIME_AUTHORITY=NONE'
+
+      - name: Materialize exact public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+
+      - name: Validate Publisher to SDK exact-return binding
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m unittest -v tests.test_publisher_return_binding
+          echo 'PUBLISHER_SDK_RETURN_BINDING_SOURCE_VALIDATION=PASS'
+          echo 'PUBLISHER_RUNTIME_EXECUTION_OBSERVED=false'
+          echo 'LLM_ADAPTER_TRANSITION_OBSERVED=false'
+          echo 'INTERLOCK_INTR_EGRESS_OBSERVED=false'
+          echo 'FAR_SIDE_TRANSITION_OBSERVED=false'
