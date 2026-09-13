@@ -4,7 +4,7 @@ Updated: 2026-09-12
 Goal Task ID: `SHARED-DOCS-PROVIDER-FREEZE-INTEGRATION-001`
 Parent Task ID: `SHARED-DOCS-MULTIPARTY-FREEZE-001`
 COSV: `71000000100110`
-Status: `ACTIVE / REUSABLE COMPONENT MODEL RECONCILED / AUTHENTIC PROVIDER OBSERVATION NEXT`
+Status: `ACTIVE / COMPONENT MODEL RECONCILED / EXACT PROVIDER REQUEST MERGED / AUTHENTIC PROVIDER OBSERVATION NEXT`
 
 ## Goal
 
@@ -49,6 +49,19 @@ No genuinely new reusable capability was discovered.
 - TVC Shared Docs content-integrity lease/runtime PR #414: `2b8183cfbc148617a6ea714f2c2e6fb293004615`.
 - steggfin-governance bounded provider/vault content-integrity operation PR #98: `6c26a15cbc72bb79167ed5abf7d82b00a7cb7a9c`.
 - `.github` resident content-integrity translator PR #1571: `27f4f33abdccaf3427151f5d81eb4c972678b448`.
+- `.github` exact current provider-observation request PR #1681: `c542d9bbf2994654247124dfb8cb8df9ba1ded51`.
+
+PR #1681 exact head `07a8e60ff3e6f9f5eae0a7fa88c967a58287f452` passed Deterministic Repository Suite, Heartbeat, and Organization Control validation before merge.
+
+## Exact current provider request
+
+The canonical `.github` main source now contains:
+
+`control/resident-execution-request.d/shared-docs-provider-content-integrity-001.json`
+
+It binds the current Goal Task to the real downloadable Google Drive resource `Global_Interlock_InTr_Node_Test.txt` using provider file ID `1uTDq29Q5gEmnqY18u8JCRPlUBGkCYqOE`, `google-drive.downloaded-bytes.v1`, read-only posture, no provider mutation, no credential material, and TV/TVC credential authority.
+
+The request is source intent only. Its merge is not resident visitation, credential/session use, provider execution, or content-digest evidence.
 
 ## Provider content-integrity profile
 
@@ -69,9 +82,15 @@ The SDK binds authentic provider observations to exact Shared Docs `document_id 
 
 ## Runtime/evidence state
 
-Source construction/validation exists. Still pending as authentic evidence: resident execution; WorkerCoordinator claim/fence when required; TV/TVC provider credential/session use; provider content-integrity execution; exact provider version/content SHA for the selected invocation; SDK binding of that authentic result; Master Records custody/reconstruction; and any conditional Interlock/InTr successor-revision transition.
+Source construction/validation and the exact current provider request exist. Still pending as authentic evidence: resident execution; WorkerCoordinator claim/fence when required; TV/TVC provider credential/session use; provider content-integrity execution; exact provider version/content SHA for the selected invocation; SDK binding of that authentic result; Master Records custody/reconstruction; and any conditional Interlock/InTr successor-revision transition.
 
-The selected real downloadable provider target remains `Global_Interlock_InTr_Node_Test.txt` (`provider_file_id=1uTDq29Q5gEmnqY18u8JCRPlUBGkCYqOE`). Historical PR #1575 is not the continuation owner because its branch diverged before component reconciliation.
+No authentic `shared-docs-provider-content-integrity.latest.json` receipt or provider result has been observed in canonical source/evidence search after the request merge. No connected authorized resident device is currently available through the connected remote-device surface, so no runtime execution is inferred or synthesized.
+
+## Runtime addressability boundary
+
+The existing generic resident dispatcher remains the canonical dispatcher and must be reused. The Shared Docs translator currently exists as source, but the exact selector `shared_docs_provider_content_integrity` is not yet registered in the dispatcher's static `CONSUMERS` table or the portable refresh bridge allowlist. This is a source-addressability seam, not a reason to create another scheduler, dispatcher, WorkerCoordinator, credential route, or runtime plane.
+
+The next admissible source remediation is to register that existing selector in the existing generic resident dispatcher/portable exact-dispatch path, with deterministic isolation tests, while preserving the Reusable Task Component decomposition and authority boundaries. Authentic runtime evidence remains separately required afterward.
 
 ## Goal-specific completion predicates
 
@@ -88,4 +107,4 @@ The selected real downloadable provider target remains `Global_Interlock_InTr_No
 
 ## Current next action
 
-After component-profile/task-record reconciliation merges, rematerialize the exact read-only provider request as Goal Task-specific configuration on current `.github` main without adding a new orchestration layer. Then invoke it through the existing resident observation + TV/TVC path, retain authentic document/version/`google-drive.downloaded-bytes.v1`/SHA-256 evidence, normalize through the SDK seam, and submit required evidence to Master Records. Use Interlock/InTr only if an observed edit requires a successor-revision transition. No second user-operated device is permitted.
+Register `shared_docs_provider_content_integrity` only in the existing generic resident dispatcher and portable exact-dispatch allowlist; validate exact-selector isolation and preservation of the current request. Then, when an authentic sovereign resident surface is available, invoke the existing resident observation + TV/TVC path, retain authentic document/version/`google-drive.downloaded-bytes.v1`/SHA-256 evidence, normalize through the SDK seam, and submit required evidence to Master Records. Use Interlock/InTr only if an observed edit requires a successor-revision transition. No second user-operated device is permitted.
