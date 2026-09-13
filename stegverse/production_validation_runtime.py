@@ -77,9 +77,9 @@ def _master_records_config(base_url: str | None = None, token: str | None = None
 
 
 def _stegcore_config(base_url: str | None = None) -> str:
-    url = (base_url or os.getenv("STEGCORE_URL") or "https://steggate-core.onrender.com").rstrip("/")
+    url = (base_url or os.getenv("STEGCORE_URL") or "").rstrip("/")
     if not url:
-        raise PublicInspectionRuntimeError("STEGCORE_URL is required for production validation")
+        raise PublicInspectionRuntimeError("STEGCORE_URL is required for production validation; no hosted-provider default is permitted")
     return url
 
 
