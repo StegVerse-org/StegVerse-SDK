@@ -53,6 +53,7 @@ def test_single_survivor_is_ready_for_intr_admission():
 
     assert receipt["admission_disposition"] == READY_FOR_INTR_ADMISSION
     assert receipt["consequence_divergent"] is False
+    assert receipt["consequence_relation"] == "EQUIVALENT"
     assert receipt["intr_transition_authority_granted"] is False
 
 
@@ -80,10 +81,11 @@ def test_unresolved_divergent_candidates_require_resolution():
 
     assert receipt["admission_disposition"] == RESOLUTION_REQUIRED
     assert receipt["consequence_divergent"] is True
+    assert receipt["consequence_relation"] == "DIVERGENT"
     assert set(receipt["consequence_classes"]) == {"ALLOW", "DENY"}
 
 
-def test_unresolved_equivalent_candidates_can_cross_admission_boundary():
+def test_unresolved_equivalent_candidates_still_require_resolution():
     envelope = _base_envelope()
     envelope["resolution_state"] = "UNRESOLVED_INTERPRETATION_SET"
     envelope["interpretation_candidates"] = [
@@ -105,8 +107,9 @@ def test_unresolved_equivalent_candidates_can_cross_admission_boundary():
 
     receipt = evaluate_bridge_envelope(envelope)
 
-    assert receipt["admission_disposition"] == READY_FOR_INTR_ADMISSION
+    assert receipt["admission_disposition"] == RESOLUTION_REQUIRED
     assert receipt["consequence_divergent"] is False
+    assert receipt["consequence_relation"] == "EQUIVALENT"
     assert receipt["resolution_state"] == "UNRESOLVED_INTERPRETATION_SET"
 
 
