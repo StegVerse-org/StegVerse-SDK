@@ -66,7 +66,9 @@ def evaluate_bridge_envelope(envelope: Dict[str, Any]) -> Dict[str, Any]:
 
     The function deliberately does not run governance or mutate InTr state. It only
     determines whether the submitted representation is safe to hand to the existing
-    InTr admission boundary.
+    InTr admission boundary. Admission readiness requires semantic resolution to one
+    surviving materially plausible interpretation; consequence equivalence is retained
+    as diagnostic evidence but never substitutes for resolution.
     """
 
     if envelope.get("bridge_version") != "elan.intr.bridge.v1":
@@ -95,11 +97,16 @@ def evaluate_bridge_envelope(envelope: Dict[str, Any]) -> Dict[str, Any]:
 
     consequence_classes = sorted({candidate.consequence_class for candidate in survivors})
     consequence_divergent = len(consequence_classes) > 1
+    consequence_relation = "DIVERGENT" if consequence_divergent else "EQUIVALENT"
 
-    if consequence_divergent:
-        disposition = RESOLUTION_REQUIRED
-    else:
-        disposition = READY_FOR_INTR_ADMISSION
+    # Semantic resolution is an elimination requirement, not a consequence-equivalence
+    # shortcut. Multiple plausible interpretations remain unresolved even when their
+    # current consequence classes happen to match.
+    disposition = (
+        READY_FOR_INTR_ADMISSION
+        if len(survivors) == 1
+        else RESOLUTION_REQUIRED
+    )
 
     normalized = {
         "bridge_version": envelope["bridge_version"],
@@ -128,6 +135,7 @@ def evaluate_bridge_envelope(envelope: Dict[str, Any]) -> Dict[str, Any]:
         ],
         "consequence_classes": consequence_classes,
         "consequence_divergent": consequence_divergent,
+        "consequence_relation": consequence_relation,
         "resolution_state": expected_resolution,
         "admission_disposition": disposition,
         "intr_transition_authority_granted": False,
