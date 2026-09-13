@@ -79,6 +79,8 @@ Every bridge execution MUST return a reconstruction receipt containing:
 - transport-class evidence;
 - output hash.
 
-## Run 3.x
+## Independence from Run 3
 
-Run 3.x experiments MUST record the transport class actually observed. A human-mediated or ELAN-shaped SDK test MUST NOT be presented as an authentic ELAN-runtime connection. Direct runtime interoperability requires independent evidence of ELAN-originated machine submission and, for bidirectional claims, return delivery to the ELAN runtime.
+Run 3 is independent of machine-to-machine interoperability. It is not gated by this bridge and does not require this bridge to be complete, active, or used.
+
+This bridge work may proceed in parallel with Run 3. If a Run 3 or later experiment elects to use the bridge, the receipt MUST record the transport class actually observed. Human-mediated and ELAN-shaped SDK experiments remain valid experimental modes in their own right and MUST NOT be promoted to authentic ELAN-runtime or bidirectional interoperability claims.
