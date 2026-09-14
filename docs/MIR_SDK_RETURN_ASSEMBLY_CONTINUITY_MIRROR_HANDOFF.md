@@ -5,72 +5,80 @@ Goal Task ID: `MIR-SDK-RETURN-ASSEMBLY-CONTINUITY-001`
 Parent Goal Task ID: `MIR-CONNECTION-ROUNDTRIP-TECHNICAL-GUIDE-001`
 COSV ID: `50000000100000`
 Canonical registry issue: `StegVerse-Labs/.github#1888`
+Canonical registry PR: `StegVerse-Labs/.github#1889`
+Canonical registry merge: `StegVerse-Labs/.github@e4ef0adf25c30f1da42bdc9c3df8d6d1f08ffd32`
 Parent canonical issue: `StegVerse-Labs/Site#1277`
 Parent canonical handoff: `StegVerse-Labs/Site/docs/MIR_CONNECTION_ROUNDTRIP_TECHNICAL_GUIDE_MIRROR_HANDOFF.md`
 Publisher source binding: `GCAT-BCAT-Engine/Publisher#71`, merge `40018e94a04e794e35dd499b4adc4296edb4b34c`
 SDK completion capsule source: `StegVerse-org/StegVerse-SDK#240`, merge `233632c35b0093166c16bdc660aa08e4ee1fe95a`
-Status: `ACTIVE / CHECKED_OUT / SDK RETURN ASSEMBLY CONTINUITY IMPLEMENTATION IN PROGRESS`
+SDK return assembly PR: `StegVerse-org/StegVerse-SDK#242`
+SDK return assembly exact validated head: `fe8b01cd3ad9f6b54f124883e3e2c2d869302e6f`
+SDK return assembly merge: `StegVerse-org/StegVerse-SDK@b4927ed277c4993662f9e7e4ffd717f677ad5459`
+Status: `SOURCE_BUILD_TEST_COMPLETE / READY_TO_RETIRE_AFTER_REGISTRY_RECONCILIATION / DOWNSTREAM RUNTIME NOT CLAIMED`
 
-## Goal
+## Goal and decomposition truth
 
-Complete the source/build-test portion of reusable `RTC-SDK-RETURN-006` by binding Publisher's exact `stegverse.publisher.artifact-return/v1` bytes back to the original admitted manifest and the SDK downstream completion capsule carried through Publisher PR #71.
+This successor was created because parent `MIR-CONNECTION-ROUNDTRIP-TECHNICAL-GUIDE-001` reached Goal Prompt Count 20/20 while reusable `RTC-SDK-RETURN-006` remained independently incomplete. The split is genuine rather than counter-only: SDK return assembly has its own stable input/output contract, SDK-owned implementation surface, fail-closed evidence predicate, and reusable component identity.
 
-This successor exists because the parent Goal Task reached Goal Prompt Count 20/20 while SDK return assembly remained independently incomplete. The split is not a prompt-count reset alone: SDK return assembly has its own stable input/output contract, distinct SDK authority owner, independently testable evidence predicate, and explicit reusable component identity.
+The source/build-test goal is now satisfied. PR `#242` binds Publisher's exact canonical `stegverse.publisher.artifact-return/v1` bytes back to the original admitted manifest and independently retained SDK downstream completion capsule when Publisher carries `stegverse.publisher.mir-roundtrip-binding/v1`.
 
-## Required continuity
+## Implemented continuity
 
-For Publisher returns carrying `roundtrip_binding.profile = stegverse.publisher.mir-roundtrip-binding/v1`, SDK return assembly must fail closed unless all of the following remain continuous with the original SDK manifest/completion context:
+For MIR Publisher returns, `assemble_publisher_return()` now requires the original `stegverse.sdk.downstream-completion-capsule/v1` independently of the Publisher-carried copy and fails closed unless:
 
-- `goal_task_id = MIR-CONNECTION-ROUNDTRIP-TECHNICAL-GUIDE-001`;
-- `cosv_id = 50000000100000`;
-- `publisher_transition = PUBLISHER_ARTIFACT_RETURN_PRODUCED`;
-- `publisher_transition_observed = true`;
-- `manifest_hash` equals the original admitted manifest hash;
-- `completion_hash` equals the original manifest completion hash;
-- `response_to` equals the manifest receipt/correlation reference used by the return assembly;
-- `retained_packet_sha256` is preserved through the carried SDK downstream completion capsule;
-- nested `downstream_completion_capsule.profile = stegverse.sdk.downstream-completion-capsule/v1`;
-- nested capsule `manifest_hash`, `completion_hash`, `response_to`, and `retained_packet_sha256` equal the outer round-trip binding;
-- `sdk_processor_state.state = SDK_MANIFEST_SELECTED_PROCESSING_EXECUTED` and `processor_result_observed = true`;
-- Publisher-bound return identity fields match the exact Publisher return envelope;
-- post-Publisher downstream observation/completion flags remain false;
+- Goal Task ID is `MIR-CONNECTION-ROUNDTRIP-TECHNICAL-GUIDE-001`;
+- COSV ID is `50000000100000`;
+- Publisher transition is `PUBLISHER_ARTIFACT_RETURN_PRODUCED` and observed true;
+- the original manifest SHA-256 equals capsule `manifest_hash`;
+- the original manifest completion block and its recomputed SHA-256 equal capsule `completion` / `completion_hash`;
+- the Publisher-carried downstream completion capsule exactly equals the original SDK capsule;
+- `response_to` and `retained_packet_sha256` remain continuous;
+- SDK processor state is `SDK_MANIFEST_SELECTED_PROCESSING_EXECUTED` with `processor_result_observed = true`;
+- Publisher return schema, source-export ID/hash, generation ID, and artifact-manifest SHA-256 bind to the exact returned envelope;
+- all post-Publisher downstream predicates in the carried binding remain false;
 - `authority_effect = NONE` throughout.
 
-## Scope boundary
+The emitted `stegverse.sdk.publisher-return-binding/v1` records `sdk_return_binding_observed = true` for the SDK source-level assembly transition it represents and remains `READY_FOR_FINAL_STEGVERSE_EGRESS_TRANSITION`. It does not promote later transitions.
 
-This task may implement and validate SDK return assembly source behavior. It must not claim or synthesize:
+Legacy/non-MIR Publisher returns remain supported without a completion-capsule argument. One-sided MIR state fails closed.
 
+## Validation evidence
+
+Exact PR head `fe8b01cd3ad9f6b54f124883e3e2c2d869302e6f` completed:
+
+```text
+Publisher SDK Return Binding Validation (Non-Authorizing) #2: SUCCESS
+SDK Package Artifact Validation (Non-Authorizing) #193: SUCCESS
+```
+
+PR `#242` was squash-merged as `b4927ed277c4993662f9e7e4ffd717f677ad5459`.
+
+Tests cover successful exact capsule continuity and fail-closed rejection for missing original capsule, carried capsule mutation, original-manifest mutation, Publisher identity mutation, downstream-state promotion, noncanonical return bytes, artifact mutation, incomplete Publisher declaration, and attempted terminal completion mutation.
+
+## README and contract maintenance
+
+`docs/PUBLISHER_SDK_RETURN_BINDING.md` was updated in PR `#242`. The repository `README.md` was reviewed against this transition. Its canonical SOUTH lifecycle already states that SDK binds Publisher/result output to the original initiating request/entity before final StegVerse-side egress, Interlock/InTr, and the far-side transition; no contradictory or stale README claim was found, so no README byte change was required for this bounded successor.
+
+## Scope boundary after merge
+
+The following remain **not claimed** by this successor:
+
+- live SDK runtime assembly against an authentic external MIR packet;
 - final governed StegVerse-side egress execution;
 - Interlock/InTr egress execution;
 - far-side transition or caller receipt;
-- authentic external MIR substitution;
+- authentic external MIR endpoint substitution;
 - release or deployment;
 - communication completion;
 - any new credential, transition, governance, or runtime authority.
 
-## Current implementation defect
+## Handoff
 
-`stegverse/publisher_return_binding.py` verifies exact Publisher artifact bytes and emits `stegverse.sdk.publisher-return-binding/v1`, but current main does not require or validate Publisher PR #71 `roundtrip_binding` continuity against the original manifest/completion context. Existing tests use a Publisher return fixture without the MIR round-trip binding.
+The successor can retire after its canonical task record is reconciled with PR `#242` validation/merge evidence. Control then returns to the parent choreography at the genuinely separable next reusable component:
 
-## Allowed next transitions
+```text
+RTC-STEGVERSE-EGRESS-007
+-> EXECUTE_REUSED_RTC_STEGVERSE_FINAL_EGRESS_TRANSITION
+```
 
-1. Patch `stegverse/publisher_return_binding.py` to validate MIR Publisher round-trip binding continuity fail closed.
-2. Add positive and negative tests in `tests/test_publisher_return_binding.py`.
-3. Update `docs/PUBLISHER_SDK_RETURN_BINDING.md` and `README.md` to project the successor contract.
-4. Open a bounded SDK PR and validate exact head.
-5. Merge only if exact-head checks are green.
-6. Reconcile this handoff and the canonical task record.
-7. Return control to the parent choreography for `RTC-STEGVERSE-EGRESS-007` without claiming that transition here.
-
-## Completion predicates
-
-Source/build-test completion for this successor requires:
-
-- Publisher MIR round-trip binding required and verified when present for the parent MIR choreography;
-- manifest/completion/response/retained-packet continuity fail-closed tests green;
-- Publisher return identity binding fail-closed tests green;
-- downstream false-state and no-authority invariants preserved;
-- bounded PR merged from exact validated head;
-- canonical task record reconciled.
-
-Runtime/transport completion remains outside this successor.
+Because the parent Goal Task is exhausted at 20/20, further egress/authentic-MIR work must use a new canonical successor Goal Task ID rather than adding prompts to the parent.
