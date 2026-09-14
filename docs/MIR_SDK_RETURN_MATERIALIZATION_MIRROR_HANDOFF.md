@@ -7,48 +7,67 @@ COSV ID: `50000000100000`
 Canonical registry issue: `StegVerse-Labs/.github#1891`
 Canonical Site handoff: `StegVerse-Labs/Site/docs/MIR_ROUNDTRIP_EGRESS_AUTHENTICITY_MIRROR_HANDOFF.md`
 SDK issue: `StegVerse-org/StegVerse-SDK#244`
+SDK PR: `StegVerse-org/StegVerse-SDK#245`
 Predecessor return-continuity merge: `StegVerse-org/StegVerse-SDK@b4927ed277c4993662f9e7e4ffd717f677ad5459`
-Status: `ACTIVE / CHECKED_OUT / EXACT SDK RETURN MATERIALIZATION REPAIR`
+Materialization source merge: `StegVerse-org/StegVerse-SDK@d7f57428cb817c5f308b7cd545bfac29ca0a817c`
+Status: `SOURCE REPAIR MERGED / AUTHENTIC PREDECESSOR SDK RETURN INPUT NOT OBSERVED`
 
 ## Purpose
 
 Repair only the missing materialization/export/retention seam between the existing canonical SDK `assemble_publisher_return()` implementation and the existing LLM Adapter `RTC-STEGVERSE-EGRESS-007` consumer.
 
-The canonical current Site handoff has already classified the first missing predicate: no eligible predecessor-produced exact `stegverse.sdk.publisher-return-binding/v1` artifact is observable in the inspected repository/carrier surfaces. Current SDK code exposes the assembler but has no non-test caller that retains its exact canonical output for downstream consumption.
+## Completed source repair
 
-## Required input
-
-The repair may consume only caller-supplied exact inputs from the same authorized execution chain:
+SDK PR #245 added `stegverse/publisher_return_materialization.py` and the `stegverse-materialize-sdk-return` package entry point. The surface calls the existing canonical `assemble_publisher_return()` implementation and may consume only caller-supplied same-execution inputs:
 
 - original admitted manifest JSON;
-- original `stegverse.sdk.downstream-completion-capsule/v1` JSON when the Publisher return carries MIR round-trip continuity;
+- authentic `manifest_receipt_id`;
 - exact canonical `stegverse.publisher.artifact-return/v1` bytes;
-- the authentic `manifest_receipt_id` associated with the original manifest.
+- original `stegverse.sdk.downstream-completion-capsule/v1` JSON when MIR round-trip continuity requires it.
 
-It must call the existing `assemble_publisher_return()` implementation. It must not reconstruct equivalent Publisher bytes, infer a completion capsule, invent a receipt ID, or synthesize MIR provenance.
+It retains only verified canonical `stegverse.sdk.publisher-return-binding/v1` bytes and emits a non-authorizing materialization receipt with exact output path, byte digest, schema/state observations, and downstream-false state. It fails closed on a missing MIR capsule and refuses to overwrite an existing output unless explicitly requested.
 
-## Required output
+Exact PR head `06a10b5ab630d21d1ed130815cf7277fd9874dc2` passed all observed pull-request workflows, including:
 
-- exact canonical bytes of `stegverse.sdk.publisher-return-binding/v1`;
-- `communication_state = READY_FOR_FINAL_STEGVERSE_EGRESS_TRANSITION`;
-- `sdk_return_binding_observed = true` for the SDK assembly artifact represented by those bytes;
-- deterministic binding SHA-256 already carried by the canonical binding;
-- a non-authorizing materialization receipt containing only output path, exact byte SHA-256, schema/state, and authority/completion observations.
+```text
+Publisher SDK Return Binding Validation (Non-Authorizing) #3: SUCCESS
+SDK Package Artifact Validation (Non-Authorizing) #194: SUCCESS
+Portable Package Source Validation - No Credential Authority #94: SUCCESS
+SDK Production Manifold Governance Validation (Non-Authorizing) #35: SUCCESS
+Release Dependency Alignment Validation #34: SUCCESS
+Evaluator Contract Console Validation #123: SUCCESS
+External Framework Public Submission Validation #43: SUCCESS
+Communication Edge SDK Demo Validation #75: SUCCESS
+SDK Output-Boundary Proof Validation #57: SUCCESS
+Connect my LLM Source Validation #92: SUCCESS
+MCP Source Validation (Non-Authorizing) #62: SUCCESS
+Portable Release Index - No Credential Authority #45: SUCCESS
+```
 
-The retained output must be suitable for direct exact-byte input to the existing LLM Adapter `RTC-STEGVERSE-EGRESS-007` consumer.
+PR #245 was squash-merged as `d7f57428cb817c5f308b7cd545bfac29ca0a817c`.
 
-## Authority boundary
+## Runtime/evidence boundary
 
-This repair does not invoke Publisher, LLM Adapter, Interlock/InTr, far-side transition, MIR, release, deployment, or communication completion. GitHub Actions remains validation/evidence transport only. `authority_effect = NONE` throughout.
+The merge proves source behavior only. It does **not** establish that the authentic predecessor inputs have been observed or supplied to this surface. Therefore all of the following remain false/unclaimed:
 
-## Validation boundary
+```text
+authentic predecessor-produced SDK return input observed: false
+live exact SDK return consumed by RTC-STEGVERSE-EGRESS-007: false
+final StegVerse-side egress transition observed: false
+Interlock/InTr egress admitted: false
+far-side final transition observed: false
+authentic external MIR endpoint substitution observed: false
+communication_complete: false
+```
 
-Source/CI may prove deterministic exact-byte materialization and fail-closed behavior. It does not prove that authentic predecessor runtime inputs were supplied or that an eligible live SDK return artifact exists after merge.
+This surface does not invoke Publisher, LLM Adapter, Interlock/InTr, far-side transition, MIR, release, deployment, or communication completion. GitHub Actions remains validation/evidence transport only. `authority_effect = NONE` throughout.
 
-## Next bounded steps
+## README maintenance
 
-1. Add an SDK-owned exact materialization function/CLI that calls the canonical assembler and writes only canonical output bytes.
-2. Add fail-closed tests for exact output retention, MIR capsule requirement, and refusal to overwrite an existing artifact unless explicitly requested.
-3. Document the local materialization surface in `README.md` without promoting it to runtime evidence.
-4. Validate an exact PR head and merge only if green.
-5. Reconcile this handoff and the canonical Site handoff; keep runtime consumption and all downstream transition predicates false until authentic same-execution evidence exists.
+The SDK `README.md` was reviewed. Its existing complete-manifest SOUTH lifecycle already documents Publisher -> SDK binding -> final StegVerse-side transition -> Interlock/InTr -> far-side transition and states that validation does not create execution authority. The new task-specific materialization contract is maintained in this handoff and exposed by the installed package entry point; no unrelated README rewrite was retained.
+
+## Next bounded transition
+
+Return control to canonical successor `MIR-ROUNDTRIP-EGRESS-AUTHENTICITY-001` and continue only `OBSERVE_OR_MATERIALIZE_AUTHENTIC_PREDECESSOR_SDK_RETURN_INPUT_THROUGH_EXISTING_AUTHORIZED_CARRIER`.
+
+If the authentic original manifest, receipt ID, exact Publisher return bytes, and original SDK completion capsule become observable together, invoke this merged surface and bind its exact retained output path/hash/schema/state. Do not construct equivalent inputs, invent receipt/capsule values, or synthesize authentic MIR provenance.
