@@ -196,6 +196,16 @@ from .repo_standards_gate_record import (
     validate_repo_standards_gate_record,
 )
 
+# --- Site-to-SDK processing handoff ---
+from .site_sdk_processing_handoff import (
+    NEXT_TRANSITION as SITE_SDK_PROCESSING_NEXT_TRANSITION,
+    SDK_HANDOFF_PROCESSING_RESULT_SCHEMA,
+    SITE_SDK_PROCESSING_HANDOFF_SCHEMA,
+    SiteSdkProcessingHandoffError,
+    execute_site_sdk_processing_handoff,
+    validate_site_sdk_processing_handoff,
+)
+
 # --- Receipts ---
 from .receipts import verify_receipt
 
@@ -295,5 +305,11 @@ __all__ = [
     "normalize_repo_standards_gate_record",
     "stable_gate_record_hash",
     "validate_repo_standards_gate_record",
+    "SITE_SDK_PROCESSING_HANDOFF_SCHEMA",
+    "SDK_HANDOFF_PROCESSING_RESULT_SCHEMA",
+    "SITE_SDK_PROCESSING_NEXT_TRANSITION",
+    "SiteSdkProcessingHandoffError",
+    "validate_site_sdk_processing_handoff",
+    "execute_site_sdk_processing_handoff",
     "verify_receipt",
 ]
