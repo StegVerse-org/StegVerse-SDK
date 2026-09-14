@@ -7,6 +7,7 @@ from stegverse.governance_navigation import canonical_sha256
 from stegverse.manifest_builder import build_manifest
 from stegverse.site_sdk_processing_handoff import (
     NEXT_TRANSITION,
+    SDK_DOWNSTREAM_COMPLETION_CAPSULE_PROFILE,
     SITE_SDK_PROCESSING_HANDOFF_SCHEMA,
     SiteSdkProcessingHandoffError,
     execute_site_sdk_processing_handoff,
@@ -56,7 +57,7 @@ def governance_request(candidate):
     }
 
 
-def admitted_manifest():
+def admitted_manifest(*, publisher_required=False):
     candidate = {
         "actor_class": "external_framework",
         "action": "process_mir_return",
@@ -81,12 +82,12 @@ def admitted_manifest():
         requested_consequence="Execute SDK-owned manifest-selected processing without creating MIR-specific transport or authority.",
         initiator_class="site_sdk_processing_handoff",
         initiator_ref="StegVerse-Labs/Site#1319",
-        publisher_required=False,
+        publisher_required=publisher_required,
     )
 
 
-def site_handoff():
-    manifest = admitted_manifest()
+def site_handoff(*, publisher_required=False):
+    manifest = admitted_manifest(publisher_required=publisher_required)
     manifest_hash = canonical_sha256(manifest)
     response_to = "mir-node-mirror-runtime-return-001"
     return {
@@ -121,6 +122,20 @@ class Tests(unittest.TestCase):
         self.assertEqual("NONE", handoff["authority_effect"])
         self.assertEqual("governance", handoff["manifest"]["processing"]["capability"])
         self.assertEqual("SDK_EVALUATOR_INGRESS_ADMITTED", handoff["sdk_evaluator_ingress_state"])
+        self.assertEqual("SOUTH", handoff["completion"]["direction"])
+        self.assertEqual(
+            SDK_DOWNSTREAM_COMPLETION_CAPSULE_PROFILE,
+            handoff["downstream_completion_capsule"]["profile"],
+        )
+        self.assertFalse(
+            handoff["downstream_completion_capsule"]["declarations"]["publisher_required"]
+        )
+        self.assertTrue(
+            handoff["downstream_completion_capsule"]["declarations"]["interlock_intr_egress_required"]
+        )
+        self.assertTrue(
+            handoff["downstream_completion_capsule"]["declarations"]["far_side_transition_required"]
+        )
 
     def test_rejects_manifest_hash_mismatch(self):
         handoff = site_handoff()
@@ -140,6 +155,20 @@ class Tests(unittest.TestCase):
         with self.assertRaisesRegex(SiteSdkProcessingHandoffError, "manifest-selected"):
             validate_site_sdk_processing_handoff(handoff)
 
+    def test_rejects_missing_completion_block(self):
+        handoff = site_handoff()
+        del handoff["manifest"]["completion"]
+        handoff["manifest_hash"] = "sha256:" + canonical_sha256(handoff["manifest"])
+        handoff["stegverse_return_exit_receipt"]["manifest_sha256"] = handoff["manifest_hash"]
+        with self.assertRaisesRegex(SiteSdkProcessingHandoffError, "manifest.completion"):
+            validate_site_sdk_processing_handoff(handoff)
+
+    def test_rejects_completion_mutation_after_hash_binding(self):
+        handoff = site_handoff()
+        handoff["manifest"]["completion"]["publisher"]["required"] = True
+        with self.assertRaisesRegex(SiteSdkProcessingHandoffError, "manifest_hash"):
+            validate_site_sdk_processing_handoff(handoff)
+
     @patch("stegverse.sovereign_validation_runtime.run_sovereign_validation")
     def test_executes_manifest_selected_sdk_processor_and_preserves_downstream_boundary(self, run):
         run.return_value = {
@@ -157,6 +186,26 @@ class Tests(unittest.TestCase):
         self.assertEqual("governance", result["processing_capability"])
         self.assertEqual("SDK_EVALUATOR_INGRESS_ADMITTED", result["sdk_evaluator_ingress_state"])
         self.assertEqual("sha256:" + "b" * 64, "sha256:" + result["retained_packet_sha256"])
+        self.assertEqual(result["manifest_hash"], canonical_sha256(result["manifest"]))
+        self.assertEqual("SOUTH", result["completion"]["direction"])
+        self.assertEqual(
+            result["manifest_hash"], result["downstream_completion_capsule"]["manifest_hash"]
+        )
+        self.assertEqual(
+            result["response_to"], result["downstream_completion_capsule"]["response_to"]
+        )
+        self.assertEqual(
+            result["retained_packet_sha256"],
+            result["downstream_completion_capsule"]["retained_packet_sha256"],
+        )
+        self.assertFalse(result["publisher_transition_required"])
+        self.assertEqual(
+            "stegverse.publisher.evidence-report-package/v1",
+            result["publisher_package_profile"],
+        )
+        self.assertEqual("LLM_ADAPTER", result["final_stegverse_side_egress_surface"])
+        self.assertTrue(result["interlock_intr_egress_required"])
+        self.assertTrue(result["far_side_transition_required"])
         self.assertTrue(result["processor_result_observed"])
         self.assertFalse(result["publisher_transition_observed"])
         self.assertFalse(result["sdk_return_binding_observed"])
@@ -164,6 +213,27 @@ class Tests(unittest.TestCase):
         self.assertFalse(result["far_side_transition_observed"])
         self.assertFalse(result["communication_complete"])
         self.assertTrue(run.called)
+
+    @patch("stegverse.sovereign_validation_runtime.run_sovereign_validation")
+    def test_preserves_declared_publisher_requirement_without_observing_publisher(self, run):
+        run.return_value = {
+            "manifest_receipt_id": "MR-" + "D" * 64,
+            "route_receipt_chain_head": "e" * 64,
+            "governance_state": "ALLOW",
+            "chain_verified": True,
+            "master_records_custody_status": "RECORDED",
+            "external_side_effect": False,
+            "third_party_host_required": False,
+        }
+        result = execute_site_sdk_processing_handoff(
+            site_handoff(publisher_required=True), custody_db=":memory:"
+        )
+        self.assertTrue(result["publisher_transition_required"])
+        self.assertTrue(
+            result["downstream_completion_capsule"]["declarations"]["publisher_required"]
+        )
+        self.assertFalse(result["publisher_transition_observed"])
+        self.assertFalse(result["communication_complete"])
 
 
 if __name__ == "__main__":
