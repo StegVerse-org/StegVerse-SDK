@@ -4,8 +4,12 @@ on:
   pull_request:
     paths:
       - 'stegverse/publisher_return_binding.py'
+      - 'stegverse/publisher_return_materialization.py'
       - 'tests/test_publisher_return_binding.py'
+      - 'tests/test_publisher_return_materialization.py'
       - 'docs/PUBLISHER_SDK_RETURN_BINDING.md'
+      - 'docs/MIR_SDK_RETURN_MATERIALIZATION_MIRROR_HANDOFF.md'
+      - 'pyproject.toml'
       - 'README.md'
       - '.github/workflows/publisher-sdk-return-binding-validation.yml'
   workflow_dispatch:
@@ -34,12 +38,16 @@ jobs:
           mkdir /tmp/source
           tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
 
-      - name: Validate Publisher to SDK exact-return binding
+      - name: Validate Publisher to SDK exact-return binding and materialization
         run: |
           set -eu
           cd /tmp/source
-          python -m unittest -v tests.test_publisher_return_binding
+          python -m unittest -v \
+            tests.test_publisher_return_binding \
+            tests.test_publisher_return_materialization
           echo 'PUBLISHER_SDK_RETURN_BINDING_SOURCE_VALIDATION=PASS'
+          echo 'SDK_RETURN_MATERIALIZATION_SOURCE_VALIDATION=PASS'
+          echo 'AUTHENTIC_SDK_RETURN_RUNTIME_INPUT_OBSERVED=false'
           echo 'PUBLISHER_RUNTIME_EXECUTION_OBSERVED=false'
           echo 'LLM_ADAPTER_TRANSITION_OBSERVED=false'
           echo 'INTERLOCK_INTR_EGRESS_OBSERVED=false'
