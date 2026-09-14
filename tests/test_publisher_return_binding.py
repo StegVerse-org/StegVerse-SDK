@@ -30,7 +30,7 @@ def manifest():
     payload = {"native": "value"}
     route_id = "stegverse.route.example-verification.v1"
     return {
-        "manifest_profile": "stegverse.ingress-manifest/v1",
+        "manifest_profile": "stegverse.ingress-manifest.v1",
         "manifest_profile_version": "1",
         "source_framework": "fixture-framework",
         "source_output_id": "fixture-output-001",
