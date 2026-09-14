@@ -7,8 +7,11 @@ Source Site PR: `StegVerse-Labs/Site#1319`
 Source Site merge: `StegVerse-Labs/Site@7c2d19649a8ad52520e45a76b4a0009a22f2e0df`
 SDK prior processing merge: `StegVerse-org/StegVerse-SDK@745f3aa6564d497eb51e2ac36c2b611cd5a995a4`
 Repair issue: `StegVerse-org/StegVerse-SDK#239`
-SDK branch: `mir-carry-forward-completion-capsule`
-Status: `ACTIVE / SDK COMPLETION CAPSULE CARRY-FORWARD OPEN`
+SDK repair PR: `StegVerse-org/StegVerse-SDK#240`
+SDK repair exact head validated: `4114b75727746a40ca43e7ab4040abf1d45b22ad`
+SDK repair validation: `SDK Package Artifact Validation (Non-Authorizing) #192: SUCCESS`
+SDK completion capsule merge: `StegVerse-org/StegVerse-SDK@233632c35b0093166c16bdc660aa08e4ee1fe95a`
+Status: `MERGED / SDK COMPLETION CAPSULE CARRY-FORWARD IMPLEMENTED VALIDATED MERGED / DOWNSTREAM PUBLISHER AND EGRESS REMAIN`
 
 ## Purpose
 
@@ -39,11 +42,11 @@ Validation requires:
 
 `execute_site_sdk_processing_handoff(...)` then calls the existing SDK `run_external_manifest(...)` path. That path resolves the manifest-selected route through `external_manifest_to_public_request(...)` and executes the selected runtime binding. Processing selection grants no authority.
 
-## Current repair branch
+## Completion-capsule carry-forward merge
 
 Issue `#239` identified that the SDK processing result was not a sufficient downstream transition input because it did not carry the admitted manifest object or normalized completion block forward.
 
-The repair branch adds `stegverse.sdk.downstream-completion-capsule/v1` to the SDK processing result. The capsule carries:
+PR `#240` adds `stegverse.sdk.downstream-completion-capsule/v1` to the SDK processing result. The capsule carries:
 
 - the admitted manifest object;
 - normalized `completion` block;
@@ -56,13 +59,15 @@ The repair branch adds `stegverse.sdk.downstream-completion-capsule/v1` to the S
 
 Fail-closed validation rejects missing completion, mutated completion after hash binding, non-SOUTH completion direction, non-Publisher Publisher stage, non-boolean Publisher requirement, non-Interlock/InTr egress transport, or missing far-side transition requirement.
 
+The exact head `4114b75727746a40ca43e7ab4040abf1d45b22ad` was validated by `SDK Package Artifact Validation (Non-Authorizing) #192: SUCCESS` and squash-merged as `233632c35b0093166c16bdc660aa08e4ee1fe95a`.
+
 ## Current transition truth
 
 ```text
 Site-to-SDK handoff packet: implemented and merged from Site
-SDK handoff validation: implemented and merged from SDK prior branch
-SDK manifest-selected processing execution: implemented and merged from SDK prior branch
-SDK admitted manifest/completion carry-forward: implemented on current repair branch, pending PR validation/merge
+SDK handoff validation: implemented and merged
+SDK manifest-selected processing execution: implemented and merged
+SDK admitted manifest/completion carry-forward: implemented, validated, and merged
 Master Records custody/readback when requested: not claimed by this branch
 Publisher transition when declared: not claimed by this branch
 SDK return binding: not claimed by this branch
@@ -72,6 +77,6 @@ far-side final transition/caller receipt: not claimed by this branch
 authentic external MIR endpoint substitution: not claimed by this branch
 ```
 
-## Next after this branch
+## Next after this merge
 
-After validation and merge, reconcile the parent MIR handoff and canonical task record to mark SDK manifest-selected processing result carry-forward as implemented/validated/merged. Then continue to declared custody/Publisher and return/egress stages without creating MIR-specific mechanisms.
+Continue to declared custody/Publisher and return/egress stages without creating MIR-specific mechanisms. For MIR completion manifests that declare `completion.publisher.required = true`, Publisher issue `GCAT-BCAT-Engine/Publisher#70` owns exact `stegverse.publisher.artifact-return/v1` production/binding before SDK return assembly.
