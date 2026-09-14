@@ -11,6 +11,7 @@ SDK repair PR: `StegVerse-org/StegVerse-SDK#240`
 SDK repair exact head validated: `4114b75727746a40ca43e7ab4040abf1d45b22ad`
 SDK repair validation: `SDK Package Artifact Validation (Non-Authorizing) #192: SUCCESS`
 SDK completion capsule merge: `StegVerse-org/StegVerse-SDK@233632c35b0093166c16bdc660aa08e4ee1fe95a`
+SDK post-merge handoff reconciliation: `StegVerse-org/StegVerse-SDK@183bc5b3ebc66c3f13a433b6b004e92a2bc0f80c`
 Status: `MERGED / SDK COMPLETION CAPSULE CARRY-FORWARD IMPLEMENTED VALIDATED MERGED / DOWNSTREAM PUBLISHER AND EGRESS REMAIN`
 
 ## Purpose
@@ -80,3 +81,7 @@ authentic external MIR endpoint substitution: not claimed by this branch
 ## Next after this merge
 
 Continue to declared custody/Publisher and return/egress stages without creating MIR-specific mechanisms. For MIR completion manifests that declare `completion.publisher.required = true`, Publisher issue `GCAT-BCAT-Engine/Publisher#70` owns exact `stegverse.publisher.artifact-return/v1` production/binding before SDK return assembly.
+
+## Task registry linkage
+
+The canonical parent task remains `ACTIVE` under Site issue `#1277`. This SDK handoff records only the completed SDK carry-forward predicate. It does not close the parent task because Publisher artifact-return, SDK return binding, final StegVerse-side egress, Interlock/InTr egress, far-side final receipt, and authentic external MIR substitution remain unclaimed.
