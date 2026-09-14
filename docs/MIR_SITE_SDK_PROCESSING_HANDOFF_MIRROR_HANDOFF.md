@@ -5,8 +5,10 @@ Goal Task ID: `MIR-CONNECTION-ROUNDTRIP-TECHNICAL-GUIDE-001`
 COSV ID: `50000000100000`
 Source Site PR: `StegVerse-Labs/Site#1319`
 Source Site merge: `StegVerse-Labs/Site@7c2d19649a8ad52520e45a76b4a0009a22f2e0df`
-SDK branch: `mir-site-sdk-handoff-processing`
-Status: `ACTIVE / SDK MANIFEST-SELECTED PROCESSING BINDING OPEN`
+SDK prior processing merge: `StegVerse-org/StegVerse-SDK@745f3aa6564d497eb51e2ac36c2b611cd5a995a4`
+Repair issue: `StegVerse-org/StegVerse-SDK#239`
+SDK branch: `mir-carry-forward-completion-capsule`
+Status: `ACTIVE / SDK COMPLETION CAPSULE CARRY-FORWARD OPEN`
 
 ## Purpose
 
@@ -18,7 +20,7 @@ The Site handoff is a bridge from already-admitted Site return state to SDK proc
 
 This SDK work does not create a MIR-specific processor, transport, scheduler, credential path, Publisher stage, SDK return binding, egress mechanism, Interlock/InTr egress, far-side final receipt, or authentic external MIR endpoint substitution.
 
-## Implemented on branch
+## Implemented previously
 
 `stegverse/site_sdk_processing_handoff.py` validates the Site handoff and binds its admitted manifest into the existing manifest-selected SDK route/runtime path.
 
@@ -37,12 +39,30 @@ Validation requires:
 
 `execute_site_sdk_processing_handoff(...)` then calls the existing SDK `run_external_manifest(...)` path. That path resolves the manifest-selected route through `external_manifest_to_public_request(...)` and executes the selected runtime binding. Processing selection grants no authority.
 
+## Current repair branch
+
+Issue `#239` identified that the SDK processing result was not a sufficient downstream transition input because it did not carry the admitted manifest object or normalized completion block forward.
+
+The repair branch adds `stegverse.sdk.downstream-completion-capsule/v1` to the SDK processing result. The capsule carries:
+
+- the admitted manifest object;
+- normalized `completion` block;
+- `manifest_hash` bound to the same complete manifest bytes;
+- `completion_hash`;
+- `response_to` correlation;
+- `retained_packet_sha256`;
+- derived downstream declarations: Publisher required/not required, Publisher package profile, final StegVerse-side egress surface, Interlock/InTr egress requirement, and far-side transition requirement;
+- `authority_effect = NONE`.
+
+Fail-closed validation rejects missing completion, mutated completion after hash binding, non-SOUTH completion direction, non-Publisher Publisher stage, non-boolean Publisher requirement, non-Interlock/InTr egress transport, or missing far-side transition requirement.
+
 ## Current transition truth
 
 ```text
-Site-to-SDK handoff packet: implemented on SDK branch
-SDK handoff validation: implemented on SDK branch
-SDK manifest-selected processing execution: implemented on SDK branch, pending PR validation/merge
+Site-to-SDK handoff packet: implemented and merged from Site
+SDK handoff validation: implemented and merged from SDK prior branch
+SDK manifest-selected processing execution: implemented and merged from SDK prior branch
+SDK admitted manifest/completion carry-forward: implemented on current repair branch, pending PR validation/merge
 Master Records custody/readback when requested: not claimed by this branch
 Publisher transition when declared: not claimed by this branch
 SDK return binding: not claimed by this branch
@@ -54,4 +74,4 @@ authentic external MIR endpoint substitution: not claimed by this branch
 
 ## Next after this branch
 
-After validation and merge, reconcile the parent MIR handoff and canonical task record to mark only SDK manifest-selected processing from the Site handoff as implemented/validated/merged. Then continue to declared custody/Publisher and return/egress stages without creating MIR-specific mechanisms.
+After validation and merge, reconcile the parent MIR handoff and canonical task record to mark SDK manifest-selected processing result carry-forward as implemented/validated/merged. Then continue to declared custody/Publisher and return/egress stages without creating MIR-specific mechanisms.
