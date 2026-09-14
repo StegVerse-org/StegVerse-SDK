@@ -18,6 +18,7 @@ from .manifest_contract import validate_ingress_manifest
 
 SITE_SDK_PROCESSING_HANDOFF_SCHEMA = "stegverse.site.sdk-processing-handoff/v1"
 SDK_HANDOFF_PROCESSING_RESULT_SCHEMA = "stegverse.sdk.site-processing-handoff-result/v1"
+SDK_DOWNSTREAM_COMPLETION_CAPSULE_PROFILE = "stegverse.sdk.downstream-completion-capsule/v1"
 NEXT_TRANSITION = "EXECUTE_MANIFEST_SELECTED_SDK_PROCESSING_AFTER_EVALUATOR_INGRESS"
 REQUIRED_SITE_STATE = "SDK_EVALUATOR_INGRESS_ADMITTED"
 REQUIRED_NODE_TRANSITION = "EXTERNAL_COUNTERPART_RETURN_ADMITTED"
@@ -73,11 +74,89 @@ def _verify_node_receipt(receipt: Any) -> dict[str, Any] | None:
     return value
 
 
+def _normalize_completion_block(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    completion = _require_mapping(manifest.get("completion"), "manifest.completion")
+    if completion.get("direction") != "SOUTH":
+        raise SiteSdkProcessingHandoffError("manifest completion direction must be SOUTH")
+    initiator = _require_mapping(completion.get("initiator"), "manifest.completion.initiator")
+    publisher = _require_mapping(completion.get("publisher"), "manifest.completion.publisher")
+    egress = _require_mapping(completion.get("egress"), "manifest.completion.egress")
+
+    if publisher.get("stage") != "PUBLISHER":
+        raise SiteSdkProcessingHandoffError("manifest completion publisher stage must be PUBLISHER")
+    if not isinstance(publisher.get("required"), bool):
+        raise SiteSdkProcessingHandoffError("manifest completion publisher.required must be boolean")
+    if egress.get("transport") != "INTERLOCK_INTR":
+        raise SiteSdkProcessingHandoffError("manifest completion egress transport must be INTERLOCK_INTR")
+    if egress.get("far_side_transition_required") is not True:
+        raise SiteSdkProcessingHandoffError("manifest completion far-side transition is required")
+
+    return {
+        "direction": "SOUTH",
+        "initiator": {
+            "class": _require_text(initiator.get("class"), "manifest.completion.initiator.class"),
+            "ref": _require_text(initiator.get("ref"), "manifest.completion.initiator.ref"),
+        },
+        "publisher": {
+            "stage": "PUBLISHER",
+            "required": publisher["required"],
+            "package_profile": _require_text(
+                publisher.get("package_profile"), "manifest.completion.publisher.package_profile"
+            ),
+        },
+        "egress": {
+            "final_stegverse_transition_surface": _require_text(
+                egress.get("final_stegverse_transition_surface"),
+                "manifest.completion.egress.final_stegverse_transition_surface",
+            ),
+            "transport": "INTERLOCK_INTR",
+            "far_side_transition_required": True,
+        },
+    }
+
+
+def _completion_declarations(completion: Mapping[str, Any]) -> dict[str, Any]:
+    publisher = _require_mapping(completion.get("publisher"), "completion.publisher")
+    egress = _require_mapping(completion.get("egress"), "completion.egress")
+    return {
+        "publisher_required": publisher.get("required") is True,
+        "publisher_package_profile": _require_text(
+            publisher.get("package_profile"), "completion.publisher.package_profile"
+        ),
+        "final_stegverse_side_egress_surface": _require_text(
+            egress.get("final_stegverse_transition_surface"),
+            "completion.egress.final_stegverse_transition_surface",
+        ),
+        "interlock_intr_egress_required": egress.get("transport") == "INTERLOCK_INTR",
+        "far_side_transition_required": egress.get("far_side_transition_required") is True,
+    }
+
+
+def _build_downstream_completion_capsule(
+    *, manifest: Mapping[str, Any], manifest_hash: str, response_to: str, retained_packet_sha256: str
+) -> dict[str, Any]:
+    completion = _normalize_completion_block(manifest)
+    declarations = _completion_declarations(completion)
+    if canonical_sha256(manifest) != manifest_hash:
+        raise SiteSdkProcessingHandoffError("manifest completion capsule hash mismatch")
+    return {
+        "profile": SDK_DOWNSTREAM_COMPLETION_CAPSULE_PROFILE,
+        "manifest_hash": manifest_hash,
+        "completion_hash": canonical_sha256(completion),
+        "response_to": response_to,
+        "retained_packet_sha256": retained_packet_sha256,
+        "completion": completion,
+        "declarations": declarations,
+        "authority_effect": "NONE",
+    }
+
+
 def validate_site_sdk_processing_handoff(packet: Mapping[str, Any]) -> dict[str, Any]:
     """Validate the Site handoff and return a canonical processing input.
 
-    The returned value contains the admitted manifest object and the verified
-    Site/Node receipts. Validation and route selection grant no authority.
+    The returned value contains the admitted manifest object, normalized complete
+    communication block, and the verified Site/Node receipts. Validation and
+    route selection grant no authority.
     """
     handoff = _require_mapping(packet, "Site SDK processing handoff")
     if handoff.get("schema") != SITE_SDK_PROCESSING_HANDOFF_SCHEMA:
@@ -104,6 +183,14 @@ def validate_site_sdk_processing_handoff(packet: Mapping[str, Any]) -> dict[str,
     if manifest_hash != canonical_sha256(manifest):
         raise SiteSdkProcessingHandoffError("manifest_hash does not match supplied manifest")
 
+    completion = _normalize_completion_block(canonical_manifest)
+    downstream_completion_capsule = _build_downstream_completion_capsule(
+        manifest=canonical_manifest,
+        manifest_hash=manifest_hash,
+        response_to=response_to,
+        retained_packet_sha256=retained_packet_sha256,
+    )
+
     receipt = _verify_receipt(
         _require_mapping(handoff.get("stegverse_return_exit_receipt"), "stegverse_return_exit_receipt"),
         response_to=response_to,
@@ -115,6 +202,8 @@ def validate_site_sdk_processing_handoff(packet: Mapping[str, Any]) -> dict[str,
         "schema": SITE_SDK_PROCESSING_HANDOFF_SCHEMA,
         "manifest": canonical_manifest,
         "manifest_hash": manifest_hash,
+        "completion": completion,
+        "downstream_completion_capsule": downstream_completion_capsule,
         "response_to": response_to,
         "retained_packet_sha256": retained_packet_sha256,
         "retained_packet_schema": retained_packet_schema,
@@ -132,16 +221,18 @@ def execute_site_sdk_processing_handoff(
     """Execute the handoff's admitted manifest through the selected SDK route.
 
     This causes only the SDK-owned manifest-selected processing transition. It
-    reports, but does not claim, later Publisher, SDK-return, egress, InTr egress,
-    far-side final, or authentic external MIR substitution transitions.
+    carries the admitted manifest/completion capsule forward as the transition
+    input for declared downstream stages, while leaving Publisher, SDK-return,
+    egress, InTr egress, far-side final, and authentic MIR substitution
+    unobserved unless later evidence satisfies those predicates.
     """
     handoff = validate_site_sdk_processing_handoff(packet)
     manifest = handoff["manifest"]
     request = external_manifest_to_public_request(manifest)
     result = run_external_manifest(manifest, custody_db=custody_db, host_identity=host_identity)
-    completion = manifest.get("completion") or {}
-    publisher = completion.get("publisher") if isinstance(completion, Mapping) else None
-    publisher_required = bool(isinstance(publisher, Mapping) and publisher.get("required") is True)
+    capsule = handoff["downstream_completion_capsule"]
+    declarations = capsule["declarations"]
+    publisher_required = declarations["publisher_required"]
 
     return {
         "schema": SDK_HANDOFF_PROCESSING_RESULT_SCHEMA,
@@ -150,6 +241,9 @@ def execute_site_sdk_processing_handoff(
         "processing_capability": manifest["processing"]["capability"],
         "route_id": manifest["processing"]["route_id"],
         "request_id": request["request_id"],
+        "manifest": deepcopy(manifest),
+        "completion": deepcopy(handoff["completion"]),
+        "downstream_completion_capsule": deepcopy(capsule),
         "manifest_hash": handoff["manifest_hash"],
         "response_to": handoff["response_to"],
         "retained_packet_sha256": handoff["retained_packet_sha256"],
@@ -159,6 +253,10 @@ def execute_site_sdk_processing_handoff(
         "processor_result": deepcopy(dict(result)),
         "processor_result_observed": True,
         "publisher_transition_required": publisher_required,
+        "publisher_package_profile": declarations["publisher_package_profile"],
+        "final_stegverse_side_egress_surface": declarations["final_stegverse_side_egress_surface"],
+        "interlock_intr_egress_required": declarations["interlock_intr_egress_required"],
+        "far_side_transition_required": declarations["far_side_transition_required"],
         "publisher_transition_observed": False,
         "sdk_return_binding_observed": False,
         "final_stegverse_side_egress_transition_observed": False,
@@ -173,6 +271,7 @@ def execute_site_sdk_processing_handoff(
 __all__ = [
     "SITE_SDK_PROCESSING_HANDOFF_SCHEMA",
     "SDK_HANDOFF_PROCESSING_RESULT_SCHEMA",
+    "SDK_DOWNSTREAM_COMPLETION_CAPSULE_PROFILE",
     "NEXT_TRANSITION",
     "SiteSdkProcessingHandoffError",
     "validate_site_sdk_processing_handoff",
