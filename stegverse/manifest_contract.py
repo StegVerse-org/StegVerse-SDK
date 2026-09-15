@@ -35,7 +35,7 @@ def _require_text(manifest: Mapping[str, Any], key: str) -> str:
 def _require_exact_fields(value: Mapping[str, Any], allowed: set[str], label: str) -> None:
     unknown = sorted(set(value) - allowed)
     if unknown:
-        raise ValueError(f"unknown {label} fields: " + ", ".join(unknown))
+        raise ValueError("unknown " + label + " fields: " + ", ".join(unknown))
 
 
 def _normalize_processing(
@@ -121,7 +121,12 @@ def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
         raise ValueError("completion.egress must be an object")
     _require_exact_fields(
         egress,
-        {"final_stegverse_transition_surface", "transport", "far_side_transition_required"},
+        {
+            "final_stegverse_transition_surface",
+            "transport",
+            "far_side_transition_required",
+            "destination_profile",
+        },
         "completion.egress",
     )
     surface = egress.get("final_stegverse_transition_surface")
@@ -131,6 +136,19 @@ def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
         raise ValueError("completion.egress.transport must be INTERLOCK_INTR")
     if egress.get("far_side_transition_required") is not True:
         raise ValueError("completion.egress.far_side_transition_required must be true")
+    destination_profile = egress.get("destination_profile")
+    if destination_profile is not None and (
+        not isinstance(destination_profile, str) or not destination_profile.strip()
+    ):
+        raise ValueError("completion.egress.destination_profile must be a non-empty string when supplied")
+
+    normalized_egress = {
+        "final_stegverse_transition_surface": surface.strip(),
+        "transport": "INTERLOCK_INTR",
+        "far_side_transition_required": True,
+    }
+    if destination_profile is not None:
+        normalized_egress["destination_profile"] = destination_profile.strip()
 
     return {
         "direction": "SOUTH",
@@ -140,11 +158,7 @@ def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
             "required": publisher["required"],
             "package_profile": package_profile.strip(),
         },
-        "egress": {
-            "final_stegverse_transition_surface": surface.strip(),
-            "transport": "INTERLOCK_INTR",
-            "far_side_transition_required": True,
-        },
+        "egress": normalized_egress,
     }
 
 

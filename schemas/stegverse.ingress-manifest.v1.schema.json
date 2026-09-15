@@ -142,7 +142,12 @@
           "properties": {
             "final_stegverse_transition_surface": {"type": "string", "minLength": 1},
             "transport": {"const": "INTERLOCK_INTR"},
-            "far_side_transition_required": {"const": true}
+            "far_side_transition_required": {"const": true},
+            "destination_profile": {
+              "description": "Manifest-declared Interlock/InTr destination profile. When supplied it must survive SDK return assembly and the final egress handoff unchanged; it grants no authority.",
+              "type": "string",
+              "minLength": 1
+            }
           }
         }
       }
