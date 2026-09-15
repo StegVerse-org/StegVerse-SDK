@@ -114,6 +114,7 @@ def _completion_contract(
     publisher_required: bool,
     publisher_package_profile: str,
     egress_surface: str,
+    destination_profile: str | None,
 ) -> dict[str, Any]:
     for label, value in (
         ("initiator_class", initiator_class),
@@ -123,6 +124,17 @@ def _completion_contract(
     ):
         if not isinstance(value, str) or not value.strip():
             raise ValueError(f"{label} is required")
+    if destination_profile is not None and (
+        not isinstance(destination_profile, str) or not destination_profile.strip()
+    ):
+        raise ValueError("destination_profile must be a non-empty string when supplied")
+    egress = {
+        "final_stegverse_transition_surface": egress_surface.strip(),
+        "transport": "INTERLOCK_INTR",
+        "far_side_transition_required": True,
+    }
+    if destination_profile is not None:
+        egress["destination_profile"] = destination_profile.strip()
     return {
         "direction": "SOUTH",
         "initiator": {"class": initiator_class.strip(), "ref": initiator_ref.strip()},
@@ -131,11 +143,7 @@ def _completion_contract(
             "required": bool(publisher_required),
             "package_profile": publisher_package_profile.strip(),
         },
-        "egress": {
-            "final_stegverse_transition_surface": egress_surface.strip(),
-            "transport": "INTERLOCK_INTR",
-            "far_side_transition_required": True,
-        },
+        "egress": egress,
     }
 
 
@@ -159,6 +167,7 @@ def build_manifest(
     publisher_required: bool = False,
     publisher_package_profile: str = DEFAULT_PUBLISHER_PACKAGE_PROFILE,
     egress_surface: str = DEFAULT_FRAMEWORK_EGRESS_SURFACE,
+    destination_profile: str | None = None,
 ) -> dict[str, Any]:
     if not isinstance(source_framework, str) or not source_framework.strip():
         raise ValueError("source_framework is required")
@@ -225,6 +234,7 @@ def build_manifest(
             publisher_required=publisher_required,
             publisher_package_profile=publisher_package_profile,
             egress_surface=egress_surface,
+            destination_profile=destination_profile,
         ),
         "manifest_labels": dict(manifest_labels or {"mode": "NONE"}),
     }
@@ -270,6 +280,7 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--publisher-required", action="store_true")
     build.add_argument("--publisher-package-profile", default=DEFAULT_PUBLISHER_PACKAGE_PROFILE)
     build.add_argument("--egress-surface", default=DEFAULT_FRAMEWORK_EGRESS_SURFACE)
+    build.add_argument("--destination-profile")
     build.add_argument("--created-at")
     build.add_argument("--output", help="write manifest JSON to this path; default stdout")
 
@@ -295,6 +306,7 @@ def main(argv: list[str] | None = None) -> int:
                 publisher_required=args.publisher_required,
                 publisher_package_profile=args.publisher_package_profile,
                 egress_surface=args.egress_surface,
+                destination_profile=args.destination_profile,
                 created_at=args.created_at,
             )
             _write_json(manifest, args.output)
