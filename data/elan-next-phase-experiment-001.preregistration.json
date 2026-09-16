@@ -1,12 +1,13 @@
 {
-  "schema": "stegverse.elan.next-phase-experiment-preregistration/v2",
+  "schema": "stegverse.elan.next-phase-experiment-preregistration/v3",
   "task_id": "ELAN-NEXT-PHASE-EXPERIMENT-001",
   "date": "2026-09-16",
-  "status": "FROZEN_WAITING_FIRST_AUTHENTIC_ELAN_NATIVE_RETURN_TO_SPEECH",
+  "status": "FROZEN_WAITING_NEXT_AUTHENTIC_ELAN_SOURCE_NATIVE_OUTPUT",
+  "canonical_procedure_ref": "docs/ELAN_NEXT_PHASE_EXPERIMENT_PROCEDURE.md",
   "predecessor_evidence": {
     "run_1_events_1_2_preserved_exactly": true,
     "run_1_terminal_boundary": "READY_FOR_GOVERNANCE_CONSUMPTION",
-    "run_2_event_3_class": "OBSERVABLE_NON_EMISSION_STATE_TRANSITION",
+    "run_2_event_3_is_previously_recorded_non_emission_event": true,
     "run_2_emission_observed": false,
     "run_2_intent": "UNDETERMINED",
     "run_2_semantics": "UNRESOLVED",
@@ -17,58 +18,67 @@
     "run_2_returned_result": true,
     "cumulative_visual_revision": "GENERATED_VALIDATED_NOT_PUBLISHED"
   },
-  "correction": {
-    "previous_provisional_synthetic_successor_messages_executed": false,
-    "previous_provisional_synthetic_successor_messages_superseded": true,
-    "github_token_authority_is_prerequisite": false,
-    "third_party_elan_evaluator_execution_is_prerequisite": false,
-    "live_stegos_intr_runtime_predicate_is_prerequisite": false,
-    "resident_substrate_is_prerequisite": false,
-    "workercoordinator_claim_is_prerequisite": false
+  "next_observation_boundary": {
+    "begins_only_when": "NEXT_ACTUAL_SOURCE_NATIVE_OUTPUT_PRODUCED_BY_ELAN_IS_AVAILABLE",
+    "repository_silence_is_observation": false,
+    "absence_of_github_commit_is_observation": false,
+    "missing_github_evidence_is_observation": false,
+    "elapsed_time_is_observation": false,
+    "lack_of_attachment_is_observation": false,
+    "synthetic_elan_message_is_observation": false,
+    "inferred_elan_behavior_is_observation": false,
+    "stegverse_generated_replacement_is_observation": false,
+    "unrelated_runtime_evidence_is_observation": false,
+    "unrelated_evaluator_evidence_is_observation": false
   },
-  "successor_epoch": {
-    "starts_after": "ESTABLISHED_RUN_2_EVENT_3",
-    "prior_events_reinterpreted": false,
-    "continued_silence_representation": "OBSERVED_NON_EMISSION_ONLY",
-    "infer_intent_from_silence": false,
-    "infer_consent_from_silence": false,
-    "infer_refusal_from_silence": false,
-    "infer_withdrawal_from_silence": false,
-    "infer_meaning_from_silence": false,
-    "observation_terminal_condition": "FIRST_AUTHENTIC_ELAN_NATIVE_RETURN_TO_SPEECH_TRANSITION"
+  "non_prerequisites": {
+    "github_token_authority": true,
+    "third_party_elan_evaluator_execution": true,
+    "live_stegos_intr_runtime_predicate": true,
+    "resident_substrate": true,
+    "workercoordinator_claim": true
   },
   "evidence_fields": [
     "event_identity_and_order",
-    "observation_window_boundaries",
-    "source_native_output_or_non_output",
+    "observation_boundaries",
+    "exact_source_native_output",
     "source_native_state",
-    "continuity_across_silence_interval",
-    "exact_return_to_speech_transition",
+    "continuity_relative_to_preceding_non_emission_event",
+    "exact_next_emitted_transition",
     "provenance_and_custody",
     "immutable_manifest_reference",
     "governed_result_reference",
-    "deterministic_replay",
-    "reconstruction",
-    "returned_result"
+    "deterministic_replay_result",
+    "reconstruction_result",
+    "returned_result_evidence"
   ],
   "interpretation_controls": {
+    "capture_exact_source_native_output_before_interpretation": true,
     "missing_elan_field": "NOT_EXPOSED",
     "semantically_unresolved": "UNRESOLVED",
     "missing_fields_imputed_from_stegverse": false,
     "post_hoc_evidence_field_additions": false,
-    "return_transition_interpreted_before_capture": false
+    "infer_hidden_intent": false,
+    "infer_consent": false,
+    "infer_refusal": false,
+    "infer_withdrawal": false,
+    "infer_emotion": false,
+    "infer_motivation": false
   },
   "evidence_chain_order": [
     "PRESERVE_PREDECESSOR_EVENTS_EXACTLY",
-    "CONTINUE_NON_EMISSION_OBSERVATION",
-    "CAPTURE_FIRST_AUTHENTIC_ELAN_NATIVE_RETURN_TO_SPEECH_TRANSITION",
-    "PRESERVE_SOURCE_NATIVE_RETURN_TRANSITION",
-    "BIND_PROVENANCE_AND_IMMUTABLE_MANIFEST_REFERENCE",
-    "BIND_GOVERNED_RESULT_REFERENCE_USING_ESTABLISHED_EXPERIMENT_LINEAGE",
-    "PRESERVE_CUSTODY_DETERMINISTIC_REPLAY_RECONSTRUCTION_RETURNED_RESULT",
+    "WAIT_FOR_NEXT_AUTHENTIC_ELAN_SOURCE_NATIVE_OUTPUT",
+    "CAPTURE_EXACT_SOURCE_NATIVE_OUTPUT_BEFORE_INTERPRETATION",
+    "BIND_TO_PREDECESSOR_FROZEN_DECLARATION_MANIFEST_AND_CORRELATION_ID",
+    "REPRESENT_ONLY_OBSERVED_INFORMATION",
+    "SUBMIT_THROUGH_ESTABLISHED_EXPERIMENT_GOVERNANCE_PATH",
+    "PRESERVE_GOVERNED_RESULT_AND_CUSTODY",
+    "PERFORM_AND_RECORD_DETERMINISTIC_REPLAY",
+    "PERFORM_AND_RECORD_RECONSTRUCTION",
+    "PRESERVE_RETURNED_RESULT_EXACTLY",
     "COMPARE_ONLY_AGAINST_FROZEN_EXPECTED_EVIDENCE"
   ],
-  "current_observation_target": "FIRST_AUTHENTIC_ELAN_NATIVE_RETURN_TO_SPEECH_TRANSITION_AFTER_CONTINUED_SILENCE",
-  "return_transition_observed": false,
+  "current_observation_target": "NEXT_AUTHENTIC_ELAN_SOURCE_NATIVE_OUTPUT_AFTER_PREVIOUSLY_RECORDED_NON_EMISSION_EVENT",
+  "new_observation_claimed": false,
   "cross_evaluation_performed": false
 }
