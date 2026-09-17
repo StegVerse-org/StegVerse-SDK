@@ -308,6 +308,38 @@ third_party_host_required: false
 
 The governance and custody transitions are real TEST evidence; the test does not perform the proposed external consequence.
 
+## Structured authority and delegation evidence
+
+For evaluator tests that need to distinguish **role labels** from **current scoped authority**, the SDK provides an authority-basis composition path in addition to the ordinary evaluator manifest builder.
+
+The boundary is intentionally narrow:
+
+```text
+external framework role/context
++ frozen structured authority/delegation assertions
++ exact candidate action/target/scope
+-> canonical StegCore authority-basis resolver
+-> actor_authority_current / delegation_current
+-> normal StegGate governance request
+```
+
+The SDK does not decide that a role name such as `board_member` or `junior_operator` carries authority. The same role label can be paired with different evidence, and the same valid scoped authority evidence can be paired with different role labels without changing the derived currentness facts. What matters at this boundary is whether the structured authority/delegation basis actually covers the exact candidate and is current at the declared evaluation instant.
+
+The authority-basis request and non-authorizing resolution binding remain distinct from the StegGate request. The SDK rejects pre-authored `actor_authority_current` or `delegation_current` values on this path so the evaluator cannot silently smuggle the conclusion into the test input.
+
+```text
+role label != authority
+structured assertion != issued authority
+authority-basis resolution != credential verification
+StegGate ALLOW != proof of execution
+TV/TVC remains protected credential/scoped-authority issuance authority
+Interlock/InTr remains governed transition authority
+```
+
+Missing authority basis fails closed in the canonical resolver; represented stale, revoked, expired, target-mismatched, action-mismatched, or scope-mismatched basis denies. This makes independent role/authority comparisons possible without adding a second SDK authority engine.
+
+Python composition is exposed through `build_authority_bound_evaluator_governance_manifest(...)`; the canonical resolver is injected rather than reimplemented by the SDK.
+
 ## Evaluator-defined manifests, fixed testing route
 
 A tester or evaluator does not need to disclose a proposed test to a StegVerse developer so the developer can construct a special route. If the published SDK already exposes the required capability, the evaluator can declare the experiment in the request manifest and submit it through the published governed routing contract.
