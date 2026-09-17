@@ -3,7 +3,7 @@
 Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `STRUCTURED_AUTHORITY_BASIS_VALIDATED_PENDING_MERGE`
+Status: `STRUCTURED_AUTHORITY_BASIS_VALIDATED_MERGED`
 
 ## Objective
 
@@ -83,8 +83,10 @@ StegCore merge: 1c045362726fd7ede0af3c1d6afb960d8dff70b8
 StegCore handoff closeout merge: e3be88294b0583d8b3c781b7547a4d2e5b1ad112
 
 SDK PR: #253
-SDK exact validated head: d0b8ac7f4c5064f758978734e519a467040b7b42
-SDK Structured Authority Basis Validation: run 35288090021 PASS
+SDK preliminary validated head: d0b8ac7f4c5064f758978734e519a467040b7b42
+SDK preliminary Structured Authority Basis Validation: run 35288090021 PASS
+SDK final exact validated head: 926eed7dfee115ee714959042a1c9f3b39078e4f
+SDK final Structured Authority Basis Validation: run 35288182438 PASS
 Evaluator Manifest Source Validation: PASS
 Evaluator Governance Posture Manifest Validation: PASS
 Manifest Builder Source Validation: PASS
@@ -94,7 +96,7 @@ SDK Package Artifact Validation: PASS
 
 The first focused SDK attempt failed only because public SDK CI could not clone the private StegCore repository through pip. That was not converted into a false runtime dependency: the private-source package extra and same-process cross-org test were removed. The canonical resolver is independently validated in StegCore; the public SDK validates its injected resolver contract and binding behavior without vendoring or duplicating authority semantics.
 
-PR #253 still requires merge before this new SDK claim is treated as merged canonical SDK behavior. Public distribution of the canonical StegCore resolver is a separate distribution concern; this change does not claim that the resolver is newly available as a public package.
+PR #253 merged to SDK main as `5702fed1f9feaee1bca308f01e3d9d44ad8b2f1f`. The structured authority-basis contract and SDK binding are therefore merged canonical source behavior. Public distribution of the canonical StegCore resolver is a separate distribution concern; this change does not claim that the resolver is newly available as a public package.
 
 ## Baseline run: Event 3 not submitted
 
