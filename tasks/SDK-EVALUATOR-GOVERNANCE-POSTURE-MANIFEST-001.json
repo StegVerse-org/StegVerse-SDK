@@ -66,6 +66,12 @@
     "authority_basis_completeness_required": true,
     "delegation_basis_completeness_required": true,
     "incomplete_no_match_semantics": "UNKNOWN_FAIL_CLOSED",
-    "complete_no_match_semantics": "FALSE_DENY"
+    "complete_no_match_semantics": "FALSE_DENY",
+    "stegcore_completeness_handoff_closeout_merge": "dae6c564d361d515f71aaecedbade1652f40cb12",
+    "sdk_completeness_validated_head": "ededb14d9d22a2b201189f660b80f90b57d13b7f",
+    "sdk_completeness_validation_run": 35288636196,
+    "sdk_completeness_merge": "16d4bf1e40b4eac7313b3399e48ab880a6f53001",
+    "structured_authority_source_contract": "VALIDATED_MERGED",
+    "live_stegos_intr_runtime_proven": false
   }
 }
