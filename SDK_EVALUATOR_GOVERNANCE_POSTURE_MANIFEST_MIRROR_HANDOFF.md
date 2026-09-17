@@ -3,7 +3,7 @@
 Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `STRUCTURED_AUTHORITY_BASIS_COMPLETENESS_VALIDATED_PENDING_MERGE`
+Status: `STRUCTURED_AUTHORITY_BASIS_VALIDATED_MERGED_RUNTIME_PROOF_PENDING`
 
 ## Objective
 
@@ -256,3 +256,25 @@ StegCore patch PR #221 adds explicit `authority_basis_complete` and `delegation_
 The SDK closeout branch now requires those completeness fields, verifies that the canonical resolver returns the same completeness values, preserves them in the binding, and tests that incomplete authority basis may remain `actor_authority_current = null` without being coerced to false.
 
 StegCore exact completeness head `df03835dfa8046da190521d7ef55ece9634a576a` passed Authority Basis Resolution Validation run `35288540217`, StegVerse 001/002 validation, and package-version identity validation. PR #221 merged with expected-head protection as `f45d52cb62db29418d88752fe38f68e9bcc3cf12`. The SDK completeness bridge and tests on PR #254 have already passed the SDK Structured Authority Basis Validation and adjacent evaluator/manifest/package lanes at exact head `bad170ad43a6a7c85dc2850b74c6be0de1c3afcf`; this final handoff reconciliation requires one last exact-head validation before merge.
+
+
+## Final structured-authority source closeout — 2026-09-17
+
+StegCore completeness correction PR #221 merged as `f45d52cb62db29418d88752fe38f68e9bcc3cf12`; its canonical handoff closeout merged as `dae6c564d361d515f71aaecedbade1652f40cb12`.
+
+SDK PR #254 exact head `ededb14d9d22a2b201189f660b80f90b57d13b7f` passed all triggered lanes, including SDK Structured Authority Basis Validation run `35288636196`, Evaluator Governance Posture Manifest Validation, Evaluator Manifest Source Validation, Manifest Builder Source Validation, Evaluator Contract Console Validation, SDK Package Artifact Validation, Publisher return binding, workspace probe, and shared-doc/provider integration validation. PR #254 merged with expected-head protection as `16d4bf1e40b4eac7313b3399e48ab880a6f53001`.
+
+The structured role/authority source claim is therefore valid at the merged source-contract level:
+
+```text
+role label alone -> never authority
+matching current scoped structured authority basis -> may establish actor_authority_current = true
+incomplete no-match authority/delegation basis -> UNKNOWN / FAIL_CLOSED
+complete no-match current authority/delegation basis -> false / DENY
+SDK -> preserves evidence + invokes canonical resolver + binds returned currentness facts
+SDK -> does not issue authority, verify protected credentials, or implement role policy
+TV/TVC -> credential/scoped-authority issuance authority
+Interlock/InTr -> governed transition authority
+```
+
+This does not close the parent goal. The canonical remaining predicate is still authentic SDK-to-live StegOS/InTr posture-bound governance execution evidence. Public distribution of the private StegCore resolver is also not claimed by these source merges.
