@@ -3,7 +3,7 @@
 Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `STRUCTURED_AUTHORITY_BASIS_VALIDATED_MERGED`
+Status: `STRUCTURED_AUTHORITY_BASIS_COMPLETENESS_PATCH_PENDING`
 
 ## Objective
 
@@ -245,3 +245,14 @@ This proves local comparative experiment semantics and evidence-path behavior. I
 ## Manual work
 
 None.
+
+
+## Structured authority completeness correction — 2026-09-17
+
+Follow-up review found an unknown-versus-false edge in the first structured resolver contract. A non-matching assertion set cannot establish that authority is absent unless that set is known to be complete for the candidate under test.
+
+StegCore patch PR #221 adds explicit `authority_basis_complete` and `delegation_basis_complete` declarations. Matching current evidence may establish TRUE. If no match exists and the relevant basis is incomplete, the resolver must return UNKNOWN / FAIL_CLOSED. Only a declared complete basis may support FALSE / DENY for no candidate-covering authority or delegation.
+
+The SDK closeout branch now requires those completeness fields, verifies that the canonical resolver returns the same completeness values, preserves them in the binding, and tests that incomplete authority basis may remain `actor_authority_current = null` without being coerced to false.
+
+The earlier PR #253 merge remains valid for role-label non-authority and resolver separation, but the final structured-authority public claim is held until the completeness patch validates and merges in both StegCore and SDK.
