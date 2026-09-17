@@ -3,7 +3,7 @@
 Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `STRUCTURED_AUTHORITY_BASIS_COMPLETENESS_PATCH_PENDING`
+Status: `STRUCTURED_AUTHORITY_BASIS_COMPLETENESS_VALIDATED_PENDING_MERGE`
 
 ## Objective
 
@@ -255,4 +255,4 @@ StegCore patch PR #221 adds explicit `authority_basis_complete` and `delegation_
 
 The SDK closeout branch now requires those completeness fields, verifies that the canonical resolver returns the same completeness values, preserves them in the binding, and tests that incomplete authority basis may remain `actor_authority_current = null` without being coerced to false.
 
-The earlier PR #253 merge remains valid for role-label non-authority and resolver separation, but the final structured-authority public claim is held until the completeness patch validates and merges in both StegCore and SDK.
+StegCore exact completeness head `df03835dfa8046da190521d7ef55ece9634a576a` passed Authority Basis Resolution Validation run `35288540217`, StegVerse 001/002 validation, and package-version identity validation. PR #221 merged with expected-head protection as `f45d52cb62db29418d88752fe38f68e9bcc3cf12`. The SDK completeness bridge and tests on PR #254 have already passed the SDK Structured Authority Basis Validation and adjacent evaluator/manifest/package lanes at exact head `bad170ad43a6a7c85dc2850b74c6be0de1c3afcf`; this final handoff reconciliation requires one last exact-head validation before merge.
