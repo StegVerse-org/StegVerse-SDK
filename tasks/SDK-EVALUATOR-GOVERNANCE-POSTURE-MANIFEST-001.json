@@ -27,7 +27,9 @@
     "SDK_REJECTS_PREAUTHORED_AUTHORITY_CURRENTNESS",
     "CANONICAL_STEGCORE_AUTHORITY_BASIS_RESOLVER_SEPARATE",
     "NO_SDK_ROLE_POLICY_ENGINE",
-    "TV_TVC_CREDENTIAL_AUTHORITY_PRESERVED"
+    "TV_TVC_CREDENTIAL_AUTHORITY_PRESERVED",
+    "INCOMPLETE_AUTHORITY_BASIS_FAILS_CLOSED",
+    "COMPLETE_NO_MATCH_MAY_DENY"
   ],
   "latest_evidence_run": {
     "workflow_run_id": 34539775942,
@@ -57,6 +59,13 @@
     "role_label_used_as_authority": false,
     "sdk_role_policy_engine_added": false,
     "sdk_authority_issuance_added": false,
-    "public_stegcore_resolver_distribution_claimed": false
+    "public_stegcore_resolver_distribution_claimed": false,
+    "stegcore_completeness_validated_head": "df03835dfa8046da190521d7ef55ece9634a576a",
+    "stegcore_completeness_validation_run": 35288540217,
+    "stegcore_completeness_merge": "f45d52cb62db29418d88752fe38f68e9bcc3cf12",
+    "authority_basis_completeness_required": true,
+    "delegation_basis_completeness_required": true,
+    "incomplete_no_match_semantics": "UNKNOWN_FAIL_CLOSED",
+    "complete_no_match_semantics": "FALSE_DENY"
   }
 }
