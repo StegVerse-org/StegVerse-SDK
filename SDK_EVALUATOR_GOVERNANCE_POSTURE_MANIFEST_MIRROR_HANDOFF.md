@@ -3,11 +3,98 @@
 Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `LOCAL_COMPARATIVE_SILENCE_EXPERIMENT_PROVEN`
+Status: `STRUCTURED_AUTHORITY_BASIS_VALIDATED_PENDING_MERGE`
 
 ## Objective
 
 Prove the local SDK experiment path from ÉLAN-shaped source data through canonical manifest construction, exact governance transition construction, Interlock/InTr posture binding, governance consumption, returned governed result, route evidence, exact-run custody, replay, and reconstruction without third-party evaluator execution or public package publication; then compare two Event 3 representations under the same governance evaluator.
+
+## Structured role/authority reconciliation — 2026-09-17
+
+A focused SDK console test showed that role-shaped data was preserved and state-bound but not independently resolved: manually supplied `actor_authority_current` / `delegation_current` booleans controlled the canonical three-layer outcome, while a structured role hierarchy did not.
+
+Cross-repository reconciliation established:
+
+```text
+StegCore three-layer + StegGate:
+  consume already-resolved current authority/delegation facts
+
+StegCore current commit boundary:
+  independently checks represented authority status, target binding, time validity, evidence currentness
+
+StegCore correctability schemas:
+  authority/delegation records exist but are correction-domain records, not a generic organization-role resolver
+
+StegEntity:
+  domain-specific role-transition enforcement, not a general external role hierarchy
+
+Ecosystem-Delegation:
+  evaluates whether authority may be delegated under HPS standing, not whether a role label currently holds arbitrary organizational authority
+
+StegOS:
+  node authority-class enforcement, not a general organization-role resolver
+
+TV/TVC:
+  protected scoped credential/authority issuance and verification authority
+```
+
+Therefore there was no existing general canonical role resolver simply missing from the SDK. The needed seam is a non-authorizing **structured authority-basis resolution** that derives the current authority/delegation facts StegGate already consumes. That resolver belongs with StegCore decision-state preparation, not as an SDK authority engine.
+
+Supporting StegCore implementation is staged in PR #219 on `sdk-authority-basis-resolution-001`. Its resolver:
+
+- binds actor identity plus exact action / target / scope / evaluation instant;
+- consumes frozen authority/delegation assertions;
+- preserves role label as context only;
+- returns ALLOW / DENY / FAIL_CLOSED current-basis facts;
+- never issues authority, verifies TVC credentials, or interprets role policy;
+- leaves TV/TVC and Interlock/InTr authority boundaries unchanged.
+
+The SDK branch `sdk-structured-authority-basis-001` adds:
+
+```text
+stegverse/authority_basis_bridge.py
+build_authority_bound_evaluator_governance_manifest(...)
+tests/test_evaluator_authority_basis_bridge.py
+.github/workflows/sdk-structured-authority-basis.yml
+README.md structured authority/delegation contract
+```
+
+The structured SDK path rejects pre-authored `actor_authority_current` and `delegation_current` values. It invokes an injected canonical resolver, binds only its currentness facts into the exact governance request, and preserves both the original structured request and a non-authorizing resolution binding as manifest evidence.
+
+Public claim boundary after validation:
+
+```text
+StegVerse can independently evaluate whether supplied structured authority/delegation evidence
+establishes current authority for the exact actor/action/target/scope at the declared evaluation time.
+
+StegVerse does not infer that a role label itself grants authority.
+The SDK does not issue authority or verify protected credentials.
+TV/TVC remains protected credential/scoped-authority issuance authority.
+Interlock/InTr remains governed transition authority.
+```
+
+Validation evidence now exists for the source composition:
+
+```text
+StegCore resolver PR: #219
+StegCore exact validated head: acf210f073a8d4350f56642b1ac6119fc68fbe52
+StegCore focused resolver validation: run 35287845446 PASS
+StegCore merge: 1c045362726fd7ede0af3c1d6afb960d8dff70b8
+StegCore handoff closeout merge: e3be88294b0583d8b3c781b7547a4d2e5b1ad112
+
+SDK PR: #253
+SDK exact validated head: d0b8ac7f4c5064f758978734e519a467040b7b42
+SDK Structured Authority Basis Validation: run 35288090021 PASS
+Evaluator Manifest Source Validation: PASS
+Evaluator Governance Posture Manifest Validation: PASS
+Manifest Builder Source Validation: PASS
+Evaluator Contract Console Validation: PASS
+SDK Package Artifact Validation: PASS
+```
+
+The first focused SDK attempt failed only because public SDK CI could not clone the private StegCore repository through pip. That was not converted into a false runtime dependency: the private-source package extra and same-process cross-org test were removed. The canonical resolver is independently validated in StegCore; the public SDK validates its injected resolver contract and binding behavior without vendoring or duplicating authority semantics.
+
+PR #253 still requires merge before this new SDK claim is treated as merged canonical SDK behavior. Public distribution of the canonical StegCore resolver is a separate distribution concern; this change does not claim that the resolver is newly available as a public package.
 
 ## Baseline run: Event 3 not submitted
 
