@@ -53,6 +53,10 @@ def _validate_request_envelope(value: Any) -> dict[str, Any]:
         raise AuthorityBasisBridgeError("authority_basis_request.delegation_assertions must be an array")
     if not isinstance(request.get("delegation_required"), bool):
         raise AuthorityBasisBridgeError("authority_basis_request.delegation_required must be boolean")
+    if not isinstance(request.get("authority_basis_complete"), bool):
+        raise AuthorityBasisBridgeError("authority_basis_request.authority_basis_complete must be boolean")
+    if not isinstance(request.get("delegation_basis_complete"), bool):
+        raise AuthorityBasisBridgeError("authority_basis_request.delegation_basis_complete must be boolean")
     return request
 
 
@@ -86,6 +90,11 @@ def _validate_resolution(
     for field in ("actor_authority_current", "delegation_current"):
         if result.get(field) not in {True, False, None}:
             raise AuthorityBasisBridgeError(f"{field} must be boolean or null")
+    for field in ("authority_basis_complete", "delegation_basis_complete"):
+        if not isinstance(result.get(field), bool):
+            raise AuthorityBasisBridgeError(f"{field} must be boolean in authority basis resolution")
+        if result.get(field) != request.get(field):
+            raise AuthorityBasisBridgeError(f"{field} must match the submitted authority basis request")
     refs = result.get("evidence_refs", [])
     if not isinstance(refs, list) or not all(isinstance(ref, str) for ref in refs):
         raise AuthorityBasisBridgeError("authority basis evidence_refs must be strings")
@@ -160,6 +169,8 @@ def resolve_governance_authority_basis(
         "disposition": result["disposition"],
         "actor_authority_current": result["actor_authority_current"],
         "delegation_current": result["delegation_current"],
+        "authority_basis_complete": result["authority_basis_complete"],
+        "delegation_basis_complete": result["delegation_basis_complete"],
         "selected_authority_assertion_id": result.get("selected_authority_assertion_id"),
         "selected_delegation_assertion_id": result.get("selected_delegation_assertion_id"),
         "evidence_refs": list(result.get("evidence_refs") or []),
