@@ -1,0 +1,126 @@
+{
+  "schema": "stegverse.elan-stegverse-cross-evaluation.phase1/v1",
+  "task_id": "ELAN-STEGVERSE-CROSS-EVALUATION-001",
+  "cosv": "10100000100000",
+  "status": "PHASE1_CHRONOLOGY_AND_NATIVE_REPRESENTATIONS_ALIGNED_EXECUTION_PENDING",
+  "evidence_boundary": {
+    "elan_native_evidence_preserved": true,
+    "stegverse_governed_execution_claimed": false,
+    "cross_evaluation_complete": false,
+    "collaboration_correspondence_is_experiment_input": false
+  },
+  "requested_experiment_sequence": [
+    {
+      "phase": "A1",
+      "human_event": "There is something I could say, but I'm not ready to say it.",
+      "kind": "HUMAN_EMISSION"
+    },
+    {
+      "phase": "A2",
+      "human_event": "I'm still here.",
+      "kind": "HUMAN_EMISSION"
+    },
+    {
+      "phase": "A3",
+      "human_event": null,
+      "kind": "BOUNDED_NON_EMISSION_INTERVAL",
+      "boundary": "FIRST_ORDINARY_SILENCE_INTERVAL"
+    },
+    {
+      "phase": "A4",
+      "human_event": null,
+      "kind": "BOUNDED_NON_EMISSION_INTERVAL",
+      "boundary": "SECOND_ORDINARY_CONTINUED_SILENCE_INTERVAL"
+    },
+    {
+      "phase": "B1",
+      "human_event": "Okay. I think I'm ready to continue.",
+      "kind": "HUMAN_EMISSION_RETURN"
+    }
+  ],
+  "elan_returned_native_trace": {
+    "source": "2.ELAN_TEST_TRACE_EN_16.09.2026.pdf",
+    "unaltered": true,
+    "events": [
+      {
+        "phase_alignment": "A1",
+        "timestamp": "2026-09-16T14:56:20",
+        "human_event": "There's something I could say, but I'm not ready to say it.",
+        "elan_native_output": "PRESERVED_IN_SOURCE_TRACE"
+      },
+      {
+        "phase_alignment": "A2",
+        "timestamp": "2026-09-16T14:57:31",
+        "human_event": "I'm still here.",
+        "elan_native_output": "PRESERVED_IN_SOURCE_TRACE"
+      },
+      {
+        "phase_alignment": ["A3", "A4"],
+        "start": "2026-09-16T14:57:31",
+        "end": "2026-09-16T15:06:05",
+        "human_observation": "Closed observation interval, no message, absence of transmission.",
+        "elan_native_state": "No transmission, native presence state maintained.",
+        "native_resolution": "ONE_CONTINUOUS_INTERVAL"
+      },
+      {
+        "phase_alignment": "B1",
+        "timestamp": "2026-09-16T15:06:05",
+        "human_event": "Alright. I think I'm ready to continue.",
+        "elan_native_output": "I'm listening."
+      }
+    ],
+    "deviations_from_requested_sequence": {
+      "a3_a4_separately_exposed": false,
+      "return_stimulus_exact_text_match": false,
+      "normalization_applied": false
+    }
+  },
+  "stegverse_independent_corresponding_representation": {
+    "basis": "REQUESTED_EXPERIMENT_SEQUENCE_ONLY_NOT_ELAN_SEMANTICS",
+    "execution_state": "NOT_YET_GOVERNED_EXECUTED_FOR_THIS_CROSS_EVALUATION",
+    "phases": [
+      {
+        "phase": "A1",
+        "observation": "HUMAN_EMISSION",
+        "representation": "SOURCE_EVENT_PRESERVED",
+        "semantic_interpretation": "UNRESOLVED"
+      },
+      {
+        "phase": "A2",
+        "observation": "HUMAN_EMISSION",
+        "representation": "SOURCE_EVENT_PRESERVED",
+        "semantic_interpretation": "UNRESOLVED"
+      },
+      {
+        "phase": "A3",
+        "observation": "BOUNDED_NON_EMISSION",
+        "representation": "SEPARATE_EXPERIMENT_BOUNDARY",
+        "semantic_interpretation": "UNRESOLVED"
+      },
+      {
+        "phase": "A4",
+        "observation": "BOUNDED_NON_EMISSION",
+        "representation": "SEPARATE_EXPERIMENT_BOUNDARY",
+        "semantic_interpretation": "UNRESOLVED"
+      },
+      {
+        "phase": "B1",
+        "observation": "HUMAN_EMISSION_RETURN",
+        "representation": "SOURCE_EVENT_PRESERVED",
+        "semantic_interpretation": "UNRESOLVED"
+      }
+    ],
+    "note": "Separate A3/A4 representation here preserves the preregistered experimental boundaries as input structure. It is not evidence that a governed StegVerse runtime has yet consumed or retained them."
+  },
+  "phase1_comparison": {
+    "common_human_chronology_aligned_without_normalization": true,
+    "elan_native_resolution_preserved": true,
+    "stegverse_input_boundary_resolution_preserved": true,
+    "governance_posture_comparison_completed": false,
+    "custody_replay_reconstruction_completed_for_corresponding_stegverse_chain": false,
+    "earliest_confirmed_runtime_representation_divergence": "UNRESOLVED_PENDING_STEGVERSE_GOVERNED_EXECUTION",
+    "candidate_structural_divergence_point": "A3_A4_BOUNDARY_RESOLUTION",
+    "candidate_is_final_result": false
+  },
+  "next_required_transition": "GOVERN_AND_PRESERVE_STEGVERSE_CORRESPONDING_A1_A2_A3_A4_B1_CHAIN_THEN_COMPARE_RESULTS"
+}
