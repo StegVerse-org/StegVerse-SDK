@@ -3,7 +3,7 @@
 Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `STRUCTURED_AUTHORITY_BASIS_INTEGRATION_IN_PROGRESS`
+Status: `STRUCTURED_AUTHORITY_BASIS_VALIDATED_PENDING_MERGE`
 
 ## Objective
 
@@ -73,7 +73,28 @@ TV/TVC remains protected credential/scoped-authority issuance authority.
 Interlock/InTr remains governed transition authority.
 ```
 
-Validation and merge evidence are still required before this new claim is treated as merged canonical SDK behavior.
+Validation evidence now exists for the source composition:
+
+```text
+StegCore resolver PR: #219
+StegCore exact validated head: acf210f073a8d4350f56642b1ac6119fc68fbe52
+StegCore focused resolver validation: run 35287845446 PASS
+StegCore merge: 1c045362726fd7ede0af3c1d6afb960d8dff70b8
+StegCore handoff closeout merge: e3be88294b0583d8b3c781b7547a4d2e5b1ad112
+
+SDK PR: #253
+SDK exact validated head: d0b8ac7f4c5064f758978734e519a467040b7b42
+SDK Structured Authority Basis Validation: run 35288090021 PASS
+Evaluator Manifest Source Validation: PASS
+Evaluator Governance Posture Manifest Validation: PASS
+Manifest Builder Source Validation: PASS
+Evaluator Contract Console Validation: PASS
+SDK Package Artifact Validation: PASS
+```
+
+The first focused SDK attempt failed only because public SDK CI could not clone the private StegCore repository through pip. That was not converted into a false runtime dependency: the private-source package extra and same-process cross-org test were removed. The canonical resolver is independently validated in StegCore; the public SDK validates its injected resolver contract and binding behavior without vendoring or duplicating authority semantics.
+
+PR #253 still requires merge before this new SDK claim is treated as merged canonical SDK behavior. Public distribution of the canonical StegCore resolver is a separate distribution concern; this change does not claim that the resolver is newly available as a public package.
 
 ## Baseline run: Event 3 not submitted
 
