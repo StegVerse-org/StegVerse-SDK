@@ -69,6 +69,8 @@ def authority_request(role="board_member"):
         "authority_assertions": [{"fixture": "canonical-resolver-validates"}],
         "delegation_assertions": [],
         "delegation_required": False,
+        "authority_basis_complete": True,
+        "delegation_basis_complete": True,
         "authority_effect": "NONE_TEST_EVIDENCE_ONLY",
     }
 
@@ -85,6 +87,8 @@ def resolver(request, *, observed_at):
         "disposition": "ALLOW",
         "actor_authority_current": True,
         "delegation_current": True,
+        "authority_basis_complete": request["authority_basis_complete"],
+        "delegation_basis_complete": request["delegation_basis_complete"],
         "selected_authority_assertion_id": "AUTH-001",
         "selected_delegation_assertion_id": None,
         "evidence_refs": ["authority:evidence:1"],
@@ -190,6 +194,53 @@ def test_resolver_cannot_claim_role_as_authority():
             source_output_id="role-smuggle",
             governance_request=governance_request(),
             authority_basis_request=authority_request(),
+            authority_basis_resolver=bad_resolver,
+            authority_observed_at="2026-09-17T18:00:00Z",
+        )
+
+
+def test_incomplete_basis_can_remain_unknown_fail_closed():
+    request = authority_request()
+    request["authority_basis_complete"] = False
+
+    def unknown_resolver(value, *, observed_at):
+        result = resolver(value, observed_at=observed_at)
+        result["disposition"] = "FAIL_CLOSED"
+        result["actor_authority_current"] = None
+        result["authority_basis_complete"] = False
+        return result
+
+    manifest = build_authority_bound_evaluator_governance_manifest(
+        data={"value": 1},
+        source_framework="HGAI",
+        source_output_id="incomplete-basis",
+        governance_request=governance_request(),
+        authority_basis_request=request,
+        authority_basis_resolver=unknown_resolver,
+        authority_observed_at="2026-09-17T18:00:00Z",
+    )
+    binding = manifest["extensions"]["authority_basis_resolution_binding"]
+    assert binding["disposition"] == "FAIL_CLOSED"
+    assert binding["actor_authority_current"] is None
+    assert binding["authority_basis_complete"] is False
+    assert manifest["extensions"]["stegverse_governance_request"]["execution"]["actor_authority_current"] is None
+
+
+def test_resolver_cannot_change_basis_completeness():
+    request = authority_request()
+
+    def bad_resolver(value, *, observed_at):
+        result = resolver(value, observed_at=observed_at)
+        result["authority_basis_complete"] = False
+        return result
+
+    with pytest.raises(AuthorityBasisBridgeError, match="must match"):
+        build_authority_bound_evaluator_governance_manifest(
+            data={"value": 1},
+            source_framework="HGAI",
+            source_output_id="basis-completeness-mismatch",
+            governance_request=governance_request(),
+            authority_basis_request=request,
             authority_basis_resolver=bad_resolver,
             authority_observed_at="2026-09-17T18:00:00Z",
         )
