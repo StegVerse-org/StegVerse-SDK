@@ -40,7 +40,7 @@ TV/TVC:
 
 Therefore there was no existing general canonical role resolver simply missing from the SDK. The needed seam is a non-authorizing **structured authority-basis resolution** that derives the current authority/delegation facts StegGate already consumes. That resolver belongs with StegCore decision-state preparation, not as an SDK authority engine.
 
-Supporting StegCore implementation is staged in PR #219 on `sdk-authority-basis-resolution-001`. Its resolver:
+Canonical StegCore authority-basis resolution is now merged. The initial resolver entered through PR #219 and the UNKNOWN-versus-FALSE completeness correction through PR #221. Its resolver:
 
 - binds actor identity plus exact action / target / scope / evaluation instant;
 - consumes frozen authority/delegation assertions;
@@ -49,7 +49,7 @@ Supporting StegCore implementation is staged in PR #219 on `sdk-authority-basis-
 - never issues authority, verifies TVC credentials, or interprets role policy;
 - leaves TV/TVC and Interlock/InTr authority boundaries unchanged.
 
-The SDK branch `sdk-structured-authority-basis-001` adds:
+The merged SDK integration includes:
 
 ```text
 stegverse/authority_basis_bridge.py
@@ -61,7 +61,7 @@ README.md structured authority/delegation contract
 
 The structured SDK path rejects pre-authored `actor_authority_current` and `delegation_current` values. It invokes an injected canonical resolver, binds only its currentness facts into the exact governance request, and preserves both the original structured request and a non-authorizing resolution binding as manifest evidence.
 
-Public claim boundary after validation:
+Validated public claim boundary:
 
 ```text
 StegVerse can independently evaluate whether supplied structured authority/delegation evidence
@@ -233,14 +233,9 @@ master-records/orchestration@03312236c115bc814024d700810391340648601f
 
 This proves local comparative experiment semantics and evidence-path behavior. It does not claim deployment of those private packages, a live cross-repository runtime instance, or third-party evaluator execution.
 
-## Remaining work
+## Historical comparative-experiment notes
 
-```text
-1 preserve the baseline and comparative rerun as separate immutable evidence sets
-2 reconcile stacked PR #197 into PR #177 after exact-head review
-3 keep live/private-package runtime proof as a separate predicate
-4 use future silence tests to distinguish observed non-emission from missing transport, timeout, refusal, incapacity, or contextual response without preassigning intent
-```
+The baseline and observed-silence evidence sets remain separate immutable experiment evidence. PR #197 and PR #177 are already merged historical evidence. Future silence tests should continue distinguishing observed non-emission from missing transport, timeout, refusal, incapacity, or contextual response without preassigning intent. The current parent-goal remaining predicate is the authentic live/private-runtime proof stated in the final closeout section below.
 
 ## Manual work
 
@@ -255,7 +250,7 @@ StegCore patch PR #221 adds explicit `authority_basis_complete` and `delegation_
 
 The SDK closeout branch now requires those completeness fields, verifies that the canonical resolver returns the same completeness values, preserves them in the binding, and tests that incomplete authority basis may remain `actor_authority_current = null` without being coerced to false.
 
-StegCore exact completeness head `df03835dfa8046da190521d7ef55ece9634a576a` passed Authority Basis Resolution Validation run `35288540217`, StegVerse 001/002 validation, and package-version identity validation. PR #221 merged with expected-head protection as `f45d52cb62db29418d88752fe38f68e9bcc3cf12`. The SDK completeness bridge and tests on PR #254 have already passed the SDK Structured Authority Basis Validation and adjacent evaluator/manifest/package lanes at exact head `bad170ad43a6a7c85dc2850b74c6be0de1c3afcf`; this final handoff reconciliation requires one last exact-head validation before merge.
+StegCore exact completeness head `df03835dfa8046da190521d7ef55ece9634a576a` passed Authority Basis Resolution Validation run `35288540217`, StegVerse 001/002 validation, and package-version identity validation. PR #221 merged with expected-head protection as `f45d52cb62db29418d88752fe38f68e9bcc3cf12`. The SDK completeness bridge and tests passed the SDK Structured Authority Basis Validation and adjacent evaluator/manifest/package lanes at exact heads `bad170ad43a6a7c85dc2850b74c6be0de1c3afcf` and `ededb14d9d22a2b201189f660b80f90b57d13b7f`; PR #254 then merged as `16d4bf1e40b4eac7313b3399e48ab880a6f53001` and final source-contract closeout PR #255 merged as `ca5b349b76a3548a385aa65299d8b08664feedaa`.
 
 
 ## Final structured-authority source closeout — 2026-09-17
