@@ -2,7 +2,7 @@
   "task_id": "SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001",
   "originating_goal": "Integrate the SDK Manifest Builder with governance processing and the Interlock/InTr security-posture request contract for evaluator testing without contaminating source-native observations or preregistration evidence.",
   "repository": "StegVerse-org/StegVerse-SDK",
-  "source_branch": "sdk-evaluator-governance-posture-test-evidence-001",
+  "source_branch": "sdk-structured-authority-basis-closeout-001",
   "target_branch": "main",
   "state": "ACTIVE_RUNTIME_PROOF_PENDING_PUBLIC_DISTRIBUTION",
   "owner": "StegVerse-org/StegVerse-SDK",
@@ -21,7 +21,15 @@
     "EVALUATOR_PREPARE_ONLY_PATH_VALIDATED",
     "MANIFEST_BUILT_VALIDATED",
     "GOVERNANCE_TRANSITION_REQUEST_MATERIALIZED",
-    "INTR_TEST_BINDING_MATERIALIZED"
+    "INTR_TEST_BINDING_MATERIALIZED",
+    "STRUCTURED_AUTHORITY_BASIS_REQUEST_NON_AUTHORIZING",
+    "ROLE_LABEL_NOT_AUTHORITY",
+    "SDK_REJECTS_PREAUTHORED_AUTHORITY_CURRENTNESS",
+    "CANONICAL_STEGCORE_AUTHORITY_BASIS_RESOLVER_SEPARATE",
+    "NO_SDK_ROLE_POLICY_ENGINE",
+    "TV_TVC_CREDENTIAL_AUTHORITY_PRESERVED",
+    "INCOMPLETE_AUTHORITY_BASIS_FAILS_CLOSED",
+    "COMPLETE_NO_MATCH_MAY_DENY"
   ],
   "latest_evidence_run": {
     "workflow_run_id": 34539775942,
@@ -40,5 +48,24 @@
     "live StegOS/InTr posture resolution",
     "governance custody replay reconstruction evidence"
   ],
-  "manual_work_required": false
+  "manual_work_required": false,
+  "structured_authority_basis": {
+    "determination": "NO_EXISTING_GENERAL_ROLE_RESOLVER; BOUNDED_STEGCORE_AUTHORITY_BASIS_RESOLUTION_REQUIRED",
+    "stegcore_resolver_merge": "1c045362726fd7ede0af3c1d6afb960d8dff70b8",
+    "stegcore_handoff_closeout_merge": "e3be88294b0583d8b3c781b7547a4d2e5b1ad112",
+    "sdk_merge": "5702fed1f9feaee1bca308f01e3d9d44ad8b2f1f",
+    "sdk_final_validated_head": "926eed7dfee115ee714959042a1c9f3b39078e4f",
+    "sdk_focused_validation_run": 35288182438,
+    "role_label_used_as_authority": false,
+    "sdk_role_policy_engine_added": false,
+    "sdk_authority_issuance_added": false,
+    "public_stegcore_resolver_distribution_claimed": false,
+    "stegcore_completeness_validated_head": "df03835dfa8046da190521d7ef55ece9634a576a",
+    "stegcore_completeness_validation_run": 35288540217,
+    "stegcore_completeness_merge": "f45d52cb62db29418d88752fe38f68e9bcc3cf12",
+    "authority_basis_completeness_required": true,
+    "delegation_basis_completeness_required": true,
+    "incomplete_no_match_semantics": "UNKNOWN_FAIL_CLOSED",
+    "complete_no_match_semantics": "FALSE_DENY"
+  }
 }

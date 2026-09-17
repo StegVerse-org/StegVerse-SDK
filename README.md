@@ -325,7 +325,7 @@ external framework role/context
 
 The SDK does not decide that a role name such as `board_member` or `junior_operator` carries authority. The same role label can be paired with different evidence, and the same valid scoped authority evidence can be paired with different role labels without changing the derived currentness facts. What matters at this boundary is whether the structured authority/delegation basis actually covers the exact candidate and is current at the declared evaluation instant.
 
-The authority-basis request and non-authorizing resolution binding remain distinct from the StegGate request. The SDK rejects pre-authored `actor_authority_current` or `delegation_current` values on this path so the evaluator cannot silently smuggle the conclusion into the test input.
+The authority-basis request and non-authorizing resolution binding remain distinct from the StegGate request. The request also declares whether the submitted authority and delegation assertion sets are complete for the candidate under test. The SDK rejects pre-authored `actor_authority_current` or `delegation_current` values on this path so the evaluator cannot silently smuggle the conclusion into the test input.
 
 ```text
 role label != authority
@@ -336,7 +336,7 @@ TV/TVC remains protected credential/scoped-authority issuance authority
 Interlock/InTr remains governed transition authority
 ```
 
-Missing authority basis fails closed in the canonical resolver; represented stale, revoked, expired, target-mismatched, action-mismatched, or scope-mismatched basis denies. This makes independent role/authority comparisons possible without adding a second SDK authority engine.
+An incomplete basis with no candidate-covering match remains unknown and fails closed in the canonical resolver. Only when the relevant basis is explicitly declared complete may absence of a current candidate-covering authority/delegation establish a DENY. A matching current scoped assertion may establish the positive currentness fact. This prevents partial evidence from being converted into a false negative and keeps independent role/authority comparisons fail-closed without adding a second SDK authority engine.
 
 Python composition is exposed through `build_authority_bound_evaluator_governance_manifest(...)`; the canonical resolver is injected rather than reimplemented by the SDK.
 
