@@ -15,7 +15,6 @@ from typing import Any, Mapping
 
 from .ecosystem_diagnostic_runtime import REQUEST_EXTENSION, validate_diagnostic_request
 from .governance_navigation import INGRESS_PROFILE, canonical_sha256
-from .governance_reference_graph import EXTENSION_KEY as GOVERNANCE_REFERENCE_GRAPH_EXTENSION, validate_governance_reference_graph
 from .governance_reference_graph import (
     EXTENSION_KEY as GOVERNANCE_REFERENCE_GRAPH_EXTENSION,
     validate_governance_reference_graph,
@@ -184,8 +183,6 @@ def build_manifest(
     route = _route_declaration(normalized_process)
     extensions: dict[str, Any] = {"stegverse_route": route}
     if governance_reference_graph is not None:
-        extensions[GOVERNANCE_REFERENCE_GRAPH_EXTENSION] = validate_governance_reference_graph(governance_reference_graph)
-    if governance_reference_graph is not None:
         extensions[GOVERNANCE_REFERENCE_GRAPH_EXTENSION] = validate_governance_reference_graph(
             governance_reference_graph
         )
@@ -293,7 +290,6 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--publisher-package-profile", default=DEFAULT_PUBLISHER_PACKAGE_PROFILE)
     build.add_argument("--egress-surface", default=DEFAULT_FRAMEWORK_EGRESS_SURFACE)
     build.add_argument("--destination-profile")
-    build.add_argument("--governance-reference-graph", help="JSON file containing a hash-bound non-authorizing Governance Reference Graph")
     build.add_argument("--governance-reference-graph", help="JSON file containing a hash-bound non-authorizing Governance Reference Graph")
     build.add_argument("--created-at")
     build.add_argument("--output", help="write manifest JSON to this path; default stdout")
