@@ -6,6 +6,7 @@ import sys
 from . import cli
 from . import evaluator_contract
 from . import external_framework_runner
+from . import governance_reference_graph
 from . import manifest_builder
 from . import production_release_set
 from . import test_procedure
@@ -24,6 +25,8 @@ def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if args and args[0] in {"contract", "evaluator-contract"}:
         return evaluator_contract.main(args[1:])
+    if args and args[0] in {"governance-graph", "governance-reference-graph"}:
+        return governance_reference_graph.main(args[1:])
     if args and args[0] in {"production-releases", "release-set"}:
         return production_release_set.main(args[1:])
     if args and args[0] in {"test-procedure", "procedure"}:
@@ -38,6 +41,7 @@ def main(argv: list[str] | None = None) -> int:
     result = cli.main(args)
     if not args:
         print("Evaluator contract:    stegverse contract")
+        print("Governance graph:      stegverse governance-graph")
         print("Test procedure:        stegverse test-procedure")
         print("Manifest Builder:      stegverse manifest build --help")
         print("External framework:    stegverse external-run --help")
