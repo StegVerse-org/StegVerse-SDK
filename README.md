@@ -340,6 +340,64 @@ An incomplete basis with no candidate-covering match remains unknown and fails c
 
 Python composition is exposed through `build_authority_bound_evaluator_governance_manifest(...)`; the canonical resolver is injected rather than reimplemented by the SDK.
 
+## Governance Reference Graph
+
+The manifest can optionally carry a generic, hash-bound **Governance Reference Graph (GRG)** under `extensions.governance_reference_graph`. HITL hierarchy is one projection of this contract, not the contract itself. The same representation can carry humans, AI systems, services, devices, organizations, roles, datasets, sensors, constraints, credentials, provenance relationships, supervision, escalation, quorum references, delegation context, and other governance-relevant structure.
+
+The SDK validates and preserves the graph; it does not turn graph position, hierarchy, composition, or an unknown relationship into authority:
+
+```text
+graph representation != authority
+hierarchy != authority
+composition != authority
+unknown relation != authority
+SDK graph validation != governance resolution
+```
+
+Each graph has a stable ID/version, its own canonical SHA-256 commitment, typed nodes and directed relationships, applicability fields, source/evidence/basis references, optional canonical constraint references, scoped coverage/completeness declarations, and an explicit non-authorizing authority boundary. The graph is also included in the canonical manifest hash, so changing graph content changes the manifested input binding.
+
+Completeness remains scoped and explicit. A missing relationship in an incomplete graph is not evidence that the relationship is false. This preserves the existing structured-authority rule that incomplete no-match remains UNKNOWN/fail-closed while only an applicable complete basis can support a negative finding.
+
+Python:
+
+```python
+from stegverse import build_governance_reference_graph
+from stegverse.manifest_builder import build_manifest
+
+graph = build_governance_reference_graph(
+    graph_id="external-governance-001",
+    nodes=[...],
+    relations=[...],
+    coverage=[...],
+    source_refs=[...],
+)
+
+manifest = build_manifest(
+    data=source_native_object,
+    source_framework="EXTERNAL_FRAMEWORK",
+    source_output_id="output-001",
+    processor_request=complete_governance_request,
+    process="governance",
+    governance_reference_graph=graph,
+)
+```
+
+CLI:
+
+```bash
+stegverse manifest build \
+  --input source.json \
+  --processor-request governance-request.json \
+  --source-framework EXTERNAL_FRAMEWORK \
+  --source-output-id output-001 \
+  --governance-reference-graph governance-reference-graph.json \
+  --output manifest.json
+```
+
+The evaluator-safe manifest builders accept the same optional graph. Existing structured authority/delegation resolution remains separate: the SDK graph does not independently infer `actor_authority_current`, `delegation_current`, credential validity, or transition permission. Recognized graph semantics belong to canonical StegCore/StegGate projection; TV/TVC remains credential/scoped-authority issuance and verification authority, and Interlock/InTr remains governed transition authority.
+
+Full contract and examples: `docs/GOVERNANCE_REFERENCE_GRAPH.md`.
+
 ## Evaluator-defined manifests, fixed testing route
 
 A tester or evaluator does not need to disclose a proposed test to a StegVerse developer so the developer can construct a special route. If the published SDK already exposes the required capability, the evaluator can declare the experiment in the request manifest and submit it through the published governed routing contract.
