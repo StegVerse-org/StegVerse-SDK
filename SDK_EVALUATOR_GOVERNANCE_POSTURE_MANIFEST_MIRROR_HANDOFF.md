@@ -398,3 +398,53 @@ The console integration fixture preserved AI supervision, human escalation, evid
 
 This GRG work is source-contract work only. It does not satisfy the parent task's
 remaining authentic SDK-to-live StegOS/InTr execution predicate.
+
+
+## Governance Reference Graph console/source closeout — 2026-09-18
+
+The generic Governance Reference Graph representation and its console discovery surface are now merged on SDK main.
+
+Final public/source integration:
+
+```text
+PR #257 -> initial GRG manifest/builder/evaluator integration
+merge: 9a0970cdbf3a7f7eef3dcf754a1fb00398b23721
+
+PR #258 -> console/public contract exposure and validation closeout
+exact validated head: fde1c6bd04141d02c802c642717d174e44df5359
+merge: ace3adf88068929b4b0e56f9880b209b3e2178ad
+Evaluator Contract Console Validation: run 35340811339 PASS
+Manifest Builder Source Validation: run 35340811283 PASS
+Evaluator Manifest Source Validation: run 35340811323 PASS
+Evaluator Governance Posture Manifest Validation: run 35340811316 PASS
+SDK Structured Authority Basis Validation: run 35340811205 PASS
+SDK Package Artifact Validation: run 35340811374 PASS
+```
+
+The exact console validation exercised:
+
+```text
+stegverse governance-graph
+stegverse governance-graph --schema
+stegverse governance-graph --example
+stegverse governance-graph --all
+python -m stegverse governance-graph --all
+python validation/governance_reference_graph_console.py
+```
+
+Observed assertions included:
+
+```text
+contract = stegverse.governance-reference-graph.v1
+authority_effect = NONE_REPRESENTATION_ONLY
+unknown_relations_grant_authority = false
+hierarchy_grants_authority = false
+sdk_resolves_governance = false
+actor_authority_current = null
+delegation_current = null
+external_manifest_grants_authority = false
+console integration status = GOVERNANCE_REFERENCE_GRAPH_CONSOLE_PASS
+console/release-set test suite = 12 passed
+```
+
+This closes the requested SDK documentation/internal-surface/console-expression work for the GRG source contract. It does not close the parent runtime predicate and does not claim that arbitrary graph relations are already projected by live StegCore/Interlock execution.
