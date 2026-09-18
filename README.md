@@ -56,6 +56,10 @@ payload class != processing capability
 processing capability != runtime route
 processing selection != authority
 route selection != authority
+graph representation != authority
+hierarchy != authority
+graph composition != authority
+unknown graph relation != authority
 caller projection != canonical custody
 ```
 
