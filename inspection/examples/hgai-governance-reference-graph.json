@@ -1,0 +1,254 @@
+{
+  "schema": "stegverse.governance-reference-graph.v1",
+  "graph_id": "hgai-hitl-review-example-001",
+  "graph_version": "1.0.0",
+  "relation_profile": "stegverse.governance-relations.v1",
+  "graph_sha256": "f8581d83f38dd8fe7a42de121b9a4eaa2add014d9450c4ba133ad9aeaaec9aff",
+  "nodes": [
+    {
+      "node_id": "ai:analyst",
+      "class": "ai",
+      "ref": "hgai:ai:analyst",
+      "attributes": {
+        "display_role": "AI analysis agent"
+      }
+    },
+    {
+      "node_id": "human:reviewer",
+      "class": "human",
+      "ref": "hgai:human:reviewer",
+      "attributes": {
+        "display_role": "Human reviewer"
+      }
+    },
+    {
+      "node_id": "human:supervisor",
+      "class": "human",
+      "ref": "hgai:human:supervisor",
+      "attributes": {
+        "display_role": "Supervising reviewer"
+      }
+    },
+    {
+      "node_id": "human:decision-authority",
+      "class": "human",
+      "ref": "hgai:human:decision-authority",
+      "attributes": {
+        "display_role": "Final decision authority"
+      }
+    },
+    {
+      "node_id": "dataset:case-42",
+      "class": "dataset",
+      "ref": "hgai:dataset:case-42",
+      "attributes": {
+        "display_label": "Case 42 evidence set"
+      }
+    },
+    {
+      "node_id": "constraint:quorum",
+      "class": "constraint",
+      "ref": "stegcore:policy-shape:quorum",
+      "attributes": {
+        "display_label": "Quorum policy reference"
+      }
+    }
+  ],
+  "relations": [
+    {
+      "relation_id": "r-ai-supervised-by-reviewer",
+      "subject": "ai:analyst",
+      "relation": "SUPERVISED_BY",
+      "object": "human:reviewer",
+      "applicability": {
+        "actions": [
+          "analyze"
+        ],
+        "targets": [
+          "case:42"
+        ],
+        "scopes": [
+          "case:42"
+        ],
+        "status": "ACTIVE"
+      },
+      "constraint_ref": null,
+      "source_ref": "hgai:workflow-definition:v1",
+      "evidence_refs": [
+        "hgai:evidence:workflow-definition"
+      ],
+      "basis_refs": []
+    },
+    {
+      "relation_id": "r-reviewer-escalates-supervisor",
+      "subject": "human:reviewer",
+      "relation": "ESCALATES_TO",
+      "object": "human:supervisor",
+      "applicability": {
+        "actions": [
+          "recommend",
+          "escalate"
+        ],
+        "targets": [
+          "case:42"
+        ],
+        "scopes": [
+          "case:42"
+        ],
+        "status": "ACTIVE"
+      },
+      "constraint_ref": null,
+      "source_ref": "hgai:review-policy:v1",
+      "evidence_refs": [
+        "hgai:evidence:review-policy"
+      ],
+      "basis_refs": []
+    },
+    {
+      "relation_id": "r-supervisor-escalates-decision-authority",
+      "subject": "human:supervisor",
+      "relation": "ESCALATES_TO",
+      "object": "human:decision-authority",
+      "applicability": {
+        "actions": [
+          "approve",
+          "deny",
+          "escalate"
+        ],
+        "targets": [
+          "case:42"
+        ],
+        "scopes": [
+          "case:42"
+        ],
+        "status": "ACTIVE"
+      },
+      "constraint_ref": null,
+      "source_ref": "hgai:review-policy:v1",
+      "evidence_refs": [
+        "hgai:evidence:review-policy"
+      ],
+      "basis_refs": []
+    },
+    {
+      "relation_id": "r-case-derived-from-evidence",
+      "subject": "ai:analyst",
+      "relation": "DERIVED_FROM",
+      "object": "dataset:case-42",
+      "applicability": {
+        "actions": [
+          "analyze"
+        ],
+        "targets": [
+          "case:42"
+        ],
+        "scopes": [
+          "case:42"
+        ],
+        "status": "ACTIVE"
+      },
+      "constraint_ref": null,
+      "source_ref": "hgai:evidence-provenance:v1",
+      "evidence_refs": [
+        "hgai:evidence:case-42-provenance"
+      ],
+      "basis_refs": []
+    },
+    {
+      "relation_id": "r-decision-requires-quorum",
+      "subject": "human:decision-authority",
+      "relation": "REQUIRES_CONSTRAINT",
+      "object": "constraint:quorum",
+      "applicability": {
+        "actions": [
+          "approve"
+        ],
+        "targets": [
+          "case:42"
+        ],
+        "scopes": [
+          "case:42"
+        ],
+        "status": "ACTIVE"
+      },
+      "constraint_ref": "stegcore:policy-shape:quorum",
+      "source_ref": "hgai:decision-policy:v1",
+      "evidence_refs": [
+        "hgai:evidence:decision-policy"
+      ],
+      "basis_refs": []
+    },
+    {
+      "relation_id": "r-declared-scoped-authority",
+      "subject": "human:decision-authority",
+      "relation": "HAS_SCOPED_AUTHORITY",
+      "object": "dataset:case-42",
+      "applicability": {
+        "actions": [
+          "approve",
+          "deny"
+        ],
+        "targets": [
+          "case:42"
+        ],
+        "scopes": [
+          "case:42"
+        ],
+        "status": "ACTIVE",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": "2026-10-01T00:00:00Z"
+      },
+      "constraint_ref": null,
+      "source_ref": "hgai:authority-register:v1",
+      "evidence_refs": [
+        "hgai:evidence:authority-register"
+      ],
+      "basis_refs": [
+        "hgai:basis:authority-record:case-42"
+      ]
+    }
+  ],
+  "coverage": [
+    {
+      "coverage_id": "authority-coverage-case-42",
+      "relation": "HAS_SCOPED_AUTHORITY",
+      "subject": "human:decision-authority",
+      "selector": {
+        "actions": [
+          "approve",
+          "deny"
+        ],
+        "targets": [
+          "case:42"
+        ],
+        "scopes": [
+          "case:42"
+        ]
+      },
+      "complete": false,
+      "source_ref": "hgai:authority-register:v1",
+      "evidence_refs": [
+        "hgai:evidence:authority-register"
+      ]
+    }
+  ],
+  "source_refs": [
+    "hgai:workflow-definition:v1",
+    "hgai:review-policy:v1",
+    "hgai:evidence-provenance:v1",
+    "hgai:decision-policy:v1",
+    "hgai:authority-register:v1"
+  ],
+  "metadata": {
+    "projection": "HITL_EXAMPLE",
+    "canonical_schema": "GENERIC_GRG",
+    "purpose": "Muhammad-facing HGAI mapping example"
+  },
+  "authority_boundary": {
+    "graph_representation_grants_authority": false,
+    "hierarchy_grants_authority": false,
+    "composition_grants_authority": false,
+    "sdk_resolves_governance": false,
+    "unknown_relations_grant_authority": false
+  }
+}
