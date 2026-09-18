@@ -1,0 +1,48 @@
+name: SDK Component Version Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'pyproject.toml'
+      - 'VERSION.json'
+      - 'RELEASE_NOTES_*.md'
+      - 'scripts/check_component_version.py'
+      - 'docs/SDK_*_SUCCESSOR_RELEASE_MIRROR_HANDOFF.md'
+      - '.github/workflows/component-version-validation.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate-component-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Validate canonical component version state
+        run: python scripts/check_component_version.py
+
+      - name: Cross-check package and version metadata
+        run: |
+          python - <<'PY'
+          import json
+          import pathlib
+          import tomllib
+
+          root = pathlib.Path('.')
+          version = json.loads((root / 'VERSION.json').read_text(encoding='utf-8'))
+          project = tomllib.loads((root / 'pyproject.toml').read_text(encoding='utf-8'))['project']
+          expected = version['component_version']
+          assert project['name'] == 'stegverse-sdk', project['name']
+          assert project['version'] == expected, (project['version'], expected)
+          notes = root / f'RELEASE_NOTES_{expected}.md'
+          assert notes.is_file(), notes
+          assert version['release']['tag'] is None
+          assert version['release']['commit'] is None
+          assert version['release']['release_evidence'] == []
+          assert version['release_candidate']['target_tag'] == f'v{expected}'
+          print(f'SDK_COMPONENT_VERSION_COHERENCE_PASS version={expected}')
+          PY
