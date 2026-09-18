@@ -69,6 +69,18 @@ class EcosystemDiagnosticProcessorTests(unittest.TestCase):
         self.assertEqual(result["authority_effect"], "NONE_DIAGNOSTIC_ONLY")
         self.assertFalse(result["continuity_state_present"])
         self.assertNotIn("continuity_state", result)
+        self.assertIn("product_processing", result)
+        self.assertIn("admittedcode_processing", result)
+        products = {row["product_id"]: row for row in result["product_processing"]["contributions"]}
+        self.assertEqual("PROCESSED", products["Ecosystem Diagnostic"]["processing_status"])
+        self.assertEqual("NOT_PROCESSED", products["AdmittedCode"]["processing_status"])
+        self.assertEqual("ROUTE_DID_NOT_TRAVERSE_ADMITTEDCODE", products["AdmittedCode"]["provenance_basis"])
+        self.assertEqual("NOT_OBSERVED", products["Interlock/InTr"]["processing_status"])
+        self.assertEqual("NOT_OBSERVED", products["StegAgents/runtime"]["processing_status"])
+        self.assertEqual("NOT_OBSERVED", products["Master Records"]["processing_status"])
+        self.assertEqual("NONE", result["product_processing"]["composition_authority_effect"])
+        self.assertIn("result_binding_hash", result)
+        self.assertIn("sdk_return_binding_hash", result)
 
     def test_preregistered_evidence_without_reference_fails_closed(self):
         manifest = build_manifest(
