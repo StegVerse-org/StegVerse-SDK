@@ -1,0 +1,20 @@
+{
+  "schema": "stegverse.sdk.tt-purpose-bound-worker.v1",
+  "transition_cell": {
+    "cell_id": "tt-cell-purpose-worker-001",
+    "protocol_version": "local-demo-v1",
+    "pre_state": {
+      "worker_live": false
+    },
+    "candidate": {
+      "operation_id": "tracked-task-001",
+      "operation_class": "ARBITRARY_TRACKED_TASK",
+      "purpose": "Analyze a supplied text payload for a tracked integrity summary.",
+      "required_capability": "text.integrity_summary",
+      "max_lifetime_seconds": 30,
+      "payload": {
+        "text": "StegVerse tracks this arbitrary local worker task."
+      }
+    }
+  }
+}

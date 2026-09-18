@@ -9,6 +9,7 @@ from . import external_framework_runner
 from . import governance_reference_graph
 from . import manifest_builder
 from . import production_release_set
+from . import purpose_bound_worker
 from . import test_procedure
 
 
@@ -27,6 +28,8 @@ def main(argv: list[str] | None = None) -> int:
         return evaluator_contract.main(args[1:])
     if args and args[0] in {"governance-graph", "governance-reference-graph"}:
         return governance_reference_graph.main(args[1:])
+    if args and args[0] in {"worker-lifecycle", "purpose-worker"}:
+        return purpose_bound_worker.main(args[1:])
     if args and args[0] in {"production-releases", "release-set"}:
         return production_release_set.main(args[1:])
     if args and args[0] in {"test-procedure", "procedure"}:
@@ -42,6 +45,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args:
         print("Evaluator contract:    stegverse contract")
         print("Governance graph:      stegverse governance-graph")
+        print("Worker lifecycle:      stegverse worker-lifecycle --help")
         print("Test procedure:        stegverse test-procedure")
         print("Manifest Builder:      stegverse manifest build --help")
         print("External framework:    stegverse external-run --help")
