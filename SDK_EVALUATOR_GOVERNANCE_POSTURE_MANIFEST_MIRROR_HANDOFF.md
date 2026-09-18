@@ -475,3 +475,25 @@ final decision authority -> HAS_SCOPED_AUTHORITY -> case evidence set
 The authority-coverage record is deliberately incomplete, preserving UNKNOWN/fail-closed behavior for a no-match rather than manufacturing FALSE. The example explicitly states that the hierarchy and `HAS_SCOPED_AUTHORITY` relation are represented evidence/context only; canonical current authority remains an exact actor/action/target/scope/time determination by the StegCore authority-basis resolver.
 
 No live graph projection is claimed. The parent remaining predicate remains authentic SDK-to-live StegOS/InTr posture-bound governance execution evidence.
+
+
+## HGAI GRG example validation closeout — 2026-09-18
+
+The HGAI example source/test package merged through PR #260 as `58178b7af65263b4c9ccd81aaa215b659741a6b1` after exact-head validation at `cb42b7399802e3c1610aaf79d557f12a6b89a6dc`.
+
+Exact-head validation passed:
+
+```text
+Evaluator Manifest Source Validation: run 35370782309 PASS
+Manifest Builder Source Validation: run 35370782437 PASS
+Evaluator Contract Console Validation: run 35370782515 PASS
+SDK Structured Authority Basis Validation: run 35370782424 PASS
+Evaluator Governance Posture Manifest Validation: run 35370782316 PASS
+Publisher SDK Return Binding Validation: run 35370782458 PASS
+External Collaboration Authentic Runtime Proof Contract Validation: run 35370782467 PASS
+WorkSpace Active Probe Validation: run 35370782390 PASS
+Shared Docs Multiparty Freeze Validation: run 35370782339 PASS
+Shared Docs Provider Freeze Integration Validation: run 35370782385 PASS
+```
+
+The machine-readable fixture is therefore validated against the generic GRG parser/hash contract. This does not advance the parent runtime predicate: authentic SDK-to-live StegOS/InTr posture-bound governance execution evidence remains unproven.
