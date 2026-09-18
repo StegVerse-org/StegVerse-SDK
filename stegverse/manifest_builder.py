@@ -15,6 +15,10 @@ from typing import Any, Mapping
 
 from .ecosystem_diagnostic_runtime import REQUEST_EXTENSION, validate_diagnostic_request
 from .governance_navigation import INGRESS_PROFILE, canonical_sha256
+from .governance_reference_graph import (
+    EXTENSION_KEY as GOVERNANCE_REFERENCE_GRAPH_EXTENSION,
+    validate_governance_reference_graph,
+)
 from .manifest_contract import validate_ingress_manifest
 from .route_resolution import (
     CANONICAL_PRODUCTION_ROUTE_ID,
@@ -168,6 +172,7 @@ def build_manifest(
     publisher_package_profile: str = DEFAULT_PUBLISHER_PACKAGE_PROFILE,
     egress_surface: str = DEFAULT_FRAMEWORK_EGRESS_SURFACE,
     destination_profile: str | None = None,
+    governance_reference_graph: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     if not isinstance(source_framework, str) or not source_framework.strip():
         raise ValueError("source_framework is required")
@@ -177,6 +182,10 @@ def build_manifest(
     normalized_process = process.strip().lower()
     route = _route_declaration(normalized_process)
     extensions: dict[str, Any] = {"stegverse_route": route}
+    if governance_reference_graph is not None:
+        extensions[GOVERNANCE_REFERENCE_GRAPH_EXTENSION] = validate_governance_reference_graph(
+            governance_reference_graph
+        )
     candidate = None
     hashes: dict[str, Any] = {"payload_sha256": canonical_sha256(data)}
 
@@ -281,6 +290,7 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--publisher-package-profile", default=DEFAULT_PUBLISHER_PACKAGE_PROFILE)
     build.add_argument("--egress-surface", default=DEFAULT_FRAMEWORK_EGRESS_SURFACE)
     build.add_argument("--destination-profile")
+    build.add_argument("--governance-reference-graph", help="JSON file containing a hash-bound non-authorizing Governance Reference Graph")
     build.add_argument("--created-at")
     build.add_argument("--output", help="write manifest JSON to this path; default stdout")
 
@@ -307,6 +317,11 @@ def main(argv: list[str] | None = None) -> int:
                 publisher_package_profile=args.publisher_package_profile,
                 egress_surface=args.egress_surface,
                 destination_profile=args.destination_profile,
+                governance_reference_graph=(
+                    _load_json(args.governance_reference_graph)
+                    if args.governance_reference_graph
+                    else None
+                ),
                 created_at=args.created_at,
             )
             _write_json(manifest, args.output)
