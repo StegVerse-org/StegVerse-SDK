@@ -4,7 +4,7 @@ Goal Task ID: `SDK-GRG-CANONICAL-PROJECTION-CONSOLE-001`
 Parent Goal Task ID: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
 Repository: `StegVerse-org/StegVerse-SDK`
 COSV ID: `71000000101110`
-Status: `ACTIVE / HANDOFF_READY / SOURCE IMPLEMENTATION PENDING`
+Status: `ACTIVE / SOURCE VALIDATED MERGED / LIVE RUNTIME PROOF PENDING`
 
 ## Objective
 
@@ -267,3 +267,34 @@ Next acceptance sequence:
 5. trace the already-existing runtime path for exact GRG/manifest/request hash-bound
    StegOS/Interlock/InTr receipts;
 6. do not promote the parent runtime predicate without authentic retained evidence.
+
+
+## Validated merge closeout — 2026-09-18
+
+PR #263 merged with expected-head protection.
+
+```text
+exact validated head: ec0b97c34fe22b871e1cf647df5b06ce75cff823
+merge: c89de8a91d5f9872d42477e324eb03e7727a6f0b
+Manifest Builder Source Validation: run 35383377531 PASS
+Evaluator Contract Console Validation: run 35383377401 PASS
+Evaluator Manifest Source Validation: run 35383377483 PASS
+SDK Structured Authority Basis Validation: run 35383377471 PASS
+SDK Package Artifact Validation: run 35383377513 PASS
+WorkSpace Active Probe Validation: run 35383377426 PASS
+External Collaboration Authentic Runtime Proof Contract Validation: run 35383377561 PASS
+Publisher SDK Return Binding Validation: run 35383377700 PASS
+```
+
+Source/console projection is therefore validated and merged. No authentic
+StegOS/Interlock/InTr receipt lineage was produced by these checks, so
+`LIVE_RUNTIME_BOUND` remains unsatisfied.
+
+The exact first semantic-owner seam still missing for `REQUIRES_CONSTRAINT` is a
+callable StegCore policy-shape relation-projection surface. The SDK must continue
+reporting this as an owner boundary rather than implementing policy-shape semantics.
+
+Next runtime step: trace the existing SDK manifested-input runtime route and look
+only for authentic retained evidence binding the exact GRG hash, canonical manifest
+hash, projected authority-basis request hash, transition request hash, and
+Interlock/InTr result/receipt. Do not create a new runtime or authority plane.

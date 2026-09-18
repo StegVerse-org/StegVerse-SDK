@@ -497,3 +497,29 @@ Shared Docs Provider Freeze Integration Validation: run 35370782385 PASS
 ```
 
 The machine-readable fixture is therefore validated against the generic GRG parser/hash contract. This does not advance the parent runtime predicate: authentic SDK-to-live StegOS/InTr posture-bound governance execution evidence remains unproven.
+
+
+## Recognized GRG semantic projection merge — 2026-09-18
+
+Child workstream `SDK-GRG-CANONICAL-PROJECTION-CONSOLE-001` completed its
+source/console implementation and merged through SDK PR #263.
+
+```text
+validated head: ec0b97c34fe22b871e1cf647df5b06ce75cff823
+merge: c89de8a91d5f9872d42477e324eb03e7727a6f0b
+Manifest Builder Source Validation: 35383377531 PASS
+Evaluator Contract Console Validation: 35383377401 PASS
+Evaluator Manifest Source Validation: 35383377483 PASS
+SDK Structured Authority Basis Validation: 35383377471 PASS
+SDK Package Artifact Validation: 35383377513 PASS
+```
+
+The public console can now inspect recognized GRG projection. `HAS_SCOPED_AUTHORITY`
+projects only to the canonical StegCore authority-basis request/resolver contract.
+`REQUIRES_CONSTRAINT` identifies the existing StegCore policy-shape owner without
+duplicating policy semantics. Unknown relations remain preserved/hash-bound and
+non-authorizing.
+
+This advances the parent source contract but does not satisfy the parent remaining
+predicate. Authentic SDK-to-live StegOS/InTr posture-bound governance execution
+evidence is still required.
