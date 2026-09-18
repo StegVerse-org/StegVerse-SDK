@@ -5,6 +5,7 @@ on:
     paths:
       - 'stegverse/evaluator_contract.py'
       - 'stegverse/evaluator_console.py'
+      - 'stegverse/governance_reference_graph.py'
       - 'stegverse/test_procedure.py'
       - 'stegverse/production_release_set.py'
       - 'stegverse/versioned_sovereign_runtime.py'
@@ -13,6 +14,7 @@ on:
       - 'pyproject.toml'
       - 'README.md'
       - 'tests/test_evaluator_contract_console.py'
+      - 'tests/test_governance_reference_graph.py'
       - 'tests/test_production_release_set.py'
       - '.github/workflows/evaluator-contract-console-validation.yml'
       - 'validation/EVALUATOR_CONTRACT_CONSOLE_VALIDATION_TRIGGER_2026-08-16.md'
@@ -21,6 +23,7 @@ on:
     paths:
       - 'stegverse/evaluator_contract.py'
       - 'stegverse/evaluator_console.py'
+      - 'stegverse/governance_reference_graph.py'
       - 'stegverse/test_procedure.py'
       - 'stegverse/production_release_set.py'
       - 'stegverse/versioned_sovereign_runtime.py'
@@ -29,6 +32,7 @@ on:
       - 'pyproject.toml'
       - 'README.md'
       - 'tests/test_evaluator_contract_console.py'
+      - 'tests/test_governance_reference_graph.py'
       - 'tests/test_production_release_set.py'
       - '.github/workflows/evaluator-contract-console-validation.yml'
       - 'validation/EVALUATOR_CONTRACT_CONSOLE_VALIDATION_TRIGGER_2026-08-16.md'
@@ -63,6 +67,10 @@ jobs:
           stegverse contract > /tmp/contract-summary.json
           stegverse contract --schema > /tmp/contract-schema.json
           stegverse contract --example > /tmp/contract-example.json
+          stegverse governance-graph > /tmp/governance-graph-summary.json
+          stegverse governance-graph --schema > /tmp/governance-graph-schema.json
+          stegverse governance-graph --example > /tmp/governance-graph-example.json
+          stegverse governance-graph --all > /tmp/governance-graph-all.json
           stegverse test-procedure --offline > /tmp/test-procedure.json
           stegverse production-releases installed > /tmp/installed-release-set.json
           python -m stegverse contract --all > /tmp/contract-all.json
@@ -74,6 +82,10 @@ jobs:
           procedure = json.load(open('/tmp/test-procedure.json'))
           release_set = json.load(open('/tmp/installed-release-set.json'))
           all_payload = json.load(open('/tmp/contract-all.json'))
+          graph_summary = json.load(open('/tmp/governance-graph-summary.json'))
+          graph_schema = json.load(open('/tmp/governance-graph-schema.json'))
+          graph_example = json.load(open('/tmp/governance-graph-example.json'))
+          graph_all = json.load(open('/tmp/governance-graph-all.json'))
           assert summary['contract'] == 'stegverse.public-inspection-request.v1'
           assert schema['title'] == 'StegVerse Public Inspection Request'
           assert example['authority_claim'] is False
@@ -81,5 +93,12 @@ jobs:
           assert procedure['replay_compares_original_and_current_release_sets'] is True
           assert release_set['schema'] == 'stegverse.production-release-set.v1'
           assert all_payload['summary']['submission'] == 'stegverse governance --select 0 --input <request.json>'
+          assert graph_summary['contract'] == 'stegverse.governance-reference-graph.v1'
+          assert graph_summary['authority_effect'] == 'NONE_REPRESENTATION_ONLY'
+          assert graph_summary['unknown_relations_grant_authority'] is False
+          assert graph_schema['title'] == 'StegVerse Governance Reference Graph'
+          assert graph_example['metadata']['example_projection'] == 'HITL'
+          assert graph_example['authority_boundary']['hierarchy_grants_authority'] is False
+          assert graph_all['summary']['sdk_resolves_governance'] is False
           print('EVALUATOR_CONTRACT_RELEASE_SET_VALIDATION_PASS')
           PY
