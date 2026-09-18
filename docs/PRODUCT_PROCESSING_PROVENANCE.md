@@ -39,3 +39,7 @@ LLM-adapter or another source product -> declared upstream provenance when carri
 The existing canonical runtime `result_binding_hash` remains the hash of the underlying runtime result before product-provenance projection. The enriched SDK return adds `sdk_return_binding_hash`, covering the result plus `product_processing` and `admittedcode_processing`.
 
 This envelope grants no execution, credential, transition, publication, or custody authority and creates no parallel evaluator.
+
+### Non-governance processor behavior
+
+The same envelope is applied to the currently installed `ecosystem_diagnostic` processor. Its own processing contribution is `PROCESSED`; AdmittedCode is explicitly `NOT_PROCESSED` with provenance basis `ROUTE_DID_NOT_TRAVERSE_ADMITTEDCODE`; Interlock/InTr, StegAgents/runtime, and Master Records remain `NOT_OBSERVED` unless their own authentic evidence exists. This demonstrates that product attribution follows the selected processor route rather than assuming every SDK submission traverses governance.
