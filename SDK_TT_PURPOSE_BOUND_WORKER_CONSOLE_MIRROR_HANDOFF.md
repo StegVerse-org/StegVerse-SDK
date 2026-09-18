@@ -89,3 +89,19 @@ authority_effect: NONE
 Source/local completion requires the console path, tests, README/console documentation, and this handoff to merge with exact-head validation.
 
 Do not claim the full StegVerse worker-lifecycle problem solved from this test. Authentic proof still requires the existing live StegOS/InTr/runtime path to materialize and execute a bounded worker under current authority, retain authentic receipts, retire/transform it, and preserve/reconstruct the resulting history.
+
+## Implementation checkpoint — 2026-09-18
+
+The local source path is implemented on branch `sdk-tt-purpose-bound-worker-console-001` with:
+
+```text
+stegverse/purpose_bound_worker.py
+tests/test_purpose_bound_worker_console.py
+inspection/examples/tt-purpose-worker.example.json
+stegverse worker-lifecycle --input ...
+.github/workflows/tt-purpose-bound-worker-console.yml
+```
+
+The initial arbitrary tracked purpose uses `text.integrity_summary`. The worker is deterministically specified from the transition cell/purpose/capability, the task is invoked only after `MATERIALIZED`, the result is hash-bound, `RETIRED` is the terminal lifecycle receipt, and the returned object is a records-only packet with no live worker state.
+
+This checkpoint remains unvalidated until exact-head console/unit CI passes and the implementation merges.
