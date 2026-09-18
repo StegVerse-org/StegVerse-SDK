@@ -120,7 +120,6 @@ def build_authority_bound_evaluator_governance_manifest(
         return_depth=return_depth,
         data_class=data_class,
         source_instance=source_instance,
-        governance_reference_graph=governance_reference_graph,
         created_at=created_at,
     )
     manifest["extensions"][AUTHORITY_BASIS_REQUEST_EXTENSION] = deepcopy(
