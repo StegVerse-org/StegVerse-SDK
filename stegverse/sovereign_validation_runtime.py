@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Callable, Mapping
 
 from .public_inspection import load_public_inspection_request, validate_public_inspection_request
+from .product_processing import build_product_processing
 from .route_resolution import (
     CANONICAL_PRODUCTION_ROUTE_ID,
     governance_state_hash,
@@ -275,7 +276,22 @@ def run_sovereign_validation(
     }
     if isinstance(execution_result, Mapping):
         output["execution_result"] = dict(execution_result)
+
+    # Preserve the pre-existing canonical runtime result binding. Product
+    # provenance is an SDK return projection over this already-observed result;
+    # it does not alter the underlying governance/runtime evidence identity.
     output["result_binding_hash"] = _canonical_sha256(output)
+    evaluation = observation.get("evaluation") if isinstance(observation, Mapping) else {}
+    if not isinstance(evaluation, Mapping):
+        evaluation = {}
+    product_processing, admittedcode_processing = build_product_processing(
+        normalized_request=normalized,
+        runtime_result=output,
+        evaluation=evaluation,
+    )
+    output["product_processing"] = product_processing
+    output["admittedcode_processing"] = admittedcode_processing
+    output["sdk_return_binding_hash"] = _canonical_sha256(output)
     return output
 
 
