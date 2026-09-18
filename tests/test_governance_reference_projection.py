@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+from contextlib import redirect_stdout
+from io import StringIO
 
 from stegverse.governance_reference_graph import build_governance_reference_graph, main as graph_main
 from stegverse.governance_reference_projection import project_governance_reference_graph
@@ -152,19 +154,21 @@ def test_incomplete_no_match_can_remain_unknown_fail_closed_through_owner_bindin
     # No authority relation means the SDK does not synthesize an authority conclusion.
 
 
-def test_public_console_projects_without_claiming_runtime(tmp_path, capsys):
+def test_public_console_projects_without_claiming_runtime(tmp_path):
     path=tmp_path/"graph.json"
     path.write_text(json.dumps(graph_fixture()), encoding="utf-8")
-    rc=graph_main([
-        "--project",str(path),
-        "--task-id","SDK-GRG-CANONICAL-PROJECTION-CONSOLE-001",
-        "--action","approve",
-        "--target","case:1",
-        "--scope","scope:s",
-        "--observed-at","2026-09-18T18:00:00Z",
-    ])
+    out=StringIO()
+    with redirect_stdout(out):
+        rc=graph_main([
+            "--project",str(path),
+            "--task-id","SDK-GRG-CANONICAL-PROJECTION-CONSOLE-001",
+            "--action","approve",
+            "--target","case:1",
+            "--scope","scope:s",
+            "--observed-at","2026-09-18T18:00:00Z",
+        ])
     assert rc == 0
-    payload=json.loads(capsys.readouterr().out)
+    payload=json.loads(out.getvalue())
     assert payload["schema"] == "stegverse.sdk.grg-semantic-projection.v1"
     assert payload["live_runtime_bound"] is False
     assert any(item["projection_state"] == "UNKNOWN_RELATION_PRESERVED" for item in payload["relations"])
