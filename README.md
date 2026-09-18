@@ -751,3 +751,35 @@ The example preserves AI supervision, human escalation, evidence provenance, quo
 Active child Goal Task `SDK-GRG-CANONICAL-PROJECTION-CONSOLE-001` extends the merged Governance Reference Graph representation contract into canonical recognized-relation projection without adding SDK governance semantics. Its canonical handoff is `SDK_GRG_CANONICAL_PROJECTION_CONSOLE_MIRROR_HANDOFF.md`.
 
 The workstream begins with `HAS_SCOPED_AUTHORITY` -> existing StegCore authority-basis resolution and `REQUIRES_CONSTRAINT` -> existing canonical policy-shape ownership, while unknown relations remain preserved/hash-bound/non-authorizing. Source or console validation must not be reported as live Interlock/InTr runtime proof.
+
+
+## GRG recognized-relation projection console
+
+The public GRG console now has an authority-neutral projection operation:
+
+```bash
+stegverse governance-graph --project graph.json \
+  --task-id SDK-GRG-CANONICAL-PROJECTION-CONSOLE-001 \
+  --action approve \
+  --target case:123 \
+  --scope irreversible_commitment \
+  --observed-at 2026-09-18T18:00:00Z
+```
+
+Recognized `HAS_SCOPED_AUTHORITY` relations are projected only into the existing
+`stegcore.authority-basis-request.v1` owner contract. The public SDK does not need
+StegCore installed to inspect that projection. When canonical StegCore is installed,
+`--evaluate-authority-if-available` delegates the projected request to
+`stegcore.authority_basis.resolve_authority_basis`; the SDK validates/binds the
+returned facts and still does not issue authority.
+
+Recognized `REQUIRES_CONSTRAINT` relations carrying a canonical
+`stegcore:policy-shape:...` reference are routed to the existing StegCore
+policy-shape ownership boundary. No public callable relation-projection seam exists
+there yet, so the SDK reports that exact unsatisfied seam instead of duplicating
+quorum, veto, time-lock, escalation, or other policy semantics.
+
+Unknown relations remain `UNKNOWN_RELATION_PRESERVED`, hash-bound, and
+non-authorizing. Source/console projection is never reported as
+`LIVE_RUNTIME_BOUND`; authentic StegOS/Interlock/InTr receipt lineage remains a
+separate runtime predicate.
