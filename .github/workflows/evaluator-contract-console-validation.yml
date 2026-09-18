@@ -15,6 +15,7 @@ on:
       - 'README.md'
       - 'tests/test_evaluator_contract_console.py'
       - 'tests/test_governance_reference_graph.py'
+      - 'validation/governance_reference_graph_console.py'
       - 'tests/test_production_release_set.py'
       - '.github/workflows/evaluator-contract-console-validation.yml'
       - 'validation/EVALUATOR_CONTRACT_CONSOLE_VALIDATION_TRIGGER_2026-08-16.md'
@@ -33,6 +34,7 @@ on:
       - 'README.md'
       - 'tests/test_evaluator_contract_console.py'
       - 'tests/test_governance_reference_graph.py'
+      - 'validation/governance_reference_graph_console.py'
       - 'tests/test_production_release_set.py'
       - '.github/workflows/evaluator-contract-console-validation.yml'
       - 'validation/EVALUATOR_CONTRACT_CONSOLE_VALIDATION_TRIGGER_2026-08-16.md'
@@ -71,6 +73,8 @@ jobs:
           stegverse governance-graph --schema > /tmp/governance-graph-schema.json
           stegverse governance-graph --example > /tmp/governance-graph-example.json
           stegverse governance-graph --all > /tmp/governance-graph-all.json
+          python -m stegverse governance-graph --all > /tmp/governance-graph-module-all.json
+          python validation/governance_reference_graph_console.py > /tmp/governance-graph-integration.json
           stegverse test-procedure --offline > /tmp/test-procedure.json
           stegverse production-releases installed > /tmp/installed-release-set.json
           python -m stegverse contract --all > /tmp/contract-all.json
@@ -86,6 +90,8 @@ jobs:
           graph_schema = json.load(open('/tmp/governance-graph-schema.json'))
           graph_example = json.load(open('/tmp/governance-graph-example.json'))
           graph_all = json.load(open('/tmp/governance-graph-all.json'))
+          graph_module_all = json.load(open('/tmp/governance-graph-module-all.json'))
+          graph_integration = json.load(open('/tmp/governance-graph-integration.json'))
           assert summary['contract'] == 'stegverse.public-inspection-request.v1'
           assert schema['title'] == 'StegVerse Public Inspection Request'
           assert example['authority_claim'] is False
@@ -100,5 +106,12 @@ jobs:
           assert graph_example['metadata']['example_projection'] == 'HITL'
           assert graph_example['authority_boundary']['hierarchy_grants_authority'] is False
           assert graph_all['summary']['sdk_resolves_governance'] is False
+          assert graph_module_all == graph_all
+          assert graph_integration['status'] == 'GOVERNANCE_REFERENCE_GRAPH_CONSOLE_PASS'
+          assert graph_integration['hierarchy_grants_authority'] is False
+          assert graph_integration['sdk_resolves_governance'] is False
+          assert graph_integration['actor_authority_current'] is None
+          assert graph_integration['delegation_current'] is None
+          assert graph_integration['external_manifest_grants_authority'] is False
           print('EVALUATOR_CONTRACT_RELEASE_SET_VALIDATION_PASS')
           PY
