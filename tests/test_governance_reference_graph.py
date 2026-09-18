@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
+from pathlib import Path
 
 import pytest
 
@@ -241,3 +243,16 @@ def test_graph_change_changes_canonical_manifest_binding():
         created_at="2026-09-18T05:00:00Z",
     )
     assert validate_ingress_manifest(first)["canonical_manifest_sha256"] != validate_ingress_manifest(second)["canonical_manifest_sha256"]
+
+
+def test_hgai_example_fixture_validates_and_remains_non_authorizing():
+    path = Path(__file__).resolve().parents[1] / "inspection" / "examples" / "hgai-governance-reference-graph.json"
+    graph = json.loads(path.read_text(encoding="utf-8"))
+    validated = validate_governance_reference_graph(graph)
+    assert validated["graph_sha256"] == governance_reference_graph_sha256(validated)
+    assert validated["metadata"]["projection"] == "HITL_EXAMPLE"
+    assert validated["coverage"][0]["complete"] is False
+    assert validated["authority_boundary"]["hierarchy_grants_authority"] is False
+    assert validated["authority_boundary"]["sdk_resolves_governance"] is False
+    assert any(item["relation"] == "REQUIRES_CONSTRAINT" for item in validated["relations"])
+    assert any(item["relation"] == "HAS_SCOPED_AUTHORITY" for item in validated["relations"])
