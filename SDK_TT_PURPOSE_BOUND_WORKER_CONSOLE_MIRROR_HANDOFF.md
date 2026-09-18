@@ -105,3 +105,22 @@ stegverse worker-lifecycle --input ...
 The initial arbitrary tracked purpose uses `text.integrity_summary`. The worker is deterministically specified from the transition cell/purpose/capability, the task is invoked only after `MATERIALIZED`, the result is hash-bound, `RETIRED` is the terminal lifecycle receipt, and the returned object is a records-only packet with no live worker state.
 
 This checkpoint remains unvalidated until exact-head console/unit CI passes and the implementation merges.
+
+
+## Exact-head local-console validation — 2026-09-18
+
+PR `#266` source head `802f9ce2c640f8b5b415645af9aed6a3b8d11c0c` passed dedicated workflow run `35384743742` / job `105728900561`.
+
+Validated execution steps:
+
+```text
+python -m unittest tests.test_purpose_bound_worker_console -v: PASS
+stegverse worker-lifecycle --input inspection/examples/tt-purpose-worker.example.json: PASS
+records_only == true: PASS
+worker_live_after_close == false: PASS
+runtime_binding_state == LOCAL_SEMANTIC_DEMONSTRATION_ONLY: PASS
+```
+
+Adjacent SDK validation at the same head also passed Evaluator Contract Console, Manifest Builder, Evaluator Manifest, Structured Authority Basis, External Framework Public Submission, SDK Package Artifact, WorkSpace Active Probe, Shared Docs Provider Freeze, Publisher SDK Return Binding, External Collaboration Runtime Contract, and Portable Package Source lanes.
+
+Evidence boundary remains unchanged: this is an authentic execution of the SDK local-console implementation, but not authentic resident StegOS/InTr worker materialization or a live AI-model inference run.
