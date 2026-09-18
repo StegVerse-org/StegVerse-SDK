@@ -1,7 +1,8 @@
 # SDK Product Processing Provenance Mirror Handoff
 
 Goal Task ID: `SDK-PRODUCT-PROCESSING-PROVENANCE-001`
-Parent coordination: `SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001`
+Parent Goal Task ID: `SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003`
+Adjacent runtime coordination: `SDK-EVALUATOR-GOVERNANCE-POSTURE-RUNTIME-PROOF-001`
 Repository: `StegVerse-org/StegVerse-SDK`
 Branch: `feat/sdk-product-processing-provenance-001`
 Status: `SOURCE_IMPLEMENTATION_IN_PROGRESS`
@@ -46,6 +47,7 @@ TV/TVC -> credential authority; not replaced by this envelope
 - expose `admittedcode_processing` as a typed projection of the AdmittedCode contribution;
 - preserve the existing canonical runtime `result_binding_hash` and add a separate SDK-return binding over the enriched result;
 - cover LLM-adapter-origin manifests through the existing ingress-manifest identity without claiming unverified adapter internals;
+- apply the same envelope to the currently installed non-governance `ecosystem_diagnostic` processor, explicitly marking AdmittedCode `NOT_PROCESSED` on a route that does not traverse it;
 - add regression tests for attribution, non-attribution, authority separation, and deterministic binding;
 - update README and repository handoff.
 
