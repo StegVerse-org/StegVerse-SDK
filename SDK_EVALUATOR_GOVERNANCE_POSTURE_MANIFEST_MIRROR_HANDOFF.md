@@ -523,3 +523,74 @@ non-authorizing.
 This advances the parent source contract but does not satisfy the parent remaining
 predicate. Authentic SDK-to-live StegOS/InTr posture-bound governance execution
 evidence is still required.
+
+
+## Live runtime execution-path reconciliation — 2026-09-18
+
+After the recognized-GRG projection merge, the remaining runtime predicate was traced
+against current canonical sources rather than inferred from CI.
+
+Observed existing path:
+
+```text
+SDK
+  stegverse/evaluator_governance_runtime.py
+  run_evaluator_governance_manifest(...)
+    -> external_manifest_to_public_request(...)
+    -> stegos.intr_security_posture_resolution.resolve_task_security_posture
+    -> resolve_manifest_posture(...)
+    -> run_sovereign_validation(exact transition request)
+    -> result.intr_security_posture_binding
+    -> posture_bound_execution = true
+
+StegOS
+  stegos/intr_security_posture_resolution.py
+  resolve_task_security_posture(...)
+    -> exact task_id
+    -> exact payload_sha256
+    -> exact transition_request_sha256
+    -> short-lived non-transferable posture instance
+    -> resolution_authority = INTERLOCK_INTR
+    -> credential_authority = TV/TVC
+```
+
+What is not currently present in the canonical resident dispatcher is a machine-owned
+consumer for this exact SDK governance-posture execution entry point. The existing
+`evaluator_intr` resident consumer owns the separate
+`SHWP-EVALUATOR-INTR-READ-RUNTIME-001` READ_REVIEW round-trip lane and must not be
+silently repurposed as the governance evaluator. The existing SV-DN-1 worker is also
+scenario-specific and calls the posture-free `run_external_manifest` production path.
+
+Current first unsatisfied execution predicate:
+
+```text
+SDK_EVALUATOR_POSTURE_RESIDENT_CONSUMER_BOUND_TO_EXISTING_DISPATCHER
+```
+
+Required semantics for the bounded consumer, without adding a runtime or authority plane:
+
+```text
+existing resident dispatcher
+-> exact registered consumer
+-> exact source/materialized SDK + StegOS roots
+-> exact manifested evaluator input
+-> run_evaluator_governance_manifest
+-> canonical StegOS Interlock/InTr resolver
+-> exact task/payload/transition hashes
+-> governed result
+-> retained resident receipt carrying:
+     manifest/graph hash
+     projected-input hash when GRG recognized projection is exercised
+     transition_request_sha256
+     posture instance id/hash
+     resolution_authority = INTERLOCK_INTR
+     posture_bound_execution = true
+     sdk_resolved_posture = false
+     custody/result locator
+```
+
+No connected Remote Desktop resident device was observable during this reconciliation.
+That fact is not converted into a second-device requirement; the canonical resident/callable
+task path remains the intended execution surface.
+
+No live execution is claimed by this investigation.
