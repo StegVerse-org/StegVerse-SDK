@@ -287,3 +287,28 @@ GitHub != StegVerse runtime authority
 ```
 
 The current README is the primary public quick-start document and should remain synchronized with this console reference.
+
+## TT purpose-bound worker lifecycle
+
+Run the local semantic lifecycle demonstration:
+
+```bash
+stegverse worker-lifecycle \
+  --input inspection/examples/tt-purpose-worker.example.json
+```
+
+The request starts from one TT-shaped transition cell containing a purpose, required capability, bounded lifetime, and payload. The current reference capability is `text.integrity_summary`, an arbitrary deterministic task chosen so the lifecycle can be reproduced without a hosted provider.
+
+The console returns only the durable evidence packet after the temporary worker is retired:
+
+```text
+single TT transition cell
+-> purpose-bound worker specification
+-> MATERIALIZED receipt
+-> INVOCATION_STARTED receipt
+-> TASK_COMPLETED receipt
+-> RETIRED receipt
+-> records-only packet
+```
+
+Expected boundaries include `records_only=true`, `worker_live_after_close=false`, `authority_effect=NONE`, and `runtime_binding_state=LOCAL_SEMANTIC_DEMONSTRATION_ONLY`. This is source/local semantics, not proof that StegOS/InTr materialized a live worker.
