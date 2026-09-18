@@ -744,3 +744,10 @@ After authentic completion, the result/custody/replay/reconstruction packet must
 A concrete HGAI-facing HITL mapping is retained at `docs/HGAI_GOVERNANCE_REFERENCE_GRAPH_EXAMPLE.md`, with a machine-readable fixture at `inspection/examples/hgai-governance-reference-graph.json`.
 
 The example preserves AI supervision, human escalation, evidence provenance, quorum references, scoped authority evidence, time/scope applicability, and explicit completeness while keeping the GRG non-authorizing. It does **not** claim that hierarchy grants authority or that arbitrary GRG relations have already been projected through live StegCore/Interlock execution.
+
+
+## GRG canonical semantic projection workstream
+
+Active child Goal Task `SDK-GRG-CANONICAL-PROJECTION-CONSOLE-001` extends the merged Governance Reference Graph representation contract into canonical recognized-relation projection without adding SDK governance semantics. Its canonical handoff is `SDK_GRG_CANONICAL_PROJECTION_CONSOLE_MIRROR_HANDOFF.md`.
+
+The workstream begins with `HAS_SCOPED_AUTHORITY` -> existing StegCore authority-basis resolution and `REQUIRES_CONSTRAINT` -> existing canonical policy-shape ownership, while unknown relations remain preserved/hash-bound/non-authorizing. Source or console validation must not be reported as live Interlock/InTr runtime proof.
