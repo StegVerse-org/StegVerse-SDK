@@ -219,3 +219,51 @@ If live evidence is not available, do not claim runtime completion. Preserve the
 ## Initial next action
 
 Read current GRG implementation, authority-basis bridge, StegCore authority-basis resolver, existing canonical policy-shape surfaces, SDK Interlock/InTr posture bridge, and evaluator console. Identify the smallest existing-owner projection seam before changing code.
+
+
+## Source implementation checkpoint — 2026-09-18
+
+Implemented on branch `sdk-grg-canonical-projection-console-001`:
+
+```text
+stegverse/governance_reference_projection.py
+tests/test_governance_reference_projection.py
+stegverse governance-graph --project ...
+optional --evaluate-authority-if-available
+```
+
+Current source behavior:
+
+```text
+HAS_SCOPED_AUTHORITY
+  -> stegcore.authority-basis-request.v1 projection
+  -> canonical StegCore resolver only when actually supplied/installed
+  -> CANONICALLY_EVALUATED only after resolver binding
+
+REQUIRES_CONSTRAINT + stegcore:policy-shape:*
+  -> canonical owner identified as StegCore policy-shape
+  -> RECOGNIZED_PROJECTED
+  -> no SDK policy interpretation
+  -> first unsatisfied existing seam:
+     StegCore policy-shape relation projection has no callable public semantic-owner seam
+
+unknown/domain-specific relation
+  -> UNKNOWN_RELATION_PRESERVED
+  -> no authority effect
+
+all source/console paths
+  -> NOT_LIVE_RUNTIME_BOUND
+```
+
+The branch also extends existing manifest-builder and evaluator-console CI lanes to
+execute the new projection tests. No live StegOS/Interlock/InTr receipt is claimed.
+
+Next acceptance sequence:
+
+1. open PR from the existing branch;
+2. require exact-head CI PASS;
+3. merge with expected-head protection;
+4. update parent canonical task record/handoff with merged evidence;
+5. trace the already-existing runtime path for exact GRG/manifest/request hash-bound
+   StegOS/Interlock/InTr receipts;
+6. do not promote the parent runtime predicate without authentic retained evidence.

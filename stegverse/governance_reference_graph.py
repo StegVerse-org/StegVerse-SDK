@@ -505,6 +505,7 @@ def governance_reference_graph_summary() -> dict[str, Any]:
         "sdk_resolves_governance": False,
         "console_schema_command": "stegverse governance-graph --schema",
         "console_example_command": "stegverse governance-graph --example",
+        "console_projection_command": "stegverse governance-graph --project graph.json --action ACTION --target TARGET --scope SCOPE --observed-at RFC3339",
     }
 
 
@@ -517,8 +518,41 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument("--schema", action="store_true", help="print the graph JSON Schema")
     mode.add_argument("--example", action="store_true", help="print a ready-to-edit HITL-shaped example")
     mode.add_argument("--all", action="store_true", help="print summary, schema, and example together")
+    mode.add_argument("--project", metavar="PATH", help="project recognized relations from a GRG JSON file")
+    parser.add_argument("--task-id", default="SDK-GRG-CANONICAL-PROJECTION-CONSOLE-001")
+    parser.add_argument("--action")
+    parser.add_argument("--target")
+    parser.add_argument("--scope")
+    parser.add_argument("--observed-at")
+    parser.add_argument(
+        "--evaluate-authority-if-available",
+        action="store_true",
+        help="use installed canonical StegCore authority resolver when available",
+    )
     args = parser.parse_args(argv)
-    if args.schema:
+    if args.project:
+        if not all((args.action, args.target, args.scope, args.observed_at)):
+            parser.error("--project requires --action, --target, --scope, and --observed-at")
+        from pathlib import Path
+        from .governance_reference_projection import project_governance_reference_graph
+
+        graph = json.loads(Path(args.project).read_text(encoding="utf-8"))
+        resolver = None
+        if args.evaluate_authority_if_available:
+            try:
+                from stegcore.authority_basis import resolve_authority_basis as resolver
+            except ImportError as exc:
+                parser.error(
+                    "--evaluate-authority-if-available requires the canonical StegCore package"
+                )
+        payload = project_governance_reference_graph(
+            graph,
+            task_id=args.task_id,
+            candidate={"action": args.action, "target": args.target, "scope": args.scope},
+            observed_at=args.observed_at,
+            authority_resolver=resolver,
+        )
+    elif args.schema:
         payload: Any = governance_reference_graph_schema()
     elif args.example:
         payload = governance_reference_graph_example()
