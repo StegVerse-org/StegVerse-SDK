@@ -356,5 +356,45 @@ manifest, the graph and manifest hashes are bound, hierarchy/composition/unknown
 relations grant no authority, and the graph does not silently populate
 `actor_authority_current` or `delegation_current`.
 
+Console/public inspection surfaces are now explicit:
+
+```text
+stegverse governance-graph
+stegverse governance-graph --schema
+stegverse governance-graph --example
+stegverse governance-graph --all
+python -m stegverse governance-graph --all
+```
+
+The console example is deliberately HITL-shaped for readability but marks HITL as an example projection rather than the canonical schema. The generic contract remains applicable to human hierarchy, agent supervision, provenance, constraint references, scoped authority evidence, and domain-specific relationships.
+
+Repository-native validation on branch head `b85ce413d58fc9eafcc5794659932d62f5a1820c` passed:
+
+```text
+Manifest Builder Source Validation: run 35340670238 PASS
+  tests/test_governance_reference_graph.py: 7 passed
+  validation/governance_reference_graph_console.py: GOVERNANCE_REFERENCE_GRAPH_CONSOLE_PASS
+  actor_authority_current: null
+  delegation_current: null
+  hierarchy_grants_authority: false
+  sdk_resolves_governance: false
+  external_manifest_grants_authority: false
+
+Evaluator Manifest Source Validation: run 35340670250 PASS
+Evaluator Contract Console Validation: run 35340670256 PASS
+  stegverse governance-graph: PASS
+  stegverse governance-graph --schema: PASS
+  stegverse governance-graph --example: PASS
+  stegverse governance-graph --all: PASS
+  python -m stegverse governance-graph --all: PASS
+  console/release-set suite: 12 passed
+
+SDK Structured Authority Basis Validation: run 35340670243 PASS
+External Framework Public Submission Validation: run 35340670304 PASS
+SDK Package Artifact Validation: run 35340670345 PASS
+```
+
+The console integration fixture preserved AI supervision, human escalation, evidence provenance, a canonical quorum constraint reference, incomplete authority coverage, and an unknown external-framework relationship while leaving current authority/delegation unresolved. This proves the graph is represented and hash-bound without silently becoming an SDK authority resolver.
+
 This GRG work is source-contract work only. It does not satisfy the parent task's
 remaining authentic SDK-to-live StegOS/InTr execution predicate.
