@@ -5,6 +5,13 @@ on:
     branches: [main]
     paths:
       - stegverse/manifest_builder.py
+      - stegverse/governance_reference_graph.py
+      - stegverse/evaluator_manifest_builder.py
+      - stegverse/__init__.py
+      - tests/test_governance_reference_graph.py
+      - validation/governance_reference_graph_console.py
+      - docs/GOVERNANCE_REFERENCE_GRAPH.md
+      - SDK_EVALUATOR_GOVERNANCE_POSTURE_MANIFEST_MIRROR_HANDOFF.md
       - stegverse/external_framework_runner.py
       - stegverse/manifest_contract.py
       - stegverse/state_transition_evidence.py
@@ -35,6 +42,13 @@ on:
     branches: [main]
     paths:
       - stegverse/manifest_builder.py
+      - stegverse/governance_reference_graph.py
+      - stegverse/evaluator_manifest_builder.py
+      - stegverse/__init__.py
+      - tests/test_governance_reference_graph.py
+      - validation/governance_reference_graph_console.py
+      - docs/GOVERNANCE_REFERENCE_GRAPH.md
+      - SDK_EVALUATOR_GOVERNANCE_POSTURE_MANIFEST_MIRROR_HANDOFF.md
       - stegverse/external_framework_runner.py
       - stegverse/manifest_contract.py
       - stegverse/state_transition_evidence.py
@@ -85,7 +99,10 @@ jobs:
         run: |
           set -eu
           cd /tmp/source
+          python -m pip install -q pytest
           python -m unittest tests.test_manifest_builder
+          python -m pytest -q tests/test_governance_reference_graph.py
+          PYTHONPATH=. python validation/governance_reference_graph_console.py
           python -m unittest tests.test_state_transition_evidence
           python -m unittest tests.test_external_interlock_ingress_binding
           python -m unittest tests.test_workspace_resource_consumer
@@ -97,6 +114,8 @@ jobs:
           python -m unittest tests.test_cli_preformatted_manifest
           python -m py_compile \
             stegverse/manifest_builder.py \
+            stegverse/governance_reference_graph.py \
+            stegverse/evaluator_manifest_builder.py \
             stegverse/external_framework_runner.py \
             stegverse/manifest_contract.py \
             stegverse/state_transition_evidence.py \

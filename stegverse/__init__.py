@@ -206,6 +206,17 @@ from .site_sdk_processing_handoff import (
     validate_site_sdk_processing_handoff,
 )
 
+
+# --- Generic governance reference graph ---
+from .governance_reference_graph import (
+    GRAPH_SCHEMA as GOVERNANCE_REFERENCE_GRAPH_SCHEMA,
+    RELATION_PROFILE as GOVERNANCE_RELATION_PROFILE,
+    GovernanceReferenceGraphError,
+    build_governance_reference_graph,
+    governance_reference_graph_sha256,
+    validate_governance_reference_graph,
+)
+
 # --- Receipts ---
 from .receipts import verify_receipt
 
@@ -308,6 +319,12 @@ __all__ = [
     "SITE_SDK_PROCESSING_HANDOFF_SCHEMA",
     "SDK_HANDOFF_PROCESSING_RESULT_SCHEMA",
     "SITE_SDK_PROCESSING_NEXT_TRANSITION",
+    "GOVERNANCE_REFERENCE_GRAPH_SCHEMA",
+    "GOVERNANCE_RELATION_PROFILE",
+    "GovernanceReferenceGraphError",
+    "build_governance_reference_graph",
+    "governance_reference_graph_sha256",
+    "validate_governance_reference_graph",
     "SiteSdkProcessingHandoffError",
     "validate_site_sdk_processing_handoff",
     "execute_site_sdk_processing_handoff",

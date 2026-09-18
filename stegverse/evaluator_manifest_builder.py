@@ -34,6 +34,7 @@ def build_evaluator_governance_manifest(
     governance_request: Mapping[str, Any],
     evaluation_declaration: Mapping[str, Any] | None = None,
     security_posture_request: Mapping[str, Any] | None = None,
+    governance_reference_graph: Mapping[str, Any] | None = None,
     return_depth: str = "result+evidence",
     data_class: str | None = None,
     source_instance: str | None = None,
@@ -54,6 +55,7 @@ def build_evaluator_governance_manifest(
         return_depth=return_depth,
         data_class=data_class,
         source_instance=source_instance,
+        governance_reference_graph=governance_reference_graph,
         created_at=created_at,
     )
 
@@ -88,6 +90,7 @@ def build_authority_bound_evaluator_governance_manifest(
     authority_observed_at: str,
     evaluation_declaration: Mapping[str, Any] | None = None,
     security_posture_request: Mapping[str, Any] | None = None,
+    governance_reference_graph: Mapping[str, Any] | None = None,
     return_depth: str = "result+evidence",
     data_class: str | None = None,
     source_instance: str | None = None,
@@ -113,6 +116,7 @@ def build_authority_bound_evaluator_governance_manifest(
         governance_request=derived_request,
         evaluation_declaration=evaluation_declaration,
         security_posture_request=security_posture_request,
+        governance_reference_graph=governance_reference_graph,
         return_depth=return_depth,
         data_class=data_class,
         source_instance=source_instance,
