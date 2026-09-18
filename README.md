@@ -783,3 +783,15 @@ Unknown relations remain `UNKNOWN_RELATION_PRESERVED`, hash-bound, and
 non-authorizing. Source/console projection is never reported as
 `LIVE_RUNTIME_BOUND`; authentic StegOS/Interlock/InTr receipt lineage remains a
 separate runtime predicate.
+
+## TT purpose-bound worker local console
+
+The SDK exposes a source/local semantic demonstration of a purpose-bound worker derived from one declared TT transition cell:
+
+```bash
+stegverse worker-lifecycle --input inspection/examples/tt-purpose-worker.example.json
+```
+
+The initial built-in arbitrary task uses capability `text.integrity_summary` to compute a SHA-256 digest, UTF-8 byte count, and word count for a supplied text payload. The console records ordered `MATERIALIZED -> INVOCATION_STARTED -> TASK_COMPLETED -> RETIRED` lifecycle receipts and then returns a records-only packet with `worker_live_after_close=false`.
+
+This demonstrates construction, invocation ordering, retirement, and records-only decomposition. It does **not** claim live StegOS/InTr worker materialization, protected authority issuance, or resident runtime execution. Those remain separate authentic-runtime predicates.
