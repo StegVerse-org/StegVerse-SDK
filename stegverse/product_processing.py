@@ -270,3 +270,119 @@ def build_product_processing(
     admitted_projection["generic_contribution_ref"] = admitted["contribution_id"]
     admitted_projection["projection_sha256"] = canonical_sha256(admitted_projection)
     return envelope, admitted_projection
+
+def build_processor_product_processing(
+    *,
+    canonical_manifest: Mapping[str, Any],
+    processor_product_id: str,
+    processor_product_role: str,
+    processor_result: Mapping[str, Any],
+    processor_authority_effect: str,
+    processor_evidence_refs: list[str] | None = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Compose product provenance for a non-governance SDK processor result.
+
+    This is the generic sibling of build_product_processing. It records the
+    selected processor as processed, keeps AdmittedCode explicitly NOT_PROCESSED
+    when the route did not traverse the admission product, and refuses to infer
+    downstream transition/execution/custody products from a processor result.
+    """
+    identity = {
+        "source_framework": canonical_manifest.get("source_framework"),
+        "source_output_id": canonical_manifest.get("source_output_id"),
+        "canonical_manifest_sha256": canonical_manifest.get("canonical_manifest_sha256"),
+    }
+    normalized_request = {"input": {"ingress_manifest_identity": identity}}
+    contributions: list[dict[str, Any]] = []
+    source = _source_product_contribution(normalized_request)
+    if source is not None:
+        contributions.append(source)
+
+    processing = canonical_manifest.get("processing")
+    processing = processing if isinstance(processing, Mapping) else {}
+    sdk = _contribution(
+        contribution_id="sdk:return-composition",
+        product_id="StegVerse-SDK",
+        product_role="manifestation_route_binding_and_result_composition",
+        processing_status="PROCESSED",
+        processing_scope=["manifest validation", "processor selection", "SDK return composition"],
+        input_bindings={
+            "canonical_manifest_sha256": canonical_manifest.get("canonical_manifest_sha256"),
+            "processing_capability": processing.get("capability"),
+        },
+        output_bindings={"processor_result_sha256": canonical_sha256(processor_result)},
+        authority_effect="NONE",
+    )
+    contributions.append(sdk)
+
+    processor = _contribution(
+        contribution_id=f"processor:{processor_product_id.lower().replace(' ', '-').replace('/', '-')}",
+        product_id=processor_product_id,
+        product_role=processor_product_role,
+        processing_status="PROCESSED",
+        processing_scope=["selected SDK processor execution"],
+        input_bindings={
+            "canonical_manifest_sha256": canonical_manifest.get("canonical_manifest_sha256"),
+            "route_id": processing.get("route_id"),
+        },
+        output_bindings={"processor_result_sha256": canonical_sha256(processor_result)},
+        evidence_refs=list(processor_evidence_refs or []),
+        authority_effect=processor_authority_effect,
+    )
+    contributions.append(processor)
+
+    admitted = _contribution(
+        contribution_id="admittedcode:canonical-admission",
+        product_id="AdmittedCode",
+        product_role="admission_and_evidence",
+        processing_status="NOT_PROCESSED",
+        processing_scope=[],
+        input_bindings={},
+        output_bindings={},
+        evidence_refs=[],
+        authority_effect="NONE",
+        provenance_basis="ROUTE_DID_NOT_TRAVERSE_ADMITTEDCODE",
+        details={
+            "admission_is_execution": False,
+            "canonical_runtime_identity": "stegverse:steggate:canonical:three-layer:v1",
+            "canonical_evaluator": "stegcore.three_layer.evaluate_three_layer",
+        },
+    )
+    contributions.append(admitted)
+
+    for product_id, contribution_id, role, basis in (
+        ("Interlock/InTr", "intr:governed-transition", "governed_transition_authority",
+         "EXPLICIT_ABSENCE_OF_AUTHENTIC_INTR_EVIDENCE"),
+        ("StegAgents/runtime", "stegagents:bounded-runtime", "purpose_bounded_execution",
+         "EXPLICIT_ABSENCE_OF_AUTHENTIC_WORKER_EVIDENCE"),
+        ("Master Records", "master-records:custody", "custody_and_reconstruction_evidence",
+         "EXPLICIT_ABSENCE_OF_CUSTODY_EVIDENCE"),
+    ):
+        contributions.append(_contribution(
+            contribution_id=contribution_id,
+            product_id=product_id,
+            product_role=role,
+            processing_status="NOT_OBSERVED",
+            processing_scope=[],
+            input_bindings={},
+            output_bindings={},
+            evidence_refs=[],
+            authority_effect="NONE",
+            provenance_basis=basis,
+        ))
+
+    envelope: dict[str, Any] = {
+        "schema": PRODUCT_PROCESSING_SCHEMA,
+        "composition_authority_effect": "NONE",
+        "product_attribution_rule": "ACTUAL_PROCESSING_EVIDENCE_ONLY",
+        "unobserved_processing_is_explicit": True,
+        "contributions": contributions,
+    }
+    envelope["product_processing_sha256"] = canonical_sha256(envelope)
+
+    admitted_projection = dict(admitted)
+    admitted_projection["schema"] = ADMITTEDCODE_PROCESSING_SCHEMA
+    admitted_projection["generic_product_processing_schema"] = PRODUCT_PROCESSING_SCHEMA
+    admitted_projection["generic_contribution_ref"] = admitted["contribution_id"]
+    admitted_projection["projection_sha256"] = canonical_sha256(admitted_projection)
+    return envelope, admitted_projection
