@@ -102,7 +102,7 @@ jobs:
           python -m pip install -q pytest
           python -m unittest tests.test_manifest_builder
           python -m pytest -q tests/test_governance_reference_graph.py
-          python validation/governance_reference_graph_console.py
+          PYTHONPATH=. python validation/governance_reference_graph_console.py
           python -m unittest tests.test_state_transition_evidence
           python -m unittest tests.test_external_interlock_ingress_binding
           python -m unittest tests.test_workspace_resource_consumer
