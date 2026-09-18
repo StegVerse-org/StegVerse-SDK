@@ -220,6 +220,8 @@ def evaluator_contract_summary() -> dict[str, Any]:
         "direct_runtime": "python -m stegverse.public_inspection_runtime run <request.json>",
         "schema_command": "stegverse contract --schema",
         "example_command": "stegverse contract --example",
+        "governance_reference_graph_command": "stegverse governance-graph --all",
+        "governance_reference_graph_is_authority": False,
         "capabilities": sorted(SUPPORTED_EVALUATION_CAPABILITIES),
         "evidence_classes": sorted(SUPPORTED_EVIDENCE_CLASSES),
         "authority_effect": "NONE",
