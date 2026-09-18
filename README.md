@@ -396,6 +396,17 @@ stegverse manifest build \
 
 The evaluator-safe manifest builders accept the same optional graph. Existing structured authority/delegation resolution remains separate: the SDK graph does not independently infer `actor_authority_current`, `delegation_current`, credential validity, or transition permission. Recognized graph semantics belong to canonical StegCore/StegGate projection; TV/TVC remains credential/scoped-authority issuance and verification authority, and Interlock/InTr remains governed transition authority.
 
+Console discovery:
+
+```bash
+stegverse governance-graph
+stegverse governance-graph --schema
+stegverse governance-graph --example
+stegverse governance-graph --all
+```
+
+The console example is intentionally HITL-shaped for readability, but HITL is only one projection of the generic contract. The console summary and example explicitly report that graph representation, hierarchy, composition, unknown relations, and SDK validation do not grant authority.
+
 Full contract and examples: `docs/GOVERNANCE_REFERENCE_GRAPH.md`.
 
 ## Evaluator-defined manifests, fixed testing route
