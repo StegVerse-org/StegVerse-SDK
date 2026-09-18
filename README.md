@@ -748,7 +748,7 @@ The example preserves AI supervision, human escalation, evidence provenance, quo
 
 ## GRG canonical semantic projection workstream
 
-Active child Goal Task `SDK-GRG-CANONICAL-PROJECTION-CONSOLE-001` extends the merged Governance Reference Graph representation contract into canonical recognized-relation projection without adding SDK governance semantics. Its canonical handoff is `SDK_GRG_CANONICAL_PROJECTION_CONSOLE_MIRROR_HANDOFF.md`.
+Child Goal Task `SDK-GRG-CANONICAL-PROJECTION-CONSOLE-001` has merged the recognized-relation source/console projection into SDK main without adding SDK governance semantics; live StegOS/Interlock/InTr receipt proof remains pending. Its canonical handoff is `SDK_GRG_CANONICAL_PROJECTION_CONSOLE_MIRROR_HANDOFF.md`.
 
 The workstream begins with `HAS_SCOPED_AUTHORITY` -> existing StegCore authority-basis resolution and `REQUIRES_CONSTRAINT` -> existing canonical policy-shape ownership, while unknown relations remain preserved/hash-bound/non-authorizing. Source or console validation must not be reported as live Interlock/InTr runtime proof.
 
