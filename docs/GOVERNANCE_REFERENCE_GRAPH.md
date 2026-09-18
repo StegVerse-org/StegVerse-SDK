@@ -242,6 +242,19 @@ stegverse manifest build \
 The evaluator-safe builders accept the same optional
 `governance_reference_graph` input.
 
+## Console discovery
+
+The installed SDK exposes the graph contract directly:
+
+```bash
+stegverse governance-graph
+stegverse governance-graph --schema
+stegverse governance-graph --example
+stegverse governance-graph --all
+```
+
+The example is HITL-shaped only to make the structure easy to inspect. Its metadata explicitly states that HITL is an example projection rather than the canonical schema, and the authority boundary remains non-authorizing.
+
 ## HITL is one projection
 
 A human-in-the-loop structure is represented without creating a HITL-specific

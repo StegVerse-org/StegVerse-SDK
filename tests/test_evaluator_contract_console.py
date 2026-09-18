@@ -6,6 +6,7 @@ import pytest
 
 from stegverse import evaluator_console
 from stegverse.evaluator_contract import evaluator_contract_example, evaluator_contract_schema
+from stegverse.governance_reference_graph import validate_governance_reference_graph
 
 
 def test_contract_schema_matches_public_request_version():
@@ -49,3 +50,26 @@ def test_console_contract_example(capsys):
     assert evaluator_console.main(["contract", "--example"]) == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["case_profile"] == "custom-declarative"
+
+
+def test_console_governance_graph_summary(capsys):
+    assert evaluator_console.main(["governance-graph"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["contract"] == "stegverse.governance-reference-graph.v1"
+    assert payload["authority_effect"] == "NONE_REPRESENTATION_ONLY"
+    assert payload["unknown_relations_grant_authority"] is False
+    assert payload["sdk_resolves_governance"] is False
+
+
+def test_console_governance_graph_schema_and_example(capsys):
+    assert evaluator_console.main(["governance-graph", "--schema"]) == 0
+    schema = json.loads(capsys.readouterr().out)
+    assert schema["title"] == "StegVerse Governance Reference Graph"
+
+    assert evaluator_console.main(["governance-graph", "--example"]) == 0
+    example = json.loads(capsys.readouterr().out)
+    jsonschema.Draft202012Validator(schema).validate(example)
+    validate_governance_reference_graph(example)
+    assert example["metadata"]["example_projection"] == "HITL"
+    assert example["metadata"]["example_projection_is_canonical_schema"] is False
+    assert example["authority_boundary"]["hierarchy_grants_authority"] is False

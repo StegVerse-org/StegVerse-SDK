@@ -9,7 +9,9 @@ Canonical governance meaning remains with downstream StegCore/StegGate and
 transition authority remains with Interlock/InTr.
 """
 
+import argparse
 from copy import deepcopy
+import json
 from typing import Any, Mapping
 
 from .governance_navigation import canonical_sha256
@@ -271,6 +273,267 @@ def build_governance_reference_graph(
     return validate_governance_reference_graph(graph)
 
 
+def governance_reference_graph_schema() -> dict[str, Any]:
+    """Return the public structural contract for a Governance Reference Graph."""
+    applicability = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "actions": {"type": "array", "items": {"type": "string"}},
+            "targets": {"type": "array", "items": {"type": "string"}},
+            "scopes": {"type": "array", "items": {"type": "string"}},
+            "status": {"type": "string"},
+            "valid_from": {"type": "string"},
+            "valid_until": {"type": "string"},
+            "condition_refs": {"type": "array", "items": {"type": "string"}},
+        },
+    }
+    selector = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "actions": {"type": "array", "items": {"type": "string"}},
+            "targets": {"type": "array", "items": {"type": "string"}},
+            "scopes": {"type": "array", "items": {"type": "string"}},
+        },
+    }
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://stegverse.org/schemas/governance-reference-graph.v1.json",
+        "title": "StegVerse Governance Reference Graph",
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "schema",
+            "graph_id",
+            "graph_version",
+            "relation_profile",
+            "graph_sha256",
+            "nodes",
+            "relations",
+            "coverage",
+            "source_refs",
+            "authority_boundary",
+        ],
+        "properties": {
+            "schema": {"const": GRAPH_SCHEMA},
+            "graph_id": {"type": "string", "minLength": 1},
+            "graph_version": {"type": "string", "minLength": 1},
+            "relation_profile": {"const": RELATION_PROFILE},
+            "graph_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "nodes": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["node_id", "class", "ref"],
+                    "properties": {
+                        "node_id": {"type": "string", "minLength": 1},
+                        "class": {"type": "string", "minLength": 1},
+                        "ref": {"type": "string", "minLength": 1},
+                        "attributes": {"type": "object"},
+                    },
+                },
+            },
+            "relations": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": [
+                        "relation_id",
+                        "subject",
+                        "relation",
+                        "object",
+                        "source_ref",
+                        "evidence_refs",
+                        "basis_refs",
+                    ],
+                    "properties": {
+                        "relation_id": {"type": "string", "minLength": 1},
+                        "subject": {"type": "string", "minLength": 1},
+                        "relation": {"type": "string", "minLength": 1},
+                        "object": {"type": "string", "minLength": 1},
+                        "applicability": applicability,
+                        "constraint_ref": {"type": "string", "minLength": 1},
+                        "source_ref": {"type": "string", "minLength": 1},
+                        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+                        "basis_refs": {"type": "array", "items": {"type": "string"}},
+                        "attributes": {"type": "object"},
+                    },
+                },
+            },
+            "coverage": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": [
+                        "coverage_id",
+                        "relation",
+                        "complete",
+                        "source_ref",
+                        "evidence_refs",
+                    ],
+                    "properties": {
+                        "coverage_id": {"type": "string", "minLength": 1},
+                        "relation": {"type": "string", "minLength": 1},
+                        "subject": {"type": "string", "minLength": 1},
+                        "object": {"type": "string", "minLength": 1},
+                        "selector": selector,
+                        "complete": {"type": "boolean"},
+                        "source_ref": {"type": "string", "minLength": 1},
+                        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+                    },
+                },
+            },
+            "source_refs": {"type": "array", "items": {"type": "string"}},
+            "metadata": {"type": "object"},
+            "authority_boundary": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": list(AUTHORITY_BOUNDARY),
+                "properties": {
+                    key: {"const": value}
+                    for key, value in AUTHORITY_BOUNDARY.items()
+                },
+            },
+        },
+    }
+
+
+def governance_reference_graph_example() -> dict[str, Any]:
+    """Return a human-governance-shaped example without specializing the schema."""
+    return build_governance_reference_graph(
+        graph_id="external-framework-governance-001",
+        nodes=[
+            {"node_id": "human:operator", "class": "human", "ref": "external:operator"},
+            {"node_id": "role:reviewer", "class": "role", "ref": "external:role:reviewer"},
+            {"node_id": "human:decision-authority", "class": "human", "ref": "external:decision-authority"},
+            {"node_id": "scope:irreversible", "class": "scope", "ref": "external:scope:irreversible"},
+        ],
+        relations=[
+            {
+                "relation_id": "r-member",
+                "subject": "human:operator",
+                "relation": "MEMBER_OF",
+                "object": "role:reviewer",
+                "source_ref": "external:org-graph:v1",
+                "evidence_refs": ["external:evidence:org-graph:v1"],
+                "basis_refs": [],
+            },
+            {
+                "relation_id": "r-escalates",
+                "subject": "human:operator",
+                "relation": "ESCALATES_TO",
+                "object": "human:decision-authority",
+                "applicability": {
+                    "actions": ["approve"],
+                    "targets": ["case:*"],
+                    "scopes": ["irreversible_commitment"],
+                    "condition_refs": ["condition:human-review-required"],
+                },
+                "constraint_ref": "stegcore:policy-shape:escalation",
+                "source_ref": "external:org-graph:v1",
+                "evidence_refs": ["external:evidence:org-graph:v1"],
+                "basis_refs": ["r-member"],
+            },
+            {
+                "relation_id": "r-authority",
+                "subject": "human:decision-authority",
+                "relation": "HAS_SCOPED_AUTHORITY",
+                "object": "scope:irreversible",
+                "applicability": {
+                    "actions": ["approve"],
+                    "targets": ["case:*"],
+                    "scopes": ["irreversible_commitment"],
+                    "status": "ACTIVE",
+                    "valid_from": "2026-09-01T00:00:00Z",
+                    "valid_until": "2026-12-31T23:59:59Z",
+                    "condition_refs": [],
+                },
+                "source_ref": "external:authority-basis:v1",
+                "evidence_refs": ["external:evidence:authority:1"],
+                "basis_refs": [],
+            },
+        ],
+        coverage=[
+            {
+                "coverage_id": "coverage-authority-decision-authority",
+                "relation": "HAS_SCOPED_AUTHORITY",
+                "subject": "human:decision-authority",
+                "selector": {
+                    "actions": ["approve"],
+                    "targets": ["case:*"],
+                    "scopes": ["irreversible_commitment"],
+                },
+                "complete": True,
+                "source_ref": "external:authority-basis:v1",
+                "evidence_refs": ["external:evidence:authority:1"],
+            }
+        ],
+        source_refs=["external:org-graph:v1", "external:authority-basis:v1"],
+        metadata={
+            "example_projection": "HITL",
+            "example_projection_is_canonical_schema": False,
+            "unknown_relations_grant_authority": False,
+        },
+    )
+
+
+def governance_reference_graph_summary() -> dict[str, Any]:
+    return {
+        "contract": GRAPH_SCHEMA,
+        "relation_profile": RELATION_PROFILE,
+        "manifest_extension": EXTENSION_KEY,
+        "purpose": "Represent typed governed relationships without making the SDK a governance engine.",
+        "supports": [
+            "HITL hierarchy",
+            "agent supervision",
+            "data provenance",
+            "quorum and policy-shape references",
+            "delegation",
+            "evidence authority",
+            "transition-authority evidence",
+            "scope and conditions",
+            "temporal validity",
+            "coverage/completeness",
+        ],
+        "authority_effect": "NONE_REPRESENTATION_ONLY",
+        "unknown_relations_grant_authority": False,
+        "sdk_resolves_governance": False,
+        "console_schema_command": "stegverse governance-graph --schema",
+        "console_example_command": "stegverse governance-graph --example",
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="stegverse governance-graph",
+        description="Inspect the generic non-authorizing Governance Reference Graph contract",
+    )
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--schema", action="store_true", help="print the graph JSON Schema")
+    mode.add_argument("--example", action="store_true", help="print a ready-to-edit HITL-shaped example")
+    mode.add_argument("--all", action="store_true", help="print summary, schema, and example together")
+    args = parser.parse_args(argv)
+    if args.schema:
+        payload: Any = governance_reference_graph_schema()
+    elif args.example:
+        payload = governance_reference_graph_example()
+    elif args.all:
+        payload = {
+            "summary": governance_reference_graph_summary(),
+            "schema": governance_reference_graph_schema(),
+            "example": governance_reference_graph_example(),
+        }
+    else:
+        payload = governance_reference_graph_summary()
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0
+
+
 __all__ = [
     "AUTHORITY_BOUNDARY",
     "EXTENSION_KEY",
@@ -280,4 +543,8 @@ __all__ = [
     "build_governance_reference_graph",
     "governance_reference_graph_sha256",
     "validate_governance_reference_graph",
+    "governance_reference_graph_schema",
+    "governance_reference_graph_example",
+    "governance_reference_graph_summary",
+    "main",
 ]

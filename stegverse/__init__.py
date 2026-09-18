@@ -217,6 +217,21 @@ from .governance_reference_graph import (
     validate_governance_reference_graph,
 )
 
+# --- Generic Governance Reference Graph ---
+from .governance_reference_graph import (
+    AUTHORITY_BOUNDARY as GOVERNANCE_REFERENCE_GRAPH_AUTHORITY_BOUNDARY,
+    EXTENSION_KEY as GOVERNANCE_REFERENCE_GRAPH_EXTENSION_KEY,
+    GRAPH_SCHEMA as GOVERNANCE_REFERENCE_GRAPH_SCHEMA,
+    RELATION_PROFILE as GOVERNANCE_REFERENCE_GRAPH_RELATION_PROFILE,
+    GovernanceReferenceGraphError,
+    build_governance_reference_graph,
+    governance_reference_graph_example,
+    governance_reference_graph_schema,
+    governance_reference_graph_sha256,
+    governance_reference_graph_summary,
+    validate_governance_reference_graph,
+)
+
 # --- Receipts ---
 from .receipts import verify_receipt
 
@@ -328,5 +343,16 @@ __all__ = [
     "SiteSdkProcessingHandoffError",
     "validate_site_sdk_processing_handoff",
     "execute_site_sdk_processing_handoff",
+    "GOVERNANCE_REFERENCE_GRAPH_AUTHORITY_BOUNDARY",
+    "GOVERNANCE_REFERENCE_GRAPH_EXTENSION_KEY",
+    "GOVERNANCE_REFERENCE_GRAPH_SCHEMA",
+    "GOVERNANCE_REFERENCE_GRAPH_RELATION_PROFILE",
+    "GovernanceReferenceGraphError",
+    "build_governance_reference_graph",
+    "governance_reference_graph_example",
+    "governance_reference_graph_schema",
+    "governance_reference_graph_sha256",
+    "governance_reference_graph_summary",
+    "validate_governance_reference_graph",
     "verify_receipt",
 ]
