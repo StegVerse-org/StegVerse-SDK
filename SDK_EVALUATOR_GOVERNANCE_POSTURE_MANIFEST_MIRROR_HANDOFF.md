@@ -273,3 +273,88 @@ Interlock/InTr -> governed transition authority
 ```
 
 This does not close the parent goal. The canonical remaining predicate is still authentic SDK-to-live StegOS/InTr posture-bound governance execution evidence. Public distribution of the private StegCore resolver is also not claimed by these source merges.
+
+
+## Governance Reference Graph reconciliation — 2026-09-18
+
+The structured-role investigation generalized beyond HITL. A human hierarchy is one
+instance of a broader requirement: a manifested input may need to carry a graph of
+governance-relevant references spanning humans, AI systems, services, devices,
+organizations, roles, datasets, sensors, credentials, constraints, provenance,
+supervision, escalation, delegation context, and quorum/policy-shape references.
+
+The SDK representation boundary is now defined as a generic **Governance Reference
+Graph (GRG)** rather than a human-specific hierarchy contract.
+
+Canonical SDK responsibilities:
+
+```text
+validate graph structure
+preserve typed nodes and relationships
+preserve applicability, evidence, basis and constraint references
+preserve scoped coverage/completeness
+hash-bind graph independently
+bind graph into canonical manifest
+preserve unknown/domain-specific relation types as non-authorizing evidence
+```
+
+Explicit non-responsibilities:
+
+```text
+hierarchy does not grant authority
+graph composition does not grant authority
+unknown relations do not grant authority
+SDK validation does not resolve governance
+SDK does not infer actor_authority_current or delegation_current from graph position
+SDK does not verify protected credentials
+SDK does not perform governed transitions
+```
+
+The smallest SDK integration surface is:
+
+```text
+stegverse/governance_reference_graph.py
+stegverse/manifest_builder.py
+stegverse/evaluator_manifest_builder.py
+stegverse/__init__.py
+docs/GOVERNANCE_REFERENCE_GRAPH.md
+tests/test_governance_reference_graph.py
+validation/governance_reference_graph_console.py
+```
+
+The graph is carried under `extensions.governance_reference_graph`. It has its
+own `graph_sha256` and is also covered by the canonical manifest hash. The
+Manifest Builder accepts it through Python and through
+`--governance-reference-graph <file.json>`. Evaluator-safe builders accept the
+same optional graph without mixing it into evaluator preregistration or directly
+into the canonical StegGate request.
+
+Coverage/completeness follows the existing structured-authority truth rule:
+absence from an incomplete relationship basis is not converted to FALSE. Scoped
+coverage records therefore carry an explicit `complete` boolean.
+
+This does not replace the merged StegCore authority-basis resolver. That resolver
+remains the canonical leaf authority/delegation currentness seam. Existing
+StegCore policy shapes remain the canonical structural semantics for quorum,
+guardian, veto, time-lock, and escalation. The GRG may reference those shapes but
+does not reimplement them.
+
+Authority boundaries remain:
+
+```text
+SDK -> graph representation, validation, transport and hash binding
+StegCore/StegGate -> recognized governance semantics and admissibility
+TV/TVC -> protected credential/scoped-authority issuance and verification
+Interlock/InTr -> governed transition authority
+```
+
+The included console validation uses a generic external-framework fixture with
+AI supervision, human escalation, evidence provenance, a quorum constraint
+reference, scoped incomplete authority coverage, and an unknown framework-native
+relationship. Required assertions are that all graph structure survives the
+manifest, the graph and manifest hashes are bound, hierarchy/composition/unknown
+relations grant no authority, and the graph does not silently populate
+`actor_authority_current` or `delegation_current`.
+
+This GRG work is source-contract work only. It does not satisfy the parent task's
+remaining authentic SDK-to-live StegOS/InTr execution predicate.
