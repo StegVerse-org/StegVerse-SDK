@@ -448,3 +448,30 @@ console/release-set test suite = 12 passed
 ```
 
 This closes the requested SDK documentation/internal-surface/console-expression work for the GRG source contract. It does not close the parent runtime predicate and does not claim that arbitrary graph relations are already projected by live StegCore/Interlock execution.
+
+
+## HGAI Muhammad-facing GRG example — 2026-09-18
+
+A final HGAI-facing example has been prepared against the merged generic GRG source contract.
+
+Repository surfaces:
+
+```text
+docs/HGAI_GOVERNANCE_REFERENCE_GRAPH_EXAMPLE.md
+inspection/examples/hgai-governance-reference-graph.json
+```
+
+The example maps a realistic HITL chain:
+
+```text
+AI analyst -> SUPERVISED_BY -> human reviewer
+human reviewer -> ESCALATES_TO -> supervising reviewer
+supervising reviewer -> ESCALATES_TO -> final decision authority
+AI analyst -> DERIVED_FROM -> case evidence set
+final decision authority -> REQUIRES_CONSTRAINT -> stegcore:policy-shape:quorum
+final decision authority -> HAS_SCOPED_AUTHORITY -> case evidence set
+```
+
+The authority-coverage record is deliberately incomplete, preserving UNKNOWN/fail-closed behavior for a no-match rather than manufacturing FALSE. The example explicitly states that the hierarchy and `HAS_SCOPED_AUTHORITY` relation are represented evidence/context only; canonical current authority remains an exact actor/action/target/scope/time determination by the StegCore authority-basis resolver.
+
+No live graph projection is claimed. The parent remaining predicate remains authentic SDK-to-live StegOS/InTr posture-bound governance execution evidence.
