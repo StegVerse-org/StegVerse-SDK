@@ -1,0 +1,33 @@
+{
+  "schema": "stegverse.sdk.tt-atomic-task-worker-binding.v1",
+  "task": {
+    "task_id": "tt-atomic-task-worker-binding-001",
+    "cosv_task_vector": "20010000110000",
+    "state": "HANDOFF_READY",
+    "claim_id": null,
+    "worker_instance_id": null,
+    "worker_live": false,
+    "purpose": "Analyze a supplied text payload for a tracked integrity summary.",
+    "required_capability": "text.integrity_summary",
+    "max_lifetime_seconds": 30,
+    "payload": {
+      "text": "StegVerse tracks this arbitrary local worker task."
+    }
+  },
+  "worker_manifest": {
+    "schema": "stegverse.sdk.worker-manifest.v1",
+    "manifest_id": "stegagents-purpose-bound-worker-manifest-v1",
+    "worker_id": "stegagents-governed-runtime-worker",
+    "capabilities": [
+      "text.integrity_summary"
+    ],
+    "execution_model": "TASK_BOUND_EPHEMERAL",
+    "self_authorization_allowed": false,
+    "task_redefinition_allowed": false,
+    "authority_scope": "TASK_BOUND_ONLY"
+  },
+  "activation": {
+    "claim_generation": 1,
+    "fencing_token": 1
+  }
+}
