@@ -1,0 +1,26 @@
+name: TT Atomic Task-Worker Binding Validation
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/atomic_task_worker_binding.py'
+      - 'stegverse/evaluator_console.py'
+      - 'tests/test_atomic_task_worker_binding.py'
+      - 'inspection/examples/tt-atomic-task-worker-binding.example.json'
+      - 'SDK_TT_ATOMIC_TASK_WORKER_BINDING_MIRROR_HANDOFF.md'
+      - 'README.md'
+      - '.github/workflows/tt-atomic-task-worker-binding.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m unittest tests.test_atomic_task_worker_binding -v
+      - run: stegverse task-worker-binding --input inspection/examples/tt-atomic-task-worker-binding.example.json > /tmp/atomic-binding.json
+      - run: python -c "import json; p=json.load(open('/tmp/atomic-binding.json')); assert p['records_only'] is True; assert p['worker_live_after_close'] is False; assert p['continued_task_bound_authority'] is False; assert p['constitutive_transition']['task_post_state']=='ACTIVE'; assert p['constitutive_transition']['worker_bound_task_id']==p['task_id']; print('TT_ATOMIC_TASK_WORKER_BINDING_PASS')"
