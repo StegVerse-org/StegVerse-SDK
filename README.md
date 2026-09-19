@@ -833,3 +833,5 @@ Canonical handoff: `SDK_TT_ATOMIC_TASK_WORKER_BINDING_MIRROR_HANDOFF.md`.
 
 
 Test 2 source status: **validated and merged** via SDK PR #271 at `79da01e219342e982406d257d1a417a4aeb05814`. Exact-head Test 2 validation run `35425851872` passed, all eight falsification cases fail closed, and the deterministic records packet hash for the canonical fixture is `b5bbb5476350805a55f365cd27fc0fa8145c75d4cb5b27338d5299d328ca5890`. This remains semantic/replay evidence only; authentic governed runtime seam validation is separate.
+
+<!-- TT suite validation trigger 2026-09-19; no semantic source change; do not merge -->
