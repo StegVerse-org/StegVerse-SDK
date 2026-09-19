@@ -833,3 +833,27 @@ Canonical handoff: `SDK_TT_ATOMIC_TASK_WORKER_BINDING_MIRROR_HANDOFF.md`.
 
 
 Test 2 source status: **validated and merged** via SDK PR #271 at `79da01e219342e982406d257d1a417a4aeb05814`. Exact-head Test 2 validation run `35425851872` passed, all eight falsification cases fail closed, and the deterministic records packet hash for the canonical fixture is `b5bbb5476350805a55f365cd27fc0fa8145c75d4cb5b27338d5299d328ca5890`. This remains semantic/replay evidence only; authentic governed runtime seam validation is separate.
+
+
+### Purpose-bound worker cost/lifetime matrix demo
+
+The SDK now includes a four-case local semantic demonstration that makes the cost-to-lifetime relationship explicit:
+
+```text
+Task 1: 1 worker, 1 compute unit  -> 15 s derived maximum lifetime
+Task 2: 1 worker, 3 compute units -> 30 s derived maximum lifetime
+Task 3: 1 worker, 9 compute units -> 60 s derived maximum lifetime
+Task 4: 3 simultaneous workers, 9 aggregate compute units / 3 each
+        -> 30 s derived maximum per worker and 30 s group wall-clock budget
+```
+
+Task 2 is the median single-worker reference. Task 4 demonstrates that a larger aggregate task can be partitioned across three simultaneous purpose-bound workers without multiplying each worker's authority window: each worker receives the same 30-second median cost/lifetime budget, has a distinct worker identity, overlaps the other two live intervals, retires independently, and contributes only a records-only packet to the final aggregate.
+
+Run the demonstration with:
+
+```bash
+python -m stegverse.purpose_bound_worker_cost_demo \
+  --input inspection/examples/tt-purpose-worker-cost-demo.example.json
+```
+
+The stated lifetimes are maximum derived budgets, not minimum residence times. Purpose completion still retires a worker early. This remains local SDK semantic evidence and does not itself claim authentic WorkerCoordinator, TV/TVC, Interlock/InTr, resident-runtime, or Master Records execution.
