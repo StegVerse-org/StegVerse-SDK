@@ -1,0 +1,70 @@
+{
+  "schema": "stegverse.sdk.tt-purpose-bound-worker-cost-demo.v1",
+  "payload_text": "StegVerse demonstrates cost-derived bounded worker lifecycles.",
+  "individual_tasks": [
+    {
+      "demo_task_id": "PBW-DEMO-TASK-1-LOW",
+      "worker_count": 1,
+      "cost_class": "LOW",
+      "expected_compute_units": 1,
+      "time_budget_seconds": {
+        "expected_task_execution": 3,
+        "known_delay": 2,
+        "inferred_unknown_delay_reserve": 3,
+        "records_decomposition": 4,
+        "safety_reserve": 3
+      },
+      "derived_max_lifetime_seconds": 15,
+      "purpose": "Produce a deterministic integrity summary for one bounded UTF-8 payload."
+    },
+    {
+      "demo_task_id": "PBW-DEMO-TASK-2-MEDIAN",
+      "worker_count": 1,
+      "cost_class": "MEDIAN",
+      "expected_compute_units": 3,
+      "time_budget_seconds": {
+        "expected_task_execution": 6,
+        "known_delay": 4,
+        "inferred_unknown_delay_reserve": 8,
+        "records_decomposition": 7,
+        "safety_reserve": 5
+      },
+      "derived_max_lifetime_seconds": 30,
+      "purpose": "Produce integrity summary plus deterministic structural segmentation for one bounded UTF-8 payload."
+    },
+    {
+      "demo_task_id": "PBW-DEMO-TASK-3-HIGH",
+      "worker_count": 1,
+      "cost_class": "HIGH",
+      "expected_compute_units": 9,
+      "time_budget_seconds": {
+        "expected_task_execution": 18,
+        "known_delay": 8,
+        "inferred_unknown_delay_reserve": 14,
+        "records_decomposition": 12,
+        "safety_reserve": 8
+      },
+      "derived_max_lifetime_seconds": 60,
+      "purpose": "Produce integrity summary, segmentation, and deterministic multi-pass verification for one bounded UTF-8 payload."
+    }
+  ],
+  "concurrent_task": {
+    "demo_task_id": "PBW-DEMO-TASK-4-THREE-WORKER-CONCURRENT",
+    "worker_count": 3,
+    "simultaneous_workers_required": true,
+    "aggregate_expected_compute_units": 9,
+    "per_worker_expected_compute_units": 3,
+    "per_worker_time_budget_seconds": {
+      "expected_task_execution": 6,
+      "known_delay": 4,
+      "inferred_unknown_delay_reserve": 8,
+      "records_decomposition": 7,
+      "safety_reserve": 5
+    },
+    "per_worker_derived_max_lifetime_seconds": 30,
+    "median_reference_task_id": "PBW-DEMO-TASK-2-MEDIAN",
+    "median_reference_lifetime_seconds": 30,
+    "group_wall_clock_budget_seconds": 30,
+    "purpose": "Partition one bounded task into three independent deterministic work units, execute all three simultaneously, aggregate only their records outputs, and retire all three workers independently at purpose completion or budget exhaustion."
+  }
+}
