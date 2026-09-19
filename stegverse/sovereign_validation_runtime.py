@@ -87,6 +87,7 @@ def run_sovereign_validation(
     derived_governance_request: Mapping[str, Any] | None = None,
     route_source: str = "StegVerse-SDK:sovereign-validation",
     route_purpose: str = "production-lane-evaluator-validation",
+    pre_execution_observer: Callable[[Mapping[str, Any]], Any] | None = None,
 ) -> dict[str, Any]:
     """Run the exact published route established by the submitted manifest.
 
@@ -201,6 +202,7 @@ def run_sovereign_validation(
                                 "execution_mode": "governed" if consequence_enabled else "manual",
                                 "requires_governed_commit": True},
             authority_resolution={"status": "approved", "basis_invalidated_by_action": False},
+            pre_execution_observer=pre_execution_observer,
         )
         record = registry.register(result)
         evidence = registry.evidence_package(record.manifest_receipt_id)
