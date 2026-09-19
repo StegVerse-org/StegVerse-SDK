@@ -803,3 +803,5 @@ Governed SDK results expose a generic `product_processing` provenance envelope s
 The contract does not infer processing from branding or route labels. AdmittedCode admission, StegCore governance implementation, Core-Lite route carriage, Master Records custody, Interlock/InTr transition authority, StegAgents/runtime execution, LLM-adapter upstream processing, and future product boundaries remain separately attributable. Missing authentic Interlock/InTr or worker evidence is returned as `NOT_OBSERVED`, not promoted from route or generic execution evidence.
 
 The existing runtime `result_binding_hash` remains bound to the underlying canonical runtime result. `sdk_return_binding_hash` binds the enriched SDK return including product provenance. See `docs/PRODUCT_PROCESSING_PROVENANCE.md`.
+
+Product-processing provenance source status: **validated and merged** via SDK PR #268. The source contract is non-authorizing; runtime/transition/custody activation remains owned by the corresponding canonical products.
