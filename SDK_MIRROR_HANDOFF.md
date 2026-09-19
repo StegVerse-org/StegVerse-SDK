@@ -536,3 +536,24 @@ Testing-state rule: absent explicitly supplied prior-state data, S0 is the decla
 Current integration is reconciled from the historical PR #94 branch onto current SDK main rather than overwriting later SDK/Interlock work. The exact frozen manifest bytes are preserved unchanged. The SDK thin client is `stegverse/current_basis.py`; `stegverse/sovereign_validation_runtime.py` accepts an independently derived canonical StegCore request without requiring architecture-native fields inside the frozen common manifest.
 
 Result publication remains verification/distribution only through `.github/workflows/cross-framework-result-artifact-publication.yml`; GitHub Actions does not become runtime, receipt, custody, or governance authority.
+
+## Product-processing provenance contract — 2026-09-18
+
+Scoped continuation: `SDK_PRODUCT_PROCESSING_PROVENANCE_MIRROR_HANDOFF.md`.
+
+The SDK return layer now has a generic non-authorizing product-attribution contract. It does not replace any product implementation. Each observed product contribution carries its own processing scope, input/output bindings, evidence refs, authority effect, provenance basis, and deterministic contribution hash.
+
+Required current boundaries:
+
+```text
+StegVerse-SDK -> manifestation/route binding/result composition
+Core-Lite -> manifested route carriage
+AdmittedCode -> admission/evidence projection
+StegCore -> canonical governance transaction implementation
+Interlock/InTr -> transition authority; NOT_OBSERVED unless authentic transition evidence exists
+StegAgents/runtime -> bounded worker execution; NOT_OBSERVED unless authentic worker evidence exists
+Master Records -> custody/reconstruction evidence
+LLM-adapter/other source product -> declared upstream provenance when supplied by the ingress manifest; SDK does not infer its internals
+```
+
+The canonical runtime `result_binding_hash` is preserved before enrichment. The SDK return adds `product_processing`, typed `admittedcode_processing`, and `sdk_return_binding_hash`. This creates no evaluator, dispatcher, worker, route, custody store, or authority plane.

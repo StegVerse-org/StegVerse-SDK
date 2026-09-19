@@ -795,3 +795,11 @@ stegverse worker-lifecycle --input inspection/examples/tt-purpose-worker.example
 The initial built-in arbitrary task uses capability `text.integrity_summary` to compute a SHA-256 digest, UTF-8 byte count, and word count for a supplied text payload. The console records ordered `MATERIALIZED -> INVOCATION_STARTED -> TASK_COMPLETED -> RETIRED` lifecycle receipts and then returns a records-only packet with `worker_live_after_close=false`.
 
 This demonstrates construction, invocation ordering, retirement, and records-only decomposition. It does **not** claim live StegOS/InTr worker materialization, protected authority issuance, or resident runtime execution. Those remain separate authentic-runtime predicates.
+
+## Product-scoped SDK result provenance
+
+Governed SDK results expose a generic `product_processing` provenance envelope so an outside evaluator can distinguish which product processed which portion of a composed transaction. `admittedcode_processing` is the typed AdmittedCode projection of that envelope.
+
+The contract does not infer processing from branding or route labels. AdmittedCode admission, StegCore governance implementation, Core-Lite route carriage, Master Records custody, Interlock/InTr transition authority, StegAgents/runtime execution, LLM-adapter upstream processing, and future product boundaries remain separately attributable. Missing authentic Interlock/InTr or worker evidence is returned as `NOT_OBSERVED`, not promoted from route or generic execution evidence.
+
+The existing runtime `result_binding_hash` remains bound to the underlying canonical runtime result. `sdk_return_binding_hash` binds the enriched SDK return including product provenance. See `docs/PRODUCT_PROCESSING_PROVENANCE.md`.

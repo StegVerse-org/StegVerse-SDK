@@ -10,6 +10,7 @@ from copy import deepcopy
 from typing import Any, Mapping
 
 from .manifest_contract import validate_ingress_manifest
+from .product_processing import build_processor_product_processing, canonical_sha256
 from .route_resolution import route_from_manifest
 
 PROCESSING_CAPABILITY = "ecosystem_diagnostic"
@@ -139,7 +140,7 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
             "mutation_performed": False,
         })
 
-    return {
+    output = {
         "schema": RESULT_SCHEMA,
         "diagnostic_request_id": request["diagnostic_request_id"],
         "processing_capability": PROCESSING_CAPABILITY,
@@ -150,6 +151,25 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "authority_effect": AUTHORITY_EFFECT,
         "continuity_state_present": False,
     }
+    output["result_binding_hash"] = canonical_sha256(output)
+    evidence_refs = [
+        ref
+        for row in results
+        for ref in row.get("evidence_refs", [])
+        if isinstance(ref, str)
+    ]
+    product_processing, admittedcode_processing = build_processor_product_processing(
+        canonical_manifest=canonical,
+        processor_product_id="Ecosystem Diagnostic",
+        processor_product_role="read_only_ecosystem_diagnostic_processor",
+        processor_result=output,
+        processor_authority_effect=AUTHORITY_EFFECT,
+        processor_evidence_refs=evidence_refs,
+    )
+    output["product_processing"] = product_processing
+    output["admittedcode_processing"] = admittedcode_processing
+    output["sdk_return_binding_hash"] = canonical_sha256(output)
+    return output
 
 
 __all__ = [
