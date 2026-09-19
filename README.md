@@ -809,7 +809,7 @@ Product-processing provenance source status: **validated and merged** via SDK PR
 
 ## SDK Test 2: atomic task activation and task-bound worker creation
 
-`SDK-TT-ATOMIC-TASK-WORKER-BINDING-001` is an externally replayable semantic test of the task/worker seam. It preserves the earlier purpose-bound lifecycle test unchanged and tests the stronger invariant that, for this executable-task class, task activation and creation/binding of its task-specific worker are one constitutive transition.
+`SDK-TT-ATOMIC-TASK-WORKER-BINDING-001` is a completed externally replayable semantic test of the task/worker seam. It preserves the earlier purpose-bound lifecycle test unchanged and tests the stronger invariant that, for this executable-task class, task activation and creation/binding of its task-specific worker are one constitutive transition.
 
 ```text
 HANDOFF_READY task T + manifest-governed capability M
@@ -830,3 +830,6 @@ stegverse task-worker-binding --input inspection/examples/tt-atomic-task-worker-
 The test fails closed for split ACTIVE/worker states, mismatched binding, pre-created worker state, early invocation, manifest-boundary expansion, incomplete retirement, and retained executor/callable state. This is local semantic evidence only and does not claim authentic WorkerCoordinator, TV/TVC, Interlock/InTr, resident runtime, or Master Records execution.
 
 Canonical handoff: `SDK_TT_ATOMIC_TASK_WORKER_BINDING_MIRROR_HANDOFF.md`.
+
+
+Test 2 source status: **validated and merged** via SDK PR #271 at `79da01e219342e982406d257d1a417a4aeb05814`. Exact-head Test 2 validation run `35425851872` passed, all eight falsification cases fail closed, and the deterministic records packet hash for the canonical fixture is `b5bbb5476350805a55f365cd27fc0fa8145c75d4cb5b27338d5299d328ca5890`. This remains semantic/replay evidence only; authentic governed runtime seam validation is separate.
