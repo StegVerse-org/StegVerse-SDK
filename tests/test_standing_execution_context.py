@@ -30,3 +30,9 @@ def test_sovereign_runtime_exposes_standing_context_parameter_and_passes_it_to_c
     source = inspect.getsource(run_sovereign_validation)
     assert "declared_execution_context=declared_execution_context" in source
     assert '"declared_execution_context_consumed_by_canonical_runtime"' in source
+
+
+def test_sovereign_runtime_carries_pre_execution_observer_to_stegcore():
+    source = inspect.getsource(run_sovereign_validation)
+    assert "pre_execution_observer" in source
+    assert "pre_execution_observer=pre_execution_observer" in source
