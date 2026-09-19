@@ -4,9 +4,12 @@ on:
   pull_request:
     paths:
       - 'stegverse/purpose_bound_worker.py'
+      - 'stegverse/purpose_bound_worker_cost_demo.py'
       - 'stegverse/evaluator_console.py'
       - 'tests/test_purpose_bound_worker_console.py'
+      - 'tests/test_purpose_bound_worker_cost_demo.py'
       - 'inspection/examples/tt-purpose-worker.example.json'
+      - 'inspection/examples/tt-purpose-worker-cost-demo.example.json'
       - 'docs/SDK_CONSOLE.md'
       - 'README.md'
       - 'SDK_TT_PURPOSE_BOUND_WORKER_CONSOLE_MIRROR_HANDOFF.md'
@@ -22,6 +25,8 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install -e '.[dev]'
-      - run: python -m unittest tests.test_purpose_bound_worker_console -v
+      - run: python -m unittest tests.test_purpose_bound_worker_console tests.test_purpose_bound_worker_cost_demo -v
       - run: stegverse worker-lifecycle --input inspection/examples/tt-purpose-worker.example.json > /tmp/records-only.json
       - run: python -c "import json; p=json.load(open('/tmp/records-only.json')); assert p['records_only'] is True; assert p['worker_live_after_close'] is False; assert p['runtime_binding_state']=='LOCAL_SEMANTIC_DEMONSTRATION_ONLY'; print('TT_PURPOSE_BOUND_WORKER_CONSOLE_PASS')"
+      - run: python -m stegverse.purpose_bound_worker_cost_demo --input inspection/examples/tt-purpose-worker-cost-demo.example.json > /tmp/cost-demo.json
+      - run: python -c "import json; p=json.load(open('/tmp/cost-demo.json')); assert p['lifetime_demarcation_seconds']==[15,30,60]; assert p['concurrent_case']['worker_count']==3; assert p['concurrent_case']['simultaneous_overlap_observed'] is True; assert p['concurrent_case']['group_wall_clock_budget_seconds']==30; assert p['all_workers_records_only'] is True; print('TT_PURPOSE_BOUND_WORKER_COST_DEMO_PASS')"
