@@ -805,3 +805,28 @@ The contract does not infer processing from branding or route labels. AdmittedCo
 The existing runtime `result_binding_hash` remains bound to the underlying canonical runtime result. `sdk_return_binding_hash` binds the enriched SDK return including product provenance. See `docs/PRODUCT_PROCESSING_PROVENANCE.md`.
 
 Product-processing provenance source status: **validated and merged** via SDK PR #268. The source contract is non-authorizing; runtime/transition/custody activation remains owned by the corresponding canonical products.
+
+
+## SDK Test 2: atomic task activation and task-bound worker creation
+
+`SDK-TT-ATOMIC-TASK-WORKER-BINDING-001` is an externally replayable semantic test of the task/worker seam. It preserves the earlier purpose-bound lifecycle test unchanged and tests the stronger invariant that, for this executable-task class, task activation and creation/binding of its task-specific worker are one constitutive transition.
+
+```text
+HANDOFF_READY task T + manifest-governed capability M
+-> ACTIVATE(T)+CREATE_AND_BIND(W,T)
+-> INVOCATION_STARTED
+-> TASK_COMPLETED
+-> CLOSE(T)+RETIRE(W,T)
+-> records-only reconstruction
+```
+
+Replay:
+
+```bash
+python -m unittest tests.test_atomic_task_worker_binding -v
+stegverse task-worker-binding --input inspection/examples/tt-atomic-task-worker-binding.example.json
+```
+
+The test fails closed for split ACTIVE/worker states, mismatched binding, pre-created worker state, early invocation, manifest-boundary expansion, incomplete retirement, and retained executor/callable state. This is local semantic evidence only and does not claim authentic WorkerCoordinator, TV/TVC, Interlock/InTr, resident runtime, or Master Records execution.
+
+Canonical handoff: `SDK_TT_ATOMIC_TASK_WORKER_BINDING_MIRROR_HANDOFF.md`.
