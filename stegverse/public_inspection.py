@@ -32,6 +32,12 @@ FORBIDDEN_KEY_FRAGMENTS = {
     "credential", "api_key", "apikey", "github_token", "tvc_identity",
     "script", "command", "executable", "workflow", "code",
 }
+SAFE_AUTHORITY_METADATA_KEYS = {
+    "fencing_token",
+    "credential_authority",
+    "credential_material_present",
+    "github_token_runtime_authority",
+}
 ALLOWED_TOP_LEVEL = {
     "schema_version", "request_id", "requester_label", "case_profile",
     "evaluation_declaration", "execution_provenance", "input", "return_projection",
@@ -47,7 +53,7 @@ def _walk(value: Any, path: str = "$") -> None:
     if isinstance(value, Mapping):
         for raw_key, child in value.items():
             lowered = str(raw_key).lower()
-            if any(fragment in lowered for fragment in FORBIDDEN_KEY_FRAGMENTS):
+            if lowered not in SAFE_AUTHORITY_METADATA_KEYS and any(fragment in lowered for fragment in FORBIDDEN_KEY_FRAGMENTS):
                 raise PublicInspectionRequestError(f"forbidden field at {path}.{raw_key}")
             _walk(child, f"{path}.{raw_key}")
     elif isinstance(value, list):
