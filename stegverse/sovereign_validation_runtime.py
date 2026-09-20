@@ -54,9 +54,14 @@ def _prov(
         resolved = validate_runtime_provenance(raw)
     except ValueError as exc:
         raise SovereignValidationError(f"declared route rejected: {exc}") from exc
-    if resolved["route_id"] != CANONICAL_PRODUCTION_ROUTE_ID:
+    if (
+        resolved.get("lane_class") != "PRODUCTION_VALIDATION"
+        or resolved.get("routing_surface") != "CANONICAL_PRODUCTION"
+        or resolved.get("containment") != "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE"
+        or resolved.get("runtime_binding") != "core_lite.default_validation_route"
+    ):
         raise SovereignValidationError(
-            f"declared route has no sovereign runtime binding here: {resolved['route_id']}"
+            f"declared route has no canonical sovereign runtime binding here: {resolved['route_id']}"
         )
     actual_state_hash = governance_state_hash(governance_request)
     supplied_state_hash = raw.get("state_binding_hash") if isinstance(raw, Mapping) else None
