@@ -44,8 +44,8 @@ def validate_purpose_bound_worker_request(value: Any) -> dict[str, Any]:
     purpose = _text(value.get("purpose"), "purpose")
     capability = _text(value.get("required_capability"), "required_capability")
     payload = value.get("payload")
-    if not isinstance(payload, Mapping) or not isinstance(payload.get("text"), str):
-        raise ValueError("payload.text must be a string")
+    if payload is not None and (not isinstance(payload, Mapping) or not isinstance(payload.get("text"), str)):
+        raise ValueError("payload.text must be a string when supplied")
     policy = value.get("lifetime_policy")
     if not isinstance(policy, Mapping):
         raise ValueError("lifetime_policy is required")
@@ -88,7 +88,7 @@ def validate_purpose_bound_worker_request(value: Any) -> dict[str, Any]:
         "test_id": test_id,
         "purpose": purpose,
         "required_capability": capability,
-        "payload": deepcopy(dict(payload)),
+        "payload": deepcopy(dict(payload)) if isinstance(payload, Mapping) else None,
         "lifetime_policy": deepcopy(dict(policy)),
         "expected_evidence_fields": list(dict.fromkeys(x.strip() for x in expected)),
     }
@@ -107,6 +107,11 @@ def derive_worker_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
     extensions = canonical.get("extensions") or {}
     request = validate_purpose_bound_worker_request(extensions.get(REQUEST_EXTENSION))
     policy = request["lifetime_policy"]
+    source_payload = canonical.get("payload")
+    if not isinstance(source_payload, Mapping) or not isinstance(source_payload.get("text"), str):
+        raise ValueError("manifest payload.text must be a string for purpose_bound_worker")
+    if request.get("payload") is not None and request["payload"] != source_payload:
+        raise ValueError("processor_request payload conflicts with source-native manifest payload")
     return {
         "schema": WORKER_SCHEMA,
         "transition_cell": {
@@ -120,7 +125,7 @@ def derive_worker_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
                 "required_capability": request["required_capability"],
                 "max_lifetime_seconds": policy["derived_max_lifetime_seconds"],
                 "lifetime_policy": deepcopy(policy),
-                "payload": deepcopy(request["payload"]),
+                "payload": deepcopy(dict(source_payload)),
             },
         },
     }
