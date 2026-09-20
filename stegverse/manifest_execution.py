@@ -12,9 +12,7 @@ from .route_resolution import route_from_manifest
 
 
 _GOVERNED_WORKER_ROUTING_SURFACE = "STEGAGENTS_GOVERNED_RUNTIME"
-_LOCAL_SEMANTIC_WORKER_BINDINGS = {
-    "stegverse.atomic_task_worker_processor.execute_manifest",
-}
+_LOCAL_SEMANTIC_WORKER_BINDINGS = set()
 
 
 def _require_nonterminal_local_semantic_boundary(route: Mapping[str, Any], binding: str) -> None:
