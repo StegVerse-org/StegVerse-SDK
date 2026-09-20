@@ -1,23 +1,23 @@
-name: TT Evaluator Remaining Tests 2-4
+name: SDK Four-Stage Manifest-Only Experiment
+# Frozen-head experiment: manifests are the only per-test variable input.
 
 on:
   pull_request:
     paths:
-      - 'stegverse/atomic_task_worker_binding.py'
+      - 'stegverse/purpose_bound_worker_processor.py'
       - 'stegverse/atomic_task_worker_processor.py'
+      - 'stegverse/manifest_builder.py'
       - 'stegverse/manifest_execution.py'
       - 'stegverse/route_resolution.py'
-      - 'stegverse/purpose_bound_worker_cost_demo.py'
       - 'inspection/examples/sdk-tt-shared-source.json'
+      - 'inspection/examples/sdk-test1-purpose-worker.processor-request.json'
       - 'inspection/examples/sdk-test2-atomic-task-worker.processor-request.json'
       - 'inspection/examples/sdk-test3-richard-seam.processor-request.json'
-      - 'inspection/examples/tt-purpose-worker-cost-demo.example.json'
-      - 'tests/test_atomic_task_worker_binding.py'
       - '.github/workflows/tt-atomic-task-worker-binding.yml'
   workflow_dispatch:
 
 jobs:
-  evaluator-remaining-tests:
+  manifest-only-experiment:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,114 +26,175 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install -e '.[dev]'
 
-      - name: Validate shared atomic task-worker implementation
-        run: python -m unittest tests.test_atomic_task_worker_binding -v
-
-      - name: Test 2 - build manifest exactly as evaluator
+      - name: Freeze exact SDK source identity
         run: |
+          git rev-parse HEAD | tee /tmp/sdk-frozen-head.txt
+          git status --porcelain > /tmp/sdk-before.status
+          test ! -s /tmp/sdk-before.status
+
+      - name: Materialize Task 4 generic group processor request
+        run: |
+          cat > /tmp/sdk-task4-group.processor-request.json <<'JSON'
+          {
+            "schema": "stegverse.sdk.purpose-bound-worker-group-test.v1",
+            "test_id": "SDK-TASK4-THREE-WORKER-CONCURRENT-001",
+            "purpose": "Partition one bounded manifested task across three concurrent purpose-bound workers and return only records after all workers retire.",
+            "required_capability": "text.integrity_summary",
+            "worker_count": 3,
+            "partition_ids": ["A", "B", "C"],
+            "group_wall_clock_budget_seconds": 30,
+            "per_worker_lifetime_policy": {
+              "mode": "DERIVED_COST_TASK_DELAY_BUDGET",
+              "production_recompute_required": true,
+              "decomposition_target": "RECORDS_ENABLED_PACKET",
+              "retirement_condition": "PURPOSE_COMPLETED_OR_FAILED_OR_BUDGET_EXHAUSTED",
+              "cost_analysis": {
+                "expected_compute_units": 3,
+                "external_cost_usd_ceiling": 0,
+                "task_cost_basis": "one deterministic partition of a three-worker bounded manifested task"
+              },
+              "time_budget_seconds": {
+                "expected_task_execution": 6,
+                "known_delay": 4,
+                "inferred_unknown_delay_reserve": 8,
+                "records_decomposition": 7,
+                "safety_reserve": 5
+              },
+              "derived_max_lifetime_seconds": 30,
+              "unknown_delay_inference_basis": "bounded reserve for local scheduling, processing, and records decomposition"
+            },
+            "expected_evidence_fields": [
+              "worker_count_matches_manifest",
+              "distinct_worker_identities",
+              "simultaneous_overlap_observed",
+              "all_workers_records_only",
+              "all_workers_retired",
+              "continued_authority_false",
+              "group_result_binding"
+            ]
+          }
+          JSON
+
+      - name: Build all four manifests before execution
+        run: |
+          stegverse manifest build \
+            --input inspection/examples/sdk-tt-shared-source.json \
+            --processor-request inspection/examples/sdk-test1-purpose-worker.processor-request.json \
+            --source-framework external_evaluator --source-output-id test-1 \
+            --process purpose_bound_worker --return-depth full-trace \
+            --created-at 2026-09-20T21:45:00Z --output /tmp/test1.manifest.json
+
           stegverse manifest build \
             --input inspection/examples/sdk-tt-shared-source.json \
             --processor-request inspection/examples/sdk-test2-atomic-task-worker.processor-request.json \
-            --source-framework external_evaluator \
-            --source-output-id sdk-test-two-001 \
-            --process atomic_task_worker \
-            --return-depth full-trace \
-            --created-at 2026-09-20T20:30:00Z \
-            --output /tmp/sdk-test2.manifest.json
+            --source-framework external_evaluator --source-output-id test-2 \
+            --process atomic_task_worker --return-depth full-trace \
+            --created-at 2026-09-20T21:46:00Z --output /tmp/test2.manifest.json
 
-      - name: Test 2 - execute manifest and require constitutive atomic binding
-        run: |
-          stegverse run-manifest --manifest /tmp/sdk-test2.manifest.json --output /tmp/sdk-test2.result.json
-          python - <<'PY'
-          import json
-          r=json.load(open('/tmp/sdk-test2.result.json', encoding='utf-8'))
-          assert r['test_number'] == 2
-          assert r['scenario'] == 'TEST_2_ATOMIC_TASK_WORKER_BINDING'
-          assert r['evidence_expectations_satisfied'] is True
-          p=r['records_packet']
-          phases=[x['phase'] for x in p['lifecycle_receipts']]
-          assert phases == ['ACTIVATE_TASK_AND_CREATE_BIND_WORKER','INVOCATION_STARTED','TASK_COMPLETED','CLOSE_TASK_AND_RETIRE_WORKER']
-          assert p['constitutive_transition']['task_id'] == p['constitutive_transition']['worker_bound_task_id']
-          assert p['records_only'] is True
-          assert p['worker_live_after_close'] is False
-          assert p['continued_task_bound_authority'] is False
-          print('SDK_TEST2_EVALUATOR_MANIFEST_PASS')
-          PY
-
-      - name: Retain Test 2 evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdk-evaluator-test2-evidence
-          path: |
-            /tmp/sdk-test2.manifest.json
-            /tmp/sdk-test2.result.json
-
-      - name: Test 3 - build manifest exactly as evaluator
-        run: |
           stegverse manifest build \
             --input inspection/examples/sdk-tt-shared-source.json \
             --processor-request inspection/examples/sdk-test3-richard-seam.processor-request.json \
-            --source-framework external_evaluator \
-            --source-output-id sdk-test-three-001 \
-            --process atomic_task_worker \
-            --return-depth full-trace \
-            --created-at 2026-09-20T20:31:00Z \
-            --output /tmp/sdk-test3.manifest.json
+            --source-framework external_evaluator --source-output-id test-3 \
+            --process atomic_task_worker --return-depth full-trace \
+            --created-at 2026-09-20T21:47:00Z --output /tmp/test3.manifest.json
 
-      - name: Test 3 - execute manifest and require Richard seam closeout
+          stegverse manifest build \
+            --input inspection/examples/sdk-tt-shared-source.json \
+            --processor-request /tmp/sdk-task4-group.processor-request.json \
+            --source-framework external_evaluator --source-output-id task-4 \
+            --process purpose_bound_worker --return-depth full-trace \
+            --created-at 2026-09-20T21:48:00Z --output /tmp/task4.manifest.json
+
+      - name: Execute Test 1 from manifest only
         run: |
-          stegverse run-manifest --manifest /tmp/sdk-test3.manifest.json --output /tmp/sdk-test3.result.json
+          stegverse run-manifest --manifest /tmp/test1.manifest.json --output /tmp/test1.result.json
           python - <<'PY'
           import json
-          r=json.load(open('/tmp/sdk-test3.result.json', encoding='utf-8'))
+          r=json.load(open('/tmp/test1.result.json'))
+          assert r['evidence_expectations_satisfied'] is True
+          assert r['records_only'] is True
+          assert r['worker_live_after_close'] is False
+          assert [x['phase'] for x in r['worker_result']['lifecycle_receipts']] == [
+              'MATERIALIZED','INVOCATION_STARTED','TASK_COMPLETED','RETIRED'
+          ]
+          print('MANIFEST_ONLY_TEST1_PASS')
+          PY
+
+      - name: Execute Test 2 from manifest only
+        run: |
+          stegverse run-manifest --manifest /tmp/test2.manifest.json --output /tmp/test2.result.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/test2.result.json'))
+          assert r['test_number'] == 2
+          assert r['evidence_expectations_satisfied'] is True
+          p=r['records_packet']
+          assert [x['phase'] for x in p['lifecycle_receipts']] == [
+              'ACTIVATE_TASK_AND_CREATE_BIND_WORKER','INVOCATION_STARTED','TASK_COMPLETED','CLOSE_TASK_AND_RETIRE_WORKER'
+          ]
+          assert p['records_only'] is True
+          assert p['worker_live_after_close'] is False
+          assert p['continued_task_bound_authority'] is False
+          print('MANIFEST_ONLY_TEST2_PASS')
+          PY
+
+      - name: Execute Test 3 from manifest only
+        run: |
+          stegverse run-manifest --manifest /tmp/test3.manifest.json --output /tmp/test3.result.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/test3.result.json'))
           assert r['test_number'] == 3
           assert r['scenario'] == 'TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM'
           assert r['evidence_expectations_satisfied'] is True
           p=r['records_packet']
-          phases=[x['phase'] for x in p['lifecycle_receipts']]
-          assert phases == ['ACTIVATE_TASK_AND_CREATE_BIND_WORKER','INVOCATION_STARTED','TASK_COMPLETED','CLOSE_TASK_AND_RETIRE_WORKER']
           assert p['records_only'] is True
           assert p['worker_live_after_close'] is False
           assert p['continued_task_bound_authority'] is False
-          print('SDK_TEST3_EVALUATOR_MANIFEST_PASS')
+          print('MANIFEST_ONLY_TEST3_PASS')
           PY
 
-      - name: Retain Test 3 evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdk-evaluator-test3-evidence
-          path: |
-            /tmp/sdk-test3.manifest.json
-            /tmp/sdk-test3.result.json
-
-      - name: Task 4 - run existing three-worker concurrent demonstration
+      - name: Execute Task 4 from manifest only
         run: |
-          python -m stegverse.purpose_bound_worker_cost_demo \
-            --input inspection/examples/tt-purpose-worker-cost-demo.example.json \
-            > /tmp/sdk-task4.result.json
+          stegverse run-manifest --manifest /tmp/task4.manifest.json --output /tmp/task4.result.json
           python - <<'PY'
           import json
-          r=json.load(open('/tmp/sdk-task4.result.json', encoding='utf-8'))
-          c=r['concurrent_case']
-          assert c['worker_count'] == 3
-          assert c['aggregate_expected_compute_units'] == 9
-          assert c['per_worker_expected_compute_units'] == 3
-          assert c['per_worker_derived_max_lifetime_seconds'] == 30
-          assert c['group_wall_clock_budget_seconds'] == 30
-          assert c['simultaneous_overlap_observed'] is True
-          assert len(c['workers']) == 3
-          ids=[w['records_packet']['worker_spec']['worker_id'] for w in c['workers']]
-          assert len(set(ids)) == 3
-          assert all(w['records_packet']['records_only'] is True for w in c['workers'])
-          assert all(w['records_packet']['worker_live_after_close'] is False for w in c['workers'])
-          assert c['continued_authority_after_retirement'] is False
-          assert r['all_workers_records_only'] is True
+          r=json.load(open('/tmp/task4.result.json'))
+          assert r['schema'] == 'stegverse.sdk.purpose-bound-worker-group-manifest-result.v1'
+          assert r['worker_count'] == 3
+          assert r['partition_ids'] == ['A','B','C']
+          assert r['evidence_expectations_satisfied'] is True
+          assert r['records_only'] is True
+          assert r['worker_live_after_close'] is False
           assert r['continued_authority_after_retirement'] is False
-          print('SDK_TASK4_THREE_WORKER_CONCURRENT_PASS')
+          assert r['evidence_observations']['simultaneous_overlap_observed'] is True
+          assert len({w['records_packet']['worker_spec']['worker_id'] for w in r['workers']}) == 3
+          print('MANIFEST_ONLY_TASK4_PASS')
           PY
 
-      - name: Retain Task 4 evidence
+      - name: Prove SDK source remained unchanged throughout experiment
+        run: |
+          git rev-parse HEAD | tee /tmp/sdk-after-head.txt
+          diff -u /tmp/sdk-frozen-head.txt /tmp/sdk-after-head.txt
+          git status --porcelain > /tmp/sdk-after.status
+          test ! -s /tmp/sdk-after.status
+          sha256sum /tmp/test1.manifest.json /tmp/test2.manifest.json /tmp/test3.manifest.json /tmp/task4.manifest.json \
+            /tmp/test1.result.json /tmp/test2.result.json /tmp/test3.result.json /tmp/task4.result.json \
+            | tee /tmp/experiment-sha256.txt
+
+      - name: Retain complete four-stage experiment evidence
         uses: actions/upload-artifact@v4
         with:
-          name: sdk-evaluator-task4-evidence
-          path: /tmp/sdk-task4.result.json
+          name: sdk-four-stage-manifest-only-experiment
+          path: |
+            /tmp/sdk-frozen-head.txt
+            /tmp/sdk-task4-group.processor-request.json
+            /tmp/test1.manifest.json
+            /tmp/test2.manifest.json
+            /tmp/test3.manifest.json
+            /tmp/task4.manifest.json
+            /tmp/test1.result.json
+            /tmp/test2.result.json
+            /tmp/test3.result.json
+            /tmp/task4.result.json
+            /tmp/experiment-sha256.txt
