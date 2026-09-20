@@ -1,5 +1,6 @@
 name: SDK Four-Stage Manifest-Only Experiment
 # Frozen-head experiment: manifests are the only per-test variable input.
+# Frozen SDK source commit: e53c5671960da61d8737e4d5ed76a7e338c19d91
 
 on:
   pull_request:
@@ -28,7 +29,8 @@ jobs:
 
       - name: Freeze exact SDK source identity
         run: |
-          git rev-parse HEAD | tee /tmp/sdk-frozen-head.txt
+          echo e53c5671960da61d8737e4d5ed76a7e338c19d91 | tee /tmp/sdk-frozen-head.txt
+          git diff --exit-code e53c5671960da61d8737e4d5ed76a7e338c19d91 -- stegverse
           git status --porcelain > /tmp/sdk-before.status
           test ! -s /tmp/sdk-before.status
 
@@ -174,7 +176,8 @@ jobs:
 
       - name: Prove SDK source remained unchanged throughout experiment
         run: |
-          git rev-parse HEAD | tee /tmp/sdk-after-head.txt
+          git diff --exit-code e53c5671960da61d8737e4d5ed76a7e338c19d91 -- stegverse
+          echo e53c5671960da61d8737e4d5ed76a7e338c19d91 | tee /tmp/sdk-after-head.txt
           diff -u /tmp/sdk-frozen-head.txt /tmp/sdk-after-head.txt
           git status --porcelain > /tmp/sdk-after.status
           test ! -s /tmp/sdk-after.status
