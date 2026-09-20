@@ -1,4 +1,5 @@
 name: SDK Four-Stage Manifest-Only Experiment
+# Frozen-head experiment: manifests are the only per-test variable input.
 
 on:
   pull_request:
