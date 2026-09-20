@@ -150,7 +150,7 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "canonical_task_id": canonical_task_id,
         "processing_capability": PROCESSING_CAPABILITY,
         "route_id": ROUTE_ID,
-        "request": derive_atomic_request(canonical),
+        "request": derive_atomic_request(manifest),
         "preregistered_expectation": req["preregistered_expectation"],
         "expected_evidence_fields": req["expected_evidence_fields"],
         "ordered_transitions": [
