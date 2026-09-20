@@ -3,9 +3,6 @@
   "test_id": "SDK-TEST1-PURPOSE-BOUND-WORKER-001",
   "purpose": "Analyze the manifested text payload for a tracked integrity summary.",
   "required_capability": "text.integrity_summary",
-  "payload": {
-    "text": "StegVerse SDK Test One manifest-driven evaluator submission."
-  },
   "lifetime_policy": {
     "mode": "DERIVED_COST_TASK_DELAY_BUDGET",
     "production_recompute_required": true,
