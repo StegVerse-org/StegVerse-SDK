@@ -162,6 +162,7 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
             "TASK_COMPLETED",
             "CLOSE_TASK_AND_RETIRE_WORKER",
         ],
+        "requires_workercoordinator_claim_fence": True,
         "predecessor_closure_required": True,
         "constitutive_atomic_bind_required": True,
         "terminal_requirements": {
