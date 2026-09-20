@@ -60,7 +60,7 @@ def _normalize_processing(
     if not isinstance(raw_processing, Mapping):
         raise ValueError("processing must be an object")
 
-    _require_exact_fields(raw_processing, {"capability", "route_id"}, "processing")
+    _require_exact_fields(raw_processing, {"capability", "route_id", "derived_from_legacy_v1_route"}, "processing")
     capability = raw_processing.get("capability")
     declared_route_id = raw_processing.get("route_id")
     if not isinstance(capability, str) or not capability.strip():
@@ -69,6 +69,9 @@ def _normalize_processing(
         raise ValueError("processing.route_id is required")
     if declared_route_id != route_id:
         raise ValueError("processing.route_id must match extensions.stegverse_route.route_id")
+    supplied_legacy = raw_processing.get("derived_from_legacy_v1_route")
+    if supplied_legacy is not None and supplied_legacy is not False:
+        raise ValueError("processing.derived_from_legacy_v1_route mismatch")
     return {
         "capability": capability.strip(),
         "route_id": declared_route_id,
