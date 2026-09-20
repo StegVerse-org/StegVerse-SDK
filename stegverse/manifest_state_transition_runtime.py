@@ -58,7 +58,10 @@ def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("installed route does not use the universal manifest state-transition runtime")
     adapter_binding = route.get("state_graph_adapter_binding")
     adapter = _load_adapter(str(adapter_binding or ""))
-    graph = adapter(canonical)
+    # The adapter receives the original wire manifest. validate_ingress_manifest()
+    # returns a canonicalized view with derived evidence fields that are not legal
+    # wire fields and therefore must never be re-fed through the public validator.
+    graph = adapter(manifest)
     if not isinstance(graph, Mapping):
         raise ValueError("state-graph adapter returned a non-object result")
     graph = dict(graph)
@@ -80,7 +83,7 @@ def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
     manifest_hash = canonical.get("canonical_manifest_sha256") or canonical_sha256(canonical)
     request = {
         "schema": REQUEST_SCHEMA,
-        "canonical_manifest": dict(canonical),
+        "canonical_manifest": dict(manifest),
         "canonical_manifest_sha256": manifest_hash,
         "processing_capability": route["processor_capability"],
         "route_id": route["route_id"],
