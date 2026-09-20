@@ -1,0 +1,23 @@
+name: SDK 1.2.0 Clean Baseline Source Snapshot
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/sdk-clean-baseline-source-snapshot.yml'
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 8a28d063bce97e3d247b337c89400da406fcfed1
+          fetch-depth: 1
+      - name: Verify exact clean baseline
+        run: test "$(git rev-parse HEAD)" = "8a28d063bce97e3d247b337c89400da406fcfed1"
+      - name: Pack exact clean baseline source
+        run: tar --exclude=.git -czf /tmp/sdk-clean-baseline-8a28d063bce97e3d247b337c89400da406fcfed1.tgz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdk-1.2.0-clean-baseline-source
+          path: /tmp/sdk-clean-baseline-8a28d063bce97e3d247b337c89400da406fcfed1.tgz
