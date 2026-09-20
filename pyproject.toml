@@ -29,6 +29,7 @@ dependencies = [
     "requests>=2.28.0",
     "pyyaml>=6.0",
     "python-dotenv>=0.19.0",
+    "stegverse-master-records>=0.1.0",
 ]
 
 [project.optional-dependencies]
