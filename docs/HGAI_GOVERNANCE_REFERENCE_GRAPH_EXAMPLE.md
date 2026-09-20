@@ -1,6 +1,6 @@
 # HGAI HITL Governance Reference Graph Example
 
-This example maps a realistic human-in-the-loop review hierarchy into the generic StegVerse Governance Reference Graph (GRG). It is intended as a concrete HGAI-facing illustration, not a separate HGAI schema.
+This is a hypothetical HGAI ecosystem example that maps a human-in-the-loop review hierarchy into the generic StegVerse Governance Reference Graph (GRG). It is an illustrative fixture only: it does not claim an implemented HGAI integration, deployment, partnership, or production connection, and it is not a separate HGAI schema.
 
 ## What the graph represents
 
@@ -62,7 +62,7 @@ complete no-match -> may establish FALSE / DENY
 
 The GRG itself does not produce any of those decisions.
 
-## HGAI-to-GRG mapping
+## Hypothetical HGAI-to-GRG mapping
 
 | HGAI concept | GRG representation | Governance meaning |
 | --- | --- | --- |
