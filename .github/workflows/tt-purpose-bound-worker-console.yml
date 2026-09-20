@@ -8,6 +8,7 @@ on:
       - 'stegverse/atomic_task_worker_binding.py'
       - 'stegverse/atomic_task_worker_processor.py'
       - 'stegverse/manifest_execution.py'
+      - 'stegverse/sdk_event_custody.py'
       - 'stegverse/manifest_builder.py'
       - 'stegverse/route_resolution.py'
       - 'stegverse/evaluator_console.py'
