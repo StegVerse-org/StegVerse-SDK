@@ -5,6 +5,9 @@ name: SDK Four-Stage Manifest-Only Experiment
 on:
   pull_request:
     paths:
+      - 'pyproject.toml'
+      - 'VERSION.json'
+      - 'PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md'
       - 'stegverse/purpose_bound_worker_processor.py'
       - 'stegverse/atomic_task_worker_processor.py'
       - 'stegverse/manifest_builder.py'
