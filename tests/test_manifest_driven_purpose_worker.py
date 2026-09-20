@@ -67,12 +67,17 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         self.assertEqual(manifest["processing"]["route_id"], PURPOSE_BOUND_WORKER_ROUTE_ID)
         graph = derive_state_graph(manifest)
         self.assertEqual(graph["canonical_task_id"], "SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001")
-        self.assertTrue(graph["requires_workercoordinator_claim_fence"])
-        self.assertFalse(graph["adapter_executes_lifecycle"])
-        with self.assertRaisesRegex(ValueError, "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED"):
-            execute_manifest(manifest)
-        with self.assertRaisesRegex(ValueError, "PROCESSOR_ADAPTER_ONLY"):
-            execute_processor_manifest(manifest)
+        result = execute_manifest(manifest)
+        direct_result = execute_processor_manifest(manifest)
+        self.assertEqual(result["schema"], "stegverse.sdk.purpose-bound-worker-manifest-result.v1")
+        self.assertTrue(result["evidence_expectations_satisfied"])
+        self.assertTrue(result["records_only"])
+        self.assertFalse(result["worker_live_after_close"])
+        self.assertEqual(
+            [row["phase"] for row in result["worker_result"]["lifecycle_receipts"]],
+            ["MATERIALIZED", "INVOCATION_STARTED", "TASK_COMPLETED", "RETIRED"],
+        )
+        self.assertEqual(result, direct_result)
 
 
 if __name__ == "__main__":
