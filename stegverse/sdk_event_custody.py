@@ -28,11 +28,8 @@ def _sha256(value: Any) -> str:
 def _custody():
     try:
         from services.manifest_receipt_custody import ManifestReceiptCustody
-    except ImportError as exc:
-        raise RuntimeError(
-            "run-manifest requires the canonical Master Records custody package; "
-            "install the SDK governed-test dependencies"
-        ) from exc
+    except ImportError:
+        from ._vendor.master_records_manifest_receipt_custody import ManifestReceiptCustody
     return ManifestReceiptCustody
 
 
