@@ -1,19 +1,23 @@
-name: TT Atomic Task-Worker Binding Validation
+name: TT Evaluator Remaining Tests 2-4
 
 on:
   pull_request:
     paths:
       - 'stegverse/atomic_task_worker_binding.py'
-      - 'stegverse/evaluator_console.py'
+      - 'stegverse/atomic_task_worker_processor.py'
+      - 'stegverse/manifest_execution.py'
+      - 'stegverse/route_resolution.py'
+      - 'stegverse/purpose_bound_worker_cost_demo.py'
+      - 'inspection/examples/sdk-tt-shared-source.json'
+      - 'inspection/examples/sdk-test2-atomic-task-worker.processor-request.json'
+      - 'inspection/examples/sdk-test3-richard-seam.processor-request.json'
+      - 'inspection/examples/tt-purpose-worker-cost-demo.example.json'
       - 'tests/test_atomic_task_worker_binding.py'
-      - 'inspection/examples/tt-atomic-task-worker-binding.example.json'
-      - 'SDK_TT_ATOMIC_TASK_WORKER_BINDING_MIRROR_HANDOFF.md'
-      - 'README.md'
       - '.github/workflows/tt-atomic-task-worker-binding.yml'
   workflow_dispatch:
 
 jobs:
-  validate:
+  evaluator-remaining-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +25,115 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install -e '.[dev]'
-      - run: python -m unittest tests.test_atomic_task_worker_binding -v
-      - run: stegverse task-worker-binding --input inspection/examples/tt-atomic-task-worker-binding.example.json > /tmp/atomic-binding.json
-      - run: python -c "import json; p=json.load(open('/tmp/atomic-binding.json')); assert p['records_only'] is True; assert p['worker_live_after_close'] is False; assert p['continued_task_bound_authority'] is False; assert p['constitutive_transition']['task_post_state']=='ACTIVE'; assert p['constitutive_transition']['worker_bound_task_id']==p['task_id']; print('TT_ATOMIC_TASK_WORKER_BINDING_PASS')"
+
+      - name: Validate shared atomic task-worker implementation
+        run: python -m unittest tests.test_atomic_task_worker_binding -v
+
+      - name: Test 2 - build manifest exactly as evaluator
+        run: |
+          stegverse manifest build \
+            --input inspection/examples/sdk-tt-shared-source.json \
+            --processor-request inspection/examples/sdk-test2-atomic-task-worker.processor-request.json \
+            --source-framework external_evaluator \
+            --source-output-id sdk-test-two-001 \
+            --process atomic_task_worker \
+            --return-depth full-trace \
+            --created-at 2026-09-20T20:30:00Z \
+            --output /tmp/sdk-test2.manifest.json
+
+      - name: Test 2 - execute manifest and require constitutive atomic binding
+        run: |
+          stegverse run-manifest --manifest /tmp/sdk-test2.manifest.json --output /tmp/sdk-test2.result.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/sdk-test2.result.json', encoding='utf-8'))
+          assert r['test_number'] == 2
+          assert r['scenario'] == 'TEST_2_ATOMIC_TASK_WORKER_BINDING'
+          assert r['evidence_expectations_satisfied'] is True
+          p=r['records_packet']
+          phases=[x['phase'] for x in p['lifecycle_receipts']]
+          assert phases == ['ACTIVATE_TASK_AND_CREATE_BIND_WORKER','INVOCATION_STARTED','TASK_COMPLETED','CLOSE_TASK_AND_RETIRE_WORKER']
+          assert p['constitutive_transition']['task_id'] == p['constitutive_transition']['worker_bound_task_id']
+          assert p['records_only'] is True
+          assert p['worker_live_after_close'] is False
+          assert p['continued_task_bound_authority'] is False
+          print('SDK_TEST2_EVALUATOR_MANIFEST_PASS')
+          PY
+
+      - name: Retain Test 2 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-evaluator-test2-evidence
+          path: |
+            /tmp/sdk-test2.manifest.json
+            /tmp/sdk-test2.result.json
+
+      - name: Test 3 - build manifest exactly as evaluator
+        run: |
+          stegverse manifest build \
+            --input inspection/examples/sdk-tt-shared-source.json \
+            --processor-request inspection/examples/sdk-test3-richard-seam.processor-request.json \
+            --source-framework external_evaluator \
+            --source-output-id sdk-test-three-001 \
+            --process atomic_task_worker \
+            --return-depth full-trace \
+            --created-at 2026-09-20T20:31:00Z \
+            --output /tmp/sdk-test3.manifest.json
+
+      - name: Test 3 - execute manifest and require Richard seam closeout
+        run: |
+          stegverse run-manifest --manifest /tmp/sdk-test3.manifest.json --output /tmp/sdk-test3.result.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/sdk-test3.result.json', encoding='utf-8'))
+          assert r['test_number'] == 3
+          assert r['scenario'] == 'TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM'
+          assert r['evidence_expectations_satisfied'] is True
+          p=r['records_packet']
+          phases=[x['phase'] for x in p['lifecycle_receipts']]
+          assert phases == ['ACTIVATE_TASK_AND_CREATE_BIND_WORKER','INVOCATION_STARTED','TASK_COMPLETED','CLOSE_TASK_AND_RETIRE_WORKER']
+          assert p['records_only'] is True
+          assert p['worker_live_after_close'] is False
+          assert p['continued_task_bound_authority'] is False
+          print('SDK_TEST3_EVALUATOR_MANIFEST_PASS')
+          PY
+
+      - name: Retain Test 3 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-evaluator-test3-evidence
+          path: |
+            /tmp/sdk-test3.manifest.json
+            /tmp/sdk-test3.result.json
+
+      - name: Task 4 - run existing three-worker concurrent demonstration
+        run: |
+          python -m stegverse.purpose_bound_worker_cost_demo \
+            --input inspection/examples/tt-purpose-worker-cost-demo.example.json \
+            > /tmp/sdk-task4.result.json
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/sdk-task4.result.json', encoding='utf-8'))
+          c=r['concurrent_case']
+          assert c['worker_count'] == 3
+          assert c['aggregate_expected_compute_units'] == 9
+          assert c['per_worker_expected_compute_units'] == 3
+          assert c['per_worker_derived_max_lifetime_seconds'] == 30
+          assert c['group_wall_clock_budget_seconds'] == 30
+          assert c['simultaneous_overlap_observed'] is True
+          assert len(c['workers']) == 3
+          ids=[w['records_packet']['worker_spec']['worker_id'] for w in c['workers']]
+          assert len(set(ids)) == 3
+          assert all(w['records_packet']['records_only'] is True for w in c['workers'])
+          assert all(w['records_packet']['worker_live_after_close'] is False for w in c['workers'])
+          assert c['continued_authority_after_retirement'] is False
+          assert r['all_workers_records_only'] is True
+          assert r['continued_authority_after_retirement'] is False
+          print('SDK_TASK4_THREE_WORKER_CONCURRENT_PASS')
+          PY
+
+      - name: Retain Task 4 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-evaluator-task4-evidence
+          path: /tmp/sdk-task4.result.json
