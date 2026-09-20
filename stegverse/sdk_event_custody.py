@@ -211,7 +211,7 @@ def retain_replay_reconstruct(
     if reconstruction_status != "PASS":
         raise RuntimeError("SDK event reconstruction digest mismatch")
 
-    return {
+    response = {
         "manifest_receipt_id": rid,
         "transaction_id": tx,
         "master_records_custody_status": "RECORDED",
@@ -232,3 +232,5 @@ def retain_replay_reconstruct(
             "consequence_reexecuted": reconstructed.get("consequence_reexecuted"),
         },
     }
+    custody.close()
+    return response
