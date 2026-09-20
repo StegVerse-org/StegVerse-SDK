@@ -14,7 +14,7 @@
 
 ## Evaluator identity and interface
 
-The evaluator for Tests 1-3 is Rigel Randolph. Because the evaluator is operating from an iPhone and does not have a practical local console surface, ChatGPT operated the SDK interface on the evaluator's behalf. The evidentiary role is therefore evaluator-directed SDK interaction, not an independent third-party evaluator and not GitHub Actions acting as evaluator.
+The evaluator for Tests 1-3 is Evaluator. Because the evaluator is operating from an iPhone and does not have a practical local console surface, ChatGPT operated the SDK interface on the evaluator's behalf. The evidentiary role is therefore evaluator-directed SDK interaction, not an independent third-party evaluator and not GitHub Actions acting as evaluator.
 
 The interface used must remain exactly within the public SDK surface that the evaluator could invoke from a conventional console. ChatGPT may enter commands and retrieve outputs on the evaluator's behalf, but may not substitute internal resident scripts, private acceptance runners, hidden parameters, privileged repository-only entrypoints, or other execution paths unavailable at the SDK interface.
 
@@ -105,6 +105,6 @@ Generic CI dashboards, decorative diagrams, unrelated repository pages, or subst
 
 ## Evidence boundary
 
-This file records evaluator-directed SDK runs and the artifacts returned to Rigel Randolph as evaluator. ChatGPT operated the console/interface on the evaluator's behalf because of the evaluator's iPhone-only constraint. GitHub Actions provided execution/validation transport for the SDK commands; it was not the evaluator and does not become StegVerse transition authority. The evidentiary claim is exactly that the evaluator-directed use of the installed SDK surface can build and run these manifests through the public Manifest Builder and generic manifest executor.
+This file records evaluator-directed SDK runs and the artifacts returned to Evaluator as evaluator. ChatGPT operated the console/interface on the evaluator's behalf because of the evaluator's iPhone-only constraint. GitHub Actions provided execution/validation transport for the SDK commands; it was not the evaluator and does not become StegVerse transition authority. The evidentiary claim is exactly that the evaluator-directed use of the installed SDK surface can build and run these manifests through the public Manifest Builder and generic manifest executor.
 
 The retained manifest/result artifacts and exact pertinent SDK-interface captures are the source material for the subsequent ELAN-style visual evidence documentation.
