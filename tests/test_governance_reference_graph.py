@@ -250,7 +250,8 @@ def test_hgai_example_fixture_validates_and_remains_non_authorizing():
     graph = json.loads(path.read_text(encoding="utf-8"))
     validated = validate_governance_reference_graph(graph)
     assert validated["graph_sha256"] == governance_reference_graph_sha256(validated)
-    assert validated["metadata"]["projection"] == "HYPOTHETICAL_HITL_EXAMPLE"\n    assert validated["metadata"]["integration_claim"] is False
+    assert validated["metadata"]["projection"] == "HYPOTHETICAL_HITL_EXAMPLE"
+    assert validated["metadata"]["integration_claim"] is False
     assert validated["coverage"][0]["complete"] is False
     assert validated["authority_boundary"]["hierarchy_grants_authority"] is False
     assert validated["authority_boundary"]["sdk_resolves_governance"] is False
