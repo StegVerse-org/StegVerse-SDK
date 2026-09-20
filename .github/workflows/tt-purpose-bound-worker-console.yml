@@ -3,16 +3,7 @@ name: TT Evaluator Manifest Tests 1-3
 on:
   pull_request:
     paths:
-      - 'stegverse/purpose_bound_worker.py'
-      - 'stegverse/purpose_bound_worker_processor.py'
-      - 'stegverse/atomic_task_worker_binding.py'
-      - 'stegverse/atomic_task_worker_processor.py'
-      - 'stegverse/manifest_execution.py'
-      - 'stegverse/manifest_builder.py'
-      - 'stegverse/route_resolution.py'
-      - 'stegverse/evaluator_console.py'
-      - 'tests/test_manifest_driven_purpose_worker.py'
-      - 'tests/test_evaluator_atomic_task_worker_manifest.py'
+      - 'stegverse/**'
       - 'inspection/examples/sdk-tt-shared-source.json'
       - 'inspection/examples/sdk-test1-purpose-worker.processor-request.json'
       - 'inspection/examples/sdk-test2-atomic-task-worker.processor-request.json'
@@ -23,88 +14,198 @@ on:
 jobs:
   evaluator-manifest-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: sdk
+      - uses: actions/checkout@v4
+        with:
+          repository: StegVerse-Labs/.github
+          ref: repair/sdk-generic-manifest-runtime-20260919
+          path: deps/control
+      - uses: actions/checkout@v4
+        with:
+          repository: StegVerse-Labs/StegAgents
+          ref: repair/sdk-generic-manifest-runtime-20260919
+          path: deps/stegagents
+      - uses: actions/checkout@v4
+        with:
+          repository: StegVerse-Labs/StegCore
+          path: deps/stegcore
+      - uses: actions/checkout@v4
+        with:
+          repository: Data-Continuation/core-lite
+          path: deps/core-lite
+      - uses: actions/checkout@v4
+        with:
+          repository: master-records/orchestration
+          path: deps/master-records
+      - uses: actions/checkout@v4
+        with:
+          repository: StegVerse-Labs/TVC
+          path: deps/tvc
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install -e '.[dev]'
 
-      - name: Validate shared evaluator-level manifest processors
+      - name: Install exact test surfaces
+        working-directory: sdk
         run: |
-          python -m unittest             tests.test_manifest_driven_purpose_worker             tests.test_evaluator_atomic_task_worker_manifest -v
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[dev]' cryptography pydantic
 
-      - name: Test 1 - build manifest exactly as evaluator
+      - name: Validate repaired source contracts
+        working-directory: sdk
         run: |
-          stegverse manifest build             --input inspection/examples/sdk-tt-shared-source.json             --processor-request inspection/examples/sdk-test1-purpose-worker.processor-request.json             --source-framework external_evaluator             --source-output-id sdk-test-one-001             --process purpose_bound_worker             --return-depth full-trace             --created-at 2026-09-19T19:45:00Z             --output /tmp/sdk-test1.manifest.json
+          export PYTHONPATH="$GITHUB_WORKSPACE/deps/stegcore/src:$GITHUB_WORKSPACE/deps/core-lite:$GITHUB_WORKSPACE/deps/master-records:$GITHUB_WORKSPACE/sdk"
+          python -m compileall -q stegverse
+          python -m pytest -q tests/test_route_resolution.py tests/test_manifest_builder.py tests/test_manifest_contract.py
 
-      - name: Test 1 - run built manifest exactly as evaluator
+      - name: Define governed evaluator test harness
+        working-directory: sdk
         run: |
-          stegverse run-manifest             --manifest /tmp/sdk-test1.manifest.json             --output /tmp/sdk-test1.result.json
+          cat > /tmp/prepare-governed-test.sh <<'SH'
+          set -euo pipefail
+          TEST_NAME="$1"
+          TASK_ID="$2"
+          RUNROOT="$HOME/stegverse-runtime-$TEST_NAME"
+          rm -rf "$RUNROOT"
+          cp -a "$GITHUB_WORKSPACE/deps/control" "$RUNROOT"
+          mkdir -p "$RUNROOT/credentials" "$HOME/stegverse-master-records"
+          rm -f "$HOME/stegverse-master-records/$TEST_NAME.sqlite"
+
+          python - "$RUNROOT/credentials/TV_EXECUTION_WARRANT_ED25519_PRIVATE_KEY_PEM" <<'PY'
+          import sys
+          from pathlib import Path
+          from cryptography.hazmat.primitives import serialization
+          from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+          path=Path(sys.argv[1])
+          key=Ed25519PrivateKey.generate()
+          path.write_bytes(key.private_bytes(
+              encoding=serialization.Encoding.PEM,
+              format=serialization.PrivateFormat.PKCS8,
+              encryption_algorithm=serialization.NoEncryption(),
+          ))
+          path.chmod(0o600)
+          PY
+
+          STEGAGENTS_SHA="$(git -C "$GITHUB_WORKSPACE/deps/stegagents" rev-parse HEAD)"
+          cat > "$RUNROOT/warrant-request.json" <<JSON
+          {"schema":"stegverse.tv.execution-warrant-request/v1","request_id":"sdk-evaluator-$TEST_NAME","repository":"StegVerse-Labs/StegAgents","commit_sha":"$STEGAGENTS_SHA","action":"run_agent","module":"StegVerse-Labs/StegAgents","ttl_seconds":900,"task_id":"$TASK_ID"}
+          JSON
+
+          CREDENTIALS_DIRECTORY="$RUNROOT/credentials" python "$GITHUB_WORKSPACE/deps/tvc/scripts/issue_tv_execution_warrant_resident.py"             --request "$RUNROOT/warrant-request.json"             --output "$RUNROOT/warrant-receipt.json"             --policy-bundle "$GITHUB_WORKSPACE/deps/tvc/policy.rego"
+
+          python - "$RUNROOT" "$GITHUB_WORKSPACE" "$TEST_NAME" <<'PY'
+          import json,sys
+          from pathlib import Path
+          root=Path(sys.argv[1]); ws=Path(sys.argv[2]); name=sys.argv[3]
+          receipt=json.loads((root/"warrant-receipt.json").read_text())
+          roots={"StegVerse-Labs/.github":str(ws/"deps/control"),"StegVerse-Labs/StegAgents":str(ws/"deps/stegagents"),"StegVerse-Labs/StegCore":str(ws/"deps/stegcore"),"Data-Continuation/core-lite":str(ws/"deps/core-lite"),"master-records/orchestration":str(ws/"deps/master-records"),"StegVerse-org/StegVerse-SDK":str(ws/"sdk")}
+          env={"STEGVERSE_HEARTBEAT_ROOT":str(root),"STEGVERSE_REPO_ROOTS_JSON":json.dumps(roots,separators=(",",":")),"STEGVERSE_WARRANT_JSON":json.dumps(receipt["warrant"],separators=(",",":")),"TV_POLICY_BUNDLE_SHA256":receipt["policy_bundle_sha256"],"TV_WARRANT_ISSUER_PUBKEY_B64":receipt["issuer_pubkey_b64"],"TV_WARRANT_MAX_TTL_SECONDS":str(receipt["max_ttl_seconds"]),"STEGVERSE_MASTER_RECORDS_ORCHESTRATION_ROOT":str(ws/"deps/master-records"),"MASTER_RECORDS_DB":str(Path.home()/"stegverse-master-records"/f"{name}.sqlite"),"MASTER_RECORDS_RECEIPT_KEY":f"sdk-evaluator-{name}-receipt-key","MASTER_RECORDS_STORAGE_DURABLE_ACROSS_RESTARTS":"true","PYTHONPATH":":".join([str(ws/"deps/stegcore/src"),str(ws/"deps/core-lite"),str(ws/"deps/master-records"),str(ws/"sdk")])}
+          Path(f"/tmp/{name}.env").write_text("\n".join("export "+k+"="+json.dumps(v) for k,v in env.items())+"\n")
+          PY
+          SH
+          chmod +x /tmp/prepare-governed-test.sh
+
+      - name: Test 1 - evaluator manifest through canonical state transitions
+        working-directory: sdk
+        run: |
+          /tmp/prepare-governed-test.sh test1 SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001
+          source /tmp/test1.env
+          stegverse manifest build --input inspection/examples/sdk-tt-shared-source.json --processor-request inspection/examples/sdk-test1-purpose-worker.processor-request.json --source-framework external_evaluator --source-output-id sdk-test-one-001 --process purpose_bound_worker --return-depth full-trace --created-at 2026-09-19T19:45:00Z --output /tmp/sdk-test1.manifest.json
+          stegverse run-manifest --manifest /tmp/sdk-test1.manifest.json --output /tmp/sdk-test1.result.json
           python - <<'PY'
           import json
           p=json.load(open('/tmp/sdk-test1.result.json'))
           assert p['evidence_expectations_satisfied'] is True
-          assert p['missing_expected_evidence_fields'] == []
-          assert p['records_only'] is True
-          assert p['worker_live_after_close'] is False
-          assert [r['phase'] for r in p['worker_result']['lifecycle_receipts']] == [
-              'MATERIALIZED','INVOCATION_STARTED','TASK_COMPLETED','RETIRED'
-          ]
+          assert p['missing_expected_evidence_fields']==[]
+          assert p['records_only'] is True and p['worker_live_after_close'] is False
+          assert [r['phase'] for r in p['worker_result']['lifecycle_receipts']]==['MATERIALIZED','INVOCATION_STARTED','TASK_COMPLETED','RETIRED']
+          a=p['workercoordinator_assignment']['canonical_master_records_transition']
+          assert a['state']=='RECORDED' and a['reconstruction_status']=='PASS' and a['required_evidence_validation_status']=='PASS'
+          assert a['receipt_sha256']==a['reconstructed_receipt_sha256']
+          assert p['replay']['deterministic_disposition_match'] is True and p['replay']['consequence_reexecuted'] is False and p['replay']['operation_transition_custody_status']=='RECORDED'
+          assert p['reconstruction']['operation_transition_custody_status']=='RECORDED'
+          for row in p['worker_result']['canonical_master_records_transitions']:
+              assert row['state']=='RECORDED' and row['reconstruction_status']=='PASS' and row['required_evidence_validation_status']=='PASS'
+              assert row['receipt_sha256']==row['reconstructed_receipt_sha256']
           print('SDK_TEST1_EVALUATOR_MANIFEST_PASS')
           PY
+          cp "$STEGVERSE_HEARTBEAT_ROOT/receipts/sovereign-host/sdk-tt-purpose-bound-worker-runtime-proof.latest.json" /tmp/sdk-test1.runtime-receipt.json
+          cp "$MASTER_RECORDS_DB" /tmp/sdk-test1.master-records.sqlite
 
-      - name: Test 2 - build manifest exactly as evaluator
+      - name: Test 2 - atomic task and worker evaluator manifest
+        working-directory: sdk
         run: |
-          stegverse manifest build             --input inspection/examples/sdk-tt-shared-source.json             --processor-request inspection/examples/sdk-test2-atomic-task-worker.processor-request.json             --source-framework external_evaluator             --source-output-id sdk-test-two-001             --process atomic_task_worker             --return-depth full-trace             --created-at 2026-09-19T20:02:00Z             --output /tmp/sdk-test2.manifest.json
-
-      - name: Test 2 - run built manifest exactly as evaluator
-        run: |
-          stegverse run-manifest             --manifest /tmp/sdk-test2.manifest.json             --output /tmp/sdk-test2.result.json
+          /tmp/prepare-governed-test.sh test2 SDK-TT-RICHARD-SEAM-AUTHENTIC-RUNTIME-001
+          source /tmp/test2.env
+          stegverse manifest build --input inspection/examples/sdk-tt-shared-source.json --processor-request inspection/examples/sdk-test2-atomic-task-worker.processor-request.json --source-framework external_evaluator --source-output-id sdk-test-two-001 --process atomic_task_worker --return-depth full-trace --created-at 2026-09-19T20:02:00Z --output /tmp/sdk-test2.manifest.json
+          stegverse run-manifest --manifest /tmp/sdk-test2.manifest.json --output /tmp/sdk-test2.result.json
           python - <<'PY'
           import json
           p=json.load(open('/tmp/sdk-test2.result.json'))
-          assert p['test_number'] == 2
-          assert p['scenario'] == 'TEST_2_ATOMIC_TASK_WORKER_BINDING'
-          assert p['evidence_expectations_satisfied'] is True
-          assert p['records_only'] is True
-          assert p['worker_live_after_close'] is False
-          assert [r['phase'] for r in p['records_packet']['lifecycle_receipts']] == [
-              'ACTIVATE_TASK_AND_CREATE_BIND_WORKER',
-              'INVOCATION_STARTED',
-              'TASK_COMPLETED',
-              'CLOSE_TASK_AND_RETIRE_WORKER'
-          ]
+          assert p['test_number']==2 and p['scenario']=='TEST_2_ATOMIC_TASK_WORKER_BINDING'
+          assert p['evidence_expectations_satisfied'] is True and p['records_only'] is True and p['worker_live_after_close'] is False and p['continued_authority_after_retirement'] is False
+          a=p['workercoordinator_assignment']['canonical_master_records_transition']
+          assert a['state']=='RECORDED' and a['reconstruction_status']=='PASS' and a['required_evidence_validation_status']=='PASS'
+          assert a['receipt_sha256']==a['reconstructed_receipt_sha256']
+          for key in ('activation_replay','close_replay'):
+              assert p[key]['deterministic_disposition_match'] is True and p[key]['consequence_reexecuted'] is False and p[key]['operation_transition_custody_status']=='RECORDED'
+          for key in ('activation_reconstruction','close_reconstruction'):
+              assert p[key]['operation_transition_custody_status']=='RECORDED'
           print('SDK_TEST2_EVALUATOR_MANIFEST_PASS')
           PY
+          cp "$STEGVERSE_HEARTBEAT_ROOT/receipts/sovereign-host/sdk-tt-richard-seam-authentic-runtime/activation.latest.json" /tmp/sdk-test2.activation-receipt.json
+          cp "$STEGVERSE_HEARTBEAT_ROOT/receipts/sovereign-host/sdk-tt-richard-seam-authentic-runtime/execution.latest.json" /tmp/sdk-test2.execution-receipt.json
+          cp "$STEGVERSE_HEARTBEAT_ROOT/receipts/sovereign-host/sdk-tt-richard-seam-authentic-runtime/close.latest.json" /tmp/sdk-test2.close-receipt.json
+          cp "$MASTER_RECORDS_DB" /tmp/sdk-test2.master-records.sqlite
 
-      - name: Test 3 - build manifest exactly as evaluator
+      - name: Test 3 - short lived actor evaluator manifest
+        working-directory: sdk
         run: |
-          stegverse manifest build             --input inspection/examples/sdk-tt-shared-source.json             --processor-request inspection/examples/sdk-test3-richard-seam.processor-request.json             --source-framework external_evaluator             --source-output-id sdk-test-three-001             --process atomic_task_worker             --return-depth full-trace             --created-at 2026-09-19T20:03:00Z             --output /tmp/sdk-test3.manifest.json
-
-      - name: Test 3 - run built manifest exactly as evaluator
-        run: |
-          stegverse run-manifest             --manifest /tmp/sdk-test3.manifest.json             --output /tmp/sdk-test3.result.json
+          /tmp/prepare-governed-test.sh test3 SDK-TT-RICHARD-SEAM-AUTHENTIC-RUNTIME-001
+          source /tmp/test3.env
+          stegverse manifest build --input inspection/examples/sdk-tt-shared-source.json --processor-request inspection/examples/sdk-test3-richard-seam.processor-request.json --source-framework external_evaluator --source-output-id sdk-test-three-001 --process atomic_task_worker --return-depth full-trace --created-at 2026-09-19T20:03:00Z --output /tmp/sdk-test3.manifest.json
+          stegverse run-manifest --manifest /tmp/sdk-test3.manifest.json --output /tmp/sdk-test3.result.json
           python - <<'PY'
           import json
           p=json.load(open('/tmp/sdk-test3.result.json'))
-          assert p['test_number'] == 3
-          assert p['scenario'] == 'TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM'
-          assert p['evidence_expectations_satisfied'] is True
-          assert p['records_only'] is True
-          assert p['worker_live_after_close'] is False
-          assert p['records_packet']['continued_task_bound_authority'] is False
+          assert p['test_number']==3 and p['scenario']=='TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM'
+          assert p['evidence_expectations_satisfied'] is True and p['records_only'] is True and p['worker_live_after_close'] is False and p['continued_authority_after_retirement'] is False
+          a=p['workercoordinator_assignment']['canonical_master_records_transition']
+          assert a['state']=='RECORDED' and a['reconstruction_status']=='PASS' and a['required_evidence_validation_status']=='PASS'
+          assert a['receipt_sha256']==a['reconstructed_receipt_sha256']
+          for key in ('activation_replay','close_replay'):
+              assert p[key]['deterministic_disposition_match'] is True and p[key]['consequence_reexecuted'] is False and p[key]['operation_transition_custody_status']=='RECORDED'
+          for key in ('activation_reconstruction','close_reconstruction'):
+              assert p[key]['operation_transition_custody_status']=='RECORDED'
           print('SDK_TEST3_EVALUATOR_MANIFEST_PASS')
           PY
+          cp "$STEGVERSE_HEARTBEAT_ROOT/receipts/sovereign-host/sdk-tt-richard-seam-authentic-runtime/activation.latest.json" /tmp/sdk-test3.activation-receipt.json
+          cp "$STEGVERSE_HEARTBEAT_ROOT/receipts/sovereign-host/sdk-tt-richard-seam-authentic-runtime/execution.latest.json" /tmp/sdk-test3.execution-receipt.json
+          cp "$STEGVERSE_HEARTBEAT_ROOT/receipts/sovereign-host/sdk-tt-richard-seam-authentic-runtime/close.latest.json" /tmp/sdk-test3.close-receipt.json
+          cp "$MASTER_RECORDS_DB" /tmp/sdk-test3.master-records.sqlite
 
-      - name: Retain evaluator manifests and results for later documentation
+      - name: Retain evaluator manifests results runtime receipts and Master Records
         uses: actions/upload-artifact@v4
         with:
-          name: sdk-evaluator-tests-1-3-evidence
+          name: sdk-evaluator-tests-1-3-governed-evidence
           path: |
             /tmp/sdk-test1.manifest.json
             /tmp/sdk-test1.result.json
+            /tmp/sdk-test1.runtime-receipt.json
+            /tmp/sdk-test1.master-records.sqlite
             /tmp/sdk-test2.manifest.json
             /tmp/sdk-test2.result.json
+            /tmp/sdk-test2.activation-receipt.json
+            /tmp/sdk-test2.execution-receipt.json
+            /tmp/sdk-test2.close-receipt.json
+            /tmp/sdk-test2.master-records.sqlite
             /tmp/sdk-test3.manifest.json
             /tmp/sdk-test3.result.json
+            /tmp/sdk-test3.activation-receipt.json
+            /tmp/sdk-test3.execution-receipt.json
+            /tmp/sdk-test3.close-receipt.json
+            /tmp/sdk-test3.master-records.sqlite
