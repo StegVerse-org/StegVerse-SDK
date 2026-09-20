@@ -131,7 +131,7 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     request = validate_purpose_bound_worker_request(
         (canonical.get("extensions") or {}).get(REQUEST_EXTENSION)
     )
-    worker_request = derive_worker_request(canonical)
+    worker_request = derive_worker_request(manifest)
     worker_result = run_purpose_bound_worker(worker_request)
     phases = [
         row.get("phase")
