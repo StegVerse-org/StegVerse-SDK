@@ -1,5 +1,6 @@
 name: SDK Four-Stage Manifest-Only Experiment
 # Frozen-head experiment: manifests are the only per-test variable input.
+# Frozen SDK source commit: 4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97
 
 on:
   pull_request:
@@ -21,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -28,7 +31,8 @@ jobs:
 
       - name: Freeze exact SDK source identity
         run: |
-          git rev-parse HEAD | tee /tmp/sdk-frozen-head.txt
+          echo 4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97 | tee /tmp/sdk-frozen-head.txt
+          git diff --exit-code 4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97 -- stegverse
           git status --porcelain > /tmp/sdk-before.status
           test ! -s /tmp/sdk-before.status
 
@@ -174,7 +178,8 @@ jobs:
 
       - name: Prove SDK source remained unchanged throughout experiment
         run: |
-          git rev-parse HEAD | tee /tmp/sdk-after-head.txt
+          git diff --exit-code 4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97 -- stegverse
+          echo 4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97 | tee /tmp/sdk-after-head.txt
           diff -u /tmp/sdk-frozen-head.txt /tmp/sdk-after-head.txt
           git status --porcelain > /tmp/sdk-after.status
           test ! -s /tmp/sdk-after.status
