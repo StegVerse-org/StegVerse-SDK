@@ -1,9 +1,10 @@
 """Manifest-driven SDK processor for purpose-bound worker tests.
 
 The caller supplies only source-native data plus a processor request to Manifest
-Builder.  This processor derives the canonical TT worker request from the validated
-manifest and executes the existing SDK purpose-bound worker implementation.  It
-does not accept a second worker request file or infer missing preregistered evidence.
+Builder. This adapter validates that request and derives the canonical TT worker
+request/state graph. It never executes the worker lifecycle; the universal manifest
+state-transition runtime owns the consequential path. It does not accept a second
+worker request file or infer missing preregistered evidence.
 """
 from __future__ import annotations
 
@@ -138,7 +139,7 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
     request = validate_purpose_bound_worker_request(
         (canonical.get("extensions") or {}).get(REQUEST_EXTENSION)
     )
-    worker_request = derive_worker_request(canonical)
+    worker_request = derive_worker_request(manifest)
     return {
         "schema": "stegverse.sdk.installed-state-transition-graph/v1",
         "graph_id": "SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001:PURPOSE_BOUND_WORKER",
