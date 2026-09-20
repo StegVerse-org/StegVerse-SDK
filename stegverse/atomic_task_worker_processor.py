@@ -10,7 +10,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Mapping
 
-from .atomic_task_worker_binding import SCHEMA as ATOMIC_SCHEMA, run_atomic_task_worker_binding
+from .atomic_task_worker_binding import SCHEMA as ATOMIC_SCHEMA
 from .manifest_contract import validate_ingress_manifest
 from .route_resolution import ATOMIC_TASK_WORKER_ROUTE_ID, route_from_manifest
 
@@ -95,8 +95,8 @@ def derive_atomic_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
     route = route_from_manifest(canonical)
     if route.get("route_id") != ROUTE_ID or route.get("processor_capability") != PROCESSING_CAPABILITY:
         raise ValueError("atomic task/worker route binding mismatch")
-    if route.get("runtime_binding") != "stegverse.atomic_task_worker_processor.execute_manifest":
-        raise ValueError("atomic task/worker runtime binding is unavailable")
+    if route.get("state_graph_adapter_binding") != "stegverse.atomic_task_worker_processor.derive_state_graph":
+        raise ValueError("atomic task/worker state-graph adapter binding is unavailable")
     req = validate_atomic_task_worker_request((canonical.get("extensions") or {}).get(REQUEST_EXTENSION))
     source_payload = canonical.get("payload")
     if not isinstance(source_payload, Mapping) or not isinstance(source_payload.get("text"), str):
@@ -132,33 +132,67 @@ def _observations(packet: Mapping[str, Any]) -> dict[str, bool]:
     }
 
 
-def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
+
+def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """Derive the installed atomic task/worker graph without executing it."""
     canonical = validate_ingress_manifest(manifest)
-    req = validate_atomic_task_worker_request((canonical.get("extensions") or {}).get(REQUEST_EXTENSION))
-    packet = run_atomic_task_worker_binding(derive_atomic_request(manifest))
-    observed = _observations(packet)
-    missing = [name for name in req["expected_evidence_fields"] if observed.get(name) is not True]
+    req = validate_atomic_task_worker_request(
+        (canonical.get("extensions") or {}).get(REQUEST_EXTENSION)
+    )
+    canonical_task_id = (
+        "SDK-TT-ATOMIC-TASK-WORKER-BINDING-001"
+        if req["scenario"] == "TEST_2_ATOMIC_TASK_WORKER_BINDING"
+        else "SDK-TT-RICHARD-SEAM-AUTHENTIC-RUNTIME-001"
+    )
     return {
-        "schema": RESULT_SCHEMA,
-        "test_id": req["test_id"],
-        "test_number": req["test_number"],
-        "scenario": req["scenario"],
+        "schema": "stegverse.sdk.installed-state-transition-graph/v1",
+        "graph_id": canonical_task_id + ":ATOMIC_TASK_WORKER",
+        "canonical_task_id": canonical_task_id,
         "processing_capability": PROCESSING_CAPABILITY,
         "route_id": ROUTE_ID,
+        "request": derive_atomic_request(canonical),
         "preregistered_expectation": req["preregistered_expectation"],
         "expected_evidence_fields": req["expected_evidence_fields"],
-        "evidence_observations": observed,
-        "missing_expected_evidence_fields": missing,
-        "evidence_expectations_satisfied": not missing,
-        "records_packet": packet,
-        "records_only": packet.get("records_only") is True,
-        "worker_live_after_close": packet.get("worker_live_after_close"),
-        "authority_effect": "NONE_EVALUATOR_MANIFEST_DRIVEN_SDK_TEST",
+        "ordered_transitions": [
+            "WORKERCOORDINATOR_CLAIM_FENCE_BOUND",
+            "TV_TVC_WARRANT_POLICY_VERIFIED",
+            "STEGCORE_INTR_MATERIALIZATION_ADMITTED",
+            "ACTIVATE_TASK_AND_CREATE_BIND_WORKER",
+            "INVOCATION_STARTED",
+            "TASK_COMPLETED",
+            "CLOSE_TASK_AND_RETIRE_WORKER",
+        ],
+        "predecessor_closure_required": True,
+        "constitutive_atomic_bind_required": True,
+        "terminal_requirements": {
+            "records_only": True,
+            "continued_authority": False,
+            "master_records_state": "RECORDED",
+            "reconstruction_status": "PASS",
+            "required_evidence_validation_status": "PASS",
+            "exact_receipt_reconstruction_digest_equality": True,
+        },
+        "authority": {
+            "claim_fence": "WORKERCOORDINATOR",
+            "credential_warrant": "TV/TVC",
+            "transition": "INTERLOCK_INTR",
+            "execution": "STEGAGENTS_DOMAIN_COMPONENT",
+            "custody_replay_reconstruction": "MASTER_RECORDS",
+        },
+        "adapter_executes_lifecycle": False,
+        "authority_effect": "NONE_GRAPH_DERIVATION_ONLY",
     }
+
+
+def execute_manifest(_manifest: Mapping[str, Any]) -> dict[str, Any]:
+    raise ValueError(
+        "PROCESSOR_ADAPTER_ONLY: atomic_task_worker_processor cannot execute lifecycle; "
+        "use the universal manifest state-transition runtime"
+    )
 
 
 __all__ = [
     "PROCESSING_CAPABILITY", "REQUEST_EXTENSION", "REQUEST_SCHEMA", "RESULT_SCHEMA",
-    "ROUTE_ID", "derive_atomic_request", "execute_manifest",
+    "ROUTE_ID", "derive_atomic_request", "derive_state_graph", "execute_manifest",
     "validate_atomic_task_worker_request",
 ]
