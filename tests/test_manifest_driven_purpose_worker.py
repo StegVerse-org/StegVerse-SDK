@@ -14,7 +14,6 @@ def request():
         "test_id": "SDK-TEST1-PURPOSE-BOUND-WORKER-001",
         "purpose": "Analyze the manifested text payload for a tracked integrity summary.",
         "required_capability": "text.integrity_summary",
-        "payload": {"text": "StegVerse SDK Test One manifest-driven evaluator submission."},
         "lifetime_policy": {
             "mode": "DERIVED_COST_TASK_DELAY_BUDGET",
             "production_recompute_required": True,
@@ -56,7 +55,7 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
 
     def test_test_one_runs_from_builder_manifest_only(self):
         manifest = build_manifest(
-            data={"experiment": "SDK Test One", "case": 1},
+            data={"text": "StegVerse tracks this arbitrary evaluator-submitted task."},
             source_framework="external_evaluator",
             source_output_id="sdk-test-one-001",
             processor_request=request(),
