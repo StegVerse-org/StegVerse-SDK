@@ -13,7 +13,6 @@ from .route_resolution import route_from_manifest
 
 _GOVERNED_WORKER_ROUTING_SURFACE = "STEGAGENTS_GOVERNED_RUNTIME"
 _LOCAL_SEMANTIC_WORKER_BINDINGS = {
-    "stegverse.purpose_bound_worker_processor.execute_manifest",
     "stegverse.atomic_task_worker_processor.execute_manifest",
 }
 

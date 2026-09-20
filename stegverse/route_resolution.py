@@ -64,7 +64,7 @@ PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
         "sandbox_required": False,
         "external_consequence_enabled": False,
         "state_graph_adapter_binding": "stegverse.purpose_bound_worker_processor.derive_state_graph",
-        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "runtime_binding": "stegverse.purpose_bound_worker_processor.execute_manifest",
         "runtime_installed": True,
     },
     ATOMIC_TASK_WORKER_ROUTE_ID: {

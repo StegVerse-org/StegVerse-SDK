@@ -1,10 +1,10 @@
 """Manifest-driven SDK processor for purpose-bound worker tests.
 
 The caller supplies only source-native data plus a processor request to Manifest
-Builder. This adapter validates that request and derives the canonical TT worker
-request/state graph. It never executes the worker lifecycle; the universal manifest
-state-transition runtime owns the consequential path. It does not accept a second
-worker request file or infer missing preregistered evidence.
+Builder. This processor validates that request, derives the canonical TT worker
+request from the manifest, executes the installed purpose-bound worker implementation,
+and returns the assembled Test 1 lifecycle result. It does not accept a second worker
+request file or infer missing preregistered evidence.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from copy import deepcopy
 from typing import Any, Mapping
 
 from .manifest_contract import validate_ingress_manifest
-from .purpose_bound_worker import SCHEMA as WORKER_SCHEMA
+from .purpose_bound_worker import SCHEMA as WORKER_SCHEMA, run_purpose_bound_worker
 from .route_resolution import PURPOSE_BOUND_WORKER_ROUTE_ID, route_from_manifest
 
 PROCESSING_CAPABILITY = "purpose_bound_worker"
@@ -179,11 +179,43 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def execute_manifest(_manifest: Mapping[str, Any]) -> dict[str, Any]:
-    raise ValueError(
-        "PROCESSOR_ADAPTER_ONLY: purpose_bound_worker_processor cannot execute lifecycle; "
-        "use the universal manifest state-transition runtime"
+def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    canonical = validate_ingress_manifest(manifest)
+    request = validate_purpose_bound_worker_request(
+        (canonical.get("extensions") or {}).get(REQUEST_EXTENSION)
     )
+    worker_request = derive_worker_request(manifest)
+    worker_result = run_purpose_bound_worker(worker_request)
+    phases = [
+        row.get("phase")
+        for row in worker_result.get("lifecycle_receipts", [])
+        if isinstance(row, Mapping)
+    ]
+    observations = {
+        "transition_cell_hash": bool(worker_result.get("transition_cell_hash")),
+        "worker_spec": isinstance(worker_result.get("worker_spec"), Mapping),
+        "lifecycle_receipts": phases == ["MATERIALIZED", "INVOCATION_STARTED", "TASK_COMPLETED", "RETIRED"],
+        "task_result": isinstance(worker_result.get("task_result"), Mapping),
+        "task_result_hash": bool(worker_result.get("task_result_hash")),
+        "records_only": worker_result.get("records_only") is True,
+        "worker_live_after_close": worker_result.get("worker_live_after_close") is False,
+    }
+    missing = [field for field in request["expected_evidence_fields"] if observations.get(field) is not True]
+    return {
+        "schema": RESULT_SCHEMA,
+        "test_id": request["test_id"],
+        "processing_capability": PROCESSING_CAPABILITY,
+        "route_id": ROUTE_ID,
+        "derived_worker_request": worker_request,
+        "expected_evidence_fields": request["expected_evidence_fields"],
+        "evidence_observations": observations,
+        "missing_expected_evidence_fields": missing,
+        "evidence_expectations_satisfied": not missing,
+        "worker_result": worker_result,
+        "records_only": worker_result.get("records_only") is True,
+        "worker_live_after_close": worker_result.get("worker_live_after_close"),
+        "authority_effect": "NONE_MANIFEST_DRIVEN_SDK_TEST",
+    }
 
 
 __all__ = [
