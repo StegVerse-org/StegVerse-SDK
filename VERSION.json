@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "component_id": "STEGVERSE-SDK",
   "repository": "StegVerse-org/StegVerse-SDK",
-  "component_version": "1.1.0",
+  "component_version": "1.3.0",
   "version_stage": "RELEASE_CANDIDATE",
   "release": {
     "tag": null,
@@ -10,46 +10,63 @@
     "release_evidence": []
   },
   "release_candidate": {
-    "target_tag": "v1.1.0",
-    "frozen_commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
-    "frozen_tree": "d9ddda3dbe942324c921051d89ec19eec3970b16",
-    "artifact_validation_run": 32251339936,
-    "artifact_validation_state": "PASS",
+    "target_tag": "v1.3.0",
+    "source_candidate_commit": "3cd3198375b687e73f06071e9c16e18d8a1c527c",
+    "source_candidate_tree": "31630c52fc0c34759ab81a3bbb710a70223ba86c",
+    "artifact_validation_run": null,
+    "artifact_validation_state": "PENDING_EXACT_HEAD_VALIDATION",
+    "four_stage_manifest_only_run": 35541675041,
+    "four_stage_manifest_only_state": "PASS",
     "tag_publication": "NOT_YET_AUTHORIZED",
     "package_publication": "NOT_YET_PUBLISHED"
   },
   "development_line": {
-    "version": "1.2.0.dev0",
-    "base_release_candidate": "1.1.0",
-    "base_frozen_commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
+    "version": "1.4.0.dev0",
+    "base_release_candidate": "1.3.0",
+    "base_source_candidate_commit": "3cd3198375b687e73f06071e9c16e18d8a1c527c",
     "moving_branch": "main",
     "release_identity": false,
-    "note": "Post-freeze main development must not be represented as the frozen 1.1.0 candidate."
+    "note": "Development after the 1.3.0 release candidate must not be represented as the frozen 1.3.0 release."
   },
   "validated_capabilities": [
     {
-      "capability_id": "SDK-PACKAGE-ARTIFACT-VALIDATION-1.1.0",
+      "capability_id": "SDK-FOUR-STAGE-MANIFEST-ONLY-EXPERIMENT",
       "state": "PASS",
-      "validated_pr_head": "2d70d6e2279aecc3195d52086e6b259a4629d620",
-      "merge_commit": "922d6c5235229e854c36e1a194dc99ed15a31b51",
-      "validated_tree": "d9ddda3dbe942324c921051d89ec19eec3970b16"
+      "validation_run": 35541675041,
+      "frozen_sdk_source_commit": "4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97",
+      "evidence_record_merge": "3cd3198375b687e73f06071e9c16e18d8a1c527c",
+      "invariant": "Tests 1-4 execute through run-manifest with manifests as the only per-test variable input."
+    },
+    {
+      "capability_id": "SDK-MANIFESTED-CONCURRENT-PURPOSE-BOUND-WORKER-GROUPS",
+      "state": "PASS",
+      "source_merge": "e53c5671960da61d8737e4d5ed76a7e338c19d91",
+      "overlap_fix_merge": "4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97"
     }
   ],
+  "hypothetical_examples": {
+    "HGAI": {
+      "status": "HYPOTHETICAL_ECOSYSTEM_EXAMPLE",
+      "integration_claim": false,
+      "purpose": "Illustrate the generic Governance Reference Graph contract without asserting an implemented HGAI integration."
+    }
+  },
   "runtime": {
-    "state": "PENDING",
+    "state": "SOURCE_VALIDATED",
     "evidence": [
       "PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md"
     ],
-    "next_required_state": "TVC_SUCCESSOR_AGGREGATE_RELEASE_VERIFIED_THEN_EXACT_GOVERNED_RUN"
+    "next_required_state": "TAG_AND_RELEASE_ONLY_THROUGH_TV_TVC_RELEASE_AUTHORITY"
   },
   "activation": {
-    "state": "PENDING",
+    "state": "NOT_IMPLIED_BY_RELEASE",
     "evidence": [
       "PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md"
     ],
-    "current_projection": "EXACT_GOVERNED_RUN_PROHIBITED_UNTIL_AGGREGATE_RELEASE_VERIFIED"
+    "current_projection": "SDK release identity does not itself activate a governed runtime."
   },
   "superseded_release_candidates": [
+    "v1.1.0",
     "v1.0.13-oda3-r1",
     "v1.0.13-evaluation-r2"
   ],
