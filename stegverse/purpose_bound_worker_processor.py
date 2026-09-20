@@ -312,13 +312,14 @@ def _execute_single(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> 
 
 def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
     worker_requests = derive_group_worker_requests(manifest)
-    barrier = threading.Barrier(len(worker_requests))
+    ready_barrier = threading.Barrier(len(worker_requests))\n    invocation_barrier = threading.Barrier(len(worker_requests))
 
     def run_one(index_request: tuple[int, dict[str, Any]]) -> dict[str, Any]:
         index, worker_request = index_request
         ready_ns = time.monotonic_ns()
-        barrier.wait(timeout=5)
+        ready_barrier.wait(timeout=5)
         execution_started_ns = time.monotonic_ns()
+        invocation_barrier.wait(timeout=5)
         packet = run_purpose_bound_worker(worker_request)
         execution_completed_ns = time.monotonic_ns()
         return {
@@ -355,6 +356,7 @@ def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> d
         "worker_count_matches_manifest": len(workers) == request["worker_count"],
         "distinct_worker_identities": len(set(worker_ids)) == request["worker_count"],
         "simultaneous_overlap_observed": overlap,
+        "overlap_semantics_are_invocation_lifetime_not_cpu_parallelism": overlap,
         "all_workers_records_only": all_records_only,
         "all_workers_retired": all_retired,
         "continued_authority_false": all_retired,
@@ -380,6 +382,7 @@ def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> d
         "records_only": all_records_only,
         "worker_live_after_close": not all_retired,
         "continued_authority_after_retirement": not all_retired,
+        "overlap_semantics": "CONCURRENT_INVOCATION_LIFETIME_NOT_CPU_PARALLELISM",
         "authority_effect": "NONE_MANIFEST_DRIVEN_SDK_TEST",
     }
 
