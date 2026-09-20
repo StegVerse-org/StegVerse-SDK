@@ -1,0 +1,38 @@
+{
+  "schema": "stegverse.sdk.purpose-bound-worker-test.v1",
+  "test_id": "SDK-TEST1-PURPOSE-BOUND-WORKER-001",
+  "purpose": "Analyze the manifested text payload for a tracked integrity summary.",
+  "required_capability": "text.integrity_summary",
+  "payload": {
+    "text": "StegVerse SDK Test One manifest-driven evaluator submission."
+  },
+  "lifetime_policy": {
+    "mode": "DERIVED_COST_TASK_DELAY_BUDGET",
+    "production_recompute_required": true,
+    "decomposition_target": "RECORDS_ENABLED_PACKET",
+    "retirement_condition": "PURPOSE_COMPLETED_OR_FAILED_OR_BUDGET_EXHAUSTED",
+    "cost_analysis": {
+      "expected_compute_units": 1,
+      "external_cost_usd_ceiling": 0,
+      "task_cost_basis": "deterministic local integrity summary"
+    },
+    "time_budget_seconds": {
+      "expected_task_execution": 6,
+      "known_delay": 1,
+      "inferred_unknown_delay_reserve": 2,
+      "records_decomposition": 3,
+      "safety_reserve": 3
+    },
+    "derived_max_lifetime_seconds": 15,
+    "unknown_delay_inference_basis": "single-worker deterministic evaluator demo"
+  },
+  "expected_evidence_fields": [
+    "transition_cell_hash",
+    "worker_spec",
+    "lifecycle_receipts",
+    "task_result",
+    "task_result_hash",
+    "records_only",
+    "worker_live_after_close"
+  ]
+}

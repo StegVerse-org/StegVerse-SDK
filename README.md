@@ -857,3 +857,23 @@ python -m stegverse.purpose_bound_worker_cost_demo \
 ```
 
 The stated lifetimes are maximum derived budgets, not minimum residence times. Purpose completion still retires a worker early. This remains local SDK semantic evidence and does not itself claim authentic WorkerCoordinator, TV/TVC, Interlock/InTr, resident-runtime, or Master Records execution.
+
+
+### Test One through Manifest Builder
+
+Test One now uses the same processor-generic ingress contract as other SDK manifested tests. The evaluator does not call `worker-lifecycle` directly. It builds a canonical manifest, then executes that manifest through its published installed route:
+
+```bash
+stegverse manifest build \
+  --input inspection/examples/sdk-test1-source.json \
+  --processor-request inspection/examples/sdk-test1-purpose-worker.processor-request.json \
+  --source-framework external_evaluator \
+  --source-output-id sdk-test-one-001 \
+  --process purpose_bound_worker \
+  --return-depth full-trace \
+  --output /tmp/sdk-test1.manifest.json
+
+stegverse run-manifest --manifest /tmp/sdk-test1.manifest.json
+```
+
+The processor derives the canonical TT worker request from the validated manifest. There is no second worker-specific variable input. Test One uses one compute unit and a 15-second derived maximum lifetime (6 task + 1 known delay + 2 inferred delay reserve + 3 records decomposition + 3 safety reserve), with early retirement on purpose completion.
