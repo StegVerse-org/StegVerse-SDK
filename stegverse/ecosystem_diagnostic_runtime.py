@@ -100,8 +100,8 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("ecosystem diagnostic manifest resolved to the wrong route")
     if resolved_route.get("processor_capability") != PROCESSING_CAPABILITY:
         raise ValueError("ecosystem diagnostic route processor binding mismatch")
-    if resolved_route.get("runtime_binding") != "stegverse.ecosystem_diagnostic_runtime.execute_manifest":
-        raise ValueError("ecosystem diagnostic runtime binding is unavailable")
+    if resolved_route.get("state_graph_adapter_binding") != "stegverse.manifest_state_transition_adapters.derive_ecosystem_diagnostic_state_graph":
+        raise ValueError("ecosystem diagnostic state-graph adapter binding is unavailable")
 
     extensions = canonical.get("extensions") or {}
     request = validate_diagnostic_request(extensions.get(REQUEST_EXTENSION))

@@ -124,10 +124,12 @@ def run_sovereign_validation(
     (Carrier, build_route, default_route, Custody, build_submission, Registry,
      Request, _evaluate, Ledger, run_tx) = _components()
     provenance, resolved_route = _prov(normalized, host_identity, raw_governance_request)
-    if resolved_route["runtime_binding"] != "core_lite.default_validation_route":
+    if resolved_route["route_id"] != CANONICAL_PRODUCTION_ROUTE_ID:
         raise SovereignValidationError(
-            f"resolved route runtime binding is unavailable: {resolved_route['runtime_binding']}"
+            f"resolved route is not the canonical governance route: {resolved_route['route_id']}"
         )
+    if resolved_route.get("state_graph_adapter_binding") != "stegverse.manifest_state_transition_adapters.derive_governance_state_graph":
+        raise SovereignValidationError("canonical governance state-graph adapter binding is unavailable")
     selected_route = default_route()
     custody = Custody(custody_db)
     registry, ledger = Registry(), Ledger()

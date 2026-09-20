@@ -39,7 +39,8 @@ PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
         "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
         "sandbox_required": False,
         "external_consequence_enabled": False,
-        "runtime_binding": "core_lite.default_validation_route",
+        "state_graph_adapter_binding": "stegverse.manifest_state_transition_adapters.derive_governance_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
         "runtime_installed": True,
     },
     ECOSYSTEM_DIAGNOSTIC_ROUTE_ID: {
@@ -50,7 +51,8 @@ PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
         "containment": "READ_ONLY_DIAGNOSTIC",
         "sandbox_required": False,
         "external_consequence_enabled": False,
-        "runtime_binding": "stegverse.ecosystem_diagnostic_runtime.execute_manifest",
+        "state_graph_adapter_binding": "stegverse.manifest_state_transition_adapters.derive_ecosystem_diagnostic_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
         "runtime_installed": True,
     },
     PURPOSE_BOUND_WORKER_ROUTE_ID: {
@@ -61,7 +63,8 @@ PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
         "containment": "PURPOSE_BOUND_TASK_LIFECYCLE",
         "sandbox_required": False,
         "external_consequence_enabled": False,
-        "runtime_binding": "stegverse.purpose_bound_worker_processor.execute_manifest",
+        "state_graph_adapter_binding": "stegverse.purpose_bound_worker_processor.derive_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
         "runtime_installed": True,
     },
     ATOMIC_TASK_WORKER_ROUTE_ID: {
@@ -72,7 +75,8 @@ PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
         "containment": "ATOMIC_TASK_WORKER_LIFECYCLE",
         "sandbox_required": False,
         "external_consequence_enabled": False,
-        "runtime_binding": "stegverse.atomic_task_worker_processor.execute_manifest",
+        "state_graph_adapter_binding": "stegverse.atomic_task_worker_processor.derive_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
         "runtime_installed": True,
     },
 }
@@ -137,6 +141,7 @@ def resolve_route_declaration(declaration: Any) -> dict[str, Any]:
     resolved["route_declaration_hash"] = canonical_sha256(
         {field: resolved[field] for field in _ROUTE_FIELDS}
     )
+    resolved["state_graph_adapter_binding"] = published["state_graph_adapter_binding"]
     resolved["runtime_binding"] = published["runtime_binding"]
     resolved["route_recognized"] = True
     resolved["route_substitution_permitted"] = False

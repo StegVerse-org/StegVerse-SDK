@@ -25,7 +25,11 @@ class Tests(unittest.TestCase):
     def test_explicit_published_route_resolves(self):
         resolved = resolve_route_declaration(canonical_route())
         self.assertEqual(CANONICAL_PRODUCTION_ROUTE_ID, resolved["route_id"])
-        self.assertEqual("core_lite.default_validation_route", resolved["runtime_binding"])
+        self.assertEqual("stegverse.manifest_state_transition_runtime.execute_manifest", resolved["runtime_binding"])
+        self.assertEqual(
+            "stegverse.manifest_state_transition_adapters.derive_governance_state_graph",
+            resolved["state_graph_adapter_binding"],
+        )
         self.assertTrue(resolved["route_recognized"])
         self.assertFalse(resolved["route_substitution_permitted"])
         self.assertEqual(64, len(resolved["route_declaration_hash"]))
