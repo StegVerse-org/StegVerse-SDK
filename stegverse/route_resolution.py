@@ -56,23 +56,25 @@ PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
     PURPOSE_BOUND_WORKER_ROUTE_ID: {
         "route_id": PURPOSE_BOUND_WORKER_ROUTE_ID,
         "processor_capability": "purpose_bound_worker",
-        "lane_class": "PURPOSE_BOUND_EXECUTION",
-        "routing_surface": "STEGAGENTS_GOVERNED_RUNTIME",
-        "containment": "PURPOSE_BOUND_TASK_LIFECYCLE",
+        "lane_class": "PRODUCTION_VALIDATION",
+        "routing_surface": "CANONICAL_PRODUCTION",
+        "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
         "sandbox_required": False,
         "external_consequence_enabled": False,
-        "runtime_binding": "stegverse.purpose_bound_worker_processor.execute_manifest",
+        "runtime_binding": "core_lite.default_validation_route",
+        "processor_binding": "stegverse.purpose_bound_worker_processor.execute_manifest",
         "runtime_installed": True,
     },
     ATOMIC_TASK_WORKER_ROUTE_ID: {
         "route_id": ATOMIC_TASK_WORKER_ROUTE_ID,
         "processor_capability": "atomic_task_worker",
-        "lane_class": "TASK_BOUND_EXECUTION",
-        "routing_surface": "STEGAGENTS_GOVERNED_RUNTIME",
-        "containment": "ATOMIC_TASK_WORKER_LIFECYCLE",
+        "lane_class": "PRODUCTION_VALIDATION",
+        "routing_surface": "CANONICAL_PRODUCTION",
+        "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
         "sandbox_required": False,
         "external_consequence_enabled": False,
-        "runtime_binding": "stegverse.atomic_task_worker_processor.execute_manifest",
+        "runtime_binding": "core_lite.default_validation_route",
+        "processor_binding": "stegverse.atomic_task_worker_processor.execute_manifest",
         "runtime_installed": True,
     },
 }
@@ -138,6 +140,8 @@ def resolve_route_declaration(declaration: Any) -> dict[str, Any]:
         {field: resolved[field] for field in _ROUTE_FIELDS}
     )
     resolved["runtime_binding"] = published["runtime_binding"]
+    if published.get("processor_binding") is not None:
+        resolved["processor_binding"] = published["processor_binding"]
     resolved["route_recognized"] = True
     resolved["route_substitution_permitted"] = False
     resolved["route_selection_grants_authority"] = False
