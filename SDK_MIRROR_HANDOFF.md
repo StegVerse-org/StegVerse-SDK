@@ -557,3 +557,17 @@ LLM-adapter/other source product -> declared upstream provenance when supplied b
 ```
 
 The canonical runtime `result_binding_hash` is preserved before enrichment. The SDK return adds `product_processing`, typed `admittedcode_processing`, and `sdk_return_binding_hash`. This creates no evaluator, dispatcher, worker, route, custody store, or authority plane.
+
+
+## Four-stage manifest-only experiment rerun - 2026-09-20
+
+Canonical coordination goal: `SDK-FOUR-STAGE-MANIFEST-EXPERIMENT-RERUN-001`
+Canonical coordination handoff: `StegVerse-Labs/.github:docs/SDK_FOUR_STAGE_MANIFEST_EXPERIMENT_RERUN_MIRROR_HANDOFF.md`
+
+The historical four-stage workflow was pinned to obsolete SDK commit `4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97`. The current rerun repairs that freeze so the exact checked-out current SDK head is captured before install/build, all four manifests are materialized before execution, and repository source identity is checked unchanged after the experiment.
+
+Task 4's prior overlap metric used a timestamp taken before the barrier and therefore proved only concurrent readiness. The rerun records `execution_started_ns` after barrier release and `execution_completed_ns` after each worker invocation, and derives overlap exclusively from those execution intervals.
+
+Test 3 remains deliberately on the same installed `atomic_task_worker` route as Test 2. Its distinct manifested test identity and preregistered proposition test person-neutral/invariant processing; no Test-3-specific runner or authority path is introduced.
+
+The retained experiment artifact is the machine-verifiable evidence source. Human-readable PDFs are downstream interpretations of those retained raw bytes and must ship with the raw manifests/results/hash inventory they cite.

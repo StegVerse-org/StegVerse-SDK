@@ -27,17 +27,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install -e '.[dev]'
-
       - name: Freeze exact SDK source identity
         run: |
-          echo 4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97 | tee /tmp/sdk-frozen-head.txt
-          git diff --exit-code 4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97 -- stegverse
-          git status --porcelain > /tmp/sdk-before.status
+          git rev-parse HEAD | tee /tmp/sdk-frozen-head.txt
+          git status --porcelain --untracked-files=all | tee /tmp/sdk-before.status
           test ! -s /tmp/sdk-before.status
+          git ls-files -s | LC_ALL=C sort > /tmp/sdk-source-index.txt
+          sha256sum /tmp/sdk-source-index.txt | tee /tmp/sdk-source-index.sha256
+          python - <<'PY'
+          import json, pathlib, subprocess
+          sha = pathlib.Path('/tmp/sdk-frozen-head.txt').read_text().strip()
+          version = json.loads(pathlib.Path('VERSION.json').read_text()) if pathlib.Path('VERSION.json').exists() else {}
+          pathlib.Path('/tmp/experiment-metadata.json').write_text(json.dumps({
+              'schema':'stegverse.sdk.four-stage-manifest-experiment.v2',
+              'sdk_commit':sha,
+              'sdk_version':version,
+              'per_stage_variable_execution_input':'manifest_only',
+              'test3_semantics':'same installed atomic-task-worker processor; distinct manifested identity and preregistered proposition; intended invariance/person-neutrality test',
+              'task4_overlap_semantics':'overlap of concurrent worker invocation lifetimes; execution_started_ns is post-ready-barrier and precedes the generic invocation-start barrier; this does not claim CPU-parallel instruction execution'
+          }, sort_keys=True, indent=2) + '\n')
+          PY
+
+      - run: python -m pip install -e '.[dev]'
 
       - name: Materialize Task 4 generic group processor request
         run: |
@@ -153,6 +168,8 @@ jobs:
           r=json.load(open('/tmp/test3.result.json'))
           assert r['test_number'] == 3
           assert r['scenario'] == 'TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM'
+          assert r['processing_capability'] == 'atomic_task_worker'
+          assert r['route_id']
           assert r['evidence_expectations_satisfied'] is True
           p=r['records_packet']
           assert p['records_only'] is True
@@ -175,19 +192,27 @@ jobs:
           assert r['worker_live_after_close'] is False
           assert r['continued_authority_after_retirement'] is False
           assert r['evidence_observations']['simultaneous_overlap_observed'] is True
+          assert r['evidence_observations']['overlap_semantics_are_invocation_lifetime_not_cpu_parallelism'] is True
+          assert r['overlap_semantics'] == 'CONCURRENT_INVOCATION_LIFETIME_NOT_CPU_PARALLELISM'
+          intervals=[(w['execution_started_ns'], w['execution_completed_ns']) for w in r['workers']]
+          print('TASK4_INVOCATION_INTERVALS', intervals)
+          assert max(start for start, _ in intervals) <= min(end for _, end in intervals)
+          assert all(w['ready_ns'] <= w['execution_started_ns'] < w['execution_completed_ns'] for w in r['workers'])
           assert len({w['records_packet']['worker_spec']['worker_id'] for w in r['workers']}) == 3
           print('MANIFEST_ONLY_TASK4_PASS')
           PY
 
       - name: Prove SDK source remained unchanged throughout experiment
         run: |
-          git diff --exit-code 4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97 -- stegverse
-          echo 4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97 | tee /tmp/sdk-after-head.txt
+          git rev-parse HEAD | tee /tmp/sdk-after-head.txt
           diff -u /tmp/sdk-frozen-head.txt /tmp/sdk-after-head.txt
-          git status --porcelain > /tmp/sdk-after.status
+          git status --porcelain --untracked-files=all | tee /tmp/sdk-after.status
           test ! -s /tmp/sdk-after.status
+          git ls-files -s | LC_ALL=C sort > /tmp/sdk-source-index.after.txt
+          diff -u /tmp/sdk-source-index.txt /tmp/sdk-source-index.after.txt
           sha256sum /tmp/test1.manifest.json /tmp/test2.manifest.json /tmp/test3.manifest.json /tmp/task4.manifest.json \
             /tmp/test1.result.json /tmp/test2.result.json /tmp/test3.result.json /tmp/task4.result.json \
+            /tmp/sdk-source-index.txt /tmp/experiment-metadata.json \
             | tee /tmp/experiment-sha256.txt
 
       - name: Retain complete four-stage experiment evidence
@@ -196,6 +221,9 @@ jobs:
           name: sdk-four-stage-manifest-only-experiment
           path: |
             /tmp/sdk-frozen-head.txt
+            /tmp/sdk-source-index.txt
+            /tmp/sdk-source-index.sha256
+            /tmp/experiment-metadata.json
             /tmp/sdk-task4-group.processor-request.json
             /tmp/test1.manifest.json
             /tmp/test2.manifest.json
