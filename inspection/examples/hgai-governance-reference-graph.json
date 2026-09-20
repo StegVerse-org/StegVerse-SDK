@@ -3,7 +3,7 @@
   "graph_id": "hgai-hitl-review-example-001",
   "graph_version": "1.0.0",
   "relation_profile": "stegverse.governance-relations.v1",
-  "graph_sha256": "f8581d83f38dd8fe7a42de121b9a4eaa2add014d9450c4ba133ad9aeaaec9aff",
+  "graph_sha256": "e3b87d04277590b244e371217203cc181abafbe2e424dd4296ebac1ff3eee2e4",
   "nodes": [
     {
       "node_id": "ai:analyst",
@@ -240,9 +240,10 @@
     "hgai:authority-register:v1"
   ],
   "metadata": {
-    "projection": "HITL_EXAMPLE",
+    "projection": "HYPOTHETICAL_HITL_EXAMPLE",
     "canonical_schema": "GENERIC_GRG",
-    "purpose": "Muhammad-facing HGAI mapping example"
+    "purpose": "Hypothetical HGAI mapping example for the generic Governance Reference Graph",
+    "integration_claim": false
   },
   "authority_boundary": {
     "graph_representation_grants_authority": false,

@@ -10,8 +10,8 @@ repository: StegVerse-SDK
 canonical_branch: main
 credential_authority: TV/TVC
 non-TV/TVC release credential permitted: false
-current_public_package_candidate: 1.1.0
-current_public_tag_candidate: v1.1.0
+current_public_package_candidate: 1.3.0
+current_public_tag_candidate: v1.3.0
 historical_v1.0.13_mutable: false
 frozen_sdk_candidate: 922d6c5235229e854c36e1a194dc99ed15a31b51
 frozen_sdk_tree: d9ddda3dbe942324c921051d89ec19eec3970b16
@@ -202,4 +202,39 @@ R3_AGGREGATE_RECEIPT: NOT_PRESENT
 EXACT_GOVERNED_RUN: PROHIBITED_UNTIL_R3_VERIFIED
 OWNER_EVIDENCE_PACKET: PENDING_EXACT_RUN
 ARCHIVE_ELIGIBILITY: FALSE
+```
+
+
+## SDK 1.3.0 release-candidate reconciliation — 2026-09-20
+
+The prior 1.1.0 release candidate was never published and is superseded by the current 1.3.0 candidate. The 1.3.0 candidate incorporates the validated generic manifest expansion developed after the 1.1.0 freeze while preserving the existing authority boundaries.
+
+```text
+current_public_package_candidate: 1.3.0
+current_public_tag_candidate: v1.3.0
+SOURCE_CANDIDATE_BASE: 3cd3198375b687e73f06071e9c16e18d8a1c527c
+SOURCE_CANDIDATE_TREE: 31630c52fc0c34759ab81a3bbb710a70223ba86c
+MANIFESTED_CONCURRENT_WORKER_GROUPS: VALIDATED
+FOUR_STAGE_MANIFEST_ONLY_EXPERIMENT: PASS
+FOUR_STAGE_VALIDATION_RUN: 35541675041
+HGAI_STATUS: HYPOTHETICAL_ECOSYSTEM_EXAMPLE
+HGAI_INTEGRATION_CLAIM: FALSE
+release_authority: TV/TVC
+tag_publication: NOT_YET_AUTHORIZED
+package_publication: NOT_YET_PUBLISHED
+```
+
+The generic manifested concurrent-worker capability is part of the candidate SDK contract. It is not a Task-4-specific execution path. The validated four-stage experiment established that Tests 1, 2, 3, and Task 4 can all be built as manifests and executed through the same public `run-manifest` surface with no SDK source mutation between tests.
+
+Muhammad/HGAI remains a **hypothetical external ecosystem example** used to illustrate the generic Governance Reference Graph. Its fixture and documentation do not claim an HGAI deployment, integration, runtime, partnership, or production connection.
+
+Release semantics remain unchanged:
+
+```text
+validated candidate != released
+tag readiness != tag publication
+package build != package publication
+SDK release identity != governed runtime activation
+GitHub Actions validation != release authority
+TV/TVC remains release and credential authority
 ```
