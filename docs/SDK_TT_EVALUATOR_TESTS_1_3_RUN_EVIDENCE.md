@@ -12,9 +12,13 @@
 - Artifact ZIP SHA-256: `01e0bbb2fb6397c00dac8d5ae286af7e7f333c86de47c50e41f8f23c6f9b4f56`
 - Retained files: three canonical manifests + three returned results.
 
-## Evaluator contract
+## Evaluator identity and interface
 
-All three tests were executed using only the same public SDK pattern available to an evaluator:
+The evaluator for Tests 1-3 is Rigel Randolph. Because the evaluator is operating from an iPhone and does not have a practical local console surface, ChatGPT operated the SDK interface on the evaluator's behalf. The evidentiary role is therefore evaluator-directed SDK interaction, not an independent third-party evaluator and not GitHub Actions acting as evaluator.
+
+The interface used must remain exactly within the public SDK surface that the evaluator could invoke from a conventional console. ChatGPT may enter commands and retrieve outputs on the evaluator's behalf, but may not substitute internal resident scripts, private acceptance runners, hidden parameters, privileged repository-only entrypoints, or other execution paths unavailable at the SDK interface.
+
+All three tests were executed using only the same public SDK pattern presented to the evaluator:
 
 ```text
 source-native JSON
@@ -93,8 +97,14 @@ Observed assertions:
 
 Console marker: `SDK_TEST3_EVALUATOR_MANIFEST_PASS`
 
+## Screenshot and visual-evidence contract
+
+The subsequent evidence publication must show only pertinent SDK-interface screenshots from the evaluator-directed run. Required views are the exact stages that matter to understanding and independently checking the test: source-native input, processor request / preregistered expectations, completed manifest, resolved route or processing declaration, run-manifest invocation, returned result, ordered lifecycle receipts, terminal records-only / retired state, and retained artifact or provenance identity where pertinent.
+
+Generic CI dashboards, decorative diagrams, unrelated repository pages, or substitute screenshots are not evidence views for these tests. If a contemporaneous interface screenshot is unavailable and a view is reconstructed from exact retained JSON, it must be explicitly labeled as a post-run reconstructed evidence view and must reproduce only the retained artifact content without adding inferred transitions or states.
+
 ## Evidence boundary
 
-This file records the completed evaluator-visible SDK runs and the artifacts they returned. It does not convert GitHub Actions into StegVerse runtime authority and does not claim a hidden resident execution path. The evidentiary claim is exactly that an evaluator using the installed SDK surface can build and run these manifests through the same public Manifest Builder and generic manifest executor.
+This file records evaluator-directed SDK runs and the artifacts returned to Rigel Randolph as evaluator. ChatGPT operated the console/interface on the evaluator's behalf because of the evaluator's iPhone-only constraint. GitHub Actions provided execution/validation transport for the SDK commands; it was not the evaluator and does not become StegVerse transition authority. The evidentiary claim is exactly that the evaluator-directed use of the installed SDK surface can build and run these manifests through the public Manifest Builder and generic manifest executor.
 
-The retained manifest/result artifacts are the source material for the subsequent ELAN-style visual evidence documentation.
+The retained manifest/result artifacts and exact pertinent SDK-interface captures are the source material for the subsequent ELAN-style visual evidence documentation.
