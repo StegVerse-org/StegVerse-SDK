@@ -4,7 +4,7 @@ Goal Task ID: `SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001`
 Parent Goal Task ID: `SDK-TT-PURPOSE-BOUND-WORKER-CONSOLE-001`
 COSV ID: `71000000111111`
 Repository: `StegVerse-org/StegVerse-SDK`
-Status: `ACTIVE / MANIFEST-BUILDER INGRESS REPAIR`
+Status: `ACTIVE / MANIFEST-BUILDER INGRESS MERGED / AUTHENTIC RESIDENT PROOF PENDING`
 
 ## Objective
 
@@ -50,3 +50,31 @@ The first command is the sole construction path. The second command validates th
 ## Evidence boundary
 
 This SDK branch proves manifest-driven construction and SDK processor execution. It does not by itself promote authentic WorkerCoordinator, TV/TVC, Interlock/InTr, resident StegAgents, or canonical Master Records runtime predicates. Those remain owned by the active runtime-proof goal and must be promoted only from authentic retained receipts.
+
+
+## Manifest Builder Test One merge — 2026-09-19
+
+SDK PR #276 merged as `a3a2039f907fe6499f32b79c7112c6be9495f5a4`.
+
+Validated exact PR head: `572b91544ecf6ca5856fb7637db506c1b9bb5306`.
+
+The dedicated `TT Purpose-Bound Worker Console Validation` run `35480600026` passed the actual evaluator-style console path:
+
+```text
+source-native evaluator input
+-> stegverse manifest build
+-> processing.capability=purpose_bound_worker
+-> published installed route stegverse.route.purpose-bound-worker.v1
+-> stegverse run-manifest
+-> manifest-derived TT worker request
+-> MATERIALIZED
+-> INVOCATION_STARTED
+-> TASK_COMPLETED
+-> RETIRED
+-> records_only=true
+-> worker_live_after_close=false
+```
+
+Manifest Builder Source Validation `35480599985` and Evaluator Manifest Source Validation `35480599958` also passed at the same exact head.
+
+This closes the SDK/source ingress defect identified during Test One preparation: the evaluator no longer supplies a separate worker request or uses the retired direct worker-lifecycle shortcut for this experiment. The manifest is the sole variable experiment input after builder construction. Authentic resident WorkerCoordinator claim/fence, TV/TVC warrant-policy, Interlock/InTr admission, StegAgents resident execution, and Master Records transition closures remain unpromoted until retained runtime receipts exist.
