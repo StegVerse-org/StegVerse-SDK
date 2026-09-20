@@ -10,9 +10,10 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Mapping
 
-from .atomic_task_worker_binding import SCHEMA as ATOMIC_SCHEMA, run_atomic_task_worker_binding
+from .atomic_task_worker_binding import SCHEMA as ATOMIC_SCHEMA
 from .manifest_contract import validate_ingress_manifest
 from .route_resolution import ATOMIC_TASK_WORKER_ROUTE_ID, route_from_manifest
+from .worker_runtime_bridge import execute_worker_manifest
 
 PROCESSING_CAPABILITY = "atomic_task_worker"
 ROUTE_ID = ATOMIC_TASK_WORKER_ROUTE_ID
@@ -95,8 +96,6 @@ def derive_atomic_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
     route = route_from_manifest(canonical)
     if route.get("route_id") != ROUTE_ID or route.get("processor_capability") != PROCESSING_CAPABILITY:
         raise ValueError("atomic task/worker route binding mismatch")
-    if route.get("runtime_binding") != "core_lite.default_validation_route" or route.get("processor_binding") != "stegverse.atomic_task_worker_processor.execute_manifest":
-        raise ValueError("atomic task/worker governed runtime binding is unavailable")
     req = validate_atomic_task_worker_request((canonical.get("extensions") or {}).get(REQUEST_EXTENSION))
     source_payload = canonical.get("payload")
     if not isinstance(source_payload, Mapping) or not isinstance(source_payload.get("text"), str):
@@ -135,9 +134,20 @@ def _observations(packet: Mapping[str, Any]) -> dict[str, bool]:
 def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     canonical = validate_ingress_manifest(manifest)
     req = validate_atomic_task_worker_request((canonical.get("extensions") or {}).get(REQUEST_EXTENSION))
-    packet = run_atomic_task_worker_binding(derive_atomic_request(manifest))
-    observed = _observations(packet)
-    missing = [name for name in req["expected_evidence_fields"] if observed.get(name) is not True]
+    runtime = execute_worker_manifest(canonical, capability=PROCESSING_CAPABILITY)
+    close_receipt = runtime.get("close_receipt") if isinstance(runtime.get("close_receipt"), Mapping) else {}
+    close_result = close_receipt.get("result") if isinstance(close_receipt.get("result"), Mapping) else {}
+    observations = {
+        "constitutive_transition": isinstance(runtime.get("activation_receipt"), Mapping),
+        "reciprocal_task_worker_binding": isinstance(runtime.get("workercoordinator_assignment"), Mapping),
+        "invocation_after_transition": isinstance(runtime.get("execution_receipt"), Mapping),
+        "task_result": isinstance((runtime.get("execution_receipt") or {}).get("result"), Mapping),
+        "close_and_retire": isinstance(runtime.get("close_receipt"), Mapping),
+        "records_only": close_result.get("records_only") is True,
+        "worker_live_after_close_false": close_result.get("worker_live_after_close") is False,
+        "continued_authority_false": close_result.get("continued_authority_after_retirement") is False,
+    }
+    missing = [name for name in req["expected_evidence_fields"] if observations.get(name) is not True]
     return {
         "schema": RESULT_SCHEMA,
         "test_id": req["test_id"],
@@ -145,15 +155,24 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "scenario": req["scenario"],
         "processing_capability": PROCESSING_CAPABILITY,
         "route_id": ROUTE_ID,
+        "canonical_manifest_sha256": runtime.get("canonical_manifest_sha256"),
         "preregistered_expectation": req["preregistered_expectation"],
         "expected_evidence_fields": req["expected_evidence_fields"],
-        "evidence_observations": observed,
+        "evidence_observations": observations,
         "missing_expected_evidence_fields": missing,
         "evidence_expectations_satisfied": not missing,
-        "records_packet": packet,
-        "records_only": packet.get("records_only") is True,
-        "worker_live_after_close": packet.get("worker_live_after_close"),
-        "authority_effect": "NONE_EVALUATOR_MANIFEST_DRIVEN_SDK_TEST",
+        "workercoordinator_assignment": runtime.get("workercoordinator_assignment"),
+        "activation_receipt": runtime.get("activation_receipt"),
+        "execution_receipt": runtime.get("execution_receipt"),
+        "close_receipt": runtime.get("close_receipt"),
+        "activation_replay": runtime.get("activation_replay"),
+        "activation_reconstruction": runtime.get("activation_reconstruction"),
+        "close_replay": runtime.get("close_replay"),
+        "close_reconstruction": runtime.get("close_reconstruction"),
+        "records_only": close_result.get("records_only") is True,
+        "worker_live_after_close": close_result.get("worker_live_after_close"),
+        "continued_authority_after_retirement": close_result.get("continued_authority_after_retirement"),
+        "authority_effect": "NONE_SDK_RETURN_ASSEMBLY_ONLY",
     }
 
 
