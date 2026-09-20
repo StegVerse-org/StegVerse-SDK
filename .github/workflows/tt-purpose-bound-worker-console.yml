@@ -54,9 +54,9 @@ jobs:
               echo "ERROR: Test ${n} incorrectly returned completed SDK result from local semantic route"
               exit 1
             fi
-            grep -q "AUTHENTIC_GOVERNED_RUNTIME_BINDING_REQUIRED" /tmp/sdk-test${n}.stderr.txt
+            grep -q "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED" /tmp/sdk-test${n}.stderr.txt
           done
-          echo "SDK_WORKER_ROUTES_FAIL_CLOSED_BEFORE_AUTHENTIC_RUNTIME_PASS"
+          echo "SDK_WORKER_ROUTES_REACH_UNIVERSAL_INTR_BOUNDARY_AND_FAIL_CLOSED_WITHOUT_LIVE_BINDING"
 
       - name: Retain evaluator manifests and fail-closed boundary evidence
         uses: actions/upload-artifact@v4
