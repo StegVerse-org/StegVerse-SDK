@@ -11,8 +11,9 @@ from copy import deepcopy
 from typing import Any, Mapping
 
 from .manifest_contract import validate_ingress_manifest
-from .purpose_bound_worker import SCHEMA as WORKER_SCHEMA, run_purpose_bound_worker
+from .purpose_bound_worker import SCHEMA as WORKER_SCHEMA
 from .route_resolution import PURPOSE_BOUND_WORKER_ROUTE_ID, route_from_manifest
+from .worker_runtime_bridge import execute_worker_manifest
 
 PROCESSING_CAPABILITY = "purpose_bound_worker"
 ROUTE_ID = PURPOSE_BOUND_WORKER_ROUTE_ID
@@ -102,8 +103,6 @@ def derive_worker_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
     route = route_from_manifest(canonical)
     if route.get("route_id") != ROUTE_ID or route.get("processor_capability") != PROCESSING_CAPABILITY:
         raise ValueError("purpose-bound worker route binding mismatch")
-    if route.get("runtime_binding") != "core_lite.default_validation_route" or route.get("processor_binding") != "stegverse.purpose_bound_worker_processor.execute_manifest":
-        raise ValueError("purpose-bound worker governed runtime binding is unavailable")
     extensions = canonical.get("extensions") or {}
     request = validate_purpose_bound_worker_request(extensions.get(REQUEST_EXTENSION))
     policy = request["lifetime_policy"]
@@ -136,21 +135,19 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     request = validate_purpose_bound_worker_request(
         (canonical.get("extensions") or {}).get(REQUEST_EXTENSION)
     )
-    worker_request = derive_worker_request(manifest)
-    worker_result = run_purpose_bound_worker(worker_request)
-    phases = [
-        row.get("phase")
-        for row in worker_result.get("lifecycle_receipts", [])
-        if isinstance(row, Mapping)
-    ]
+    runtime = execute_worker_manifest(canonical, capability=PROCESSING_CAPABILITY)
+    receipt = runtime.get("runtime_receipt") if isinstance(runtime.get("runtime_receipt"), Mapping) else {}
+    governed = runtime.get("governed_result") if isinstance(runtime.get("governed_result"), Mapping) else {}
+    lifecycle = governed.get("purpose_bound_worker_result") if isinstance(governed.get("purpose_bound_worker_result"), Mapping) else {}
+    phases = [row.get("phase") for row in lifecycle.get("lifecycle_receipts", []) if isinstance(row, Mapping)]
     observations = {
-        "transition_cell_hash": bool(worker_result.get("transition_cell_hash")),
-        "worker_spec": isinstance(worker_result.get("worker_spec"), Mapping),
+        "transition_cell_hash": bool(governed.get("tt_cell_hash")),
+        "worker_spec": isinstance(lifecycle.get("worker_spec"), Mapping),
         "lifecycle_receipts": phases == ["MATERIALIZED", "INVOCATION_STARTED", "TASK_COMPLETED", "RETIRED"],
-        "task_result": isinstance(worker_result.get("task_result"), Mapping),
-        "task_result_hash": bool(worker_result.get("task_result_hash")),
-        "records_only": worker_result.get("records_only") is True,
-        "worker_live_after_close": worker_result.get("worker_live_after_close") is False,
+        "task_result": isinstance(lifecycle.get("task_result"), Mapping),
+        "task_result_hash": bool(lifecycle.get("task_result_hash")),
+        "records_only": governed.get("records_only") is True,
+        "worker_live_after_close": governed.get("worker_live_after_close") is False,
     }
     missing = [field for field in request["expected_evidence_fields"] if observations.get(field) is not True]
     return {
@@ -158,15 +155,20 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "test_id": request["test_id"],
         "processing_capability": PROCESSING_CAPABILITY,
         "route_id": ROUTE_ID,
-        "derived_worker_request": worker_request,
+        "canonical_manifest_sha256": runtime.get("canonical_manifest_sha256"),
         "expected_evidence_fields": request["expected_evidence_fields"],
         "evidence_observations": observations,
         "missing_expected_evidence_fields": missing,
         "evidence_expectations_satisfied": not missing,
-        "worker_result": worker_result,
-        "records_only": worker_result.get("records_only") is True,
-        "worker_live_after_close": worker_result.get("worker_live_after_close"),
-        "authority_effect": "NONE_MANIFEST_DRIVEN_SDK_TEST",
+        "workercoordinator_assignment": runtime.get("workercoordinator_assignment"),
+        "runtime_receipt": receipt,
+        "governed_result": governed,
+        "replay": runtime.get("replay"),
+        "reconstruction": runtime.get("reconstruction"),
+        "worker_result": lifecycle,
+        "records_only": governed.get("records_only") is True,
+        "worker_live_after_close": governed.get("worker_live_after_close"),
+        "authority_effect": "NONE_SDK_RETURN_ASSEMBLY_ONLY",
     }
 
 
