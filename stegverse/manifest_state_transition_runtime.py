@@ -70,8 +70,13 @@ def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(graph_id, str) or not graph_id:
         raise ValueError("state-graph adapter did not provide graph_id")
     task_id = graph.get("canonical_task_id")
-    if not isinstance(task_id, str) or not task_id:
-        raise ValueError("state-graph adapter did not provide canonical_task_id")
+    requires_worker_claim = graph.get("requires_workercoordinator_claim_fence")
+    if requires_worker_claim is None:
+        requires_worker_claim = bool(task_id)
+    if requires_worker_claim and (not isinstance(task_id, str) or not task_id):
+        raise ValueError("worker-claim state graph did not provide canonical_task_id")
+    if task_id is not None and (not isinstance(task_id, str) or not task_id):
+        raise ValueError("canonical_task_id must be null or a non-empty string")
     manifest_hash = canonical.get("canonical_manifest_sha256") or canonical_sha256(canonical)
     request = {
         "schema": REQUEST_SCHEMA,
@@ -83,6 +88,7 @@ def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "state_graph": graph,
         "graph_id": graph_id,
         "canonical_task_id": task_id,
+        "requires_workercoordinator_claim_fence": bool(requires_worker_claim),
         "predecessor_closure_required": True,
         "credential_authority": "TV/TVC",
         "claim_fence_authority": "WORKERCOORDINATOR",
@@ -134,8 +140,12 @@ def _post_existing_intr(request_body: Mapping[str, Any]) -> dict[str, Any]:
 def _validate_transition_closures(result: Mapping[str, Any], graph: Mapping[str, Any]) -> None:
     closures = result.get("transition_closures")
     ordered = graph.get("ordered_transitions")
-    if not isinstance(ordered, list) or not ordered:
-        raise ValueError("installed state graph must declare ordered_transitions")
+    if not isinstance(ordered, list):
+        raise ValueError("installed state graph ordered_transitions must be an array")
+    if not ordered:
+        ordered = result.get("resolved_ordered_transitions")
+        if not isinstance(ordered, list) or not ordered or not all(isinstance(x, str) and x for x in ordered):
+            raise ValueError("RUNTIME_CANONICAL_ORDERED_TRANSITIONS_REQUIRED")
     if not isinstance(closures, list) or len(closures) != len(ordered):
         raise ValueError("MASTER_RECORDS_TRANSITION_CLOSURE_COUNT_MISMATCH")
     previous_receipt = None
