@@ -8,11 +8,14 @@ on:
       - 'stegverse/atomic_task_worker_binding.py'
       - 'stegverse/atomic_task_worker_processor.py'
       - 'stegverse/manifest_execution.py'
+      - 'stegverse/manifest_state_transition_runtime.py'
+      - 'stegverse/manifest_state_transition_adapters.py'
       - 'stegverse/manifest_builder.py'
       - 'stegverse/route_resolution.py'
       - 'stegverse/evaluator_console.py'
       - 'tests/test_manifest_driven_purpose_worker.py'
       - 'tests/test_evaluator_atomic_task_worker_manifest.py'
+      - 'tests/test_universal_manifest_state_transition_runtime.py'
       - 'inspection/examples/sdk-tt-shared-source.json'
       - 'inspection/examples/sdk-test1-purpose-worker.processor-request.json'
       - 'inspection/examples/sdk-test2-atomic-task-worker.processor-request.json'
@@ -32,7 +35,10 @@ jobs:
 
       - name: Validate shared evaluator-level manifest processors
         run: |
-          python -m unittest             tests.test_manifest_driven_purpose_worker             tests.test_evaluator_atomic_task_worker_manifest -v
+          python -m unittest \
+            tests.test_manifest_driven_purpose_worker \
+            tests.test_evaluator_atomic_task_worker_manifest \
+            tests.test_universal_manifest_state_transition_runtime -v
 
       - name: Test 1 - build manifest exactly as evaluator
         run: |
