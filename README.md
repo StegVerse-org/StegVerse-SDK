@@ -1,5 +1,8 @@
 # StegVerse SDK
 
+> **SDK 1.3.0 release candidate.** The candidate adds generic manifested concurrent purpose-bound worker groups and has passed the four-stage manifest-only experiment. Muhammad/HGAI references in this repository are hypothetical ecosystem examples of the generic Governance Reference Graph; they are not claims of an implemented HGAI integration.
+
+
 The StegVerse SDK is a public governance experiment and validation environment for StegGate-style admissibility, AdmittedCode receipt verification, LLM/agent outputs, governed submissions, replay, reconstruction, and inspectable request/receipt boundaries.
 
 A request, manifest, model output, validation result, receipt, or receipt locator does **not** become execution authority merely because it validates.
