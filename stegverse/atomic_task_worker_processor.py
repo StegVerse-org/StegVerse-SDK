@@ -61,9 +61,13 @@ def validate_atomic_task_worker_request(value: Any) -> dict[str, Any]:
         raise ValueError("Test 2 scenario mismatch")
     if test_number == 3 and scenario != "TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM":
         raise ValueError("Test 3 scenario mismatch")
+    task = _mapping(value.get("task"), "task")
+    supplied_payload = task.pop("payload", None)
+    if supplied_payload is not None and not isinstance(supplied_payload, Mapping):
+        raise ValueError("task.payload must be an object when supplied")
     request = {
         "schema": ATOMIC_SCHEMA,
-        "task": _mapping(value.get("task"), "task"),
+        "task": task,
         "worker_manifest": _mapping(value.get("worker_manifest"), "worker_manifest"),
         "activation": _mapping(value.get("activation"), "activation"),
     }
@@ -81,6 +85,7 @@ def validate_atomic_task_worker_request(value: Any) -> dict[str, Any]:
         "atomic_request": request,
         "preregistered_expectation": deepcopy(dict(prereg)),
         "expected_evidence_fields": list(dict.fromkeys(x.strip() for x in expected)),
+        "supplied_payload": deepcopy(dict(supplied_payload)) if isinstance(supplied_payload, Mapping) else None,
     }
 
 
@@ -95,7 +100,14 @@ def derive_atomic_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
     if route.get("runtime_binding") != "stegverse.atomic_task_worker_processor.execute_manifest":
         raise ValueError("atomic task/worker runtime binding is unavailable")
     req = validate_atomic_task_worker_request((canonical.get("extensions") or {}).get(REQUEST_EXTENSION))
-    return deepcopy(req["atomic_request"])
+    source_payload = canonical.get("payload")
+    if not isinstance(source_payload, Mapping) or not isinstance(source_payload.get("text"), str):
+        raise ValueError("manifest payload.text must be a string for atomic_task_worker")
+    if req.get("supplied_payload") is not None and req["supplied_payload"] != source_payload:
+        raise ValueError("processor_request task.payload conflicts with source-native manifest payload")
+    atomic = deepcopy(req["atomic_request"])
+    atomic["task"]["payload"] = deepcopy(dict(source_payload))
+    return atomic
 
 
 def _observations(packet: Mapping[str, Any]) -> dict[str, bool]:
