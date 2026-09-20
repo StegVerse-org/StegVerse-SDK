@@ -317,16 +317,16 @@ def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> d
     def run_one(index_request: tuple[int, dict[str, Any]]) -> dict[str, Any]:
         index, worker_request = index_request
         ready_ns = time.monotonic_ns()
-        started_ns = ready_ns
         barrier.wait(timeout=5)
+        execution_started_ns = time.monotonic_ns()
         packet = run_purpose_bound_worker(worker_request)
-        completed_ns = time.monotonic_ns()
+        execution_completed_ns = time.monotonic_ns()
         return {
             "worker_index": index + 1,
             "partition_id": request["partition_ids"][index],
             "ready_ns": ready_ns,
-            "started_ns": started_ns,
-            "completed_ns": completed_ns,
+            "execution_started_ns": execution_started_ns,
+            "execution_completed_ns": execution_completed_ns,
             "records_packet": packet,
         }
 
@@ -334,7 +334,7 @@ def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> d
         workers = list(pool.map(run_one, list(enumerate(worker_requests))))
 
     worker_ids = [row["records_packet"]["worker_spec"]["worker_id"] for row in workers]
-    overlap = max(row["started_ns"] for row in workers) <= min(row["completed_ns"] for row in workers)
+    overlap = max(row["execution_started_ns"] for row in workers) <= min(row["execution_completed_ns"] for row in workers)
     all_records_only = all(row["records_packet"].get("records_only") is True for row in workers)
     all_retired = all(row["records_packet"].get("worker_live_after_close") is False for row in workers)
     result_bindings = [
