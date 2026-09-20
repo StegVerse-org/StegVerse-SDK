@@ -240,9 +240,10 @@
     "hgai:authority-register:v1"
   ],
   "metadata": {
-    "projection": "HITL_EXAMPLE",
+    "projection": "HYPOTHETICAL_HITL_EXAMPLE",
     "canonical_schema": "GENERIC_GRG",
-    "purpose": "Muhammad-facing HGAI mapping example"
+    "purpose": "Hypothetical HGAI mapping example for the generic Governance Reference Graph",
+    "integration_claim": false
   },
   "authority_boundary": {
     "graph_representation_grants_authority": false,
