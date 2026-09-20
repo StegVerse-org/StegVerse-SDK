@@ -29,7 +29,7 @@ def diagnostic_request(*, observation=None, expected=None):
 
 class EcosystemDiagnosticProcessorTests(unittest.TestCase):
     def test_processor_is_installed_separately_from_governance(self):
-        self.assertEqual(available_processors(), ("ecosystem_diagnostic", "governance", "purpose_bound_worker"))
+        self.assertEqual(available_processors(), ("atomic_task_worker", "ecosystem_diagnostic", "governance", "purpose_bound_worker"))
         route = PUBLISHED_ROUTES[ECOSYSTEM_DIAGNOSTIC_ROUTE_ID]
         self.assertEqual(route["processor_capability"], "ecosystem_diagnostic")
         self.assertTrue(route["runtime_installed"])
