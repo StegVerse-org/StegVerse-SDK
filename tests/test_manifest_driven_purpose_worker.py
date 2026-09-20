@@ -4,7 +4,7 @@ import unittest
 
 from stegverse.manifest_builder import available_processors, build_manifest
 from stegverse.manifest_execution import execute_manifest
-from stegverse.purpose_bound_worker_processor import REQUEST_SCHEMA
+from stegverse.purpose_bound_worker_processor import REQUEST_SCHEMA, derive_state_graph, execute_manifest as execute_processor_manifest
 from stegverse.route_resolution import PURPOSE_BOUND_WORKER_ROUTE_ID, PUBLISHED_ROUTES
 
 
@@ -65,8 +65,14 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         )
         self.assertEqual(manifest["processing"]["capability"], "purpose_bound_worker")
         self.assertEqual(manifest["processing"]["route_id"], PURPOSE_BOUND_WORKER_ROUTE_ID)
-        with self.assertRaisesRegex(ValueError, "AUTHENTIC_GOVERNED_RUNTIME_BINDING_REQUIRED"):
+        graph = derive_state_graph(manifest)
+        self.assertEqual(graph["canonical_task_id"], "SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001")
+        self.assertTrue(graph["requires_workercoordinator_claim_fence"])
+        self.assertFalse(graph["adapter_executes_lifecycle"])
+        with self.assertRaisesRegex(ValueError, "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED"):
             execute_manifest(manifest)
+        with self.assertRaisesRegex(ValueError, "PROCESSOR_ADAPTER_ONLY"):
+            execute_processor_manifest(manifest)
 
 
 if __name__ == "__main__":
