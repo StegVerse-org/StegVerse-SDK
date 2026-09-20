@@ -238,3 +238,23 @@ SDK release identity != governed runtime activation
 GitHub Actions validation != release authority
 TV/TVC remains release and credential authority
 ```
+
+
+## SDK 1.3.0 exact validation closeout — 2026-09-20
+
+```text
+validated_candidate_head: aac3222adfe530c620cb56d7d5ad81ce8589f90f
+validated_candidate_tree: bc755d2b955d43fe46ed4e678bbb2df75ef0aad7
+merged_candidate_commit: b1376d3e3e3c79b6e996d32766bfd7e41cd0ccc4
+SDK Package Artifact Validation: 35544752518 PASS
+SDK Four-Stage Manifest-Only Experiment: 35544752500 PASS
+Manifest Builder Source Validation: 35544752647 PASS
+all_exact_head_PR_validation_workflows: 20/20 PASS
+squash_merge_tree_matches_validated_head: TRUE
+tag_target: v1.3.0
+tag_publication_state: READY_PENDING_TV_TVC_EXECUTION
+GitHub_release_state: NOT_PUBLISHED
+PyPI_state: NOT_PUBLISHED
+```
+
+This closeout records validation state only. It grants no tag, GitHub Release, package-publication, runtime, transition, or credential authority. The exact final tag target must be the post-closeout release-candidate commit after this metadata-only closeout itself passes the applicable gates. TV/TVC remains the sole release/credential authority.
