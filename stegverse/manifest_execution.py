@@ -24,7 +24,7 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     function = getattr(module, function_name, None)
     if not callable(function):
         raise ValueError(f"installed runtime binding is not callable: {binding}")
-    result = function(canonical)
+    result = function(manifest)
     if not isinstance(result, Mapping):
         raise ValueError("manifest processor returned a non-object result")
     return dict(result)
