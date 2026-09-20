@@ -102,8 +102,8 @@ def derive_worker_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
     route = route_from_manifest(canonical)
     if route.get("route_id") != ROUTE_ID or route.get("processor_capability") != PROCESSING_CAPABILITY:
         raise ValueError("purpose-bound worker route binding mismatch")
-    if route.get("runtime_binding") != "stegverse.purpose_bound_worker_processor.execute_manifest":
-        raise ValueError("purpose-bound worker runtime binding is unavailable")
+    if route.get("runtime_binding") != "core_lite.default_validation_route" or route.get("processor_binding") != "stegverse.purpose_bound_worker_processor.execute_manifest":
+        raise ValueError("purpose-bound worker governed runtime binding is unavailable")
     extensions = canonical.get("extensions") or {}
     request = validate_purpose_bound_worker_request(extensions.get(REQUEST_EXTENSION))
     policy = request["lifetime_policy"]
