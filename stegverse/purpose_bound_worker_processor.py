@@ -312,7 +312,8 @@ def _execute_single(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> 
 
 def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
     worker_requests = derive_group_worker_requests(manifest)
-    ready_barrier = threading.Barrier(len(worker_requests))\n    invocation_barrier = threading.Barrier(len(worker_requests))
+    ready_barrier = threading.Barrier(len(worker_requests))
+    invocation_barrier = threading.Barrier(len(worker_requests))
 
     def run_one(index_request: tuple[int, dict[str, Any]]) -> dict[str, Any]:
         index, worker_request = index_request
