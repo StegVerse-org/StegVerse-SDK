@@ -29,7 +29,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install -e '.[dev,governed-test]'
+      - run: python -m pip install -e '.[dev]'
 
       - name: Validate shared evaluator-level manifest processors
         run: |
