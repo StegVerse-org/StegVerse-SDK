@@ -65,19 +65,8 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         )
         self.assertEqual(manifest["processing"]["capability"], "purpose_bound_worker")
         self.assertEqual(manifest["processing"]["route_id"], PURPOSE_BOUND_WORKER_ROUTE_ID)
-        result = execute_manifest(manifest)
-        self.assertTrue(result["evidence_expectations_satisfied"])
-        self.assertEqual(result["missing_expected_evidence_fields"], [])
-        self.assertEqual(
-            [row["phase"] for row in result["worker_result"]["lifecycle_receipts"]],
-            ["MATERIALIZED", "INVOCATION_STARTED", "TASK_COMPLETED", "RETIRED"],
-        )
-        self.assertEqual(
-            result["derived_worker_request"]["transition_cell"]["candidate"]["max_lifetime_seconds"],
-            15,
-        )
-        self.assertTrue(result["records_only"])
-        self.assertFalse(result["worker_live_after_close"])
+        with self.assertRaisesRegex(ValueError, "AUTHENTIC_GOVERNED_RUNTIME_BINDING_REQUIRED"):
+            execute_manifest(manifest)
 
 
 if __name__ == "__main__":

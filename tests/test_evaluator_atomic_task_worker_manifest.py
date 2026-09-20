@@ -80,33 +80,25 @@ class EvaluatorAtomicTaskWorkerManifestTests(unittest.TestCase):
             return_depth="full-trace",
             created_at=f"2026-09-19T20:0{test_number}:00Z",
         )
-        result = execute_manifest(manifest)
         self.assertEqual(manifest["payload"], SOURCE)
         self.assertEqual(manifest["processing"]["route_id"], ATOMIC_TASK_WORKER_ROUTE_ID)
-        self.assertTrue(result["evidence_expectations_satisfied"])
-        self.assertEqual(result["missing_expected_evidence_fields"], [])
-        self.assertTrue(result["records_only"])
-        self.assertFalse(result["worker_live_after_close"])
-        self.assertEqual(
-            [r["phase"] for r in result["records_packet"]["lifecycle_receipts"]],
-            [
-                "ACTIVATE_TASK_AND_CREATE_BIND_WORKER",
-                "INVOCATION_STARTED",
-                "TASK_COMPLETED",
-                "CLOSE_TASK_AND_RETIRE_WORKER",
-            ],
-        )
-        self.assertEqual(result["records_packet"]["task_result"]["sha256"],
-                         __import__("hashlib").sha256(SOURCE["text"].encode()).hexdigest())
-        return result
+        with self.assertRaisesRegex(ValueError, "AUTHENTIC_GOVERNED_RUNTIME_BINDING_REQUIRED"):
+            execute_manifest(manifest)
+        return manifest
 
     def test_test_two_uses_manifest_builder_and_generic_run_manifest_path(self):
-        result = self._run(2)
-        self.assertEqual(result["scenario"], "TEST_2_ATOMIC_TASK_WORKER_BINDING")
+        manifest = self._run(2)
+        self.assertEqual(
+            manifest["extensions"]["stegverse_atomic_task_worker_request"]["scenario"],
+            "TEST_2_ATOMIC_TASK_WORKER_BINDING",
+        )
 
     def test_test_three_reuses_same_evaluator_processor_and_path(self):
-        result = self._run(3)
-        self.assertEqual(result["scenario"], "TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM")
+        manifest = self._run(3)
+        self.assertEqual(
+            manifest["extensions"]["stegverse_atomic_task_worker_request"]["scenario"],
+            "TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM",
+        )
 
 
 if __name__ == "__main__":

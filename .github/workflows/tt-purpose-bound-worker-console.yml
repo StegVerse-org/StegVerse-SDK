@@ -1,4 +1,4 @@
-name: TT Evaluator Manifest Tests 1-3
+name: TT Evaluator Manifest Boundary Validation (Non-Authorizing)
 
 on:
   pull_request:
@@ -38,73 +38,34 @@ jobs:
         run: |
           stegverse manifest build             --input inspection/examples/sdk-tt-shared-source.json             --processor-request inspection/examples/sdk-test1-purpose-worker.processor-request.json             --source-framework external_evaluator             --source-output-id sdk-test-one-001             --process purpose_bound_worker             --return-depth full-trace             --created-at 2026-09-19T19:45:00Z             --output /tmp/sdk-test1.manifest.json
 
-      - name: Test 1 - run built manifest exactly as evaluator
-        run: |
-          stegverse run-manifest             --manifest /tmp/sdk-test1.manifest.json             --output /tmp/sdk-test1.result.json
-          python - <<'PY'
-          import json
-          p=json.load(open('/tmp/sdk-test1.result.json'))
-          assert p['evidence_expectations_satisfied'] is True
-          assert p['missing_expected_evidence_fields'] == []
-          assert p['records_only'] is True
-          assert p['worker_live_after_close'] is False
-          assert [r['phase'] for r in p['worker_result']['lifecycle_receipts']] == [
-              'MATERIALIZED','INVOCATION_STARTED','TASK_COMPLETED','RETIRED'
-          ]
-          print('SDK_TEST1_EVALUATOR_MANIFEST_PASS')
-          PY
-
       - name: Test 2 - build manifest exactly as evaluator
         run: |
           stegverse manifest build             --input inspection/examples/sdk-tt-shared-source.json             --processor-request inspection/examples/sdk-test2-atomic-task-worker.processor-request.json             --source-framework external_evaluator             --source-output-id sdk-test-two-001             --process atomic_task_worker             --return-depth full-trace             --created-at 2026-09-19T20:02:00Z             --output /tmp/sdk-test2.manifest.json
-
-      - name: Test 2 - run built manifest exactly as evaluator
-        run: |
-          stegverse run-manifest             --manifest /tmp/sdk-test2.manifest.json             --output /tmp/sdk-test2.result.json
-          python - <<'PY'
-          import json
-          p=json.load(open('/tmp/sdk-test2.result.json'))
-          assert p['test_number'] == 2
-          assert p['scenario'] == 'TEST_2_ATOMIC_TASK_WORKER_BINDING'
-          assert p['evidence_expectations_satisfied'] is True
-          assert p['records_only'] is True
-          assert p['worker_live_after_close'] is False
-          assert [r['phase'] for r in p['records_packet']['lifecycle_receipts']] == [
-              'ACTIVATE_TASK_AND_CREATE_BIND_WORKER',
-              'INVOCATION_STARTED',
-              'TASK_COMPLETED',
-              'CLOSE_TASK_AND_RETIRE_WORKER'
-          ]
-          print('SDK_TEST2_EVALUATOR_MANIFEST_PASS')
-          PY
 
       - name: Test 3 - build manifest exactly as evaluator
         run: |
           stegverse manifest build             --input inspection/examples/sdk-tt-shared-source.json             --processor-request inspection/examples/sdk-test3-richard-seam.processor-request.json             --source-framework external_evaluator             --source-output-id sdk-test-three-001             --process atomic_task_worker             --return-depth full-trace             --created-at 2026-09-19T20:03:00Z             --output /tmp/sdk-test3.manifest.json
 
-      - name: Test 3 - run built manifest exactly as evaluator
+      - name: Validate Tests 1-3 fail closed before authentic governed runtime
         run: |
-          stegverse run-manifest             --manifest /tmp/sdk-test3.manifest.json             --output /tmp/sdk-test3.result.json
-          python - <<'PY'
-          import json
-          p=json.load(open('/tmp/sdk-test3.result.json'))
-          assert p['test_number'] == 3
-          assert p['scenario'] == 'TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM'
-          assert p['evidence_expectations_satisfied'] is True
-          assert p['records_only'] is True
-          assert p['worker_live_after_close'] is False
-          assert p['records_packet']['continued_task_bound_authority'] is False
-          print('SDK_TEST3_EVALUATOR_MANIFEST_PASS')
-          PY
+          set -euo pipefail
+          for n in 1 2 3; do
+            if stegverse run-manifest --manifest /tmp/sdk-test${n}.manifest.json --output /tmp/sdk-test${n}.result.json 2>/tmp/sdk-test${n}.stderr.txt; then
+              echo "ERROR: Test ${n} incorrectly returned completed SDK result from local semantic route"
+              exit 1
+            fi
+            grep -q "AUTHENTIC_GOVERNED_RUNTIME_BINDING_REQUIRED" /tmp/sdk-test${n}.stderr.txt
+          done
+          echo "SDK_WORKER_ROUTES_FAIL_CLOSED_BEFORE_AUTHENTIC_RUNTIME_PASS"
 
-      - name: Retain evaluator manifests and results for later documentation
+      - name: Retain evaluator manifests and fail-closed boundary evidence
         uses: actions/upload-artifact@v4
         with:
-          name: sdk-evaluator-tests-1-3-evidence
+          name: sdk-evaluator-tests-1-3-boundary-evidence
           path: |
             /tmp/sdk-test1.manifest.json
-            /tmp/sdk-test1.result.json
+            /tmp/sdk-test1.stderr.txt
             /tmp/sdk-test2.manifest.json
-            /tmp/sdk-test2.result.json
+            /tmp/sdk-test2.stderr.txt
             /tmp/sdk-test3.manifest.json
-            /tmp/sdk-test3.result.json
+            /tmp/sdk-test3.stderr.txt
