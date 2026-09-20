@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .ecosystem_diagnostic_runtime import REQUEST_EXTENSION, validate_diagnostic_request
+from .purpose_bound_worker_processor import REQUEST_EXTENSION as PURPOSE_BOUND_WORKER_REQUEST_EXTENSION, validate_purpose_bound_worker_request
 from .governance_navigation import INGRESS_PROFILE, canonical_sha256
 from .governance_reference_graph import (
     EXTENSION_KEY as GOVERNANCE_REFERENCE_GRAPH_EXTENSION,
@@ -23,12 +24,14 @@ from .manifest_contract import validate_ingress_manifest
 from .route_resolution import (
     CANONICAL_PRODUCTION_ROUTE_ID,
     ECOSYSTEM_DIAGNOSTIC_ROUTE_ID,
+    PURPOSE_BOUND_WORKER_ROUTE_ID,
     PUBLISHED_ROUTES,
 )
 
 PROCESSOR_ROUTES = {
     "governance": CANONICAL_PRODUCTION_ROUTE_ID,
     "ecosystem_diagnostic": ECOSYSTEM_DIAGNOSTIC_ROUTE_ID,
+    "purpose_bound_worker": PURPOSE_BOUND_WORKER_ROUTE_ID,
 }
 
 GOVERNANCE_REQUEST_FIELDS = (
@@ -197,6 +200,9 @@ def build_manifest(
     elif normalized_process == "ecosystem_diagnostic":
         normalized_request = validate_diagnostic_request(processor_request)
         extensions[REQUEST_EXTENSION] = normalized_request
+    elif normalized_process == "purpose_bound_worker":
+        normalized_request = validate_purpose_bound_worker_request(processor_request)
+        extensions[PURPOSE_BOUND_WORKER_REQUEST_EXTENSION] = normalized_request
     else:
         raise ValueError(f"processing capability {normalized_process!r} has no builder binding")
 
