@@ -95,8 +95,8 @@ def derive_atomic_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
     route = route_from_manifest(canonical)
     if route.get("route_id") != ROUTE_ID or route.get("processor_capability") != PROCESSING_CAPABILITY:
         raise ValueError("atomic task/worker route binding mismatch")
-    if route.get("runtime_binding") != "stegverse.atomic_task_worker_processor.execute_manifest":
-        raise ValueError("atomic task/worker runtime binding is unavailable")
+    if route.get("runtime_binding") != "core_lite.default_validation_route" or route.get("processor_binding") != "stegverse.atomic_task_worker_processor.execute_manifest":
+        raise ValueError("atomic task/worker governed runtime binding is unavailable")
     req = validate_atomic_task_worker_request((canonical.get("extensions") or {}).get(REQUEST_EXTENSION))
     source_payload = canonical.get("payload")
     if not isinstance(source_payload, Mapping) or not isinstance(source_payload.get("text"), str):
