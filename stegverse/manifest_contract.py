@@ -163,7 +163,27 @@ def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
 
 
 def validate_ingress_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
-    """Validate/canonicalize the processor-generic ingress envelope."""
+    """Validate/canonicalize the processor-generic ingress envelope.
+
+    The validator is intentionally idempotent: downstream SDK stages may pass
+    the canonicalized manifest returned by an earlier validation step. Derived
+    canonical fields are stripped before validating the caller-controlled
+    envelope, then recomputed and, when supplied, verified for exact equality.
+    """
+    derived_fields = {
+        "ingress_mode",
+        "external_manifest_valid",
+        "external_manifest_grants_authority",
+        "processing_selection_grants_authority",
+        "master_records_transition_custody_independent_of_return_projection",
+        "manifest_labels_change_governance",
+        "complete_communication_manifest",
+        "publisher_is_manifest_stage",
+        "communication_terminal_state_requires_far_side_intr_transition",
+        "canonical_manifest_sha256",
+    }
+    supplied_derived = {k: manifest[k] for k in derived_fields if k in manifest}
+    manifest = {k: v for k, v in manifest.items() if k not in derived_fields}
     allowed = {
         "manifest_profile", "manifest_profile_version", "source_framework",
         "source_instance", "source_output_id", "created_at", "freshness",
@@ -262,6 +282,9 @@ def validate_ingress_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     canonical["publisher_is_manifest_stage"] = completion is not None
     canonical["communication_terminal_state_requires_far_side_intr_transition"] = completion is not None
     canonical["canonical_manifest_sha256"] = canonical_sha256(canonical)
+    for field, supplied in supplied_derived.items():
+        if canonical.get(field) != supplied:
+            raise ValueError(f"derived canonical manifest field mismatch: {field}")
     return canonical
 
 
