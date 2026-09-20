@@ -145,7 +145,7 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "task_result": isinstance(worker_result.get("task_result"), Mapping),
         "task_result_hash": bool(worker_result.get("task_result_hash")),
         "records_only": worker_result.get("records_only") is True,
-        "worker_live_after_close": worker_result.get("worker_live_after_close"),
+        "worker_live_after_close": worker_result.get("worker_live_after_close") is False,
     }
     missing = [field for field in request["expected_evidence_fields"] if observations.get(field) is not True]
     return {
@@ -160,7 +160,7 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "evidence_expectations_satisfied": not missing,
         "worker_result": worker_result,
         "records_only": worker_result.get("records_only") is True,
-        "worker_live_after_close": worker_result.get("worker_live_after_close") is False,
+        "worker_live_after_close": worker_result.get("worker_live_after_close"),
         "authority_effect": "NONE_MANIFEST_DRIVEN_SDK_TEST",
     }
 
