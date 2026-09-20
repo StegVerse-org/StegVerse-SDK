@@ -30,7 +30,7 @@ class PackageVersionIdentityTests(unittest.TestCase):
             "31630c52fc0c34759ab81a3bbb710a70223ba86c",
         )
         self.assertEqual(version["release_candidate"]["four_stage_manifest_only_state"], "PASS")
-        self.assertEqual(version["release_candidate"]["tag_publication"], "NOT_YET_AUTHORIZED")
+        self.assertEqual(version["release_candidate"]["tag_publication"], "READY_PENDING_TV_TVC_EXECUTION")
         self.assertEqual(version["development_line"]["version"], "1.4.0.dev0")
 
     def test_hgai_is_hypothetical_example_not_integration_claim(self):

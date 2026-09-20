@@ -13,12 +13,18 @@
     "target_tag": "v1.3.0",
     "source_candidate_commit": "3cd3198375b687e73f06071e9c16e18d8a1c527c",
     "source_candidate_tree": "31630c52fc0c34759ab81a3bbb710a70223ba86c",
-    "artifact_validation_run": null,
-    "artifact_validation_state": "PENDING_EXACT_HEAD_VALIDATION",
-    "four_stage_manifest_only_run": 35541675041,
+    "artifact_validation_run": 35544752518,
+    "artifact_validation_state": "PASS",
+    "four_stage_manifest_only_run": 35544752500,
     "four_stage_manifest_only_state": "PASS",
-    "tag_publication": "NOT_YET_AUTHORIZED",
-    "package_publication": "NOT_YET_PUBLISHED"
+    "tag_publication": "READY_PENDING_TV_TVC_EXECUTION",
+    "package_publication": "PENDING_TAG_AND_GITHUB_RELEASE",
+    "manifest_builder_validation_run": 35544752647,
+    "manifest_builder_validation_state": "PASS",
+    "validated_candidate_head": "aac3222adfe530c620cb56d7d5ad81ce8589f90f",
+    "validated_candidate_tree": "bc755d2b955d43fe46ed4e678bbb2df75ef0aad7",
+    "merged_candidate_commit": "b1376d3e3e3c79b6e996d32766bfd7e41cd0ccc4",
+    "validation_summary": "All 20 exact-head PR validation workflows passed before merge; squash merge preserved the validated tree."
   },
   "development_line": {
     "version": "1.4.0.dev0",
