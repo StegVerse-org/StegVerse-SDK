@@ -89,14 +89,14 @@ class EvaluatorAtomicTaskWorkerManifestTests(unittest.TestCase):
     def test_test_two_uses_manifest_builder_and_generic_run_manifest_path(self):
         manifest = self._run(2)
         self.assertEqual(
-            manifest["extensions"]["stegverse_processor_request"]["scenario"],
+            manifest["extensions"]["stegverse_atomic_task_worker_request"]["scenario"],
             "TEST_2_ATOMIC_TASK_WORKER_BINDING",
         )
 
     def test_test_three_reuses_same_evaluator_processor_and_path(self):
         manifest = self._run(3)
         self.assertEqual(
-            manifest["extensions"]["stegverse_processor_request"]["scenario"],
+            manifest["extensions"]["stegverse_atomic_task_worker_request"]["scenario"],
             "TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM",
         )
 
