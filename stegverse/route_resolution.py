@@ -17,6 +17,7 @@ from typing import Any, Mapping
 ROUTE_DECLARATION_EXTENSION = "stegverse_route"
 CANONICAL_PRODUCTION_ROUTE_ID = "stegverse.route.canonical-governed.v1"
 ECOSYSTEM_DIAGNOSTIC_ROUTE_ID = "stegverse.route.ecosystem-diagnostic.v1"
+PURPOSE_BOUND_WORKER_ROUTE_ID = "stegverse.route.purpose-bound-worker.v1"
 
 _ROUTE_FIELDS = (
     "route_id",
@@ -49,6 +50,17 @@ PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
         "sandbox_required": False,
         "external_consequence_enabled": False,
         "runtime_binding": "stegverse.ecosystem_diagnostic_runtime.execute_manifest",
+        "runtime_installed": True,
+    },
+    PURPOSE_BOUND_WORKER_ROUTE_ID: {
+        "route_id": PURPOSE_BOUND_WORKER_ROUTE_ID,
+        "processor_capability": "purpose_bound_worker",
+        "lane_class": "PURPOSE_BOUND_EXECUTION",
+        "routing_surface": "STEGAGENTS_GOVERNED_RUNTIME",
+        "containment": "PURPOSE_BOUND_TASK_LIFECYCLE",
+        "sandbox_required": False,
+        "external_consequence_enabled": False,
+        "runtime_binding": "stegverse.purpose_bound_worker_processor.execute_manifest",
         "runtime_installed": True,
     },
 }
