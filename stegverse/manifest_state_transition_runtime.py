@@ -22,7 +22,7 @@ REQUEST_SCHEMA = "stegverse.sdk.manifest-state-transition-request/v1"
 RESULT_SCHEMA = "stegverse.sdk.manifest-state-transition-result/v1"
 UNIVERSAL_RUNTIME_BINDING = "stegverse.manifest_state_transition_runtime.execute_manifest"
 INGRESS_URL_ENV = "STEGVERSE_UNIVERSAL_INTR_INGRESS_URL"
-TRANSPORT_AUTHORIZATION_ENV = "STEGVERSE_INTR_TRANSPORT_AUTHORIZATION_ID"
+TRANSPORT_AUTHORIZATION_ENV = "STEGVERSE_TVC_RELAY_AUTHORIZATION_ID"
 
 _REQUIRED_CLOSURE = {
     "state": "RECORDED",
@@ -111,7 +111,7 @@ def _post_existing_intr(request_body: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED")
     authorization_id = str(os.environ.get(TRANSPORT_AUTHORIZATION_ENV) or "").strip()
     if not authorization_id:
-        raise ValueError("TV_TVC_INTR_TRANSPORT_AUTHORIZATION_REQUIRED")
+        raise ValueError("TV_TVC_RELAY_AUTHORIZATION_REQUIRED")
     raw = _canonical_bytes(request_body)
     req = urllib.request.Request(
         ingress_url,
