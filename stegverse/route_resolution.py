@@ -45,12 +45,13 @@ PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
     ECOSYSTEM_DIAGNOSTIC_ROUTE_ID: {
         "route_id": ECOSYSTEM_DIAGNOSTIC_ROUTE_ID,
         "processor_capability": "ecosystem_diagnostic",
-        "lane_class": "DIAGNOSTIC_OBSERVATION",
-        "routing_surface": "ECOSYSTEM_DIAGNOSTIC",
-        "containment": "READ_ONLY_DIAGNOSTIC",
+        "lane_class": "PRODUCTION_VALIDATION",
+        "routing_surface": "CANONICAL_PRODUCTION",
+        "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
         "sandbox_required": False,
         "external_consequence_enabled": False,
-        "runtime_binding": "stegverse.ecosystem_diagnostic_runtime.execute_manifest",
+        "runtime_binding": "core_lite.default_validation_route",
+        "processor_binding": "stegverse.ecosystem_diagnostic_runtime.execute_manifest",
         "runtime_installed": True,
     },
     PURPOSE_BOUND_WORKER_ROUTE_ID: {
