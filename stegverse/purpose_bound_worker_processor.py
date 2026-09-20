@@ -231,6 +231,7 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
     _, request, _ = _validated_manifest(manifest)
     if request["mode"] == "SINGLE":
         worker_request = derive_worker_request(manifest)
+        canonical_task_id = "SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001"
         ordered = [
             "WORKERCOORDINATOR_CLAIM_FENCE_BOUND",
             "TV_TVC_WARRANT_POLICY_VERIFIED",
@@ -243,6 +244,7 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
         graph_request: Any = worker_request
     else:
         group_requests = derive_group_worker_requests(manifest)
+        canonical_task_id = request["test_id"]
         ordered = [
             "PURPOSE_BOUND_WORKER_GROUP_BOUND",
             "PURPOSE_BOUND_WORKER_GROUP_CONCURRENT_EXECUTION",
@@ -256,8 +258,8 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
         }
     return {
         "schema": "stegverse.sdk.installed-state-transition-graph/v1",
-        "graph_id": request["test_id"] + ":PURPOSE_BOUND_WORKER",
-        "canonical_task_id": request["test_id"],
+        "graph_id": canonical_task_id + ":PURPOSE_BOUND_WORKER",
+        "canonical_task_id": canonical_task_id,
         "processing_capability": PROCESSING_CAPABILITY,
         "route_id": ROUTE_ID,
         "request": graph_request,
