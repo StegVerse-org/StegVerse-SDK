@@ -4,7 +4,7 @@ import unittest
 
 from stegverse.manifest_builder import available_processors, build_manifest
 from stegverse.manifest_execution import execute_manifest
-from stegverse.atomic_task_worker_processor import REQUEST_SCHEMA
+from stegverse.atomic_task_worker_processor import REQUEST_SCHEMA, derive_state_graph, execute_manifest as execute_processor_manifest
 from stegverse.route_resolution import ATOMIC_TASK_WORKER_ROUTE_ID, PUBLISHED_ROUTES
 
 
@@ -82,8 +82,13 @@ class EvaluatorAtomicTaskWorkerManifestTests(unittest.TestCase):
         )
         self.assertEqual(manifest["payload"], SOURCE)
         self.assertEqual(manifest["processing"]["route_id"], ATOMIC_TASK_WORKER_ROUTE_ID)
-        with self.assertRaisesRegex(ValueError, "AUTHENTIC_GOVERNED_RUNTIME_BINDING_REQUIRED"):
+        graph = derive_state_graph(manifest)
+        self.assertTrue(graph["requires_workercoordinator_claim_fence"])
+        self.assertFalse(graph["adapter_executes_lifecycle"])
+        with self.assertRaisesRegex(ValueError, "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED"):
             execute_manifest(manifest)
+        with self.assertRaisesRegex(ValueError, "PROCESSOR_ADAPTER_ONLY"):
+            execute_processor_manifest(manifest)
         return manifest
 
     def test_test_two_uses_manifest_builder_and_generic_run_manifest_path(self):
