@@ -10,7 +10,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Mapping
 
-from .atomic_task_worker_binding import SCHEMA as ATOMIC_SCHEMA
+from .atomic_task_worker_binding import SCHEMA as ATOMIC_SCHEMA, run_atomic_task_worker_binding
 from .manifest_contract import validate_ingress_manifest
 from .route_resolution import ATOMIC_TASK_WORKER_ROUTE_ID, route_from_manifest
 
@@ -185,11 +185,29 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def execute_manifest(_manifest: Mapping[str, Any]) -> dict[str, Any]:
-    raise ValueError(
-        "PROCESSOR_ADAPTER_ONLY: atomic_task_worker_processor cannot execute lifecycle; "
-        "use the universal manifest state-transition runtime"
-    )
+def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    canonical = validate_ingress_manifest(manifest)
+    req = validate_atomic_task_worker_request((canonical.get("extensions") or {}).get(REQUEST_EXTENSION))
+    packet = run_atomic_task_worker_binding(derive_atomic_request(manifest))
+    observed = _observations(packet)
+    missing = [name for name in req["expected_evidence_fields"] if observed.get(name) is not True]
+    return {
+        "schema": RESULT_SCHEMA,
+        "test_id": req["test_id"],
+        "test_number": req["test_number"],
+        "scenario": req["scenario"],
+        "processing_capability": PROCESSING_CAPABILITY,
+        "route_id": ROUTE_ID,
+        "preregistered_expectation": req["preregistered_expectation"],
+        "expected_evidence_fields": req["expected_evidence_fields"],
+        "evidence_observations": observed,
+        "missing_expected_evidence_fields": missing,
+        "evidence_expectations_satisfied": not missing,
+        "records_packet": packet,
+        "records_only": packet.get("records_only") is True,
+        "worker_live_after_close": packet.get("worker_live_after_close"),
+        "authority_effect": "NONE_EVALUATOR_MANIFEST_DRIVEN_SDK_TEST",
+    }
 
 
 __all__ = [
