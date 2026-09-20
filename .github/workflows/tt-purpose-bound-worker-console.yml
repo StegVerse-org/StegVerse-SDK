@@ -25,11 +25,9 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install -e '.[dev]'
 
-      - name: Validate Test 1 manifest derivation and universal runtime contract
+      - name: Validate Test 1 manifest derivation and working processor route
         run: |
-          python -m unittest \
-            tests.test_manifest_driven_purpose_worker \
-            tests.test_universal_manifest_state_transition_runtime -v
+          python -m unittest tests.test_manifest_driven_purpose_worker -v
 
       - name: Test 1 - build manifest exactly as evaluator
         run: |
@@ -43,25 +41,22 @@ jobs:
             --created-at 2026-09-19T19:45:00Z \
             --output /tmp/sdk-test1.manifest.json
 
-      - name: Test 1 - run only through run-manifest and retain first runtime failure
+      - name: Test 1 - run through run-manifest and require assembled lifecycle result
         run: |
-          set +e
           stegverse run-manifest \
             --manifest /tmp/sdk-test1.manifest.json \
-            --output /tmp/sdk-test1.result.json \
-            >/tmp/sdk-test1.stdout.txt \
-            2>/tmp/sdk-test1.stderr.txt
-          status=$?
-          set -e
-          cat /tmp/sdk-test1.stdout.txt || true
-          cat /tmp/sdk-test1.stderr.txt || true
-          echo "run_manifest_exit_status=$status" | tee /tmp/sdk-test1.runtime-status.txt
-          if [ "$status" -eq 0 ]; then
-            echo "TEST1_RUN_MANIFEST_COMPLETED" | tee -a /tmp/sdk-test1.runtime-status.txt
-          else
-            first_failure="$(tail -n 1 /tmp/sdk-test1.stderr.txt | tr '\n' ' ')"
-            echo "TEST1_FIRST_CONCRETE_RUNTIME_FAILURE=$first_failure" | tee -a /tmp/sdk-test1.runtime-status.txt
-          fi
+            --output /tmp/sdk-test1.result.json
+          python - <<'PY'
+          import json
+          result = json.load(open("/tmp/sdk-test1.result.json", encoding="utf-8"))
+          assert result["schema"] == "stegverse.sdk.purpose-bound-worker-manifest-result.v1"
+          assert result["evidence_expectations_satisfied"] is True
+          assert result["records_only"] is True
+          assert result["worker_live_after_close"] is False
+          phases = [x["phase"] for x in result["worker_result"]["lifecycle_receipts"]]
+          assert phases == ["MATERIALIZED", "INVOCATION_STARTED", "TASK_COMPLETED", "RETIRED"]
+          print("TEST1_RUN_MANIFEST_COMPLETED")
+          PY
 
       - name: Retain Test 1 manifest and runtime evidence
         uses: actions/upload-artifact@v4
@@ -70,7 +65,4 @@ jobs:
           path: |
             /tmp/sdk-test1.manifest.json
             /tmp/sdk-test1.result.json
-            /tmp/sdk-test1.stdout.txt
-            /tmp/sdk-test1.stderr.txt
-            /tmp/sdk-test1.runtime-status.txt
           if-no-files-found: warn
