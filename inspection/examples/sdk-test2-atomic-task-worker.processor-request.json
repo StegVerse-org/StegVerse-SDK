@@ -1,0 +1,47 @@
+{
+  "schema": "stegverse.sdk.atomic-task-worker-test.v1",
+  "test_id": "SDK-TEST2-ATOMIC-TASK-WORKER-001",
+  "test_number": 2,
+  "scenario": "TEST_2_ATOMIC_TASK_WORKER_BINDING",
+  "task": {
+    "task_id": "sdk-test2-atomic-task-worker-001",
+    "cosv_task_vector": "20010000110000",
+    "state": "HANDOFF_READY",
+    "claim_id": null,
+    "worker_instance_id": null,
+    "worker_live": false,
+    "purpose": "Analyze a supplied text payload for a tracked integrity summary.",
+    "required_capability": "text.integrity_summary",
+    "max_lifetime_seconds": 30
+  },
+  "worker_manifest": {
+    "schema": "stegverse.sdk.worker-manifest.v1",
+    "manifest_id": "stegagents-purpose-bound-worker-manifest-v1",
+    "worker_id": "stegagents-governed-runtime-worker",
+    "capabilities": [
+      "text.integrity_summary"
+    ],
+    "execution_model": "TASK_BOUND_EPHEMERAL",
+    "self_authorization_allowed": false,
+    "task_redefinition_allowed": false,
+    "authority_scope": "TASK_BOUND_ONLY"
+  },
+  "activation": {
+    "claim_generation": 1,
+    "fencing_token": 1
+  },
+  "preregistered_expectation": {
+    "proposition": "TASK_ACTIVATION_AND_TASK_BOUND_WORKER_CREATION_ARE_ONE_CONSTITUTIVE_TRANSITION",
+    "expected_disposition": "PASS_IF_NO_SPLIT_TASK_WORKER_STATE"
+  },
+  "expected_evidence_fields": [
+    "constitutive_transition",
+    "reciprocal_task_worker_binding",
+    "invocation_after_transition",
+    "task_result",
+    "close_and_retire",
+    "records_only",
+    "worker_live_after_close_false",
+    "continued_authority_false"
+  ]
+}
