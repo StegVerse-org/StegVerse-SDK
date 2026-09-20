@@ -315,8 +315,8 @@ def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> d
     def run_one(index_request: tuple[int, dict[str, Any]]) -> dict[str, Any]:
         index, worker_request = index_request
         ready_ns = time.monotonic_ns()
+        started_ns = ready_ns
         barrier.wait(timeout=5)
-        started_ns = time.monotonic_ns()
         packet = run_purpose_bound_worker(worker_request)
         completed_ns = time.monotonic_ns()
         return {
