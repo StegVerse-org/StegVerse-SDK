@@ -65,12 +65,8 @@ def validate_atomic_task_worker_request(value: Any) -> dict[str, Any]:
     supplied_payload = task.pop("payload", None)
     if supplied_payload is not None and not isinstance(supplied_payload, Mapping):
         raise ValueError("task.payload must be an object when supplied")
-    request = {
-        "schema": ATOMIC_SCHEMA,
-        "task": task,
-        "worker_manifest": _mapping(value.get("worker_manifest"), "worker_manifest"),
-        "activation": _mapping(value.get("activation"), "activation"),
-    }
+    worker_manifest = _mapping(value.get("worker_manifest"), "worker_manifest")
+    activation = _mapping(value.get("activation"), "activation")
     expected = value.get("expected_evidence_fields", DEFAULT_EXPECTED_EVIDENCE)
     if not isinstance(expected, list) or not expected or not all(isinstance(x, str) and x.strip() for x in expected):
         raise ValueError("expected_evidence_fields must be a non-empty string array")
@@ -82,7 +78,9 @@ def validate_atomic_task_worker_request(value: Any) -> dict[str, Any]:
         "test_id": test_id.strip(),
         "test_number": test_number,
         "scenario": scenario,
-        "atomic_request": request,
+        "task": task,
+        "worker_manifest": worker_manifest,
+        "activation": activation,
         "preregistered_expectation": deepcopy(dict(prereg)),
         "expected_evidence_fields": list(dict.fromkeys(x.strip() for x in expected)),
         "supplied_payload": deepcopy(dict(supplied_payload)) if isinstance(supplied_payload, Mapping) else None,
@@ -105,7 +103,12 @@ def derive_atomic_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("manifest payload.text must be a string for atomic_task_worker")
     if req.get("supplied_payload") is not None and req["supplied_payload"] != source_payload:
         raise ValueError("processor_request task.payload conflicts with source-native manifest payload")
-    atomic = deepcopy(req["atomic_request"])
+    atomic = {
+        "schema": ATOMIC_SCHEMA,
+        "task": deepcopy(req["task"]),
+        "worker_manifest": deepcopy(req["worker_manifest"]),
+        "activation": deepcopy(req["activation"]),
+    }
     atomic["task"]["payload"] = deepcopy(dict(source_payload))
     return atomic
 
