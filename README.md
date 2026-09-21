@@ -930,7 +930,7 @@ docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md
 The public wiki is documentation/navigation only. It grants no governance, execution, transition, credential, custody, evidence, processor-selection, release, or publication-transition authority.
 
 
-Current public cutover status: SDK wiki source and Pages deployment are merged/validated; GitHub Pages now reports `https://sdk.stegverse.org/` live, DNS successful, and HTTPS enforced. Site PR #1446 is merged and its post-merge Pages deployment succeeded; representative public subresource observation remains pending.
+Current public cutover status: **RETIRED / COMPLETE / PUBLICLY OBSERVED**. GitHub-hosted observation run `35649334318` independently fetched the deployed ingress schema, external-framework example, receipt-navigation document, and Site `wikis.html` link over HTTPS with HTTP 200 and required served-body markers. Site claim/COSV terminalization merged in Site PR #1448.
 
 
 ## Four-stage evidence remediation — 2026-09-21
