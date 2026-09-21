@@ -258,3 +258,14 @@ PyPI_state: NOT_PUBLISHED
 ```
 
 This closeout records validation state only. It grants no tag, GitHub Release, package-publication, runtime, transition, or credential authority. The exact final tag target must be the post-closeout release-candidate commit after this metadata-only closeout itself passes the applicable gates. TV/TVC remains the sole release/credential authority.
+
+
+## SDK four-stage evidence remediation — 2026-09-21
+
+Development goal: `SDK-FOUR-STAGE-EVIDENCE-REMEDIATION-001` / COSV `71000000111111`.
+
+This development-line repair preserves the already-retired post-lineage evidence package as immutable history and does not change the frozen 1.3.0 release-candidate identity. It corrects the experiment contract on current development source: falsifiable Task-4 invocation overlap, serialized negative control, genuine disjoint partition/reconstruction evidence, recomputed group binding, explicit SDK-local semantic route declarations with a fail-closed governed-runtime boundary, Test-2/Test-3 differential invariance projection, and expanded raw evidence/environment inventory.
+
+Historical preregistration correction: SHA-256 `37363e0d3d8880956b0e97a90c54a140e6bebfac0aa9be73a5fb90ab2effa5d7` was anchored in StegVerse-Labs/.github commit `0127082e415fb220c709962ab7d0645e06105a4c` before run `35547155843` attempt 2. Attempt 1 also concluded SUCCESS; omission of that disposition from the successor package is provenance hygiene, not absence of preregistration.
+
+No authentic retained standing, retirement, runtime activation, custody, deployment, release, or publication is claimed by this branch.
