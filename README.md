@@ -931,3 +931,10 @@ The public wiki is documentation/navigation only. It grants no governance, execu
 
 
 Current public cutover status: SDK wiki source and Pages deployment are merged/validated; GitHub Pages now reports `https://sdk.stegverse.org/` live, DNS successful, and HTTPS enforced. Site PR #1446 is merged and its post-merge Pages deployment succeeded; representative public subresource observation remains pending.
+
+
+## Four-stage evidence remediation — 2026-09-21
+
+Goal `SDK-FOUR-STAGE-EVIDENCE-REMEDIATION-001` hardens the manifest-only four-stage experiment without changing the retired historical evidence package. The current development branch makes Task-4 overlap falsifiable with a serialized negative control, partitions the source text into ordered disjoint ranges with exact reconstruction evidence, recomputes the group result commitment, declares local semantic worker routes as `SDK_LOCAL_SEMANTIC_DEMONSTRATION`, enforces rejection if those local bindings are ever presented as governed-runtime completion, and compares Test 2/Test 3 through an explicit invariance projection modulo identity/proposition fields.
+
+This work is evidence/test-contract hardening only. It does not assert authentic WorkerCoordinator standing, retained retirement, Master Records custody, HB authority, deployment, or governed runtime execution. Those retained-standing/retirement predicates belong to a separate successor task after this remediation is merged and validated.

@@ -590,3 +590,13 @@ Target public origin: `https://sdk.stegverse.org/`.
 The SDK repository now contains a repository-local Pages publication source that builds the developer wiki from exact canonical SDK files, copies those exact bytes into the published artifact, and emits `wiki-source-manifest.json` with SHA-256 digests plus the source revision. The source implementation is non-authorizing and does not imply a successful Pages deployment or public DNS/HTTPS observation until those are evidenced after merge.
 
 The developer surface covers generic manifest ingress, processing/route selection, canonical schema and external-framework example navigation, manifest receipt navigation, replay/reconstruction, current SDK state, and the existing authority boundaries among SDK, Interlock/InTr, Master Records, Publisher, and TV/TVC.
+
+
+## Four-stage evidence remediation — 2026-09-21
+
+Canonical coordination goal: `SDK-FOUR-STAGE-EVIDENCE-REMEDIATION-001` / COSV `71000000111111`.
+Canonical coordination handoff: `StegVerse-Labs/.github:docs/SDK_FOUR_STAGE_EVIDENCE_REMEDIATION_MIRROR_HANDOFF.md`.
+
+This development line preserves `SDK-FOUR-STAGE-POST-LINEAGE-EVIDENCE-PACKAGE-001` as immutable retired evidence while repairing future experiment semantics. Task 4 now uses disjoint contiguous source partitions with exact reconstruction evidence; invocation overlap is measured only around the local worker call after both group barriers and is paired with a serialized negative control that must produce no overlap; group-result binding is recomputed over the exact per-worker bindings; local semantic worker processors are explicitly declared `SDK_LOCAL_SEMANTIC_DEMONSTRATION` and are rejected if presented under `STEGAGENTS_GOVERNED_RUNTIME`; Test 2 and Test 3 are compared by an explicit invariance projection modulo identity/proposition fields.
+
+Provenance correction: preregistration was anchored in canonical coordination commit `0127082e415fb220c709962ab7d0645e06105a4c` before run `35547155843` attempt 2. Attempt 1 also concluded SUCCESS. The updated workflow retains environment capture, raw stage-result text, the Task-4 processor request, serialized-control result, and their hashes. No authentic governed-runtime standing, Master Records custody, HB authority, or retained retirement is claimed by these local-semantic tests; those predicates belong to a separate successor task after this remediation validates and merges.

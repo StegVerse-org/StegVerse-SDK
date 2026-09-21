@@ -1,6 +1,6 @@
 name: SDK Four-Stage Manifest-Only Experiment
 # Frozen-head experiment: manifests are the only per-test variable input.
-# Frozen SDK source commit: 4c8b72b317fdb4fb5f5e6879dd028c04ee89bb97
+# Frozen SDK source commit: captured at runtime in /tmp/sdk-frozen-head.txt
 
 on:
   pull_request:
@@ -48,11 +48,18 @@ jobs:
               'sdk_version':version,
               'per_stage_variable_execution_input':'manifest_only',
               'test3_semantics':'same installed atomic-task-worker processor; distinct manifested identity and preregistered proposition; intended invariance/person-neutrality test',
-              'task4_overlap_semantics':'overlap of concurrent worker invocation lifetimes; execution_started_ns is post-ready-barrier and precedes the generic invocation-start barrier; this does not claim CPU-parallel instruction execution'
+              'task4_overlap_semantics':'overlap of measured local invocation intervals after both group barriers with an explicit 10ms observation dwell; serialized invocation control must falsify overlap; this does not claim CPU-parallel instruction execution',
+              'worker_route_surface':'SDK_LOCAL_SEMANTIC_DEMONSTRATION',
+              'historical_preregistration_anchor':'StegVerse-Labs/.github@0127082e415fb220c709962ab7d0645e06105a4c',
+              'historical_preregistration_sha256':'37363e0d3d8880956b0e97a90c54a140e6bebfac0aa9be73a5fb90ab2effa5d7',
+              'historical_run_35547155843_attempt1_disposition':'SUCCESS'
           }, sort_keys=True, indent=2) + '\n')
           PY
 
-      - run: python -m pip install -e '.[dev]'
+      - run: |
+          python -m pip install -e '.[dev]'
+          python -m pip freeze | LC_ALL=C sort > /tmp/pip-freeze.txt
+          : > /tmp/experiment-stage-results.log
 
       - name: Materialize Task 4 generic group processor request
         run: |
@@ -88,7 +95,8 @@ jobs:
             "expected_evidence_fields": [
               "worker_count_matches_manifest",
               "distinct_worker_identities",
-              "simultaneous_overlap_observed",
+              "overlap_measurement_available",
+              "partition_reconstruction_exact",
               "all_workers_records_only",
               "all_workers_retired",
               "continued_authority_false",
@@ -172,6 +180,9 @@ jobs:
           assert r['route_id']
           assert r['evidence_expectations_satisfied'] is True
           p=r['records_packet']
+          assert [x['phase'] for x in p['lifecycle_receipts']] == [
+              'ACTIVATE_TASK_AND_CREATE_BIND_WORKER','INVOCATION_STARTED','TASK_COMPLETED','CLOSE_TASK_AND_RETIRE_WORKER'
+          ]
           assert p['records_only'] is True
           assert p['worker_live_after_close'] is False
           assert p['continued_task_bound_authority'] is False
@@ -191,15 +202,56 @@ jobs:
           assert r['records_only'] is True
           assert r['worker_live_after_close'] is False
           assert r['continued_authority_after_retirement'] is False
-          assert r['evidence_observations']['simultaneous_overlap_observed'] is True
+          assert isinstance(r['evidence_observations']['simultaneous_overlap_observed'], bool)
+          assert r['evidence_observations']['overlap_measurement_available'] is True
           assert r['evidence_observations']['overlap_semantics_are_invocation_lifetime_not_cpu_parallelism'] is True
-          assert r['overlap_semantics'] == 'CONCURRENT_INVOCATION_LIFETIME_NOT_CPU_PARALLELISM'
+          assert r['overlap_semantics'] == 'MEASURED_LOCAL_INVOCATION_INTERVALS_NOT_CPU_PARALLELISM'
+          assert r['invocation_observation_dwell_seconds'] == 0.01
+          assert r['evidence_observations']['partition_reconstruction_exact'] is True
+          assert r['partition_reconstruction']['exact'] is True
+          assert r['partition_reconstruction']['source_sha256'] == r['partition_reconstruction']['reconstructed_sha256']
+          assert r['group_result_binding_sha256'] == r['group_result_binding_recomputed_sha256']
           intervals=[(w['execution_started_ns'], w['execution_completed_ns']) for w in r['workers']]
           print('TASK4_INVOCATION_INTERVALS', intervals)
-          assert max(start for start, _ in intervals) <= min(end for _, end in intervals)
+          measured_overlap=max(start for start, _ in intervals) <= min(end for _, end in intervals)
+          assert measured_overlap == r['evidence_observations']['simultaneous_overlap_observed']
           assert all(w['ready_ns'] <= w['execution_started_ns'] < w['execution_completed_ns'] for w in r['workers'])
           assert len({w['records_packet']['worker_spec']['worker_id'] for w in r['workers']}) == 3
           print('MANIFEST_ONLY_TASK4_PASS')
+          PY
+
+      - name: Differential Test 2 and Test 3 invariance modulo identity and proposition
+        run: |
+          python - <<'PY' | tee -a /tmp/experiment-stage-results.log
+          import json
+          from stegverse.atomic_task_worker_processor import invariance_projection
+          t2=json.load(open('/tmp/test2.result.json'))
+          t3=json.load(open('/tmp/test3.result.json'))
+          p2=invariance_projection(t2)
+          p3=invariance_projection(t3)
+          assert p2 == p3, (p2, p3)
+          print('TEST2_TEST3_DIFFERENTIAL_INVARIANCE_PASS')
+          PY
+
+      - name: Falsify Task 4 overlap with serialized invocation control
+        run: |
+          python - <<'PY' | tee -a /tmp/experiment-stage-results.log
+          import json, threading
+          import stegverse.purpose_bound_worker_processor as p
+          from stegverse.manifest_execution import execute_manifest
+          manifest=json.load(open('/tmp/task4.manifest.json'))
+          original=p._invoke_worker
+          lock=threading.Lock()
+          def serialized(req):
+              with lock:
+                  return original(req)
+          p._invoke_worker=serialized
+          result=execute_manifest(manifest)
+          json.dump(result, open('/tmp/task4.serialized-control.result.json','w'), indent=2, sort_keys=True)
+          assert result['evidence_observations']['simultaneous_overlap_observed'] is False
+          assert result['evidence_observations']['overlap_measurement_available'] is True
+          assert result['evidence_expectations_satisfied'] is True
+          print('TASK4_SERIALIZED_NEGATIVE_CONTROL_PASS')
           PY
 
       - name: Prove SDK source remained unchanged throughout experiment
@@ -212,7 +264,8 @@ jobs:
           diff -u /tmp/sdk-source-index.txt /tmp/sdk-source-index.after.txt
           sha256sum /tmp/test1.manifest.json /tmp/test2.manifest.json /tmp/test3.manifest.json /tmp/task4.manifest.json \
             /tmp/test1.result.json /tmp/test2.result.json /tmp/test3.result.json /tmp/task4.result.json \
-            /tmp/sdk-source-index.txt /tmp/experiment-metadata.json \
+            /tmp/sdk-source-index.txt /tmp/experiment-metadata.json /tmp/sdk-task4-group.processor-request.json \
+            /tmp/task4.serialized-control.result.json /tmp/pip-freeze.txt /tmp/experiment-stage-results.log \
             | tee /tmp/experiment-sha256.txt
 
       - name: Retain complete four-stage experiment evidence
@@ -224,6 +277,8 @@ jobs:
             /tmp/sdk-source-index.txt
             /tmp/sdk-source-index.sha256
             /tmp/experiment-metadata.json
+            /tmp/pip-freeze.txt
+            /tmp/experiment-stage-results.log
             /tmp/sdk-task4-group.processor-request.json
             /tmp/test1.manifest.json
             /tmp/test2.manifest.json
@@ -233,4 +288,5 @@ jobs:
             /tmp/test2.result.json
             /tmp/test3.result.json
             /tmp/task4.result.json
+            /tmp/task4.serialized-control.result.json
             /tmp/experiment-sha256.txt
