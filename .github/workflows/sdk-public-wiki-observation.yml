@@ -1,0 +1,28 @@
+name: Observe SDK Public Wiki
+
+on:
+  pull_request:
+    paths:
+      - "scripts/observe_sdk_public_wiki.py"
+      - ".github/workflows/sdk-public-wiki-observation.yml"
+      - "docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch deployed public resources and verify served bodies
+        run: python scripts/observe_sdk_public_wiki.py
+      - name: Upload public observation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-public-wiki-observation
+          path: artifacts/sdk-public-wiki-observation.json
+          if-no-files-found: error
