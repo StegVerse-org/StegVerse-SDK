@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import unittest
 
 from stegverse.manifest_builder import available_processors, build_manifest
+from stegverse.manifest_contract import validate_ingress_manifest
 from stegverse.manifest_execution import execute_manifest
 from stegverse.purpose_bound_worker_processor import REQUEST_SCHEMA, derive_state_graph, execute_manifest as execute_processor_manifest
 from stegverse.route_resolution import PURPOSE_BOUND_WORKER_ROUTE_ID, PUBLISHED_ROUTES
@@ -77,7 +80,24 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
             [row["phase"] for row in result["worker_result"]["lifecycle_receipts"]],
             ["MATERIALIZED", "INVOCATION_STARTED", "TASK_COMPLETED", "RETIRED"],
         )
-        self.assertEqual(result, direct_result)
+        canonical = validate_ingress_manifest(manifest)
+        direct_hash = hashlib.sha256(
+            json.dumps(direct_result, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
+        request_hash = hashlib.sha256(
+            json.dumps(
+                result["manifest_lineage"]["run_manifest_request"],
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=False,
+            ).encode("utf-8")
+        ).hexdigest()
+        self.assertEqual(result["canonical_manifest_sha256"], canonical["canonical_manifest_sha256"])
+        self.assertEqual(result["request_sha256"], request_hash)
+        self.assertEqual(result["processor_result_sha256"], direct_hash)
+        self.assertEqual(result["manifest_lineage"]["canonical_manifest_sha256"], result["canonical_manifest_sha256"])
+        self.assertEqual(result["manifest_lineage"]["request_sha256"], result["request_sha256"])
+        self.assertEqual(result["manifest_lineage"]["processor_result_sha256"], result["processor_result_sha256"])
 
 
 if __name__ == "__main__":
