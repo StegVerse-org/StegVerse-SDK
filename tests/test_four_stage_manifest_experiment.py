@@ -40,6 +40,9 @@ def test_group_overlap_measures_only_post_barrier_invocation_interval():
     )
     invoke_source = inspect.getsource(p._invoke_worker)
     assert invoke_source.index("execution_started_ns = time.monotonic_ns()") < invoke_source.index(
+        "time.sleep(_GROUP_INVOCATION_OBSERVATION_DWELL_SECONDS)"
+    )
+    assert invoke_source.index("time.sleep(_GROUP_INVOCATION_OBSERVATION_DWELL_SECONDS)") < invoke_source.index(
         "packet = run_purpose_bound_worker(worker_request)"
     )
     assert invoke_source.index("packet = run_purpose_bound_worker(worker_request)") < invoke_source.index(
