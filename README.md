@@ -930,4 +930,4 @@ docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md
 The public wiki is documentation/navigation only. It grants no governance, execution, transition, credential, custody, evidence, processor-selection, release, or publication-transition authority.
 
 
-Current public cutover status: SDK wiki source and Pages deployment are merged/validated; `sdk.stegverse.org` now passes the GitHub Pages DNS check after correction to `stegverse-org.github.io`. TLS certificate issuance remains in progress, and public HTTPS closure is not yet claimed.
+Current public cutover status: SDK wiki source and Pages deployment are merged/validated; GitHub Pages now reports `https://sdk.stegverse.org/` live, the DNS check successful, and Enforce HTTPS enabled. Site propagation remains pending.
