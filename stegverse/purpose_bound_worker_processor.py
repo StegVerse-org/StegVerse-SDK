@@ -433,7 +433,10 @@ def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> d
         "worker_count_matches_manifest": len(workers) == request["worker_count"],
         "distinct_worker_identities": len(set(worker_ids)) == request["worker_count"],
         "simultaneous_overlap_observed": overlap,
-        "overlap_semantics_are_invocation_lifetime_not_cpu_parallelism": overlap,
+        "overlap_measurement_available": all(
+            row["execution_started_ns"] < row["execution_completed_ns"] for row in workers
+        ),
+        "overlap_semantics_are_invocation_lifetime_not_cpu_parallelism": True,
         "partition_reconstruction_exact": exact_partition_reconstruction,
         "all_workers_records_only": all_records_only,
         "all_workers_retired": all_retired,
@@ -473,7 +476,7 @@ def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> d
         "records_only": all_records_only,
         "worker_live_after_close": not all_retired,
         "continued_authority_after_retirement": not all_retired,
-        "overlap_semantics": "CONCURRENT_INVOCATION_LIFETIME_NOT_CPU_PARALLELISM",
+        "overlap_semantics": "MEASURED_LOCAL_INVOCATION_INTERVALS_NOT_CPU_PARALLELISM",
         "invocation_observation_dwell_seconds": _GROUP_INVOCATION_OBSERVATION_DWELL_SECONDS,
         "authority_effect": "NONE_MANIFEST_DRIVEN_SDK_TEST",
     }
