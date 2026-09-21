@@ -86,7 +86,7 @@ a{{text-underline-offset:3px}} .muted{{opacity:.75}} .boundary{{border-left:4px 
 <div class="grid">
 <div class="card"><h3>Manifest ingress</h3><p>Submit source-native manifested data through the generic ingress envelope.</p><a href="source/docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md">Processing contract</a><br><a href="source/schemas/stegverse.ingress-manifest.v1.schema.json">Ingress schema</a></div>
 <div class="card"><h3>Examples and demos</h3><p>Start from a framework-neutral external manifest and the SDK builder/CLI guidance.</p><a href="source/inspection/examples/external-framework-generic-manifest.json">External-framework example</a><br><a href="source/README.md">SDK README / CLI examples</a></div>
-<div class="card"><h3>Receipts</h3><p>Navigate <code>manifest_receipt_id</code>, governed result lineage, replay, and reconstruction.</p><a href="source/docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md">Receipt navigation</a></div>
+<div class="card"><h3>Receipts, Replay / reconstruction</h3><p>Navigate <code>manifest_receipt_id</code>, governed result lineage, replay, and reconstruction.</p><a href="source/docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md">Receipt navigation</a></div>
 <div class="card"><h3>Current implementation state</h3><p>Distinguish merged source, semantic validation, authentic governed runtime evidence, and release status.</p><a href="source/SDK_MIRROR_HANDOFF.md">SDK mirror handoff</a></div>
 </div>
 
