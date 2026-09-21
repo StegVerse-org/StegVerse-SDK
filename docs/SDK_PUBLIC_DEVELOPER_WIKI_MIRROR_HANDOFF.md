@@ -4,7 +4,7 @@ Updated: 2026-09-21
 Goal Task ID: `SDK-PUBLIC-DEVELOPER-WIKI-001`
 Central coordination handoff: `StegVerse-Labs/.github:docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md`
 Target public origin: `https://sdk.stegverse.org/`
-Status: `ACTIVE / PUBLIC ROOT LIVE HTTPS / SITE LINK MERGED / INDEPENDENT PUBLIC OBSERVATION RUNNING`
+Status: `RETIRED / COMPLETE / PUBLICLY OBSERVED`
 
 ## Canonical design
 
@@ -71,7 +71,7 @@ The public wiki grants no governance, execution, transition, credential, custody
 - earlier user-supplied GitHub Pages evidence showed `InvalidDNSError` while the Cloudflare CNAME incorrectly targeted `stegverse-org.stegverse.org`;
 - the user corrected the existing DNS-only `sdk` CNAME to `stegverse-org.github.io`;
 - subsequent user-supplied GitHub Pages evidence now reports `DNS check successful` for `sdk.stegverse.org`;
-- TLS certificate provisioning is still at step 1/3 (`Certificate Requested`), so HTTPS enforcement/public branded-host closure is not yet claimed.
+- subsequent supplied GitHub Pages evidence shows the branded root live, DNS check successful, and Enforce HTTPS enabled.
 
 ## Current manual prerequisite
 
@@ -81,9 +81,30 @@ None. The supplied GitHub Pages evidence shows the branded root live, DNS check 
 
 Site PR #1446 merged as `110de303b9f88922c926c4a75dbabcc86630d42e`. Its exact-head validation passed, and post-merge Site Pages deployment run `35637977873` completed successfully.
 
-## Next executable step
+## Independent public observation closure
 
-Observe the deployed schema, external-framework example, receipt-navigation document, and Site wiki-directory link through an independent public fetch surface. Do not infer those observations from source or deployment success alone.
+GitHub-hosted observation run `35649334318` performed fresh HTTPS GETs against all four required public evidence surfaces and returned `all_passed=true`. Retained observation artifact: `10661262634`.
+
+Observed served-body evidence:
+
+- ingress schema: HTTP 200, SHA-256 `9a2624478eb537919bfb69d189d2f8190ee66cf6de460bce94f052a9a4ee7b04`;
+- external-framework example: HTTP 200, SHA-256 `e15ec3fd92da469c5c9d544784727cb00787badca7300a80d5eb2049c0237354`;
+- manifest-receipt navigation: HTTP 200, SHA-256 `b70702184d02196dec7df1b6d8c5d90d393bf53763e5702f6d8d1bfe26d2d3dd`;
+- Site `wikis.html`: HTTP 200, SHA-256 `b3f40d8f52d825ccf66812a67f7df0a10bc6e26062daf66b2acbb4422973afd3`.
+
+SDK observation harness PR #305 merged as `e63aa7929e9ebac7a3c6c9d856cd4be9218cbb38`. Site closure PR #1447 merged as `d40a70e73c17f77205cf8c2884bc38d227e67a40`. Site claim/COSV terminalization PR #1448 merged as `570c2917369d8b634d33a79f63cf327b9158b45d`.
+
+## Terminal state
+
+```text
+coordination_state: RETIRED
+checkout_state: COMPLETED
+completion.claimed: true
+completion.validated: true
+manual_user_action_required: false
+```
+
+The public wiki remains documentation/navigation only. Closure grants no governance, execution, transition, credential, custody, evidence, processor-selection, release, or publication-transition authority.
 
 ## Independent public observation harness
 
