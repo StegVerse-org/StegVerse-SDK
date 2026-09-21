@@ -46,6 +46,60 @@ def _canonical_sha256(value: Any) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _partition_text(text: str, count: int) -> list[dict[str, Any]]:
+    """Split text into ordered, disjoint contiguous character ranges."""
+    if count <= 0:
+        raise ValueError("partition count must be positive")
+    base, remainder = divmod(len(text), count)
+    parts: list[dict[str, Any]] = []
+    start = 0
+    for index in range(count):
+        width = base + (1 if index < remainder else 0)
+        end = start + width
+        parts.append({"start_char": start, "end_char": end, "text": text[start:end]})
+        start = end
+    if "".join(part["text"] for part in parts) != text:
+        raise ValueError("partition reconstruction mismatch")
+    return parts
+
+
+def _invoke_worker(worker_request: Mapping[str, Any]) -> dict[str, Any]:
+    """Measure the actual local invocation interval, excluding group barrier wait."""
+    execution_started_ns = time.monotonic_ns()
+    packet = run_purpose_bound_worker(worker_request)
+    execution_completed_ns = time.monotonic_ns()
+    return {
+        "execution_started_ns": execution_started_ns,
+        "execution_completed_ns": execution_completed_ns,
+        "records_packet": packet,
+    }
+
+
+def _intervals_overlap(workers: list[Mapping[str, Any]]) -> bool:
+    if not workers:
+        return False
+    return max(int(row["execution_started_ns"]) for row in workers) <= min(
+        int(row["execution_completed_ns"]) for row in workers
+    )
+
+
+def _group_result_commitment(test_id: str, worker_count: int, result_bindings: list[Mapping[str, Any]]) -> str:
+    return _canonical_sha256({
+        "test_id": test_id,
+        "worker_count": worker_count,
+        "result_bindings": [dict(row) for row in result_bindings],
+    })
+
+
+def _verify_group_result_binding(
+    expected_sha256: str,
+    test_id: str,
+    worker_count: int,
+    result_bindings: list[Mapping[str, Any]],
+) -> bool:
+    return expected_sha256 == _group_result_commitment(test_id, worker_count, result_bindings)
+
+
 def _text(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{field} is required")
@@ -204,13 +258,15 @@ def derive_group_worker_requests(manifest: Mapping[str, Any]) -> list[dict[str, 
         raise ValueError("derive_group_worker_requests requires a group processor request")
     policy = request["per_worker_lifetime_policy"]
     base_text = source_payload["text"]
+    source_sha256 = hashlib.sha256(base_text.encode("utf-8")).hexdigest()
+    partitions = _partition_text(base_text, request["worker_count"])
     requests = []
-    for index, partition_id in enumerate(request["partition_ids"], start=1):
+    for partition_id, partition in zip(request["partition_ids"], partitions):
         requests.append({
             "schema": WORKER_SCHEMA,
             "transition_cell": {
                 "cell_id": f"{request['test_id']}:{partition_id}",
-                "protocol_version": "manifest-builder-group-v1",
+                "protocol_version": "manifest-builder-group-v2",
                 "pre_state": {"worker_live": False},
                 "candidate": {
                     "operation_id": f"{request['test_id']}:{partition_id}",
@@ -219,7 +275,13 @@ def derive_group_worker_requests(manifest: Mapping[str, Any]) -> list[dict[str, 
                     "required_capability": request["required_capability"],
                     "max_lifetime_seconds": policy["derived_max_lifetime_seconds"],
                     "lifetime_policy": deepcopy(policy),
-                    "payload": {"text": f"{base_text} | partition {partition_id}"},
+                    "partition_binding": {
+                        "partition_id": partition_id,
+                        "start_char": partition["start_char"],
+                        "end_char": partition["end_char"],
+                        "source_sha256": source_sha256,
+                    },
+                    "payload": {"text": partition["text"]},
                 },
             },
         })
@@ -311,6 +373,7 @@ def _execute_single(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> 
 
 
 def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
+    _, _, source_payload = _validated_manifest(manifest)
     worker_requests = derive_group_worker_requests(manifest)
     ready_barrier = threading.Barrier(len(worker_requests))
     invocation_barrier = threading.Barrier(len(worker_requests))
@@ -319,49 +382,61 @@ def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> d
         index, worker_request = index_request
         ready_ns = time.monotonic_ns()
         ready_barrier.wait(timeout=5)
-        execution_started_ns = time.monotonic_ns()
         invocation_barrier.wait(timeout=5)
-        packet = run_purpose_bound_worker(worker_request)
-        execution_completed_ns = time.monotonic_ns()
+        invocation = _invoke_worker(worker_request)
+        partition_binding = deepcopy(
+            worker_request["transition_cell"]["candidate"]["partition_binding"]
+        )
         return {
             "worker_index": index + 1,
             "partition_id": request["partition_ids"][index],
+            "partition_binding": partition_binding,
             "ready_ns": ready_ns,
-            "execution_started_ns": execution_started_ns,
-            "execution_completed_ns": execution_completed_ns,
-            "records_packet": packet,
+            **invocation,
         }
 
     with ThreadPoolExecutor(max_workers=len(worker_requests)) as pool:
         workers = list(pool.map(run_one, list(enumerate(worker_requests))))
 
     worker_ids = [row["records_packet"]["worker_spec"]["worker_id"] for row in workers]
-    overlap = max(row["execution_started_ns"] for row in workers) <= min(row["execution_completed_ns"] for row in workers)
+    overlap = _intervals_overlap(workers)
     all_records_only = all(row["records_packet"].get("records_only") is True for row in workers)
     all_retired = all(row["records_packet"].get("worker_live_after_close") is False for row in workers)
+    reconstructed_text = "".join(
+        req["transition_cell"]["candidate"]["payload"]["text"] for req in worker_requests
+    )
+    exact_partition_reconstruction = reconstructed_text == source_payload["text"]
     result_bindings = [
         {
             "partition_id": row["partition_id"],
+            "partition_binding": row["partition_binding"],
             "worker_id": row["records_packet"]["worker_spec"]["worker_id"],
             "task_result_hash": row["records_packet"]["task_result_hash"],
             "records_packet_hash": row["records_packet"]["records_packet_hash"],
         }
         for row in workers
     ]
-    group_commitment = _canonical_sha256({
-        "test_id": request["test_id"],
-        "worker_count": request["worker_count"],
-        "result_bindings": result_bindings,
-    })
+    group_commitment = _group_result_commitment(
+        request["test_id"], request["worker_count"], result_bindings
+    )
+    recomputed_group_commitment = _group_result_commitment(
+        request["test_id"], request["worker_count"], deepcopy(result_bindings)
+    )
     observations = {
         "worker_count_matches_manifest": len(workers) == request["worker_count"],
         "distinct_worker_identities": len(set(worker_ids)) == request["worker_count"],
         "simultaneous_overlap_observed": overlap,
         "overlap_semantics_are_invocation_lifetime_not_cpu_parallelism": overlap,
+        "partition_reconstruction_exact": exact_partition_reconstruction,
         "all_workers_records_only": all_records_only,
         "all_workers_retired": all_retired,
         "continued_authority_false": all_retired,
-        "group_result_binding": bool(group_commitment),
+        "group_result_binding": _verify_group_result_binding(
+            group_commitment,
+            request["test_id"],
+            request["worker_count"],
+            result_bindings,
+        ),
     }
     missing = [field for field in request["expected_evidence_fields"] if observations.get(field) is not True]
     return {
@@ -380,6 +455,14 @@ def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> d
         "workers": workers,
         "result_bindings": result_bindings,
         "group_result_binding_sha256": group_commitment,
+        "group_result_binding_recomputed_sha256": recomputed_group_commitment,
+        "partition_reconstruction": {
+            "exact": exact_partition_reconstruction,
+            "source_sha256": hashlib.sha256(source_payload["text"].encode("utf-8")).hexdigest(),
+            "reconstructed_sha256": hashlib.sha256(reconstructed_text.encode("utf-8")).hexdigest(),
+            "source_characters": len(source_payload["text"]),
+            "reconstructed_characters": len(reconstructed_text),
+        },
         "records_only": all_records_only,
         "worker_live_after_close": not all_retired,
         "continued_authority_after_retirement": not all_retired,
