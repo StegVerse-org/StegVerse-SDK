@@ -579,3 +579,14 @@ Task 4's prior overlap metric used a timestamp taken before the barrier and ther
 Test 3 remains deliberately on the same installed `atomic_task_worker` route as Test 2. Its distinct manifested test identity and preregistered proposition test person-neutral/invariant processing; no Test-3-specific runner or authority path is introduced.
 
 The retained experiment artifact is the machine-verifiable evidence source. Human-readable PDFs are downstream interpretations of those retained raw bytes and must ship with the raw manifests/results/hash inventory they cite.
+
+
+## SDK public developer wiki — 2026-09-21
+
+Canonical coordination goal: `SDK-PUBLIC-DEVELOPER-WIKI-001`.
+Repository-local handoff: `docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md`.
+Target public origin: `https://sdk.stegverse.org/`.
+
+The SDK repository now contains a repository-local Pages publication source that builds the developer wiki from exact canonical SDK files, copies those exact bytes into the published artifact, and emits `wiki-source-manifest.json` with SHA-256 digests plus the source revision. The source implementation is non-authorizing and does not imply a successful Pages deployment or public DNS/HTTPS observation until those are evidenced after merge.
+
+The developer surface covers generic manifest ingress, processing/route selection, canonical schema and external-framework example navigation, manifest receipt navigation, replay/reconstruction, current SDK state, and the existing authority boundaries among SDK, Interlock/InTr, Master Records, Publisher, and TV/TVC.
