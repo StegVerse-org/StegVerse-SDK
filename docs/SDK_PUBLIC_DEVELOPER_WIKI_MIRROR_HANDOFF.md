@@ -4,7 +4,7 @@ Updated: 2026-09-21
 Goal Task ID: `SDK-PUBLIC-DEVELOPER-WIKI-001`
 Central coordination handoff: `StegVerse-Labs/.github:docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md`
 Target public origin: `https://sdk.stegverse.org/`
-Status: `ACTIVE / REPOSITORY-LOCAL PUBLICATION SOURCE IMPLEMENTED ON BRANCH / VALIDATION PENDING`
+Status: `ACTIVE / SDK SOURCE MERGED + PAGES DEPLOYED / DNS VERIFIED / TLS PROVISIONING`
 
 ## Canonical design
 
@@ -62,6 +62,21 @@ The public wiki grants no governance, execution, transition, credential, custody
 6. Site adds and validates the SDK public-wiki link;
 7. central handoff and Task Registry completion state are reconciled only after observed public evidence.
 
+## Evidence reconciliation — 2026-09-21
+
+- canonical Task Registry registration merged via `StegVerse-Labs/.github#2490` as `608c104f45db5dbe9c29d498881fb3267c562cc7`;
+- SDK implementation merged via `StegVerse-org/StegVerse-SDK#300` as `e454dfa9042884939a0e6cde3c15a2fd2e386be5`;
+- exact-head SDK wiki validation passed after the first deterministic heading-case defect was repaired;
+- main `Publish SDK Developer Wiki` workflow ran successfully and GitHub Pages reports the site was deployed to the `github-pages` environment;
+- earlier user-supplied GitHub Pages evidence showed `InvalidDNSError` while the Cloudflare CNAME incorrectly targeted `stegverse-org.stegverse.org`;
+- the user corrected the existing DNS-only `sdk` CNAME to `stegverse-org.github.io`;
+- subsequent user-supplied GitHub Pages evidence now reports `DNS check successful` for `sdk.stegverse.org`;
+- TLS certificate provisioning is still at step 1/3 (`Certificate Requested`), so HTTPS enforcement/public branded-host closure is not yet claimed.
+
+## Current manual prerequisite
+
+No further DNS edit is required. Wait for GitHub Pages certificate issuance to complete. When **Enforce HTTPS** becomes available under `StegVerse-org/StegVerse-SDK -> Settings -> Pages`, enable it.
+
 ## Next executable step
 
-Run exact-head validation for the repository-local implementation, repair any deterministic failures, merge only on evidence, then inspect the main Pages deployment and public branded hostname.
+After TLS issuance completes and **Enforce HTTPS** is enabled, observe `https://sdk.stegverse.org/` and representative schema/example/receipt/provenance resources over HTTPS, then propagate the verified SDK wiki link to Site and reconcile the central handoff/completion state.
