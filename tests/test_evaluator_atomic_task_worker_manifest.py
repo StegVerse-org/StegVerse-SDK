@@ -4,7 +4,13 @@ import unittest
 
 from stegverse.manifest_builder import available_processors, build_manifest
 from stegverse.manifest_execution import execute_manifest
-from stegverse.atomic_task_worker_processor import REQUEST_SCHEMA, derive_state_graph, execute_manifest as execute_processor_manifest
+from stegverse.atomic_task_worker_processor import (
+    REQUEST_SCHEMA,
+    TEST3_LEGACY_SCENARIO,
+    TEST3_SCENARIO,
+    derive_state_graph,
+    execute_manifest as execute_processor_manifest,
+)
 from stegverse.route_resolution import ATOMIC_TASK_WORKER_ROUTE_ID, PUBLISHED_ROUTES
 
 
@@ -25,7 +31,7 @@ def request(test_number: int) -> dict:
     scenario = (
         "TEST_2_ATOMIC_TASK_WORKER_BINDING"
         if test_number == 2
-        else "TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM"
+        else TEST3_SCENARIO
     )
     return {
         "schema": REQUEST_SCHEMA,
@@ -85,10 +91,14 @@ class EvaluatorAtomicTaskWorkerManifestTests(unittest.TestCase):
         graph = derive_state_graph(manifest)
         self.assertTrue(graph["requires_workercoordinator_claim_fence"])
         self.assertFalse(graph["adapter_executes_lifecycle"])
-        with self.assertRaisesRegex(ValueError, "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED"):
-            execute_manifest(manifest)
-        with self.assertRaisesRegex(ValueError, "PROCESSOR_ADAPTER_ONLY"):
-            execute_processor_manifest(manifest)
+        result = execute_manifest(manifest)
+        direct_result = execute_processor_manifest(manifest)
+        self.assertEqual(result["processor_result_sha256"], __import__("hashlib").sha256(
+            __import__("json").dumps(direct_result, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        ).hexdigest())
+        self.assertEqual(result["manifest_lineage"]["canonical_manifest_sha256"], result["canonical_manifest_sha256"])
+        self.assertEqual(result["manifest_lineage"]["request_sha256"], result["request_sha256"])
+        self.assertTrue(result["evidence_expectations_satisfied"])
         return manifest
 
     def test_test_two_uses_manifest_builder_and_generic_run_manifest_path(self):
@@ -102,8 +112,24 @@ class EvaluatorAtomicTaskWorkerManifestTests(unittest.TestCase):
         manifest = self._run(3)
         self.assertEqual(
             manifest["extensions"]["stegverse_atomic_task_worker_request"]["scenario"],
-            "TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM",
+            TEST3_SCENARIO,
         )
+
+    def test_legacy_test_three_identifier_remains_accepted_as_compatibility_alias(self):
+        legacy_request = request(3)
+        legacy_request["scenario"] = TEST3_LEGACY_SCENARIO
+        manifest = build_manifest(
+            data=SOURCE,
+            source_framework="external_evaluator",
+            source_output_id="sdk-test-3-legacy-alias",
+            processor_request=legacy_request,
+            process="atomic_task_worker",
+            return_depth="full-trace",
+            created_at="2026-09-20T23:59:00Z",
+        )
+        result = execute_manifest(manifest)
+        self.assertEqual(result["scenario"], TEST3_LEGACY_SCENARIO)
+        self.assertEqual(result["scenario_profile"], TEST3_SCENARIO)
 
 
 if __name__ == "__main__":
