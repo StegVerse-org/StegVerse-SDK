@@ -186,6 +186,42 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def invariance_projection(result: Mapping[str, Any]) -> dict[str, Any]:
+    """Project Test 2/3 results onto fields that must be invariant modulo identity/proposition."""
+    packet = result.get("records_packet") or {}
+    lifecycle = packet.get("lifecycle_receipts") or []
+    return {
+        "processing_capability": result.get("processing_capability"),
+        "route_id": result.get("route_id"),
+        "expected_evidence_fields": result.get("expected_evidence_fields"),
+        "evidence_observations": result.get("evidence_observations"),
+        "evidence_expectations_satisfied": result.get("evidence_expectations_satisfied"),
+        "records_only": result.get("records_only"),
+        "worker_live_after_close": result.get("worker_live_after_close"),
+        "records_packet": {
+            "schema": packet.get("schema"),
+            "source_schema": packet.get("source_schema"),
+            "cosv_task_vector": packet.get("cosv_task_vector"),
+            "manifest_id": packet.get("manifest_id"),
+            "worker_id": packet.get("worker_id"),
+            "fencing_token": packet.get("fencing_token"),
+            "lifecycle_phases": [
+                row.get("phase") for row in lifecycle if isinstance(row, Mapping)
+            ],
+            "task_result": packet.get("task_result"),
+            "task_state_after_close": packet.get("task_state_after_close"),
+            "worker_state_after_close": packet.get("worker_state_after_close"),
+            "worker_live_after_close": packet.get("worker_live_after_close"),
+            "continued_task_bound_authority": packet.get("continued_task_bound_authority"),
+            "records_only": packet.get("records_only"),
+            "callable_retained": packet.get("callable_retained"),
+            "executor_reference_retained": packet.get("executor_reference_retained"),
+            "runtime_binding_state": packet.get("runtime_binding_state"),
+            "authority_effect": packet.get("authority_effect"),
+        },
+    }
+
+
 def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     canonical = validate_ingress_manifest(manifest)
     req = validate_atomic_task_worker_request((canonical.get("extensions") or {}).get(REQUEST_EXTENSION))
@@ -215,6 +251,6 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
 __all__ = [
     "PROCESSING_CAPABILITY", "REQUEST_EXTENSION", "REQUEST_SCHEMA", "RESULT_SCHEMA",
     "ROUTE_ID", "TEST2_SCENARIO", "TEST3_LEGACY_SCENARIO", "TEST3_SCENARIO",
-    "derive_atomic_request", "derive_state_graph", "execute_manifest",
+    "derive_atomic_request", "derive_state_graph", "execute_manifest", "invariance_projection",
     "validate_atomic_task_worker_request",
 ]
