@@ -30,6 +30,7 @@ REQUEST_SCHEMA = "stegverse.sdk.purpose-bound-worker-test.v1"
 GROUP_REQUEST_SCHEMA = "stegverse.sdk.purpose-bound-worker-group-test.v1"
 RESULT_SCHEMA = "stegverse.sdk.purpose-bound-worker-manifest-result.v1"
 GROUP_RESULT_SCHEMA = "stegverse.sdk.purpose-bound-worker-group-manifest-result.v1"
+_GROUP_INVOCATION_OBSERVATION_DWELL_SECONDS = 0.01
 REQUEST_EXTENSION = "stegverse_purpose_bound_worker_request"
 
 _COMPONENTS = (
@@ -64,8 +65,14 @@ def _partition_text(text: str, count: int) -> list[dict[str, Any]]:
 
 
 def _invoke_worker(worker_request: Mapping[str, Any]) -> dict[str, Any]:
-    """Measure the actual local invocation interval, excluding group barrier wait."""
+    """Measure a bounded local invocation interval, excluding group barrier wait.
+
+    A short observation dwell makes the local semantic concurrency probe observable
+    on fast CI hosts. It is part of the invocation lifetime measurement and is not
+    represented as CPU-parallel work.
+    """
     execution_started_ns = time.monotonic_ns()
+    time.sleep(_GROUP_INVOCATION_OBSERVATION_DWELL_SECONDS)
     packet = run_purpose_bound_worker(worker_request)
     execution_completed_ns = time.monotonic_ns()
     return {
@@ -467,6 +474,7 @@ def _execute_group(manifest: Mapping[str, Any], request: Mapping[str, Any]) -> d
         "worker_live_after_close": not all_retired,
         "continued_authority_after_retirement": not all_retired,
         "overlap_semantics": "CONCURRENT_INVOCATION_LIFETIME_NOT_CPU_PARALLELISM",
+        "invocation_observation_dwell_seconds": _GROUP_INVOCATION_OBSERVATION_DWELL_SECONDS,
         "authority_effect": "NONE_MANIFEST_DRIVEN_SDK_TEST",
     }
 
