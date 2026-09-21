@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib
 import json
 from pathlib import Path
@@ -13,6 +14,77 @@ from .route_resolution import route_from_manifest
 
 _GOVERNED_WORKER_ROUTING_SURFACE = "STEGAGENTS_GOVERNED_RUNTIME"
 _LOCAL_SEMANTIC_WORKER_BINDINGS = set()
+_RESULT_LINEAGE_SCHEMA = "stegverse.sdk.run-manifest-lineage.v1"
+_RUN_MANIFEST_REQUEST_SCHEMA = "stegverse.sdk.run-manifest-request.v1"
+_RESERVED_LINEAGE_FIELDS = {
+    "canonical_manifest_sha256",
+    "request_sha256",
+    "processor_result_sha256",
+    "manifest_lineage",
+}
+
+
+def _canonical_sha256(value: Any) -> str:
+    raw = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _run_manifest_request(
+    canonical: Mapping[str, Any], route: Mapping[str, Any], binding: str
+) -> dict[str, Any]:
+    return {
+        "schema": _RUN_MANIFEST_REQUEST_SCHEMA,
+        "canonical_manifest_sha256": canonical["canonical_manifest_sha256"],
+        "processing_capability": route["processor_capability"],
+        "route_id": route["route_id"],
+        "route_declaration_hash": route["route_declaration_hash"],
+        "runtime_binding": binding,
+        "source_framework": canonical["source_framework"],
+        "source_instance": canonical.get("source_instance"),
+        "source_output_id": canonical["source_output_id"],
+        "authority_effect": "NONE_DISPATCH_BINDING_ONLY",
+    }
+
+
+def _bind_result_lineage(
+    *,
+    canonical: Mapping[str, Any],
+    route: Mapping[str, Any],
+    binding: str,
+    processor_result: Mapping[str, Any],
+) -> dict[str, Any]:
+    raw_result = dict(processor_result)
+    request = _run_manifest_request(canonical, route, binding)
+    request_sha256 = _canonical_sha256(request)
+    processor_result_sha256 = _canonical_sha256(raw_result)
+
+    conflicting = sorted(_RESERVED_LINEAGE_FIELDS.intersection(raw_result))
+    preserved_processor_request_sha256 = None
+    if "canonical_manifest_sha256" in conflicting:
+        if raw_result.get("canonical_manifest_sha256") != canonical["canonical_manifest_sha256"]:
+            raise ValueError("processor result conflicts with canonical_manifest_sha256")
+        conflicting.remove("canonical_manifest_sha256")
+    if "request_sha256" in conflicting:
+        preserved_processor_request_sha256 = raw_result.get("request_sha256")
+        conflicting.remove("request_sha256")
+    if conflicting:
+        raise ValueError("processor result uses reserved run-manifest lineage fields: " + ", ".join(conflicting))
+
+    bound = dict(raw_result)
+    if preserved_processor_request_sha256 is not None:
+        bound["processor_request_sha256"] = preserved_processor_request_sha256
+    bound["canonical_manifest_sha256"] = canonical["canonical_manifest_sha256"]
+    bound["request_sha256"] = request_sha256
+    bound["processor_result_sha256"] = processor_result_sha256
+    bound["manifest_lineage"] = {
+        "schema": _RESULT_LINEAGE_SCHEMA,
+        "canonical_manifest_sha256": canonical["canonical_manifest_sha256"],
+        "request_sha256": request_sha256,
+        "processor_result_sha256": processor_result_sha256,
+        "run_manifest_request": request,
+        "processor_request_sha256": preserved_processor_request_sha256,
+    }
+    return bound
 
 
 def _require_nonterminal_local_semantic_boundary(route: Mapping[str, Any], binding: str) -> None:
@@ -50,7 +122,12 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     result = function(manifest)
     if not isinstance(result, Mapping):
         raise ValueError("manifest processor returned a non-object result")
-    return dict(result)
+    return _bind_result_lineage(
+        canonical=canonical,
+        route=route,
+        binding=binding,
+        processor_result=result,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
