@@ -4,7 +4,7 @@ Updated: 2026-09-21
 Goal Task ID: `SDK-PUBLIC-DEVELOPER-WIKI-001`
 Central coordination handoff: `StegVerse-Labs/.github:docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md`
 Target public origin: `https://sdk.stegverse.org/`
-Status: `ACTIVE / REPOSITORY-LOCAL PUBLICATION SOURCE IMPLEMENTED ON BRANCH / VALIDATION PENDING`
+Status: `ACTIVE / SDK SOURCE MERGED + PAGES DEPLOYED / DNS TARGET CORRECTION REQUIRED`
 
 ## Canonical design
 
@@ -62,6 +62,32 @@ The public wiki grants no governance, execution, transition, credential, custody
 6. Site adds and validates the SDK public-wiki link;
 7. central handoff and Task Registry completion state are reconciled only after observed public evidence.
 
+## Evidence reconciliation — 2026-09-21
+
+- canonical Task Registry registration merged via `StegVerse-Labs/.github#2490` as `608c104f45db5dbe9c29d498881fb3267c562cc7`;
+- SDK implementation merged via `StegVerse-org/StegVerse-SDK#300` as `e454dfa9042884939a0e6cde3c15a2fd2e386be5`;
+- exact-head SDK wiki validation passed after the first deterministic heading-case defect was repaired;
+- main `Publish SDK Developer Wiki` workflow ran successfully and GitHub Pages reports the site was deployed to the `github-pages` environment;
+- user-supplied GitHub Pages evidence shows custom domain `sdk.stegverse.org` is configured but currently reports `InvalidDNSError` while TLS certificate provisioning is at step 1/3;
+- user-supplied Cloudflare evidence shows the current DNS record is `CNAME sdk.stegverse.org -> stegverse-org.stegverse.org`, DNS only;
+- required GitHub Pages target is `stegverse-org.github.io`; the current target is therefore the concrete remaining publication defect.
+
+## Manual DNS correction
+
+In Cloudflare DNS for `stegverse.org`, edit the existing `sdk` CNAME record:
+
+```text
+Type: CNAME
+Name: sdk
+Target: stegverse-org.github.io
+Proxy status: DNS only
+TTL: Auto
+```
+
+Do not create a second `sdk` record. Replace the current target `stegverse-org.stegverse.org`.
+
+After saving, return to `StegVerse-org/StegVerse-SDK -> Settings -> Pages`, press **Check again**, wait for the DNS check to succeed and certificate issuance to complete, then enable **Enforce HTTPS** when GitHub makes it available.
+
 ## Next executable step
 
-Run exact-head validation for the repository-local implementation, repair any deterministic failures, merge only on evidence, then inspect the main Pages deployment and public branded hostname.
+After the DNS target is corrected, observe `https://sdk.stegverse.org/` and representative schema/example/receipt/provenance resources over HTTPS, then propagate the verified SDK wiki link to Site and reconcile the central handoff/completion state.
