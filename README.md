@@ -896,3 +896,35 @@ Test 3's canonical future-facing scenario identifier is `TEST_3_INVARIANCE_SHORT
 Canonical coordination goal: `SDK-FOUR-STAGE-MANIFEST-EXPERIMENT-RERUN-001`.
 
 The four-stage evaluator experiment now freezes the exact checked-out SDK head, builds all four manifests before execution, and changes only the manifest supplied to `run-manifest` between stages. Task 4 concurrency evidence is derived from overlapping post-ready-barrier worker invocation lifetimes (`execution_started_ns` through `execution_completed_ns`) synchronized by a generic invocation-start barrier. It proves concurrent worker invocation lifetimes, not CPU-parallel instruction execution. Test 3 intentionally exercises the same installed `atomic_task_worker` processor as Test 2 with a distinct manifested identity and preregistered proposition; it is an invariance/person-neutrality test, not a hidden Test-3-specific execution route. The retained workflow artifact includes raw manifests, raw results, source-index evidence, experiment metadata, and SHA-256 inventory for independent replay.
+
+
+## Public developer wiki
+
+Canonical goal: `SDK-PUBLIC-DEVELOPER-WIKI-001`.
+
+The SDK repository now owns the source for a developer-facing public wiki projection targeting `https://sdk.stegverse.org/`. The wiki is built from current canonical SDK files at publication time and publishes a SHA-256 source manifest so the displayed developer surface can be tied back to the exact repository revision and exact source bytes.
+
+Primary developer flow:
+
+```text
+source-native manifested data
+-> stegverse.ingress-manifest.v1
+-> caller-selected processing capability
+-> declared installed runtime route
+-> processor-specific evaluation
+-> canonical Master Records custody
+-> caller-selected return projection
+-> returned artifact + manifest_receipt_id
+-> replay / reconstruction where applicable
+```
+
+Implementation:
+
+```text
+scripts/build_sdk_public_wiki.py
+tests/test_sdk_public_developer_wiki.py
+.github/workflows/sdk-public-developer-wiki-pages.yml
+docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md
+```
+
+The public wiki is documentation/navigation only. It grants no governance, execution, transition, credential, custody, evidence, processor-selection, release, or publication-transition authority.
