@@ -4,7 +4,7 @@ Updated: 2026-09-21
 Goal Task ID: `SDK-PUBLIC-DEVELOPER-WIKI-001`
 Central coordination handoff: `StegVerse-Labs/.github:docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md`
 Target public origin: `https://sdk.stegverse.org/`
-Status: `ACTIVE / SDK SOURCE MERGED + PAGES DEPLOYED / DNS VERIFIED / TLS PROVISIONING`
+Status: `ACTIVE / PUBLIC ROOT LIVE HTTPS / SITE LINK MERGED / REPRESENTATIVE SUBRESOURCE OBSERVATION PENDING`
 
 ## Canonical design
 
@@ -75,8 +75,12 @@ The public wiki grants no governance, execution, transition, credential, custody
 
 ## Current manual prerequisite
 
-No further DNS edit is required. Wait for GitHub Pages certificate issuance to complete. When **Enforce HTTPS** becomes available under `StegVerse-org/StegVerse-SDK -> Settings -> Pages`, enable it.
+None. The supplied GitHub Pages evidence shows the branded root live, DNS check successful, and Enforce HTTPS enabled.
+
+## Site propagation
+
+Site PR #1446 merged as `110de303b9f88922c926c4a75dbabcc86630d42e`. Its exact-head validation passed, and post-merge Site Pages deployment run `35637977873` completed successfully.
 
 ## Next executable step
 
-After TLS issuance completes and **Enforce HTTPS** is enabled, observe `https://sdk.stegverse.org/` and representative schema/example/receipt/provenance resources over HTTPS, then propagate the verified SDK wiki link to Site and reconcile the central handoff/completion state.
+Observe the deployed schema, external-framework example, receipt-navigation document, and Site wiki-directory link through an independent public fetch surface. Do not infer those observations from source or deployment success alone.
