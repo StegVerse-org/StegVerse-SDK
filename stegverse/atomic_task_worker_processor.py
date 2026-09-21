@@ -197,6 +197,7 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "test_id": req["test_id"],
         "test_number": req["test_number"],
         "scenario": req["scenario"],
+        "scenario_profile": req["scenario_profile"],
         "processing_capability": PROCESSING_CAPABILITY,
         "route_id": ROUTE_ID,
         "preregistered_expectation": req["preregistered_expectation"],
