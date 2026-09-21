@@ -16,7 +16,7 @@ on:
       - 'inspection/examples/sdk-tt-shared-source.json'
       - 'inspection/examples/sdk-test1-purpose-worker.processor-request.json'
       - 'inspection/examples/sdk-test2-atomic-task-worker.processor-request.json'
-      - 'inspection/examples/sdk-test3-richard-seam.processor-request.json'
+      - 'inspection/examples/sdk-test3-invariance-seam.processor-request.json'
       - '.github/workflows/tt-atomic-task-worker-binding.yml'
   workflow_dispatch:
 
@@ -115,7 +115,7 @@ jobs:
 
           stegverse manifest build \
             --input inspection/examples/sdk-tt-shared-source.json \
-            --processor-request inspection/examples/sdk-test3-richard-seam.processor-request.json \
+            --processor-request inspection/examples/sdk-test3-invariance-seam.processor-request.json \
             --source-framework external_evaluator --source-output-id test-3 \
             --process atomic_task_worker --return-depth full-trace \
             --created-at 2026-09-20T21:47:00Z --output /tmp/test3.manifest.json
@@ -167,7 +167,7 @@ jobs:
           import json
           r=json.load(open('/tmp/test3.result.json'))
           assert r['test_number'] == 3
-          assert r['scenario'] == 'TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM'
+          assert r['scenario'] == 'TEST_3_INVARIANCE_SHORT_LIVED_ACTOR_SEAM'
           assert r['processing_capability'] == 'atomic_task_worker'
           assert r['route_id']
           assert r['evidence_expectations_satisfied'] is True
