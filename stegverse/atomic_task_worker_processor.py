@@ -20,10 +20,10 @@ REQUEST_SCHEMA = "stegverse.sdk.atomic-task-worker-test.v1"
 RESULT_SCHEMA = "stegverse.sdk.atomic-task-worker-manifest-result.v1"
 REQUEST_EXTENSION = "stegverse_atomic_task_worker_request"
 
-SCENARIOS = {
-    "TEST_2_ATOMIC_TASK_WORKER_BINDING",
-    "TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM",
-}
+TEST2_SCENARIO = "TEST_2_ATOMIC_TASK_WORKER_BINDING"
+TEST3_SCENARIO = "TEST_3_INVARIANCE_SHORT_LIVED_ACTOR_SEAM"
+TEST3_LEGACY_SCENARIO = "TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM"
+SCENARIOS = {TEST2_SCENARIO, TEST3_SCENARIO, TEST3_LEGACY_SCENARIO}
 
 DEFAULT_EXPECTED_EVIDENCE = [
     "constitutive_transition",
@@ -57,9 +57,9 @@ def validate_atomic_task_worker_request(value: Any) -> dict[str, Any]:
     scenario = value.get("scenario")
     if scenario not in SCENARIOS:
         raise ValueError("unsupported scenario")
-    if test_number == 2 and scenario != "TEST_2_ATOMIC_TASK_WORKER_BINDING":
+    if test_number == 2 and scenario != TEST2_SCENARIO:
         raise ValueError("Test 2 scenario mismatch")
-    if test_number == 3 and scenario != "TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM":
+    if test_number == 3 and scenario not in {TEST3_SCENARIO, TEST3_LEGACY_SCENARIO}:
         raise ValueError("Test 3 scenario mismatch")
     task = _mapping(value.get("task"), "task")
     supplied_payload = task.pop("payload", None)
@@ -78,6 +78,7 @@ def validate_atomic_task_worker_request(value: Any) -> dict[str, Any]:
         "test_id": test_id.strip(),
         "test_number": test_number,
         "scenario": scenario,
+        "scenario_profile": TEST3_SCENARIO if test_number == 3 else TEST2_SCENARIO,
         "task": task,
         "worker_manifest": worker_manifest,
         "activation": activation,
@@ -196,6 +197,7 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "test_id": req["test_id"],
         "test_number": req["test_number"],
         "scenario": req["scenario"],
+        "scenario_profile": req["scenario_profile"],
         "processing_capability": PROCESSING_CAPABILITY,
         "route_id": ROUTE_ID,
         "preregistered_expectation": req["preregistered_expectation"],
@@ -212,6 +214,7 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
 
 __all__ = [
     "PROCESSING_CAPABILITY", "REQUEST_EXTENSION", "REQUEST_SCHEMA", "RESULT_SCHEMA",
-    "ROUTE_ID", "derive_atomic_request", "derive_state_graph", "execute_manifest",
+    "ROUTE_ID", "TEST2_SCENARIO", "TEST3_LEGACY_SCENARIO", "TEST3_SCENARIO",
+    "derive_atomic_request", "derive_state_graph", "execute_manifest",
     "validate_atomic_task_worker_request",
 ]

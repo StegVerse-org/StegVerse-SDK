@@ -1,0 +1,47 @@
+{
+  "schema": "stegverse.sdk.atomic-task-worker-test.v1",
+  "test_id": "SDK-TEST3-INVARIANCE-SEAM-001",
+  "test_number": 3,
+  "scenario": "TEST_3_INVARIANCE_SHORT_LIVED_ACTOR_SEAM",
+  "task": {
+    "task_id": "sdk-test3-invariance-seam-001",
+    "cosv_task_vector": "20010000110000",
+    "state": "HANDOFF_READY",
+    "claim_id": null,
+    "worker_instance_id": null,
+    "worker_live": false,
+    "purpose": "Analyze a supplied text payload for a tracked integrity summary.",
+    "required_capability": "text.integrity_summary",
+    "max_lifetime_seconds": 30
+  },
+  "worker_manifest": {
+    "schema": "stegverse.sdk.worker-manifest.v1",
+    "manifest_id": "stegagents-purpose-bound-worker-manifest-v1",
+    "worker_id": "stegagents-governed-runtime-worker",
+    "capabilities": [
+      "text.integrity_summary"
+    ],
+    "execution_model": "TASK_BOUND_EPHEMERAL",
+    "self_authorization_allowed": false,
+    "task_redefinition_allowed": false,
+    "authority_scope": "TASK_BOUND_ONLY"
+  },
+  "activation": {
+    "claim_generation": 1,
+    "fencing_token": 1
+  },
+  "preregistered_expectation": {
+    "proposition": "SHORT_LIVED_TASK_BOUND_ACTOR_IS_CREATED_BOUND_EXECUTED_CLOSED_AND_RETIRED_WITHOUT_SPLIT_STATE",
+    "expected_disposition": "PASS_IF_SAME_TASK_WORKER_LINEAGE_CLOSES_RECORDS_ONLY"
+  },
+  "expected_evidence_fields": [
+    "constitutive_transition",
+    "reciprocal_task_worker_binding",
+    "invocation_after_transition",
+    "task_result",
+    "close_and_retire",
+    "records_only",
+    "worker_live_after_close_false",
+    "continued_authority_false"
+  ]
+}

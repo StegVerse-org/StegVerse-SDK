@@ -1,3 +1,11 @@
+
+## run-manifest result lineage binding - 2026-09-20
+
+Canonical coordination goal: `SDK-RUN-MANIFEST-RESULT-LINEAGE-BINDING-001`
+Canonical coordination handoff: `StegVerse-Labs/.github:docs/SDK_RUN_MANIFEST_RESULT_LINEAGE_BINDING_MIRROR_HANDOFF.md`
+
+The shared public `run-manifest` dispatcher now owns result-lineage enrichment instead of leaving manifest/request binding optional per processor. Every successful result is bound to the validated complete canonical ingress manifest, a deterministic generic run-manifest execution request, and the exact pre-enrichment processor result hash. Historical four-stage evidence remains immutable. Future Test 3 manifests use `TEST_3_INVARIANCE_SHORT_LIVED_ACTOR_SEAM`; the previous person-specific identifier remains a deprecated replay compatibility alias only. SDK 1.3.0 remains a release candidate pending canonical tag/release publication.
+
 # SDK Mirror Handoff
 
 ## Source of truth

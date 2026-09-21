@@ -882,6 +882,15 @@ stegverse run-manifest --manifest /tmp/sdk-test1.manifest.json
 The processor derives the canonical TT worker request from the validated manifest. There is no second worker-specific variable input. Test One uses one compute unit and a 15-second derived maximum lifetime (6 task + 1 known delay + 2 inferred delay reserve + 3 records decomposition + 3 safety reserve), with early retirement on purpose completion.
 
 
+
+## run-manifest result lineage binding (2026-09-20)
+
+Canonical coordination goal: `SDK-RUN-MANIFEST-RESULT-LINEAGE-BINDING-001` / COSV `71000000111111`.
+
+Every successful public `stegverse run-manifest` result is now bound by the shared dispatcher to the validated complete canonical ingress manifest and to a deterministic generic run-manifest execution request. The returned result includes `canonical_manifest_sha256`, `request_sha256`, `processor_result_sha256`, and a `manifest_lineage` object carrying the exact request object whose digest is reported. `processor_result_sha256` commits the processor result before dispatcher enrichment, so nested lifecycle receipts/closures are transitively committed without requiring test-specific result logic.
+
+Test 3's canonical future-facing scenario identifier is `TEST_3_INVARIANCE_SHORT_LIVED_ACTOR_SEAM`. The historical `TEST_3_RICHARD_SHORT_LIVED_ACTOR_SEAM` identifier remains accepted only as a compatibility alias for retained/replayable evidence. Historical four-stage artifacts are not rewritten. SDK 1.3.0 remains a release candidate until the canonical tag/release publication occurs.
+
 ## Four-stage manifest-only experiment rerun (2026-09-20)
 
 Canonical coordination goal: `SDK-FOUR-STAGE-MANIFEST-EXPERIMENT-RERUN-001`.
