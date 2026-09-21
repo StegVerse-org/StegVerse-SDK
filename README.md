@@ -943,3 +943,8 @@ This work is evidence/test-contract hardening only. It does not assert authentic
 ### Public SDK wiki observation
 
 `scripts/observe_sdk_public_wiki.py` performs observation-only HTTPS fetches of the deployed ingress schema, external-framework example, receipt-navigation document, and Site wiki-directory link. The paired `Observe SDK Public Wiki` workflow runs those checks from GitHub-hosted Actions and records a machine-readable report without granting execution, governance, publication, or custody authority.
+
+
+## Governed wiki publication transition
+
+`GOVERNED-WIKI-PUBLICATION-TRANSITION-001` binds an already-reviewed `external_framework_wiki_publication_transition` to the existing generic SDK ingress manifest without granting publication authority. `stegverse/wiki_publication_transition.py` preserves the exact reviewed transition as the manifest payload, hash-binds its package/correction/source/publisher/evidence/target identities into the deterministic governance candidate, and requires the caller to provide the complete governance request rather than synthesizing authority evidence. `ALLOW_PUBLICATION_CANDIDATE` may require the Publisher stage only after governed runtime closure; `DENY_PUBLICATION` and `REVIEW_REQUIRED` explicitly require zero repository mutation. Canonical handoff: `docs/GOVERNED_WIKI_PUBLICATION_TRANSITION_MIRROR_HANDOFF.md`.
