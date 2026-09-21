@@ -4,7 +4,7 @@ Updated: 2026-09-21
 Goal Task ID: `SDK-PUBLIC-DEVELOPER-WIKI-001`
 Central coordination handoff: `StegVerse-Labs/.github:docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md`
 Target public origin: `https://sdk.stegverse.org/`
-Status: `ACTIVE / SDK SOURCE MERGED + PAGES DEPLOYED / DNS VERIFIED / TLS PROVISIONING`
+Status: `ACTIVE / SDK SOURCE MERGED + PAGES DEPLOYED / DNS VERIFIED / HTTPS ENFORCED / SITE PROPAGATION PENDING`
 
 ## Canonical design
 
@@ -71,12 +71,12 @@ The public wiki grants no governance, execution, transition, credential, custody
 - earlier user-supplied GitHub Pages evidence showed `InvalidDNSError` while the Cloudflare CNAME incorrectly targeted `stegverse-org.stegverse.org`;
 - the user corrected the existing DNS-only `sdk` CNAME to `stegverse-org.github.io`;
 - subsequent user-supplied GitHub Pages evidence now reports `DNS check successful` for `sdk.stegverse.org`;
-- TLS certificate provisioning is still at step 1/3 (`Certificate Requested`), so HTTPS enforcement/public branded-host closure is not yet claimed.
+- subsequent user-supplied GitHub Pages evidence shows `Your site is live at https://sdk.stegverse.org/`, `DNS check successful`, and `Enforce HTTPS` enabled; the branded SDK root is therefore publicly live over enforced HTTPS.
 
 ## Current manual prerequisite
 
-No further DNS edit is required. Wait for GitHub Pages certificate issuance to complete. When **Enforce HTTPS** becomes available under `StegVerse-org/StegVerse-SDK -> Settings -> Pages`, enable it.
+None. DNS and HTTPS cutover are satisfied by the supplied GitHub Pages evidence.
 
 ## Next executable step
 
-After TLS issuance completes and **Enforce HTTPS** is enabled, observe `https://sdk.stegverse.org/` and representative schema/example/receipt/provenance resources over HTTPS, then propagate the verified SDK wiki link to Site and reconcile the central handoff/completion state.
+Propagate the verified `https://sdk.stegverse.org/` link to Site, validate that projection, then reconcile the central handoff and task completion state. Representative subresource observation remains desirable but the external web inspection tool in this session could not access the custom domain, so do not fabricate subresource observation evidence.
