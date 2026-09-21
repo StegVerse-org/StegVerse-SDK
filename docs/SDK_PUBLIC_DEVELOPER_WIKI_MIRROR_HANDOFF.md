@@ -4,7 +4,7 @@ Updated: 2026-09-21
 Goal Task ID: `SDK-PUBLIC-DEVELOPER-WIKI-001`
 Central coordination handoff: `StegVerse-Labs/.github:docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md`
 Target public origin: `https://sdk.stegverse.org/`
-Status: `ACTIVE / PUBLIC ROOT LIVE HTTPS / SITE LINK MERGED / REPRESENTATIVE SUBRESOURCE OBSERVATION PENDING`
+Status: `ACTIVE / PUBLIC ROOT LIVE HTTPS / SITE LINK MERGED / INDEPENDENT PUBLIC OBSERVATION RUNNING`
 
 ## Canonical design
 
@@ -84,3 +84,17 @@ Site PR #1446 merged as `110de303b9f88922c926c4a75dbabcc86630d42e`. Its exact-he
 ## Next executable step
 
 Observe the deployed schema, external-framework example, receipt-navigation document, and Site wiki-directory link through an independent public fetch surface. Do not infer those observations from source or deployment success alone.
+
+## Independent public observation harness
+
+A repository-local observation-only harness now performs fresh HTTPS GETs from GitHub-hosted Actions to the four remaining public evidence surfaces:
+
+- `https://sdk.stegverse.org/source/schemas/stegverse.ingress-manifest.v1.schema.json`
+- `https://sdk.stegverse.org/source/inspection/examples/external-framework-generic-manifest.json`
+- `https://sdk.stegverse.org/source/docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md`
+- `https://stegverse.org/wikis.html`
+
+Source: `scripts/observe_sdk_public_wiki.py`
+Workflow: `.github/workflows/sdk-public-wiki-observation.yml`
+
+The observer verifies HTTP 200 plus stable served-body markers and records status, final URL, content type, byte length, and SHA-256. It has `authority_effect=NONE_OBSERVATION_ONLY` and must not substitute source/build/deployment evidence for served-body observation.
