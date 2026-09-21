@@ -938,3 +938,8 @@ Current public cutover status: SDK wiki source and Pages deployment are merged/v
 Goal `SDK-FOUR-STAGE-EVIDENCE-REMEDIATION-001` hardens the manifest-only four-stage experiment without changing the retired historical evidence package. The current development branch makes Task-4 overlap falsifiable with a serialized negative control, partitions the source text into ordered disjoint ranges with exact reconstruction evidence, recomputes the group result commitment, declares local semantic worker routes as `SDK_LOCAL_SEMANTIC_DEMONSTRATION`, enforces rejection if those local bindings are ever presented as governed-runtime completion, and compares Test 2/Test 3 through an explicit invariance projection modulo identity/proposition fields.
 
 This work is evidence/test-contract hardening only. It does not assert authentic WorkerCoordinator standing, retained retirement, Master Records custody, HB authority, deployment, or governed runtime execution. Those retained-standing/retirement predicates belong to a separate successor task after this remediation is merged and validated.
+
+
+### Public SDK wiki observation
+
+`scripts/observe_sdk_public_wiki.py` performs observation-only HTTPS fetches of the deployed ingress schema, external-framework example, receipt-navigation document, and Site wiki-directory link. The paired `Observe SDK Public Wiki` workflow runs those checks from GitHub-hosted Actions and records a machine-readable report without granting execution, governance, publication, or custody authority.
