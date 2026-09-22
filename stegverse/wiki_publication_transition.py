@@ -12,6 +12,8 @@ from typing import Any, Mapping
 
 from .governance_navigation import canonical_sha256
 from .manifest_builder import build_manifest
+from .manifest_contract import validate_ingress_manifest
+from .security_posture_request import EXTENSION_KEY as SECURITY_POSTURE_REQUEST_EXTENSION, validate_security_posture_request
 
 TRANSITION_TYPE = "external_framework_wiki_publication_transition"
 ALLOW = "ALLOW_PUBLICATION_CANDIDATE"
@@ -125,6 +127,7 @@ def prepare_wiki_publication_manifest(
     *,
     transition: Mapping[str, Any],
     governance_request: Mapping[str, Any],
+    security_posture_request: Mapping[str, Any],
     target_profile: str = "admissibility",
     created_at: str | None = None,
     return_depth: str = "full-trace",
@@ -138,6 +141,9 @@ def prepare_wiki_publication_manifest(
     canonical = validate_publication_transition(transition)
     if not isinstance(governance_request, Mapping):
         raise ValueError("complete governance_request is required")
+    posture_request = validate_security_posture_request(security_posture_request)
+    if posture_request.get("task_id") != "GOVERNED-WIKI-PUBLICATION-TRANSITION-001":
+        raise ValueError("security_posture_request.task_id must bind governed wiki publication task")
     expected_candidate = publication_governance_candidate(
         canonical, target_profile=target_profile
     )
@@ -162,7 +168,7 @@ def prepare_wiki_publication_manifest(
         "Record the reviewed wiki publication disposition through canonical governance "
         "with zero repository mutation."
     )
-    return build_manifest(
+    manifest = build_manifest(
         data=canonical,
         source_framework="external_chat_publication_transition",
         source_output_id=canonical_sha256(canonical),
@@ -180,6 +186,9 @@ def prepare_wiki_publication_manifest(
         publisher_package_profile=PUBLISHER_PACKAGE_PROFILE,
         destination_profile=target_repository,
     )
+    manifest["extensions"][SECURITY_POSTURE_REQUEST_EXTENSION] = posture_request
+    validate_ingress_manifest(manifest)
+    return manifest
 
 
 __all__ = [

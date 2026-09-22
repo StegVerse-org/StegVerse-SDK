@@ -4,6 +4,7 @@ from copy import deepcopy
 import unittest
 
 from stegverse.governance_navigation import canonical_sha256
+from stegverse.security_posture_request import build_security_posture_request
 from stegverse.wiki_publication_transition import (
     prepare_wiki_publication_manifest,
     publication_governance_candidate,
@@ -72,12 +73,23 @@ def governance_request(value: dict) -> dict:
     }
 
 
+def posture_request() -> dict:
+    return build_security_posture_request(
+        task_id="GOVERNED-WIKI-PUBLICATION-TRANSITION-001",
+        selection_present=False,
+        organization_minimum_tier="SECURE",
+        data_class="stegverse.external-framework-wiki-publication-transition.v1",
+        channel="wiki-publication",
+    )
+
+
 class WikiPublicationTransitionTests(unittest.TestCase):
     def test_allow_candidate_is_exactly_bound_without_authority_grant(self):
         value = transition()
         manifest = prepare_wiki_publication_manifest(
             transition=value,
             governance_request=governance_request(value),
+            security_posture_request=posture_request(),
             created_at="2026-09-21T20:00:00Z",
         )
         self.assertEqual(manifest["payload"], value)
@@ -103,6 +115,7 @@ class WikiPublicationTransitionTests(unittest.TestCase):
             prepare_wiki_publication_manifest(
                 transition=value,
                 governance_request=request,
+                security_posture_request=posture_request(),
                 created_at="2026-09-21T20:00:00Z",
             )
 
@@ -119,12 +132,38 @@ class WikiPublicationTransitionTests(unittest.TestCase):
                 manifest = prepare_wiki_publication_manifest(
                     transition=value,
                     governance_request=governance_request(value),
+                    security_posture_request=posture_request(),
                     created_at="2026-09-21T20:00:00Z",
                 )
                 self.assertEqual(manifest["candidate"]["parameters"]["decision"], decision)
                 self.assertFalse(manifest["candidate"]["parameters"]["external_side_effect"])
                 self.assertFalse(manifest["completion"]["publisher"]["required"])
                 self.assertIn("zero repository mutation", manifest["requested_consequence"])
+
+    def test_manifest_requires_authoritative_intr_posture_request(self):
+        value = transition()
+        manifest = prepare_wiki_publication_manifest(
+            transition=value,
+            governance_request=governance_request(value),
+            security_posture_request=posture_request(),
+            created_at="2026-09-21T20:00:00Z",
+        )
+        posture = manifest["extensions"]["security_posture_request"]
+        self.assertEqual(posture["task_id"], "GOVERNED-WIKI-PUBLICATION-TRANSITION-001")
+        self.assertEqual(posture["authority_effect"], "NONE_REQUEST_INPUT_ONLY")
+        self.assertEqual(manifest["completion"]["egress"]["transport"], "INTERLOCK_INTR")
+
+    def test_wrong_posture_task_binding_fails_closed(self):
+        value = transition()
+        bad = posture_request()
+        bad["task_id"] = "OTHER-TASK"
+        with self.assertRaisesRegex(ValueError, "must bind governed wiki publication task"):
+            prepare_wiki_publication_manifest(
+                transition=value,
+                governance_request=governance_request(value),
+                security_posture_request=bad,
+                created_at="2026-09-21T20:00:00Z",
+            )
 
     def test_reserved_targets_are_not_enabled_by_default(self):
         value = transition()

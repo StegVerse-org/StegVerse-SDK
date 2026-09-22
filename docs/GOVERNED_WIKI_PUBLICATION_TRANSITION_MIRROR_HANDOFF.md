@@ -81,3 +81,7 @@ The contract must remain repository/path-profiled so it can serve Admissibility 
 ## Completion truth
 
 Source implementation and tests are not completion. Completion requires authentic end-to-end retained evidence through governed closure and Publisher mutation, plus zero-mutation negative controls for non-ALLOW outcomes.
+
+## Interlock/InTr binding repair
+
+The first SDK merge proved deterministic candidate-to-manifest binding, but tracing the existing runtime showed that `run_evaluator_governance_manifest(...)` invokes authoritative Interlock/InTr posture resolution only when the manifest carries the existing `security_posture_request` extension. The publication converter therefore now requires that existing non-authorizing request input and binds its `task_id` to `GOVERNED-WIKI-PUBLICATION-TRANSITION-001`. This does not make SDK a posture authority; it ensures the existing runtime must obtain the actual Interlock/InTr resolution before posture-bound execution can be claimed.
