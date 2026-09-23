@@ -37,6 +37,8 @@ on:
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md
       - README.md
+      - stegverse/micro_node_commit_time_experiment.py
+      - tests/test_micro_node_commit_time_experiment.py
       - MANIFEST_BUILDER_MIRROR_HANDOFF.md
       - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
       - SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md
@@ -77,6 +79,8 @@ on:
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md
       - README.md
+      - stegverse/micro_node_commit_time_experiment.py
+      - tests/test_micro_node_commit_time_experiment.py
       - MANIFEST_BUILDER_MIRROR_HANDOFF.md
       - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
       - SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md
@@ -109,6 +113,7 @@ jobs:
           python -m unittest tests.test_manifest_builder
           python -m pytest -q tests/test_governance_reference_graph.py
           python -m pytest -q tests/test_governance_reference_projection.py
+          python -m pytest -q tests/test_micro_node_commit_time_experiment.py
           PYTHONPATH=. python validation/governance_reference_graph_console.py
           python -m unittest tests.test_state_transition_evidence
           python -m unittest tests.test_external_interlock_ingress_binding
@@ -120,6 +125,7 @@ jobs:
           python -m unittest tests.test_route_resolution
           python -m unittest tests.test_cli_preformatted_manifest
           python -m py_compile \
+            stegverse/micro_node_commit_time_experiment.py \
             stegverse/manifest_builder.py \
             stegverse/governance_reference_graph.py \
             stegverse/governance_reference_projection.py \
