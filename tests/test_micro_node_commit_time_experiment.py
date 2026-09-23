@@ -102,6 +102,18 @@ def fixture():
             "warrant_sha256": hashlib.sha256(b"warrant").hexdigest(),
         },
     }
+    evidence["micro_node_request"] = {
+        "transition_id": evidence["transition_id"],
+        "origin_system": "SDK_TEST_ONLY", "return_path": "LOCAL_FIXTURE",
+        "action": "EVALUATE_ONLY", "actor": "local-test-submitter",
+        "target": "local-test-transition", "scope": "NO_AUTHORITY",
+        "policy_ref": evidence["standing"]["policy_sha256"],
+        "payload": {
+            "sdk_manifest_sha256": evidence["manifest_sha256"],
+            "sdk_group_result_binding_sha256": group["group_result_binding_sha256"],
+            "partition_ids": ["A", "B", "C"],
+        },
+    }
     return manifest, group, evidence
 
 
@@ -192,4 +204,18 @@ def test_manifest_mutation_fails_exact_binding():
     m, g, e = fixture()
     e["manifest_sha256"] = "f" * 64
     with pytest.raises(ValueError, match="manifest identity mismatch"):
+        evaluate_three_worker_experiment(m, g, e)
+
+
+def test_micro_node_request_exact_manifest_binding_required():
+    m, g, e = fixture()
+    e["micro_node_request"]["payload"]["sdk_group_result_binding_sha256"] = "a" * 64
+    with pytest.raises(ValueError, match="micro-node request SDK manifest/group"):
+        evaluate_three_worker_experiment(m, g, e)
+
+
+def test_micro_node_request_requires_current_policy_identity():
+    m, g, e = fixture()
+    e["micro_node_request"]["policy_ref"] = "b" * 64
+    with pytest.raises(ValueError, match="policy reference mismatch"):
         evaluate_three_worker_experiment(m, g, e)
