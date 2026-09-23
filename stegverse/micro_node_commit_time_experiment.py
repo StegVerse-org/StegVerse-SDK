@@ -98,6 +98,22 @@ def evaluate_three_worker_experiment(
         raise ValueError("exact ingress manifest identity mismatch")
     if ev.get("transition_id") != ev.get("standing", {}).get("transition_id"):
         raise ValueError("transition identity mismatch")
+    # Shape-compatible with existing micro_node_request.schema.json. This
+    # non-authorizing check never dispatches to the micro-node runtime.
+    micro = _mapping(ev.get("micro_node_request"), "micro_node_request")
+    for field in ("transition_id", "origin_system", "return_path", "action",
+                  "actor", "target", "scope"):
+        if not isinstance(micro.get(field), str) or not micro[field].strip():
+            raise ValueError(f"micro_node_request.{field} is required")
+    if micro["transition_id"] != ev["transition_id"]:
+        raise ValueError("micro-node transition binding mismatch")
+    mp = _mapping(micro.get("payload"), "micro_node_request.payload")
+    if (mp.get("sdk_manifest_sha256") != ev["manifest_sha256"]
+            or mp.get("sdk_group_result_binding_sha256") != expected_group
+            or mp.get("partition_ids") != request["partition_ids"]):
+        raise ValueError("micro-node request SDK manifest/group binding mismatch")
+    if micro.get("policy_ref") != ev.get("standing", {}).get("policy_sha256"):
+        raise ValueError("micro-node request policy reference mismatch")
     rows = ev.get("workers")
     if not isinstance(rows, list) or len(rows) != 3:
         raise ValueError("three attributable worker evidence rows required")
