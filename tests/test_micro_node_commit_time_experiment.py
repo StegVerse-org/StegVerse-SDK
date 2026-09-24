@@ -219,3 +219,119 @@ def test_micro_node_request_requires_current_policy_identity():
     e["micro_node_request"]["policy_ref"] = "b" * 64
     with pytest.raises(ValueError, match="policy reference mismatch"):
         evaluate_three_worker_experiment(m, g, e)
+
+
+# Stage-1 capability discovery: source-only fixtures, never external proof.
+from stegverse.stage1_capability_discovery import (
+    SCHEMA as STAGE1_SCHEMA, review_stage1_capabilities,
+)
+
+
+def stage1_fixture():
+    m, g, e = fixture()
+    participants = []
+    for i, row in enumerate(e["workers"]):
+        packet = hashlib.sha256(f"synthetic-observation-packet-{i}".encode()).hexdigest()
+        participants.append({
+            "worker_id": row["worker_id"],
+            "result_binding_sha256": row["result_binding_sha256"],
+            "source_id": row["source_id"], "custodian_id": row["custodian_id"],
+            "observation": row["observation"],
+            "observation_packet_sha256": packet,
+            "observation_limits": ["synthetic test-only input; no external observation"],
+            "capabilities": {
+                key: {"status": "CLAIMED", "evidence_sha256": packet}
+                for key in ("INGEST", "OBSERVE", "RECONSTRUCT")
+            },
+        })
+    return m, g, e, {
+        "schema": STAGE1_SCHEMA,
+        "manifest_sha256": _hash(m),
+        "group_result_binding_sha256": g["group_result_binding_sha256"],
+        "participants": participants,
+    }
+
+
+def test_stage1_consistent_fixture_still_proves_no_external_capability():
+    m, g, e, d = stage1_fixture()
+    outcome = review_stage1_capabilities(m, g, e, d)
+    assert outcome["fixture_status"] == "LOCAL_FIXTURE_CONSISTENT"
+    assert outcome["capability_compatibility"]["OBSERVE"] == "LOCALLY_CLAIMED"
+    assert outcome["independent_origin_proven"] is False
+    assert outcome["external_participation_proven"] is False
+    assert outcome["authentic_governance_proven"] is False
+    assert outcome["master_records_custody_proven"] is False
+    assert outcome["decision"] == "NON_AUTHORIZING_LOCAL_REVIEW_ONLY"
+
+
+def test_stage1_shared_packet_does_not_prove_independence():
+    m, g, e, d = stage1_fixture()
+    first_packet = d["participants"][0]["observation_packet_sha256"]
+    d["participants"][1]["observation_packet_sha256"] = first_packet
+    for cap in d["participants"][1]["capabilities"].values():
+        cap["evidence_sha256"] = first_packet
+    outcome = review_stage1_capabilities(m, g, e, d)
+    assert "SHARED_OBSERVATION_PACKET" in outcome["limitations"]
+    assert outcome["independent_origin_proven"] is False
+
+
+def test_stage1_common_custodian_surfaces_correlation():
+    m, g, e, d = stage1_fixture()
+    e["workers"][1]["custodian_id"] = e["workers"][0]["custodian_id"]
+    d["participants"][1]["custodian_id"] = e["workers"][1]["custodian_id"]
+    outcome = review_stage1_capabilities(m, g, e, d)
+    assert "SHARED_CUSTODIAN" in outcome["limitations"]
+    assert "EXISTING_EVIDENCE_CORRELATION" in outcome["limitations"]
+
+
+@pytest.mark.parametrize("field", ["worker_id", "result_binding_sha256", "source_id",
+                                      "custodian_id", "observation"])
+def test_stage1_forged_or_stale_identity_rejected(field):
+    m, g, e, d = stage1_fixture()
+    d["participants"][0][field] = "tampered"
+    with pytest.raises(ValueError, match="mismatch"):
+        review_stage1_capabilities(m, g, e, d)
+
+
+def test_stage1_manifest_binding_cannot_be_substituted():
+    m, g, e, d = stage1_fixture()
+    d["manifest_sha256"] = "b" * 64
+    with pytest.raises(ValueError, match="manifest identity"):
+        review_stage1_capabilities(m, g, e, d)
+
+
+def test_stage1_unknown_and_dissent_retained_without_inferred_capability():
+    m, g, e, d = stage1_fixture()
+    e["workers"][1]["observation"] = d["participants"][1]["observation"] = "UNKNOWN"
+    e["workers"][2]["observation"] = d["participants"][2]["observation"] = "DISSENT"
+    d["participants"][1]["capabilities"]["OBSERVE"] = {
+        "status": "UNKNOWN", "evidence_sha256": None,
+    }
+    outcome = review_stage1_capabilities(m, g, e, d)
+    assert "UNKNOWN_RETAINED" in outcome["limitations"]
+    assert "DISSENT_RETAINED" in outcome["limitations"]
+    assert outcome["capability_compatibility"]["OBSERVE"] == "UNRESOLVED"
+    assert outcome["participants"][2]["observation"] == "DISSENT"
+
+
+def test_stage1_missing_limits_are_not_silently_accepted():
+    m, g, e, d = stage1_fixture()
+    d["participants"][2]["observation_limits"] = []
+    with pytest.raises(ValueError, match="observation limits"):
+        review_stage1_capabilities(m, g, e, d)
+
+
+def test_stage1_unverified_capability_cannot_include_proof_digest():
+    m, g, e, d = stage1_fixture()
+    d["participants"][0]["capabilities"]["RECONSTRUCT"]["status"] = "UNKNOWN"
+    with pytest.raises(ValueError, match="unproven capability"):
+        review_stage1_capabilities(m, g, e, d)
+
+
+def test_stage1_tampered_claim_packet_is_incomplete_not_authority():
+    m, g, e, d = stage1_fixture()
+    d["participants"][0]["capabilities"]["INGEST"]["evidence_sha256"] = "a" * 64
+    outcome = review_stage1_capabilities(m, g, e, d)
+    assert "CAPABILITY_PACKET_BINDING_MISMATCH" in outcome["limitations"]
+    assert outcome["fixture_status"] == "LOCAL_FIXTURE_INCOMPLETE"
+    assert outcome["authority_effect"] == "NONE"
