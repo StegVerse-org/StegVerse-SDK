@@ -335,3 +335,125 @@ def test_stage1_tampered_claim_packet_is_incomplete_not_authority():
     assert "CAPABILITY_PACKET_BINDING_MISMATCH" in outcome["limitations"]
     assert outcome["fixture_status"] == "LOCAL_FIXTURE_INCOMPLETE"
     assert outcome["authority_effect"] == "NONE"
+
+
+# Organization-level receipt snapshots are review inputs, NOT authoritative reads.
+from stegverse.stage1_org_receipt_review import (
+    EXPECTED as RICHARD_TRANSITIONS, RICHARD as RICHARD_TASK,
+    review_stage1_org_receipt_snapshots,
+)
+
+
+def _stage1_org_pair(transition_id, *, previous=None, outcome="OBSERVED"):
+    canonical = {
+        "schema": "stegverse.canonical-state-transition-receipt/v1",
+        "transition_id": transition_id,
+        "subject_or_correlation_id": RICHARD_TASK,
+        "transition_outcome": outcome,
+        "transition_evidence": {"scope": "SYNTHETIC_SOURCE_TEST_ONLY"},
+        "required_evidence_manifest": [],
+    }
+    body = {
+        "schema": "stegverse.organization-transition-receipt/v1",
+        "organization": "StegVerse-Labs",
+        "source_receipt_schema": canonical["schema"],
+        "source_transition_sha256": "sha256:" + _hash(canonical),
+        "canonical_state_transition_receipt_sha256": "sha256:" + _hash(canonical),
+        "subject_or_correlation_id": RICHARD_TASK,
+        "source_transition_id": transition_id,
+        "previous_receipt_sha256": previous,
+        "authority_effect": "NONE",
+    }
+    org = {**body, "receipt_sha256": "sha256:" + _hash(body)}
+    return {"canonical": canonical, "organization": org}
+
+
+def _org_review(pairs, **kwargs):
+    m, g, e, d = stage1_fixture()
+    return review_stage1_org_receipt_snapshots(
+        m, g, e, d, receipt_pairs=pairs, **kwargs,
+    )
+
+
+def test_stage1_org_absent_receipts_are_unknown_not_failed():
+    result = _org_review([])
+    assert result["decision"] == "UNKNOWN_NOT_AUTHENTICALLY_OBSERVED"
+    assert result["first_structurally_retained_failure"] is None
+    assert result["first_unresolved_transition"] == RICHARD_TRANSITIONS[0]
+    assert result["authentic_runtime_proven"] is False
+
+
+def test_stage1_org_hash_linked_window_remains_non_authorizing():
+    first = _stage1_org_pair(RICHARD_TRANSITIONS[0])
+    second = _stage1_org_pair(
+        RICHARD_TRANSITIONS[1],
+        previous=first["organization"]["receipt_sha256"],
+    )
+    result = _org_review([first, second])
+    assert result["observed_structural_transitions"] == list(RICHARD_TRANSITIONS[:2])
+    assert result["first_unresolved_transition"] == RICHARD_TRANSITIONS[2]
+    assert result["authentic_runtime_proven"] is False
+    assert result["records_only_reconstruction_proven"] is False
+
+
+def test_stage1_org_first_structurally_retained_failure_has_exact_binding():
+    first = _stage1_org_pair(RICHARD_TRANSITIONS[0])
+    second = _stage1_org_pair(
+        RICHARD_TRANSITIONS[1],
+        previous=first["organization"]["receipt_sha256"],
+        outcome="FAIL_CLOSED",
+    )
+    result = _org_review([first, second])
+    failure = result["first_structurally_retained_failure"]
+    assert failure["transition_id"] == RICHARD_TRANSITIONS[1]
+    assert failure["organization_receipt_sha256"] == second["organization"]["receipt_sha256"]
+    assert "STRUCTURALLY_RETAINED_FAILURE_REQUIRES_AUTHENTIC_SOURCE_READBACK" in result["findings"]
+    assert result["authentic_runtime_proven"] is False
+
+
+@pytest.mark.parametrize("tamper,reason", [
+    ("canonical", "CANONICAL_TO_ORGANIZATION_BINDING_INVALID"),
+    ("org_digest", "ORGANIZATION_RECEIPT_DIGEST_MISMATCH"),
+    ("previous", "ORGANIZATION_IMMEDIATE_PREDECESSOR_MISMATCH"),
+    ("order", "TRANSITION_ORDER_OR_ID_MISMATCH"),
+])
+def test_stage1_org_rejects_tampered_source_chain(tamper, reason):
+    first = _stage1_org_pair(RICHARD_TRANSITIONS[0])
+    second = _stage1_org_pair(
+        RICHARD_TRANSITIONS[1],
+        previous=first["organization"]["receipt_sha256"],
+    )
+    if tamper == "canonical":
+        second["organization"]["source_transition_sha256"] = "sha256:" + "a" * 64
+        body = dict(second["organization"])
+        body.pop("receipt_sha256")
+        second["organization"]["receipt_sha256"] = "sha256:" + _hash(body)
+    elif tamper == "org_digest":
+        second["organization"]["receipt_sha256"] = "sha256:" + "a" * 64
+    elif tamper == "previous":
+        second["organization"]["previous_receipt_sha256"] = "sha256:" + "b" * 64
+        body = dict(second["organization"])
+        body.pop("receipt_sha256")
+        second["organization"]["receipt_sha256"] = "sha256:" + _hash(body)
+    else:
+        second = _stage1_org_pair(
+            RICHARD_TRANSITIONS[3],
+            previous=first["organization"]["receipt_sha256"],
+        )
+    result = _org_review([first, second])
+    assert reason in result["findings"]
+    assert result["authentic_runtime_proven"] is False
+
+
+def test_stage1_org_complete_synthetic_sequence_not_master_records_proof():
+    pairs = []
+    previous = None
+    for transition in RICHARD_TRANSITIONS:
+        pair = _stage1_org_pair(transition, previous=previous)
+        pairs.append(pair)
+        previous = pair["organization"]["receipt_sha256"]
+    result = _org_review(pairs)
+    assert result["first_unresolved_transition"] is None
+    assert "SOURCE_RECEIPTS_DO_NOT_PROVE_MASTER_RECORDS_OR_EXTERNAL_REALITY" in result["findings"]
+    assert result["records_only_reconstruction_proven"] is False
+    assert result["external_participation_proven"] is False
