@@ -457,3 +457,68 @@ def test_stage1_org_complete_synthetic_sequence_not_master_records_proof():
     assert "SOURCE_RECEIPTS_DO_NOT_PROVE_MASTER_RECORDS_OR_EXTERNAL_REALITY" in result["findings"]
     assert result["records_only_reconstruction_proven"] is False
     assert result["external_participation_proven"] is False
+
+
+def test_stage1_org_interleaved_unrelated_canonical_transition_is_preserved():
+    first = _stage1_org_pair(RICHARD_TRANSITIONS[0])
+    foreign = _stage1_org_pair(
+        "UNRELATED_TASK_STATE_CHANGED",
+        previous=first["organization"]["receipt_sha256"],
+    )
+    foreign["canonical"]["subject_or_correlation_id"] = "OTHER-TASK-001"
+    org = foreign["organization"]
+    org["subject_or_correlation_id"] = "OTHER-TASK-001"
+    org["source_transition_sha256"] = "sha256:" + _hash(foreign["canonical"])
+    org["canonical_state_transition_receipt_sha256"] = org["source_transition_sha256"]
+    body = dict(org)
+    body.pop("receipt_sha256")
+    org["receipt_sha256"] = "sha256:" + _hash(body)
+    second = _stage1_org_pair(
+        RICHARD_TRANSITIONS[1],
+        previous=org["receipt_sha256"],
+    )
+    result = _org_review([first, foreign, second])
+    assert result["observed_structural_transitions"] == list(RICHARD_TRANSITIONS[:2])
+    assert result["verified_intervening_org_receipt_copies"] == 1
+    assert result["first_unresolved_transition"] == RICHARD_TRANSITIONS[2]
+    assert result["authentic_runtime_proven"] is False
+
+
+def test_stage1_org_global_gap_cannot_be_hidden_by_task_filtering():
+    first = _stage1_org_pair(RICHARD_TRANSITIONS[0])
+    second = _stage1_org_pair(
+        RICHARD_TRANSITIONS[1], previous="sha256:" + "e" * 64,
+    )
+    result = _org_review([first, second])
+    assert "ORGANIZATION_IMMEDIATE_PREDECESSOR_MISMATCH" in result["findings"]
+    assert result["first_unresolved_transition"] == RICHARD_TRANSITIONS[1]
+    assert result["first_structurally_retained_failure"] is None
+
+
+def test_stage1_org_interleaved_repository_receipt_is_verified():
+    first = _stage1_org_pair(RICHARD_TRANSITIONS[0])
+    repo_body = {
+        "schema": "stegverse.repo-transition-receipt/v1",
+        "repository": "StegVerse-Labs/.github",
+        "transition_id": "UNRELATED_REPOSITORY_EVENT",
+    }
+    repo_source = {**repo_body, "receipt_sha256": "sha256:" + _hash(repo_body)}
+    org_body = {
+        "schema": "stegverse.organization-transition-receipt/v1",
+        "organization": "StegVerse-Labs",
+        "source_receipt_schema": repo_source["schema"],
+        "source_transition_sha256": repo_source["receipt_sha256"],
+        "source_transition_id": repo_source["transition_id"],
+        "canonical_state_transition_receipt_sha256": None,
+        "repo_receipt_sha256": repo_source["receipt_sha256"],
+        "subject_or_correlation_id": None,
+        "previous_receipt_sha256": first["organization"]["receipt_sha256"],
+    }
+    org = {**org_body, "receipt_sha256": "sha256:" + _hash(org_body)}
+    second = _stage1_org_pair(
+        RICHARD_TRANSITIONS[1], previous=org["receipt_sha256"],
+    )
+    result = _org_review([first, {"source_receipt": repo_source, "organization": org}, second])
+    assert result["observed_structural_transitions"] == list(RICHARD_TRANSITIONS[:2])
+    assert result["verified_intervening_org_receipt_copies"] == 1
+    assert result["authentic_runtime_proven"] is False

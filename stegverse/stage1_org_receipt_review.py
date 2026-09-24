@@ -68,28 +68,51 @@ def review_stage1_org_receipt_snapshots(
     first_failure: dict[str, str] | None = None
     prev = previous_org_receipt_sha256
     expected_index = 0
+    unrelated_org_receipts = 0
     for index, pair in enumerate(receipt_pairs):
         if not isinstance(pair, Mapping):
             raise ValueError("receipt pair must be an object")
-        canonical, org = pair.get("canonical"), pair.get("organization")
-        if not isinstance(canonical, Mapping) or not isinstance(org, Mapping):
+        # The organization ledger is GLOBAL. A task-filtered sequence is
+        # not enough to prove immediate predecessor continuity if other
+        # tasks interleave. Accept and verify the intervening source+org
+        # receipt pairs rather than inventing a contiguous per-task ledger.
+        source = pair.get("source_receipt", pair.get("canonical"))
+        org = pair.get("organization")
+        if not isinstance(source, Mapping) or not isinstance(org, Mapping):
             findings.append("RECEIPT_PAIR_MISSING")
             break
-        transition = canonical.get("transition_id")
-        if canonical.get("schema") != CANONICAL or canonical.get("subject_or_correlation_id") != RICHARD:
-            findings.append("CANONICAL_TASK_OR_SCHEMA_MISMATCH")
+        kind = source.get("schema")
+        transition = source.get("transition_id")
+        task = source.get("subject_or_correlation_id")
+        if kind == CANONICAL:
+            source_digest = _uri(source)
+            repo_digest = None
+        elif kind == "stegverse.repo-transition-receipt/v1":
+            # The existing organization aggregator uses a body hash for
+            # repository receipt sources, not the canonical receipt hash.
+            body = dict(source)
+            declared = body.pop("receipt_sha256", None)
+            source_digest = _uri(body)
+            if (declared != source_digest or
+                    not str(source.get("repository", "")).startswith("StegVerse-Labs/")):
+                findings.append("INTERVENING_REPO_SOURCE_INVALID")
+                break
+            repo_digest = declared
+            task = None
+        else:
+            findings.append("SOURCE_RECEIPT_SCHEMA_MISMATCH")
             break
-        if expected_index >= len(EXPECTED) or transition != EXPECTED[expected_index]:
-            findings.append("TRANSITION_ORDER_OR_ID_MISMATCH")
-            break
-        canonical_digest = _uri(canonical)
-        if (org.get("schema") != ORGANIZATION
+        if (not isinstance(transition, str) or not transition
+                or org.get("schema") != ORGANIZATION
                 or org.get("organization") != "StegVerse-Labs"
-                or org.get("source_receipt_schema") != CANONICAL
-                or org.get("source_transition_sha256") != canonical_digest
-                or org.get("canonical_state_transition_receipt_sha256") != canonical_digest
-                or org.get("subject_or_correlation_id") != RICHARD
-                or org.get("source_transition_id") != transition):
+                or org.get("source_receipt_schema") != kind
+                or org.get("source_transition_sha256") != source_digest
+                or org.get("source_transition_id") != transition
+                or org.get("canonical_state_transition_receipt_sha256") != (
+                    source_digest if kind == CANONICAL else None
+                )
+                or org.get("repo_receipt_sha256") != repo_digest
+                or org.get("subject_or_correlation_id") != task):
             findings.append("CANONICAL_TO_ORGANIZATION_BINDING_INVALID")
             break
         org_body = dict(org)
@@ -100,15 +123,21 @@ def review_stage1_org_receipt_snapshots(
         if org.get("previous_receipt_sha256") != prev:
             findings.append("ORGANIZATION_IMMEDIATE_PREDECESSOR_MISMATCH")
             break
-        transitions.append(transition)
         prev = claimed_hash
+        if kind != CANONICAL or task != RICHARD:
+            unrelated_org_receipts += 1
+            continue
+        if expected_index >= len(EXPECTED) or transition != EXPECTED[expected_index]:
+            findings.append("TRANSITION_ORDER_OR_ID_MISMATCH")
+            break
+        transitions.append(transition)
         expected_index += 1
-        outcome = canonical.get("transition_outcome")
+        outcome = source.get("transition_outcome")
         if outcome in {"FAILED", "FAIL_CLOSED"}:
             first_failure = {
                 "transition_id": transition,
                 "transition_outcome": outcome,
-                "canonical_receipt_sha256": canonical_digest,
+                "canonical_receipt_sha256": source_digest,
                 "organization_receipt_sha256": claimed_hash,
             }
             findings.append("STRUCTURALLY_RETAINED_FAILURE_REQUIRES_AUTHENTIC_SOURCE_READBACK")
@@ -116,9 +145,8 @@ def review_stage1_org_receipt_snapshots(
         if outcome not in {"ALLOW", "EXECUTED", "COMPLETED", "OBSERVED", "NO_CHANGE"}:
             findings.append("UNRECOGNIZED_OR_NONADVANCING_TRANSITION_OUTCOME")
             break
-        # Canonical and organization receipts alone do not verify warrant,
-        # admission, independent source, authentic Master Records closure or
-        # worker-absent reconstruction.
+        # Source pairs alone do not verify warrant, admission, independent
+        # origin, authentic Master Records closure or worker-absent replay.
     if not first_failure and expected_index < len(EXPECTED):
         findings.append("NEXT_TRANSITION_NOT_EVIDENCED")
     if expected_index == len(EXPECTED) and first_failure is None:
@@ -129,6 +157,7 @@ def review_stage1_org_receipt_snapshots(
         "first_structurally_retained_failure": first_failure,
         "first_unresolved_transition": EXPECTED[expected_index] if expected_index < len(EXPECTED) else None,
         "observed_structural_transitions": transitions,
+        "verified_intervening_org_receipt_copies": unrelated_org_receipts,
         "findings": sorted(set(findings)),
         "decision": "NON_AUTHORIZING_SNAPSHOT_REVIEW_ONLY",
         "authentic_runtime_proven": False,
