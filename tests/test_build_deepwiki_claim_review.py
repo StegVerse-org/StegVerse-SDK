@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import json
 import unittest
-from scripts.build_deepwiki_claim_review import build, source_span
+from scripts.build_deepwiki_claim_review import build, source_span, claim_context
 
 class DeepWikiClaimPacketTests(unittest.TestCase):
     def test_source_excerpt_is_not_semantic_verification(self):
@@ -24,7 +24,12 @@ class DeepWikiClaimPacketTests(unittest.TestCase):
             self.assertEqual(result["semantic_verified_count"], 0)
             self.assertFalse(result["publication_allowed"])
 
-    def test_missing_source_is_explicit(self):
+
+    def test_sources_paragraph_includes_preceding_claim(self):
+        text = "# Page: Test\nThe processor constructs a deterministic manifest.\n\nSources: [demo.py:1]()"
+        excerpt = claim_context(text, text.index("[demo.py:1]()"))
+        self.assertIn("constructs a deterministic manifest", excerpt)
+\n    def test_missing_source_is_explicit(self):
         with TemporaryDirectory() as tmp:
             snippet, verdict = source_span(Path(tmp), {
                 "candidate_path": "not-found.py", "label": "not-found.py:1"})
