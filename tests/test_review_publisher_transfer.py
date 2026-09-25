@@ -52,7 +52,7 @@ def source_bundle():
         },
         "requested_formats":["pdf","json"],
         "source":{"repository":"StegVerse-org/StegVerse-SDK","release":"source-test",
-                  "verification_root":"sha256:"+"1"*64,"event_ids":[],
+                  "verification_root":digest(review_manifest()),"event_ids":[],
                   "vault_class":"SOURCE_REPORT"},
         "evidence":[
             {"subject_id":f["path"],"path":f["path"],"content_hash":f["sha256"],
@@ -117,6 +117,15 @@ class ReviewerPublisherTests(unittest.TestCase):
                                     authorized_export_bundle=source_bundle(),
                                     original_assets=originals(),transfer_id="exp3-review-fixture-001")
 
+    def test_source_export_wrong_manifest_root_fails_closed(self):
+        b=source_bundle()
+        b["source"]["verification_root"]="sha256:"+"0"*64
+        b.pop("export_sha256")
+        b["export_sha256"]=digest(b)
+        with self.assertRaisesRegex(ReviewPublisherBoundaryError,"exact original SDK manifest hash"):
+            prepare_review_transfer(manifest=review_manifest(),authorized_export_bundle=b,
+                                    original_assets=originals(),transfer_id="exp3-review-fixture-001")
+
     def test_return_exact_lineage_and_negative_mismatch(self):
         m=review_manifest()
         p=prepare_review_transfer(manifest=m,authorized_export_bundle=source_bundle(),
@@ -134,12 +143,25 @@ class ReviewerPublisherTests(unittest.TestCase):
              "media_type":x["media_type"],"source_class":x["source_class"]}
             for x in originals()
         ]
+        returned["manifest"]["manifest_sha256"]=digest({k:v for k,v in returned["manifest"].items() if k!="manifest_sha256"})
+        returned["rendering_receipt"]["manifest_sha256"]=returned["manifest"]["manifest_sha256"]
+        returned["rendering_receipt"]["receipt_sha256"]=digest({k:v for k,v in returned["rendering_receipt"].items() if k!="receipt_sha256"})
         raw=canonical_json(returned).encode()
         bound=bind_exact_review_return(prepared=p,manifest=m,manifest_receipt_id="MR-0123456789ABCDEF",
                                        publisher_return_bytes=raw)
         self.assertFalse(bound["publisher_transition_observed"]) # no authentic transport receipt
         self.assertTrue(bound["sdk_return_binding_observed"])
         self.assertFalse(bound["communication_complete"])
+        bad_manifest=copy.deepcopy(returned)
+        bad_manifest["manifest"]["generation_id"]="tampered"
+        with self.assertRaisesRegex(ReviewPublisherBoundaryError,"manifest exact digest invalid"):
+            bind_exact_review_return(prepared=p,manifest=m,manifest_receipt_id="MR-0123456789ABCDEF",
+                                     publisher_return_bytes=canonical_json(bad_manifest).encode())
+        bad_receipt=copy.deepcopy(returned)
+        bad_receipt["rendering_receipt"]["generation_id"]="tampered"
+        with self.assertRaisesRegex(ReviewPublisherBoundaryError,"receipt exact digest invalid"):
+            bind_exact_review_return(prepared=p,manifest=m,manifest_receipt_id="MR-0123456789ABCDEF",
+                                     publisher_return_bytes=canonical_json(bad_receipt).encode())
         returned["transfer_id"]="different-transfer"
         with self.assertRaisesRegex(ReviewPublisherBoundaryError,"transfer ID mismatch"):
             bind_exact_review_return(prepared=p,manifest=m,manifest_receipt_id="MR-0123456789ABCDEF",

@@ -126,6 +126,9 @@ def prepare_review_transfer(
     bundle = copy.deepcopy(dict(authorized_export_bundle))
     if bundle.get("schema_version") != EXPORT_SCHEMA:
         raise ReviewPublisherBoundaryError("generic evaluator source export required")
+    source = bundle.get("source")
+    if not isinstance(source, Mapping) or source.get("verification_root") != digest(manifest):
+        raise ReviewPublisherBoundaryError("source export must bind the exact original SDK manifest hash")
     supplied_hash = bundle.get("export_sha256")
     unhashed = {key:value for key,value in bundle.items() if key != "export_sha256"}
     if supplied_hash != digest(unhashed):
@@ -187,6 +190,21 @@ def bind_exact_review_return(
         raise ReviewPublisherBoundaryError("Publisher source export mismatch")
     if prepared.get("original_manifest_sha256") != digest(manifest):
         raise ReviewPublisherBoundaryError("original manifest changed after transfer")
+    artifact_manifest = parsed.get("manifest")
+    rendering_receipt = parsed.get("rendering_receipt")
+    if (not isinstance(artifact_manifest, Mapping) or
+        artifact_manifest.get("manifest_sha256") != digest({k:v for k,v in artifact_manifest.items() if k != "manifest_sha256"})):
+        raise ReviewPublisherBoundaryError("Publisher manifest exact digest invalid")
+    if (not isinstance(rendering_receipt, Mapping) or
+        rendering_receipt.get("manifest_sha256") != artifact_manifest["manifest_sha256"] or
+        rendering_receipt.get("receipt_sha256") != digest({k:v for k,v in rendering_receipt.items() if k != "receipt_sha256"})):
+        raise ReviewPublisherBoundaryError("Publisher rendering receipt exact digest invalid")
+    manifest_paths = [row.get("path") for row in artifact_manifest.get("artifacts",[]) if isinstance(row,Mapping)]
+    returned_paths = [row.get("path") for row in parsed.get("artifacts",[]) if isinstance(row,Mapping)]
+    if (len(manifest_paths) != len(set(manifest_paths)) or
+        len(returned_paths) != len(set(returned_paths)) or
+        set(manifest_paths) != set(returned_paths)):
+        raise ReviewPublisherBoundaryError("Publisher return incomplete artifact coverage")
     returned={item.get("path"):item for item in parsed.get("artifacts",[]) if isinstance(item,Mapping)}
     if not set(prepared.get("expected_original_paths",[])).issubset(returned):
         raise ReviewPublisherBoundaryError("Publisher omitted an original")
