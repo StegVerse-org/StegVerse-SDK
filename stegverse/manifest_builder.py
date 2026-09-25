@@ -174,7 +174,8 @@ def build_manifest(
     manifest_labels: Mapping[str, Any] | None = None,
     initiator_class: str = "external_framework",
     initiator_ref: str | None = None,
-    publisher_required: bool = False,
+    publisher_required: bool | None = None,
+    for_external_review: bool = False,
     publisher_package_profile: str = DEFAULT_PUBLISHER_PACKAGE_PROFILE,
     egress_surface: str = DEFAULT_FRAMEWORK_EGRESS_SURFACE,
     destination_profile: str | None = None,
@@ -212,6 +213,13 @@ def build_manifest(
     else:
         raise ValueError(f"processing capability {normalized_process!r} has no builder binding")
 
+    if not isinstance(for_external_review, bool):
+        raise ValueError("for_external_review must be boolean")
+    if publisher_required is not None and not isinstance(publisher_required, bool):
+        raise ValueError("publisher_required must be boolean or None")
+    effective_publisher_required = (
+        for_external_review if publisher_required is None else publisher_required
+    )
     depth_key = return_depth.strip().lower()
     return_projection = _projection_for(normalized_process, depth_key)
     timestamp = created_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -252,7 +260,7 @@ def build_manifest(
         "completion": _completion_contract(
             initiator_class=initiator_class,
             initiator_ref=initiator_ref or source_framework,
-            publisher_required=publisher_required,
+            publisher_required=effective_publisher_required,
             publisher_package_profile=publisher_package_profile,
             egress_surface=egress_surface,
             destination_profile=destination_profile,
@@ -298,7 +306,12 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--return-depth", default="result+evidence", choices=sorted(RETURN_DEPTHS))
     build.add_argument("--initiator-class", default="external_framework")
     build.add_argument("--initiator-ref")
-    build.add_argument("--publisher-required", action="store_true")
+    publisher_choice = build.add_mutually_exclusive_group()
+    publisher_choice.add_argument("--publisher-required", dest="publisher_required", action="store_true")
+    publisher_choice.add_argument("--publisher-optional", dest="publisher_required", action="store_false")
+    build.set_defaults(publisher_required=None)
+    build.add_argument("--for-external-review", action="store_true",
+        help="default Publisher required for evaluator-facing runs, unless --publisher-optional")
     build.add_argument("--publisher-package-profile", default=DEFAULT_PUBLISHER_PACKAGE_PROFILE)
     build.add_argument("--egress-surface", default=DEFAULT_FRAMEWORK_EGRESS_SURFACE)
     build.add_argument("--destination-profile")
@@ -326,6 +339,7 @@ def main(argv: list[str] | None = None) -> int:
                 initiator_class=args.initiator_class,
                 initiator_ref=args.initiator_ref,
                 publisher_required=args.publisher_required,
+                for_external_review=args.for_external_review,
                 publisher_package_profile=args.publisher_package_profile,
                 egress_surface=args.egress_surface,
                 destination_profile=args.destination_profile,
