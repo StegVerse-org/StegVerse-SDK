@@ -16,6 +16,8 @@ on:
       - 'tests/test_deepwiki_first_party_guide.py'
       - 'scripts/curate_frozen_deepwiki_review.py'
       - 'tests/test_curate_frozen_deepwiki_review.py'
+      - 'docs/deepwiki-review/CURRENT_SOURCE_DRIFT_CORRECTIONS.md'
+      - 'tests/test_deepwiki_source_drift.py'
       - '.github/workflows/deepwiki-readonly-review.yml'
   workflow_dispatch:
 permissions:
@@ -43,6 +45,8 @@ jobs:
         run: python -m unittest tests.test_deepwiki_first_party_guide -v
       - name: Test complete conservative frozen-citation review
         run: python -m unittest tests.test_curate_frozen_deepwiki_review -v
+      - name: Verify first-party current-source drift corrections
+        run: python -m unittest tests.test_deepwiki_source_drift -v
       - name: Capture public indexed wiki from official read-only MCP
         run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
       - name: Produce nonpublishing citation candidates against checked-out exact source
