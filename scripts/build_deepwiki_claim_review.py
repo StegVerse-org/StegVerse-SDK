@@ -29,7 +29,15 @@ def claim_context(md: str, offset: int) -> str:
     start = 0 if start < 0 else start + (2 if md.startswith("\n\n", start) else 0)
     end = md.find("\n\n", offset)
     end = min(len(md), offset + 1100) if end < 0 else min(end, offset + 1100)
-    return md[start:end][-1100:]
+    segment = md[start:end]
+    # Generated citations often occupy a separate Sources paragraph.
+    # Examine the preceding claim rather than citation labels alone.
+    if segment.lstrip().startswith(("Sources:", "**Sources:**", "Source:")):
+        before = md[:start].rstrip()
+        previous = before.rfind("\n\n")
+        previous = 0 if previous < 0 else previous + 2
+        segment = before[previous:] + "\n\n" + segment
+    return segment[-1500:]
 
 
 def source_span(root: Path, item: dict) -> tuple[str | None, str]:
