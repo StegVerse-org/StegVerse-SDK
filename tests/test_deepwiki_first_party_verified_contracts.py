@@ -21,7 +21,7 @@ EXACT = {
     ("stegverse/security_posture_request.py", 40): 'NONE_REQUEST_INPUT_ONLY',
     ("stegverse/stage1_org_receipt_review.py", 5): "NEVER authenticates caller-supplied snapshots",
     ("stegverse/governance_reference_graph.py", 26): '"composition_grants_authority": False',
-    ("stegverse/ecosystem_chat_pipeline_http.py", 17): "return 405",
+    ("stegverse/ecosystem_chat_pipeline_http.py", 15): "return 405",
     ("stegverse/ecosystem_chat_pipeline_http.py", 33): "status = 202 if accepted else 422",
     ("stegverse/ecosystem_chat_pipeline.py", 27): "build_persistence_plan",
     ("stegverse/atomic_task_worker_processor.py", 185): "NONE_GRAPH_DERIVATION_ONLY",
