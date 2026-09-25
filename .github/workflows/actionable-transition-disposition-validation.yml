@@ -1,0 +1,27 @@
+name: Validate actionable SDK transition diagnostics
+on:
+  push:
+    branches: [sdk/actionable-transition-boundary-diagnostics-20260925]
+    paths:
+      - .github/workflows/actionable-transition-disposition-validation.yml
+      - stegverse/transition_disposition.py
+  pull_request:
+    paths:
+      - stegverse/transition_disposition.py
+      - tests/test_actionable_transition_disposition.py
+      - .github/workflows/actionable-transition-disposition-validation.yml
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install SDK runtime dependencies
+        run: python -m pip install -e .
+      - name: Run bounded SDK source checks
+        run: python -m unittest discover -s tests -p test_actionable_transition_disposition.py -v
