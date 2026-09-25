@@ -1,0 +1,63 @@
+name: Capture public DeepWiki SDK docs for review
+on:
+  pull_request:
+    paths:
+      - 'scripts/export_deepwiki_review.py'
+      - 'tests/test_export_deepwiki_review.py'
+      - 'scripts/resolve_deepwiki_review_citations.py'
+      - 'tests/test_resolve_deepwiki_review_citations.py'
+      - 'scripts/build_deepwiki_claim_review.py'
+      - 'tests/test_build_deepwiki_claim_review.py'
+      - 'scripts/inspect_remaining_deepwiki_citations.py'
+      - 'tests/test_inspect_remaining_deepwiki_citations.py'
+      - '.github/workflows/deepwiki-readonly-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  review-only-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Test fail-closed parser and review-only export
+        run: python -m unittest tests.test_export_deepwiki_review -v
+      - name: Test source-pinned citation candidate resolver
+        run: python -m unittest tests.test_resolve_deepwiki_review_citations -v
+      - name: Test non-authorizing claim-inspection packet
+        run: python -m unittest tests.test_build_deepwiki_claim_review -v
+      - name: Test unresolved-citation source probes
+        run: python -m unittest tests.test_inspect_remaining_deepwiki_citations -v
+      - name: Capture public indexed wiki from official read-only MCP
+        run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
+      - name: Produce nonpublishing citation candidates against checked-out exact source
+        run: |
+          python scripts/resolve_deepwiki_review_citations.py \
+            --input deepwiki-review-export/read_wiki_contents.md \
+            --root . \
+            --revision "$(git rev-parse HEAD)" \
+            --out deepwiki-review-export
+      - name: Assemble full source/claim review packet without semantic certification
+        run: |
+          python scripts/build_deepwiki_claim_review.py \
+            --input deepwiki-review-export/read_wiki_contents.md \
+            --report deepwiki-review-export/citation-review-report.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Verify unambiguous unresolved source suggestions; retain malformed cases
+        run: |
+          python scripts/inspect_remaining_deepwiki_citations.py \
+            --input deepwiki-review-export/read_wiki_contents.md \
+            --report deepwiki-review-export/citation-review-report.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Upload unreviewed documentation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepwiki-sdk-review-only-${{ github.sha }}
+          path: deepwiki-review-export/
+          retention-days: 90
+          if-no-files-found: warn
