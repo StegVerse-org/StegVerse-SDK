@@ -1000,3 +1000,7 @@ The official SDK wiki at https://sdk.stegverse.org/ is **already published** fro
 ## DeepWiki raw-export citation audit (2026-09-25)
 
 The original 38-page MCP capture is retained unchanged; source-review [citation audit](docs/deepwiki-review/CITATION_AUDIT.md) independently classifies all 659 empty Markdown link targets in the exact archived bytes. Of these, 599 have strict candidate numeric source-line labels but **have not yet been checked against pinned SDK source or claim semantics**; 41 are other simple labels and 19 require contextual Markdown inspection. This new evidence report is review-only and blocks any unreviewed import or Pages publication. No `.devin/wiki.json`, runtime, device, or license transition is introduced.
+
+### Review-only source-pinned citation candidate generator
+
+SDK draft PR #322 now additionally carries `scripts/resolve_deepwiki_review_citations.py`, three synthetic fail-closed tests, and a read-only CI step that checks generated citation paths and line bounds against the exact checked-out SDK source SHA. The output remains an **unreviewed candidate**, includes unresolved citations and explicit `publication_allowed=false`, and is uploaded only with the 90-day review artifact. This mechanical source-link check is not semantic fact validation, DeepWiki indexing-revision parity, rights clearance or new Pages publication. The original 659-target audit remains immutable.
