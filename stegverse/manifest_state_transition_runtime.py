@@ -364,7 +364,12 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         # The new request has a new hash and must enter existing governed ingress
         # as a distinct transition. An unchanged envelope or terminal verdict
         # cannot be resubmitted.
-        repaired = correct_manifest_binding_deny(manifest, request, checked)
+        try:
+            repaired = correct_manifest_binding_deny(manifest, request, checked)
+        except ValueError as exc:
+            if str(exc) == "manifest_binding_repair_produced_unchanged_request":
+                return checked  # Retain precise DENY; never replay identical request.
+            raise
         next_result = _post_existing_intr(repaired)
         return validate_runtime_result(next_result, repaired)
     return checked
