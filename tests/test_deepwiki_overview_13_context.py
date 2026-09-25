@@ -23,7 +23,7 @@ class OverviewContextAuditTests(unittest.TestCase):
         for group in expected_groups:
             self.assertRegex(rows, r"(?m)^\| " + re.escape(group) + r" \|")
         self.assertIn("indices 12 and 13", text)
-        self.assertEqual(text.count("`DENY:"), 8)
+        self.assertEqual(sum(line.startswith("| ") and "`DENY:" in line for line in rows.splitlines()), 8)
 
     def test_source_revisions_and_ranges_are_exact(self):
         text = DOC.read_text(encoding="utf-8")
