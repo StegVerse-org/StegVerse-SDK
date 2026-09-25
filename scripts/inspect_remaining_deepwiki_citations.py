@@ -64,6 +64,35 @@ def propose(label: str, root: Path, sha: str) -> dict:
     return {"label": label, "disposition": reason, "proposals": [url],
             "source_revision": sha, "semantic_verified": False}
 
+
+SOURCE_SPAN = re.compile(r"(?P<path>[A-Za-z0-9_.\\/-]+\\.[A-Za-z0-9]+):(?P<start>\\d+)(?:-(?P<end>\\d+))?")
+CONTINUED_RANGE = re.compile(r"\\s*,\\s*(\\d+)(?:-(\\d+))?")
+
+
+def composite_proposals(label: str, root: Path, sha: str) -> dict:
+    """Return individually checked anchors; never treat a partial list as resolved."""
+    out = []
+    covered = []
+    for match in SOURCE_SPAN.finditer(label):
+        path = match.group("path").lstrip("\u0060")
+        values = [(match.group("start"), match.group("end"))]
+        end = match.end()
+        while True:
+            following = CONTINUED_RANGE.match(label, end)
+            if not following:
+                break
+            values.append(following.groups())
+            end = following.end()
+        for a, b in values:
+            p = propose(f"{path}:{a}" + (f"-{b}" if b else ""), root, sha)
+            out.append({"fragment": f"{path}:{a}" + (f"-{b}" if b else ""),
+                        "disposition": p["disposition"],
+                        "candidate_urls": p.get("proposals", [])})
+        covered.append([match.start(), end])
+    return {"subreferences": out, "covered_offsets": covered,
+            "validated_subreferences": sum(bool(x["candidate_urls"]) for x in out),
+            "partial_or_ambiguous": True, "semantic_verified": False}
+
 def inspect(raw: str, prior: dict, root: Path) -> dict:
     rows = []
     sha = prior["source_revision"]
@@ -71,17 +100,17 @@ def inspect(raw: str, prior: dict, root: Path) -> dict:
         if item.get("candidate_url"):
             continue
         row = propose(item["label"], root, sha)
-        row.update({"page": item["page"], "offset": item["offset"]})
+        if not row["proposals"] and row["disposition"] in ("COMPOSITE_OR_NONLOCATOR_REVIEW", "SOURCE_ABSENT"):\n            row["composite_review"] = composite_proposals(item["label"], root, sha)\n        row.update({"page": item["page"], "offset": item["offset"]})
         rows.append(row)
     # Context-sensitive occurrences must not be parsed as independent links
     # until their original Markdown including nearby code fences is reviewed.
-    complex_count = raw.count("]()") - len(prior["entries"])
+    simple_spans = [(x["offset"], x["offset"] + len(x["label"]) + 4) for x in prior["entries"]]\n    malformed = []\n    for m in re.finditer(r"\\]\\(\\)", raw):\n        if any(a <= m.start() < b for a, b in simple_spans):\n            continue\n        preceding = raw[max(0, m.start() - 160):m.end()]\n        tail = list(SOURCE_SPAN.finditer(preceding))\n        candidate = tail[-1] if tail else None\n        row = {"offset": m.start(), "context": preceding[-160:],\n               "source_candidate": None, "publication_allowed": False}\n        if candidate and preceding[candidate.end():].startswith("]()"):\n            path, start, end = (candidate.group("path"),\n                                candidate.group("start"), candidate.group("end"))\n            ref = f"{path}:{start}" + (f"-{end}" if end else "")\n            row["source_candidate"] = propose(ref, root, sha)\n        malformed.append(row)\n    complex_count = len(malformed)
     return {"schema": "stegverse.deepwiki-unresolved-review/v1",
             "original_sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
             "source_revision": sha, "previous_unresolved_simple": len(rows),
             "malformed_contextual_occurrences": complex_count,
             "source_verified_suggestions": sum(bool(x["proposals"]) for x in rows),
-            "resolved_for_publication": 0, "publication_allowed": False,
+            "resolved_for_publication": 0, "publication_allowed": False,\n            "malformed_contextual_entries": malformed,
             "entries": rows}
 
 def main():
