@@ -37,7 +37,7 @@ def build_exp3_manifest():
         return_depth="full-trace",
         initiator_class="organization",
         initiator_ref="StegVerse-Labs",
-        publisher_required=True,
+        for_external_review=True,  # default Publisher required for reviewer-facing use
         declared_intent="Produce the StegVerse-side four-dimension evidence assessment using the existing read-only diagnostic processor; preserve equal-weight limitations and unverified runtime states.",
         requested_consequence="Return a diagnostic evidence artifact with the declared Publisher stage and separately attributable unknowns; do not imply external egress or physical execution.",
         context_refs=[
