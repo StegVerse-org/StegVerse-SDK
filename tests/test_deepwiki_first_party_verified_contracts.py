@@ -21,13 +21,13 @@ EXACT = {
     ("stegverse/security_posture_request.py", 40): 'NONE_REQUEST_INPUT_ONLY',
     ("stegverse/stage1_org_receipt_review.py", 5): "NEVER authenticates caller-supplied snapshots",
     ("stegverse/governance_reference_graph.py", 26): '"composition_grants_authority": False',
-    ("stegverse/ecosystem_chat_pipeline_http.py", 16): "return 405",
+    ("stegverse/ecosystem_chat_pipeline_http.py", 17): "return 405",
     ("stegverse/ecosystem_chat_pipeline_http.py", 33): "status = 202 if accepted else 422",
     ("stegverse/ecosystem_chat_pipeline.py", 27): "build_persistence_plan",
     ("stegverse/atomic_task_worker_processor.py", 185): "NONE_GRAPH_DERIVATION_ONLY",
-    ("stegverse/publisher_return_binding.py", 4): "does not invoke Publisher",
+    ("stegverse/publisher_return_binding.py", 3): "does not invoke Publisher",
     ("pyproject.toml", 29): "requests>=2.28.0",
-    ("scripts/build_sdk_public_wiki.py", 16): "SOURCES = [",
+    ("scripts/build_sdk_public_wiki.py", 15): "SOURCES = [",
     ("evidence/system-boundary-downstream-status.v0.1.json", 7): '"production_binding_enabled": false',
 }
 
@@ -59,7 +59,7 @@ class FirstPartyVerifiedContracts(unittest.TestCase):
         self.assertNotIn("]()", text)
         self.assertIn("not** a revised or relicensed copy", text)
         self.assertIn("not** added to the live SDK Pages builder", text)
-        self.assertIn("not itself an approval", text)
+        self.assertIn("never itself an approval", text)
 
 
 if __name__ == "__main__":
