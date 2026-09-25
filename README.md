@@ -34,7 +34,7 @@ StegVerse is meant to be inspected, challenged, and used by people and independe
 
 If StegVerse or the StegVerse SDK materially helps validate, augment, or improve another system, attribution is welcome but is not a condition of access. That does not change the purpose of StegVerse: to remain as transparent, inspectable, and open to independent use as possible.
 
-Independent systems may also connect through governed interlocks that preserve each system's authority while allowing explicitly admitted evidence and state transitions to cross the boundary. Such a connection may help the external system, StegVerse, or both. Openness and interoperability do not grant execution authority; every consequential transition remains governed.
+Independent systems may also connect through governed interlocks that preserve each system's own state-transition dependencies while allowing explicitly admitted evidence and state transitions to cross the boundary. Such a connection may help the external system, StegVerse, or both. Openness and interoperability do not satisfy admission predicates: every consequential transition remains subject to its exact governing constraints.
 
 ### Generic manifested-data processing contract
 
@@ -996,3 +996,8 @@ For the original Experiment 3 `ecosystem_diagnostic` manifest, the universal req
 ### Experiment 3 exact source/profile DENY return binding
 
 The existing generic manifest-state-transition runtime now recognizes the canonical **source/profile-only** diagnostic `DENY` emitted by the central generic InTr profile when a valid `ecosystem_diagnostic` graph has no WorkerCoordinator task ID and admitted non-worker dispatch is not yet established. It validates exact request hash, original-wire and normalized-projection digests, original goal/COSV, diagnostic stage and predicate, existing repair owner and explicit evidence limitations, and rejects any claimed InTr adjudication or sovereign custody. It returns the DENY for existing-owner repair rather than silently misreporting a purpose-worker failure. This does not implement ephemeral diagnostic processing, transport retry, Master Records closure, required Publisher delivery or far-side receipt. Authentic `ALLOW` still requires the existing full canonical transition-closure checks; terminal `FAIL_CLOSED` is not retried by this client.
+
+
+### Actionable SDK transition diagnostics (source candidate)
+
+`stegverse.transition_disposition.attempt_manifest_transition(manifest)` is an opt-in bounded SDK attempt API. It returns precise local non-ALLOW admission/attachment/transport/result-validation diagnostics or an existing fully validated runtime result. A local diagnostic is **never** an InTr or Master Records receipt and cannot prove a downstream failed or successful execution. Processing remains selected by the admitted manifest's capability and installed route; TV/TVC, InTr and Master Records retain their existing constrained roles. See `STEGVERSE_SDK_MIRROR_HANDOFF.md` and source tests. This staged branch is not a deployed runtime feature.
