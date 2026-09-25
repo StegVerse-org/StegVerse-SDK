@@ -46,9 +46,22 @@ def build_exp3_manifest():
         ],
         created_at="2026-09-24T00:00:00Z",
     )
+    # This named original is frozen to workflow artifact 10843328013. Later
+    # builder releases added review metadata fields which were NOT in its
+    # historical wire bytes; these two false flags are removed ONLY when
+    # reconstructing this exact original, never for new SDK manifests.
+    builder_metadata = manifest["extensions"]["manifest_builder"]
+    if (builder_metadata.get("external_review_requested") is False
+            and builder_metadata.get("publisher_required_by_review_default") is False):
+        del builder_metadata["external_review_requested"]
+        del builder_metadata["publisher_required_by_review_default"]
     canonical = validate_ingress_manifest(manifest)
     if canonical["processing"]["capability"] != "ecosystem_diagnostic":
         raise ValueError("SDK selected unexpected processing capability")
+    original_root = "ad9b8b8aab2beeea04bff2aac34fd2e7bfa5915133bcaef9209c16de7d9bea68"
+    from stegverse.route_resolution import canonical_sha256
+    if canonical_sha256(manifest) != original_root:
+        raise ValueError("FROZEN_EXP3_ORIGINAL_MANIFEST_ROOT_DRIFT")
     return manifest
 
 def main(argv=None):
