@@ -92,12 +92,12 @@ jobs:
           path: frozen-adjudication-input
       - name: Produce quarantine-only review of all 659 citation targets
         run: |
-          python scripts/curate_frozen_deepwiki_review.py \\
-            --raw frozen-adjudication-input/read_wiki_contents.md \\
-            --prior frozen-adjudication-input/citation-review-report.json \\
-            --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \\
-            --unresolved frozen-adjudication-input/remaining-citation-proposals-UNREVIEWED.json \\
-            --priority frozen-adjudication-input/priority-75-REVIEW-NOT-PUBLICATION.csv \\
+          python scripts/curate_frozen_deepwiki_review.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --prior frozen-adjudication-input/citation-review-report.json \
+            --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --unresolved frozen-adjudication-input/remaining-citation-proposals-UNREVIEWED.json \
+            --priority frozen-adjudication-input/priority-75-REVIEW-NOT-PUBLICATION.csv \
             --out deepwiki-review-export
       - name: Upload unreviewed documentation evidence
         if: always()
