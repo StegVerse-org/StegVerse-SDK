@@ -60,6 +60,19 @@ def response_text(body: dict) -> str:
     return "\n\n".join(segments).strip()
 
 
+def compare_page_coverage(structure: str, contents: str) -> int:
+    """Require the full-content headings to match every advertised page exactly."""
+    import collections
+    import re
+    advertised = re.findall(r"^\s*-\s+\d+(?:\.\d+)*\s+(.+?)\s*$", structure, re.MULTILINE)
+    observed = re.findall(r"^# Page:\s*(.+?)\s*$", contents, re.MULTILINE)
+    if not advertised or collections.Counter(advertised) != collections.Counter(observed):
+        raise ValueError("DeepWiki structure/content coverage mismatch")
+    if len(advertised) != len(set(advertised)):
+        raise ValueError("Duplicate DeepWiki page titles")
+    return len(advertised)
+
+
 def export(out: Path) -> dict:
     # Structure and complete-content tools are both independently requested.
     # Neither is treated as publication approval or exact-source verification.
@@ -71,7 +84,9 @@ def export(out: Path) -> dict:
             raise ValueError("Incomplete/empty result from " + name)
         results[name] = {"raw_result": body["result"], "text": text}
 
-    # Do not infer each page has been retrieved from a partial structure. The
+    page_count = compare_page_coverage(results["read_wiki_structure"]["text"], results["read_wiki_contents"]["text"])
+
+    # Do not infer upstream completeness beyond the returned page tree. The
     # review artifact intentionally retains the full raw MCP tool responses.
     out.mkdir(parents=True, exist_ok=True)
     records = []
@@ -87,6 +102,8 @@ def export(out: Path) -> dict:
         "repository": REPOSITORY,
         "endpoint": ENDPOINT,
         "content_status": "UNREVIEWED_EXTERNAL_GENERATION",
+        "captured_page_count": page_count,
+        "coverage": "ALL_RETURNED_STRUCTURE_TITLES_MATCH_FULL_CONTENT_SECTIONS",
         "publication_allowed": False,
         "authority_effect": "NONE_REVIEW_ONLY",
         "completeness": "STRUCTURE_AND_CONTENT_TOOL_RESPONSES_CAPTURED_NOT_INDEPENDENTLY_PROVEN",
