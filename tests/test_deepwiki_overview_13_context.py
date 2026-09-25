@@ -21,7 +21,7 @@ class OverviewContextAuditTests(unittest.TestCase):
         )
         self.assertEqual(len(expected_groups), 8)
         for group in expected_groups:
-            self.assertRegex(rows, r"(?m)^\\| " + re.escape(group) + r" \\|")
+            self.assertRegex(rows, r"(?m)^\| " + re.escape(group) + r" \|")
         self.assertIn("indices 12 and 13", text)
         self.assertEqual(text.count("`DENY:"), 8)
 
