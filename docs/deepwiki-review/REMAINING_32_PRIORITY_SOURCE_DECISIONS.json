@@ -1,0 +1,336 @@
+{
+  "schema": "stegverse.deepwiki-remaining32-review/v1",
+  "goal_task_id": "ECOSYSTEM-OPEN-SOURCE-STRATEGY-001",
+  "cosv": "20010010100000",
+  "original_capture_sha256": "a729d9b0f487f785b0e8f92006f303e8520e3593b6eb6c4c5de43273daa72087",
+  "predecessor_sdk_prs": [
+    336,
+    337,
+    338
+  ],
+  "disposition_scope": "SOURCE_REVIEW_ONLY_NOT_INTR",
+  "full_generated_claim_approvals": 0,
+  "generated_page_imports_authorized": 0,
+  "records": [
+    {
+      "index": 236,
+      "witness_path": "SDK_EVALUATOR_GOVERNANCE_POSTURE_MANIFEST_MIRROR_HANDOFF.md",
+      "exact_literal": "STRUCTURED_AUTHORITY_BASIS_VALIDATED_MERGED_RUNTIME_PROOF_PENDING",
+      "narrow_fact": "The handoff reports source-level authority-basis integration with runtime proof pending.",
+      "unsupported": "A prose handoff is not a proof of the generated evaluator flowchart's source-to-code edges.",
+      "disposition": "DENY:EVALUATOR_DIAGRAM_HANDOFF_NOT_LIVE_GRAPH",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 237,
+      "witness_path": "stegverse/evaluator_manifest_builder.py",
+      "exact_literal": "def build_authority_bound_evaluator_governance_manifest(",
+      "narrow_fact": "The builder accepts a supplied authority-basis resolver and constructs manifest evidence.",
+      "unsupported": "The generated graph cannot imply the SDK independently resolves organization roles, grants authority, or performed a real InTr transition.",
+      "disposition": "DENY:BUILDER_CALLBACK_NOT_CANONICAL_ROLE_AUTHORITY",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 275,
+      "witness_path": "tests/test_oda3_r3_run_harness.py",
+      "exact_literal": "def test_run_harness_retains_exact_tuple_custody_reconstruction_replay_and_packet(",
+      "narrow_fact": "A test assembles a temporary request and representative receipt packet for a bounded harness.",
+      "unsupported": "Fixture reconstruction assertions cannot establish universal tamper protection or an independently authenticated production custody run.",
+      "disposition": "DENY:ODA3_FIXTURE_NOT_UNIVERSAL_CUSTODY_PROOF",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 283,
+      "witness_path": "stegverse/admissibility.py",
+      "exact_literal": "def _relation_descriptor(",
+      "narrow_fact": "This helper classifies known and unresolved admissibility relations and disclaims independent authority.",
+      "unsupported": "One local classification helper plus a malformed adjacent original citation cannot certify the whole admissibility composition or live authorization graph.",
+      "disposition": "DENY:RELATION_DESCRIPTOR_NOT_COMPLETE_ADMISSION_PROOF",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 377,
+      "witness_path": "stegverse/micro_node_commit_time_experiment.py",
+      "exact_literal": "def evaluate_three_worker_experiment(",
+      "narrow_fact": "The callable validates supplied three-worker source-test fixtures without elevating claims into runtime evidence.",
+      "unsupported": "Its declaration is not proof of authentic three-origin worker execution, valid chronological custody, or a completed governed attempt.",
+      "disposition": "DENY:THREE_WORKER_FUNCTION_NOT_EXECUTION_WITNESS",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 435,
+      "witness_path": "scripts/build_mir_sv_exp3_manifest.py",
+      "exact_literal": "if data[\"cosv\"] != \"50000000100000\":",
+      "narrow_fact": "The diagnostic script enforces an exact experiment COSV before assembling the local read-only manifest.",
+      "unsupported": "An identity check and script pointer do not prove a real SDK/InTr execution or a Master Records event history.",
+      "disposition": "DENY:EXPERIMENT_COSV_CHECK_NOT_LIVE_TRIAL",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 496,
+      "witness_path": "evidence/sdk-validation-diagnostic.json",
+      "exact_literal": "413 passed",
+      "narrow_fact": "The checked-in diagnostic records one historical test command and its reported pass count.",
+      "unsupported": "It does not prove every generated test-category assertion, fresh exact-head validation, current installation, or a real governed runtime result.",
+      "disposition": "DENY:HISTORICAL_TEST_DIAGNOSTIC_NOT_CURRENT_RUNTIME",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 552,
+      "witness_path": "SDK_MIRROR_HANDOFF.md",
+      "exact_literal": "SDK entry",
+      "narrow_fact": "The handoff specifies an intended sovereign SDK-to-Core-Lite-to-Master-Records route.",
+      "unsupported": "A handoff trajectory does not establish completed canonical custody for all runs or a universal definition of those authorities.",
+      "disposition": "DENY:ROUTE_HANDOFF_NOT_AUTHENTIC_CUSTODY",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 561,
+      "witness_path": "tasks/SDK-GENERIC-MANIFEST-DOWNSTREAM-PROPAGATION-003.json",
+      "exact_literal": "REQUIRED_BUT_SITE_MACHINE_OWNED",
+      "narrow_fact": "The task assessment assigns downstream work to Site's separate existing owner.",
+      "unsupported": "A task assignment does not prove Site, Publisher or wiki integration was executed or published.",
+      "disposition": "DENY:OWNER_ASSIGNMENT_NOT_IMPLEMENTATION",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 582,
+      "witness_path": "stegverse/__init__.py",
+      "exact_literal": "from .admissibility import (",
+      "narrow_fact": "The SDK package exports named admissibility helpers.",
+      "unsupported": "An import list does not prove universal system admissibility, external authority or current production deployment.",
+      "disposition": "DENY:SDK_EXPORT_NOT_CROSS_SYSTEM_ENFORCEMENT",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 585,
+      "witness_path": "tasks/SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001.json",
+      "exact_literal": "SDK_POSTURE_REQUEST_NON_AUTHORIZING",
+      "narrow_fact": "The task record names non-authorizing SDK posture requests among its expected predicates.",
+      "unsupported": "Naming one task predicate is not evidence that every posture variant was tested or every external authority resolved.",
+      "disposition": "DENY:TASK_PREDICATE_NOT_FULL_CONTRACT_PROOF",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 586,
+      "witness_path": "SDK_MIRROR_HANDOFF.md",
+      "exact_literal": "SDK entry",
+      "narrow_fact": "The handoff diagrams a proposed sovereign route to external governance and custody.",
+      "unsupported": "It does not substantiate the generated authority-basis module relationship graph or a completed cross-repository execution.",
+      "disposition": "DENY:ROUTE_HANDOFF_NOT_AUTHORITY_BASIS_GRAPH",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 587,
+      "witness_path": "SDK_EVALUATOR_GOVERNANCE_POSTURE_MANIFEST_MIRROR_HANDOFF.md",
+      "exact_literal": "StegCore three-layer + StegGate",
+      "narrow_fact": "The handoff separates external StegCore authority-basis resolution from SDK manifestation.",
+      "unsupported": "That architectural narrative does not authenticate role data, actual resolver invocation, or live evaluator graph edges.",
+      "disposition": "DENY:AUTHORITY_HANDOFF_NOT_AUTHENTIC_RESOLVER_OBSERVATION",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 588,
+      "witness_path": "stegverse/evaluator_manifest_builder.py",
+      "exact_literal": "The SDK does not resolve role policy",
+      "narrow_fact": "The evaluator builder explicitly delegates authority-basis resolution and grants no SDK role-policy authority.",
+      "unsupported": "The generated diagram cannot treat the builder as a canonical authority engine or independently prove the supplied resolver succeeded.",
+      "disposition": "DENY:EVALUATOR_BUILDER_NOT_AUTHORITY_ISSUER",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 589,
+      "witness_path": "stegverse/safety_stack.py",
+      "exact_literal": "class GCATState:",
+      "narrow_fact": "The GCAT dataclass stores four numbers and defines a particular local legitimacy-surplus computation.",
+      "unsupported": "This mathematical model does not by itself establish external safety, the full acronym's meaning in every product, or globally valid legitimacy measurements.",
+      "disposition": "DENY:GCAT_MODEL_NOT_UNIVERSAL_SAFETY_PROOF",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 590,
+      "witness_path": "stegverse/llm_adapter_dual.py",
+      "exact_literal": "gcat_state: Dict[str, float]",
+      "narrow_fact": "The adapter data structure accepts a GCAT-state field and provides a neutral default dictionary.",
+      "unsupported": "A field type/default does not compute legitimacy surplus, validate the four dimensions, or establish a governed decision.",
+      "disposition": "DENY:GCAT_FIELD_NOT_VALIDATED_METRIC",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 592,
+      "witness_path": "stegverse/safety_stack.py",
+      "exact_literal": "class GCATState:",
+      "narrow_fact": "The implementation provides a local GCATState class with scoped arithmetic.",
+      "unsupported": "A glossary code pointer may identify the class but cannot endorse all generated safety and legitimacy claims.",
+      "disposition": "DENY:GCAT_CODE_POINTER_NOT_COMPLETE_MODEL_VALIDATION",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 593,
+      "witness_path": "stegverse/llm_adapter_dual.py",
+      "exact_literal": "gcat_state: Dict[str, float]",
+      "narrow_fact": "The adapter contains a mutable GCAT-state dictionary and serialization path.",
+      "unsupported": "A field pointer is not a safety-policy result or independently witnessed validator invocation.",
+      "disposition": "DENY:ADAPTER_FIELD_POINTER_NOT_AUTHORITY",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 597,
+      "witness_path": "SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md",
+      "exact_literal": "COSV: 71000000100110",
+      "narrow_fact": "The scoped historical handoff records one goal's COSV identifier.",
+      "unsupported": "One particular value does not define the complete COSV vector scheme, all existing allocations or current Registry truth.",
+      "disposition": "DENY:SINGLE_COSV_VALUE_NOT_VECTOR_SPECIFICATION",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 606,
+      "witness_path": "tasks/SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001.json",
+      "exact_literal": "INCOMPLETE_AUTHORITY_BASIS_FAILS_CLOSED",
+      "narrow_fact": "The task declares fail-closed handling for incomplete authority-basis evidence.",
+      "unsupported": "A scoped expected predicate does not imply universal automatic DENY for every ambiguous, uninstalled or invalid input in every SDK subsystem.",
+      "disposition": "DENY:SCOPED_FAIL_CLOSED_PREDICATE_NOT_GLOBAL_INVARIANT",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 609,
+      "witness_path": "tasks/SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001.json",
+      "exact_literal": "INCOMPLETE_AUTHORITY_BASIS_FAILS_CLOSED",
+      "narrow_fact": "The task record contains the exact predicate name.",
+      "unsupported": "A glossary code pointer alone is not executable evidence of a full fail-closed policy for all SDK consumers.",
+      "disposition": "DENY:PREDICATE_POINTER_NOT_GLOBAL_POLICY_PROOF",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 613,
+      "witness_path": "README.md",
+      "exact_literal": "return_projection",
+      "narrow_fact": "The README distinguishes caller-facing result projection from canonical custody.",
+      "unsupported": "A selectable disclosure depth does not independently demonstrate terminal records-only execution, cryptographic checkpoints or worker retirement.",
+      "disposition": "DENY:RETURN_PROJECTION_NOT_TERMINAL_RECORDS_PROOF",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 614,
+      "witness_path": "tests/test_micro_node_commit_time_experiment.py",
+      "exact_literal": "partition_reconstruction",
+      "narrow_fact": "A local three-worker test fixture stores partition-reconstruction fields and hashes.",
+      "unsupported": "Those self-supplied fixture hashes cannot authenticate a production worker lifecycle, original receipt continuity or master custody.",
+      "disposition": "DENY:FIXTURE_PARTITION_HASH_NOT_LIVE_RECORDS_ONLY",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 615,
+      "witness_path": "README.md",
+      "exact_literal": "return_projection",
+      "narrow_fact": "The README points to an optional result projection contract.",
+      "unsupported": "This glossary pointer does not establish complete records-only retention or actual post-close authority revocation.",
+      "disposition": "DENY:RETURN_DEPTH_POINTER_NOT_RETENTION_PROOF",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 616,
+      "witness_path": "tests/test_micro_node_commit_time_experiment.py",
+      "exact_literal": "partition_reconstruction",
+      "narrow_fact": "A test fixture declares matching source/reconstruction digests.",
+      "unsupported": "Matching in-memory fixture hashes is not a real ledger checkpoint or independent original-worker proof.",
+      "disposition": "DENY:TEST_DIGEST_POINTER_NOT_CANONICAL_LEDGER",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 621,
+      "witness_path": "tests/test_micro_node_commit_time_experiment.py",
+      "exact_literal": "derive_group_worker_requests",
+      "narrow_fact": "The source test builds a three-part purpose-bound worker group fixture.",
+      "unsupported": "The generated atomic-task-worker glossary conflates purpose-bound group partitions with the distinct atomic-task-worker manifest processor and real task activation.",
+      "disposition": "DENY:PURPOSE_GROUP_FIXTURE_NOT_ATOMIC_TASK_RUNTIME",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 622,
+      "witness_path": "tests/test_micro_node_commit_time_experiment.py",
+      "exact_literal": "derive_group_worker_requests",
+      "narrow_fact": "The local test constructs source-bound semantic partitions and synthetic bindings.",
+      "unsupported": "It is not an exact code pointer for every atomic-task-worker invariance and cost policy or observed governed worker lifecycle.",
+      "disposition": "DENY:GROUP_FIXTURE_POINTER_NOT_ATOMIC_WORKER_PROOF",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 623,
+      "witness_path": "SDK_MIRROR_HANDOFF.md",
+      "exact_literal": "SDK-PUBLIC-CONSOLE-001",
+      "narrow_fact": "The cited handoff span lists SDK task statuses.",
+      "unsupported": "It does not specify or authenticate the generated Component-011 receipt-compatibility protocol.",
+      "disposition": "DENY:SDK_GOAL_STATUS_NOT_COMPONENT011_SPEC",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 624,
+      "witness_path": "SDK_MIRROR_HANDOFF.md",
+      "exact_literal": "SDK-PUBLIC-CONSOLE-001",
+      "narrow_fact": "The handoff's goal ledger is an SDK source status record.",
+      "unsupported": "It is not a source contract demonstrating Component-011 micro-node compatibility across independent modules.",
+      "disposition": "DENY:STATUS_POINTER_NOT_COMPONENT011_INTEROP",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 625,
+      "witness_path": "SDK_MIRROR_HANDOFF.md",
+      "exact_literal": "run-manifest",
+      "narrow_fact": "The handoff states that generic run-manifest enriches result lineage with request and processor hashes.",
+      "unsupported": "That source contract neither defines Component-011 nor verifies its original resident dispatch receipt or any independent runtime event.",
+      "disposition": "DENY:LINEAGE_HANDOFF_NOT_COMPONENT011_AUTHENTICATION",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 636,
+      "witness_path": "tasks/SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001.json",
+      "exact_literal": "authentic_live_stegos_intr_proven",
+      "narrow_fact": "The task's prior evidence block explicitly records authentic live StegOS/InTr proof as false.",
+      "unsupported": "A historical evidence-run pointer cannot demonstrate current live authority-basis execution, exact HEAD or authenticated external custody.",
+      "disposition": "DENY:HISTORIC_EVIDENCE_RUN_NOT_CURRENT_AUTHORITY_PROOF",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    },
+    {
+      "index": 639,
+      "witness_path": "tasks/SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001.json",
+      "exact_literal": "authentic_live_stegos_intr_proven",
+      "narrow_fact": "The prior task evidence says governed execution was fail-closed on missing canonical runtime packages.",
+      "unsupported": "The generated diagram's MR/MRR checkpoint and manifest record nodes are not proven current callable types or observed receipt transitions by that JSON.",
+      "disposition": "DENY:FAILED_HISTORIC_RUN_NOT_CUSTODY_GRAPH",
+      "full_generated_claim_semantically_approved": false,
+      "publication_authorized": false
+    }
+  ]
+}
