@@ -63,6 +63,57 @@ DEFAULT_PUBLISHER_PACKAGE_PROFILE = "stegverse.publisher.evidence-report-package
 DEFAULT_FRAMEWORK_EGRESS_SURFACE = "LLM_ADAPTER"
 
 
+_CORRECTABLE_MANIFEST_BINDING_DENIALS = frozenset({
+    "canonical_manifest_sha256_binding_mismatch",
+    "canonical_manifest_sha256_recompute_mismatch",
+    "wire_manifest_sha256_required",
+    "wire_manifest_sha256_mismatch",
+    "canonical_manifest_projection_required",
+    "canonical_manifest_projection_sha256_mismatch",
+})
+
+
+def correct_manifest_binding_deny(
+    original_manifest: Mapping[str, Any],
+    rejected_request: Mapping[str, Any],
+    denial: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Correct the outgoing envelope, never the frozen original manifest.
+
+    The profile's exact DENY is diagnostic evidence only. A changed envelope
+    must be submitted as a separate governed attempt to receive its own verdict.
+    No retry is permitted for FAIL_CLOSED or for an unchanged envelope.
+    """
+    from .manifest_state_transition_runtime import derive_execution_request
+
+    if denial.get("state") != "DENY" or denial.get("terminal") is not False:
+        raise ValueError("terminal_or_non_deny_disposition_cannot_be_repaired")
+    reason = denial.get("reason_code")
+    if reason not in _CORRECTABLE_MANIFEST_BINDING_DENIALS:
+        raise ValueError("manifest_builder_has_no_approved_repair_for_reason")
+    if denial.get("transition_id") != "SDK_MANIFEST_BINDING":
+        raise ValueError("denial_transition_identity_mismatch")
+    if denial.get("retry_condition") != (
+        "CORRECT_ENVELOPE_IN_EXISTING_MANIFEST_BUILDER_THEN_NEW_GOVERNED_ATTEMPT"
+    ):
+        raise ValueError("denial_does_not_permit_manifest_builder_reentry")
+    wire = dict(original_manifest)
+    if rejected_request.get("canonical_manifest") != wire:
+        raise ValueError("denial_rejected_different_original_manifest")
+    original_wire_hash = canonical_sha256(wire)
+    if denial.get("original_wire_manifest_sha256") != original_wire_hash:
+        raise ValueError("denial_original_wire_manifest_sha256_mismatch")
+    rejected_hash = canonical_sha256(dict(rejected_request))
+    if denial.get("original_request_sha256") != rejected_hash:
+        raise ValueError("denial_original_request_sha256_mismatch")
+    repaired = derive_execution_request(wire)
+    if repaired["request_sha256"] == rejected_request.get("request_sha256"):
+        raise ValueError("manifest_binding_repair_produced_unchanged_request")
+    if repaired["wire_manifest_sha256"] != original_wire_hash:
+        raise ValueError("manifest_builder_changed_frozen_wire_manifest")
+    return repaired
+
+
 def available_processors() -> tuple[str, ...]:
     installed = []
     for name, route_id in PROCESSOR_ROUTES.items():
