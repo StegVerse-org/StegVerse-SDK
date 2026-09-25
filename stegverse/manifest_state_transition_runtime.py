@@ -184,8 +184,10 @@ def _validate_profile_source_deny(result: Mapping[str, Any], request: Mapping[st
     """
     if result.get("schema") != "stegverse.sdk.manifest-profile-disposition/v1":
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_SCHEMA_MISMATCH")
-    if result.get("disposition") != "DENY" or result.get("state") != "DENY":
-        raise ValueError("UNIVERSAL_INTR_PROFILE_DISPOSITION_NOT_DENY")
+    is_deny = result.get("disposition") == "DENY" and result.get("state") == "DENY"
+    is_terminal = result.get("disposition") == "FAIL_CLOSED" and result.get("state") == "FAIL_CLOSED"
+    if not (is_deny or is_terminal):
+        raise ValueError("UNIVERSAL_INTR_PROFILE_DISPOSITION_NOT_DENY_OR_TERMINAL_FAIL_CLOSED")
     for key in ("request_sha256", "wire_manifest_sha256",
                 "canonical_manifest_sha256", "graph_id", "processing_capability"):
         if result.get(key) != request.get(key):
@@ -196,14 +198,18 @@ def _validate_profile_source_deny(result: Mapping[str, Any], request: Mapping[st
         for field in ("goal_task_id", "cosv"):
             if payload.get(field) != result.get(field):
                 raise ValueError(f"UNIVERSAL_INTR_DISPOSITION_ORIGINAL_LINEAGE_MISMATCH:{field}")
-    if result.get("evaluation_boundary") != "SDK_MANIFEST_PROFILE_SOURCE_ONLY":
+    expected_boundary = ("SDK_ADMITTED_DIAGNOSTIC_CONSUMER_LOCAL" if is_terminal
+                         else "SDK_MANIFEST_PROFILE_SOURCE_ONLY")
+    if result.get("evaluation_boundary") != expected_boundary:
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_BOUNDARY_MISMATCH")
     if result.get("authentic_intr_disposition_observed") is not False:
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_AUTHENTICITY_ESCALATION")
     if result.get("organization_master_records_closure_observed") is not False:
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_CUSTODY_ESCALATION")
-    if result.get("terminal") is not False or result.get("automatic_retry_permitted") is not False:
+    if result.get("terminal") is not is_terminal or result.get("automatic_retry_permitted") is not False:
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_RETRY_CONTRACT_MISMATCH")
+    if is_terminal and result.get("retry_condition") != "SEPARATELY_GOVERNED_FUTURE_REENTRY_ONLY":
+        raise ValueError("UNIVERSAL_INTR_TERMINAL_REENTRY_CONTRACT_MISMATCH")
     for key in ("reason_code", "failed_predicate", "transition_id", "repair_owner",
                 "retry_condition", "source_disposition_ref"):
         if not isinstance(result.get(key), str) or not result[key]:
@@ -215,9 +221,72 @@ def _validate_profile_source_deny(result: Mapping[str, Any], request: Mapping[st
     return dict(result)
 
 
+def _validate_nonterminal_diagnostic_progress(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
+    """Only validate lineage, not independently attest the resident receipts.
+
+    The native consumer already performs actual organization-first Master Records
+    custody. This SDK projection cannot convert its response to terminal egress.
+    """
+    expected = {
+        "schema": "stegverse.sdk.manifest-state-transition-progress/v1",
+        "state": "PROCESSING_RECORDED_PUBLISHER_REQUIRED",
+        "disposition": "ALLOW",
+        "terminal": False,
+        "communication_terminal": False,
+        "publisher_required": True,
+        "publisher_executed": False,
+        "far_side_transition_observed": False,
+        "external_master_records_independently_read_back": False,
+        "next_transition_id": "RTC-PUBLISHER-005",
+        "publisher_package_profile": "stegverse.publisher.evidence-report-package/v1",
+        "processing_capability": "ecosystem_diagnostic",
+        "authority_effect": "NONE_PROCESSING_RESULT_ONLY",
+    }
+    for key, value in expected.items():
+        if result.get(key) != value:
+            raise ValueError(f"SDK_DIAGNOSTIC_PROGRESS_CONTRACT_MISMATCH:{key}")
+    for key in ("request_sha256", "wire_manifest_sha256", "canonical_manifest_sha256",
+                "graph_id", "processing_capability"):
+        if result.get(key) != request.get(key):
+            raise ValueError(f"SDK_DIAGNOSTIC_PROGRESS_LINEAGE_MISMATCH:{key}")
+    original = request.get("canonical_manifest") or {}
+    payload = original.get("payload") if isinstance(original, Mapping) else None
+    if not isinstance(payload, Mapping):
+        raise ValueError("SDK_DIAGNOSTIC_PROGRESS_SOURCE_PAYLOAD_REQUIRED")
+    if result.get("goal_task_id") != payload.get("goal_task_id") or result.get("cosv") != payload.get("cosv"):
+        raise ValueError("SDK_DIAGNOSTIC_PROGRESS_GOAL_COSV_MISMATCH")
+    if ((original.get("completion") or {}).get("publisher") or {}).get("required") is not True:
+        raise ValueError("SDK_DIAGNOSTIC_PROGRESS_ORIGINAL_PUBLISHER_REQUIRED")
+    if result.get("source_manifest_file_sha256") != "e1b05a082ce19d3d254e3cde1dced03019174a94287724959672c9e65510c8f3":
+        raise ValueError("SDK_DIAGNOSTIC_PROGRESS_FROZEN_FILE_MISMATCH")
+    for key in ("diagnostic_result_sha256", "intr_admission_master_records_receipt_sha256",
+                "runtime_binding_master_records_receipt_sha256", "diagnostic_master_records_receipt_sha256",
+                "organization_receipt_sha256", "organization_previous_receipt_sha256"):
+        value = result.get(key)
+        if not isinstance(value, str) or len(value) != 64 or any(ch not in "0123456789abcdef" for ch in value):
+            raise ValueError(f"SDK_DIAGNOSTIC_PROGRESS_RECEIPT_DIGEST_REQUIRED:{key}")
+    for key in ("node_id", "interlock_id", "lease_id", "runtime_id", "diagnostic_result_ref"):
+        if not isinstance(result.get(key), str) or not result[key]:
+            raise ValueError(f"SDK_DIAGNOSTIC_PROGRESS_RUNTIME_BINDING_REQUIRED:{key}")
+    output = result.get("diagnostic_result")
+    graph = request.get("state_graph") or {}
+    if not isinstance(output, Mapping) or output.get("schema") != "stegverse.ecosystem-diagnostic-result.v1":
+        raise ValueError("SDK_DIAGNOSTIC_PROGRESS_RESULT_SCHEMA_MISMATCH")
+    if output.get("diagnostic_request_id") != (graph.get("request") or {}).get("diagnostic_request_id"):
+        raise ValueError("SDK_DIAGNOSTIC_PROGRESS_DIAGNOSTIC_REQUEST_MISMATCH")
+    if output.get("authority_effect") != "NONE_DIAGNOSTIC_ONLY" or output.get("mutation_performed") is not False:
+        raise ValueError("SDK_DIAGNOSTIC_PROGRESS_RESULT_AUTHORITY_DRIFT")
+    exact = (json.dumps(output, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    if result.get("diagnostic_result_file_encoding") != "utf8-json-indent2-sortkeys-newline" or hashlib.sha256(exact).hexdigest() != result["diagnostic_result_sha256"]:
+        raise ValueError("SDK_DIAGNOSTIC_PROGRESS_RESULT_BYTES_MISMATCH")
+    return dict(result)
+
+
 def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
     if result.get("schema") == "stegverse.sdk.manifest-profile-disposition/v1":
         return _validate_profile_source_deny(result, request)
+    if result.get("schema") == "stegverse.sdk.manifest-state-transition-progress/v1":
+        return _validate_nonterminal_diagnostic_progress(result, request)
     if result.get("schema") != RESULT_SCHEMA:
         raise ValueError("UNIVERSAL_INTR_RESULT_SCHEMA_MISMATCH")
     if result.get("state") != "COMPLETE":

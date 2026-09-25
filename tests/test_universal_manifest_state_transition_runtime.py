@@ -154,6 +154,86 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "UNIVERSAL_INTR_PROFILE_DISPOSITION_NOT_DENY"):
             validate_runtime_result(fabricated_allow, request)
 
+    def test_source_profile_terminal_fail_closed_cannot_retry(self):
+        from scripts.build_mir_sv_exp3_manifest import build_exp3_manifest
+        req = derive_execution_request(build_exp3_manifest())
+        payload = req["canonical_manifest"]["payload"]
+        denial = {
+            "schema":"stegverse.sdk.manifest-profile-disposition/v1",
+            "state":"FAIL_CLOSED","disposition":"FAIL_CLOSED","terminal":True,
+            "automatic_retry_permitted":False,
+            "retry_condition":"SEPARATELY_GOVERNED_FUTURE_REENTRY_ONLY",
+            "evaluation_boundary":"SDK_ADMITTED_DIAGNOSTIC_CONSUMER_LOCAL",
+            "authentic_intr_disposition_observed":False,
+            "organization_master_records_closure_observed":False,
+            "reason_code":"ADMITTED_SDK_DIAGNOSTIC_PROCESS_EXECUTION_FAILED",
+            "failed_predicate":"ADMITTED_SDK_DIAGNOSTIC_PROCESS_EXECUTION_FAILED",
+            "transition_id":"SDK_ECOSYSTEM_DIAGNOSTIC_DISPATCH",
+            "repair_owner":"EXISTING_SDK_ECOSYSTEM_DIAGNOSTIC_AND_STEGBROWSER_INTR_OWNERS",
+            "source_disposition_ref":"runtime-state/source-only-terminal.json",
+            "evidence_refs":[],
+            "goal_task_id":payload["goal_task_id"],"cosv":payload["cosv"],
+            "request_sha256":req["request_sha256"],
+            "wire_manifest_sha256":req["wire_manifest_sha256"],
+            "canonical_manifest_sha256":req["canonical_manifest_sha256"],
+            "graph_id":req["graph_id"],"processing_capability":"ecosystem_diagnostic",
+        }
+        self.assertTrue(validate_runtime_result(denial,req)["terminal"])
+        illegal = copy.deepcopy(denial)
+        illegal["automatic_retry_permitted"] = True
+        with self.assertRaisesRegex(ValueError,"RETRY_CONTRACT_MISMATCH"):
+            validate_runtime_result(illegal,req)
+
+    def test_nonterminal_diagnostic_requires_exact_result_bytes_and_publisher(self):
+        from scripts.build_mir_sv_exp3_manifest import build_exp3_manifest
+        import hashlib
+        import json
+        req = derive_execution_request(build_exp3_manifest())
+        output = {
+            "schema":"stegverse.ecosystem-diagnostic-result.v1",
+            "diagnostic_request_id":req["state_graph"]["request"]["diagnostic_request_id"],
+            "authority_effect":"NONE_DIAGNOSTIC_ONLY",
+            "mutation_performed":False,
+        }
+        digest=hashlib.sha256((json.dumps(output,indent=2,sort_keys=True)+"\n").encode()).hexdigest()
+        progress={
+            "schema":"stegverse.sdk.manifest-state-transition-progress/v1",
+            "state":"PROCESSING_RECORDED_PUBLISHER_REQUIRED","disposition":"ALLOW",
+            "terminal":False,"communication_terminal":False,"publisher_required":True,
+            "publisher_executed":False,"far_side_transition_observed":False,
+            "external_master_records_independently_read_back":False,
+            "next_transition_id":"RTC-PUBLISHER-005",
+            "publisher_package_profile":"stegverse.publisher.evidence-report-package/v1",
+            "processing_capability":"ecosystem_diagnostic",
+            "authority_effect":"NONE_PROCESSING_RESULT_ONLY",
+            "request_sha256":req["request_sha256"],
+            "wire_manifest_sha256":req["wire_manifest_sha256"],
+            "canonical_manifest_sha256":req["canonical_manifest_sha256"],
+            "graph_id":req["graph_id"],
+            "goal_task_id":req["canonical_manifest"]["payload"]["goal_task_id"],
+            "cosv":req["canonical_manifest"]["payload"]["cosv"],
+            "source_manifest_file_sha256":"e1b05a082ce19d3d254e3cde1dced03019174a94287724959672c9e65510c8f3",
+            "diagnostic_result":output,
+            "diagnostic_result_sha256":digest,
+            "diagnostic_result_file_encoding":"utf8-json-indent2-sortkeys-newline",
+            "intr_admission_master_records_receipt_sha256":"a"*64,
+            "runtime_binding_master_records_receipt_sha256":"b"*64,
+            "diagnostic_master_records_receipt_sha256":"c"*64,
+            "organization_receipt_sha256":"d"*64,
+            "organization_previous_receipt_sha256":"e"*64,
+            "node_id":"mock-node","interlock_id":"mock-intr","lease_id":"mock-lease",
+            "runtime_id":"mock-runtime","diagnostic_result_ref":"mock-diagnostic",
+        }
+        self.assertEqual(validate_runtime_result(progress,req)["state"],"PROCESSING_RECORDED_PUBLISHER_REQUIRED")
+        bad=copy.deepcopy(progress)
+        bad["diagnostic_result_sha256"]="0"*64
+        with self.assertRaisesRegex(ValueError,"RESULT_BYTES_MISMATCH"):
+            validate_runtime_result(bad,req)
+        bad=copy.deepcopy(progress)
+        bad["far_side_transition_observed"]=True
+        with self.assertRaisesRegex(ValueError,"CONTRACT_MISMATCH"):
+            validate_runtime_result(bad,req)
+
     def test_digest_mismatch_fails_closed(self):
         request = derive_execution_request(manifest())
         result = complete_result(request)
