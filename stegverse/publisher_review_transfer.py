@@ -163,7 +163,7 @@ def build_source_only_review_transfer(
         },
         "created_at":created.isoformat(),
         "document":{
-            "authors":[{"name":"StegVerse (source claims); Richard Whitney (independent MIR contribution)"}],
+            "authors":[{"name":"StegVerse"}],
             "document_id":"mir-sv-exp3-sdk-review-source-only",
             "document_type":"EVIDENCE_REPORT",
             "sections":sections,"subtitle":"Source-validated assessment; current sovereign runtime not established",
