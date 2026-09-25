@@ -44,7 +44,7 @@ def source_span(root: Path, item: dict) -> tuple[str | None, str]:
         lines = p.read_text(encoding="utf-8").splitlines()
     except (UnicodeError, OSError):
         return None, "SOURCE_NOT_TEXT"
-    m = re.search(r":(\d+)(?:-(\d+))?\\?\x60?$", item["label"])
+    m = re.search(r":(\d+)(?:-(\d+))?`?$", item["label"])
     if m:
         a, b = int(m.group(1)), int(m.group(2) or m.group(1))
         if a < 1 or b > len(lines) or b < a:
