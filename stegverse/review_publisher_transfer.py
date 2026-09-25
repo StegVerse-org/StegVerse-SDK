@@ -22,7 +22,7 @@ from .publisher_return_binding import (
 
 TRANSFER_SCHEMA = "stegverse.publisher.artifact-transfer/v1"
 EXPORT_SCHEMA = "stegverse.publisher.evidence-report-package/v1"
-SAFE_ORIGINAL = re.compile(r"^evidence/[A-Za-z0-9][A-Za-z0-9._-]{0,127}\\.(?:png|jpg|jpeg|pdf|json|txt|md)$")
+SAFE_ORIGINAL = re.compile(r"^evidence/[A-Za-z0-9][A-Za-z0-9._-]{0,127}\.(?:png|jpg|jpeg|pdf|json|txt|md)$")
 MEDIA_TYPES = {"image/png", "image/jpeg", "application/pdf", "application/json", "text/plain", "text/markdown"}
 HASH = re.compile(r"^sha256:[0-9a-f]{64}$")
 SOURCE_CLASSES = {"USER_SUPPLIED_ORIGINAL", "COUNTERPART_SUPPLIED_ORIGINAL", "AUTHENTIC_RETAINED_EVIDENCE"}
@@ -70,7 +70,7 @@ def _normalize_assets(assets: Any, export_bundle: Mapping[str, Any]) -> list[dic
             raise ReviewPublisherBoundaryError("original evidence exact bytes/hash mismatch")
         if original["media_type"] == "application/pdf" and not raw.startswith(b"%PDF-"):
             raise ReviewPublisherBoundaryError("PDF original signature mismatch")
-        if original["media_type"] == "image/png" and not raw.startswith(b"\\x89PNG\\r\\n\\x1a\\n"):
+        if original["media_type"] == "image/png" and not raw.startswith(b"\x89PNG\r\n\x1a\n"):
             raise ReviewPublisherBoundaryError("PNG original signature mismatch")
         total += len(raw)
         if total > MAX_TOTAL:
