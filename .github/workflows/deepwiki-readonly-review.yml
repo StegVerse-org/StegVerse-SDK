@@ -1,0 +1,28 @@
+name: Capture public DeepWiki SDK docs for review
+on:
+  pull_request:
+    paths:
+      - 'scripts/export_deepwiki_review.py'
+      - 'tests/test_export_deepwiki_review.py'
+      - '.github/workflows/deepwiki-readonly-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  review-only-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test fail-closed parser and review-only export
+        run: python -m unittest tests.test_export_deepwiki_review -v
+      - name: Capture public indexed wiki from official read-only MCP
+        run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
+      - name: Upload unreviewed documentation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepwiki-sdk-review-only-${{ github.sha }}
+          path: deepwiki-review-export/
+          retention-days: 7
+          if-no-files-found: warn
