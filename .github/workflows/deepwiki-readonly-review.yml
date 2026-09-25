@@ -8,6 +8,8 @@ on:
       - 'tests/test_resolve_deepwiki_review_citations.py'
       - 'scripts/build_deepwiki_claim_review.py'
       - 'tests/test_build_deepwiki_claim_review.py'
+      - 'scripts/inspect_remaining_deepwiki_citations.py'
+      - 'tests/test_inspect_remaining_deepwiki_citations.py'
       - '.github/workflows/deepwiki-readonly-review.yml'
   workflow_dispatch:
 permissions:
@@ -26,6 +28,8 @@ jobs:
         run: python -m unittest tests.test_resolve_deepwiki_review_citations -v
       - name: Test non-authorizing claim-inspection packet
         run: python -m unittest tests.test_build_deepwiki_claim_review -v
+      - name: Test unresolved-citation source probes
+        run: python -m unittest tests.test_inspect_remaining_deepwiki_citations -v
       - name: Capture public indexed wiki from official read-only MCP
         run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
       - name: Produce nonpublishing citation candidates against checked-out exact source
@@ -38,6 +42,13 @@ jobs:
       - name: Assemble full source/claim review packet without semantic certification
         run: |
           python scripts/build_deepwiki_claim_review.py \
+            --input deepwiki-review-export/read_wiki_contents.md \
+            --report deepwiki-review-export/citation-review-report.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Verify unambiguous unresolved source suggestions; retain malformed cases
+        run: |
+          python scripts/inspect_remaining_deepwiki_citations.py \
             --input deepwiki-review-export/read_wiki_contents.md \
             --report deepwiki-review-export/citation-review-report.json \
             --root . \
