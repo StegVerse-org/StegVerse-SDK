@@ -37,11 +37,11 @@ class TestRemainingCitationProposals(unittest.TestCase):
     def test_composite_and_malformed_become_separate_review_items(self):
         with TemporaryDirectory() as temp:
             root = Path(temp)
-            (root/"demo.py").write_text("alpha\\nbeta\\ngamma\\n", encoding="utf-8")
+            (root/"demo.py").write_text("alpha\nbeta\ngamma\n", encoding="utf-8")
             reviewed = composite_proposals("demo.py:1-2, 3-3", root, "a"*40)
             self.assertEqual(reviewed["validated_subreferences"], 2)
             self.assertTrue(reviewed["partial_or_ambiguous"])
-            original = "# Page: A\\nMalformed reference demo.py:1-2]()"
+            original = "# Page: A\nMalformed reference demo.py:1-2]()"
             report = inspect(original, {"source_revision":"a"*40, "entries":[]}, root)
             self.assertEqual(report["malformed_contextual_occurrences"],1)
             self.assertEqual(len(report["malformed_contextual_entries"][0]["source_candidate"]["proposals"]), 1)
