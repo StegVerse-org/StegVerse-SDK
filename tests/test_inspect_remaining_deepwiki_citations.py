@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
-from scripts.inspect_remaining_deepwiki_citations import propose, inspect
+from scripts.inspect_remaining_deepwiki_citations import propose, inspect, composite_proposals
 
 class TestRemainingCitationProposals(unittest.TestCase):
     def test_ast_symbol_and_root_slash(self):
@@ -33,6 +33,19 @@ class TestRemainingCitationProposals(unittest.TestCase):
             report=inspect(md,prev,Path(temp))
             self.assertEqual(report["malformed_contextual_occurrences"],1)
             self.assertFalse(report["publication_allowed"])
+
+    def test_composite_and_malformed_become_separate_review_items(self):
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root/"demo.py").write_text("alpha\\nbeta\\ngamma\\n", encoding="utf-8")
+            reviewed = composite_proposals("demo.py:1-2, 3-3", root, "a"*40)
+            self.assertEqual(reviewed["validated_subreferences"], 2)
+            self.assertTrue(reviewed["partial_or_ambiguous"])
+            original = "# Page: A\\nMalformed reference demo.py:1-2]()"
+            report = inspect(original, {"source_revision":"a"*40, "entries":[]}, root)
+            self.assertEqual(report["malformed_contextual_occurrences"],1)
+            self.assertEqual(len(report["malformed_contextual_entries"][0]["source_candidate"]["proposals"]), 1)
+            self.assertEqual(report["resolved_for_publication"], 0)
 
 if __name__=="__main__":
     unittest.main()
