@@ -18,6 +18,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   review-only-export:
     runs-on: ubuntu-latest
@@ -61,12 +62,22 @@ jobs:
             --report deepwiki-review-export/citation-review-report.json \
             --root . \
             --out deepwiki-review-export
+      - name: Retrieve exact original 38-page source-review snapshot
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 36175208212
+          name: deepwiki-sdk-review-only-de615ea3b7e9a1c7c118afb74b4db69b821272f7
+          github-token: ${{ github.token }}
+          path: frozen-deepwiki-review
+      - name: Verify original immutable capture before review
+        run: |
+          echo 'a729d9b0f487f785b0e8f92006f303e8520e3593b6eb6c4c5de43273daa72087  frozen-deepwiki-review/read_wiki_contents.md' | sha256sum -c -
       - name: Export 75 priority and 46 unresolved frozen review registers
         run: |
           python scripts/triage_frozen_deepwiki_citations.py \
-            --raw deepwiki-review-export/read_wiki_contents.md \
-            --claims deepwiki-review-export/source-claim-inspection-UNREVIEWED.json \
-            --unresolved deepwiki-review-export/remaining-citation-proposals-UNREVIEWED.json \
+            --raw frozen-deepwiki-review/read_wiki_contents.md \
+            --claims frozen-deepwiki-review/source-claim-inspection-UNREVIEWED.json \
+            --unresolved frozen-deepwiki-review/remaining-citation-proposals-UNREVIEWED.json \
             --out deepwiki-review-export
       - name: Upload unreviewed documentation evidence
         if: always()
