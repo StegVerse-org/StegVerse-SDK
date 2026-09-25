@@ -80,10 +80,15 @@ def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("worker-claim state graph did not provide canonical_task_id")
     if task_id is not None and (not isinstance(task_id, str) or not task_id):
         raise ValueError("canonical_task_id must be null or a non-empty string")
-    manifest_hash = canonical.get("canonical_manifest_sha256") or canonical_sha256(canonical)
+    # Bind the unchanged wire manifest and normalized validated projection separately.
+    manifest_hash = canonical["canonical_manifest_sha256"]
+    projection = dict(canonical)
+    projection.pop("canonical_manifest_sha256")
     request = {
         "schema": REQUEST_SCHEMA,
         "canonical_manifest": dict(manifest),
+        "wire_manifest_sha256": _sha256(dict(manifest)),
+        "canonical_manifest_projection": projection,
         "canonical_manifest_sha256": manifest_hash,
         "processing_capability": route["processor_capability"],
         "route_id": route["route_id"],

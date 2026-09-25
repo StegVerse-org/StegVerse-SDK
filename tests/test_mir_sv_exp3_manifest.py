@@ -5,6 +5,8 @@ from copy import deepcopy
 from pathlib import Path
 from scripts.build_mir_sv_exp3_manifest import HERE, build_exp3_manifest
 from stegverse.manifest_contract import validate_ingress_manifest
+from stegverse.manifest_state_transition_runtime import derive_execution_request
+from stegverse.route_resolution import canonical_sha256
 from stegverse.ecosystem_diagnostic_runtime import execute_manifest as execute_local_diagnostic
 
 class MIRSVExp3ManifestTests(unittest.TestCase):
@@ -52,6 +54,19 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
             self.assertEqual(next(x for x in res["results"] if x["test_id"]==key)["observation_state"],"NOT_OBSERVED")
         self.assertEqual(self.payload["coverage"]["activity_side_sampling"],"NOT_PERFORMED")
         self.assertTrue(self.payload["disagreement_policy"]["retain_unknowns_first_class"])
+
+    def test_frozen_wire_manifest_is_not_modified_and_has_distinct_digest_bindings(self):
+        original=deepcopy(self.m)
+        request=derive_execution_request(self.m)
+        self.assertEqual(self.m,original)
+        self.assertNotIn("canonical_manifest_sha256",self.m)
+        self.assertEqual(request["canonical_manifest"],original)
+        self.assertEqual(request["wire_manifest_sha256"],canonical_sha256(original))
+        self.assertEqual(request["canonical_manifest_sha256"],
+                         canonical_sha256(request["canonical_manifest_projection"]))
+        self.assertEqual(request["state_graph"]["canonical_task_id"],None)
+        self.assertFalse(request["requires_workercoordinator_claim_fence"])
+        self.assertTrue(original["completion"]["publisher"]["required"])
 
     def test_same_payload_hash_and_sdk_lineage_stable(self):
         first=build_exp3_manifest()
