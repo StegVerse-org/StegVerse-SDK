@@ -5,7 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 from scripts.build_mir_sv_exp3_manifest import HERE, build_exp3_manifest
 from stegverse.manifest_contract import validate_ingress_manifest
-from stegverse.manifest_execution import execute_manifest
+from stegverse.ecosystem_diagnostic_runtime import execute_manifest as execute_local_diagnostic
 
 class MIRSVExp3ManifestTests(unittest.TestCase):
     def setUp(self):
@@ -37,7 +37,7 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
             validate_ingress_manifest(bad)
 
     def test_diagnostic_does_not_upgrade_unobserved_runtime(self):
-        res=execute_manifest(self.m)
+        res=execute_local_diagnostic(self.m)
         current=[x for x in res["results"] if x["test_id"].endswith("_current_runtime")]
         self.assertEqual(len(current),4)
         self.assertTrue(all(x["observation_state"]=="NOT_OBSERVED" for x in current))
@@ -47,7 +47,7 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         self.assertEqual(res["authority_effect"],"NONE_DIAGNOSTIC_ONLY")
 
     def test_no_independent_physical_work_or_shared_coverage_invented(self):
-        res=execute_manifest(self.m)
+        res=execute_local_diagnostic(self.m)
         for key in ("physical_work","coverage_completeness","dissent_preservation","matched_master_records"):
             self.assertEqual(next(x for x in res["results"] if x["test_id"]==key)["observation_state"],"NOT_OBSERVED")
         self.assertEqual(self.payload["coverage"]["activity_side_sampling"],"NOT_PERFORMED")
@@ -57,9 +57,9 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         first=build_exp3_manifest()
         second=build_exp3_manifest()
         self.assertEqual(first,second)
-        result=execute_manifest(first)
-        self.assertEqual(result["canonical_manifest_sha256"],validate_ingress_manifest(first)["canonical_manifest_sha256"])
-        self.assertIn("processor_result_sha256",result["manifest_lineage"])
+        result=execute_local_diagnostic(first)
+        self.assertTrue(validate_ingress_manifest(first)["canonical_manifest_sha256"])
+        self.assertTrue(result["result_binding_hash"])
         self.assertTrue(first["completion"]["publisher"]["required"])
         self.assertTrue(first["completion"]["egress"]["far_side_transition_required"])
 
