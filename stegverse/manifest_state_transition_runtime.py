@@ -176,7 +176,48 @@ def _validate_transition_closures(result: Mapping[str, Any], graph: Mapping[str,
         previous_receipt = receipt
 
 
+def _validate_profile_source_deny(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
+    """Preserve the existing consumer's exact DENY without laundering its provenance.
+
+    An evaluating source/profile can return an actionable failure before actual
+    Interlock/InTr adjudication. It is NOT an authenticated sovereign verdict.
+    """
+    if result.get("schema") != "stegverse.sdk.manifest-profile-disposition/v1":
+        raise ValueError("UNIVERSAL_INTR_DISPOSITION_SCHEMA_MISMATCH")
+    if result.get("disposition") != "DENY" or result.get("state") != "DENY":
+        raise ValueError("UNIVERSAL_INTR_PROFILE_DISPOSITION_NOT_DENY")
+    for key in ("request_sha256", "wire_manifest_sha256",
+                "canonical_manifest_sha256", "graph_id", "processing_capability"):
+        if result.get(key) != request.get(key):
+            raise ValueError(f"UNIVERSAL_INTR_DISPOSITION_BINDING_MISMATCH:{key}")
+    original = request.get("canonical_manifest") or {}
+    payload = original.get("payload") if isinstance(original, Mapping) else None
+    if isinstance(payload, Mapping):
+        for field in ("goal_task_id", "cosv"):
+            if payload.get(field) != result.get(field):
+                raise ValueError(f"UNIVERSAL_INTR_DISPOSITION_ORIGINAL_LINEAGE_MISMATCH:{field}")
+    if result.get("evaluation_boundary") != "SDK_MANIFEST_PROFILE_SOURCE_ONLY":
+        raise ValueError("UNIVERSAL_INTR_DISPOSITION_BOUNDARY_MISMATCH")
+    if result.get("authentic_intr_disposition_observed") is not False:
+        raise ValueError("UNIVERSAL_INTR_DISPOSITION_AUTHENTICITY_ESCALATION")
+    if result.get("organization_master_records_closure_observed") is not False:
+        raise ValueError("UNIVERSAL_INTR_DISPOSITION_CUSTODY_ESCALATION")
+    if result.get("terminal") is not False or result.get("automatic_retry_permitted") is not False:
+        raise ValueError("UNIVERSAL_INTR_DISPOSITION_RETRY_CONTRACT_MISMATCH")
+    for key in ("reason_code", "failed_predicate", "transition_id", "repair_owner",
+                "retry_condition", "source_disposition_ref"):
+        if not isinstance(result.get(key), str) or not result[key]:
+            raise ValueError(f"UNIVERSAL_INTR_DISPOSITION_FIELD_REQUIRED:{key}")
+    if not isinstance(result.get("evidence_refs"), list):
+        raise ValueError("UNIVERSAL_INTR_DISPOSITION_EVIDENCE_REQUIRED")
+    # The returned path is the resident profile's source-diagnostic locator,
+    # not an independently checked organization/Master Records custody receipt.
+    return dict(result)
+
+
 def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
+    if result.get("schema") == "stegverse.sdk.manifest-profile-disposition/v1":
+        return _validate_profile_source_deny(result, request)
     if result.get("schema") != RESULT_SCHEMA:
         raise ValueError("UNIVERSAL_INTR_RESULT_SCHEMA_MISMATCH")
     if result.get("state") != "COMPLETE":
