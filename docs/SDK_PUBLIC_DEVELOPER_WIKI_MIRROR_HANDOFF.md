@@ -135,3 +135,7 @@ Review-only exporter now fail-closes unless every returned hierarchical page tit
 ## 2026-09-25 generated citation-audit continuation
 
 The retired original SDK wiki task remains RETIRED/COMPLETED. Under existing open-source owner ECOSYSTEM-OPEN-SOURCE-STRATEGY-001 / COSV 20010010100000, review-only SDK PR #322 retains the no-auth 38-page DeepWiki export. `docs/deepwiki-review/CITATION_AUDIT.md` now records independent exact-artifact hash readback and classification of 659 empty targets: 599 candidate numeric line locators, 41 other simple labels and 19 malformed/context-sensitive occurrences. Candidate labels are **not** source-verified, and no generated content was imported or published. Current PR head validation must be repeated after this documentation update.
+
+### Nonpublishing citation resolver added on review branch
+
+SDK PR #322 now contains `scripts/resolve_deepwiki_review_citations.py`, `tests/test_resolve_deepwiki_review_citations.py`, and a PR review-only workflow step for SHA-pinned source-path and numeric line-bound checks. Exact-head CI and the actual new artifact report must be read back before asserting success or resolved-count totals. Outputs always set `publication_allowed=false`; nonnumeric/composite/malformed references and semantic source claims remain review conditions. Do not modify the original published wiki under this retired owner.
