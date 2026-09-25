@@ -1,0 +1,32 @@
+name: Generic SDK Reviewer Publisher Exact Return (Non-Authorizing)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - stegverse/publisher_return_binding.py
+      - stegverse/review_publisher_transfer.py
+      - tests/test_generic_publisher_exact_crossrepo.py
+      - .github/workflows/generic-review-publisher-exact-return.yml
+  workflow_dispatch:
+permissions: {}
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest tests.test_publisher_return_binding tests.test_review_publisher_transfer -v
+      - name: Materialize exact existing Publisher contract
+        env:
+          SOURCE_SHA: '33511ff7e605c2c32ab8d6a9c572da3b02990503'
+        run: |
+          set -eu
+          curl -fsSL "https://github.com/GCAT-BCAT-Engine/Publisher/archive/${SOURCE_SHA}.tar.gz" -o /tmp/pub.tar.gz
+          mkdir -p /tmp/publisher
+          tar -xzf /tmp/pub.tar.gz -C /tmp/publisher --strip-components=1
+      - name: Verify original bytes and complete source-to-return parity
+        env:
+          PYTHONPATH: '.:/tmp/publisher'
+        run: python -m unittest tests.test_generic_publisher_exact_crossrepo -v
