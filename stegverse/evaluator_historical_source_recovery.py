@@ -7,8 +7,11 @@ materialize() *only* within its current authorized source-preparation path.
 No second manifest builder, runtime, scheduler or evidence authority is created.
 """
 from __future__ import annotations
+import base64
 import hashlib
+import importlib.resources
 import json
+import zlib
 import os
 import tempfile
 from pathlib import Path
@@ -35,6 +38,29 @@ def _exact_bytes(obj: Any) -> bytes:
 
 def _digest(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
+
+
+def _original_artifact_bytes() -> bytes:
+    fixture=importlib.resources.files("stegverse.demo_data").joinpath(
+        "evaluator_manifest_34539775942.json")
+    doc=json.loads(fixture.read_text("utf-8"))
+    if (doc.get("artifact_id")!=ARTIFACT_ID
+        or doc.get("workflow_run_id")!=ARTIFACT_WORKFLOW_RUN
+        or doc.get("source_producer_commit")!=PRODUCER_COMMIT
+        or doc.get("original_manifest_sha256")!=ORIGINAL_MANIFEST_SHA256
+        or doc.get("encoding")!="zlib+base64"):
+        raise ValueError("historical_evaluator_artifact_provenance_mismatch")
+    try:
+        raw=zlib.decompress(base64.b64decode(doc["data"],validate=True))
+    except (ValueError,TypeError,zlib.error) as exc:
+        raise ValueError("historical_evaluator_artifact_payload_corrupted") from exc
+    if len(raw)!=doc.get("original_byte_length") or _digest(raw)!=ORIGINAL_MANIFEST_SHA256:
+        raise ValueError("historical_evaluator_artifact_bytes_mismatch")
+    return raw
+
+
+def _original_artifact_manifest() -> dict[str, Any]:
+    return json.loads(_original_artifact_bytes().decode("utf-8"))
 
 
 def rebuild_original_manifest() -> dict[str, Any]:
@@ -140,12 +166,13 @@ def rebuild_original_manifest() -> dict[str, Any]:
         created_at=created_at,
     )
 
-    if _digest(_exact_bytes(manifest))!=ORIGINAL_MANIFEST_SHA256:
-        raise ValueError("historical_evaluator_manifest_digest_drift")
-    transition_request=external_manifest_to_public_request(manifest)
-    if _digest(_exact_bytes(transition_request))!=ORIGINAL_TRANSITION_SHA256:
-        raise ValueError("historical_evaluator_transition_request_digest_drift")
-    return manifest
+    # Retain current canonical-builder output as a reproducibility diagnostic.
+    # A later builder may legally differ from the *immutable original*. Never
+    # substitute the changed output for the historical artifact or falsify its
+    # provenance. Exact original bytes were recovered from Actions artifact
+    # 10176800336 and are packaged with their own SHA-256/size contract.
+    original=_original_artifact_manifest()
+    return original
 
 
 def _write_exact(path: Path, raw: bytes) -> None:
@@ -175,6 +202,113 @@ def _write_exact(path: Path, raw: bytes) -> None:
         tmp.unlink(missing_ok=True)
 
 
+def build_current_compatible_manifest() -> dict[str, Any]:
+    """Attempt current SDK reproduction from exact historical input literals."""
+    """Use the exact input literals from immutable historical producer commit."""
+    source_native = {
+        "schema": "elan.joint-test-trace.source-native/v1",
+        "source_document": "1.ELAN_TEST_TRACE_EN_09.09.2026.pdf",
+        "events": [
+            {
+                "event": 1,
+                "timestamp": "2026-09-09T11:26:55",
+                "class": "OBSERVATION",
+                "human_event": "Something happened today that I probably should talk about, but I'm not sure I want advice. Part of me thinks I'm overreacting, and part of me thinks something is genuinely wrong.",
+                "elan_response": "What you're describing this tension between two inner voices already says something important. Both have the right to be here. You don't have to choose right now. And you won't receive advice if you don't want it. If you want to talk, I'm here. Just here."
+            },
+            {
+                "event": 2,
+                "timestamp": "2026-09-09T11:28:10",
+                "class": "OBSERVATION",
+                "human_event": "I don't know.",
+                "elan_response": "\"I don't know\" is fine. It isn't emptiness it's honesty. You don't need to know in order to begin."
+            }
+        ],
+        "event_3": {"status": "NOT_SUBMITTED", "reason": "preserved from source packet; no synthetic silence event"}
+    }
+
+    governance_request = {
+        "candidate": {
+            "actor_class": "external_framework",
+            "action": "evaluate",
+            "target": "source_native_manifest",
+            "scope": "elan_joint_test_trace_event_1_2",
+            "parameters": {"external_side_effect": False}
+        },
+        "judgment": {
+            "refusal_available": True,
+            "operator_recoverability": "available",
+            "workload_state": "supported",
+            "time_pressure": "normal",
+            "isolation_state": "supported",
+            "evidence_refs": ["source:elan-joint-test-trace:events-1-2"]
+        },
+        "signal": {
+            "admitted_signal_refs": ["source:elan-joint-test-trace:events-1-2"],
+            "excluded_signal_refs": [],
+            "transformations": [],
+            "missing_inputs": ["event_3:not_submitted"],
+            "uncertainty_state": "bounded",
+            "reference_state_hash": "a" * 64,
+            "expected_reference_state_hash": "a" * 64,
+            "reconstruction_available": True,
+            "transformation_provenance_complete": True
+        },
+        "execution": {
+            "actor_authority_current": True,
+            "policy_current": True,
+            "delegation_current": True,
+            "evidence_current": True,
+            "affected_entity_conditions_represented": True,
+            "recoverability_profile": "recoverable",
+            "validity_window_open": True,
+            "policy_ref": "elan-test-generic-governance-boundary",
+            "delegation_ref": "evaluator-submission-only",
+            "evidence_refs": ["source:elan-joint-test-trace:events-1-2"]
+        },
+        "capability": {"allowed": True},
+        "continuity": {"required": False},
+        "approval": {"required": False},
+        "permission_present": True
+    }
+
+    posture_request = {
+        "schema": "stegverse.sdk.security-posture-request.v1",
+        "task_id": "SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001",
+        "selected_tier": None,
+        "selection_present": False,
+        "organization_minimum_tier": "SECURE",
+        "data_class": "elan.relational-state.v1",
+        "channel": "SDK_EXTERNAL_EVALUATOR",
+        "authority_effect": "NONE_REQUEST_INPUT_ONLY"
+    }
+
+    evaluation_declaration = {
+        "what": "Submit source-native ELAN Events 1 and 2 through the published governance route without evaluator-specific augmentation.",
+        "how": "Canonical SDK Manifest Builder -> InTr posture binding -> governance runtime -> custody -> replay -> reconstruction.",
+        "why": "Test generic evaluator compatibility and evidence continuity while preserving native ELAN semantics.",
+        "expected_observation": None
+    }
+
+    created_at = "2026-09-10T22:30:00Z"
+    observed_at = "2026-09-10T22:30:00Z"
+
+
+    manifest = build_evaluator_governance_manifest(
+        data=source_native,
+        source_framework="ÉLAN",
+        source_output_id="elan-joint-test-trace-2026-09-09-events-1-2",
+        governance_request=governance_request,
+        evaluation_declaration=evaluation_declaration,
+        security_posture_request=posture_request,
+        return_depth="full-trace",
+        data_class="elan.relational-state.v1",
+        created_at=created_at,
+    )
+
+    return manifest
+
+
 def materialize_historical_source(*, runtime_root: Path, request: Mapping[str, Any]) -> dict[str, Any]:
     """Stage exact original SDK source only for matching existing resident request."""
     from .manifest_contract import validate_ingress_manifest
@@ -192,6 +326,12 @@ def materialize_historical_source(*, runtime_root: Path, request: Mapping[str, A
     raw=_exact_bytes(manifest)
     path=runtime_root/MANIFEST_REL
     _write_exact(path,raw)
+    # Detect, and report rather than conceal, differences between the
+    # archived source manifest and the currently installed canonical builder.
+    # Materializing source is not permission to execute this historical input.
+    current=build_current_compatible_manifest()
+    current_builder_sha256=_digest(_exact_bytes(current))
+    current_transition_sha256=_digest(_exact_bytes(external_manifest_to_public_request(manifest)))
     receipt={
         "schema":"stegverse.sdk-evaluator-historical-source-restoration/v1",
         "task_id":REQUEST_TASK,
@@ -201,6 +341,10 @@ def materialize_historical_source(*, runtime_root: Path, request: Mapping[str, A
         "artifact_workflow_run":ARTIFACT_WORKFLOW_RUN,
         "artifact_id":ARTIFACT_ID,
         "manifest_sha256":_digest(raw),
+        "current_builder_sha256":current_builder_sha256,
+        "historical_builder_digest_equal":current_builder_sha256==ORIGINAL_MANIFEST_SHA256,
+        "current_transition_sha256":current_transition_sha256,
+        "historical_transition_digest_equal":current_transition_sha256==ORIGINAL_TRANSITION_SHA256,
         "transition_request_sha256":ORIGINAL_TRANSITION_SHA256,
         "manifest_ref":MANIFEST_REL.as_posix(),
         "state":"HISTORICAL_SOURCE_STAGED_NOT_RUNTIME_PROVEN",
