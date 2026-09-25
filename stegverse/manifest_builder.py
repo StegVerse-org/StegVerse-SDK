@@ -174,7 +174,8 @@ def build_manifest(
     manifest_labels: Mapping[str, Any] | None = None,
     initiator_class: str = "external_framework",
     initiator_ref: str | None = None,
-    publisher_required: bool = False,
+    publisher_required: bool | None = None,
+    external_review: bool = False,
     publisher_package_profile: str = DEFAULT_PUBLISHER_PACKAGE_PROFILE,
     egress_surface: str = DEFAULT_FRAMEWORK_EGRESS_SURFACE,
     destination_profile: str | None = None,
@@ -223,6 +224,8 @@ def build_manifest(
         "return_depth": depth_key,
         "source_semantic_custody": "EXTERNAL",
         "builder_grants_authority": False,
+        "external_review_requested": external_review,
+        "publisher_required_by_review_default": external_review and publisher_required is None,
     }
     if data_class is not None:
         if not isinstance(data_class, str) or not data_class.strip():
@@ -252,7 +255,7 @@ def build_manifest(
         "completion": _completion_contract(
             initiator_class=initiator_class,
             initiator_ref=initiator_ref or source_framework,
-            publisher_required=publisher_required,
+            publisher_required=(external_review if publisher_required is None else publisher_required),
             publisher_package_profile=publisher_package_profile,
             egress_surface=egress_surface,
             destination_profile=destination_profile,
@@ -298,7 +301,11 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--return-depth", default="result+evidence", choices=sorted(RETURN_DEPTHS))
     build.add_argument("--initiator-class", default="external_framework")
     build.add_argument("--initiator-ref")
-    build.add_argument("--publisher-required", action="store_true")
+    publisher_selection = build.add_mutually_exclusive_group()
+    publisher_selection.add_argument("--publisher-required", dest="publisher_required", action="store_true")
+    publisher_selection.add_argument("--no-publisher", dest="publisher_required", action="store_false")
+    build.set_defaults(publisher_required=None)
+    build.add_argument("--external-review", action="store_true", help="review-facing artifact; Publisher defaults to required unless explicitly overridden")
     build.add_argument("--publisher-package-profile", default=DEFAULT_PUBLISHER_PACKAGE_PROFILE)
     build.add_argument("--egress-surface", default=DEFAULT_FRAMEWORK_EGRESS_SURFACE)
     build.add_argument("--destination-profile")
@@ -326,6 +333,7 @@ def main(argv: list[str] | None = None) -> int:
                 initiator_class=args.initiator_class,
                 initiator_ref=args.initiator_ref,
                 publisher_required=args.publisher_required,
+                external_review=args.external_review,
                 publisher_package_profile=args.publisher_package_profile,
                 egress_surface=args.egress_surface,
                 destination_profile=args.destination_profile,
