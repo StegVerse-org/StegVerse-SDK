@@ -1,11 +1,13 @@
 """Acceptance checks for the *existing* SDK manifest and diagnostic route."""
 import json
 import unittest
+from unittest.mock import patch
 from copy import deepcopy
 from pathlib import Path
 from scripts.build_mir_sv_exp3_manifest import HERE, build_exp3_manifest
 from stegverse.manifest_contract import validate_ingress_manifest
-from stegverse.manifest_state_transition_runtime import derive_execution_request
+from stegverse.manifest_state_transition_runtime import derive_execution_request, execute_manifest, validate_runtime_result
+from stegverse.manifest_builder import correct_manifest_binding_deny
 from stegverse.route_resolution import canonical_sha256
 from stegverse.ecosystem_diagnostic_runtime import execute_manifest as execute_local_diagnostic
 
@@ -79,5 +81,68 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         self.assertTrue(result["result_binding_hash"])
         self.assertTrue(first["completion"]["publisher"]["required"])
         self.assertTrue(first["completion"]["egress"]["far_side_transition_required"])
+
+    def test_existing_builder_repairs_historical_hash_deny_without_changing_frozen_manifest(self):
+        frozen = deepcopy(self.m)
+        current = derive_execution_request(frozen)
+        historical = deepcopy(current)
+        historical.pop("wire_manifest_sha256")
+        historical.pop("canonical_manifest_projection")
+        historical["canonical_manifest_sha256"] = canonical_sha256(frozen)
+        historical.pop("request_sha256")
+        historical["request_sha256"] = canonical_sha256(historical)
+        denial = {
+            "schema": "stegverse.sdk.manifest-profile-disposition/v1",
+            "state": "DENY", "terminal": False,
+            "transition_id": "SDK_MANIFEST_BINDING",
+            "reason_code": "canonical_manifest_sha256_binding_mismatch",
+            "retry_condition": "CORRECT_ENVELOPE_IN_EXISTING_MANIFEST_BUILDER_THEN_NEW_GOVERNED_ATTEMPT",
+            "original_wire_manifest_sha256": canonical_sha256(frozen),
+            "original_request_sha256": canonical_sha256(historical),
+        }
+        corrected = correct_manifest_binding_deny(frozen, historical, denial)
+        self.assertEqual(corrected, current)
+        self.assertNotEqual(corrected["request_sha256"], historical["request_sha256"])
+        self.assertEqual(frozen, self.m)
+        self.assertTrue(frozen["completion"]["publisher"]["required"])
+        with self.assertRaisesRegex(ValueError, "terminal_or_non_deny"):
+            correct_manifest_binding_deny(frozen, historical, {**denial, "state": "FAIL_CLOSED", "terminal": True})
+        with self.assertRaisesRegex(ValueError, "unchanged_request"):
+            correct_manifest_binding_deny(frozen, current, {**denial, "original_request_sha256": canonical_sha256(current)})
+
+    def test_exact_source_profile_deny_not_blindly_retried_by_current_builder(self):
+        original = deepcopy(self.m)
+        current = derive_execution_request(original)
+        # This mock claims a historical digest mismatch on an already-correct
+        # envelope. An unchanged derived request is not a new governed attempt.
+        denial = {
+            "schema": "stegverse.sdk.manifest-profile-disposition/v1",
+            "state": "DENY", "disposition": "DENY", "terminal": False,
+            "automatic_retry_permitted": False,
+            "retry_condition": "CORRECT_ENVELOPE_IN_EXISTING_MANIFEST_BUILDER_THEN_NEW_GOVERNED_ATTEMPT",
+            "evaluation_boundary": "SDK_MANIFEST_PROFILE", "transport_validated": True,
+            "authentic_intr_admission_observed": False,
+            "organization_master_records_closure_observed": False,
+            "transition_id": "SDK_MANIFEST_BINDING",
+            "repair_owner": "StegVerse-org/StegVerse-SDK:stegverse/manifest_builder.py",
+            "authority_effect": "NONE_MANIFEST_PROFILE_DENY_ONLY",
+            "reason_code": "canonical_manifest_sha256_binding_mismatch",
+            "failed_predicate": "canonical_manifest_sha256_binding_mismatch",
+            "original_request_sha256": canonical_sha256(current),
+            "claimed_request_sha256": current["request_sha256"],
+            "original_wire_manifest_sha256": canonical_sha256(original),
+            "graph_id": current["graph_id"],
+            "processing_capability": "ecosystem_diagnostic",
+            "source_disposition_ref": "mock-evaluating-profile-path-not-sovereign-custody",
+        }
+        with patch("stegverse.manifest_state_transition_runtime._post_existing_intr", return_value=denial) as post:
+            self.assertEqual(execute_manifest(original)["disposition"], "DENY")
+            self.assertEqual(post.call_count, 1)
+        self.assertEqual(original, self.m)
+        altered = deepcopy(denial)
+        altered["authentic_intr_admission_observed"] = True
+        with self.assertRaisesRegex(ValueError, "MANIFEST_BINDING_DENY_CONTRACT_MISMATCH"):
+            validate_runtime_result(altered, current)
+
 
 if __name__=="__main__": unittest.main()

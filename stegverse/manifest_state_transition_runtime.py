@@ -282,7 +282,47 @@ def _validate_nonterminal_diagnostic_progress(result: Mapping[str, Any], request
     return dict(result)
 
 
+def _validate_manifest_binding_deny(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate the existing profile's producer-level correctable DENY, not an InTr verdict."""
+    from .manifest_builder import _CORRECTABLE_MANIFEST_BINDING_DENIALS
+    required = {
+        "schema": "stegverse.sdk.manifest-profile-disposition/v1",
+        "state": "DENY",
+        "disposition": "DENY",
+        "terminal": False,
+        "automatic_retry_permitted": False,
+        "retry_condition": "CORRECT_ENVELOPE_IN_EXISTING_MANIFEST_BUILDER_THEN_NEW_GOVERNED_ATTEMPT",
+        "evaluation_boundary": "SDK_MANIFEST_PROFILE",
+        "transport_validated": True,
+        "authentic_intr_admission_observed": False,
+        "organization_master_records_closure_observed": False,
+        "transition_id": "SDK_MANIFEST_BINDING",
+        "repair_owner": "StegVerse-org/StegVerse-SDK:stegverse/manifest_builder.py",
+        "authority_effect": "NONE_MANIFEST_PROFILE_DENY_ONLY",
+    }
+    for key, value in required.items():
+        if result.get(key) != value:
+            raise ValueError(f"MANIFEST_BINDING_DENY_CONTRACT_MISMATCH:{key}")
+    if result.get("reason_code") not in _CORRECTABLE_MANIFEST_BINDING_DENIALS:
+        raise ValueError("MANIFEST_BINDING_DENY_REASON_UNAPPROVED")
+    if result.get("failed_predicate") != result["reason_code"]:
+        raise ValueError("MANIFEST_BINDING_DENY_PREDICATE_MISMATCH")
+    if result.get("original_request_sha256") != _sha256(request):
+        raise ValueError("MANIFEST_BINDING_DENY_ORIGINAL_REQUEST_MISMATCH")
+    if result.get("original_wire_manifest_sha256") != _sha256(request["canonical_manifest"]):
+        raise ValueError("MANIFEST_BINDING_DENY_ORIGINAL_WIRE_MISMATCH")
+    if result.get("claimed_request_sha256") != request.get("request_sha256"):
+        raise ValueError("MANIFEST_BINDING_DENY_CLAIMED_REQUEST_MISMATCH")
+    if result.get("graph_id") != request.get("graph_id") or result.get("processing_capability") != request.get("processing_capability"):
+        raise ValueError("MANIFEST_BINDING_DENY_GRAPH_MISMATCH")
+    if not isinstance(result.get("source_disposition_ref"), str) or not result["source_disposition_ref"]:
+        raise ValueError("MANIFEST_BINDING_DENY_SOURCE_REF_REQUIRED")
+    return dict(result)
+
+
 def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
+    if result.get("schema") == "stegverse.sdk.manifest-profile-disposition/v1" and result.get("evaluation_boundary") == "SDK_MANIFEST_PROFILE":
+        return _validate_manifest_binding_deny(result, request)
     if result.get("schema") == "stegverse.sdk.manifest-profile-disposition/v1":
         return _validate_profile_source_deny(result, request)
     if result.get("schema") == "stegverse.sdk.manifest-state-transition-progress/v1":
@@ -317,7 +357,22 @@ def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any
 def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     request = derive_execution_request(manifest)
     result = _post_existing_intr(request)
-    return validate_runtime_result(result, request)
+    checked = validate_runtime_result(result, request)
+    if (checked.get("disposition") == "DENY"
+            and checked.get("evaluation_boundary") == "SDK_MANIFEST_PROFILE"):
+        from .manifest_builder import correct_manifest_binding_deny
+        # The new request has a new hash and must enter existing governed ingress
+        # as a distinct transition. An unchanged envelope or terminal verdict
+        # cannot be resubmitted.
+        try:
+            repaired = correct_manifest_binding_deny(manifest, request, checked)
+        except ValueError as exc:
+            if str(exc) == "manifest_binding_repair_produced_unchanged_request":
+                return checked  # Retain precise DENY; never replay identical request.
+            raise
+        next_result = _post_existing_intr(repaired)
+        return validate_runtime_result(next_result, repaired)
+    return checked
 
 
 __all__ = [
