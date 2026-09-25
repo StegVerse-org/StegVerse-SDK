@@ -184,8 +184,10 @@ def _validate_profile_source_deny(result: Mapping[str, Any], request: Mapping[st
     """
     if result.get("schema") != "stegverse.sdk.manifest-profile-disposition/v1":
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_SCHEMA_MISMATCH")
-    if result.get("disposition") != "DENY" or result.get("state") != "DENY":
-        raise ValueError("UNIVERSAL_INTR_PROFILE_DISPOSITION_NOT_DENY")
+    is_deny = result.get("disposition") == "DENY" and result.get("state") == "DENY"
+    is_terminal = result.get("disposition") == "FAIL_CLOSED" and result.get("state") == "FAIL_CLOSED"
+    if not (is_deny or is_terminal):
+        raise ValueError("UNIVERSAL_INTR_PROFILE_DISPOSITION_NOT_DENY_OR_TERMINAL_FAIL_CLOSED")
     for key in ("request_sha256", "wire_manifest_sha256",
                 "canonical_manifest_sha256", "graph_id", "processing_capability"):
         if result.get(key) != request.get(key):
@@ -196,14 +198,18 @@ def _validate_profile_source_deny(result: Mapping[str, Any], request: Mapping[st
         for field in ("goal_task_id", "cosv"):
             if payload.get(field) != result.get(field):
                 raise ValueError(f"UNIVERSAL_INTR_DISPOSITION_ORIGINAL_LINEAGE_MISMATCH:{field}")
-    if result.get("evaluation_boundary") != "SDK_MANIFEST_PROFILE_SOURCE_ONLY":
+    expected_boundary = ("SDK_ADMITTED_DIAGNOSTIC_CONSUMER_LOCAL" if is_terminal
+                         else "SDK_MANIFEST_PROFILE_SOURCE_ONLY")
+    if result.get("evaluation_boundary") != expected_boundary:
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_BOUNDARY_MISMATCH")
     if result.get("authentic_intr_disposition_observed") is not False:
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_AUTHENTICITY_ESCALATION")
     if result.get("organization_master_records_closure_observed") is not False:
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_CUSTODY_ESCALATION")
-    if result.get("terminal") is not False or result.get("automatic_retry_permitted") is not False:
+    if result.get("terminal") is not is_terminal or result.get("automatic_retry_permitted") is not False:
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_RETRY_CONTRACT_MISMATCH")
+    if is_terminal and result.get("retry_condition") != "SEPARATELY_GOVERNED_FUTURE_REENTRY_ONLY":
+        raise ValueError("UNIVERSAL_INTR_TERMINAL_REENTRY_CONTRACT_MISMATCH")
     for key in ("reason_code", "failed_predicate", "transition_id", "repair_owner",
                 "retry_condition", "source_disposition_ref"):
         if not isinstance(result.get(key), str) or not result[key]:
