@@ -6,7 +6,7 @@ from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
 GUIDE = ROOT / "docs/deepwiki-review/FIRST_PARTY_SOURCE_GUIDE.md"
-PIN = "eec03e0fa3a2ee327eb4e3368b3f8458ac85e582"
+PIN = "9cf1d69c770ea92048a0883adf6ff0dfa09797db"
 SOURCE_LINK = re.compile(
     r"https://github.com/StegVerse-org/StegVerse-SDK/blob/([0-9a-f]{40})/"
     r"([^\s)]+?)#L(\d+)(?:-L(\d+))?"
@@ -14,7 +14,7 @@ SOURCE_LINK = re.compile(
 EXACT_LINES = (
     ("pyproject.toml", 29, "requests>=2.28.0"),
     ("pyproject.toml", 30, "pyyaml>=6.0"),
-    ("stegverse/manifest_builder.py", 160, "def build_manifest"),
+    ("stegverse/manifest_builder.py", 211, "def build_manifest"),
     ("stegverse/manifest_contract.py", 165, "def validate_ingress_manifest"),
     ("stegverse/route_resolution.py", 152, "def route_from_manifest"),
     ("stegverse/purpose_bound_worker_processor.py", 63, "partition reconstruction mismatch"),
