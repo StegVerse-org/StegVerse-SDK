@@ -128,6 +128,33 @@ class ManifestBuilderTests(unittest.TestCase):
         self.assertTrue(canonical["publisher_is_manifest_stage"])
         self.assertTrue(canonical["communication_terminal_state_requires_far_side_intr_transition"])
 
+    def test_external_review_defaults_to_publisher_but_remains_opt_out(self):
+        reviewer = self._build(for_external_review=True)
+        self.assertTrue(reviewer["completion"]["publisher"]["required"])
+        self.assertTrue(validate_ingress_manifest(reviewer)["external_manifest_valid"])
+        default = self._build()
+        self.assertFalse(default["completion"]["publisher"]["required"])
+        opt_out = self._build(for_external_review=True, publisher_required=False)
+        self.assertFalse(opt_out["completion"]["publisher"]["required"])
+        opt_in = self._build(publisher_required=True)
+        self.assertTrue(opt_in["completion"]["publisher"]["required"])
+
+    def test_cli_external_reviewer_default_and_explicit_optional(self):
+        with tempfile.TemporaryDirectory() as td:
+            source = Path(td) / "in.json"
+            processor = Path(td) / "processor.json"
+            out = Path(td) / "out.json"
+            source.write_text('{"native":true}')
+            processor.write_text(json.dumps(governance_request()))
+            common = ["build", "--input", str(source), "--processor-request", str(processor),
+                      "--source-framework", "fixture", "--source-output-id", "review",
+                      "--created-at", "2026-09-24T00:00:00Z", "--output", str(out),
+                      "--for-external-review"]
+            self.assertEqual(main(common), 0)
+            self.assertTrue(json.loads(out.read_text())["completion"]["publisher"]["required"])
+            self.assertEqual(main(common + ["--publisher-optional"]), 0)
+            self.assertFalse(json.loads(out.read_text())["completion"]["publisher"]["required"])
+
     def test_legacy_v1_without_completion_remains_valid_but_not_complete_communication(self):
         manifest = self._build()
         del manifest["completion"]
