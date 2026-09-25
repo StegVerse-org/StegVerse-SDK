@@ -270,7 +270,7 @@ def _validate_nonterminal_diagnostic_progress(result: Mapping[str, Any], request
         raise ValueError("SDK_DIAGNOSTIC_PROGRESS_DIAGNOSTIC_REQUEST_MISMATCH")
     if output.get("authority_effect") != "NONE_DIAGNOSTIC_ONLY" or output.get("mutation_performed") is not False:
         raise ValueError("SDK_DIAGNOSTIC_PROGRESS_RESULT_AUTHORITY_DRIFT")
-    exact = (json.dumps(output, indent=2, sort_keys=True) + "\\n").encode("utf-8")
+    exact = (json.dumps(output, indent=2, sort_keys=True) + "\n").encode("utf-8")
     if result.get("diagnostic_result_file_encoding") != "utf8-json-indent2-sortkeys-newline" or hashlib.sha256(exact).hexdigest() != result["diagnostic_result_sha256"]:
         raise ValueError("SDK_DIAGNOSTIC_PROGRESS_RESULT_BYTES_MISMATCH")
     return dict(result)
