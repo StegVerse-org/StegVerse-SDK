@@ -27,6 +27,18 @@ The SDK [root MIT license](https://github.com/StegVerse-org/StegVerse-SDK/blob/m
 
 A 404 can mean an inaccessible revision, private repository, missing root LICENSE at that path or insufficient permission. **Do not** reclassify a 404 as evidence of absent redistribution restrictions. Required follow-up through each existing source owner: recover each exact referenced commit, inspect the applicable license at that commit and file scope, audit vendored imports/transitive dependencies and assess redistribution of the proposed actual package. Optional groups need not block documentation-only first-party explanations of SDK core code, but they do block a claim that all SDK optional-dependency rights are cleared.
 
+## Ordinary published Python dependency licenses (current upstream observations)
+
+The connected GitHub source at the present upstream default branches exposes the following root LICENSE files. This is **narrow license-text discovery**, not an SBOM at the eventual resolved installation versions or proof of all vendored/transitive rights:
+
+| SDK direct requirement | Public upstream license text observed | Exact GitHub LICENSE blob SHA | Remaining condition |
+| --- | --- | --- | --- |
+| `requests>=2.28.0` | Apache License 2.0 in `psf/requests` | `67db8588217f266eb561f75fae738656325deac9` | Preserve applicable copyright, license, notice and patent terms for the actually installed distribution. |
+| `pyyaml>=6.0` | MIT license in `yaml/pyyaml` | `2f1b8e15e5627d92f0521605c9870bc8e5505cb4` | Preserve copyright and permission notice for redistributed copies/substantial portions. |
+| `python-dotenv>=0.19.0` | BSD-style three-clause text in `theskumar/python-dotenv` | `3a97119010ac82e15e917a69b7b8f9f59b5a4601` | Retain copyright, conditions and disclaimer for redistributed source/binary forms. |
+
+These results clear only the **upstream current root-license identification step** for ordinary direct dependencies. They do not authorize bundling an unresolved version or every optional Git dependency. `python-dotenv` current upstream package metadata identifies BSD-3-Clause and newer Python-version requirements; the SDK still declares Python `>=3.9` and an open-ended `python-dotenv>=0.19.0`, so the final resolver and compatibility matrix must be tested against target Python runtimes. No blanket installation-compatibility or third-party rights clearance is claimed.
+
 ## Dispositions
 
 - `DENY:THIRD_PARTY_GENERATED_WIKI_REPUBLICATION_RIGHTS_UNVERIFIED`: keep original and derivative as unimported review evidence. Correct by attributable license/grant and exact approved material inventory.
