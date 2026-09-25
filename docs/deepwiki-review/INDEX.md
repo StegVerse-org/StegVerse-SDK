@@ -55,3 +55,7 @@ Current official DeepWiki `.devin/wiki.json` requires both `repo_notes` and expl
 - Audit title/section retention, code-link accuracy, potential third-party generation reuse terms, SHA-256 and current source revision before copying any generated material into official public docs.
 - The existing official SDK wiki remains canonical, already served from repository-local exact-source builder and main-only Pages workflow.
 - No local generated wiki content is treated as Master Records custody, InTr/far-side execution evidence, propagation readback or source release authorization.
+
+## Markdown link-integrity review finding
+
+Static inspection of the captured raw Markdown found **659 occurrences of the empty Markdown target `]()` spread across 31 of 38 page sections**. A more restrictive simple bracket matcher found 640 empty link expressions, 580 of which match a simple `path.ext:first-last` source-line reference. The rest include source symbols, composite line ranges and formatted labels and require explicit mapping. These are generated citation-link integrity defects, not proof that the underlying cited source is absent. **Do not publish the raw 38-page export unchanged.** A reviewed import must rewrite citation targets to SHA-pinned canonical GitHub source links where resolvable, fail or flag unresolved citations, validate every resulting link and retain the original raw export + hash for comparison.
