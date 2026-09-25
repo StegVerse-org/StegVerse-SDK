@@ -25,7 +25,7 @@ EXPORT_SCHEMA = "stegverse.publisher.evidence-report-package/v1"
 SAFE_ORIGINAL = re.compile(r"^evidence/[A-Za-z0-9][A-Za-z0-9._-]{0,127}\.(?:png|jpg|jpeg|pdf|json|txt|md)$")
 MEDIA_TYPES = {"image/png", "image/jpeg", "application/pdf", "application/json", "text/plain", "text/markdown"}
 HASH = re.compile(r"^sha256:[0-9a-f]{64}$")
-SOURCE_CLASSES = {"USER_SUPPLIED_ORIGINAL", "COUNTERPART_SUPPLIED_ORIGINAL", "AUTHENTIC_RETAINED_EVIDENCE"}
+SOURCE_CLASSES = {"USER_SUPPLIED_ORIGINAL", "COUNTERPART_SUPPLIED_ORIGINAL", "AUTHENTIC_RETAINED_EVIDENCE", "SDK_SOURCE_VALIDATED_ARTIFACT"}
 MAX_SINGLE = 20 * 1024 * 1024
 MAX_TOTAL = 80 * 1024 * 1024
 
