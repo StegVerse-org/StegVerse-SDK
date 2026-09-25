@@ -152,6 +152,16 @@ class ReviewerPublisherTests(unittest.TestCase):
         self.assertFalse(bound["publisher_transition_observed"]) # no authentic transport receipt
         self.assertTrue(bound["sdk_return_binding_observed"])
         self.assertFalse(bound["communication_complete"])
+        bad_manifest=copy.deepcopy(returned)
+        bad_manifest["manifest"]["generation_id"]="tampered"
+        with self.assertRaisesRegex(ReviewPublisherBoundaryError,"manifest exact digest invalid"):
+            bind_exact_review_return(prepared=p,manifest=m,manifest_receipt_id="MR-0123456789ABCDEF",
+                                     publisher_return_bytes=canonical_json(bad_manifest).encode())
+        bad_receipt=copy.deepcopy(returned)
+        bad_receipt["rendering_receipt"]["generation_id"]="tampered"
+        with self.assertRaisesRegex(ReviewPublisherBoundaryError,"receipt exact digest invalid"):
+            bind_exact_review_return(prepared=p,manifest=m,manifest_receipt_id="MR-0123456789ABCDEF",
+                                     publisher_return_bytes=canonical_json(bad_receipt).encode())
         returned["transfer_id"]="different-transfer"
         with self.assertRaisesRegex(ReviewPublisherBoundaryError,"transfer ID mismatch"):
             bind_exact_review_return(prepared=p,manifest=m,manifest_receipt_id="MR-0123456789ABCDEF",
