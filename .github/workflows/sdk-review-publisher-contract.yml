@@ -1,0 +1,40 @@
+name: SDK Optional Reviewer Publisher Contract (Non-Authorizing)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - stegverse/manifest_builder.py
+      - stegverse/publisher_review_transfer.py
+      - tests/test_manifest_builder.py
+      - tests/test_sdk_review_publisher_transfer.py
+      - tests/test_sdk_publisher_contract_crossrepo.py
+      - scripts/build_mir_sv_exp3_manifest.py
+      - docs/SDK_EXTERNAL_REVIEW_PUBLISHER_DEFAULT.md
+      - .github/workflows/sdk-review-publisher-contract.yml
+  workflow_dispatch:
+permissions: {}
+jobs:
+  source-and-cross-owner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate SDK reviewer default and exact source packet
+        run: |
+          python -m unittest tests.test_manifest_builder tests.test_sdk_review_publisher_transfer tests.test_mir_sv_exp3_manifest -v
+      - name: Materialize exact pinned public Publisher adapter source
+        env:
+          PUBLISHER_COMMIT: '33511ff7e605c2c32ab8d6a9c572da3b02990503'
+        run: |
+          set -eu
+          curl -fsSL "https://github.com/GCAT-BCAT-Engine/Publisher/archive/${PUBLISHER_COMMIT}.tar.gz" -o /tmp/publisher.tar.gz
+          mkdir -p /tmp/publisher-source
+          tar -xzf /tmp/publisher.tar.gz -C /tmp/publisher-source --strip-components=1
+      - name: Exercise source packet against actual existing Publisher exact-transfer implementation
+        env:
+          PYTHONPATH: '.:/tmp/publisher-source'
+        run: |
+          python -m unittest tests.test_sdk_publisher_contract_crossrepo -v
+          echo "SOURCE_COMPATIBILITY_ONLY; no actual InTr, Publisher host, Master Records, or reviewer delivery claimed"
