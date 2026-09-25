@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 from stegverse.manifest_builder import build_manifest
 from stegverse.manifest_contract import validate_ingress_manifest
-from stegverse.manifest_execution import execute_manifest
+from stegverse.ecosystem_diagnostic_runtime import execute_manifest as execute_local_diagnostic
 
 HERE = Path(__file__).resolve().parents[1] / "inspection" / "examples" / "mir-sv-exp3"
 
@@ -59,7 +59,7 @@ def main(argv=None):
     manifest=build_exp3_manifest()
     a.manifest.write_text(json.dumps(manifest,indent=2,sort_keys=True,ensure_ascii=False)+"\n",encoding="utf-8")
     if a.result is not None:
-        result=execute_manifest(manifest)
+        result=execute_local_diagnostic(manifest)
         a.result.write_text(json.dumps(result,indent=2,sort_keys=True,ensure_ascii=False)+"\n",encoding="utf-8")
     print("MIR_SV_EXP3_SDK_MANIFEST_BUILT_AND_VALIDATED; runtime evidence is NOT_OBSERVED unless separately supplied")
     return 0
