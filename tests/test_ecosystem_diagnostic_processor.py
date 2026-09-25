@@ -142,5 +142,119 @@ class EcosystemDiagnosticProcessorTests(unittest.TestCase):
             )
 
 
+
+class HeldOutManifestedReadinessSourceOnly(unittest.TestCase):
+    """Four actual SDK-built diagnostic manifests; NOT the adaptive-routing trials.
+
+    These inputs preserve the four independent research task descriptions but
+    deliberately exclude all evaluator-only oracle fields. The installed SDK
+    diagnostic is read-only and cannot substitute for an approved adaptive
+    processing route, InTr execution or authenticated Master Records readback.
+    """
+
+    _ROUTER_INPUTS = (
+        {
+            "task_id": "SV-HOLDOUT-001",
+            "manifest_intent": "recover committed successor state",
+            "available_evidence": [
+                "predecessor_hash", "complete_ordered_events", "exact_policy_version",
+            ],
+            "new_facts_required": False,
+        },
+        {
+            "task_id": "SV-HOLDOUT-002",
+            "manifest_intent": (
+                "evaluate a previously unobserved source document and form "
+                "a new evidence-grounded result"
+            ),
+            "available_evidence": ["unprocessed_external_document_commitment"],
+            "new_facts_required": True,
+        },
+        {
+            "task_id": "SV-HOLDOUT-003",
+            "manifest_intent": "reconstruct a committed state",
+            "available_evidence": ["event_log_without_required_predecessor_receipt"],
+            "new_facts_required": False,
+        },
+        {
+            "task_id": "SV-HOLDOUT-004",
+            "manifest_intent": (
+                "reconstruct known prefix and evaluate new evidence "
+                "for unresolved suffix"
+            ),
+            "available_evidence": [
+                "complete_known_prefix_with_predecessor",
+                "unprocessed_suffix_commitment",
+            ],
+            "new_facts_required": True,
+        },
+    )
+
+    def test_four_real_sdk_manifests_diagnose_missing_live_routing_evidence(self):
+        # The four SOURCE research oracles live only in the external evaluator,
+        # and cannot enter these SDK manifest payloads or processor requests.
+        digests = set()
+        for router_input in self._ROUTER_INPUTS:
+            with self.subTest(task=router_input["task_id"]):
+                manifest = build_manifest(
+                    data=router_input,
+                    source_framework="GCAT-BCAT-Engine/workflows",
+                    source_output_id=router_input["task_id"] + ":readiness-diagnostic",
+                    data_class="source_native_held_out_readiness_input",
+                    processor_request={
+                        "schema": "stegverse.ecosystem-diagnostic-request.v1",
+                        "diagnostic_request_id": router_input["task_id"] + ":readiness",
+                        "scope": "runtime",
+                        "mutation_permitted": False,
+                        "expected_evidence_fields": [
+                            "installed_adaptive_processor",
+                            "authenticated_original_route_receipt",
+                            "matching_master_records_reconstruction",
+                        ],
+                        "tests": [
+                            {
+                                "test_id": "authentic-adaptive-route-readiness",
+                                "component_id": "StegVerse-SDK",
+                                "predicate_id": "manifested_adaptive_route_is_operational",
+                                "authority_owner": "StegVerse-org/StegVerse-SDK",
+                                "observation": None,
+                            }
+                        ],
+                    },
+                    process="ecosystem_diagnostic",
+                    return_depth="full-trace",
+                    publisher_required=False,
+                    created_at="2026-09-25T21:00:00Z",
+                )
+                canonical = validate_ingress_manifest(manifest)
+                self.assertEqual(canonical["payload"], router_input)
+                self.assertNotIn("oracle", canonical["payload"])
+                self.assertEqual(canonical["processing"]["capability"], "ecosystem_diagnostic")
+                self.assertFalse(canonical["external_manifest_grants_authority"])
+                self.assertTrue(canonical["complete_communication_manifest"])
+                self.assertEqual(
+                    canonical["processing"]["route_id"],
+                    canonical["extensions"]["stegverse_route"]["route_id"],
+                )
+                digests.add(canonical["canonical_manifest_sha256"])
+                result = execute_manifest(manifest)
+                self.assertEqual(result["results"][0]["observation_state"], "NOT_OBSERVED")
+                self.assertFalse(result["mutation_performed"])
+                self.assertEqual(result["authority_effect"], "NONE_DIAGNOSTIC_ONLY")
+                self.assertFalse(result["continuity_state_present"])
+        self.assertEqual(len(digests), 4)
+
+    def test_adaptive_capability_not_installed_cannot_be_faked(self):
+        with self.assertRaisesRegex(ValueError, "unsupported processing capability"):
+            build_manifest(
+                data=self._ROUTER_INPUTS[0],
+                source_framework="GCAT-BCAT-Engine/workflows",
+                source_output_id="SV-HOLDOUT-001:forbidden-uninstalled-processor",
+                processor_request={"untrusted": "must_not_trigger_runtime"},
+                process="evidence_sensitive_execution_path",
+                created_at="2026-09-25T21:00:00Z",
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
