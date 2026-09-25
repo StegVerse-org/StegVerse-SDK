@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - stegverse/manifest_builder.py
+      - stegverse/review_publisher_transfer.py
+      - tests/test_review_publisher_transfer.py
       - stegverse/governance_reference_graph.py
       - stegverse/governance_reference_projection.py
       - stegverse/evaluator_manifest_builder.py
@@ -51,6 +53,8 @@ on:
     branches: [main]
     paths:
       - stegverse/manifest_builder.py
+      - stegverse/review_publisher_transfer.py
+      - tests/test_review_publisher_transfer.py
       - stegverse/governance_reference_graph.py
       - stegverse/governance_reference_projection.py
       - stegverse/evaluator_manifest_builder.py
@@ -118,7 +122,7 @@ jobs:
           set -eu
           cd /tmp/source
           python -m pip install -q pytest
-          python -m unittest tests.test_manifest_builder
+          python -m unittest tests.test_manifest_builder tests.test_review_publisher_transfer -v
           python -m pytest -q tests/test_governance_reference_graph.py
           python -m pytest -q tests/test_governance_reference_projection.py
           python -m pytest -q tests/test_micro_node_commit_time_experiment.py
