@@ -1,0 +1,104 @@
+{
+  "schema": "stegverse.mir-sv-exp3.capability-boundary-input/v1",
+  "goal_task_id": "MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003",
+  "cosv": "50000000100000",
+  "evidence_as_of": "2026-09-24",
+  "source_scope": "CURRENT_REVIEWED_GITHUB_SOURCE_AND_COUNTERPART_DOCUMENTS_NOT_CURRENT_SOVEREIGN_RUNTIME",
+  "mir_counterpart_pdf_sha256": "1e2f134ab60144bb4c5a4de135c6f76d460f22995a0e0b2df1ef071f7e8c8ffe",
+  "source_documents": [
+    "https://github.com/StegVerse-Labs/.github/blob/main/docs/MIR_SV_CAPABILITY_BOUNDARY_EXPERIMENT_003_MIRROR_HANDOFF.md",
+    "https://github.com/StegVerse-Labs/.github/blob/main/docs/mir-exp3/STEGVERSE_SIDE_OBSERVE_DEMONSTRATE_RETAIN_RECONSTRUCT.md",
+    "https://github.com/StegVerse-Labs/.github/blob/main/docs/mir-exp3/RICHARD_PRE_PDF_EXACT_MESSAGE.md"
+  ],
+  "experiment_kind": "INDEPENDENT_CAPABILITY_AND_LIMITATION_ASSESSMENT_NOT_GOVERNED_EXECUTION",
+  "evidence_classes": [
+    "SOURCE_CONTRACT_DOCUMENTED",
+    "COUNTERPART_REPORTED",
+    "CURRENT_AUTHENTIC_RUNTIME",
+    "INDEPENDENTLY_RECOMPUTED",
+    "NOT_OBSERVED",
+    "UNKNOWN"
+  ],
+  "four_questions": [
+    {
+      "question": "what_was_claimed",
+      "answer": "The retained source contracts describe governed event ingress, state-transition custody, evidence retention and predecessor-linked reconstruction; this source declaration is not runtime proof.",
+      "evidence_class": "SOURCE_CONTRACT_DOCUMENTED",
+      "unknowns": [
+        "Exact current runtime deployment"
+      ]
+    },
+    {
+      "question": "what_was_independently_observed",
+      "answer": "No authenticated current Exp3 organization-ledger event and matching Master Records response has been read back in this SDK manifest.",
+      "evidence_class": "NOT_OBSERVED",
+      "unknowns": [
+        "Whether a qualifying resident transition exists outside accessible evidence"
+      ]
+    },
+    {
+      "question": "what_physical_work_occurred",
+      "answer": "No independently sampled physical outcome or activity-side measurement is bound to an Exp3 receipt.",
+      "evidence_class": "NOT_OBSERVED",
+      "unknowns": [
+        "Physical activity outside SDK or Node instrumentation"
+      ]
+    },
+    {
+      "question": "what_remains_unknown",
+      "answer": "Unknowns and disagreements are retained per observer rather than merged into presumed truth; undeclared shared blind spots are not exhaustively enumerable.",
+      "evidence_class": "UNKNOWN",
+      "unknowns": [
+        "Shared observability limits",
+        "Missing unreported activity",
+        "Physical causation",
+        "Current resident provenance",
+        "Independence of external custody"
+      ]
+    }
+  ],
+  "dimensions": [
+    {
+      "key": "observe",
+      "capability": "Canonical registered-Node event, current Interlock/InTr transition and bounded execution can emit distinct, attributable receipts when actually exercised.",
+      "limit": "Source declarations and downstream receipts cannot observe an uninstrumented partner environment; an activity-side omission may never enter the ledger.",
+      "verification": "Match a sampled external activity source against exact registered-Node ingress, execution and organization-ledger receipts; report missing coverage separately from inaccessible evidence."
+    },
+    {
+      "key": "demonstrate",
+      "capability": "Existing canonical source specifies exact state-transition and required-evidence digests with independently recomputable Master Records reconstruction.",
+      "limit": "Source or CI conformance, self-issued hashes and documented API contracts do not establish real execution, physical truth, record completeness or independence of custody.",
+      "verification": "Fetch exact registered transition and its organization receipt and corresponding Master Records RECORDED/PASS/PASS response; recompute hashes and deliberately mutate evidence."
+    },
+    {
+      "key": "retain",
+      "capability": "Canonical source defines retention of exact state-transition receipts and each bound required-evidence item through authoritative organization-first and Master Records custody.",
+      "limit": "Retention code alone does not prove current resident durability, complete external-event coverage, third-party separation, recovery after loss or an immutable physical-world observation.",
+      "verification": "From authenticated resident organization HEAD enumerate all linked immutable receipts, query Master Records by exact transition and compare every retained evidence item and retention/loss policy."
+    },
+    {
+      "key": "reconstruct",
+      "capability": "The canonical contract requires exact predecessor-linked state receipt and required evidence reconstruction before machine-owned successor progression.",
+      "limit": "Reconstruction can recover only actually retained states; it cannot infer unreported actions, undisclosed blind spots, physical causation or reconcile disagreement as though consensus were observed.",
+      "verification": "Independently replay a complete sampled receipt window including interleaved organization transitions; require each immediate predecessor and exact digest equality; retain participant dissent and independent unknowns."
+    }
+  ],
+  "disagreement_policy": {
+    "retain_each_observer_statement": true,
+    "retain_unknowns_first_class": true,
+    "consensus_may_not_erase_dissent": true,
+    "shared_blind_spots_not_claimed_complete": true
+  },
+  "coverage": {
+    "externally_declared_obligation": "NOT_SUPPLIED",
+    "activity_side_sampling": "NOT_PERFORMED",
+    "record_side_coverage_claim": "NOT_ESTABLISHED"
+  },
+  "historical_separation": {
+    "seam_experiment_1": "SEPARATE",
+    "seam_experiment_2_v08": "SEPARATE_NOT_FROZEN",
+    "sv_test_demo_3_40_second_worker": "SEPARATE",
+    "sv_test_demo_4_manifold": "SEPARATE",
+    "future_third_framework_standing_test": "SEPARATE_NOT_STARTED"
+  }
+}

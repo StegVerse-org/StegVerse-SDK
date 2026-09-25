@@ -1,0 +1,121 @@
+{
+  "schema": "stegverse.ecosystem-diagnostic-request.v1",
+  "diagnostic_request_id": "MIR-SV-EXP3-CAPABILITY-BOUNDARY-20260924",
+  "scope": "ecosystem",
+  "mutation_permitted": false,
+  "expected_evidence_fields": [
+    "exact_source_or_receipt_reference",
+    "scope_and_ceiling",
+    "independent_recomputation_if_claimed"
+  ],
+  "tests": [
+    {
+      "test_id": "observe_source_contract",
+      "component_id": "stegverse.observe",
+      "predicate_id": "SOURCE_CONTRACT_DOCUMENTED_NOT_EXECUTION",
+      "authority_owner": "StegVerse-Labs/.github",
+      "observation": {
+        "state": "PASS",
+        "evidence_refs": [
+          "https://github.com/StegVerse-Labs/.github/blob/main/docs/mir-exp3/STEGVERSE_SIDE_OBSERVE_DEMONSTRATE_RETAIN_RECONSTRUCT.md"
+        ],
+        "detail": "Only the existence and exact scope of the source-declared capability are verified, NOT its live realization."
+      }
+    },
+    {
+      "test_id": "observe_current_runtime",
+      "component_id": "stegverse.observe",
+      "predicate_id": "AUTHENTIC_EXPERIMENT_3_CURRENT_RUNTIME_EVIDENCE",
+      "authority_owner": "Interlock/InTr",
+      "observation": null
+    },
+    {
+      "test_id": "demonstrate_source_contract",
+      "component_id": "stegverse.demonstrate",
+      "predicate_id": "SOURCE_CONTRACT_DOCUMENTED_NOT_EXECUTION",
+      "authority_owner": "StegVerse-Labs/.github",
+      "observation": {
+        "state": "PASS",
+        "evidence_refs": [
+          "https://github.com/StegVerse-Labs/.github/blob/main/docs/mir-exp3/STEGVERSE_SIDE_OBSERVE_DEMONSTRATE_RETAIN_RECONSTRUCT.md"
+        ],
+        "detail": "Only the existence and exact scope of the source-declared capability are verified, NOT its live realization."
+      }
+    },
+    {
+      "test_id": "demonstrate_current_runtime",
+      "component_id": "stegverse.demonstrate",
+      "predicate_id": "AUTHENTIC_EXPERIMENT_3_CURRENT_RUNTIME_EVIDENCE",
+      "authority_owner": "Master Records",
+      "observation": null
+    },
+    {
+      "test_id": "retain_source_contract",
+      "component_id": "stegverse.retain",
+      "predicate_id": "SOURCE_CONTRACT_DOCUMENTED_NOT_EXECUTION",
+      "authority_owner": "StegVerse-Labs/.github",
+      "observation": {
+        "state": "PASS",
+        "evidence_refs": [
+          "https://github.com/StegVerse-Labs/.github/blob/main/docs/mir-exp3/STEGVERSE_SIDE_OBSERVE_DEMONSTRATE_RETAIN_RECONSTRUCT.md"
+        ],
+        "detail": "Only the existence and exact scope of the source-declared capability are verified, NOT its live realization."
+      }
+    },
+    {
+      "test_id": "retain_current_runtime",
+      "component_id": "stegverse.retain",
+      "predicate_id": "AUTHENTIC_EXPERIMENT_3_CURRENT_RUNTIME_EVIDENCE",
+      "authority_owner": "Organization ledger",
+      "observation": null
+    },
+    {
+      "test_id": "reconstruct_source_contract",
+      "component_id": "stegverse.reconstruct",
+      "predicate_id": "SOURCE_CONTRACT_DOCUMENTED_NOT_EXECUTION",
+      "authority_owner": "StegVerse-Labs/.github",
+      "observation": {
+        "state": "PASS",
+        "evidence_refs": [
+          "https://github.com/StegVerse-Labs/.github/blob/main/docs/mir-exp3/STEGVERSE_SIDE_OBSERVE_DEMONSTRATE_RETAIN_RECONSTRUCT.md"
+        ],
+        "detail": "Only the existence and exact scope of the source-declared capability are verified, NOT its live realization."
+      }
+    },
+    {
+      "test_id": "reconstruct_current_runtime",
+      "component_id": "stegverse.reconstruct",
+      "predicate_id": "AUTHENTIC_EXPERIMENT_3_CURRENT_RUNTIME_EVIDENCE",
+      "authority_owner": "Master Records",
+      "observation": null
+    },
+    {
+      "test_id": "physical_work",
+      "component_id": "stegverse.physical_work",
+      "predicate_id": "AUTHENTIC_EXP3_INDEPENDENT_EVIDENCE",
+      "authority_owner": "independent physical observer",
+      "observation": null
+    },
+    {
+      "test_id": "coverage_completeness",
+      "component_id": "stegverse.coverage_completeness",
+      "predicate_id": "AUTHENTIC_EXP3_INDEPENDENT_EVIDENCE",
+      "authority_owner": "independent activity-side sampler",
+      "observation": null
+    },
+    {
+      "test_id": "dissent_preservation",
+      "component_id": "stegverse.dissent_preservation",
+      "predicate_id": "AUTHENTIC_EXP3_INDEPENDENT_EVIDENCE",
+      "authority_owner": "independent joint reviewer",
+      "observation": null
+    },
+    {
+      "test_id": "matched_master_records",
+      "component_id": "stegverse.matched_master_records",
+      "predicate_id": "AUTHENTIC_EXP3_INDEPENDENT_EVIDENCE",
+      "authority_owner": "Master Records",
+      "observation": null
+    }
+  ]
+}
