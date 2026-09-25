@@ -80,10 +80,10 @@ def build_source_only_review_transfer(
     first = {k:v for k,v in result.items() if k not in {
         "product_processing", "admittedcode_processing", "sdk_return_binding_hash",
         "result_binding_hash"}}
-    if result.get("result_binding_hash") != canonical_sha256(first):
+    if str(result.get("result_binding_hash") or "").removeprefix("sha256:") != canonical_sha256(first):
         raise SDKReviewTransferError("SDK diagnostic result_binding_hash mismatch")
     terminal = {k:v for k,v in result.items() if k != "sdk_return_binding_hash"}
-    if result.get("sdk_return_binding_hash") != canonical_sha256(terminal):
+    if str(result.get("sdk_return_binding_hash") or "").removeprefix("sha256:") != canonical_sha256(terminal):
         raise SDKReviewTransferError("SDK diagnostic sdk_return_binding_hash mismatch")
     if set(original_assets) != set(expected_original_sha256):
         raise SDKReviewTransferError("exact original file coverage mismatch")
