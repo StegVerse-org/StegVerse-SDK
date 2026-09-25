@@ -64,115 +64,8 @@ def _original_artifact_manifest() -> dict[str, Any]:
 
 
 def rebuild_original_manifest() -> dict[str, Any]:
-    """Use the exact input literals from immutable historical producer commit."""
-    source_native = {
-        "schema": "elan.joint-test-trace.source-native/v1",
-        "source_document": "1.ELAN_TEST_TRACE_EN_09.09.2026.pdf",
-        "events": [
-            {
-                "event": 1,
-                "timestamp": "2026-09-09T11:26:55",
-                "class": "OBSERVATION",
-                "human_event": "Something happened today that I probably should talk about, but I'm not sure I want advice. Part of me thinks I'm overreacting, and part of me thinks something is genuinely wrong.",
-                "elan_response": "What you're describing this tension between two inner voices already says something important. Both have the right to be here. You don't have to choose right now. And you won't receive advice if you don't want it. If you want to talk, I'm here. Just here."
-            },
-            {
-                "event": 2,
-                "timestamp": "2026-09-09T11:28:10",
-                "class": "OBSERVATION",
-                "human_event": "I don't know.",
-                "elan_response": "\"I don't know\" is fine. It isn't emptiness it's honesty. You don't need to know in order to begin."
-            }
-        ],
-        "event_3": {"status": "NOT_SUBMITTED", "reason": "preserved from source packet; no synthetic silence event"}
-    }
-
-    governance_request = {
-        "candidate": {
-            "actor_class": "external_framework",
-            "action": "evaluate",
-            "target": "source_native_manifest",
-            "scope": "elan_joint_test_trace_event_1_2",
-            "parameters": {"external_side_effect": False}
-        },
-        "judgment": {
-            "refusal_available": True,
-            "operator_recoverability": "available",
-            "workload_state": "supported",
-            "time_pressure": "normal",
-            "isolation_state": "supported",
-            "evidence_refs": ["source:elan-joint-test-trace:events-1-2"]
-        },
-        "signal": {
-            "admitted_signal_refs": ["source:elan-joint-test-trace:events-1-2"],
-            "excluded_signal_refs": [],
-            "transformations": [],
-            "missing_inputs": ["event_3:not_submitted"],
-            "uncertainty_state": "bounded",
-            "reference_state_hash": "a" * 64,
-            "expected_reference_state_hash": "a" * 64,
-            "reconstruction_available": True,
-            "transformation_provenance_complete": True
-        },
-        "execution": {
-            "actor_authority_current": True,
-            "policy_current": True,
-            "delegation_current": True,
-            "evidence_current": True,
-            "affected_entity_conditions_represented": True,
-            "recoverability_profile": "recoverable",
-            "validity_window_open": True,
-            "policy_ref": "elan-test-generic-governance-boundary",
-            "delegation_ref": "evaluator-submission-only",
-            "evidence_refs": ["source:elan-joint-test-trace:events-1-2"]
-        },
-        "capability": {"allowed": True},
-        "continuity": {"required": False},
-        "approval": {"required": False},
-        "permission_present": True
-    }
-
-    posture_request = {
-        "schema": "stegverse.sdk.security-posture-request.v1",
-        "task_id": "SDK-EVALUATOR-GOVERNANCE-POSTURE-MANIFEST-001",
-        "selected_tier": None,
-        "selection_present": False,
-        "organization_minimum_tier": "SECURE",
-        "data_class": "elan.relational-state.v1",
-        "channel": "SDK_EXTERNAL_EVALUATOR",
-        "authority_effect": "NONE_REQUEST_INPUT_ONLY"
-    }
-
-    evaluation_declaration = {
-        "what": "Submit source-native ELAN Events 1 and 2 through the published governance route without evaluator-specific augmentation.",
-        "how": "Canonical SDK Manifest Builder -> InTr posture binding -> governance runtime -> custody -> replay -> reconstruction.",
-        "why": "Test generic evaluator compatibility and evidence continuity while preserving native ELAN semantics.",
-        "expected_observation": None
-    }
-
-    created_at = "2026-09-10T22:30:00Z"
-    observed_at = "2026-09-10T22:30:00Z"
-
-
-    manifest = build_evaluator_governance_manifest(
-        data=source_native,
-        source_framework="ÉLAN",
-        source_output_id="elan-joint-test-trace-2026-09-09-events-1-2",
-        governance_request=governance_request,
-        evaluation_declaration=evaluation_declaration,
-        security_posture_request=posture_request,
-        return_depth="full-trace",
-        data_class="elan.relational-state.v1",
-        created_at=created_at,
-    )
-
-    # Retain current canonical-builder output as a reproducibility diagnostic.
-    # A later builder may legally differ from the *immutable original*. Never
-    # substitute the changed output for the historical artifact or falsify its
-    # provenance. Exact original bytes were recovered from Actions artifact
-    # 10176800336 and are packaged with their own SHA-256/size contract.
-    original=_original_artifact_manifest()
-    return original
+    """Verify and return the original artifact bytes, not current-builder output."""
+    return _original_artifact_manifest()
 
 
 def _write_exact(path: Path, raw: bytes) -> None:
@@ -203,8 +96,7 @@ def _write_exact(path: Path, raw: bytes) -> None:
 
 
 def build_current_compatible_manifest() -> dict[str, Any]:
-    """Attempt current SDK reproduction from exact historical input literals."""
-    """Use the exact input literals from immutable historical producer commit."""
+    """Attempt current canonical-builder reproduction from original input literals."""
     source_native = {
         "schema": "elan.joint-test-trace.source-native/v1",
         "source_document": "1.ELAN_TEST_TRACE_EN_09.09.2026.pdf",
