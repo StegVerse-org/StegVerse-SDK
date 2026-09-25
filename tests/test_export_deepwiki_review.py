@@ -24,6 +24,12 @@ class DeepWikiReviewExportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             extract_jsonrpc(b'{"result":{"isError":true}}', "application/json")
 
+    def test_coverage_rejects_missing_or_duplicate_sections(self):
+        with self.assertRaises(ValueError):
+            compare_page_coverage("- 1 Overview\\n  - 1.1 Other", "# Page: Overview")
+        with self.assertRaises(ValueError):
+            compare_page_coverage("- 1 Overview\\n- 2 Overview", "# Page: Overview\\n# Page: Overview")
+
     def test_only_review_files_and_no_publication(self):
         items = [
             result("Available pages for StegVerse-org/StegVerse-SDK:\n- 1 Overview\n  - 1.1 Manifest Pipeline"),
@@ -34,7 +40,8 @@ class DeepWikiReviewExportTests(unittest.TestCase):
                 manifest = export(Path(folder))
             self.assertEqual(manifest["authority_effect"], "NONE_REVIEW_ONLY")
             self.assertFalse(manifest["publication_allowed"])
-            self.assertEqual(len(manifest["files"]), 4)\n            self.assertEqual(manifest["captured_page_count"], 2)
+            self.assertEqual(len(manifest["files"]), 4)
+            self.assertEqual(manifest["captured_page_count"], 2)
             self.assertEqual(len(list(Path(folder).iterdir())), 5)
             self.assertIn("UNREVIEWED", manifest["content_status"])
 
