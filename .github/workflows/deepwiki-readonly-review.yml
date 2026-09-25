@@ -4,6 +4,8 @@ on:
     paths:
       - 'scripts/export_deepwiki_review.py'
       - 'tests/test_export_deepwiki_review.py'
+      - 'scripts/resolve_deepwiki_review_citations.py'
+      - 'tests/test_resolve_deepwiki_review_citations.py'
       - '.github/workflows/deepwiki-readonly-review.yml'
   workflow_dispatch:
 permissions:
@@ -14,10 +16,21 @@ jobs:
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Test fail-closed parser and review-only export
         run: python -m unittest tests.test_export_deepwiki_review -v
+      - name: Test source-pinned citation candidate resolver
+        run: python -m unittest tests.test_resolve_deepwiki_review_citations -v
       - name: Capture public indexed wiki from official read-only MCP
         run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
+      - name: Produce nonpublishing citation candidates against checked-out exact source
+        run: |
+          python scripts/resolve_deepwiki_review_citations.py \
+            --input deepwiki-review-export/read_wiki_contents.md \
+            --root . \
+            --revision "$(git rev-parse HEAD)" \
+            --out deepwiki-review-export
       - name: Upload unreviewed documentation evidence
         if: always()
         uses: actions/upload-artifact@v4
