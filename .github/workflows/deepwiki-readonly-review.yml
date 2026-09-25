@@ -18,6 +18,13 @@ on:
       - 'tests/test_curate_frozen_deepwiki_review.py'
       - 'docs/deepwiki-review/CURRENT_SOURCE_DRIFT_CORRECTIONS.md'
       - 'tests/test_deepwiki_source_drift.py'
+      - 'scripts/assess_deepwiki_atomic_claims.py'
+      - 'tests/test_assess_deepwiki_atomic_claims.py'
+      - 'docs/deepwiki-review/FIRST_PARTY_VERIFIED_CONTRACTS.md'
+      - 'tests/test_deepwiki_first_party_verified_contracts.py'
+      - 'scripts/reconcile_historical_deepwiki_literals.py'
+      - 'tests/test_reconcile_historical_deepwiki_literals.py'
+      - 'docs/deepwiki-review/GENERATED_DOCS_AND_DEPENDENCY_RIGHTS.md'
       - '.github/workflows/deepwiki-readonly-review.yml'
   workflow_dispatch:
 permissions:
@@ -47,6 +54,12 @@ jobs:
         run: python -m unittest tests.test_curate_frozen_deepwiki_review -v
       - name: Verify first-party current-source drift corrections
         run: python -m unittest tests.test_deepwiki_source_drift -v
+      - name: Test atomic source-claim evidence and predecessor partition
+        run: python -m unittest tests.test_assess_deepwiki_atomic_claims -v
+      - name: Validate newly authored first-party SDK contract corrections
+        run: python -m unittest tests.test_deepwiki_first_party_verified_contracts -v
+      - name: Test predecessor-linked historical literal revalidation
+        run: python -m unittest tests.test_reconcile_historical_deepwiki_literals -v
       - name: Capture public indexed wiki from official read-only MCP
         run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
       - name: Produce nonpublishing citation candidates against checked-out exact source
@@ -102,6 +115,22 @@ jobs:
             --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
             --unresolved frozen-adjudication-input/remaining-citation-proposals-UNREVIEWED.json \
             --priority frozen-adjudication-input/priority-75-REVIEW-NOT-PUBLICATION.csv \
+            --out deepwiki-review-export
+      - name: Reassess 613 source candidates and original 75 priority references
+        run: |
+          python scripts/assess_deepwiki_atomic_claims.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --curation deepwiki-review-export/613-CLAIM_AND_46-DEFECT_DISPOSITIONS.json \
+            --priority frozen-adjudication-input/priority-75-REVIEW-NOT-PUBLICATION.csv \
+            --report frozen-adjudication-input/citation-review-report.json \
+            --out deepwiki-review-export
+      - name: Revalidate 27 priority literals at their exact earlier source revision
+        run: |
+          python scripts/reconcile_historical_deepwiki_literals.py \
+            --historical frozen-deepwiki-review/source-claim-inspection-UNREVIEWED.json \
+            --later frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --atomic deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
             --out deepwiki-review-export
       - name: Upload unreviewed documentation evidence
         if: always()
