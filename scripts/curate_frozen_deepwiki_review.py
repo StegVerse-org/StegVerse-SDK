@@ -131,7 +131,8 @@ def curate(raw: bytes, prior: dict, claims: dict, unresolved: dict,
                      "semantic_approval":False, "source_revision":prior["source_revision"]})
     for j, m in enumerate(unresolved["malformed_contextual_entries"]):
         offset = m["offset"]
-        target = MALFORMED.search(original,max(0,offset-180),offset+3)
+        target = next((x for x in MALFORMED.finditer(original,max(0,offset-180),offset+3)
+                       if x.end()-3 == offset),None)
         if not target or target.end()-3 != offset:
             raise ValueError("DENY:MALFORMED_CONTEXT_NO_EXACT_REPAIR")
         edits.append((target.start(),target.end(),"`"+target["label"]+"`"))
