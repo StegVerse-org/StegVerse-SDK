@@ -107,6 +107,53 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "MASTER_RECORDS_IMMEDIATE_PREDECESSOR_MISMATCH"):
             validate_runtime_result(broken, request)
 
+    def test_source_profile_deny_cannot_be_laundered_into_authentic_intr_result(self):
+        from scripts.build_mir_sv_exp3_manifest import build_exp3_manifest
+        request = derive_execution_request(build_exp3_manifest())
+        original = request["canonical_manifest"]["payload"]
+        deny = {
+            "schema": "stegverse.sdk.manifest-profile-disposition/v1",
+            "state": "DENY",
+            "disposition": "DENY",
+            "terminal": False,
+            "automatic_retry_permitted": False,
+            "retry_condition": "NEW_GOVERNED_ATTEMPT_AFTER_EXISTING_OWNER_DISPATCH_REPAIR",
+            "evaluation_boundary": "SDK_MANIFEST_PROFILE_SOURCE_ONLY",
+            "authentic_intr_disposition_observed": False,
+            "organization_master_records_closure_observed": False,
+            "reason_code": "ECOSYSTEM_DIAGNOSTIC_NONWORKER_DISPATCH_UNWIRED",
+            "failed_predicate": "INSTALLED_NONWORKER_EVENT_EPHEMERAL_DIAGNOSTIC_DISPATCH",
+            "transition_id": "SDK_ECOSYSTEM_DIAGNOSTIC_DISPATCH",
+            "repair_owner": "EXISTING_SDK_ECOSYSTEM_DIAGNOSTIC_AND_STEGBROWSER_INTR_OWNERS",
+            "source_disposition_ref": "runtime-state/sdk-manifest-state-transition/dispositions/verified-request.json",
+            "evidence_refs": ["StegVerse-Labs/.github:workers/manifest_state_transition_intr_ingress.py"],
+            "goal_task_id": original["goal_task_id"],
+            "cosv": original["cosv"],
+            "request_sha256": request["request_sha256"],
+            "wire_manifest_sha256": request["wire_manifest_sha256"],
+            "canonical_manifest_sha256": request["canonical_manifest_sha256"],
+            "graph_id": request["graph_id"],
+            "processing_capability": request["processing_capability"],
+        }
+        self.assertEqual(validate_runtime_result(deny, request)["disposition"], "DENY")
+        for key, value in [
+            ("request_sha256", "0" * 64),
+            ("authentic_intr_disposition_observed", True),
+            ("organization_master_records_closure_observed", True),
+            ("automatic_retry_permitted", True),
+            ("terminal", True),
+            ("evaluation_boundary", "INTERLOCK_INTR"),
+        ]:
+            altered = copy.deepcopy(deny)
+            altered[key] = value
+            with self.assertRaises(ValueError, msg=key):
+                validate_runtime_result(altered, request)
+        fabricated_allow = copy.deepcopy(deny)
+        fabricated_allow["state"] = "ALLOW"
+        fabricated_allow["disposition"] = "ALLOW"
+        with self.assertRaisesRegex(ValueError, "UNIVERSAL_INTR_PROFILE_DISPOSITION_NOT_DENY"):
+            validate_runtime_result(fabricated_allow, request)
+
     def test_digest_mismatch_fails_closed(self):
         request = derive_execution_request(manifest())
         result = complete_result(request)

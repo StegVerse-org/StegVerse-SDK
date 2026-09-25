@@ -61,6 +61,8 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         self.assertEqual(self.m,original)
         self.assertNotIn("canonical_manifest_sha256",self.m)
         self.assertEqual(request["canonical_manifest"],original)
+        self.assertEqual(request["wire_manifest_sha256"],
+                         "ad9b8b8aab2beeea04bff2aac34fd2e7bfa5915133bcaef9209c16de7d9bea68")
         self.assertEqual(request["wire_manifest_sha256"],canonical_sha256(original))
         self.assertEqual(request["canonical_manifest_sha256"],
                          canonical_sha256(request["canonical_manifest_projection"]))
