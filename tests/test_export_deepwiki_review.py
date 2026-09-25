@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from scripts.export_deepwiki_review import extract_jsonrpc, response_text, export
+from scripts.export_deepwiki_review import extract_jsonrpc, response_text, export, compare_page_coverage
 
 
 def result(text):
@@ -26,15 +26,15 @@ class DeepWikiReviewExportTests(unittest.TestCase):
 
     def test_only_review_files_and_no_publication(self):
         items = [
-            result("Overview\nSection 1\nSection 2\nSection 3"),
-            result("# Overview\nDetailed text for public SDK documentation."),
+            result("Available pages for StegVerse-org/StegVerse-SDK:\n- 1 Overview\n  - 1.1 Manifest Pipeline"),
+            result("# Page: Overview\n# Overview\nDetailed documentation.\n# Page: Manifest Pipeline\n# Manifest Pipeline\nMore documentation."),
         ]
         with tempfile.TemporaryDirectory() as folder:
             with patch("scripts.export_deepwiki_review.rpc_call", side_effect=items):
                 manifest = export(Path(folder))
             self.assertEqual(manifest["authority_effect"], "NONE_REVIEW_ONLY")
             self.assertFalse(manifest["publication_allowed"])
-            self.assertEqual(len(manifest["files"]), 4)
+            self.assertEqual(len(manifest["files"]), 4)\n            self.assertEqual(manifest["captured_page_count"], 2)
             self.assertEqual(len(list(Path(folder).iterdir())), 5)
             self.assertIn("UNREVIEWED", manifest["content_status"])
 
