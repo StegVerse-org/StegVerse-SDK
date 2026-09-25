@@ -191,6 +191,22 @@ def verify_publisher_return(return_bytes: bytes) -> dict[str, Any]:
     manifest = value.get("manifest")
     if not isinstance(manifest, dict):
         raise PublisherReturnBindingError("Publisher artifact manifest missing")
+    generic_review = value.get("source_export_schema") == "stegverse.publisher.evidence-report-package/v1"
+    if value.get("source_export_schema") is not None and not generic_review:
+        raise PublisherReturnBindingError("unsupported generic Publisher source profile")
+    if generic_review:
+        expected_manifest_hash = _sha256_value(
+            {key: item for key, item in manifest.items() if key != "manifest_sha256"}
+        )
+        if manifest.get("manifest_sha256") != expected_manifest_hash:
+            raise PublisherReturnBindingError("generic Publisher artifact manifest digest mismatch")
+        receipt = value.get("rendering_receipt")
+        if not isinstance(receipt, dict) or receipt.get("manifest_sha256") != expected_manifest_hash:
+            raise PublisherReturnBindingError("generic Publisher receipt/manifest mismatch")
+        if receipt.get("receipt_sha256") != _sha256_value(
+            {key: item for key, item in receipt.items() if key != "receipt_sha256"}
+        ):
+            raise PublisherReturnBindingError("generic Publisher receipt digest mismatch")
     manifest_artifacts = manifest.get("artifacts")
     if not isinstance(manifest_artifacts, list):
         raise PublisherReturnBindingError("Publisher artifact manifest entries missing")
@@ -203,6 +219,13 @@ def verify_publisher_return(return_bytes: bytes) -> dict[str, Any]:
     artifacts = value.get("artifacts")
     if not isinstance(artifacts, list):
         raise PublisherReturnBindingError("Publisher artifacts missing")
+    if generic_review:
+        listed = [item.get("path") for item in manifest_artifacts if isinstance(item, dict)]
+        returned = [item.get("path") for item in artifacts if isinstance(item, dict)]
+        if (len(listed) != len(manifest_artifacts) or len(returned) != len(artifacts)
+                or len(listed) != len(set(listed)) or len(returned) != len(set(returned))
+                or set(listed) != set(returned)):
+            raise PublisherReturnBindingError("generic Publisher original asset coverage mismatch")
     for item in artifacts:
         if not isinstance(item, dict):
             raise PublisherReturnBindingError("Publisher artifact entry invalid")
@@ -217,6 +240,15 @@ def verify_publisher_return(return_bytes: bytes) -> dict[str, Any]:
         manifest_item = by_path.get(item.get("path"))
         if not isinstance(manifest_item, dict) or manifest_item.get("sha256") != item.get("sha256"):
             raise PublisherReturnBindingError("Publisher artifact manifest binding mismatch")
+        if generic_review:
+            if (manifest_item.get("bytes") != item.get("bytes")
+                    or manifest_item.get("format") != item.get("format")):
+                raise PublisherReturnBindingError("generic Publisher artifact metadata mismatch")
+            if manifest_item.get("format") == "source-original" and (
+                manifest_item.get("media_type") != item.get("media_type")
+                or manifest_item.get("source_class") != item.get("source_class")
+            ):
+                raise PublisherReturnBindingError("generic Publisher original provenance mismatch")
     return copy.deepcopy(value)
 
 
