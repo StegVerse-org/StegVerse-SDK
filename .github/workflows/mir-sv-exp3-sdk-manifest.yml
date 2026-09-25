@@ -1,0 +1,45 @@
+name: MIR SV Exp3 SDK Manifest Evidence (Non-Authorizing)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - inspection/examples/mir-sv-exp3/**
+      - scripts/build_mir_sv_exp3_manifest.py
+      - tests/test_mir_sv_exp3_manifest.py
+      - docs/MIR_SV_EXP3_MANIFEST.md
+      - .github/workflows/mir-sv-exp3-sdk-manifest.yml
+  workflow_dispatch:
+permissions: {}
+jobs:
+  sdk-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize exact public source without credentials
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Build exact SDK manifest and read-only diagnostic artifact
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m unittest tests.test_mir_sv_exp3_manifest -v
+          python -m scripts.build_mir_sv_exp3_manifest --manifest /tmp/mir-sv-exp3.manifest.json --result /tmp/mir-sv-exp3.diagnostic-result.json
+          python -m json.tool /tmp/mir-sv-exp3.manifest.json >/dev/null
+          python -m json.tool /tmp/mir-sv-exp3.diagnostic-result.json >/dev/null
+          sha256sum /tmp/mir-sv-exp3.manifest.json /tmp/mir-sv-exp3.diagnostic-result.json
+          echo 'Source/SDK diagnostic only; no resident physical or governed execution authority.'
+      - name: Upload exact build evidence for third-party recomputation
+        uses: actions/upload-artifact@v4
+        with:
+          name: mir-sv-exp3-sdk-manifest-and-diagnostic
+          path: |
+            /tmp/mir-sv-exp3.manifest.json
+            /tmp/mir-sv-exp3.diagnostic-result.json
+          if-no-files-found: error
