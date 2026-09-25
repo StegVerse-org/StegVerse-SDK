@@ -195,7 +195,7 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
             "authority_effect":"NONE_DIAGNOSTIC_ONLY",
             "mutation_performed":False,
         }
-        digest=hashlib.sha256((json.dumps(output,indent=2,sort_keys=True)+"\\n").encode()).hexdigest()
+        digest=hashlib.sha256((json.dumps(output,indent=2,sort_keys=True)+"\n").encode()).hexdigest()
         progress={
             "schema":"stegverse.sdk.manifest-state-transition-progress/v1",
             "state":"PROCESSING_RECORDED_PUBLISHER_REQUIRED","disposition":"ALLOW",
