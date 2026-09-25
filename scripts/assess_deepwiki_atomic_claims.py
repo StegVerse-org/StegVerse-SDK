@@ -186,10 +186,14 @@ def assess(raw_bytes: bytes, claim_packet: dict, curations: list[dict],
             action = "Inspect every asserted predicate against the exact source and tests; omit unsupported claims."
         if i in original and original[i]["status"] == "FULL_CLAIM_REVIEW_PENDING":
             if verdict == "NARROW_SOURCE_FACT_OBSERVED_FULL_CLAIM_DENIED":
-                # The prior priority judgment remains an upper bound.
+                # Narrow declaration evidence cannot establish a complex diagram.
                 verdict = "DENY:PRIORITY_BROADER_CONTEXT_WITH_ATOMIC_ONLY_SUPPORT"
-            elif verdict.startswith("DENY:"):
-                pass
+        elif (i in original and
+              original[i]["status"] == "NARROW_LITERAL_CONFIRMED_CONTEXT_NOT_FULLY_APPROVED"
+              and not obs):
+            verdict = "DENY:PREVIOUS_NARROW_FACT_EXACT_SOURCE_REVALIDATION_REQUIRED"
+            action = ("Preserve prior narrow evidence but revalidate its exact historic "
+                      "snippet/line; no current-source contradiction established.")
         records.append({
             "index": i, "page": entry["page"], "offset": entry["offset"],
             "source_label": entry["label"], "source_url": citation.get("candidate_url"),
