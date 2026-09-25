@@ -24,5 +24,5 @@ jobs:
         with:
           name: deepwiki-sdk-review-only-${{ github.sha }}
           path: deepwiki-review-export/
-          retention-days: 7
+          retention-days: 90
           if-no-files-found: warn
