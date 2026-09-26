@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import unittest
@@ -98,6 +99,60 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         self.assertEqual(result["manifest_lineage"]["canonical_manifest_sha256"], result["canonical_manifest_sha256"])
         self.assertEqual(result["manifest_lineage"]["request_sha256"], result["request_sha256"])
         self.assertEqual(result["manifest_lineage"]["processor_result_sha256"], result["processor_result_sha256"])
+
+
+    def test_worker_cost_components_reject_malformed_or_mismatched_budget_through_builder(self):
+        # Existing WORKER-TASK-RESOURCE-COST-LINKAGE-001 owner: source-only
+        # negative acceptance of the installed, published SDK manifest route.
+        cases = [
+            ("negative_seconds", ("time_budget_seconds", "known_delay"), -1),
+            ("boolean_seconds", ("time_budget_seconds", "safety_reserve"), True),
+            ("missing_component", ("time_budget_seconds", "records_decomposition"), None),
+            ("mismatched_derived_sum", ("derived_max_lifetime_seconds",), 16),
+            ("missing_cost_basis", ("cost_analysis", "task_cost_basis"), ""),
+            ("negative_compute_units", ("cost_analysis", "expected_compute_units"), -1),
+        ]
+        for name, keypath, invalid in cases:
+            with self.subTest(name=name):
+                candidate = copy.deepcopy(request())
+                policy = candidate["lifetime_policy"]
+                target = policy
+                for key in keypath[:-1]:
+                    target = target[key]
+                if invalid is None:
+                    target.pop(keypath[-1])
+                else:
+                    target[keypath[-1]] = invalid
+                with self.assertRaises(ValueError):
+                    build_manifest(
+                        data={"text": "bounded source-only negative test"},
+                        source_framework="external_evaluator",
+                        source_output_id="worker-cost-negative-" + name,
+                        processor_request=candidate,
+                        process="purpose_bound_worker",
+                        return_depth="full-trace",
+                        created_at="2026-09-26T12:00:00Z",
+                    )
+
+    def test_valid_worker_cost_budget_survives_published_manifest_builder(self):
+        candidate = request()
+        manifest = build_manifest(
+            data={"text": "bounded source-only worker-cost test"},
+            source_framework="external_evaluator",
+            source_output_id="worker-cost-positive-001",
+            processor_request=candidate,
+            process="purpose_bound_worker",
+            return_depth="full-trace",
+            created_at="2026-09-26T12:00:00Z",
+        )
+        canonical = validate_ingress_manifest(manifest)
+        normalized = canonical["extensions"]["stegverse_purpose_bound_worker_request"]
+        policy = normalized["lifetime_policy"]
+        components = policy["time_budget_seconds"]
+        self.assertEqual(policy["derived_max_lifetime_seconds"], sum(components.values()))
+        self.assertEqual(policy["cost_analysis"]["task_cost_basis"], candidate["lifetime_policy"]["cost_analysis"]["task_cost_basis"])
+        self.assertEqual(canonical["processing"]["route_id"], PURPOSE_BOUND_WORKER_ROUTE_ID)
+        # This is SDK semantics only; not an authentic WorkerCoordinator/InTr/MR run.
 
 
 if __name__ == "__main__":
