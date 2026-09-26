@@ -1,0 +1,33 @@
+name: MIR Exp3 Commit-Time Capability Documents (Non-Authorizing)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - inspection/examples/mir-sv-exp3/**
+      - scripts/build_mir_sv_exp3_capability_documents.py
+      - tests/test_mir_sv_exp3_capability_documents.py
+      - .github/workflows/mir-exp3-commit-time-capability-docs.yml
+  workflow_dispatch:
+permissions: {}
+jobs:
+  source-documents:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source without credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate exact versioned SDK manifests and frozen original
+        run: |
+          python -m unittest tests.test_mir_sv_exp3_capability_documents -v
+          python -m scripts.build_mir_sv_exp3_capability_documents --output-dir /tmp/mir-exp3-documents
+          python -m json.tool /tmp/mir-exp3-documents/primary.manifest.json >/dev/null
+          python -m json.tool /tmp/mir-exp3-documents/addendum.manifest.json >/dev/null
+          sha256sum /tmp/mir-exp3-documents/*
+          echo 'Source-only documents. No native authority, Publisher or MIR delivery claimed.'
+      - name: Upload independently reproducible SDK documents
+        uses: actions/upload-artifact@v4
+        with:
+          name: mir-exp3-commit-time-capability-and-ingress-egress
+          path: /tmp/mir-exp3-documents/
+          if-no-files-found: error
