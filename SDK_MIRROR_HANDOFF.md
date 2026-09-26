@@ -628,3 +628,7 @@ Focused inert tests cover normal refusal/retirement, reported post-refusal denie
 ## Worker-cost evidence qualification candidate — 2026-09-26
 
 Branch: `fix/worker-cost-evidence-qualification-20260926`. Added `stegverse/worker_cost_evidence.py` and `tests/test_worker_cost_evidence.py` under existing SDK source ownership. Six components must be declared with exact source evidence hashes; missing or malformed inputs fail closed. A complete source declaration is still not independently verified, cannot establish measured unit economics, and cannot promote the public Free-tier benchmark. No new task, COSV, credential authority, runtime or resident execution is claimed. Exact-head CI and PR merge remain outstanding. The StegOS Free-tier economics proposal remains unregistered and requires canonical native-owner resolution (TVC is its documented alternate owner).
+
+## Task-native worker lifecycle qualifier — 2026-09-26
+
+SDK PR #359 introduces the original staged five-component task-native worker lifecycle qualifier, delegating to the SDK's existing `_sum_budget`, with source-only tests and README. Distinct from the six-component monetary evidence qualifier in merged PR #358. No task-native estimates for the 162 missing records, canonical Free-tier registration, or authentic runtime evidence are implied. Verify exact-head CI before merging.
