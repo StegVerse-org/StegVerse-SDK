@@ -53,6 +53,10 @@ on:
       - 'docs/deepwiki-review/FIRST_PARTY_PURPOSE_WORKER_14.md'
       - 'scripts/verify_14_purpose_worker_claims.py'
       - 'tests/test_deepwiki_purpose_worker14.py'
+      - 'docs/deepwiki-review/ATOMIC_WORKER_10_SOURCE_DECISIONS.json'
+      - 'docs/deepwiki-review/FIRST_PARTY_ATOMIC_WORKER_10.md'
+      - 'scripts/verify_10_atomic_worker_claims.py'
+      - 'tests/test_deepwiki_atomic_worker10.py'
       - 'docs/deepwiki-review/GENERATED_DOCS_AND_DEPENDENCY_RIGHTS.md'
       - '.github/workflows/deepwiki-readonly-review.yml'
   workflow_dispatch:
@@ -107,6 +111,8 @@ jobs:
         run: python -m unittest tests.test_deepwiki_cross_framework_19 -v
       - name: Test fourteen current purpose-worker source predicates without external page import
         run: python -m unittest tests.test_deepwiki_purpose_worker14 -v
+      - name: Test ten current atomic-worker source witnesses
+        run: python -m unittest tests.test_deepwiki_atomic_worker10 -v
       - name: Capture public indexed wiki from official read-only MCP
         run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
       - name: Produce nonpublishing citation candidates against checked-out exact source
@@ -228,6 +234,15 @@ jobs:
             --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
             --predecessor deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
             --decisions docs/deepwiki-review/PURPOSE_WORKER_14_SOURCE_DECISIONS.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Reconcile ten original atomic-worker citations against exact current source
+        run: |
+          python scripts/verify_10_atomic_worker_claims.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --predecessors deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
+            --decisions docs/deepwiki-review/ATOMIC_WORKER_10_SOURCE_DECISIONS.json \
             --root . \
             --out deepwiki-review-export
       - name: Upload unreviewed documentation evidence
