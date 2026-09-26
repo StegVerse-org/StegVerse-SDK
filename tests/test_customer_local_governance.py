@@ -99,6 +99,46 @@ class CustomerLocalRouteSourceTests(unittest.TestCase):
             )
         self.assertEqual(changed, [])
 
+    def test_post_allow_precommit_refusal_never_masquerades_as_final_allow(self):
+        manifest = local_manifest()
+        model = SimpleNamespace(model_validate=lambda _: object())
+        fake_core = ModuleType("stegcore")
+        fake_core.AdmissibilityRequest = model
+        fake_runtime_module = ModuleType("stegcore.steggate_runtime")
+        def refused_after_allow(request, executor, **kwargs):
+            # Simulates actual canonical runtime's precommit observer failure.
+            return SimpleNamespace(
+                status="refused",
+                evaluation=SimpleNamespace(
+                    disposition="ALLOW", decision_state_hash="source-only-allow"),
+                executor_invoked=False, pre_state_hash="pre",
+                post_state_hash="post",
+                coherence_receipt={"decision": "ALLOW",
+                                   "pre_execution_observer_failed": True},
+            )
+        fake_runtime_module.governed_steggate_execute = refused_after_allow
+        blocked = []
+        with patch.dict(sys.modules, {
+            "stegcore": fake_core,
+            "stegcore.steggate_runtime": fake_runtime_module,
+        }):
+            result = execute_local_manifest(
+                manifest,
+                authority_evidence={"fixture_only": True},
+                authority_verifier=lambda evidence, **_: {
+                    "status": "valid",
+                    "target_binding": manifest["candidate"]["target"],
+                },
+                precommit_recorder=lambda value: blocked.append("unexpected-precommit"),
+                executor=lambda: blocked.append("FORBIDDEN_EXECUTOR"),
+                result_recorder=lambda value: blocked.append("result-recorded"),
+            )
+        self.assertEqual(result["status"], "refused")
+        self.assertEqual(result["canonical_admissibility_disposition"], "ALLOW")
+        self.assertEqual(result["disposition"], "FAIL_CLOSED")
+        self.assertEqual(result["local_execution_reason"], "precommit_observer_failed")
+        self.assertEqual(blocked, ["result-recorded"])
+
     def test_canonical_runtime_is_called_only_after_explicit_fixture_bindings(self):
         # Explicit doubles: this is not real StegCore or trusted customer standing.
         manifest = local_manifest()
