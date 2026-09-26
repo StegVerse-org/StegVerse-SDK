@@ -1,0 +1,81 @@
+{
+  "schema": "stegverse.mir-sv-exp3.commit-time-capability-document/v1",
+  "goal_task_id": "MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003",
+  "cosv": "50000000100000",
+  "evidence_as_of": "2026-09-26",
+  "subject": "StegVerse commit-time admissibility, not the SDK's read-only diagnostic processor",
+  "purpose": "StegVerse independently authored counterpart to Richard Whitney's MIR Experiment One. Four equally weighted capability, limitation and verification sections. A source implementation is not current authentic runtime proof.",
+  "source_refs": [
+    "https://github.com/StegVerse-Labs/.github/blob/main/workers/manifest_state_transition_intr_ingress.py",
+    "https://github.com/StegVerse-Labs/.github/blob/main/workers/sdk_manifest_diagnostic_admitted_consumer.py",
+    "https://github.com/StegVerse-org/StegVerse-SDK/blob/main/stegverse/manifest_state_transition_runtime.py",
+    "https://github.com/StegVerse-Labs/.github/blob/main/resident-runtime/organization_custody_readback.py"
+  ],
+  "questions": [
+    {
+      "question": "What was claimed?",
+      "answer": "Source defines a request-bound, current-admissibility boundary evaluated before a consequence-bearing transition. Actual source checks cannot grant ALLOW.",
+      "evidence_class": "SOURCE_CONTRACT_DOCUMENTED"
+    },
+    {
+      "question": "What was independently observed?",
+      "answer": "The current original Experiment 3 resident admission and current authority decision have not been independently retrieved into this source-only document.",
+      "evidence_class": "NOT_OBSERVED"
+    },
+    {
+      "question": "What physical work occurred?",
+      "answer": "No independent MIR environment action or external physical consequence is proved by this source-only SDK diagnostic.",
+      "evidence_class": "NOT_OBSERVED"
+    },
+    {
+      "question": "What remains unknown?",
+      "answer": "Native original-request lease producer/current resident custody and independent MIR-side delivery, environmental coverage and shared blind spots remain independent verification targets.",
+      "evidence_class": "UNKNOWN"
+    }
+  ],
+  "sections": [
+    {
+      "key": "observe",
+      "title": "Observe",
+      "capability": "Current StegVerse source specifies attributable manifested ingress, native lease, actual InTr disposition and consequential transition receipts when an authorized runtime performs them.",
+      "limitation": "A manifest, source build, CI result or downstream receipt cannot independently observe MIR's uninstrumented environment, prove an event occurred or establish current resident deployment.",
+      "verification": "Submit one original bounded request through existing authenticated ingress. Independently read its actual InTr admission/refusal, current native lease and original organization ledger predecessor sequence. Record activity-side measurements separately.",
+      "evidence_class": "SOURCE_CONTRACT_DOCUMENTED",
+      "current_exp3_runtime": "NOT_OBSERVED"
+    },
+    {
+      "key": "demonstrate",
+      "title": "Demonstrate",
+      "capability": "The governing claim is a current commit-time admissibility decision against state, policy, execution scope, required evidence and unexpired, nonrevoked original authority. Source-level consumer implements fail-closed pre-execution checks and exact result binding.",
+      "limitation": "Historical approval and a source-only DENY are not the actual decision at commitment; an earlier valid lease can expire or be revoked. An SDK diagnostic's four PASS entries are documentation predicates, not four executed runtime capabilities.",
+      "verification": "At an authenticated existing runtime, demonstrate one genuinely authorized commitment and one refusal after original authority expires/revokes. Verify original request/wire and actual decision from independent same-transition Master Records, not fixture hashes.",
+      "evidence_class": "SOURCE_CONTRACT_DOCUMENTED",
+      "current_exp3_runtime": "NOT_OBSERVED"
+    },
+    {
+      "key": "retain",
+      "title": "Retain",
+      "capability": "Canonical source defines exact, predecessor-linked organization transitions, required evidence digest binding and Master Records custody; the installed readback can inspect existing resident original records.",
+      "limitation": "Source availability does not prove the resident captured this experiment, durable retention after loss, independent outside custody or completeness of off-platform activity.",
+      "verification": "From the original authenticated organization HEAD enumerate the complete global predecessor chain, resolve every exact source record and verify matching Master Records RECORDED/PASS/PASS and required-evidence bytes.",
+      "evidence_class": "SOURCE_CONTRACT_DOCUMENTED",
+      "current_exp3_runtime": "NOT_OBSERVED"
+    },
+    {
+      "key": "reconstruct",
+      "title": "Reconstruct",
+      "capability": "Source requires each state-dependent successor to verify its immediate predecessor and matching custody; recorded refusal and ALLOW histories can be distinguished if original records exist.",
+      "limitation": "Reconstruction cannot infer unsubmitted activity, prove physical causation, equate a signed receipt to behavior or erase per-observer disagreements. The specific original Experiment 3 chain is not yet observed here.",
+      "verification": "Remove the submitting worker, replay the entire original global organization window including unrelated interleaved transitions, recompute original digests and compare independent before/after disposition and actual external observation.",
+      "evidence_class": "SOURCE_CONTRACT_DOCUMENTED",
+      "current_exp3_runtime": "NOT_OBSERVED"
+    }
+  ],
+  "separations": {
+    "sdk_diagnostic_is_authority": false,
+    "mir_historical_record_grants_stegverse_allow": false,
+    "source_pass_is_runtime_proof": false,
+    "missing_accessible_original_equals_no_event": false,
+    "parallel_m2m_addendum_required_for_primary": false
+  }
+}
