@@ -95,11 +95,28 @@ def execute_local_manifest(
         authority_resolution=dict(resolution),
         pre_execution_observer=precommit_recorder,
     )
+    receipt = observation.coherence_receipt or {}
+    effective = observation.evaluation.disposition
+    if observation.status != "executed" and effective == "ALLOW":
+        # StegGate ALLOW is not proof of a permitted customer commit.
+        # Present-state/coherence DENY or a failed precommit observer can
+        # refuse actual execution AFTER the initial admissibility decision.
+        decision = receipt.get("decision")
+        effective = (
+            decision if decision in {"DENY", "REVIEW", "FAIL_CLOSED"}
+            else "FAIL_CLOSED"
+        )
     result = {
         "schema": "stegverse.sdk.customer-local-governance-result/v1",
         "processing_route_id": CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID,
         "status": observation.status,
-        "disposition": observation.evaluation.disposition,
+        "disposition": effective,
+        "canonical_admissibility_disposition": observation.evaluation.disposition,
+        "local_execution_reason": (
+            "precommit_observer_failed" if receipt.get("pre_execution_observer_failed")
+            else "no_canonical_execution" if observation.status != "executed"
+            else None
+        ),
         "executor_invoked": observation.executor_invoked,
         "decision_state_hash": observation.evaluation.decision_state_hash,
         "canonical_pre_state_hash": observation.pre_state_hash,
