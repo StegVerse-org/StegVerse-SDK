@@ -1,0 +1,29 @@
+{
+  "profile": "stegverse.source-observation.v1",
+  "experiment_id": "SYNTHETIC-HOLD-SOURCE-QUALIFICATION-NOT-ELAN",
+  "events": [
+    {
+      "event_id": "client-control",
+      "condition_id": "no_invocation_control",
+      "source_class": "CLIENT",
+      "request_sent": false,
+      "outcome": "NO_INVOCATION",
+      "client_started_at": "2026-09-25T10:00:00Z",
+      "client_ended_at": "2026-09-25T10:02:00Z",
+      "annotation": "Synthetic client-side interval: no native model observation."
+    },
+    {
+      "event_id": "prompted-hold",
+      "predecessor_id": "client-control",
+      "condition_id": "explicit_hold",
+      "source_class": "PROVIDER",
+      "request_sent": true,
+      "outcome": "TEXT_ELLIPSIS",
+      "prompt": "Please remain silent now.",
+      "raw_output": "...",
+      "client_started_at": "2026-09-25T10:02:01Z",
+      "client_ended_at": "2026-09-25T10:02:02Z",
+      "annotation": "SYNTHETIC DEMO ONLY; no ÉLAN output was obtained."
+    }
+  ]
+}
