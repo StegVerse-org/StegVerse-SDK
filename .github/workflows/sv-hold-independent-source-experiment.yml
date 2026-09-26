@@ -1,0 +1,46 @@
+name: SV independent HOLD experiment — exact source and runtime boundary
+on:
+  pull_request:
+    paths:
+      - 'scripts/experiment_sv_hold_independent.py'
+      - '.github/workflows/sv-hold-independent-source-experiment.yml'
+  workflow_dispatch:
+
+jobs:
+  sv-independent-hold:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install public SDK
+        run: python -m pip install -e '.[dev]'
+      - name: Independent SV HOLD — five bounded condition manifests
+        run: |
+          python scripts/experiment_sv_hold_independent.py --output-dir /tmp/sv-hold-independent > /tmp/sv-hold-console.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('/tmp/sv-hold-independent/summary.json').read_text())
+          assert len(p['conditions']) == 5
+          assert p['other_framework_evidence_consumed'] is False
+          assert p['live_execution_claim'] is False
+          for row in p['conditions']:
+              assert row['source_validation'] == 'PASS', row
+              assert row['runtime_disposition'] in (
+                  'SOURCE_LOCAL_EXECUTION_REFUSED',
+                  'REQUIRES_SEPARATELY_AUTHORIZED_LIVE_CALLER'
+              ), row
+              assert row['actual_effect_observed'] is False
+              assert row['master_records_reconstruction_observed'] is False
+          print('SV_HOLD_SOURCE_ONLY_PASS_AUTHENTIC_RUNTIME_UNOBSERVED')
+          PY
+      - name: Upload exact independent source, manifests, derived requests and refusal evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: sv-independent-hold-source-qualification
+          path: |
+            /tmp/sv-hold-independent/
+            /tmp/sv-hold-console.json
+          if-no-files-found: error
