@@ -39,6 +39,8 @@ on:
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md
       - README.md
+      - stegverse/worker_participation_history.py
+      - tests/test_worker_participation_history.py
       - stegverse/micro_node_commit_time_experiment.py
       - tests/test_micro_node_commit_time_experiment.py
       - stegverse/untrusted_dependency_review.py
@@ -87,6 +89,8 @@ on:
       - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
       - docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md
       - README.md
+      - stegverse/worker_participation_history.py
+      - tests/test_worker_participation_history.py
       - stegverse/micro_node_commit_time_experiment.py
       - tests/test_micro_node_commit_time_experiment.py
       - stegverse/untrusted_dependency_review.py
@@ -125,6 +129,7 @@ jobs:
           python -m unittest tests.test_manifest_builder tests.test_review_publisher_transfer -v
           python -m pytest -q tests/test_governance_reference_graph.py
           python -m pytest -q tests/test_governance_reference_projection.py
+          python -m pytest -q tests/test_worker_participation_history.py
           python -m pytest -q tests/test_micro_node_commit_time_experiment.py
           python -m pytest -q tests/test_untrusted_dependency_review.py
           python -m pytest -q tests/test_component011_receipt_compatibility.py
@@ -139,6 +144,7 @@ jobs:
           python -m unittest tests.test_route_resolution
           python -m unittest tests.test_cli_preformatted_manifest
           python -m py_compile \
+            stegverse/worker_participation_history.py \
             stegverse/micro_node_commit_time_experiment.py \
             stegverse/untrusted_dependency_review.py \
             stegverse/component011_receipt_compatibility.py \
