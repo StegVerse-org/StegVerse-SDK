@@ -16,7 +16,7 @@ EXACT_LINES = (
     ("pyproject.toml", 30, "pyyaml>=6.0"),
     ("stegverse/manifest_builder.py", 211, "def build_manifest"),
     ("stegverse/manifest_contract.py", 166, "def validate_ingress_manifest"),
-    ("stegverse/route_resolution.py", 167, "def route_from_manifest"),
+    ("stegverse/route_resolution.py", 180, "def route_from_manifest"),
     ("stegverse/purpose_bound_worker_processor.py", 63, "partition reconstruction mismatch"),
     ("stegverse/atomic_task_worker_processor.py", 23, "TEST2_SCENARIO"),
     ("stegverse/atomic_task_worker_processor.py", 24, "TEST3_SCENARIO"),
