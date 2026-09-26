@@ -57,6 +57,10 @@ on:
       - 'docs/deepwiki-review/FIRST_PARTY_ATOMIC_WORKER_10.md'
       - 'scripts/verify_10_atomic_worker_claims.py'
       - 'tests/test_deepwiki_atomic_worker10.py'
+      - 'docs/deepwiki-review/UNIVERSAL_INTERLOCK_16_SOURCE_DECISIONS.json'
+      - 'docs/deepwiki-review/FIRST_PARTY_UNIVERSAL_INTERLOCK_16.md'
+      - 'scripts/verify_16_universal_interlock_claims.py'
+      - 'tests/test_deepwiki_universal_interlock16.py'
       - 'docs/deepwiki-review/GENERATED_DOCS_AND_DEPENDENCY_RIGHTS.md'
       - '.github/workflows/deepwiki-readonly-review.yml'
   workflow_dispatch:
@@ -113,6 +117,8 @@ jobs:
         run: python -m unittest tests.test_deepwiki_purpose_worker14 -v
       - name: Test ten current atomic-worker source witnesses
         run: python -m unittest tests.test_deepwiki_atomic_worker10 -v
+      - name: Test sixteen universal-entry/interlock exact-source findings
+        run: python -m unittest tests.test_deepwiki_universal_interlock16 -v
       - name: Capture public indexed wiki from official read-only MCP
         run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
       - name: Produce nonpublishing citation candidates against checked-out exact source
@@ -243,6 +249,15 @@ jobs:
             --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
             --predecessors deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
             --decisions docs/deepwiki-review/ATOMIC_WORKER_10_SOURCE_DECISIONS.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Reconcile sixteen original universal-entry and portable-interlock citations
+        run: |
+          python scripts/verify_16_universal_interlock_claims.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --original frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --predecessor deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
+            --judgments docs/deepwiki-review/UNIVERSAL_INTERLOCK_16_SOURCE_DECISIONS.json \
             --root . \
             --out deepwiki-review-export
       - name: Upload unreviewed documentation evidence
