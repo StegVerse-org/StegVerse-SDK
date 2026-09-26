@@ -40,7 +40,7 @@ class NavEvaluatorCI24Tests(unittest.TestCase):
         for x in rows:
             with self.subTest(index=x["index"]):
                 self.assertEqual(
-                    sum(line.startswith(f"| {x[\'index\']} |") for line in guide.splitlines()),1
+                    sum(line.startswith("| {} |".format(x["index"])) for line in guide.splitlines()),1
                 )
                 self.assertIn(x["narrow_fact"],guide)
                 self.assertIn(x["unsupported_extension"],guide)
