@@ -39,6 +39,8 @@ on:
       - 'docs/deepwiki-review/MANIFEST_30_ATOMIC_SOURCE_DECISIONS.json'
       - 'scripts/verify_30_manifest_claims.py'
       - 'tests/test_verify_30_manifest_claims.py'
+      - 'docs/deepwiki-review/FIRST_PARTY_MANIFEST_30_SOURCE_REFERENCE.md'
+      - 'tests/test_first_party_manifest30_reference.py'
       - 'docs/deepwiki-review/GENERATED_DOCS_AND_DEPENDENCY_RIGHTS.md'
       - '.github/workflows/deepwiki-readonly-review.yml'
   workflow_dispatch:
@@ -85,6 +87,8 @@ jobs:
         run: python -m unittest tests.test_verify_remaining32_deepwiki_priority -v
       - name: Validate 30 exact-source manifest candidate judgments
         run: python -m unittest tests.test_verify_30_manifest_claims -v
+      - name: Verify first-party 30-case manifest technical guide
+        run: python -m unittest tests.test_first_party_manifest30_reference -v
       - name: Capture public indexed wiki from official read-only MCP
         run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
       - name: Produce nonpublishing citation candidates against checked-out exact source
