@@ -86,6 +86,8 @@ def reconstruct_worker_histories(packet: Mapping[str, Any]) -> dict[str, Any]:
             raise ValueError("independent_observations must be an array")
         observed_effects = []
         attempted = []
+        receipt_positions = {r["receipt_sha256"]: n for n, r in enumerate(receipts)}
+        refusal_positions = [n for n, r in enumerate(receipts) if r["to_state"] == "REFUSED"]
         for observation in observations:
             if not isinstance(observation, Mapping):
                 raise ValueError("observation must be an object")
@@ -98,6 +100,11 @@ def reconstruct_worker_histories(packet: Mapping[str, Any]) -> dict[str, Any]:
                 observed_effects.append(observation["observation_sha256"])
             if observation["operation_disposition"] in {"REQUESTED", "DENIED"}:
                 attempted.append(observation["observation_sha256"])
+            anchor = observation.get("after_receipt_sha256")
+            if anchor not in receipt_positions or (refusal_positions and
+                    receipt_positions.get(anchor, -1) < refusal_positions[0] and
+                    observation["operation_disposition"] in {"REQUESTED", "DENIED", "OBSERVED_EFFECT"}):
+                issues.append("OBSERVATION_SEQUENCE_UNBOUND")
             # An observer label in a caller-authored fixture is not proof of independence.
         complete_chain = not issues
         refused = "REFUSED" in states
