@@ -20,6 +20,7 @@ ECOSYSTEM_DIAGNOSTIC_ROUTE_ID = "stegverse.route.ecosystem-diagnostic.v1"
 PURPOSE_BOUND_WORKER_ROUTE_ID = "stegverse.route.purpose-bound-worker.v1"
 ATOMIC_TASK_WORKER_ROUTE_ID = "stegverse.route.atomic-task-worker.v1"
 CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID = "stegverse.route.customer-local-governed.v1"
+NATIVE_SOURCE_MATH_ROUTE_ID = "stegverse.route.source-native-math.v1"
 
 _ROUTE_FIELDS = (
     "route_id",
@@ -32,6 +33,18 @@ _ROUTE_FIELDS = (
 _ROUTE_MATCH_FIELDS = tuple(field for field in _ROUTE_FIELDS if field != "route_id")
 
 PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
+    NATIVE_SOURCE_MATH_ROUTE_ID: {
+        "route_id": NATIVE_SOURCE_MATH_ROUTE_ID,
+        "processor_capability": "native_source_math",
+        "lane_class": "SOURCE_ONLY_COMPUTATION",
+        "routing_surface": "SDK_INSTALLED_SOURCE_PACKAGE",
+        "containment": "NON_AUTHORIZING_NATIVE_RESULT",
+        "sandbox_required": False,
+        "external_consequence_enabled": False,
+        "state_graph_adapter_binding": None,
+        "runtime_binding": "stegverse.native_source_math.execute_manifest",
+        "runtime_installed": True,
+    },
     CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID: {
         "route_id": CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID,
         "processor_capability": "governance",

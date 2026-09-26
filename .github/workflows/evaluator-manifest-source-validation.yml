@@ -15,6 +15,9 @@ on:
       - stegverse/product_processing.py
       - stegverse/ecosystem_diagnostic_runtime.py
       - stegverse/route_resolution.py
+      - stegverse/native_source_math.py
+      - tests/test_native_source_math.py
+      - docs/SOURCE_NATIVE_MATH_SDK_MANIFEST.md
       - stegverse/governance_navigation.py
       - stegverse/manifest_contract.py
       - stegverse/manifest_builder.py
@@ -74,6 +77,9 @@ on:
       - stegverse/product_processing.py
       - stegverse/ecosystem_diagnostic_runtime.py
       - stegverse/route_resolution.py
+      - stegverse/native_source_math.py
+      - tests/test_native_source_math.py
+      - docs/SOURCE_NATIVE_MATH_SDK_MANIFEST.md
       - stegverse/governance_navigation.py
       - stegverse/manifest_contract.py
       - stegverse/manifest_builder.py
@@ -160,6 +166,7 @@ jobs:
           python -m unittest tests.test_product_processing
           python -m unittest tests.test_ecosystem_diagnostic_processor
           python -m unittest tests.test_route_resolution
+          python -m unittest -v tests.test_native_source_math
           python -m unittest tests.test_cli_preformatted_manifest
           python -m unittest tests.test_evaluation_boundary_contract
           python -m unittest tests.test_evaluation_boundary_owner_packet
@@ -174,6 +181,7 @@ jobs:
             stegverse/product_processing.py \
             stegverse/ecosystem_diagnostic_runtime.py \
             stegverse/route_resolution.py \
+            stegverse/native_source_math.py \
             stegverse/governance_navigation.py \
             stegverse/manifest_contract.py \
             stegverse/manifest_builder.py \
