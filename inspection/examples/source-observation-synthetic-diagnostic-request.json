@@ -1,0 +1,18 @@
+{
+  "schema": "stegverse.ecosystem-diagnostic-request.v1",
+  "diagnostic_request_id": "synthetic-hold-source-qualification",
+  "scope": "component",
+  "mutation_permitted": false,
+  "expected_evidence_fields": [
+    "native_provider_trace"
+  ],
+  "tests": [
+    {
+      "test_id": "authentic-native-trace",
+      "component_id": "external-provider",
+      "predicate_id": "exact_source_evidence_authenticated",
+      "authority_owner": "independent evaluator/source operator",
+      "observation": null
+    }
+  ]
+}
