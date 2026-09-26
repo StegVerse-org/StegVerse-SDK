@@ -10,6 +10,16 @@ from pathlib import Path
 
 CASES = [
     {
+        "id": "SDK_PUBLIC_ROOT_OBSERVED",
+        "url": "https://sdk.stegverse.org/",
+        "markers": ["StegVerse SDK Developer Wiki", "Machine-readable provenance"],
+    },
+    {
+        "id": "SDK_PUBLIC_SOURCE_MANIFEST_OBSERVED",
+        "url": "https://sdk.stegverse.org/wiki-source-manifest.json",
+        "markers": ['"schema": "stegverse.sdk-public-developer-wiki-source-manifest/v1"', '"source_repository": "StegVerse-org/StegVerse-SDK"'],
+    },
+    {
         "id": "SDK_PUBLIC_SCHEMA_PAGE_OBSERVED",
         "url": "https://sdk.stegverse.org/source/schemas/stegverse.ingress-manifest.v1.schema.json",
         "markers": ['"title": "StegVerse ingress manifest v1"', '"manifest_profile"'],
@@ -73,7 +83,10 @@ def fetch(case: dict[str, object]) -> dict[str, object]:
     result["sha256"] = hashlib.sha256(body).hexdigest() if body else None
     marker_results = {m: (m in text) for m in case["markers"]}
     result["markers"] = marker_results
-    result["passed"] = result["http_status"] == 200 and all(marker_results.values())
+    final_url = str(result["final_url"] or "")
+    same_origin = final_url.startswith("https://sdk.stegverse.org/")
+    result["same_origin"] = same_origin
+    result["passed"] = result["http_status"] == 200 and same_origin and all(marker_results.values())
     return result
 
 def main() -> int:
