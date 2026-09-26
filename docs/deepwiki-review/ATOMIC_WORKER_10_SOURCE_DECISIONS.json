@@ -1,0 +1,129 @@
+{
+  "schema": "stegverse.deepwiki-atomic-worker10-source-decisions/v1",
+  "goal_task_id": "ECOSYSTEM-OPEN-SOURCE-STRATEGY-001",
+  "cosv": "20010010100000",
+  "original_capture_sha256": "a729d9b0f487f785b0e8f92006f303e8520e3593b6eb6c4c5de43273daa72087",
+  "source_only": true,
+  "records": [
+    {
+      "index": 150,
+      "witness_path": "stegverse/atomic_task_worker_processor.py",
+      "exact_literal": "Evaluator-facing manifest processor shared by SDK Test 2 and Test 3.",
+      "source_decision": "NARROW_MODULE_DECLARATION_BROADER_DENIED",
+      "narrow_fact": "The module header declares one evaluator-facing SDK processor for two local test scenarios.",
+      "unsupported_extension": "Module documentation does not prove independent authentic workers or any source execution of original experiment.",
+      "full_atomic_source_fact_verified": false,
+      "whole_generated_paragraph_approved": false,
+      "third_party_republication_authorized": false,
+      "authentic_execution_observed": false
+    },
+    {
+      "index": 151,
+      "witness_path": "stegverse/atomic_task_worker_processor.py",
+      "exact_literal": "Scenario labels do not grant authority",
+      "source_decision": "NARROW_AUTHORITY_DISCLAIMER_BROADER_DENIED",
+      "narrow_fact": "The source header expressly distinguishes scenario labels from governance authority.",
+      "unsupported_extension": "Its text alone does not prove every downstream path is prevented from treating these labels as authority.",
+      "full_atomic_source_fact_verified": false,
+      "whole_generated_paragraph_approved": false,
+      "third_party_republication_authorized": false,
+      "authentic_execution_observed": false
+    },
+    {
+      "index": 153,
+      "witness_path": "tests/test_evaluator_atomic_task_worker_manifest.py",
+      "exact_literal": "def request(test_number: int) -> dict:",
+      "source_decision": "NARROW_TEST_FIXTURE_BROADER_DENIED",
+      "narrow_fact": "The test builds parameterized Test 2 and Test 3 local request fixtures.",
+      "unsupported_extension": "Fixture creation cannot prove two external evaluation paradigms were genuinely observed in production.",
+      "full_atomic_source_fact_verified": false,
+      "whole_generated_paragraph_approved": false,
+      "third_party_republication_authorized": false,
+      "authentic_execution_observed": false
+    },
+    {
+      "index": 154,
+      "witness_path": "tests/test_evaluator_atomic_task_worker_manifest.py",
+      "exact_literal": "\"expected_evidence_fields\": [",
+      "source_decision": "NARROW_LOCAL_TEST_EXPECTATION_BROADER_DENIED",
+      "narrow_fact": "The local fixture names eight expected evidence-observation fields.",
+      "unsupported_extension": "Names supplied by the test are not original authenticated InTr or Master Records receipts.",
+      "full_atomic_source_fact_verified": false,
+      "whole_generated_paragraph_approved": false,
+      "third_party_republication_authorized": false,
+      "authentic_execution_observed": false
+    },
+    {
+      "index": 155,
+      "witness_path": "stegverse/atomic_task_worker_processor.py",
+      "exact_literal": "PROCESSING_CAPABILITY = \"atomic_task_worker\"",
+      "source_decision": "FULL_ATOMIC_SOURCE_FACT_VERIFIED",
+      "narrow_fact": "The module sets the processor capability identifier to atomic_task_worker.",
+      "unsupported_extension": "A capability constant alone does not activate an authorized runtime.",
+      "full_atomic_source_fact_verified": true,
+      "whole_generated_paragraph_approved": false,
+      "third_party_republication_authorized": false,
+      "authentic_execution_observed": false
+    },
+    {
+      "index": 156,
+      "witness_path": "stegverse/atomic_task_worker_processor.py",
+      "exact_literal": "REQUEST_SCHEMA = \"stegverse.sdk.atomic-task-worker-test.v1\"",
+      "source_decision": "FULL_ATOMIC_SOURCE_FACT_VERIFIED",
+      "narrow_fact": "The module declares the processor-specific v1 request-schema identifier.",
+      "unsupported_extension": "One schema constant is not proof that all claimed lifecycle invariants were verified in an actual external execution.",
+      "full_atomic_source_fact_verified": true,
+      "whole_generated_paragraph_approved": false,
+      "third_party_republication_authorized": false,
+      "authentic_execution_observed": false
+    },
+    {
+      "index": 158,
+      "witness_path": "stegverse/atomic_task_worker_processor.py",
+      "exact_literal": "def validate_atomic_task_worker_request(",
+      "source_decision": "FULL_ATOMIC_SOURCE_FACT_VERIFIED",
+      "narrow_fact": "A first-party validator checks processor-request shape, supported test number/scenario and required object fields.",
+      "unsupported_extension": "Input validation does not certify external task authority or original process execution.",
+      "full_atomic_source_fact_verified": true,
+      "whole_generated_paragraph_approved": false,
+      "third_party_republication_authorized": false,
+      "authentic_execution_observed": false
+    },
+    {
+      "index": 159,
+      "witness_path": "stegverse/atomic_task_worker_processor.py",
+      "exact_literal": "def derive_state_graph(",
+      "source_decision": "FULL_ATOMIC_SOURCE_FACT_VERIFIED",
+      "narrow_fact": "The SDK implements a graph-derivation function whose docstring disclaims lifecycle execution.",
+      "unsupported_extension": "A proposed ordered graph and required claim-fence labels are not independently observed transition events.",
+      "full_atomic_source_fact_verified": true,
+      "whole_generated_paragraph_approved": false,
+      "third_party_republication_authorized": false,
+      "authentic_execution_observed": false
+    },
+    {
+      "index": 162,
+      "witness_path": "stegverse/route_resolution.py",
+      "exact_literal": "ATOMIC_TASK_WORKER_ROUTE_ID: {",
+      "source_decision": "FULL_ATOMIC_SOURCE_FACT_VERIFIED",
+      "narrow_fact": "The published route table includes an installed atomic-task-worker SDK-local semantic processor binding.",
+      "unsupported_extension": "The old original citation line span is stale; the current installed route does not confer sovereign runtime authority.",
+      "full_atomic_source_fact_verified": true,
+      "whole_generated_paragraph_approved": false,
+      "third_party_republication_authorized": false,
+      "authentic_execution_observed": false
+    },
+    {
+      "index": 164,
+      "witness_path": "tests/test_evaluator_atomic_task_worker_manifest.py",
+      "exact_literal": "\"task_id\": f\"sdk-test{test_number}-evaluator-001\"",
+      "source_decision": "NARROW_SYNTHETIC_TEST_FIXTURE_BROADER_DENIED",
+      "narrow_fact": "The local test creates a synthetic task identity for each scenario.",
+      "unsupported_extension": "Synthetic task identities cannot prove real WorkerCoordinator claims, complete original task histories or live execution.",
+      "full_atomic_source_fact_verified": false,
+      "whole_generated_paragraph_approved": false,
+      "third_party_republication_authorized": false,
+      "authentic_execution_observed": false
+    }
+  ]
+}
