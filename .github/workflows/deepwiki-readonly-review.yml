@@ -24,6 +24,18 @@ on:
       - 'tests/test_deepwiki_first_party_verified_contracts.py'
       - 'scripts/reconcile_historical_deepwiki_literals.py'
       - 'tests/test_reconcile_historical_deepwiki_literals.py'
+      - 'docs/deepwiki-review/OVERVIEW_13_CONTEXT_ADJUDICATION.md'
+      - 'tests/test_deepwiki_overview_13_context.py'
+      - 'scripts/locate_23_historical_deepwiki_sources.py'
+      - 'tests/test_locate_23_historical_deepwiki_sources.py'
+      - 'docs/deepwiki-review/GOVERNANCE_SIX_PRIORITY_DIAGRAM_CORRECTIONS.md'
+      - 'tests/test_deepwiki_governance_six_diagrams.py'
+      - 'docs/deepwiki-review/EIGHT_CROSS_BOUNDARY_PRIORITY_CORRECTIONS.md'
+      - 'tests/test_deepwiki_eight_crossboundary.py'
+      - 'docs/deepwiki-review/REMAINING_32_PRIORITY_SOURCE_DECISIONS.json'
+      - 'docs/deepwiki-review/REMAINING_32_PRIORITY_SOURCE_REVIEW.md'
+      - 'scripts/verify_remaining32_deepwiki_priority.py'
+      - 'tests/test_verify_remaining32_deepwiki_priority.py'
       - 'docs/deepwiki-review/GENERATED_DOCS_AND_DEPENDENCY_RIGHTS.md'
       - '.github/workflows/deepwiki-readonly-review.yml'
   workflow_dispatch:
@@ -60,6 +72,14 @@ jobs:
         run: python -m unittest tests.test_deepwiki_first_party_verified_contracts -v
       - name: Test predecessor-linked historical literal revalidation
         run: python -m unittest tests.test_reconcile_historical_deepwiki_literals -v
+      - name: Validate independently reviewed Overview citation contexts
+        run: python -m unittest tests.test_deepwiki_overview_13_context -v
+      - name: Test exact-current 23-source locators and six governance diagram corrections
+        run: python -m unittest tests.test_locate_23_historical_deepwiki_sources tests.test_deepwiki_governance_six_diagrams -v
+      - name: Test eight source-level cross-boundary priority decisions
+        run: python -m unittest tests.test_deepwiki_eight_crossboundary -v
+      - name: Test all 32 remaining priority source witnesses without semantic authorization
+        run: python -m unittest tests.test_verify_remaining32_deepwiki_priority -v
       - name: Capture public indexed wiki from official read-only MCP
         run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
       - name: Produce nonpublishing citation candidates against checked-out exact source
@@ -131,6 +151,21 @@ jobs:
             --historical frozen-deepwiki-review/source-claim-inspection-UNREVIEWED.json \
             --later frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
             --atomic deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
+            --out deepwiki-review-export
+      - name: Recheck 23 historical-only literals in exact checked-out SDK source
+        run: |
+          python scripts/locate_23_historical_deepwiki_sources.py \
+            --historical deepwiki-review-export/27-HISTORICAL_NARROW_RECONCILIATIONS.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Verify all 32 remaining broader-priority contexts against frozen predecessor and current source
+        run: |
+          python scripts/verify_remaining32_deepwiki_priority.py \
+            --raw frozen-deepwiki-review/read_wiki_contents.md \
+            --original-priority frozen-adjudication-input/priority-75-REVIEW-NOT-PUBLICATION.csv \
+            --claims frozen-deepwiki-review/source-claim-inspection-UNREVIEWED.json \
+            --decisions docs/deepwiki-review/REMAINING_32_PRIORITY_SOURCE_DECISIONS.json \
+            --root . \
             --out deepwiki-review-export
       - name: Upload unreviewed documentation evidence
         if: always()

@@ -19,6 +19,7 @@ from .governance_navigation import (
     normalize_return_projection,
 )
 from .route_resolution import CANONICAL_PRODUCTION_ROUTE_ID
+from .source_observation import PROFILE as SOURCE_OBSERVATION_PROFILE, validate_source_observation
 
 PROCESSING_CAPABILITY_GOVERNANCE = "governance"
 PAYLOAD_COMMITMENT_PROFILE_SHA256 = "sha256"
@@ -192,6 +193,12 @@ def validate_ingress_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     )
     if has_payload == has_commitment:
         raise ValueError("provide exactly one of payload or payload_commitment")
+
+    # Optional generic source-attribution profile: fail before the installed
+    # processing route sees a forged native output. Other source-native payload
+    # classes remain untouched and never acquire fabricated observations.
+    if isinstance(manifest.get("payload"), Mapping) and manifest["payload"].get("profile") == SOURCE_OBSERVATION_PROFILE:
+        validate_source_observation(manifest["payload"])
 
     hashes = manifest.get("hashes")
     if not isinstance(hashes, Mapping):

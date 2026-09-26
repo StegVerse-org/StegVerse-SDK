@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import unittest
-from unittest.mock import patch
 
 from stegverse.ecosystem_diagnostic_runtime import execute_manifest
 from stegverse.manifest_execution import execute_manifest as sdk_run_manifest
-from stegverse.manifest_state_transition_runtime import INGRESS_URL_ENV
 from stegverse.manifest_builder import DIAGNOSTIC_RETURN_DEPTHS, available_processors, build_manifest
 from stegverse.manifest_contract import validate_ingress_manifest
 from stegverse.route_resolution import ECOSYSTEM_DIAGNOSTIC_ROUTE_ID, PUBLISHED_ROUTES, route_from_manifest
@@ -240,16 +238,26 @@ class HeldOutManifestedReadinessSourceOnly(unittest.TestCase):
                     canonical["extensions"]["stegverse_route"]["route_id"],
                 )
                 digests.add(canonical["canonical_manifest_sha256"])
-                # The local diagnostic helper processes the validated manifest
-                # without authority. The public run-manifest deliberately routes
-                # through existing Universal InTr; never mock a success there.
-                result = execute_manifest(manifest)
+                # Execute through the canonical SDK run-manifest boundary, not
+                # the diagnostic module's direct local helper.
+                result = sdk_run_manifest(manifest)
+                self.assertEqual(
+                    result["canonical_manifest_sha256"],
+                    canonical["canonical_manifest_sha256"],
+                )
+                self.assertEqual(
+                    result["manifest_lineage"]["canonical_manifest_sha256"],
+                    canonical["canonical_manifest_sha256"],
+                )
+                self.assertEqual(
+                    result["manifest_lineage"]["run_manifest_request"]["route_id"],
+                    canonical["processing"]["route_id"],
+                )
+                self.assertEqual(
+                    result["manifest_lineage"]["request_sha256"],
+                    result["request_sha256"],
+                )
                 self.assertEqual(result["results"][0]["observation_state"], "NOT_OBSERVED")
-                with patch.dict("os.environ", {INGRESS_URL_ENV: ""}):
-                    with self.assertRaisesRegex(
-                        ValueError, "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED"
-                    ):
-                        sdk_run_manifest(manifest)
                 self.assertFalse(result["mutation_performed"])
                 self.assertEqual(result["authority_effect"], "NONE_DIAGNOSTIC_ONLY")
                 self.assertFalse(result["continuity_state_present"])

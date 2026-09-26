@@ -1,5 +1,17 @@
 # StegVerse SDK
 
+## Generic evaluator source-observation preflight (SDK 1.4 development, NOT released)
+
+The optional provider-neutral `stegverse.source-observation.v1` profile distinguishes client-measured no-invocation intervals from actual provider-returned text, completed empty response, ellipsis, API error, timeout and unknown completion. Its local validator refuses an apparent model response during a no-request interval and preserves event ordering. The same generic Manifest Builder then admits the unchanged source packet under a separately chosen installed processing route; the validator does not authenticate the provider or grant governance authority.
+
+```bash
+python -m stegverse.source_observation --input inspection/examples/source-observation-synthetic-hold.json
+stegverse manifest build --input inspection/examples/source-observation-synthetic-hold.json --processor-request inspection/examples/source-observation-synthetic-diagnostic-request.json --source-framework synthetic_external_evaluator --source-output-id synthetic-hold-demo-001 --process ecosystem_diagnostic --return-depth full-trace --output /tmp/hold-manifest.json
+```
+
+The supplied fixture is synthetic and the resulting preflight is source-only. Authentic evaluator results still require actual source-native evidence, the installed execution route's real disposition and any declared custody, replay, Publisher or far-side transitions. See `docs/GENERIC_SOURCE_OBSERVATION_PREFLIGHT.md`. This development capability is **not part of the frozen SDK 1.3.0 release candidate**.
+
+
 > **SDK 1.3.0 release candidate.** The candidate adds generic manifested concurrent purpose-bound worker groups and has passed the four-stage manifest-only experiment. Muhammad/HGAI references in this repository are hypothetical ecosystem examples of the generic Governance Reference Graph; they are not claims of an implemented HGAI integration.
 
 

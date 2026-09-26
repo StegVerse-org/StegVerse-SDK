@@ -1,0 +1,64 @@
+name: Generic Source Observation HOLD Preflight (Non-Authorizing)
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/source_observation.py'
+      - 'stegverse/manifest_contract.py'
+      - 'tests/test_source_observation.py'
+      - 'inspection/examples/source-observation-synthetic-*.json'
+      - '.github/workflows/source-observation-hold-preflight.yml'
+  workflow_dispatch:
+
+jobs:
+  generic-source-attribution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Run generic attribution and tamper regressions
+        run: python -m unittest tests.test_source_observation -v
+      - name: Public source-observation preflight on synthetic fixture
+        run: |
+          python -m stegverse.source_observation \
+            --input inspection/examples/source-observation-synthetic-hold.json \
+            --output /tmp/hold-source-preflight.json
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/hold-source-preflight.json'))
+          assert p['status']=='READY_FOR_MANIFEST', p
+          assert p['native_source_authenticated'] is False
+          assert p['governed_result'] is False
+          assert p['outcome_classes']==['NO_INVOCATION','TEXT_ELLIPSIS']
+          print('SYNTHETIC_SOURCE_PREFLIGHT_PASS_NOT_NATIVE_ELAN')
+          PY
+      - name: Build generic canonical manifest with installed read-only diagnostic route
+        run: |
+          stegverse manifest build \
+            --input inspection/examples/source-observation-synthetic-hold.json \
+            --processor-request inspection/examples/source-observation-synthetic-diagnostic-request.json \
+            --source-framework synthetic_external_evaluator \
+            --source-output-id synthetic-hold-qualification-001 \
+            --process ecosystem_diagnostic \
+            --return-depth full-trace \
+            --created-at 2026-09-25T10:03:00Z \
+            --output /tmp/synthetic-hold-manifest.json
+          python - <<'PY'
+          import json
+          from stegverse.manifest_contract import validate_ingress_manifest
+          m=json.load(open('/tmp/synthetic-hold-manifest.json'))
+          assert validate_ingress_manifest(m)['processing']['capability']=='ecosystem_diagnostic'
+          assert m['payload']['experiment_id'].startswith('SYNTHETIC')
+          print('GENERIC_MANIFEST_BUILD_PASS_NO_RUNTIME_AUTHORITY')
+          PY
+      - name: Retain source-only preflight and manifest artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: generic-source-observation-hold-preflight
+          path: |
+            /tmp/hold-source-preflight.json
+            /tmp/synthetic-hold-manifest.json
+          if-no-files-found: error
