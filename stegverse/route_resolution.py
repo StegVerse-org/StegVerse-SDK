@@ -39,7 +39,7 @@ PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
         "lane_class": "SOURCE_ONLY_COMPUTATION",
         "routing_surface": "SDK_INSTALLED_SOURCE_PACKAGE",
         "containment": "NON_AUTHORIZING_NATIVE_RESULT",
-        "sandbox_required": True,
+        "sandbox_required": False,
         "external_consequence_enabled": False,
         "state_graph_adapter_binding": None,
         "runtime_binding": "stegverse.native_source_math.execute_manifest",
