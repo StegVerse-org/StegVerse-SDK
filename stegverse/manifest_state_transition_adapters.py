@@ -16,7 +16,9 @@ from .route_resolution import route_from_manifest
 def derive_governance_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
     canonical = validate_ingress_manifest(manifest)
     route = route_from_manifest(canonical)
-    request = external_manifest_to_public_request(canonical)
+    # The public request adapter validates the original wire manifest itself.
+    # Derived canonical fields cannot be passed as top-level wire fields.
+    request = external_manifest_to_public_request(manifest)
     return {
         "schema": "stegverse.sdk.installed-state-transition-graph/v1",
         "graph_id": "RTC-GOVERNED-PROCESSING-002",
