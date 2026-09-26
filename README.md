@@ -1095,3 +1095,7 @@ Focused inert tests cover normal refusal/retirement, reported post-refusal denie
 ## SDK-to-wiki release synchronization (2026-09-26)
 
 The SDK public wiki is a version-bound projection of canonical SDK source. Every push to SDK `main` triggers wiki validation/build/deployment, including changes outside documentation paths. Publishing an SDK GitHub release also triggers a wiki build at the release tag and checks that the generated source revision equals the tag commit. The release event alone does not prove that the wiki is publicly deployed: release closure requires the Pages deployment result and an independent served-body readback of `wiki-source-manifest.json` with the exact release commit. A failed or lagging deployment is an incomplete publication, not a completed synchronized release. Runtime claims remain separate and require original evidence. Generated third-party documentation remains excluded until source and rights review.
+
+### Task-native worker lifecycle qualifier
+
+`stegverse.worker_lifecycle_qualifier` delegates the five-component lifetime calculation to `purpose_bound_worker_cost_demo._sum_budget`. Missing or partial task estimates and claimed-lifetime mismatches are non-derivable; qualification never grants runtime authority. `python -m unittest tests.test_worker_lifecycle_qualifier` tests the contract. This is distinct from the six-component monetary evidence qualifier.
