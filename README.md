@@ -1,5 +1,10 @@
 # StegVerse SDK
 
+## Worker-cost evidence qualification (source-only candidate, 2026-09-26)
+
+`stegverse.worker_cost_evidence.qualify_worker_cost` validates a six-component cost evidence declaration: provider, sandbox, resident node, GitHub Actions, governance, and custody. Each component requires a nonnegative minor-unit amount, currency, MEASURED classification, and an original evidence SHA-256 reference. Missing or malformed components fail closed. Even a complete source declaration remains **not independently verified**, has no promoted measured total, and grants no benchmark or runtime authority. Independent retrieval and verification of original evidence must precede any economic claim. Focused adversarial tests live in `tests/test_worker_cost_evidence.py`. This candidate is separate from the existing four-case local cost/lifetime demonstration and from canonical task registration.
+
+
 ## Generic evaluator source-observation preflight (SDK 1.4 development, NOT released)
 
 The optional provider-neutral `stegverse.source-observation.v1` profile distinguishes client-measured no-invocation intervals from actual provider-returned text, completed empty response, ellipsis, API error, timeout and unknown completion. Its local validator refuses an apparent model response during a no-request interval and preserves event ordering. The same generic Manifest Builder then admits the unchanged source packet under a separately chosen installed processing route; the validator does not authenticate the provider or grant governance authority.
