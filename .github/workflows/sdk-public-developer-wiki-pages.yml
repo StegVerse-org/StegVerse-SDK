@@ -15,16 +15,9 @@ on:
       - '.github/workflows/sdk-public-developer-wiki-pages.yml'
   push:
     branches: [main]
-    paths:
-      - 'README.md'
-      - 'SDK_MIRROR_HANDOFF.md'
-      - 'docs/**'
-      - 'schemas/**'
-      - 'inspection/examples/**'
-      - 'scripts/build_sdk_public_wiki.py'
-      - 'tests/test_sdk_public_developer_wiki.py'
-      - '.github/workflows/sdk-public-developer-wiki-pages.yml'
   workflow_dispatch:
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -65,16 +58,30 @@ jobs:
 
   deploy:
     needs: validate
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/configure-pages@v5
       - name: Build exact-source wiki projection
         run: python scripts/build_sdk_public_wiki.py
+      - name: Verify release/source binding
+        if: github.event_name == 'release'
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          manifest = json.loads(Path('_site/wiki-source-manifest.json').read_text())
+          tag_sha = subprocess.check_output(['git', 'rev-list', '-n', '1', os.environ['RELEASE_TAG']], text=True).strip()
+          assert manifest['source_revision'] == tag_sha, 'Wiki revision does not match release tag'
+          PY
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
