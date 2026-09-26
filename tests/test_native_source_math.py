@@ -48,11 +48,10 @@ class EntryPoint:
 
 
 def sample_manifest():
-    original = b'{"synthetic":"source-v0"}\\n'
-    original = original.replace(b"\\\\n", b"\\n")
+    original = b'{"synthetic":"source-v0"}\n'
     source = Path(inspect.getsourcefile(fixture_original_source)).read_bytes()
     blob = hashlib.sha1(
-        b"blob " + str(len(source)).encode() + b"\\0" + source
+        b"blob " + str(len(source)).encode() + b"\0" + source
     ).hexdigest()
     route = PUBLISHED_ROUTES[NATIVE_SOURCE_MATH_ROUTE_ID]
     payload = {
