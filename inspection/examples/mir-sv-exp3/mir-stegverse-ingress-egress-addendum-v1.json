@@ -1,0 +1,56 @@
+{
+  "schema": "stegverse.mir-sv-exp3.ingress-egress-addendum/v1",
+  "goal_task_id": "MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003",
+  "cosv": "50000000100000",
+  "evidence_as_of": "2026-09-26",
+  "purpose": "Separately versioned optional M2M setup for MIR ↔ StegVerse. Source contract and failure cases may progress without withholding the primary capability assessment.",
+  "sections": [
+    {
+      "key": "ingress",
+      "title": "MIR-to-Ste​gVerse ingress",
+      "capability": "Existing SDK builds a canonical identity-bound request; current generic Universal InTr source receives and binds declared source framework, original manifest/request hashes and route.",
+      "limitation": "MIR's authenticated live endpoint, exact external adapter operation and actual original resident ingress have not been verified for this experiment.",
+      "verification": "Present MIR-origin request at a sourced current endpoint; check actual authenticated original InTr disposition, exact original manifest hash and organization/Master Records closure.",
+      "evidence_class": "SOURCE_CONTRACT_DOCUMENTED",
+      "current_exp3_runtime": "NOT_OBSERVED"
+    },
+    {
+      "key": "commit",
+      "title": "Current commit-time authority",
+      "capability": "StegCore/Interlock/InTr owns current admission. The native ESRL lease must carry original-request-bound expiry and current snapshot; consumer refuses expired/revoked/mismatched authorization.",
+      "limitation": "The existing SDK local diagnostic does not invoke this authority. A snapshot or permission claim alone cannot certify a current lease or independently establish native original runtime.",
+      "verification": "Test current valid authority ALLOW and revocation/expiration immediately before a second distinct attempt, with exact native receipt lineage and independent Master Records readback.",
+      "evidence_class": "SOURCE_CONTRACT_DOCUMENTED",
+      "current_exp3_runtime": "NOT_OBSERVED"
+    },
+    {
+      "key": "egress",
+      "title": "StegVerse-to-MIR egress",
+      "capability": "Existing SDK return and Publisher source can bind original manifest, authorized export, exact-byte reviewer artifacts and a prepared return packet before the final InTr egress.",
+      "limitation": "PREPARED_NOT_TRANSPORTED is not actual Publisher delivery; no original MIR far-side acknowledgement or authenticated live destination has been verified in Experiment 3.",
+      "verification": "Retrieve original Publisher ingress, returned original bytes, SDK result binding, final governed egress and MIR endpoint receipt. Verify exact original request correlation and timestamps.",
+      "evidence_class": "SOURCE_CONTRACT_DOCUMENTED",
+      "current_exp3_runtime": "NOT_OBSERVED"
+    },
+    {
+      "key": "failure",
+      "title": "Refusal, replay and gaps",
+      "capability": "Source contracts preserve separately typed correctable profile DENY, genuine InTr non-ALLOW and terminal FAIL_CLOSED; no automatic retry of a terminal attempted execution.",
+      "limitation": "Profile-level source DENY is not an authentic native InTr rejection; missing original private evidence remains UNKNOWN rather than a false fail or success.",
+      "verification": "Preserve actual first refusal with specific failed predicate, correct only source/profile defects under existing owner and distinguish genuinely new governed attempts from duplicate request replay.",
+      "evidence_class": "SOURCE_CONTRACT_DOCUMENTED",
+      "current_exp3_runtime": "NOT_OBSERVED"
+    }
+  ],
+  "required_runtime_evidence": [
+    "original authenticated MIR ingress / exact endpoint",
+    "current original InTr verdict and live lease",
+    "exact original organization and same-transition Master Records custody",
+    "actual Publisher transfer + SDK return",
+    "authorized final InTr egress + independent MIR-side receipt"
+  ],
+  "source_refs": [
+    "https://github.com/StegVerse-org/StegVerse-SDK/blob/main/docs/SDK_EXTERNAL_REVIEW_PUBLISHER_TRANSFER.md",
+    "https://github.com/StegVerse-Labs/.github/blob/main/docs/EXTERNAL_FRAMEWORK_ROUNDTRIP_ROLLOUT_MIRROR_HANDOFF.md"
+  ]
+}
