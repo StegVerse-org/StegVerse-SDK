@@ -22,7 +22,7 @@ class MIRCapabilityDocumentsTests(unittest.TestCase):
         self.assertFalse(m["completion"]["publisher"]["required"])
         self.assertTrue(m["completion"]["egress"]["far_side_transition_required"])
         self.assertEqual(sum(x["observation_state"] == "NOT_OBSERVED" for x in result["results"]), 4)
-        self.assertIn("original MIR", " ".join(source["required_runtime_evidence"]))
+        self.assertIn("MIR ingress", " ".join(source["required_runtime_evidence"]))
 
     def test_source_declared_outcome_cannot_be_promoted_to_runtime(self):
         _, _, source = build("primary")
