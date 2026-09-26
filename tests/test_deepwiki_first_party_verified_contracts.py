@@ -12,8 +12,8 @@ LINK = re.compile(
     r"([^\s)]+?)#L(\d+)(?:-L(\d+))?"
 )
 EXACT = {
-    ("stegverse/manifest_contract.py", 50): "if route_id != CANONICAL_PRODUCTION_ROUTE_ID:",
-    ("stegverse/manifest_contract.py", 70): "if declared_route_id != route_id:",
+    ("stegverse/manifest_contract.py", 51): "if route_id != CANONICAL_PRODUCTION_ROUTE_ID:",
+    ("stegverse/manifest_contract.py", 71): "if declared_route_id != route_id:",
     ("stegverse/manifest_builder.py", 211): "def build_manifest(",
     ("stegverse/purpose_bound_worker_processor.py", 63): "partition reconstruction mismatch",
     ("stegverse/universal_entry_dispatch.py", 48): '"completed", "degraded", "unavailable", "failed_closed"',
