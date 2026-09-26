@@ -19,6 +19,7 @@ CANONICAL_PRODUCTION_ROUTE_ID = "stegverse.route.canonical-governed.v1"
 ECOSYSTEM_DIAGNOSTIC_ROUTE_ID = "stegverse.route.ecosystem-diagnostic.v1"
 PURPOSE_BOUND_WORKER_ROUTE_ID = "stegverse.route.purpose-bound-worker.v1"
 ATOMIC_TASK_WORKER_ROUTE_ID = "stegverse.route.atomic-task-worker.v1"
+CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID = "stegverse.route.customer-local-governed.v1"
 
 _ROUTE_FIELDS = (
     "route_id",
@@ -31,6 +32,20 @@ _ROUTE_FIELDS = (
 _ROUTE_MATCH_FIELDS = tuple(field for field in _ROUTE_FIELDS if field != "route_id")
 
 PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
+    CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID: {
+        "route_id": CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID,
+        "processor_capability": "governance",
+        "lane_class": "CUSTOMER_LOCAL_GOVERNED",
+        "routing_surface": "CUSTOMER_LOCAL",
+        "containment": "CUSTOMER_CONTROLLED_COMMIT_BOUNDARY",
+        "sandbox_required": False,
+        "external_consequence_enabled": False,
+        "state_graph_adapter_binding": "stegverse.manifest_state_transition_adapters.derive_governance_state_graph",
+        "runtime_binding": "stegverse.customer_local_governance.execute_manifest",
+        # Runtime module is installed; customer-owned authority, consequence
+        # and evidence callbacks are NEVER installed or inferred by route selection.
+        "runtime_installed": True,
+    },
     CANONICAL_PRODUCTION_ROUTE_ID: {
         "route_id": CANONICAL_PRODUCTION_ROUTE_ID,
         "processor_capability": "governance",
