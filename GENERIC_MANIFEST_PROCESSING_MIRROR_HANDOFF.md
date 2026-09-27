@@ -254,3 +254,7 @@ Existing owner `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`, COSV `71000000100
 ## SDK 1.5 published-but-uninstalled runtime qualification — 2026-09-27
 
 Existing owner `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`, COSV `71000000100110`. The `fix/sdk15-uninstalled-route-qualification` source candidate corrects a discrepancy between SDK 1.5 capability qualification and `resolve_route_declaration`: published exact route entries with `runtime_installed=false` previously qualified `SUPPORTED`, even though the canonical route resolver rejects them. Such rows now return `UNSUPPORTED`, predicate `RUNTIME_BINDING_INSTALLED`, no adaptation; an isolated regression temporarily substitutes an uninstalled native-math route and checks plan lineage. Preserve independent exact-head CI, review and expected-head merge. No authentic runtime disposition or new route authority claimed.
+
+### CI repair on PR #372
+
+Exact-head `df19dad7d620acbaf53a33a87c9248ad56569c57` produced 11 successful workflows and one failed Evaluator Manifest Source Validation run `36341683461`: bundled pytest-compatible runner rejected the new test's `monkeypatch` fixture (`unsupported test fixture: monkeypatch`), 12 other targeted tests passed. Repair commit `dd87062f7ffe56ecec1b2fa09e1b403051961e55` replaces the unsupported fixture with standard-library `unittest.mock.patch.dict`, retaining the negative control. Fresh exact-head CI and applicable independent review remain pending; no merge or runtime authority claimed.
