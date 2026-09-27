@@ -1114,3 +1114,6 @@ SDK 1.5 source discovery derives its installed-capability matrix from `PUBLISHED
 ### SDK 1.5 unrelated evaluator source evidence
 
 `tests/test_sdk_15_unrelated_evaluator_evidence.py` exercises two independent installed capability/route bindings: `native_source_math` through `stegverse.route.source-native-math.v1` and `ecosystem_diagnostic` through `stegverse.route.ecosystem-diagnostic.v1`. It binds both to one immutable manifest-derived plan and tests four distinct non-supported source qualifications (`MISSING_INPUT`, `UNSUPPORTED`, `VERSION_INCOMPATIBLE`, `PROBE_REQUIRED`) plus cross-route non-substitution. These tests demonstrate source contract behavior only; no InTr admission, worker execution, organization receipt, or Master Records custody is inferred.
+
+
+SDK 1.5 full derived-plan lineage: `verify_plan_lineage` checks every top-level field against the exact re-derived plan, including authority and evidence boundaries; a matching retained digest cannot legitimize forged sibling fields or appended runtime receipts. Source verification does not establish authentic runtime execution.
