@@ -6,13 +6,13 @@ on:
     paths:
       - ".github/release-requests/v1.3.0.json"
 
-permissions:
-  contents: write
-  actions: write
+permissions: {}
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Create immutable v1.3.0 tag and GitHub Release
         uses: actions/github-script@v7
@@ -53,14 +53,11 @@ jobs:
 
             core.info("TAG_AND_RELEASE_ALLOW tag=" + tag + " commit=" + sha + " release=" + release.data.html_url);
 
-      - name: Dispatch existing PyPI publisher for v1.3.0
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "release.yml",
-              ref: "main",
-              inputs: { release_tag: "v1.3.0" }
-            });
+  publish:
+    needs: release
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/release.yml
+    with:
+      release_tag: v1.3.0
