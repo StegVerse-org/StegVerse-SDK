@@ -169,8 +169,7 @@ jobs:
           python -m unittest tests.test_governance_ingress_runtime
           python -m unittest tests.test_product_processing
           python -m unittest tests.test_ecosystem_diagnostic_processor
-          python -m unittest tests.test_manifest_plan
-          python -m unittest tests.test_sdk_15_unrelated_evaluator_evidence
+          python -m pytest -q tests/test_manifest_plan.py tests/test_sdk_15_unrelated_evaluator_evidence.py
           python -m unittest tests.test_route_resolution
           python -m unittest -v tests.test_native_source_math
           python -m unittest tests.test_cli_preformatted_manifest
