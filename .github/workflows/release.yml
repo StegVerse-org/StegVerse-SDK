@@ -3,7 +3,7 @@ name: Publish SDK to PyPI (Trusted Publisher)
 on:
   release:
     types: [published]
-  workflow_dispatch:
+  workflow_call:
     inputs:
       release_tag:
         description: Exact immutable release tag to publish
@@ -14,7 +14,7 @@ permissions: {}
 
 jobs:
   build-and-verify:
-    if: startsWith((github.event_name == 'workflow_dispatch' && inputs.release_tag) || github.event.release.tag_name, 'v')
+    if: startsWith(inputs.release_tag || github.event.release.tag_name, 'v')
     name: Build and verify exact tagged SDK artifacts
     runs-on: ubuntu-latest
     permissions: {}
@@ -25,7 +25,7 @@ jobs:
       - name: Validate release tag identity
         id: identity
         env:
-          RELEASE_TAG: ${{ (github.event_name == 'workflow_dispatch' && inputs.release_tag) || github.event.release.tag_name }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
         run: |
           set -euo pipefail
           printf '%s\n' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'
@@ -37,7 +37,7 @@ jobs:
       - name: Materialize exact tag anonymously
         env:
           SOURCE_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ (github.event_name == 'workflow_dispatch' && inputs.release_tag) || github.event.release.tag_name }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
         run: |
           set -euo pipefail
           test -z "${GITHUB_TOKEN:-}"
@@ -129,7 +129,7 @@ jobs:
           retention-days: 7
 
   publish-pypi:
-    if: startsWith((github.event_name == 'workflow_dispatch' && inputs.release_tag) || github.event.release.tag_name, 'v') && needs.build-and-verify.result == 'success'
+    if: startsWith(inputs.release_tag || github.event.release.tag_name, 'v') && needs.build-and-verify.result == 'success'
     name: Publish exact artifacts to PyPI
     needs: build-and-verify
     runs-on: ubuntu-latest
