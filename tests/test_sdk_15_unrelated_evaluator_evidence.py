@@ -60,3 +60,21 @@ def test_wrong_route_never_substitutes_other_evaluator_route():
 def test_inventory_includes_both_unrelated_evaluator_capabilities():
     capabilities = {row["capability_id"] for row in installed_capability_inventory()}
     assert {"native_source_math", "ecosystem_diagnostic"} <= capabilities
+
+
+def test_published_but_uninstalled_exact_route_fails_closed():
+    from stegverse.route_resolution import PUBLISHED_ROUTES, NATIVE_SOURCE_MATH_ROUTE_ID
+    route = PUBLISHED_ROUTES[NATIVE_SOURCE_MATH_ROUTE_ID]
+    from unittest.mock import patch
+    requirement = [{"requirement_id": "uninstalled", "capability_id": "native_source_math",
+                    "route_id": NATIVE_SOURCE_MATH_ROUTE_ID}]
+    with patch.dict(PUBLISHED_ROUTES, {NATIVE_SOURCE_MATH_ROUTE_ID: {**route, "runtime_installed": False}}):
+        result = qualify_requirements({}, requirement)
+        row = result["results"][0]
+        assert row["disposition"] == "UNSUPPORTED"
+        assert row["failed_predicate"] == "RUNTIME_BINDING_INSTALLED"
+        assert row["matched"]["runtime_installed"] is False
+        assert result["execution_authorized"] is False
+        plan = derive_execution_plan({}, requirement)
+        assert plan["steps"][0]["adaptation"] is None
+        assert verify_plan_lineage({}, requirement, plan)
