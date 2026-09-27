@@ -1,8 +1,8 @@
 """Universal manifest state-transition runtime client.
 
 Every installed processing capability derives only its request/state graph locally.
-The consequential lifecycle is executed by the existing StegVerse Universal InTr
-runtime. This module never invokes repository-local runners, WorkerCoordinator,
+The consequential lifecycle is executed by the existing manifest-selected
+StegVerse processing and governance path; InTr transports its payloads. This module never invokes repository-local runners, WorkerCoordinator,
 Interlock/InTr, TV/TVC, StegAgents, or Master Records directly.
 """
 from __future__ import annotations
@@ -100,7 +100,7 @@ def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "predecessor_closure_required": True,
         "credential_authority": "TV/TVC",
         "claim_fence_authority": "WORKERCOORDINATOR",
-        "transition_authority": "INTERLOCK_INTR",
+        "transition_authority": "MANIFEST_SELECTED_GOVERNANCE",
         "custody_replay_reconstruction_authority": "MASTER_RECORDS",
         "request_grants_authority": False,
         "sdk_executes_lifecycle": False,
@@ -354,9 +354,49 @@ def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any
     return dict(result)
 
 
+def _attachment_failure(request: Mapping[str, Any], failure: str) -> dict[str, Any]:
+    """Report only the SDK's actual attachment boundary, never a downstream verdict."""
+    corrections = {
+        "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED": (
+            "Attach the existing manifest-selected transport ingress; no device discovery."),
+        "TV_TVC_RELAY_AUTHORIZATION_REQUIRED": (
+            "Supply the existing authorized TV/TVC relay credential for this invocation."),
+    }
+    result = {
+        "schema": "stegverse.sdk.manifest-attachment-disposition/v1",
+        "state": "FAIL_CLOSED",
+        "disposition": "FAIL_CLOSED",
+        "evaluation_boundary": "SDK_MANIFEST_TRANSPORT_ATTACHMENT",
+        "failed_predicate": failure,
+        "reason_code": failure,
+        "required_evidence_or_repair": corrections[failure],
+        "retry_entrypoint": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "canonical_task_id": request.get("canonical_task_id"),
+        "request_sha256": request["request_sha256"],
+        "wire_manifest_sha256": request["wire_manifest_sha256"],
+        "canonical_manifest_sha256": request["canonical_manifest_sha256"],
+        "graph_id": request["graph_id"],
+        "processing_capability": request["processing_capability"],
+        "route_id": request["route_id"],
+        "consequence_committed": False,
+        "authentic_governance_disposition_observed": False,
+        "organization_receipt_observed": False,
+        "master_records_reconstruction_observed": False,
+        "evidence_class": "SDK_LOCAL_ATTACHMENT_ATTEMPT",
+        "authority_effect": "NONE",
+    }
+    result["diagnostic_sha256"] = _sha256(result)
+    return result
+
+
 def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     request = derive_execution_request(manifest)
-    result = _post_existing_intr(request)
+    try:
+        result = _post_existing_intr(request)
+    except ValueError as exc:
+        if str(exc) in {"UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED", "TV_TVC_RELAY_AUTHORIZATION_REQUIRED"}:
+            return _attachment_failure(request, str(exc))
+        raise
     checked = validate_runtime_result(result, request)
     if (checked.get("disposition") == "DENY"
             and checked.get("evaluation_boundary") == "SDK_MANIFEST_PROFILE"):
