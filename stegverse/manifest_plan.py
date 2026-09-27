@@ -72,9 +72,4 @@ def verify_plan_lineage(
     plan: Mapping[str, Any],
 ) -> bool:
     expected = derive_execution_plan(manifest, requirements)
-    return (
-        plan.get("source_manifest_sha256") == expected["source_manifest_sha256"]
-        and plan.get("requirements_sha256") == expected["requirements_sha256"]
-        and plan.get("derived_plan_sha256") == expected["derived_plan_sha256"]
-        and plan.get("steps") == expected["steps"]
-    )
+    # Every top-level field is part of the immutable derived-plan contract.\n    # A retained digest alone cannot authenticate an altered sibling field.\n    return dict(plan) == expected
