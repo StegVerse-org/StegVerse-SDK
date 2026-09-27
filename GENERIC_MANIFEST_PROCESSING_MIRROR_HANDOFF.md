@@ -245,3 +245,8 @@ The next bounded slice adds immutable manifest-to-derived-plan lineage. The deri
 ## SDK 1.5 unrelated evaluator evidence packet — 2026-09-27
 
 Owner: `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`; COSV `71000000100110`. The dedicated regression `tests/test_sdk_15_unrelated_evaluator_evidence.py` uses two unrelated installed evaluator capabilities (`native_source_math` and `ecosystem_diagnostic`) with exact distinct route IDs. Four explicit negative controls preserve `REQUIRED_INPUT_PRESENT`, `CAPABILITY_INSTALLED`, `REQUESTED_VERSION_COMPATIBLE`, and `AUTHENTIC_RUNTIME_EVIDENCE_OBSERVED` as failing predicates; a cross-route negative control forbids substitution. Manifest and requirement hashes plus derived-plan digest are independently checked. All results are source-only until exact-head CI and, separately, authentic manifest-directed runtime receipts establish further evidence. This work adds no device, receiver, runtime, scheduler, credential, authority gate, Publisher/TV-TVC authority, or Master Records custody.
+
+
+### SDK 1.5 full-plan integrity repair
+
+Existing owner `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`, COSV `71000000100110`: complete derived-plan equality now rejects altered `execution_authorized`, `runtime_execution_observed`, `route_substitution_permitted`, `source_evidence_ceiling`, schema, and appended forged runtime receipts. The repair preserves source-only evidence and does not claim an original InTr/WorkerCoordinator/organization/Master Records disposition.

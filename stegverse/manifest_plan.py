@@ -72,9 +72,5 @@ def verify_plan_lineage(
     plan: Mapping[str, Any],
 ) -> bool:
     expected = derive_execution_plan(manifest, requirements)
-    return (
-        plan.get("source_manifest_sha256") == expected["source_manifest_sha256"]
-        and plan.get("requirements_sha256") == expected["requirements_sha256"]
-        and plan.get("derived_plan_sha256") == expected["derived_plan_sha256"]
-        and plan.get("steps") == expected["steps"]
-    )
+    # Every field is covered; digest equality alone cannot authenticate siblings.
+    return dict(plan) == expected
