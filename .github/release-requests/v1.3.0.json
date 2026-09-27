@@ -1,0 +1,5 @@
+{
+  "release": "v1.3.0",
+  "commit": "b1376d3e3e3c79b6e996d32766bfd7e41cd0ccc4",
+  "intent": "Create the immutable SDK v1.3.0 tag and GitHub Release, then dispatch the existing PyPI Trusted Publisher workflow."
+}
