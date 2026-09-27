@@ -1117,3 +1117,7 @@ SDK 1.5 source discovery derives its installed-capability matrix from `PUBLISHED
 
 
 SDK 1.5 full derived-plan lineage: `verify_plan_lineage` checks every top-level field against the exact re-derived plan, including authority and evidence boundaries; a matching retained digest cannot legitimize forged sibling fields or appended runtime receipts. Source verification does not establish authentic runtime execution.
+
+## SDK 1.5 unpublished-runtime qualification correction (source candidate)
+
+Published route identity alone does not establish an installed runtime binding. SDK 1.5 qualification returns `UNSUPPORTED` with `RUNTIME_BINDING_INSTALLED` when the exact published route has `runtime_installed=false`, retains the matched source declaration for diagnosis, and creates no executable adaptation. The focused unrelated-evaluator test injects this negative route condition without altering canonical route declarations. This is source-only and not authentic runtime evidence.
