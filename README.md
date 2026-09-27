@@ -1,3 +1,7 @@
+## SDK public wiki observer maintenance (2026-09-27)
+
+Existing [issue #361](https://github.com/StegVerse-org/StegVerse-SDK/issues/361) corrects case-specific public origins while retaining SDK-origin and destination-marker checks. [Current evidence and completion criteria](docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md) distinguish public observation from sovereign runtime execution.
+
 # StegVerse SDK
 
 ## Worker-cost evidence qualification (source-only candidate, 2026-09-26)
