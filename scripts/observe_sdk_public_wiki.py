@@ -7,29 +7,50 @@ import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import urlsplit
 
 CASES = [
     {
+        "id": "SDK_PUBLIC_ROOT_OBSERVED",
+        "url": "https://sdk.stegverse.org/",
+        "expected_origin": "https://sdk.stegverse.org",
+        "markers": ["StegVerse SDK Developer Wiki", "Machine-readable provenance"],
+    },
+    {
+        "id": "SDK_PUBLIC_SOURCE_MANIFEST_OBSERVED",
+        "url": "https://sdk.stegverse.org/wiki-source-manifest.json",
+        "expected_origin": "https://sdk.stegverse.org",
+        "markers": ['"schema": "stegverse.sdk-public-developer-wiki-source-manifest/v1"', '"source_repository": "StegVerse-org/StegVerse-SDK"'],
+    },
+    {
         "id": "SDK_PUBLIC_SCHEMA_PAGE_OBSERVED",
         "url": "https://sdk.stegverse.org/source/schemas/stegverse.ingress-manifest.v1.schema.json",
+        "expected_origin": "https://sdk.stegverse.org",
         "markers": ['"title": "StegVerse ingress manifest v1"', '"manifest_profile"'],
     },
     {
         "id": "SDK_PUBLIC_EXAMPLE_PAGE_OBSERVED",
         "url": "https://sdk.stegverse.org/source/inspection/examples/external-framework-generic-manifest.json",
+        "expected_origin": "https://sdk.stegverse.org",
         "markers": ['"source_framework": "ELAN"', '"manifest_profile": "stegverse.ingress-manifest.v1"'],
     },
     {
         "id": "SDK_PUBLIC_RECEIPT_NAVIGATION_PAGE_OBSERVED",
         "url": "https://sdk.stegverse.org/source/docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
+        "expected_origin": "https://sdk.stegverse.org",
         "markers": ["Manifest Receipt Navigation Mirror Handoff", "manifest_receipt_id"],
     },
     {
         "id": "SITE_SDK_PUBLIC_WIKI_LINK_OBSERVED",
         "url": "https://stegverse.org/wikis.html",
+        "expected_origin": "https://stegverse.org",
         "markers": ["StegVerse SDK Developer Wiki", "https://sdk.stegverse.org/"],
     },
 ]
+
+def origin(url: str) -> str:
+    parts = urlsplit(url)
+    return f"{parts.scheme}://{parts.netloc}"
 
 def fetch(case: dict[str, object]) -> dict[str, object]:
     req = urllib.request.Request(
@@ -43,12 +64,14 @@ def fetch(case: dict[str, object]) -> dict[str, object]:
     result = {
         "id": case["id"],
         "url": case["url"],
+        "expected_origin": case["expected_origin"],
         "http_status": None,
         "final_url": None,
         "content_type": None,
         "sha256": None,
         "bytes": 0,
         "markers": {},
+        "origin_match": False,
         "passed": False,
         "error": None,
     }
@@ -73,7 +96,13 @@ def fetch(case: dict[str, object]) -> dict[str, object]:
     result["sha256"] = hashlib.sha256(body).hexdigest() if body else None
     marker_results = {m: (m in text) for m in case["markers"]}
     result["markers"] = marker_results
-    result["passed"] = result["http_status"] == 200 and all(marker_results.values())
+    final_url = str(result["final_url"] or "")
+    result["origin_match"] = bool(final_url) and origin(final_url) == str(case["expected_origin"])
+    result["passed"] = (
+        result["http_status"] == 200
+        and bool(result["origin_match"])
+        and all(marker_results.values())
+    )
     return result
 
 def main() -> int:
