@@ -1118,7 +1118,11 @@ SDK 1.5 source discovery derives its installed-capability matrix from `PUBLISHED
 
 SDK 1.5 full derived-plan lineage: `verify_plan_lineage` checks every top-level field against the exact re-derived plan, including authority and evidence boundaries; a matching retained digest cannot legitimize forged sibling fields or appended runtime receipts. Source verification does not establish authentic runtime execution.
 
+## SDK 1.5 unpublished-runtime qualification correction (source candidate)
 
-## SDK 1.5 source evidence packets (non-authorizing)
+Published route identity alone does not establish an installed runtime binding. SDK 1.5 qualification returns `UNSUPPORTED` with `RUNTIME_BINDING_INSTALLED` when the exact published route has `runtime_installed=false`, retains the matched source declaration for diagnosis, and creates no executable adaptation. The focused unrelated-evaluator test injects this negative route condition without altering canonical route declarations. This is source-only and not authentic runtime evidence.
 
-`stegverse/source_evidence_packet.py` deterministically binds the complete installed-capability qualification, original manifest SHA-256, requirement-order-sensitive derived-plan SHA-256 and actionable per-requirement non-ALLOW predicates/corrections. `verify_source_evidence_packet` independently reconstructs every field and rejects injected authority or runtime receipts. These source-only artifacts do not attest InTr admission, WorkerCoordinator execution, organization/Master Records custody or authentic runtime observation. The existing manifest selects the exact route; no route substitution, additional device, receiver, credential, scheduler or runtime is introduced. SDK 1.3 RC, 1.4 dev, Publisher and TV/TVC release boundaries are unchanged.
+
+### SDK 1.5 deterministic source evidence packets
+
+`stegverse.source_evidence_packet.build_source_evidence_packet` binds a nonempty, uniquely identified multi-condition requirement set and exact evaluator ID to the existing immutable manifest-derived plan. Each condition retains its own qualification disposition, failed predicate, exact matched route and bounded adaptation, or a source-only runtime-probe requirement. The packet has independent canonical SHA-256 and complete equality verification; regression tests cover unrelated native-math and ecosystem-diagnostic evaluators, four non-supported negative controls, mutated lineage and forged authority/receipt fields. Source qualification is **not** InTr ALLOW, worker execution, organization custody or Master Records proof.
