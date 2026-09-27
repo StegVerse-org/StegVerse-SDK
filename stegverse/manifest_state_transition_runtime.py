@@ -100,7 +100,7 @@ def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "predecessor_closure_required": True,
         "credential_authority": "TV/TVC",
         "claim_fence_authority": "WORKERCOORDINATOR",
-        "transition_authority": "MANIFEST_SELECTED_GOVERNANCE",
+        "transition_authority": "INTERLOCK_INTR",
         "custody_replay_reconstruction_authority": "MASTER_RECORDS",
         "request_grants_authority": False,
         "sdk_executes_lifecycle": False,
