@@ -72,4 +72,6 @@ def verify_plan_lineage(
     plan: Mapping[str, Any],
 ) -> bool:
     expected = derive_execution_plan(manifest, requirements)
-    # Every top-level field is part of the immutable derived-plan contract.\n    # A retained digest alone cannot authenticate an altered sibling field.\n    return dict(plan) == expected
+    # Every top-level field is part of the immutable derived-plan contract.
+    # A retained digest alone cannot authenticate an altered sibling field.
+    return dict(plan) == expected
