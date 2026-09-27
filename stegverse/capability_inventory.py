@@ -82,6 +82,11 @@ def qualify_requirements(
             else:
                 matched = candidates[0]
 
+        if disposition == "SUPPORTED" and matched is not None and not matched["runtime_installed"]:
+            disposition = "UNSUPPORTED"
+            predicate = "RUNTIME_BINDING_INSTALLED"
+            correction = {"install_declared_runtime_binding": matched["route_id"]}
+
         if disposition == "SUPPORTED" and req.get("version_compatible") is False:
             disposition = "VERSION_INCOMPATIBLE"
             predicate = "REQUESTED_VERSION_COMPATIBLE"
