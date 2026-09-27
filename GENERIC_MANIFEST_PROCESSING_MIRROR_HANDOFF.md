@@ -250,3 +250,8 @@ Owner: `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`; COSV `71000000100110`. Th
 ### SDK 1.5 full-plan integrity repair
 
 Existing owner `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`, COSV `71000000100110`: complete derived-plan equality now rejects altered `execution_authorized`, `runtime_execution_observed`, `route_substitution_permitted`, `source_evidence_ceiling`, schema, and appended forged runtime receipts. The repair preserves source-only evidence and does not claim an original InTr/WorkerCoordinator/organization/Master Records disposition.
+
+
+## SDK 1.5 source evidence packets (non-authorizing)
+
+`stegverse/source_evidence_packet.py` deterministically binds the complete installed-capability qualification, original manifest SHA-256, requirement-order-sensitive derived-plan SHA-256 and actionable per-requirement non-ALLOW predicates/corrections. `verify_source_evidence_packet` independently reconstructs every field and rejects injected authority or runtime receipts. These source-only artifacts do not attest InTr admission, WorkerCoordinator execution, organization/Master Records custody or authentic runtime observation. The existing manifest selects the exact route; no route substitution, additional device, receiver, credential, scheduler or runtime is introduced. SDK 1.3 RC, 1.4 dev, Publisher and TV/TVC release boundaries are unchanged.
