@@ -266,3 +266,8 @@ Existing owner `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`, COSV `71000000100
 ## SDK 1.5 deterministic multi-condition source evidence packet — 2026-09-27
 
 Canonical owner `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`, COSV `71000000100110`. `stegverse/source_evidence_packet.py` binds evaluator identity, nonempty unique requirement IDs, original manifest and requirement digests, full derived-plan digest, individual source qualification dispositions and predicates, exact route/adaptation and packet digest. `verify_source_evidence_packet` reconstructs and compares the entire packet; tests reject forged authority, runtime receipt and modified source/requirements. The packet is explicitly non-authorizing, requires no connected device, scheduler, runtime, credential or additional custody system, and does not substitute for original InTr/WorkerCoordinator/organization/Master Records evidence. CI tests this source-only contract independently of authenticated runtime observation.
+
+
+### PR #374 reconciliation after merged #375
+
+The multi-condition source evidence packet implementation and evaluator-bound API are owned by merged SDK PR #375. The sole distinct #374 obligation retained on current main is the requirement-order lineage negative control in `tests/test_manifest_plan.py`; it rejects a reordered requirement set against a previously derived plan. The historical #374 commits remain in the merge ancestry, but its older duplicate evidence-packet module and tests must not replace the merged #375 API. This is source-only validation and claims no original InTr, WorkerCoordinator, organization or Master Records runtime receipt.
