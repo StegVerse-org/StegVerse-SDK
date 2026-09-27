@@ -1,3 +1,7 @@
+## 2026-09-27 observer remediation under existing owner
+
+Existing remediation issue #361 and PR #363 correct the observer origin predicate: SDK resources require `https://sdk.stegverse.org`, while the Site directory requires `https://stegverse.org` plus the expected SDK destination marker. Three focused unit tests pass, including cross-origin redirect refusal. Exact source head `8612b67e99664bfec47ee7092bb865f6dec4677a` hosted observation run `36321643330` succeeded. These are public-web observations and synthetic origin controls, not sovereign runtime dispositions. Canonical Registry generation 260 retains SDK-PUBLIC-DEVELOPER-WIKI-001 as RETIRED/COMPLETED; this repair does not reopen or mint task authority. Completion of this repair requires current-head CI, merge readback and post-merge public observation.
+
 # SDK Public Developer Wiki Mirror Handoff
 
 Updated: 2026-09-21

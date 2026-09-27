@@ -1,3 +1,7 @@
+## SDK public wiki observer maintenance (2026-09-27)
+
+Existing [issue #361](https://github.com/StegVerse-org/StegVerse-SDK/issues/361) corrects case-specific public origins while retaining SDK-origin and destination-marker checks. [Current evidence and completion criteria](docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md) distinguish public observation from sovereign runtime execution.
+
 # StegVerse SDK
 
 ## Worker-cost evidence qualification (source-only candidate, 2026-09-26)
@@ -1100,6 +1104,12 @@ The SDK public wiki is a version-bound projection of canonical SDK source. Every
 
 `stegverse.worker_lifecycle_qualifier` delegates the five-component lifetime calculation to `purpose_bound_worker_cost_demo._sum_budget`. Missing or partial task estimates and claimed-lifetime mismatches are non-derivable; qualification never grants runtime authority. `python -m unittest tests.test_worker_lifecycle_qualifier` tests the contract. This is distinct from the six-component monetary evidence qualifier.
 
+
+## SDK 1.5 source capability qualification and derived-plan lineage
+
+SDK 1.5 source discovery derives its installed-capability matrix from `PUBLISHED_ROUTES`; it does not maintain a second hard-coded capability registry. Per-requirement qualification returns one of `SUPPORTED`, `MISSING_INPUT`, `UNSUPPORTED`, `PROBE_REQUIRED`, or `VERSION_INCOMPATIBLE` with an explicit failing predicate for every non-supported result. Qualification is non-authorizing: source installation is not runtime admission, route substitution is forbidden, and authentic runtime evidence remains a separate manifest-directed transition.
+
+`stegverse.manifest_plan.derive_execution_plan(...)` binds the original manifest SHA-256, the exact requirement-set SHA-256, per-requirement qualification results, and bounded exact-route adaptation into an immutable derived-plan digest. A changed manifest, changed requirements, or changed derived steps fails lineage verification. A derived plan never grants authority, executes work, or upgrades source evidence into an observed InTr/WorkerCoordinator/Master Records result.
 
 ### SDK 1.5 unrelated evaluator source evidence
 

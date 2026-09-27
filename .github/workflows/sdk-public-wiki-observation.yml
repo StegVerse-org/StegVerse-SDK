@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "scripts/observe_sdk_public_wiki.py"
+      - "tests/test_observe_sdk_public_wiki.py"
       - ".github/workflows/sdk-public-wiki-observation.yml"
       - "docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md"
       - "README.md"
@@ -17,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Validate public wiki origin binding contract
+        run: python -m unittest tests.test_observe_sdk_public_wiki -v
       - name: Fetch deployed public resources and verify served bodies
         run: python scripts/observe_sdk_public_wiki.py
       - name: Upload public observation report

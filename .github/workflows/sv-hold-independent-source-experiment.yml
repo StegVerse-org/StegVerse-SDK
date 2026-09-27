@@ -37,6 +37,7 @@ jobs:
           print('SV_HOLD_SOURCE_ONLY_PASS_AUTHENTIC_RUNTIME_UNOBSERVED')
           PY
       - name: Upload exact independent source, manifests, derived requests and refusal evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sv-independent-hold-source-qualification
