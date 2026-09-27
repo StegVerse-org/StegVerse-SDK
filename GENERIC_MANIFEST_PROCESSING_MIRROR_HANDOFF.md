@@ -245,3 +245,7 @@ The next bounded slice adds immutable manifest-to-derived-plan lineage. The deri
 ### SDK 1.5 complete derived-plan integrity correction
 
 The source-only `verify_plan_lineage()` verifier compares the complete reconstructed derived plan, rather than only the manifest/requirements/plan digests and `steps`. A retained digest must not conceal altered `execution_authorized`, `runtime_execution_observed`, `route_substitution_permitted`, `source_evidence_ceiling`, `schema`, or added forged receipt fields. Dedicated regressions reject each mutation. This correction follows merged SDK PR #362 under its existing SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005 owner; it adds no runtime authority or original execution evidence.
+
+### Exact-head CI compatibility with merged manifest attachment dispositions
+
+Merged SDK #365 returns a source-local `FAIL_CLOSED` attachment disposition for missing Universal InTr configuration instead of raising `ValueError`. The four held-out ecosystem diagnostic tests now assert `evaluation_boundary=SDK_MANIFEST_TRANSPORT_ATTACHMENT`, `failed_predicate=UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED`, and false original governance, organization and Master Records observation flags. This repairs a source-only CI expectation, not a real InTr denial or runtime receipt.
