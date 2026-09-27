@@ -250,3 +250,7 @@ Owner: `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`; COSV `71000000100110`. Th
 ### SDK 1.5 full-plan integrity repair
 
 Existing owner `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`, COSV `71000000100110`: complete derived-plan equality now rejects altered `execution_authorized`, `runtime_execution_observed`, `route_substitution_permitted`, `source_evidence_ceiling`, schema, and appended forged runtime receipts. The repair preserves source-only evidence and does not claim an original InTr/WorkerCoordinator/organization/Master Records disposition.
+
+## SDK 1.5 published-but-uninstalled runtime qualification — 2026-09-27
+
+Existing owner `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`, COSV `71000000100110`. The `fix/sdk15-uninstalled-route-qualification` source candidate corrects a discrepancy between SDK 1.5 capability qualification and `resolve_route_declaration`: published exact route entries with `runtime_installed=false` previously qualified `SUPPORTED`, even though the canonical route resolver rejects them. Such rows now return `UNSUPPORTED`, predicate `RUNTIME_BINDING_INSTALLED`, no adaptation; an isolated regression temporarily substitutes an uninstalled native-math route and checks plan lineage. Preserve independent exact-head CI, review and expected-head merge. No authentic runtime disposition or new route authority claimed.
