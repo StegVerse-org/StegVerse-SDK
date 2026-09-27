@@ -9,12 +9,16 @@ on:
       - "docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md"
       - "README.md"
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Publish SDK Developer Wiki"]
+    types: [completed]
 
 permissions:
   contents: read
 
 jobs:
   observe:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
