@@ -1121,3 +1121,8 @@ SDK 1.5 full derived-plan lineage: `verify_plan_lineage` checks every top-level 
 ## SDK 1.5 unpublished-runtime qualification correction (source candidate)
 
 Published route identity alone does not establish an installed runtime binding. SDK 1.5 qualification returns `UNSUPPORTED` with `RUNTIME_BINDING_INSTALLED` when the exact published route has `runtime_installed=false`, retains the matched source declaration for diagnosis, and creates no executable adaptation. The focused unrelated-evaluator test injects this negative route condition without altering canonical route declarations. This is source-only and not authentic runtime evidence.
+
+
+### SDK 1.5 deterministic source evidence packets
+
+`stegverse.source_evidence_packet.build_source_evidence_packet` binds a nonempty, uniquely identified multi-condition requirement set and exact evaluator ID to the existing immutable manifest-derived plan. Each condition retains its own qualification disposition, failed predicate, exact matched route and bounded adaptation, or a source-only runtime-probe requirement. The packet has independent canonical SHA-256 and complete equality verification; regression tests cover unrelated native-math and ecosystem-diagnostic evaluators, four non-supported negative controls, mutated lineage and forged authority/receipt fields. Source qualification is **not** InTr ALLOW, worker execution, organization custody or Master Records proof.
