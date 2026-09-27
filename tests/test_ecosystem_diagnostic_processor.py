@@ -246,10 +246,13 @@ class HeldOutManifestedReadinessSourceOnly(unittest.TestCase):
                 result = execute_manifest(manifest)
                 self.assertEqual(result["results"][0]["observation_state"], "NOT_OBSERVED")
                 with patch.dict("os.environ", {INGRESS_URL_ENV: ""}):
-                    with self.assertRaisesRegex(
-                        ValueError, "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED"
-                    ):
-                        sdk_run_manifest(manifest)
+                    attachment = sdk_run_manifest(manifest)
+                self.assertEqual(attachment["disposition"], "FAIL_CLOSED")
+                self.assertEqual(attachment["evaluation_boundary"], "SDK_MANIFEST_TRANSPORT_ATTACHMENT")
+                self.assertEqual(attachment["failed_predicate"], "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED")
+                self.assertFalse(attachment["authentic_governance_disposition_observed"])
+                self.assertFalse(attachment["organization_receipt_observed"])
+                self.assertFalse(attachment["master_records_reconstruction_observed"])
                 self.assertFalse(result["mutation_performed"])
                 self.assertEqual(result["authority_effect"], "NONE_DIAGNOSTIC_ONLY")
                 self.assertFalse(result["continuity_state_present"])
