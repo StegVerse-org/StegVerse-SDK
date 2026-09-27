@@ -76,3 +76,29 @@ def test_plan_tampering_breaks_lineage():
     tampered = deepcopy(plan)
     tampered["steps"] = tuple()
     assert verify_plan_lineage(manifest, reqs, tampered) is False
+
+
+def test_top_level_plan_tampering_breaks_lineage_without_digest_change():
+    manifest = {"payload": "a"}
+    reqs = [{"requirement_id": "m8", "capability_id": "native_source_math"}]
+    plan = derive_execution_plan(manifest, reqs)
+    for field, replacement in (
+        ("execution_authorized", True),
+        ("runtime_execution_observed", True),
+        ("route_substitution_permitted", True),
+        ("source_evidence_ceiling", "AUTHENTIC_RUNTIME"),
+        ("schema", "forged-schema"),
+    ):
+        tampered = deepcopy(plan)
+        tampered[field] = replacement
+        assert tampered["derived_plan_sha256"] == plan["derived_plan_sha256"]
+        assert verify_plan_lineage(manifest, reqs, tampered) is False
+
+
+def test_added_top_level_plan_field_breaks_lineage():
+    manifest = {"payload": "a"}
+    reqs = [{"requirement_id": "m9", "capability_id": "native_source_math"}]
+    plan = derive_execution_plan(manifest, reqs)
+    tampered = deepcopy(plan)
+    tampered["forged_runtime_receipt"] = {"disposition": "ALLOW"}
+    assert verify_plan_lineage(manifest, reqs, tampered) is False
