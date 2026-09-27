@@ -258,3 +258,8 @@ Existing owner `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`, COSV `71000000100
 ### CI repair on PR #372
 
 Exact-head `df19dad7d620acbaf53a33a87c9248ad56569c57` produced 11 successful workflows and one failed Evaluator Manifest Source Validation run `36341683461`: bundled pytest-compatible runner rejected the new test's `monkeypatch` fixture (`unsupported test fixture: monkeypatch`), 12 other targeted tests passed. Repair commit `dd87062f7ffe56ecec1b2fa09e1b403051961e55` replaces the unsupported fixture with standard-library `unittest.mock.patch.dict`, retaining the negative control. Fresh exact-head CI and applicable independent review remain pending; no merge or runtime authority claimed.
+
+
+## SDK 1.5 deterministic multi-condition source evidence packet — 2026-09-27
+
+Canonical owner `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`, COSV `71000000100110`. `stegverse/source_evidence_packet.py` binds evaluator identity, nonempty unique requirement IDs, original manifest and requirement digests, full derived-plan digest, individual source qualification dispositions and predicates, exact route/adaptation and packet digest. `verify_source_evidence_packet` reconstructs and compares the entire packet; tests reject forged authority, runtime receipt and modified source/requirements. The packet is explicitly non-authorizing, requires no connected device, scheduler, runtime, credential or additional custody system, and does not substitute for original InTr/WorkerCoordinator/organization/Master Records evidence. CI tests this source-only contract independently of authenticated runtime observation.
