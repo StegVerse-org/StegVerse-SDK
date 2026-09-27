@@ -93,3 +93,13 @@ def test_full_plan_lineage_rejects_forged_authority_and_receipt():
     forged = deepcopy(original)
     forged["forged_runtime_receipt"] = {"disposition": "ALLOW"}
     assert not verify_plan_lineage(manifest, reqs, forged)
+
+
+def test_requirement_order_is_lineage_bound_for_backwards_compatibility():
+    manifest = {"payload": "stable"}
+    requirements = [
+        {"requirement_id": "a", "capability_id": "native_source_math"},
+        {"requirement_id": "b", "capability_id": "ecosystem_diagnostic"},
+    ]
+    plan = derive_execution_plan(manifest, requirements)
+    assert verify_plan_lineage(manifest, list(reversed(requirements)), plan) is False
