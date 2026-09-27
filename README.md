@@ -1099,3 +1099,8 @@ The SDK public wiki is a version-bound projection of canonical SDK source. Every
 ### Task-native worker lifecycle qualifier
 
 `stegverse.worker_lifecycle_qualifier` delegates the five-component lifetime calculation to `purpose_bound_worker_cost_demo._sum_budget`. Missing or partial task estimates and claimed-lifetime mismatches are non-derivable; qualification never grants runtime authority. `python -m unittest tests.test_worker_lifecycle_qualifier` tests the contract. This is distinct from the six-component monetary evidence qualifier.
+
+
+### SDK 1.5 unrelated evaluator source evidence
+
+`tests/test_sdk_15_unrelated_evaluator_evidence.py` exercises two independent installed capability/route bindings: `native_source_math` through `stegverse.route.source-native-math.v1` and `ecosystem_diagnostic` through `stegverse.route.ecosystem-diagnostic.v1`. It binds both to one immutable manifest-derived plan and tests four distinct non-supported source qualifications (`MISSING_INPUT`, `UNSUPPORTED`, `VERSION_INCOMPATIBLE`, `PROBE_REQUIRED`) plus cross-route non-substitution. These tests demonstrate source contract behavior only; no InTr admission, worker execution, organization receipt, or Master Records custody is inferred.
