@@ -76,3 +76,33 @@ def test_manifest_digest_changes_when_original_manifest_changes():
     a = qualify_requirements({"payload": "a"}, [])
     b = qualify_requirements({"payload": "b"}, [])
     assert a["manifest_sha256"] != b["manifest_sha256"]
+
+
+def test_multi_condition_failure_is_deterministic_actionable_and_non_adapting():
+    """Missing input is the first locally correctable predicate; no route is invented."""
+    out = qualify_requirements({}, [{
+        "requirement_id": "multi-failure",
+        "capability_id": "not_installed",
+        "route_id": "stegverse.route.not-installed.v1",
+        "required_inputs": ["source"],
+        "version_compatible": False,
+        "authentic_runtime_evidence_required": True,
+    }])
+    row = out["results"][0]
+    assert row["disposition"] == "MISSING_INPUT"
+    assert row["failed_predicate"] == "REQUIRED_INPUT_PRESENT"
+    assert row["permitted_correction"] == {"supply_inputs": ["source"]}
+    assert row["matched"] is None
+    assert out["execution_authorized"] is False
+    assert out["route_substitution_permitted"] is False
+
+
+def test_qualification_keeps_legacy_result_keys_for_backwards_compatibility():
+    row = qualify_requirements({}, [{
+        "requirement_id": "compat",
+        "capability_id": "native_source_math",
+    }])["results"][0]
+    assert set(row) == {
+        "requirement_id", "capability_id", "requested_route_id", "disposition",
+        "failed_predicate", "matched", "permitted_correction",
+    }
