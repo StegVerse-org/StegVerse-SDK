@@ -153,3 +153,14 @@ processor-generic correction merge state: COMPLETE
 ```
 
 The SDK builder remains the simple user-facing façade while `stegverse.ingress-manifest.v1` is structurally processor-generic beneath it. Actual governance execution still depends on the complete governance request and existing sovereign runtime/custody path; the builder does not fabricate either.
+
+
+## Manifest-time capability resolution — 2026-09-28
+
+Manifest intake no longer equates "not installed" with terminal unsupported input. The requested processing capability is classified before route construction:
+
+- ONLINE: installed admitted route exists; build the normal canonical manifest and continue to run-manifest.
+- OFFLINE: capability is known but its route/runtime is unavailable; emit an active workaround-selection contract with solution_required=true and preserve the original processor request. This follows the ecosystem blocker-resolution invariant: unavailability is a solution-selection transition, not permission to wait.
+- UNKNOWN_CAPABILITY: no known capability binding exists; emit a user-requested capability-development/deployment request that first discovers an existing equivalent, otherwise defines the capability/profile contract, develops it within existing SDK authority, validates/deploys it through existing release authority, and retries the original user request.
+
+Classification and development requests grant no execution, credential, deployment, or transition authority. Actual deployment remains governed by the existing owners/TV-TVC/release path. The original user request is retained as the obligation being resolved.
