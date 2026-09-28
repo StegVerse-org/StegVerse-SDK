@@ -29,7 +29,14 @@ def candidate():
         "source_sha256": hashlib.sha256(SOURCE).hexdigest(),
         "source_git_blob_sha": hashlib.sha1(b"blob " + str(len(SOURCE)).encode() + bytes([0]) + SOURCE).hexdigest(),
         "editorial_owner_approved": True,
-        "review_policy": {\n            "mode": "RESEARCH_PUBLICATION_WITH_DISCLOSED_UNVERIFIED_EXTERNAL_REVIEW",\n            "policy_ref": "GCAT-BCAT-Engine/Publisher:docs/ENTITY_ECONOMY_VOLUME_III_INDEPENDENT_REVIEW_PACKET.md#2026-09-28-owner-policy-disposition",\n            "external_review_claimed": False,\n            "owner_attested_convergence": True,\n            "economics_report_sha256": None,\n            "legal_report_sha256": None,\n        },
+        "review_policy": {
+            "mode": "RESEARCH_PUBLICATION_WITH_DISCLOSED_UNVERIFIED_EXTERNAL_REVIEW",
+            "policy_ref": "GCAT-BCAT-Engine/Publisher:docs/ENTITY_ECONOMY_VOLUME_III_INDEPENDENT_REVIEW_PACKET.md#2026-09-28-owner-policy-disposition",
+            "external_review_claimed": False,
+            "owner_attested_convergence": True,
+            "economics_report_sha256": None,
+            "legal_report_sha256": None,
+        },
         "publication_executed": False,
         "authority_effect": "NONE",
     }
