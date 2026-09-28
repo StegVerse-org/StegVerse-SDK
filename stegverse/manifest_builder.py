@@ -270,6 +270,9 @@ def build_manifest(
     elif normalized_process == "svg_governance_cycle":
         normalized_request = validate_svg_governance_cycle_request(processor_request)
         extensions[SVG_GOVERNANCE_CYCLE_REQUEST_EXTENSION] = normalized_request
+    elif normalized_process == "stegbrowser":
+        normalized_request = validate_stegbrowser_request(processor_request)
+        extensions[STEGBROWSER_REQUEST_EXTENSION] = normalized_request
     else:
         raise ValueError(f"processing capability {normalized_process!r} has no builder binding")
 
