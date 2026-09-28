@@ -17,6 +17,7 @@ from .ecosystem_diagnostic_runtime import REQUEST_EXTENSION, validate_diagnostic
 from .purpose_bound_worker_processor import REQUEST_EXTENSION as PURPOSE_BOUND_WORKER_REQUEST_EXTENSION, validate_purpose_bound_worker_request
 from .atomic_task_worker_processor import REQUEST_EXTENSION as ATOMIC_TASK_WORKER_REQUEST_EXTENSION, validate_atomic_task_worker_request
 from .svg_governance_cycle_processor import REQUEST_EXTENSION as SVG_GOVERNANCE_CYCLE_REQUEST_EXTENSION, validate_svg_governance_cycle_request
+from .stegbrowser_processor import REQUEST_EXTENSION as STEGBROWSER_REQUEST_EXTENSION, validate_stegbrowser_request
 from .governance_navigation import INGRESS_PROFILE, canonical_sha256
 from .governance_reference_graph import (
     EXTENSION_KEY as GOVERNANCE_REFERENCE_GRAPH_EXTENSION,
@@ -29,6 +30,7 @@ from .route_resolution import (
     PURPOSE_BOUND_WORKER_ROUTE_ID,
     ATOMIC_TASK_WORKER_ROUTE_ID,
     SVG_GOVERNANCE_CYCLE_ROUTE_ID,
+    STEGBROWSER_ROUTE_ID,
     PUBLISHED_ROUTES,
 )
 
@@ -38,6 +40,7 @@ PROCESSOR_ROUTES = {
     "purpose_bound_worker": PURPOSE_BOUND_WORKER_ROUTE_ID,
     "atomic_task_worker": ATOMIC_TASK_WORKER_ROUTE_ID,
     "svg_governance_cycle": SVG_GOVERNANCE_CYCLE_ROUTE_ID,
+    "stegbrowser": STEGBROWSER_ROUTE_ID,
 }
 
 GOVERNANCE_REQUEST_FIELDS = (
@@ -267,6 +270,9 @@ def build_manifest(
     elif normalized_process == "svg_governance_cycle":
         normalized_request = validate_svg_governance_cycle_request(processor_request)
         extensions[SVG_GOVERNANCE_CYCLE_REQUEST_EXTENSION] = normalized_request
+    elif normalized_process == "stegbrowser":
+        normalized_request = validate_stegbrowser_request(processor_request)
+        extensions[STEGBROWSER_REQUEST_EXTENSION] = normalized_request
     else:
         raise ValueError(f"processing capability {normalized_process!r} has no builder binding")
 

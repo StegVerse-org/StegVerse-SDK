@@ -1130,3 +1130,14 @@ Published route identity alone does not establish an installed runtime binding. 
 ## SVG governance-cycle manifest route
 
 The SDK publishes `svg_governance_cycle` as a manifest processing capability on `stegverse.route.svg-governance-cycle.v1`. The route is bound to the existing canonical coordination owner `STEGVERSE-CANONICAL-WORK-COORDINATION-001` and COSV `10100000100000`; it derives a Universal InTr state-transition graph and does not mint a new SVG task, WorkerCoordinator claim/fence, credential, admission, consequence, organization receipt, or Master Records closure. Runtime completion requires the original request-bound InTr disposition and predecessor-linked custody reconstruction.
+
+
+## StegBrowser LLM profile through run-manifest (SDK 1.4 development)
+
+The generic Manifest Builder accepts `--process stegbrowser` for the published
+`stegverse.route.stegbrowser.v1` route. StegBrowser is the capability and
+`llm.v1` is the interaction profile. The route uses the same public
+`stegverse run-manifest` dispatcher as other manifested SDK processors; the
+manifest selects the profile request and journey, not a test-specific executor.
+Authentic execution remains subject to the existing Universal InTr,
+WorkerCoordinator, Organization Records, and Master Records transition path.

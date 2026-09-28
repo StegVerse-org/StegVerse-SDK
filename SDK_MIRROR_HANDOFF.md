@@ -632,3 +632,25 @@ Branch: `fix/worker-cost-evidence-qualification-20260926`. Added `stegverse/work
 ## Task-native worker lifecycle qualifier — 2026-09-26
 
 SDK PR #359 introduces the original staged five-component task-native worker lifecycle qualifier, delegating to the SDK's existing `_sum_budget`, with source-only tests and README. Distinct from the six-component monetary evidence qualifier in merged PR #358. No task-native estimates for the 162 missing records, canonical Free-tier registration, or authentic runtime evidence are implied. Verify exact-head CI before merging.
+
+
+## Test 5 StegBrowser / llm.v1 generic run-manifest binding — 2026-09-28
+
+Canonical consumer: `EPHEMERAL-STEGBROWSER-EXTERNAL-AI-ACTIVATION-001`.
+The SDK generic Manifest Builder now publishes `stegbrowser` on
+`stegverse.route.stegbrowser.v1`, with StegBrowser as the capability and
+`llm.v1` as the manifested interaction profile. The route uses the existing
+`stegverse run-manifest` -> Universal InTr runtime; no Test-5-specific runner,
+scheduler, transport, ledger, device or authority plane is introduced.
+
+The adapter derives the Test 5 two-leg/four-endpoint-receipt journey and requires
+the canonical post-disposition custody order Organization Records -> Master
+Records before successor evaluation. Two evaluator manifests vary their marker,
+journey and source payload while using the same generic executor.
+
+A source run without attached Universal InTr returns the existing typed
+`FAIL_CLOSED / UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED` attachment disposition.
+That is an SDK attachment attempt, not Test 5's authentic InTr outcome. Authentic
+Test 5 completion requires the existing InTr/StegBrowser/provider path to return
+the governed transition, endpoint receipts, organization recording and Master
+Records reconstruction.

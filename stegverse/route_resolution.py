@@ -23,6 +23,7 @@ CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID = "stegverse.route.customer-local-governed.v1
 NATIVE_SOURCE_MATH_ROUTE_ID = "stegverse.route.source-native-math.v1"
 SHWP_SOVEREIGN_INFERENCE_ROUTE_ID = "stegverse.route.shwp-sovereign-inference.v1"
 SVG_GOVERNANCE_CYCLE_ROUTE_ID = "stegverse.route.svg-governance-cycle.v1"
+STEGBROWSER_ROUTE_ID = "stegverse.route.stegbrowser.v1"
 
 _ROUTE_FIELDS = (
     "route_id",
@@ -35,6 +36,18 @@ _ROUTE_FIELDS = (
 _ROUTE_MATCH_FIELDS = tuple(field for field in _ROUTE_FIELDS if field != "route_id")
 
 PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
+    STEGBROWSER_ROUTE_ID: {
+        "route_id": STEGBROWSER_ROUTE_ID,
+        "processor_capability": "stegbrowser",
+        "lane_class": "MANIFEST_BOUND_EPHEMERAL_BROWSER",
+        "routing_surface": "EXISTING_UNIVERSAL_INTR",
+        "containment": "EXISTING_STEGBROWSER_RUNTIME_OWNER",
+        "sandbox_required": False,
+        "external_consequence_enabled": True,
+        "state_graph_adapter_binding": "stegverse.stegbrowser_processor.derive_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "runtime_installed": True,
+    },
     SVG_GOVERNANCE_CYCLE_ROUTE_ID: {
         "route_id": SVG_GOVERNANCE_CYCLE_ROUTE_ID,
         "processor_capability": "svg_governance_cycle",
