@@ -70,34 +70,20 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         self.assertEqual(manifest["processing"]["route_id"], PURPOSE_BOUND_WORKER_ROUTE_ID)
         graph = derive_state_graph(manifest)
         self.assertEqual(graph["canonical_task_id"], "SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001")
+        self.assertFalse(graph["adapter_executes_lifecycle"])
         result = execute_manifest(manifest)
+        # Public run-manifest must enter the governed Universal InTr path. Isolated
+        # source CI intentionally has no resident endpoint; local semantic execution
+        # remains available only as a non-authorizing processor fixture.
+        self.assertEqual(result["schema"], "stegverse.sdk.manifest-attachment-disposition/v1")
+        self.assertEqual(result["disposition"], "FAIL_CLOSED")
+        self.assertEqual(result["failed_predicate"], "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED")
+        self.assertEqual(result["evaluation_boundary"], "SDK_MANIFEST_TRANSPORT_ATTACHMENT")
         direct_result = execute_processor_manifest(manifest)
-        self.assertEqual(result["schema"], "stegverse.sdk.purpose-bound-worker-manifest-result.v1")
-        self.assertTrue(result["evidence_expectations_satisfied"])
-        self.assertTrue(result["records_only"])
-        self.assertFalse(result["worker_live_after_close"])
-        self.assertEqual(
-            [row["phase"] for row in result["worker_result"]["lifecycle_receipts"]],
-            ["MATERIALIZED", "INVOCATION_STARTED", "TASK_COMPLETED", "RETIRED"],
-        )
-        canonical = validate_ingress_manifest(manifest)
-        direct_hash = hashlib.sha256(
-            json.dumps(direct_result, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
-        ).hexdigest()
-        request_hash = hashlib.sha256(
-            json.dumps(
-                result["manifest_lineage"]["run_manifest_request"],
-                sort_keys=True,
-                separators=(",", ":"),
-                ensure_ascii=False,
-            ).encode("utf-8")
-        ).hexdigest()
-        self.assertEqual(result["canonical_manifest_sha256"], canonical["canonical_manifest_sha256"])
-        self.assertEqual(result["request_sha256"], request_hash)
-        self.assertEqual(result["processor_result_sha256"], direct_hash)
-        self.assertEqual(result["manifest_lineage"]["canonical_manifest_sha256"], result["canonical_manifest_sha256"])
-        self.assertEqual(result["manifest_lineage"]["request_sha256"], result["request_sha256"])
-        self.assertEqual(result["manifest_lineage"]["processor_result_sha256"], result["processor_result_sha256"])
+        self.assertEqual(direct_result["schema"], "stegverse.sdk.purpose-bound-worker-manifest-result.v1")
+        self.assertTrue(direct_result["evidence_expectations_satisfied"])
+        self.assertTrue(direct_result["records_only"])
+        self.assertFalse(direct_result["worker_live_after_close"])
 
 
 if __name__ == "__main__":
