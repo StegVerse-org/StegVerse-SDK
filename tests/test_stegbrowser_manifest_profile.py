@@ -55,7 +55,7 @@ def test_test5_two_workers_use_same_generic_run_manifest_route():
             {"leg": 2, "direction": "EGRESS"},
             {"leg": 2, "direction": "INGRESS"},
         ]
-    assert a["canonical_manifest_sha256"] != b["canonical_manifest_sha256"]
+    assert derive_execution_request(a)["canonical_manifest_sha256"] != derive_execution_request(b)["canonical_manifest_sha256"]
 
 
 def test_test5_run_manifest_attempt_returns_typed_attachment_disposition_without_transport(monkeypatch):
