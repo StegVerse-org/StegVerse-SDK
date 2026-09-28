@@ -29,7 +29,14 @@ def candidate():
         "source_sha256": hashlib.sha256(SOURCE).hexdigest(),
         "source_git_blob_sha": hashlib.sha1(b"blob " + str(len(SOURCE)).encode() + bytes([0]) + SOURCE).hexdigest(),
         "editorial_owner_approved": True,
-        "review_report_sha256": {"economics": "2" * 64, "legal": "3" * 64},
+        "review_policy": {
+            "mode": "RESEARCH_PUBLICATION_WITH_DISCLOSED_UNVERIFIED_EXTERNAL_REVIEW",
+            "policy_ref": "GCAT-BCAT-Engine/Publisher:docs/ENTITY_ECONOMY_VOLUME_III_INDEPENDENT_REVIEW_PACKET.md#2026-09-28-owner-policy-disposition",
+            "external_review_claimed": False,
+            "owner_attested_convergence": True,
+            "economics_report_sha256": None,
+            "legal_report_sha256": None,
+        },
         "publication_executed": False,
         "authority_effect": "NONE",
     }
@@ -75,10 +82,15 @@ class PublisherPaperManifestTests(unittest.TestCase):
         self.assertEqual(m["extensions"]["security_posture_request"]["task_id"], TASK_ID)
         self.assertFalse(m["payload"]["candidate"]["publication_executed"])
         self.assertNotIn(TARGET_REPOSITORY, [v["repository"] for v in ACTIVE_TARGET_PROFILES.values()])
-    def test_missing_actual_review_reference_fails_closed(self):
+    def test_owner_policy_allows_research_release_without_fabricated_review_hashes(self):
         c = candidate()
-        c["review_report_sha256"]["economics"] = None
-        with self.assertRaisesRegex(ValueError, "reviewer_evidence_missing"):
+        checked = validate_publisher_paper_candidate(c, source_bytes=SOURCE)
+        self.assertFalse(checked["review_policy"]["external_review_claimed"])
+        self.assertIsNone(checked["review_policy"]["economics_report_sha256"])
+    def test_policy_may_not_claim_unverified_external_review(self):
+        c = candidate()
+        c["review_policy"]["external_review_claimed"] = True
+        with self.assertRaisesRegex(ValueError, "claim_boundary_invalid"):
             validate_publisher_paper_candidate(c, source_bytes=SOURCE)
     def test_tampered_source_fails_closed(self):
         c = candidate()

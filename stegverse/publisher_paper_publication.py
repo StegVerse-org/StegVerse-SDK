@@ -23,6 +23,7 @@ TASK_ID = "ECOSYSTEM-ECONOMIC-WHITEPAPER-GATED-ROADMAP-001"
 TARGET_REPOSITORY = "GCAT-BCAT-Engine/Publisher"
 PROFILE = "stegverse.publisher.paper-publication-candidate/v1"
 PUBLISHER_PACKAGE_PROFILE = "stegverse.publisher.evidence-report-package/v1"
+RESEARCH_REVIEW_POLICY_MODE = "RESEARCH_PUBLICATION_WITH_DISCLOSED_UNVERIFIED_EXTERNAL_REVIEW"
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
 _COMMIT = re.compile(r"^[0-9a-f]{40}$")
 
@@ -44,10 +45,10 @@ def validate_publisher_paper_candidate(
     expected = {
         "schema", "goal_task_id", "target_repository", "target_path",
         "source_commit_sha", "source_sha256", "source_git_blob_sha",
-        "editorial_owner_approved", "review_report_sha256",
-        "publication_executed", "authority_effect",
+        "editorial_owner_approved", "publication_executed", "authority_effect",
     }
-    if set(candidate) != expected:
+    review_fields = set(candidate) - expected
+    if not expected.issubset(candidate) or review_fields not in ({"review_report_sha256"}, {"review_policy"}):
         raise ValueError("publisher_candidate_fields_mismatch")
     if candidate["schema"] != PROFILE or candidate["goal_task_id"] != TASK_ID:
         raise ValueError("publisher_candidate_profile_or_task_mismatch")
@@ -72,12 +73,40 @@ def validate_publisher_paper_candidate(
     header = b"blob " + str(len(source_bytes)).encode("ascii") + bytes([0])
     if hashlib.sha1(header + source_bytes).hexdigest() != blob:
         raise ValueError("exact_original_git_blob_sha_mismatch")
-    reviews = candidate["review_report_sha256"]
-    if not isinstance(reviews, Mapping) or set(reviews) != {"economics", "legal"}:
-        raise ValueError("publisher_exact_reviewer_evidence_missing")
-    if not all(isinstance(reviews[k], str) and _DIGEST.fullmatch(reviews[k]) for k in reviews):
-        raise ValueError("publisher_exact_reviewer_evidence_missing")
+    if "review_report_sha256" in candidate:
+        reviews = candidate["review_report_sha256"]
+        if not isinstance(reviews, Mapping) or set(reviews) != {"economics", "legal"}:
+            raise ValueError("publisher_exact_reviewer_evidence_missing")
+        if not all(isinstance(reviews[k], str) and _DIGEST.fullmatch(reviews[k]) for k in reviews):
+            raise ValueError("publisher_exact_reviewer_evidence_missing")
+    else:
+        policy = candidate["review_policy"]
+        required_policy = {
+            "mode", "policy_ref", "external_review_claimed",
+            "owner_attested_convergence", "economics_report_sha256", "legal_report_sha256",
+        }
+        if not isinstance(policy, Mapping) or set(policy) != required_policy:
+            raise ValueError("publisher_review_policy_disposition_invalid")
+        if policy["mode"] != RESEARCH_REVIEW_POLICY_MODE:
+            raise ValueError("publisher_review_policy_mode_invalid")
+        if policy["external_review_claimed"] is not False or policy["owner_attested_convergence"] is not True:
+            raise ValueError("publisher_review_policy_claim_boundary_invalid")
+        _text(policy["policy_ref"], "review_policy.policy_ref")
+        if policy["economics_report_sha256"] is not None or policy["legal_report_sha256"] is not None:
+            raise ValueError("publisher_review_policy_unverified_reports_must_be_null")
     return candidate
+
+
+def _review_binding(candidate: Mapping[str, Any]) -> dict[str, Any]:
+    if "review_report_sha256" in candidate:
+        return {"mode": "EXTERNAL_REPORTS", "report_sha256": dict(candidate["review_report_sha256"])}
+    return {"mode": candidate["review_policy"]["mode"], **dict(candidate["review_policy"])}
+
+
+def _review_context_refs(candidate: Mapping[str, Any]) -> list[str]:
+    if "review_report_sha256" in candidate:
+        return list(candidate["review_report_sha256"].values())
+    return [candidate["review_policy"]["policy_ref"]]
 
 
 def publisher_paper_governance_candidate(value: Mapping[str, Any]) -> dict[str, Any]:
@@ -94,7 +123,7 @@ def publisher_paper_governance_candidate(value: Mapping[str, Any]) -> dict[str, 
             "source_git_blob_sha": value["source_git_blob_sha"],
             "target_repository": TARGET_REPOSITORY,
             "target_path": value["target_path"],
-            "review_report_sha256": dict(value["review_report_sha256"]),
+            "review_evidence": _review_binding(value),
             "publication_executed": False,
             "external_side_effect_requested": True,
         },
@@ -133,7 +162,7 @@ def prepare_publisher_paper_manifest(
         created_at=created_at,
         context_refs=[
             TASK_ID, canonical["source_commit_sha"], canonical["source_sha256"],
-            canonical["source_git_blob_sha"], *canonical["review_report_sha256"].values()
+            canonical["source_git_blob_sha"], *_review_context_refs(canonical)
         ],
         declared_intent="Evaluate exact owner-approved Publisher paper through existing governed ingress.",
         requested_consequence=(
