@@ -1130,3 +1130,8 @@ Published route identity alone does not establish an installed runtime binding. 
 ## SVG governance-cycle manifest route
 
 The SDK publishes `svg_governance_cycle` as a manifest processing capability on `stegverse.route.svg-governance-cycle.v1`. The route is bound to the existing canonical coordination owner `STEGVERSE-CANONICAL-WORK-COORDINATION-001` and COSV `10100000100000`; it derives a Universal InTr state-transition graph and does not mint a new SVG task, WorkerCoordinator claim/fence, credential, admission, consequence, organization receipt, or Master Records closure. Runtime completion requires the original request-bound InTr disposition and predecessor-linked custody reconstruction.
+
+
+### SVG post-merge universal-runtime regression repair
+
+PR #381 preserves the established universal manifest state-transition runtime binding for purpose-bound and atomic worker routes while keeping their state-graph adapters non-executing. The purpose-bound adapter now reports `adapter_executes_lifecycle=false`, matching the atomic-worker contract and preventing graph derivation from being mistaken for lifecycle execution. The SVG processor remains a separate capability on the same Universal InTr path. This is source/CI repair only; it does not establish an authentic InTr disposition, organization receipt, or Master Records closure.
