@@ -21,7 +21,8 @@ PURPOSE_BOUND_WORKER_ROUTE_ID = "stegverse.route.purpose-bound-worker.v1"
 ATOMIC_TASK_WORKER_ROUTE_ID = "stegverse.route.atomic-task-worker.v1"
 CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID = "stegverse.route.customer-local-governed.v1"
 NATIVE_SOURCE_MATH_ROUTE_ID = "stegverse.route.source-native-math.v1"
-SHWP_SOVEREIGN_INFERENCE_ROUTE_ID = "stegverse.route.shwp-sovereign-inference.v1"\nSVG_GOVERNANCE_CYCLE_ROUTE_ID = "stegverse.route.svg-governance-cycle.v1"
+SHWP_SOVEREIGN_INFERENCE_ROUTE_ID = "stegverse.route.shwp-sovereign-inference.v1"
+SVG_GOVERNANCE_CYCLE_ROUTE_ID = "stegverse.route.svg-governance-cycle.v1"
 
 _ROUTE_FIELDS = (
     "route_id",
