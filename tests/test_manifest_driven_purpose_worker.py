@@ -56,7 +56,7 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         self.assertTrue(route["runtime_installed"])
         self.assertEqual(route["processor_capability"], "purpose_bound_worker")
 
-    def test_test_one_runs_from_builder_manifest_only(self):
+    def test_test_one_run_manifest_stops_at_governed_attachment_boundary(self):
         manifest = build_manifest(
             data={"text": "StegVerse tracks this arbitrary evaluator-submitted task."},
             source_framework="external_evaluator",
@@ -70,34 +70,23 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         self.assertEqual(manifest["processing"]["route_id"], PURPOSE_BOUND_WORKER_ROUTE_ID)
         graph = derive_state_graph(manifest)
         self.assertEqual(graph["canonical_task_id"], "SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001")
+        self.assertFalse(graph["adapter_executes_lifecycle"])
+
         result = execute_manifest(manifest)
+        self.assertEqual(result["schema"], "stegverse.sdk.manifest-attachment-disposition/v1")
+        self.assertEqual(result["disposition"], "FAIL_CLOSED")
+        self.assertEqual(result["failed_predicate"], "WORKER_RESULT_ATTACHMENT_REQUIRED")
+        self.assertEqual(result["observation_status"], "UNKNOWN_NOT_AUTHENTICALLY_OBSERVED")
+        self.assertFalse(result["request_grants_authority"])
+        self.assertFalse(result["sdk_executes_lifecycle"])
+
+        # The processor remains independently source-testable, but run-manifest
+        # must not execute the worker lifecycle or promote that local result into
+        # an authentic InTr/WorkerCoordinator disposition.
         direct_result = execute_processor_manifest(manifest)
-        self.assertEqual(result["schema"], "stegverse.sdk.purpose-bound-worker-manifest-result.v1")
-        self.assertTrue(result["evidence_expectations_satisfied"])
-        self.assertTrue(result["records_only"])
-        self.assertFalse(result["worker_live_after_close"])
-        self.assertEqual(
-            [row["phase"] for row in result["worker_result"]["lifecycle_receipts"]],
-            ["MATERIALIZED", "INVOCATION_STARTED", "TASK_COMPLETED", "RETIRED"],
-        )
-        canonical = validate_ingress_manifest(manifest)
-        direct_hash = hashlib.sha256(
-            json.dumps(direct_result, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
-        ).hexdigest()
-        request_hash = hashlib.sha256(
-            json.dumps(
-                result["manifest_lineage"]["run_manifest_request"],
-                sort_keys=True,
-                separators=(",", ":"),
-                ensure_ascii=False,
-            ).encode("utf-8")
-        ).hexdigest()
-        self.assertEqual(result["canonical_manifest_sha256"], canonical["canonical_manifest_sha256"])
-        self.assertEqual(result["request_sha256"], request_hash)
-        self.assertEqual(result["processor_result_sha256"], direct_hash)
-        self.assertEqual(result["manifest_lineage"]["canonical_manifest_sha256"], result["canonical_manifest_sha256"])
-        self.assertEqual(result["manifest_lineage"]["request_sha256"], result["request_sha256"])
-        self.assertEqual(result["manifest_lineage"]["processor_result_sha256"], result["processor_result_sha256"])
+        self.assertEqual(direct_result["schema"], "stegverse.sdk.purpose-bound-worker-manifest-result.v1")
+        self.assertTrue(direct_result["records_only"])
+        self.assertFalse(direct_result["worker_live_after_close"])
 
 
 if __name__ == "__main__":
