@@ -1,5 +1,7 @@
 name: Test 5 StegBrowser Manifest Validation
 on:
+  push:
+    branches: ["test5-stegbrowser-llm-profile-route"]
   pull_request:
     paths:
       - "stegverse/stegbrowser_processor.py"
