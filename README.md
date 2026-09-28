@@ -1141,3 +1141,8 @@ The generic Manifest Builder accepts `--process stegbrowser` for the published
 manifest selects the profile request and journey, not a test-specific executor.
 Authentic execution remains subject to the existing Universal InTr,
 WorkerCoordinator, Organization Records, and Master Records transition path.
+
+
+### Manifest-time capability status
+
+Every requested processing capability is resolved as ONLINE, OFFLINE, or UNKNOWN_CAPABILITY before normal manifest routing. ONLINE continues through the installed route. OFFLINE actively selects admitted workarounds instead of stopping. UNKNOWN_CAPABILITY produces a user-requested capability development/deployment obligation and preserves the original request for retry after admission. Classification itself grants no authority.

@@ -24,6 +24,7 @@ from .governance_reference_graph import (
     validate_governance_reference_graph,
 )
 from .manifest_contract import validate_ingress_manifest
+from .capability_resolution import ONLINE, OFFLINE, UNKNOWN_CAPABILITY, capability_development_request, classify_capability
 from .route_resolution import (
     CANONICAL_PRODUCTION_ROUTE_ID,
     ECOSYSTEM_DIAGNOSTIC_ROUTE_ID,
@@ -129,17 +130,13 @@ def available_processors() -> tuple[str, ...]:
     return tuple(sorted(installed))
 
 
-def _route_declaration(process: str) -> dict[str, Any]:
+def _route_declaration(process: str) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     normalized = process.strip().lower()
-    route_id = PROCESSOR_ROUTES.get(normalized)
-    if route_id is None:
-        raise ValueError(
-            f"unsupported processing capability {process!r}; installed choices: "
-            + ", ".join(available_processors())
-        )
-    published = PUBLISHED_ROUTES.get(route_id)
-    if not published or published.get("runtime_installed") is not True:
-        raise ValueError(f"processing capability {normalized!r} has no installed runtime route")
+    resolution = classify_capability(normalized, PROCESSOR_ROUTES, PUBLISHED_ROUTES)
+    if resolution["status"] != ONLINE:
+        return None, resolution
+    route_id = resolution["route_id"]
+    published = PUBLISHED_ROUTES[route_id]
     if published.get("processor_capability") != normalized:
         raise ValueError(f"route {route_id!r} is not bound to processing capability {normalized!r}")
     return {
@@ -149,7 +146,7 @@ def _route_declaration(process: str) -> dict[str, Any]:
         "containment": published["containment"],
         "sandbox_required": published["sandbox_required"],
         "external_consequence_enabled": published["external_consequence_enabled"],
-    }
+    }, resolution
 
 
 def _validate_governance_request(value: Mapping[str, Any] | None) -> dict[str, Any]:
@@ -244,8 +241,28 @@ def build_manifest(
         raise ValueError("source_output_id is required")
 
     normalized_process = process.strip().lower()
-    route = _route_declaration(normalized_process)
-    extensions: dict[str, Any] = {"stegverse_route": route}
+    route, capability_resolution = _route_declaration(normalized_process)
+    if capability_resolution["status"] == UNKNOWN_CAPABILITY:
+        return {
+            "schema": "stegverse.manifest-build-resolution/v1",
+            "state": "CAPABILITY_DEVELOPMENT_REQUESTED",
+            "capability_resolution": capability_resolution,
+            "capability_development_request": capability_development_request(
+                capability=normalized_process, processor_request=processor_request,
+                source_framework=source_framework, source_output_id=source_output_id,
+            ),
+            "authority_effect": "NONE_REQUEST_ONLY",
+        }
+    if capability_resolution["status"] == OFFLINE:
+        return {
+            "schema": "stegverse.manifest-build-resolution/v1",
+            "state": "CAPABILITY_WORKAROUND_REQUIRED",
+            "capability_resolution": capability_resolution,
+            "original_processor_request": deepcopy(dict(processor_request)),
+            "authority_effect": "NONE_WORKAROUND_SELECTION_REQUIRED",
+        }
+    assert route is not None
+    extensions: dict[str, Any] = {"stegverse_route": route, "capability_resolution": capability_resolution}
     if governance_reference_graph is not None:
         extensions[GOVERNANCE_REFERENCE_GRAPH_EXTENSION] = validate_governance_reference_graph(
             governance_reference_graph
@@ -283,6 +300,7 @@ def build_manifest(
     extensions["manifest_builder"] = {
         "profile": "stegverse.manifest-builder.v1",
         "processing_capability": normalized_process,
+        "capability_status": capability_resolution["status"],
         "route_id": route["route_id"],
         "return_depth": depth_key,
         "source_semantic_custody": "EXTERNAL",
@@ -360,7 +378,7 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--source-output-id", required=True)
     build.add_argument("--source-instance")
     build.add_argument("--data-class")
-    build.add_argument("--process", default="governance", choices=sorted(PROCESSOR_ROUTES))
+    build.add_argument("--process", default="governance", help="requested processing capability; unknown names create a capability-development request")
     build.add_argument("--return-depth", default="result+evidence", choices=sorted(RETURN_DEPTHS))
     build.add_argument("--initiator-class", default="external_framework")
     build.add_argument("--initiator-ref")

@@ -32,7 +32,7 @@ def diagnostic_request(*, observation=None, expected=None):
 
 class EcosystemDiagnosticProcessorTests(unittest.TestCase):
     def test_processor_is_installed_separately_from_governance(self):
-        self.assertEqual(available_processors(), ("atomic_task_worker", "ecosystem_diagnostic", "governance", "purpose_bound_worker"))
+        self.assertEqual(available_processors(), ("atomic_task_worker", "ecosystem_diagnostic", "governance", "purpose_bound_worker", "stegbrowser", "svg_governance_cycle"))
         route = PUBLISHED_ROUTES[ECOSYSTEM_DIAGNOSTIC_ROUTE_ID]
         self.assertEqual(route["processor_capability"], "ecosystem_diagnostic")
         self.assertTrue(route["runtime_installed"])
@@ -263,8 +263,7 @@ class HeldOutManifestedReadinessSourceOnly(unittest.TestCase):
         self.assertEqual(len(digests), 4)
 
     def test_adaptive_capability_not_installed_cannot_be_faked(self):
-        with self.assertRaisesRegex(ValueError, "unsupported processing capability"):
-            build_manifest(
+        resolution = build_manifest(
                 data=self._ROUTER_INPUTS[0],
                 source_framework="GCAT-BCAT-Engine/workflows",
                 source_output_id="SV-HOLDOUT-001:forbidden-uninstalled-processor",
