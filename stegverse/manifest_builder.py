@@ -23,7 +23,7 @@ from .governance_reference_graph import (
     EXTENSION_KEY as GOVERNANCE_REFERENCE_GRAPH_EXTENSION,
     validate_governance_reference_graph,
 )
-from .manifest_contract import validate_ingress_manifest
+from .manifest_contract import validate_ingress_manifest\nfrom .capability_resolution import ONLINE, OFFLINE, UNKNOWN_CAPABILITY, capability_development_request, classify_capability
 from .route_resolution import (
     CANONICAL_PRODUCTION_ROUTE_ID,
     ECOSYSTEM_DIAGNOSTIC_ROUTE_ID,
@@ -282,7 +282,7 @@ def build_manifest(
     processing = {"capability": normalized_process, "route_id": route["route_id"]}
     extensions["manifest_builder"] = {
         "profile": "stegverse.manifest-builder.v1",
-        "processing_capability": normalized_process,
+        "processing_capability": normalized_process,\n        "capability_status": capability_resolution["status"],
         "route_id": route["route_id"],
         "return_depth": depth_key,
         "source_semantic_custody": "EXTERNAL",
