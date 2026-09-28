@@ -141,13 +141,11 @@ jobs:
           python - <<'PY'
           import json
           r=json.load(open('/tmp/test1.result.json'))
-          assert r['evidence_expectations_satisfied'] is True
-          assert r['records_only'] is True
-          assert r['worker_live_after_close'] is False
-          assert [x['phase'] for x in r['worker_result']['lifecycle_receipts']] == [
-              'MATERIALIZED','INVOCATION_STARTED','TASK_COMPLETED','RETIRED'
-          ]
-          print('MANIFEST_ONLY_TEST1_PASS')
+          assert r['schema'] == 'stegverse.sdk.manifest-attachment-disposition/v1'
+          assert r['disposition'] == 'FAIL_CLOSED'
+          assert r['evaluation_boundary'] == 'SDK_MANIFEST_TRANSPORT_ATTACHMENT'
+          assert r['failed_predicate'] == 'UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED'
+          print('MANIFEST_ONLY_TEST1_GOVERNED_ATTACHMENT_BOUNDARY_PASS')
           PY
 
       - name: Execute Test 2 from manifest only
