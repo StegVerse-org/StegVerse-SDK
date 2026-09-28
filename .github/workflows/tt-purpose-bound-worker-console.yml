@@ -49,13 +49,12 @@ jobs:
           python - <<'PY'
           import json
           result = json.load(open("/tmp/sdk-test1.result.json", encoding="utf-8"))
-          assert result["schema"] == "stegverse.sdk.purpose-bound-worker-manifest-result.v1"
-          assert result["evidence_expectations_satisfied"] is True
-          assert result["records_only"] is True
-          assert result["worker_live_after_close"] is False
-          phases = [x["phase"] for x in result["worker_result"]["lifecycle_receipts"]]
-          assert phases == ["MATERIALIZED", "INVOCATION_STARTED", "TASK_COMPLETED", "RETIRED"]
-          print("TEST1_RUN_MANIFEST_COMPLETED")
+          assert result["schema"] == "stegverse.sdk.manifest-attachment-disposition/v1"
+          assert result["disposition"] == "FAIL_CLOSED"
+          assert result["evaluation_boundary"] == "SDK_MANIFEST_TRANSPORT_ATTACHMENT"
+          assert result["failed_predicate"] == "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED"
+          assert result["consequence_committed"] is False
+          print("TEST1_RUN_MANIFEST_REACHED_GOVERNED_ATTACHMENT_BOUNDARY")
           PY
 
       - name: Retain Test 1 manifest and runtime evidence
