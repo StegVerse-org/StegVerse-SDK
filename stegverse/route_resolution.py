@@ -21,6 +21,7 @@ PURPOSE_BOUND_WORKER_ROUTE_ID = "stegverse.route.purpose-bound-worker.v1"
 ATOMIC_TASK_WORKER_ROUTE_ID = "stegverse.route.atomic-task-worker.v1"
 CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID = "stegverse.route.customer-local-governed.v1"
 NATIVE_SOURCE_MATH_ROUTE_ID = "stegverse.route.source-native-math.v1"
+SHWP_SOVEREIGN_INFERENCE_ROUTE_ID = "stegverse.route.shwp-sovereign-inference.v1"
 
 _ROUTE_FIELDS = (
     "route_id",
@@ -33,6 +34,20 @@ _ROUTE_FIELDS = (
 _ROUTE_MATCH_FIELDS = tuple(field for field in _ROUTE_FIELDS if field != "route_id")
 
 PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
+    # Existing SHWP task only: this route derives a request graph; native InTr,
+    # WorkerCoordinator and Master Records remain the sole consequential path.
+    SHWP_SOVEREIGN_INFERENCE_ROUTE_ID: {
+        "route_id": SHWP_SOVEREIGN_INFERENCE_ROUTE_ID,
+        "processor_capability": "sovereign_inference",
+        "lane_class": "MANIFEST_BOUND_SOVEREIGN_INFERENCE",
+        "routing_surface": "EXISTING_UNIVERSAL_INTR",
+        "containment": "EXISTING_SHWP_PARENT_AUTHORITY_ONLY",
+        "sandbox_required": False,
+        "external_consequence_enabled": False,
+        "state_graph_adapter_binding": "stegverse.manifest_state_transition_adapters.derive_shwp_inference_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "runtime_installed": True,
+    },
     NATIVE_SOURCE_MATH_ROUTE_ID: {
         "route_id": NATIVE_SOURCE_MATH_ROUTE_ID,
         "processor_capability": "native_source_math",
