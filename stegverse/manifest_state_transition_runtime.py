@@ -282,6 +282,52 @@ def _validate_nonterminal_diagnostic_progress(result: Mapping[str, Any], request
     return dict(result)
 
 
+def _validate_worker_result_attachment_fail_closed(
+    result: Mapping[str, Any], request: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Validate the manifest profile's actionable non-ALLOW after a targeted worker cycle.
+
+    This is explicitly not an authenticated downstream InTr verdict. It proves only
+    that the manifest-selected task cycle was attempted and the request-bound purpose
+    runtime receipt required for continuation was not returned.
+    """
+    required = {
+        "schema": "stegverse.sdk.manifest-profile-disposition/v1",
+        "state": "FAIL_CLOSED",
+        "disposition": "FAIL_CLOSED",
+        "evaluation_boundary": "SDK_MANIFEST_WORKER_RESULT_ATTACHMENT",
+        "reason_code": "AUTHENTIC_PURPOSE_RUNTIME_RECEIPT_NOT_OBSERVED",
+        "failed_predicate": "EXACT_REQUEST_BOUND_PURPOSE_RUNTIME_RECEIPT_PRESENT",
+        "consequence_committed_by_this_profile": False,
+        "authentic_intr_disposition_observed": False,
+        "organization_master_records_closure_observed": False,
+        "retry_entrypoint": "EXISTING_SDK_MANIFEST_UNIVERSAL_INTR_INGRESS",
+        "automatic_retry_permitted": False,
+        "authority_effect": "NONE_PROFILE_BOUNDARY_DISPOSITION_ONLY",
+    }
+    for key, value in required.items():
+        if result.get(key) != value:
+            raise ValueError(f"WORKER_ATTACHMENT_FAIL_CLOSED_CONTRACT_MISMATCH:{key}")
+    for key in (
+        "request_sha256", "canonical_manifest_sha256", "graph_id",
+        "processing_capability", "route_id", "canonical_task_id",
+    ):
+        if result.get(key) != request.get(key):
+            raise ValueError(f"WORKER_ATTACHMENT_FAIL_CLOSED_BINDING_MISMATCH:{key}")
+    evidence = result.get("required_evidence_refs")
+    if not isinstance(evidence, list) or evidence != [
+        "EXACT_REQUEST_BOUND_ORIGINAL_INTR_DISPOSITION",
+        "ORGANIZATION_LEDGER_RECEIPT_AND_PREDECESSOR",
+        "MATCHING_MASTER_RECORDS_RECONSTRUCTION",
+    ]:
+        raise ValueError("WORKER_ATTACHMENT_FAIL_CLOSED_EVIDENCE_CONTRACT_MISMATCH")
+    if not isinstance(result.get("repair_owner"), str) or not result["repair_owner"]:
+        raise ValueError("WORKER_ATTACHMENT_FAIL_CLOSED_REPAIR_OWNER_REQUIRED")
+    if not isinstance(result.get("source_disposition_ref"), str) or not result["source_disposition_ref"]:
+        raise ValueError("WORKER_ATTACHMENT_FAIL_CLOSED_SOURCE_REF_REQUIRED")
+    return dict(result)
+
+
 def _validate_manifest_binding_deny(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
     """Validate the existing profile's producer-level correctable DENY, not an InTr verdict."""
     from .manifest_builder import _CORRECTABLE_MANIFEST_BINDING_DENIALS
@@ -373,6 +419,8 @@ def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any
         return _validate_shwp_parent_profile_result(result, request)
     if result.get("schema") == "stegverse.sdk.manifest-profile-disposition/v1" and result.get("evaluation_boundary") == "SDK_MANIFEST_PROFILE":
         return _validate_manifest_binding_deny(result, request)
+    if result.get("schema") == "stegverse.sdk.manifest-profile-disposition/v1" and result.get("evaluation_boundary") == "SDK_MANIFEST_WORKER_RESULT_ATTACHMENT":
+        return _validate_worker_result_attachment_fail_closed(result, request)
     if result.get("schema") == "stegverse.sdk.manifest-profile-disposition/v1":
         return _validate_profile_source_deny(result, request)
     if result.get("schema") == "stegverse.sdk.manifest-state-transition-progress/v1":
