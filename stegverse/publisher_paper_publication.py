@@ -45,10 +45,10 @@ def validate_publisher_paper_candidate(
     expected = {
         "schema", "goal_task_id", "target_repository", "target_path",
         "source_commit_sha", "source_sha256", "source_git_blob_sha",
-        "editorial_owner_approved", "review_report_sha256",
-        "publication_executed", "authority_effect",
+        "editorial_owner_approved", "publication_executed", "authority_effect",
     }
-    if set(candidate) != expected:
+    review_fields = set(candidate) - expected
+    if not expected.issubset(candidate) or review_fields not in ({"review_report_sha256"}, {"review_policy"}):
         raise ValueError("publisher_candidate_fields_mismatch")
     if candidate["schema"] != PROFILE or candidate["goal_task_id"] != TASK_ID:
         raise ValueError("publisher_candidate_profile_or_task_mismatch")
