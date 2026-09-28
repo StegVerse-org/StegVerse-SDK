@@ -342,8 +342,7 @@ def _load_json(path: str) -> Any:
 
 
 def _write_json(value: Any, path: str | None) -> None:
-    text = json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "
-"
+    text = json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
     if path:
         Path(path).write_text(text, encoding="utf-8")
     else:
