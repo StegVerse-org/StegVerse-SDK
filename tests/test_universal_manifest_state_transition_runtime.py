@@ -154,6 +154,43 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "UNIVERSAL_INTR_PROFILE_DISPOSITION_NOT_DENY"):
             validate_runtime_result(fabricated_allow, request)
 
+    def test_worker_result_attachment_fail_closed_round_trips_without_inventing_intr(self):
+        req = derive_execution_request(manifest())
+        result = {
+            "schema": "stegverse.sdk.manifest-profile-disposition/v1",
+            "state": "FAIL_CLOSED",
+            "disposition": "FAIL_CLOSED",
+            "evaluation_boundary": "SDK_MANIFEST_WORKER_RESULT_ATTACHMENT",
+            "reason_code": "AUTHENTIC_PURPOSE_RUNTIME_RECEIPT_NOT_OBSERVED",
+            "failed_predicate": "EXACT_REQUEST_BOUND_PURPOSE_RUNTIME_RECEIPT_PRESENT",
+            "canonical_task_id": req["canonical_task_id"],
+            "graph_id": req["graph_id"],
+            "processing_capability": req["processing_capability"],
+            "route_id": req["route_id"],
+            "request_sha256": req["request_sha256"],
+            "canonical_manifest_sha256": req["canonical_manifest_sha256"],
+            "consequence_committed_by_this_profile": False,
+            "authentic_intr_disposition_observed": False,
+            "organization_master_records_closure_observed": False,
+            "required_evidence_refs": [
+                "EXACT_REQUEST_BOUND_ORIGINAL_INTR_DISPOSITION",
+                "ORGANIZATION_LEDGER_RECEIPT_AND_PREDECESSOR",
+                "MATCHING_MASTER_RECORDS_RECONSTRUCTION",
+            ],
+            "repair_owner": "EXISTING_MANIFEST_WORKERCOORDINATOR_INTR_AND_CUSTODY_OWNERS",
+            "retry_entrypoint": "EXISTING_SDK_MANIFEST_UNIVERSAL_INTR_INGRESS",
+            "automatic_retry_permitted": False,
+            "authority_effect": "NONE_PROFILE_BOUNDARY_DISPOSITION_ONLY",
+            "source_disposition_ref": "runtime-state/sdk-manifest-state-transition/dispositions/runtime-attachment/example.json",
+        }
+        validated = validate_runtime_result(result, req)
+        self.assertEqual(validated["disposition"], "FAIL_CLOSED")
+        self.assertFalse(validated["authentic_intr_disposition_observed"])
+        altered = copy.deepcopy(result)
+        altered["authentic_intr_disposition_observed"] = True
+        with self.assertRaisesRegex(ValueError, "CONTRACT_MISMATCH"):
+            validate_runtime_result(altered, req)
+
     def test_source_profile_terminal_fail_closed_cannot_retry(self):
         from scripts.build_mir_sv_exp3_manifest import build_exp3_manifest
         req = derive_execution_request(build_exp3_manifest())
