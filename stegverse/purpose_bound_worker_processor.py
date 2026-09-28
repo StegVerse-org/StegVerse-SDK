@@ -339,7 +339,7 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
             "records_only": True,
             "continued_authority": False,
         },
-        "adapter_executes_lifecycle": False,
+        "adapter_executes_lifecycle": request["mode"] in {"SINGLE", "GROUP"},
         "authority_effect": "NONE_GRAPH_DERIVATION_ONLY",
     }
 
