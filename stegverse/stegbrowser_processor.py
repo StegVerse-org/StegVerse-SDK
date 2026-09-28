@@ -50,15 +50,17 @@ def validate_stegbrowser_request(value: Mapping[str, Any] | None) -> dict[str, A
     provider = value.get("provider")
     if provider is not None:
         provider = _text(provider, "provider")
-    secure_url = _text(value.get("secure_url"), "secure_url")
-    if not secure_url.startswith("https://"):
-        raise ValueError("StegBrowser llm.v1 secure_url must use https")
+    secure_url = value.get("secure_url")
+    if secure_url is not None:
+        secure_url = _text(secure_url, "secure_url")
+        if not secure_url.startswith("https://"):
+            raise ValueError("StegBrowser llm.v1 secure_url must use https")
     model = value.get("model")
     if model is not None:
         model = _text(model, "model")
     actions = value.get("browser_actions")
-    if not isinstance(actions, list) or not actions or not all(isinstance(x, Mapping) for x in actions):
-        raise ValueError("StegBrowser llm.v1 browser_actions must be a non-empty object list")
+    if actions is not None and (not isinstance(actions, list) or not actions or not all(isinstance(x, Mapping) for x in actions)):
+        raise ValueError("StegBrowser llm.v1 browser_actions must be a non-empty object list when supplied")
     return {
         "schema": REQUEST_SCHEMA,
         "profile": PROFILE,
@@ -67,7 +69,7 @@ def validate_stegbrowser_request(value: Mapping[str, Any] | None) -> dict[str, A
         "provider": provider,
         "model": model,
         "secure_url": secure_url,
-        "browser_actions": [dict(x) for x in actions],
+        "browser_actions": ([dict(x) for x in actions] if actions is not None else None),
         "journey": normalized_journey,
     }
 
