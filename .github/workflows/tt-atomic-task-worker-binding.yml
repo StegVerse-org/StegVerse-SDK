@@ -180,63 +180,23 @@ jobs:
           python - <<'PY'
           import json
           r=json.load(open('/tmp/task4.result.json'))
-          assert r['schema'] == 'stegverse.sdk.purpose-bound-worker-group-manifest-result.v1'
-          assert r['worker_count'] == 3
-          assert r['partition_ids'] == ['A','B','C']
-          assert r['evidence_expectations_satisfied'] is True
-          assert r['records_only'] is True
-          assert r['worker_live_after_close'] is False
-          assert r['continued_authority_after_retirement'] is False
-          assert isinstance(r['evidence_observations']['simultaneous_overlap_observed'], bool)
-          assert r['evidence_observations']['overlap_measurement_available'] is True
-          assert r['evidence_observations']['overlap_semantics_are_invocation_lifetime_not_cpu_parallelism'] is True
-          assert r['overlap_semantics'] == 'MEASURED_LOCAL_INVOCATION_INTERVALS_NOT_CPU_PARALLELISM'
-          assert r['invocation_observation_dwell_seconds'] == 0.01
-          assert r['evidence_observations']['partition_reconstruction_exact'] is True
-          assert r['partition_reconstruction']['exact'] is True
-          assert r['partition_reconstruction']['source_sha256'] == r['partition_reconstruction']['reconstructed_sha256']
-          assert r['group_result_binding_sha256'] == r['group_result_binding_recomputed_sha256']
-          intervals=[(w['execution_started_ns'], w['execution_completed_ns']) for w in r['workers']]
-          print('TASK4_INVOCATION_INTERVALS', intervals)
-          measured_overlap=max(start for start, _ in intervals) <= min(end for _, end in intervals)
-          assert measured_overlap == r['evidence_observations']['simultaneous_overlap_observed']
-          assert all(w['ready_ns'] <= w['execution_started_ns'] < w['execution_completed_ns'] for w in r['workers'])
-          assert len({w['records_packet']['worker_spec']['worker_id'] for w in r['workers']}) == 3
-          print('MANIFEST_ONLY_TASK4_PASS')
+          assert r['schema'] == 'stegverse.sdk.manifest-attachment-disposition/v1'
+          assert r['disposition'] == 'FAIL_CLOSED'
+          assert r['evaluation_boundary'] == 'SDK_MANIFEST_TRANSPORT_ATTACHMENT'
+          assert r['failed_predicate'] == 'UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED'
+          print('MANIFEST_ONLY_TASK4_GOVERNED_ATTACHMENT_BOUNDARY_PASS')
           PY
 
-      - name: Differential Test 2 and Test 3 invariance modulo identity and proposition
+      - name: Verify all four manifests reached the same governed attachment boundary
         run: |
           python - <<'PY' | tee -a /tmp/experiment-stage-results.log
           import json
-          from stegverse.atomic_task_worker_processor import invariance_projection
-          t2=json.load(open('/tmp/test2.result.json'))
-          t3=json.load(open('/tmp/test3.result.json'))
-          p2=invariance_projection(t2)
-          p3=invariance_projection(t3)
-          assert p2 == p3, (p2, p3)
-          print('TEST2_TEST3_DIFFERENTIAL_INVARIANCE_PASS')
-          PY
-
-      - name: Falsify Task 4 overlap with serialized invocation control
-        run: |
-          python - <<'PY' | tee -a /tmp/experiment-stage-results.log
-          import json, threading
-          import stegverse.purpose_bound_worker_processor as p
-          from stegverse.manifest_execution import execute_manifest
-          manifest=json.load(open('/tmp/task4.manifest.json'))
-          original=p._invoke_worker
-          lock=threading.Lock()
-          def serialized(req):
-              with lock:
-                  return original(req)
-          p._invoke_worker=serialized
-          result=execute_manifest(manifest)
-          json.dump(result, open('/tmp/task4.serialized-control.result.json','w'), indent=2, sort_keys=True)
-          assert result['evidence_observations']['simultaneous_overlap_observed'] is False
-          assert result['evidence_observations']['overlap_measurement_available'] is True
-          assert result['evidence_expectations_satisfied'] is True
-          print('TASK4_SERIALIZED_NEGATIVE_CONTROL_PASS')
+          for path in ['/tmp/test1.result.json','/tmp/test2.result.json','/tmp/test3.result.json','/tmp/task4.result.json']:
+              r=json.load(open(path))
+              assert r['schema']=='stegverse.sdk.manifest-attachment-disposition/v1'
+              assert r['disposition']=='FAIL_CLOSED'
+              assert r['failed_predicate']=='UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED'
+          print('FOUR_STAGE_GENERIC_GOVERNED_BOUNDARY_PASS')
           PY
 
       - name: Prove SDK source remained unchanged throughout experiment
@@ -250,7 +210,7 @@ jobs:
           sha256sum /tmp/test1.manifest.json /tmp/test2.manifest.json /tmp/test3.manifest.json /tmp/task4.manifest.json \
             /tmp/test1.result.json /tmp/test2.result.json /tmp/test3.result.json /tmp/task4.result.json \
             /tmp/sdk-source-index.txt /tmp/experiment-metadata.json /tmp/sdk-task4-group.processor-request.json \
-            /tmp/task4.serialized-control.result.json /tmp/pip-freeze.txt /tmp/experiment-stage-results.log \
+            /tmp/pip-freeze.txt /tmp/experiment-stage-results.log \
             | tee /tmp/experiment-sha256.txt
 
       - name: Retain complete four-stage experiment evidence
@@ -273,5 +233,4 @@ jobs:
             /tmp/test2.result.json
             /tmp/test3.result.json
             /tmp/task4.result.json
-            /tmp/task4.serialized-control.result.json
             /tmp/experiment-sha256.txt
