@@ -320,7 +320,57 @@ def _validate_manifest_binding_deny(result: Mapping[str, Any], request: Mapping[
     return dict(result)
 
 
+def _validate_shwp_parent_profile_result(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
+    """Bounded SDK-facing SHWP outcome; never substitute for organization custody."""
+    if request.get("processing_capability") != "sovereign_inference":
+        raise ValueError("SHWP_RESULT_WRONG_REQUEST_CAPABILITY")
+    for key in ("request_sha256", "wire_manifest_sha256", "canonical_manifest_sha256",
+                "graph_id", "processing_capability", "route_id", "canonical_task_id"):
+        if result.get(key) != request.get(key):
+            raise ValueError("SHWP_RESULT_MANIFEST_LINEAGE_MISMATCH:" + key)
+    graph = request.get("state_graph") or {}
+    expected_original = (graph.get("request") or {}).get("original_request_sha256")
+    if result.get("original_request_sha256") != expected_original:
+        raise ValueError("SHWP_RESULT_ORIGINAL_REQUEST_BINDING_MISMATCH")
+    for key, expected in {
+        "schema": "stegverse.sdk.shwp-manifest-transition-result/v1",
+        "terminal": False,
+        "evaluation_boundary": "SDK_SHWP_MANIFEST_BOUND_PARENT_CONSUMER",
+        "authentic_intr_disposition_observed": False,
+        "organization_master_records_closure_observed": False,
+        "consequence_committed_by_this_adapter": False,
+        "authority_effect": "NONE_PROFILE_RETURN_ONLY",
+        "owning_existing_goal": "SHWP-ECOSYSTEM-CHAT-INFERENCE-001",
+    }.items():
+        if result.get(key) != expected:
+            raise ValueError("SHWP_RESULT_SOURCE_BOUNDARY_MISMATCH:" + key)
+    if result.get("state") == "FAIL_CLOSED":
+        if result.get("disposition") != "FAIL_CLOSED":
+            raise ValueError("SHWP_NON_ALLOW_DISPOSITION_MISMATCH")
+        if not isinstance(result.get("failed_predicate"), str) or not result["failed_predicate"]:
+            raise ValueError("SHWP_NON_ALLOW_FAILED_PREDICATE_REQUIRED")
+    elif result.get("state") == "PROCESSING_RECORDED_CUSTODY_READBACK_REQUIRED":
+        if result.get("disposition") != "ALLOW" or result.get("failed_predicate") is not None:
+            raise ValueError("SHWP_NONTERMINAL_PROCESSING_RESULT_INVALID")
+        if result.get("consumer_disposition") != "ALLOW":
+            raise ValueError("SHWP_NONTERMINAL_PARENT_CONSUMPTION_UNVERIFIED")
+        # Even a verified original parent return is not original organization
+        # HEAD/readback or independent predecessor-linked Master Records proof.
+        if result.get("runtime_execution_attempted") is not True:
+            raise ValueError("SHWP_NONTERMINAL_EXECUTION_ATTEMPT_REQUIRED")
+    else:
+        raise ValueError("SHWP_RESULT_UNSUPPORTED_STATE")
+    claimed = result.get("diagnostic_sha256")
+    body = dict(result)
+    body.pop("diagnostic_sha256", None)
+    if not isinstance(claimed, str) or _sha256(body) != claimed:
+        raise ValueError("SHWP_RESULT_SOURCE_DIAGNOSTIC_DIGEST_MISMATCH")
+    return dict(result)
+
+
 def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
+    if result.get("schema") == "stegverse.sdk.shwp-manifest-transition-result/v1":
+        return _validate_shwp_parent_profile_result(result, request)
     if result.get("schema") == "stegverse.sdk.manifest-profile-disposition/v1" and result.get("evaluation_boundary") == "SDK_MANIFEST_PROFILE":
         return _validate_manifest_binding_deny(result, request)
     if result.get("schema") == "stegverse.sdk.manifest-profile-disposition/v1":
