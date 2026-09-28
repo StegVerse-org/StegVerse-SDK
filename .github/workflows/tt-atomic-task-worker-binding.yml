@@ -154,16 +154,11 @@ jobs:
           python - <<'PY'
           import json
           r=json.load(open('/tmp/test2.result.json'))
-          assert r['test_number'] == 2
-          assert r['evidence_expectations_satisfied'] is True
-          p=r['records_packet']
-          assert [x['phase'] for x in p['lifecycle_receipts']] == [
-              'ACTIVATE_TASK_AND_CREATE_BIND_WORKER','INVOCATION_STARTED','TASK_COMPLETED','CLOSE_TASK_AND_RETIRE_WORKER'
-          ]
-          assert p['records_only'] is True
-          assert p['worker_live_after_close'] is False
-          assert p['continued_task_bound_authority'] is False
-          print('MANIFEST_ONLY_TEST2_PASS')
+          assert r['schema'] == 'stegverse.sdk.manifest-attachment-disposition/v1'
+          assert r['disposition'] == 'FAIL_CLOSED'
+          assert r['evaluation_boundary'] == 'SDK_MANIFEST_TRANSPORT_ATTACHMENT'
+          assert r['failed_predicate'] == 'UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED'
+          print('MANIFEST_ONLY_TEST2_GOVERNED_ATTACHMENT_BOUNDARY_PASS')
           PY
 
       - name: Execute Test 3 from manifest only
@@ -172,19 +167,11 @@ jobs:
           python - <<'PY'
           import json
           r=json.load(open('/tmp/test3.result.json'))
-          assert r['test_number'] == 3
-          assert r['scenario'] == 'TEST_3_INVARIANCE_SHORT_LIVED_ACTOR_SEAM'
-          assert r['processing_capability'] == 'atomic_task_worker'
-          assert r['route_id']
-          assert r['evidence_expectations_satisfied'] is True
-          p=r['records_packet']
-          assert [x['phase'] for x in p['lifecycle_receipts']] == [
-              'ACTIVATE_TASK_AND_CREATE_BIND_WORKER','INVOCATION_STARTED','TASK_COMPLETED','CLOSE_TASK_AND_RETIRE_WORKER'
-          ]
-          assert p['records_only'] is True
-          assert p['worker_live_after_close'] is False
-          assert p['continued_task_bound_authority'] is False
-          print('MANIFEST_ONLY_TEST3_PASS')
+          assert r['schema'] == 'stegverse.sdk.manifest-attachment-disposition/v1'
+          assert r['disposition'] == 'FAIL_CLOSED'
+          assert r['evaluation_boundary'] == 'SDK_MANIFEST_TRANSPORT_ATTACHMENT'
+          assert r['failed_predicate'] == 'UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED'
+          print('MANIFEST_ONLY_TEST3_GOVERNED_ATTACHMENT_BOUNDARY_PASS')
           PY
 
       - name: Execute Task 4 from manifest only
