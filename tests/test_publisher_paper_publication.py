@@ -16,7 +16,7 @@ from stegverse.publisher_paper_publication import (
 from stegverse.wiki_publication_transition import ACTIVE_TARGET_PROFILES
 
 
-SOURCE = b"# Source-only Publisher fixture\\n"
+SOURCE = b"# Source-only Publisher fixture"
 
 
 def candidate():
@@ -27,7 +27,7 @@ def candidate():
         "target_path": "papers/test-fixture.md",
         "source_commit_sha": "1" * 40,
         "source_sha256": hashlib.sha256(SOURCE).hexdigest(),
-        "source_git_blob_sha": hashlib.sha1(b"blob " + str(len(SOURCE)).encode() + b"\\0" + SOURCE).hexdigest(),
+        "source_git_blob_sha": hashlib.sha1(b"blob " + str(len(SOURCE)).encode() + bytes([0]) + SOURCE).hexdigest(),
         "editorial_owner_approved": True,
         "review_report_sha256": {"economics": "2" * 64, "legal": "3" * 64},
         "publication_executed": False,
