@@ -28,6 +28,7 @@ from .route_resolution import (
     ECOSYSTEM_DIAGNOSTIC_ROUTE_ID,
     PURPOSE_BOUND_WORKER_ROUTE_ID,
     ATOMIC_TASK_WORKER_ROUTE_ID,
+    SVG_GOVERNANCE_CYCLE_ROUTE_ID,
     PUBLISHED_ROUTES,
 )
 
@@ -36,6 +37,7 @@ PROCESSOR_ROUTES = {
     "ecosystem_diagnostic": ECOSYSTEM_DIAGNOSTIC_ROUTE_ID,
     "purpose_bound_worker": PURPOSE_BOUND_WORKER_ROUTE_ID,
     "atomic_task_worker": ATOMIC_TASK_WORKER_ROUTE_ID,
+    "svg_governance_cycle": SVG_GOVERNANCE_CYCLE_ROUTE_ID,
 }
 
 GOVERNANCE_REQUEST_FIELDS = (
