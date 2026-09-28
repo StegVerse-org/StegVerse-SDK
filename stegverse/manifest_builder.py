@@ -534,7 +534,7 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--source-output-id", required=True)
     build.add_argument("--source-instance")
     build.add_argument("--data-class")
-    build.add_argument("--process", default="governance", choices=sorted(PROCESSOR_ROUTES))
+    build.add_argument("--process", default="governance", help="requested processing capability; unknown names create a capability-development request")
     build.add_argument("--return-depth", default="result+evidence", choices=sorted(RETURN_DEPTHS))
     build.add_argument("--initiator-class", default="external_framework")
     build.add_argument("--initiator-ref")
