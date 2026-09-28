@@ -632,3 +632,8 @@ Branch: `fix/worker-cost-evidence-qualification-20260926`. Added `stegverse/work
 ## Task-native worker lifecycle qualifier — 2026-09-26
 
 SDK PR #359 introduces the original staged five-component task-native worker lifecycle qualifier, delegating to the SDK's existing `_sum_budget`, with source-only tests and README. Distinct from the six-component monetary evidence qualifier in merged PR #358. No task-native estimates for the 162 missing records, canonical Free-tier registration, or authentic runtime evidence are implied. Verify exact-head CI before merging.
+
+
+## Cross-stream SVG regression repair — 2026-09-28
+
+Canonical owner remains `STEGVERSE-CANONICAL-WORK-COORDINATION-001` / COSV `10100000100000` under `.github#2757`. PR #381 exact-head SVG CI exposed four failures because purpose/atomic worker routes had been redirected away from the established universal manifest runtime. The repair restores both route bindings to `stegverse.manifest_state_transition_runtime.execute_manifest`, changes purpose-bound graph derivation to `adapter_executes_lifecycle=false` (atomic already false), and retains the SVG installed-processor registry expectation. No runtime receipt is inferred. Required next evidence is exact-head CI on the repaired PR followed by repository-required independent review before merge.
