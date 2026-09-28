@@ -1146,3 +1146,8 @@ WorkerCoordinator, Organization Records, and Master Records transition path.
 ### Manifest-time capability status
 
 Every requested processing capability is resolved as ONLINE, OFFLINE, or UNKNOWN_CAPABILITY before normal manifest routing. ONLINE continues through the installed route. OFFLINE actively selects admitted workarounds instead of stopping. UNKNOWN_CAPABILITY produces a user-requested capability development/deployment obligation and preserves the original request for retry after admission. Classification itself grants no authority.
+
+
+### Generic worker state-graph execution boundary
+
+Purpose-bound worker manifests now follow the same universal execution split as other governed capabilities: the processor adapter derives the state graph only (`adapter_executes_lifecycle=false`); the SDK does not execute the lifecycle locally. The resulting request is submitted to the existing Universal InTr path, where WorkerCoordinator/InTr and downstream Organization Records -> Master Records remain the governing authorities. Local worker functions remain semantic fixtures and do not satisfy governed `run-manifest` completion.
