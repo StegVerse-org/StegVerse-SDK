@@ -69,7 +69,7 @@ def validate_publisher_paper_candidate(
         raise ValueError("source_identity_format_invalid")
     if hashlib.sha256(source_bytes).hexdigest() != digest:
         raise ValueError("exact_original_source_sha256_mismatch")
-    header = b"blob " + str(len(source_bytes)).encode("ascii") + b"\\0"
+    header = b"blob " + str(len(source_bytes)).encode("ascii") + bytes([0])
     if hashlib.sha1(header + source_bytes).hexdigest() != blob:
         raise ValueError("exact_original_git_blob_sha_mismatch")
     reviews = candidate["review_report_sha256"]
