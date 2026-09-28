@@ -1,0 +1,33 @@
+name: Exact Private-State Economy Publication Manifest (Source Only)
+
+on:
+  pull_request:
+    paths:
+      - scripts/build_private_state_economy_publication_manifest.py
+      - tests/test_private_state_economy_publication_manifest.py
+      - .github/workflows/build-private-state-economy-publication-manifest.yml
+  workflow_dispatch:
+
+jobs:
+  build-exact-manifest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run negative/source identity tests
+        run: python3 -m unittest discover -s tests -p test_private_state_economy_publication_manifest.py -v
+      - name: Fetch immutable approved Publisher source
+        run: |
+          curl --fail --silent --show-error --location             https://raw.githubusercontent.com/GCAT-BCAT-Engine/Publisher/f9a140d02e162c8284db7fe22b9093e70c25207a/papers/StegVerse_Private_State_Economy_White_Paper_v0.1.md             --output /tmp/private-state-economy-v0.1.md
+          printf '%s  %s\n'             3329a0c47161eb4613c32bbc5e0a393116f395cb8fa78368ed21fed8775c3dca             /tmp/private-state-economy-v0.1.md | sha256sum --check -
+      - name: Build exact manifest and universal runtime request without invoking runtime
+        run: |
+          mkdir -p /tmp/economic-publication-manifest
+          python3 scripts/build_private_state_economy_publication_manifest.py             --source /tmp/private-state-economy-v0.1.md             --manifest-output /tmp/economic-publication-manifest/manifest.json             --request-output /tmp/economic-publication-manifest/execution-request.json             | tee /tmp/economic-publication-manifest/source-build-receipt.json
+      - name: Upload non-authorizing exact manifest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-state-economy-publication-manifest-source-only
+          path: /tmp/economic-publication-manifest/
+          if-no-files-found: error
