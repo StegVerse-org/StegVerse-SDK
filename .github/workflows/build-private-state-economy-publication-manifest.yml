@@ -1,4 +1,4 @@
-name: Exact Private-State Economy Publication Manifest (Source Only)
+name: Exact Private-State Economy Publication Manifest
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-exact-manifest:
+  build-and-attempt-exact-manifest:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -19,17 +19,22 @@ jobs:
         run: python3 -m unittest discover -s tests -p test_private_state_economy_publication_manifest.py -v
       - name: Fetch immutable approved Publisher source
         run: |
-          curl --fail --silent --show-error --location             https://raw.githubusercontent.com/GCAT-BCAT-Engine/Publisher/f9a140d02e162c8284db7fe22b9093e70c25207a/papers/StegVerse_Private_State_Economy_White_Paper_v0.1.md             --output /tmp/private-state-economy-v0.1.md
-          printf '%s  %s\n'             3329a0c47161eb4613c32bbc5e0a393116f395cb8fa78368ed21fed8775c3dca             /tmp/private-state-economy-v0.1.md | sha256sum --check -
-      - name: Build exact manifest and universal runtime request without invoking runtime
+          curl --fail --silent --show-error --location \
+            https://raw.githubusercontent.com/GCAT-BCAT-Engine/Publisher/f9a140d02e162c8284db7fe22b9093e70c25207a/papers/StegVerse_Private_State_Economy_White_Paper_v0.1.md \
+            --output /tmp/private-state-economy-v0.1.md
+          printf '%s  %s\n' \
+            3329a0c47161eb4613c32bbc5e0a393116f395cb8fa78368ed21fed8775c3dca \
+            /tmp/private-state-economy-v0.1.md | sha256sum --check -
+      - name: Build exact manifest and universal runtime request
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p /tmp/economic-publication-manifest
-          PYTHONPATH=. python3 scripts/build_private_state_economy_publication_manifest.py             --source /tmp/private-state-economy-v0.1.md             --manifest-output /tmp/economic-publication-manifest/manifest.json             --request-output /tmp/economic-publication-manifest/execution-request.json             | tee /tmp/economic-publication-manifest/source-build-receipt.json
-          test -s /tmp/economic-publication-manifest/manifest.json
-          test -s /tmp/economic-publication-manifest/execution-request.json
-          test -s /tmp/economic-publication-manifest/source-build-receipt.json
+          PYTHONPATH=. python3 scripts/build_private_state_economy_publication_manifest.py \
+            --source /tmp/private-state-economy-v0.1.md \
+            --manifest-output /tmp/economic-publication-manifest/manifest.json \
+            --request-output /tmp/economic-publication-manifest/execution-request.json \
+            | tee /tmp/economic-publication-manifest/source-build-receipt.json
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -38,12 +43,37 @@ jobs:
           assert receipt['state']=='EXACT_MANIFEST_PREPARED_SOURCE_ONLY'
           assert receipt['runtime_invoked'] is False
           assert receipt['authority_effect']=='NONE_SOURCE_ONLY'
-          json.loads((root/'manifest.json').read_text())
-          json.loads((root/'execution-request.json').read_text())
+          request=json.loads((root/'execution-request.json').read_text())
+          assert request['canonical_manifest_sha256']=='ba615d6e487f11853173154317782fad1ed83dec32ab0c18650703e063fcc9e3'
+          assert request['request_sha256']=='11db25adc816acb91d806bfbd6a0060859eba4d8898dbd488bf4526eb97f65be'
           PY
-      - name: Upload non-authorizing exact manifest artifact
+      - name: Attempt exact manifest through public run-manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python3 -m stegverse.manifest_execution \
+            --manifest /tmp/economic-publication-manifest/manifest.json \
+            --output /tmp/economic-publication-manifest/first-disposition.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/economic-publication-manifest')
+          result=json.loads((root/'first-disposition.json').read_text())
+          assert result['schema']=='stegverse.sdk.manifest-attachment-disposition/v1'
+          assert result['disposition']=='FAIL_CLOSED'
+          assert result['evaluation_boundary']=='SDK_MANIFEST_TRANSPORT_ATTACHMENT'
+          assert result['failed_predicate'] in {
+              'UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED',
+              'TV_TVC_RELAY_AUTHORIZATION_REQUIRED',
+          }
+          assert result['consequence_committed'] is False
+          assert result['authentic_governance_disposition_observed'] is False
+          assert result['organization_receipt_observed'] is False
+          print(json.dumps(result, sort_keys=True))
+          PY
+      - name: Upload exact manifest and first attachment disposition
         uses: actions/upload-artifact@v4
         with:
-          name: private-state-economy-publication-manifest-source-only
+          name: private-state-economy-publication-manifest-first-disposition
           path: /tmp/economic-publication-manifest/
           if-no-files-found: error
