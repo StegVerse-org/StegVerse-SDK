@@ -49,11 +49,12 @@ def test_test5_two_workers_use_same_generic_run_manifest_route():
         assert req["state_graph"]["endpoint_receipt_journey"]["custody_order"] == [
             "ORGANIZATION_RECORDS", "MASTER_RECORDS"
         ]
+        assert req["state_graph"]["endpoint_receipt_journey"]["branch_count"] == 1
         assert req["state_graph"]["endpoint_receipt_journey"]["required_order"] == [
-            {"leg": 1, "direction": "EGRESS"},
-            {"leg": 1, "direction": "INGRESS"},
-            {"leg": 2, "direction": "EGRESS"},
-            {"leg": 2, "direction": "INGRESS"},
+            {"branch_id": "1", "leg": 1, "direction": "EGRESS"},
+            {"branch_id": "1", "leg": 1, "direction": "INGRESS"},
+            {"branch_id": "1", "leg": 2, "direction": "EGRESS"},
+            {"branch_id": "1", "leg": 2, "direction": "INGRESS"},
         ]
     assert derive_execution_request(a)["canonical_manifest_sha256"] != derive_execution_request(b)["canonical_manifest_sha256"]
 
