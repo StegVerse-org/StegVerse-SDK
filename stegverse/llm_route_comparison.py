@@ -13,9 +13,15 @@ from hashlib import sha256
 import json
 from typing import Any, Dict, List, Mapping, Optional
 
-SCHEMA_VERSION = "1.1.0"
+SCHEMA_VERSION = "1.2.0"
 EVIDENCE_CLASSES = {"MEASURED", "CONFIGURED", "DERIVED", "UNAVAILABLE"}
 ROUTE_KINDS = {"STEGVERSE_GOVERNED", "EXTERNAL_RECURSIVE"}
+
+DELTA_BASELINE_KIND = "STEGVERSE_GOVERNED"
+DELTA_CANDIDATE_KIND = "EXTERNAL_RECURSIVE"
+DELTA_SEMANTICS = "external_recursive_minus_stegverse_governed"
+DELTAS_OMITTED_MULTIPLE_BASELINES = "MULTIPLE_BASELINE_ROUTES_NO_SINGLE_PAIRWISE_DELTA"
+DELTAS_OMITTED_MULTIPLE_CANDIDATES = "MULTIPLE_CANDIDATE_ROUTES_NO_SINGLE_PAIRWISE_DELTA"
 
 
 class ComparisonValidationError(ValueError):
@@ -200,6 +206,35 @@ def calculate_delta(
     return MetricValue(format(value, "f"), unit, "DERIVED", "baseline-minus-candidate")
 
 
+def _metric_value(raw: Mapping[str, Any]) -> MetricValue:
+    return MetricValue(
+        raw.get("value"),
+        str(raw.get("unit", "")),
+        str(raw.get("evidence_class", "")),
+        raw.get("source_ref"),
+    )
+
+
+def _pairwise_deltas(
+    request: ComparisonRequest,
+    baseline_result: RouteResult,
+    candidate_result: RouteResult,
+) -> Dict[str, Dict[str, Any]]:
+    """Return candidate-minus-baseline deltas for one explicitly named pair."""
+
+    deltas: Dict[str, Dict[str, Any]] = {}
+    for metric_name in request.metrics_requested:
+        left = _metric_value(candidate_result.metrics[metric_name])
+        right = _metric_value(baseline_result.metrics[metric_name])
+        unit = left.unit if left.unit == right.unit else ""
+        if not unit:
+            delta = MetricValue(None, "", "UNAVAILABLE", None)
+        else:
+            delta = calculate_delta(left, right, unit=unit)
+        deltas[metric_name] = asdict(delta)
+    return deltas
+
+
 def build_comparison_receipt(
     request: ComparisonRequest,
     results: List[RouteResult],
@@ -217,29 +252,44 @@ def build_comparison_receipt(
         seen.add(result.route_id)
 
     by_id = {result.route_id: result for result in results}
-    governed = next(r for r in request.routes if r.route_kind == "STEGVERSE_GOVERNED")
-    recursive = next(r for r in request.routes if r.route_kind == "EXTERNAL_RECURSIVE")
-    governed_result = by_id[governed.route_id]
-    recursive_result = by_id[recursive.route_id]
+    baselines = [r for r in request.routes if r.route_kind == DELTA_BASELINE_KIND]
+    candidates = [r for r in request.routes if r.route_kind == DELTA_CANDIDATE_KIND]
 
+    # Every candidate route gets its own scoped delta against the single
+    # baseline. Sorted by route_id so a cosmetic reordering of request.routes
+    # cannot change what this receipt says.
+    route_deltas: List[Dict[str, Any]] = []
+    if len(baselines) == 1:
+        baseline_result = by_id[baselines[0].route_id]
+        for candidate in sorted(candidates, key=lambda route: route.route_id):
+            route_deltas.append(
+                {
+                    "baseline_route_id": baselines[0].route_id,
+                    "candidate_route_id": candidate.route_id,
+                    "delta_semantics": DELTA_SEMANTICS,
+                    "deltas": _pairwise_deltas(
+                        request, baseline_result, by_id[candidate.route_id]
+                    ),
+                }
+            )
+
+    # A single top-level `deltas` map can only mean one thing when exactly one
+    # baseline and one candidate exist. With more of either there is no
+    # privileged pair, so it is omitted with a reason rather than filled from
+    # whichever route happened to be listed first.
     deltas: Dict[str, Dict[str, Any]] = {}
-    for metric_name in request.metrics_requested:
-        left_raw = recursive_result.metrics[metric_name]
-        right_raw = governed_result.metrics[metric_name]
-        left = MetricValue(
-            left_raw.get("value"), str(left_raw.get("unit", "")),
-            str(left_raw.get("evidence_class", "")), left_raw.get("source_ref")
-        )
-        right = MetricValue(
-            right_raw.get("value"), str(right_raw.get("unit", "")),
-            str(right_raw.get("evidence_class", "")), right_raw.get("source_ref")
-        )
-        unit = left.unit if left.unit == right.unit else ""
-        if not unit:
-            delta = MetricValue(None, "", "UNAVAILABLE", None)
-        else:
-            delta = calculate_delta(left, right, unit=unit)
-        deltas[metric_name] = asdict(delta)
+    delta_scope: Optional[Dict[str, str]] = None
+    deltas_omitted_reason: Optional[str] = None
+    if len(baselines) != 1:
+        deltas_omitted_reason = DELTAS_OMITTED_MULTIPLE_BASELINES
+    elif len(candidates) != 1:
+        deltas_omitted_reason = DELTAS_OMITTED_MULTIPLE_CANDIDATES
+    else:
+        deltas = route_deltas[0]["deltas"]
+        delta_scope = {
+            "baseline_route_id": route_deltas[0]["baseline_route_id"],
+            "candidate_route_id": route_deltas[0]["candidate_route_id"],
+        }
 
     request_package = build_comparison_package(request)
     receipt = {
@@ -247,12 +297,24 @@ def build_comparison_receipt(
         "comparison_id": request.comparison_id,
         "request_package_sha256": request_package["package_sha256"],
         "task_identity": request.task_identity,
-        "route_results": [asdict(result) for result in results],
-        "delta_semantics": "external_recursive_minus_stegverse_governed",
+        "route_results": [
+            asdict(result)
+            for result in sorted(results, key=lambda item: item.route_id)
+        ],
+        "delta_semantics": DELTA_SEMANTICS,
         "deltas": deltas,
+        "delta_scope": delta_scope,
+        "deltas_omitted_reason": deltas_omitted_reason,
+        "route_deltas": route_deltas,
+        "baseline_route_count": len(baselines),
+        "candidate_route_count": len(candidates),
         "claim_boundary": (
             "Measured deltas compare only like-for-like task results. "
             "No delta establishes universal superiority or avoided-consequence cost."
+        ),
+        "delta_boundary": (
+            "Every delta names the two routes it was measured between. "
+            "An unscoped delta across more than two routes is not reported."
         ),
         "reconstructable": True,
     }

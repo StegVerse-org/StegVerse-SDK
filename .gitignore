@@ -64,3 +64,7 @@ secrets/
 # Temporary files
 *.tmp
 *.swp
+
+# Generated wiki mirror: written by tests/test_sdk_public_developer_wiki.py and
+# tests/test_observe_sdk_public_wiki.py, so a suite run leaves it behind.
+_site/
