@@ -1,0 +1,49 @@
+name: SDK capability map conformance
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/capability_map.py'
+      - 'stegverse/route_resolution.py'
+      - 'stegverse/manifest_builder.py'
+      - 'stegverse/cli.py'
+      - 'inspection/examples/**'
+      - 'tests/test_capability_map_conformance.py'
+      - '.github/workflows/capability-map-conformance.yml'
+  workflow_dispatch:
+
+jobs:
+  capability-map:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e .
+
+      - name: Every installed route is invocable or carries a declared exemption
+        run: python -m unittest tests.test_capability_map_conformance -v
+
+      - name: Publish the reconciled capability map
+        run: |
+          python -m stegverse capability-map | tee /tmp/capability-map.json
+          python - <<'PY'
+          import json
+          report = json.load(open("/tmp/capability-map.json", encoding="utf-8"))
+          assert report["drift_count"] == 0, report
+          assert report["grants_execution_authority"] is False
+          print("CAPABILITY_MAP_CONFORMANCE_PASS"
+                f" invocable={report['evaluator_invocable_count']}"
+                f" exempt={report['declared_exemption_count']}"
+                f" drift={report['drift_count']}")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sdk-capability-map
+          path: /tmp/capability-map.json
+          if-no-files-found: warn

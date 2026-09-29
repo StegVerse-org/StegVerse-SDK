@@ -12,6 +12,7 @@ from pathlib import Path
 import sys
 from typing import Any, Mapping
 
+from .capability_map import reconcile_capability_map
 from .sdk_surfaces import canonical_surface_name, get_sdk_surface, list_sdk_surfaces
 
 
@@ -324,6 +325,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("surfaces", help="list callable SDK surfaces")
     sub.add_parser("capabilities", help="print the user-facing surface registry as JSON")
+    sub.add_parser("capability-map",
+                   help="reconcile installed routes against what an evaluator can invoke")
     governance = sub.add_parser("governance", help="guided demo/parameter/submit/replay/reconstruct governance navigation")
     governance.add_argument("--select", choices=("000", "00", "0", "0A", "0B", "1", "2"), help="show guidance or execute one canonical governance option")
     governance.add_argument("--input", help="option 0A public-inspection request JSON to execute through the canonical sovereign runtime")
@@ -357,6 +360,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "governance":
             return _governance_guide(args)
+        if args.command == "capability-map":
+            print(json.dumps(reconcile_capability_map(), indent=2, sort_keys=True, default=list))
+            return 0
+
         if args.command == "surfaces":
             print("StegVerse SDK callable surfaces")
             for name, summary in list_surfaces():
@@ -367,7 +374,11 @@ def main(argv: list[str] | None = None) -> int:
             print("Demo: stegverse demo admittedcode | stegverse demo manifold-governance")
             return 0
         if args.command == "capabilities":
-            print(json.dumps({"surfaces": list_sdk_surfaces(), "authority_effect": "NONE"}, indent=2, sort_keys=True))
+            print(json.dumps({
+                "surfaces": list_sdk_surfaces(),
+                "installed_routes": reconcile_capability_map()["rows"],
+                "authority_effect": "NONE",
+            }, indent=2, sort_keys=True, default=list))
             return 0
         if args.command == "help-surface":
             return print_help_for_surface(args.surface)
