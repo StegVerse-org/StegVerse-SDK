@@ -18,21 +18,20 @@ import unittest
 
 from stegverse.capability_map import (
     BUILDER_BINDING_EXEMPTIONS,
+    CANONICAL_TASK_ID,
     DECLARED_EXEMPTION,
     EVALUATOR_EXAMPLES,
     EVALUATOR_INVOCABLE,
     EXAMPLE_ROOT,
+    EXEMPTION_BASELINE,
+    EXEMPTION_REQUIRED_FIELDS,
     ROUTE_SELECTION_EXEMPTIONS,
+    _expired,
     reconcile_capability_map,
 )
 from stegverse.manifest_builder import build_manifest
 
-ACTIONABLE_FIELDS = (
-    "failed_predicate",
-    "required_evidence_or_repair",
-    "retry_entrypoint",
-    "owning_existing_goal",
-)
+ACTIONABLE_FIELDS = EXEMPTION_REQUIRED_FIELDS
 
 
 class CapabilityMapConformanceTests(unittest.TestCase):
@@ -101,6 +100,47 @@ class CapabilityMapConformanceTests(unittest.TestCase):
         route_ids = {row["route_id"] for row in self.report["rows"]}
         self.assertLessEqual(set(BUILDER_BINDING_EXEMPTIONS), capabilities)
         self.assertLessEqual(set(ROUTE_SELECTION_EXEMPTIONS), route_ids)
+
+    def test_an_exemption_is_granted_against_an_existing_canonical_goal(self) -> None:
+        """An exemption cites a registry goal and generation, not the SDK itself."""
+        for name, exemption in {**BUILDER_BINDING_EXEMPTIONS, **ROUTE_SELECTION_EXEMPTIONS}.items():
+            with self.subTest(exemption=name):
+                goal = exemption["owning_existing_goal"]
+                self.assertRegex(goal, CANONICAL_TASK_ID,
+                                 f"{name} owning goal is not a canonical task id")
+                self.assertTrue(exemption["registry_repository"].strip())
+                self.assertIsInstance(exemption["observed_registry_generation"], int)
+                self.assertGreater(exemption["observed_registry_generation"], 0)
+                self.assertIn(goal, exemption["granted_by"],
+                              f"{name} must be granted by its owning goal, not self-declared")
+
+    def test_the_granted_exemption_set_matches_its_declared_baseline(self) -> None:
+        """Granting an exemption is a deliberate edit, never a side effect."""
+        report = self.report
+        self.assertEqual(report["undeclared_exemptions"], [],
+                         "exemption granted without being declared in EXEMPTION_BASELINE")
+        self.assertEqual(report["stale_baseline_entries"], [],
+                         "EXEMPTION_BASELINE names an exemption that no longer exists")
+        self.assertTrue(report["exemption_baseline_matches"])
+        self.assertEqual(
+            len(EXEMPTION_BASELINE),
+            len(BUILDER_BINDING_EXEMPTIONS) + len(ROUTE_SELECTION_EXEMPTIONS),
+        )
+
+    def test_no_exemption_has_outlived_its_review_date(self) -> None:
+        """An exemption that never lapses is a permanent carve-out."""
+        self.assertEqual(
+            self.report["expired_exemption_count"], 0,
+            "a declared exemption is past its review_by: re-grant it against its "
+            "owning goal or do the repair it names",
+        )
+
+    def test_review_dates_expire_and_a_malformed_date_is_treated_as_expired(self) -> None:
+        from datetime import date
+        self.assertTrue(_expired("2026-01-01", today=date(2026, 9, 29)))
+        self.assertFalse(_expired("2026-12-31", today=date(2026, 9, 29)))
+        self.assertTrue(_expired(None))
+        self.assertTrue(_expired("not-a-date"))
 
     def test_reconciliation_grants_no_authority(self) -> None:
         self.assertIs(self.report["grants_execution_authority"], False)

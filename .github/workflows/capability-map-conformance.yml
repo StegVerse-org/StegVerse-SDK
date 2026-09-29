@@ -1,15 +1,9 @@
 name: SDK capability map conformance
 
+# Every pull request. A capability can be introduced in a module no path filter
+# anticipates, and the job takes about twelve seconds.
 on:
   pull_request:
-    paths:
-      - 'stegverse/capability_map.py'
-      - 'stegverse/route_resolution.py'
-      - 'stegverse/manifest_builder.py'
-      - 'stegverse/cli.py'
-      - 'inspection/examples/**'
-      - 'tests/test_capability_map_conformance.py'
-      - '.github/workflows/capability-map-conformance.yml'
   workflow_dispatch:
 
 jobs:
@@ -34,11 +28,14 @@ jobs:
           import json
           report = json.load(open("/tmp/capability-map.json", encoding="utf-8"))
           assert report["drift_count"] == 0, report
+          assert report["expired_exemption_count"] == 0, report
+          assert report["exemption_baseline_matches"] is True, report
           assert report["grants_execution_authority"] is False
           print("CAPABILITY_MAP_CONFORMANCE_PASS"
                 f" invocable={report['evaluator_invocable_count']}"
                 f" exempt={report['declared_exemption_count']}"
-                f" drift={report['drift_count']}")
+                f" drift={report['drift_count']}"
+                f" expired={report['expired_exemption_count']}")
           PY
 
       - uses: actions/upload-artifact@v4
