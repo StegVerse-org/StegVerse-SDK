@@ -5,7 +5,7 @@ import unittest
 
 from stegverse.governance_navigation import canonical_sha256
 from stegverse.manifest_builder import build_manifest
-from stegverse.manifest_state_transition_runtime import derive_execution_request
+from stegverse.manifest_state_transition_runtime import derive_execution_request, validate_runtime_result
 from stegverse.route_resolution import CANONICAL_PRODUCTION_ROUTE_ID
 
 
@@ -168,6 +168,82 @@ class TestOrganizationBatchGovernanceBinding(unittest.TestCase):
             ValueError, "ORGANIZATION_BATCH_TASK_BINDING_MUST_NOT_GRANT_AUTHORITY"
         ):
             derive_execution_request(manifest)
+
+
+    def test_runtime_result_preserves_parent_allow_and_separate_action_execution(self):
+        request = derive_execution_request(fixture())
+
+        def closure(transition_id, digest, predecessor=None):
+            row = {
+                "transition_id": transition_id,
+                "state": "RECORDED",
+                "reconstruction_status": "PASS",
+                "required_evidence_validation_status": "PASS",
+                "receipt_sha256": digest,
+                "reconstructed_receipt_sha256": digest,
+            }
+            if predecessor is not None:
+                row["predecessor_receipt_sha256"] = predecessor
+            return row
+
+        ingress = closure("INGRESS_ADMITTED", "1" * 64)
+        governed = closure("GOVERNANCE_DISPOSITION", "2" * 64, "1" * 64)
+        dispatch = closure("MANIFEST_DIRECTED_ORGANIZATION_APPEND_DISPATCHED", "3" * 64, "2" * 64)
+        result = {
+            "schema": "stegverse.sdk.manifest-state-transition-result/v1",
+            "state": "COMPLETE",
+            "disposition": "ALLOW",
+            "terminal": False,
+            "communication_terminal": False,
+            "canonical_task_id": TASK_ID,
+            "subject_or_correlation_id": TASK_ID,
+            "processing_capability": "governance",
+            "route_id": request["route_id"],
+            "graph_id": request["graph_id"],
+            "request_sha256": request["request_sha256"],
+            "wire_manifest_sha256": request["wire_manifest_sha256"],
+            "canonical_manifest_sha256": request["canonical_manifest_sha256"],
+            "resolved_ordered_transitions": ["INGRESS_ADMITTED", "GOVERNANCE_DISPOSITION"],
+            "transition_closures": [ingress, governed],
+            "organization_records_before_master_records": True,
+            "organization_master_records_closure_observed": True,
+            "publisher_executed": False,
+            "site_propagation_executed": False,
+            "authority_effect": "NONE_GOVERNANCE_DISPOSITION_ONLY",
+            "manifest_directed_action": {
+                "schema": "stegverse.manifest-directed-action-execution/v1",
+                "action_id": "ORGANIZATION_APPEND",
+                "execution_result": "COMPLETED",
+                "governance_disposition": None,
+                "canonical_manifest_sha256": request["canonical_manifest_sha256"],
+                "parent_governance_receipt_sha256": "2" * 64,
+                "dispatch_closure": dispatch,
+                "organization_receipt_sha256": "sha256:" + "4" * 64,
+                "organization_previous_receipt_sha256": "sha256:" + "5" * 64,
+                "source_transition_sha256": "sha256:" + "6" * 64,
+                "released_batch": {
+                    "batch_id": "sha256:" + "7" * 64,
+                    "execution_result": "FAILED",
+                    "governance_disposition": None,
+                    "reason": "ORGANIZATION_BATCH_AUTHENTIC_CUSTODY_SURFACE_UNAVAILABLE",
+                    "authority_effect": "NONE",
+                },
+                "authority_effect": "NONE_EXECUTION_EVIDENCE_ONLY",
+            },
+        }
+        checked = validate_runtime_result(result, request)
+        self.assertEqual(checked["disposition"], "ALLOW")
+        self.assertEqual(
+            checked["manifest_directed_action"]["released_batch"]["execution_result"],
+            "FAILED",
+        )
+
+        escalated = copy.deepcopy(result)
+        escalated["manifest_directed_action"]["governance_disposition"] = "ALLOW"
+        with self.assertRaisesRegex(
+            ValueError, "ORGANIZATION_BATCH_ACTION_RESULT_MISMATCH:governance_disposition"
+        ):
+            validate_runtime_result(escalated, request)
 
 
 if __name__ == "__main__":
