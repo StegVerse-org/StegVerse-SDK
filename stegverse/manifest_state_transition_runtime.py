@@ -414,6 +414,90 @@ def _validate_shwp_parent_profile_result(result: Mapping[str, Any], request: Map
     return dict(result)
 
 
+def _validate_governance_runtime_result(
+    result: Mapping[str, Any], request: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Validate one parent governance disposition without conflating downstream execution."""
+    disposition = result.get("disposition")
+    if disposition not in {"ALLOW", "DENY", "FAIL_CLOSED"}:
+        raise ValueError("GOVERNANCE_RESULT_DISPOSITION_INVALID")
+    expected_state = "COMPLETE" if disposition == "ALLOW" else disposition
+    if result.get("state") != expected_state:
+        raise ValueError("GOVERNANCE_RESULT_STATE_MISMATCH")
+    if result.get("terminal") is not (disposition != "ALLOW"):
+        raise ValueError("GOVERNANCE_RESULT_TERMINAL_MISMATCH")
+    if result.get("communication_terminal") is not False:
+        raise ValueError("GOVERNANCE_RESULT_COMMUNICATION_TERMINAL_ESCALATION")
+    for key in (
+        "request_sha256", "wire_manifest_sha256", "canonical_manifest_sha256",
+        "graph_id", "canonical_task_id", "processing_capability", "route_id",
+    ):
+        if result.get(key) != request.get(key):
+            raise ValueError(f"GOVERNANCE_RESULT_BINDING_MISMATCH:{key}")
+    if result.get("processing_capability") != "governance":
+        raise ValueError("GOVERNANCE_RESULT_CAPABILITY_MISMATCH")
+    if result.get("organization_records_before_master_records") is not True:
+        raise ValueError("GOVERNANCE_RESULT_ORGANIZATION_FIRST_REQUIRED")
+    if result.get("organization_master_records_closure_observed") is not True:
+        raise ValueError("GOVERNANCE_RESULT_MASTER_RECORDS_CLOSURE_REQUIRED")
+    if result.get("publisher_executed") is not False or result.get("site_propagation_executed") is not False:
+        raise ValueError("GOVERNANCE_RESULT_EXTERNAL_MUTATION_ESCALATION")
+    _validate_transition_closures(result, request["state_graph"])
+
+    action = result.get("manifest_directed_action")
+    task_id = request.get("canonical_task_id")
+    if task_id == "ORGANIZATION-BATCH-CUSTODY-REPLAY-001":
+        if disposition == "ALLOW":
+            if not isinstance(action, Mapping):
+                raise ValueError("ORGANIZATION_BATCH_ACTION_RESULT_REQUIRED_AFTER_ALLOW")
+            required = {
+                "schema": "stegverse.manifest-directed-action-execution/v1",
+                "action_id": "ORGANIZATION_APPEND",
+                "governance_disposition": None,
+                "canonical_manifest_sha256": request["canonical_manifest_sha256"],
+                "authority_effect": "NONE_EXECUTION_EVIDENCE_ONLY",
+            }
+            for key, expected in required.items():
+                if action.get(key) != expected:
+                    raise ValueError(f"ORGANIZATION_BATCH_ACTION_RESULT_MISMATCH:{key}")
+            if action.get("execution_result") not in {"COMPLETED", "FAILED"}:
+                raise ValueError("ORGANIZATION_BATCH_ACTION_EXECUTION_RESULT_INVALID")
+            parent = action.get("parent_governance_receipt_sha256")
+            if not isinstance(parent, str) or len(parent) != 64:
+                raise ValueError("ORGANIZATION_BATCH_PARENT_GOVERNANCE_RECEIPT_INVALID")
+            dispatch = action.get("dispatch_closure")
+            if not isinstance(dispatch, Mapping):
+                raise ValueError("ORGANIZATION_BATCH_DISPATCH_CLOSURE_REQUIRED")
+            for key, expected in _REQUIRED_CLOSURE.items():
+                if dispatch.get(key) != expected:
+                    raise ValueError(f"ORGANIZATION_BATCH_DISPATCH_CLOSURE_INVALID:{key}")
+            if action["execution_result"] == "COMPLETED":
+                if not isinstance(action.get("organization_receipt_sha256"), str):
+                    raise ValueError("ORGANIZATION_BATCH_ORGANIZATION_RECEIPT_REQUIRED")
+                released = action.get("released_batch")
+                if released is not None:
+                    if not isinstance(released, Mapping):
+                        raise ValueError("ORGANIZATION_BATCH_RELEASED_BATCH_RESULT_INVALID")
+                    if released.get("execution_result") not in {"COMPLETED", "FAILED"}:
+                        raise ValueError("ORGANIZATION_BATCH_CARRIAGE_RESULT_INVALID")
+                    if released.get("governance_disposition") is not None:
+                        raise ValueError("ORGANIZATION_BATCH_CARRIAGE_GOVERNANCE_ESCALATION")
+            else:
+                failure = action.get("failure_closure")
+                if not isinstance(failure, Mapping):
+                    raise ValueError("ORGANIZATION_BATCH_FAILURE_CLOSURE_REQUIRED")
+                for key, expected in _REQUIRED_CLOSURE.items():
+                    if failure.get(key) != expected:
+                        raise ValueError(f"ORGANIZATION_BATCH_FAILURE_CLOSURE_INVALID:{key}")
+                if not isinstance(action.get("failed_predicate"), str) or not action["failed_predicate"]:
+                    raise ValueError("ORGANIZATION_BATCH_FAILED_PREDICATE_REQUIRED")
+        elif action is not None:
+            raise ValueError("ORGANIZATION_BATCH_NONALLOW_MUST_NOT_EXECUTE_ACTION")
+    elif action is not None:
+        raise ValueError("UNBOUND_MANIFEST_DIRECTED_ACTION_RESULT")
+    return dict(result)
+
+
 def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
     if result.get("schema") == "stegverse.sdk.shwp-manifest-transition-result/v1":
         return _validate_shwp_parent_profile_result(result, request)
@@ -425,6 +509,8 @@ def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any
         return _validate_profile_source_deny(result, request)
     if result.get("schema") == "stegverse.sdk.manifest-state-transition-progress/v1":
         return _validate_nonterminal_diagnostic_progress(result, request)
+    if result.get("schema") == RESULT_SCHEMA and request.get("processing_capability") == "governance":
+        return _validate_governance_runtime_result(result, request)
     if result.get("schema") != RESULT_SCHEMA:
         raise ValueError("UNIVERSAL_INTR_RESULT_SCHEMA_MISMATCH")
     if result.get("state") != "COMPLETE":
