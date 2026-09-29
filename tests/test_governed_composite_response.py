@@ -1,0 +1,431 @@
+"""Composition of N worker LLM answers into one governed response.
+
+Components are built by StegBrowser's own ``bind_llm_profile_result`` where it is
+importable, so these tests exercise the real seam rather than a hand-shaped dict
+that happens to match what the SDK expects.
+"""
+
+from __future__ import annotations
+
+from hashlib import sha256
+import importlib.util
+import json
+from pathlib import Path
+from typing import Any, Dict, List, Mapping, Optional
+
+import pytest
+
+from stegverse.governed_composite_response import (
+    COMPONENT_SCHEMA,
+    COMPOSITE_SCHEMA,
+    DISPOSITION_FAIL_CLOSED,
+    DISPOSITION_GOVERNED,
+    DISPOSITION_RELATION_UNRESOLVED,
+    FAILURE_COMPONENT_COMMITMENT,
+    FAILURE_COMPONENT_MARKER,
+    FAILURE_DUPLICATE_JOURNEY,
+    FAILURE_FOREIGN_FAN,
+    FAILURE_NO_MAJORITY,
+    FAILURE_NO_UNANIMITY,
+    JOINT_RELATION_SCHEMA,
+    STRATEGY_ATTRIBUTED_SET,
+    STRATEGY_MAJORITY,
+    STRATEGY_UNANIMOUS,
+    CompositeResponseError,
+    compose_governed_response,
+    reconstruct_governed_response,
+)
+
+FAN = "FAN-TEST6"
+
+_BROWSER_CANDIDATES = (
+    Path("/home/user/stegbrowser/src/stegbrowser/llm_profile.py"),
+    Path(__file__).resolve().parents[2] / "stegbrowser/src/stegbrowser/llm_profile.py",
+)
+
+
+def _load_browser_profile():
+    """Load StegBrowser's llm_profile directly, bypassing its package imports."""
+
+    for path in _BROWSER_CANDIDATES:
+        if not path.exists():
+            continue
+        spec = importlib.util.spec_from_file_location("_sb_llm_profile", path)
+        if spec is None or spec.loader is None:
+            continue
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    return None
+
+
+BROWSER = _load_browser_profile()
+
+
+def _sha256(value: Any) -> str:
+    data = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return "sha256:" + sha256(data.encode("utf-8")).hexdigest()
+
+
+def _worker(
+    branch: str,
+    provider: str,
+    model: str,
+    answer: str,
+    *,
+    fan: str = FAN,
+    prompt: str = "Which protocol governs the return leg?",
+) -> Dict[str, Any]:
+    """Return one worker's llm-profile result for a branch of a fan."""
+
+    journey_id = f"{fan}:{branch}"
+    marker = f"MARKER-{branch}"
+    response_text = f"{answer} {marker}"
+    if BROWSER is not None:
+        request = {
+            "schema": BROWSER.REQUEST_SCHEMA,
+            "profile": BROWSER.PROFILE,
+            "prompt": prompt,
+            "response_marker": marker,
+            "provider": provider,
+            "model": model,
+            "journey": {
+                "schema": BROWSER.JOURNEY_SCHEMA,
+                "journey_id": journey_id,
+                "origin_endpoint": "origin",
+                "ephemeral_endpoint": f"ephemeral-{branch}",
+                "outbound_manifest_sha256": "a" * 64,
+                "return_manifest_sha256": "b" * 64,
+                "return_predecessor_manifest_sha256": "a" * 64,
+            },
+        }
+        packet = BROWSER.begin_llm_profile_packet(request)
+        bound = BROWSER.bind_llm_profile_result(
+            packet=packet, response_text=response_text, provider=provider, model=model
+        )
+        return dict(bound["result"])
+
+    result = {
+        "schema": COMPONENT_SCHEMA,
+        "profile": "llm.v1",
+        "request_commitment": _sha256({"prompt": prompt, "journey_id": journey_id}),
+        "response_marker": marker,
+        "provider": provider,
+        "model": model,
+        "response_text": response_text,
+        "journey_id": journey_id,
+    }
+    result["response_commitment"] = _sha256(result)
+    return result
+
+
+VALID_RELATION = {
+    "schema": JOINT_RELATION_SCHEMA,
+    "relation_status": "validated",
+    "relation_id": "REL-TEST6-001",
+    "authority_source": "KV/SKAP Vault",
+    "evidence_posture": "receipt_backed",
+    "replay_posture": "receipt_backed",
+}
+
+
+def _compose(
+    components: List[Mapping[str, Any]],
+    *,
+    strategy: str = STRATEGY_UNANIMOUS,
+    relation: Optional[Mapping[str, Any]] = VALID_RELATION,
+    fan: str = FAN,
+) -> Dict[str, Any]:
+    return compose_governed_response(
+        components,
+        composition_id="CMP-TEST6",
+        fan_journey_id=fan,
+        strategy=strategy,
+        joint_relation=relation,
+    )
+
+
+def _agreeing_fan() -> List[Mapping[str, Any]]:
+    return [
+        _worker("b0", "anthropic", "claude-opus", "The return leg is predecessor-linked."),
+        _worker("b1", "openai", "gpt", "The return leg is predecessor-linked."),
+        _worker("b2", "google", "gemini", "The return leg is predecessor-linked."),
+    ]
+
+
+def test_stegbrowser_is_the_component_producer_under_test() -> None:
+    """Guard the fixture: silently falling back would hide a seam break."""
+    if BROWSER is None:
+        pytest.skip("StegBrowser checkout not present")
+    component = _worker("b0", "anthropic", "claude-opus", "answer")
+    assert component["schema"] == COMPONENT_SCHEMA
+
+
+def test_three_different_llms_agreeing_compose_one_governed_response() -> None:
+    composite = _compose(_agreeing_fan())
+    assert composite["disposition"] == DISPOSITION_GOVERNED
+    assert composite["governed_claim"] is True
+    assert composite["composite_answer"] == "The return leg is predecessor-linked."
+    assert composite["distinct_model_count"] == 3
+    assert composite["unanimous"] is True
+
+
+def test_each_branch_has_its_own_request_commitment() -> None:
+    """Why the fan id, not the request commitment, is the query binding.
+
+    Every branch commits to its own provider, model, marker and journey_id, so
+    no two workers in a fan can share a request_commitment even when the prompt
+    is identical.
+    """
+    composite = _compose(_agreeing_fan())
+    commitments = {c["request_commitment"] for c in composite["components"]}
+    assert len(commitments) == 3
+    assert composite["query_binding"]["same_prompt_verified_from_components"] is False
+    assert composite["query_binding"]["fan_journey_id"] == FAN
+
+
+def test_marker_differences_alone_do_not_read_as_disagreement() -> None:
+    """Each branch carries its own marker; only the answer should be compared."""
+    composite = _compose(_agreeing_fan())
+    assert composite["distinct_answer_count"] == 1
+    markers = {c["journey_id"] for c in composite["components"]}
+    assert len(markers) == 3
+
+
+def test_a_divergent_worker_fails_a_unanimous_composition_closed() -> None:
+    fan = _agreeing_fan() + [_worker("b3", "meta", "llama", "The return leg is unlinked.")]
+    composite = _compose(fan)
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert FAILURE_NO_UNANIMITY in composite["failure_codes"]
+    assert composite["composite_answer"] is None
+    assert composite["governed_claim"] is False
+
+
+def test_divergence_is_reported_with_the_workers_behind_each_answer() -> None:
+    fan = _agreeing_fan() + [_worker("b3", "meta", "llama", "The return leg is unlinked.")]
+    composite = _compose(fan)
+    support = {
+        group["support_count"]: group["worker_journey_ids"]
+        for group in composite["answer_groups"]
+    }
+    assert sorted(support) == [1, 3]
+    assert support[1] == [f"{FAN}:b3"]
+    assert support[3] == [f"{FAN}:b0", f"{FAN}:b1", f"{FAN}:b2"]
+
+
+def test_majority_strategy_selects_the_answer_a_strict_majority_returned() -> None:
+    fan = _agreeing_fan() + [_worker("b3", "meta", "llama", "The return leg is unlinked.")]
+    composite = _compose(fan, strategy=STRATEGY_MAJORITY)
+    assert composite["disposition"] == DISPOSITION_GOVERNED
+    assert composite["composite_answer"] == "The return leg is predecessor-linked."
+
+
+def test_majority_strategy_fails_closed_on_an_even_split() -> None:
+    fan = [
+        _worker("b0", "anthropic", "claude-opus", "Linked."),
+        _worker("b1", "openai", "gpt", "Linked."),
+        _worker("b2", "google", "gemini", "Unlinked."),
+        _worker("b3", "meta", "llama", "Unlinked."),
+    ]
+    composite = _compose(fan, strategy=STRATEGY_MAJORITY)
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert FAILURE_NO_MAJORITY in composite["failure_codes"]
+    assert composite["composite_answer"] is None
+
+
+def test_attributed_set_selects_nothing_and_still_reports_every_answer() -> None:
+    fan = _agreeing_fan() + [_worker("b3", "meta", "llama", "The return leg is unlinked.")]
+    composite = _compose(fan, strategy=STRATEGY_ATTRIBUTED_SET)
+    assert composite["disposition"] == DISPOSITION_GOVERNED
+    assert composite["selected_answer_sha256"] is None
+    assert composite["composite_answer"] is None
+    assert composite["distinct_answer_count"] == 2
+
+
+def test_without_a_validated_joint_relation_the_composite_is_not_a_governed_claim() -> None:
+    composite = _compose(_agreeing_fan(), relation=None)
+    assert composite["disposition"] == DISPOSITION_RELATION_UNRESOLVED
+    assert composite["governed_claim"] is False
+    # The answer is still carried and still attributed; only the claim is withheld.
+    assert composite["composite_answer"] == "The return leg is predecessor-linked."
+    assert composite["separability"][
+        "component_admissibility_implies_composite_admissibility"
+    ] is False
+
+
+def test_unanimous_agreement_is_never_reported_as_correctness() -> None:
+    composite = _compose(_agreeing_fan())
+    assert composite["unanimous"] is True
+    assert composite["boundary"]["agreement_is_evidence_of_correctness"] is False
+    assert composite["boundary"]["composition_synthesizes_new_text"] is False
+    assert composite["boundary"]["composition_calls_an_llm"] is False
+
+
+def test_the_composite_answer_is_verbatim_one_of_the_component_answers() -> None:
+    fan = _agreeing_fan()
+    composite = _compose(fan)
+    answers = {
+        c["response_text"].replace(c["response_marker"], " ").strip() for c in fan
+    }
+    assert composite["composite_answer"] in answers
+
+
+def test_a_tampered_component_response_fails_closed() -> None:
+    fan = _agreeing_fan()
+    tampered = dict(fan[1])
+    tampered["response_text"] = f"Something else entirely. {tampered['response_marker']}"
+    composite = _compose([fan[0], tampered, fan[2]])
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert FAILURE_COMPONENT_COMMITMENT in composite["failure_codes"]
+
+
+def test_a_component_missing_its_own_marker_fails_closed() -> None:
+    fan = _agreeing_fan()
+    stripped = dict(fan[1])
+    stripped["response_text"] = "No marker here."
+    composite = _compose([fan[0], stripped, fan[2]])
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert FAILURE_COMPONENT_MARKER in composite["failure_codes"]
+
+
+def test_the_same_worker_answer_cannot_be_counted_twice() -> None:
+    fan = _agreeing_fan()
+    composite = _compose([fan[0], fan[0], fan[1]])
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert FAILURE_DUPLICATE_JOURNEY in composite["failure_codes"]
+
+
+def test_a_component_from_another_fan_cannot_be_folded_in() -> None:
+    outsider = _worker("b0", "meta", "llama", "Linked.", fan="FAN-SOMETHING-ELSE")
+    composite = _compose(_agreeing_fan() + [outsider])
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert FAILURE_FOREIGN_FAN in composite["failure_codes"]
+
+
+def test_component_order_cannot_change_the_composite() -> None:
+    fan = _agreeing_fan()
+    forward = _compose(fan)
+    backward = _compose(list(reversed(fan)))
+    assert forward["composite_sha256"] == backward["composite_sha256"]
+
+
+def test_a_composite_reconstructs_from_its_components_alone() -> None:
+    fan = _agreeing_fan()
+    composite = _compose(fan)
+    replay = reconstruct_governed_response(composite, fan)
+    assert replay["reconstruction_status"] == "RECONSTRUCTED"
+    assert replay["reconstructed"] is True
+    assert replay["reconstructed_composite_sha256"] == composite["composite_sha256"]
+
+
+def test_reconstruction_diverges_when_a_component_is_swapped() -> None:
+    fan = _agreeing_fan()
+    composite = _compose(fan)
+    substituted = fan[:2] + [_worker("b2", "google", "gemini", "A different answer.")]
+    replay = reconstruct_governed_response(composite, substituted)
+    assert replay["reconstructed"] is False
+    assert replay["reconstruction_status"] in {"DIVERGED", "FAILED"}
+
+
+def test_reconstruction_rejects_a_foreign_schema() -> None:
+    with pytest.raises(CompositeResponseError):
+        reconstruct_governed_response({"schema": "something.else.v1"}, _agreeing_fan())
+
+
+def test_a_single_worker_is_not_a_composition() -> None:
+    with pytest.raises(CompositeResponseError):
+        _compose([_worker("b0", "anthropic", "claude-opus", "Linked.")])
+
+
+def test_an_undeclared_strategy_is_refused() -> None:
+    with pytest.raises(CompositeResponseError):
+        _compose(_agreeing_fan(), strategy="WHATEVER_LOOKS_BEST")
+
+
+def test_the_composite_declares_its_own_schema_and_digest() -> None:
+    composite = _compose(_agreeing_fan())
+    assert composite["schema"] == COMPOSITE_SCHEMA
+    assert composite["composite_sha256"].startswith("sha256:")
+
+
+# --- reachable from Ecosystem Chat, not only from a console -----------------
+
+
+def test_chat_can_request_a_composition_and_read_its_verification() -> None:
+    """Test 6 starts with a query posed in Chat, so Chat must reach composition."""
+    from stegverse.ecosystem_chat_entry import (
+        COMPOSE,
+        COMPOSITION_VERIFICATION_FIELDS,
+        SCHEMA,
+        console_equivalent_request,
+        validate_chat_entry,
+    )
+
+    fan = _agreeing_fan()
+    entry = validate_chat_entry(
+        {
+            "schema": SCHEMA,
+            "operation": COMPOSE,
+            "composition_id": "CMP-CHAT-1",
+            "fan_journey_id": FAN,
+            "strategy": STRATEGY_UNANIMOUS,
+            "components": fan,
+        }
+    )
+    assert entry["capability"] == "COMPOSE_GOVERNED_RESPONSE"
+    assert entry["composition_request"]["component_count"] == 3
+    assert entry["verification"]["compare_fields"] == list(
+        COMPOSITION_VERIFICATION_FIELDS
+    )
+    assert entry["verification"]["legible_without_a_console"] is True
+    # Chat interfaces with the composer; it neither selects nor writes the answer.
+    assert entry["composer_directive"]["composite_selected_by_chat"] is False
+    assert entry["composer_directive"]["answer_generated_by_chat"] is False
+    # And the request projects onto the console's own shape, not a Chat dialect.
+    projected = console_equivalent_request(entry)
+    assert projected["selection"] == COMPOSE
+    assert projected["composition"]["fan_journey_id"] == FAN
+    assert "manifest_receipt_id" not in projected
+
+
+def test_the_fields_chat_shows_are_the_ones_that_settle_the_verification() -> None:
+    """Every compare field must exist on a real composite plus its replay."""
+    from stegverse.ecosystem_chat_entry import COMPOSITION_VERIFICATION_FIELDS
+
+    fan = _agreeing_fan()
+    composite = _compose(fan)
+    available = dict(composite)
+    available.update(reconstruct_governed_response(composite, fan))
+    missing = [f for f in COMPOSITION_VERIFICATION_FIELDS if f not in available]
+    assert missing == [], f"Chat is told to compare fields that do not exist: {missing}"
+
+
+def test_chat_cannot_request_a_composition_of_one_worker() -> None:
+    from stegverse.ecosystem_chat_entry import COMPOSE, SCHEMA, validate_chat_entry
+
+    with pytest.raises(ValueError):
+        validate_chat_entry(
+            {
+                "schema": SCHEMA,
+                "operation": COMPOSE,
+                "composition_id": "CMP-CHAT-2",
+                "fan_journey_id": FAN,
+                "components": [_worker("b0", "anthropic", "claude-opus", "Linked.")],
+            }
+        )
+
+
+def test_chat_cannot_request_an_undeclared_strategy() -> None:
+    from stegverse.ecosystem_chat_entry import COMPOSE, SCHEMA, validate_chat_entry
+
+    with pytest.raises(ValueError):
+        validate_chat_entry(
+            {
+                "schema": SCHEMA,
+                "operation": COMPOSE,
+                "composition_id": "CMP-CHAT-3",
+                "fan_journey_id": FAN,
+                "strategy": "PICK_THE_BEST_ONE",
+                "components": _agreeing_fan(),
+            }
+        )

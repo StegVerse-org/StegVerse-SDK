@@ -90,6 +90,15 @@ CONSOLE_CAPABILITIES: dict[str, dict[str, Any]] = {
         "summary": "Reconstruct a retained result by its manifest receipt id.",
         "verification": True,
     },
+    "3": {
+        "capability": "COMPOSE_GOVERNED_RESPONSE",
+        "requires_transportability": True,
+        "summary": (
+            "Compose the answers several workers returned, each from a different "
+            "LLM, into one governed response and reconstruct it."
+        ),
+        "verification": True,
+    },
     "return_projection": {
         "capability": "RETURN_PROJECTION_CONTROL",
         "requires_transportability": False,
@@ -109,6 +118,7 @@ CHAT_CAPABILITIES: frozenset[str] = frozenset({
     "SUBMIT_PREFORMATTED_MANIFEST",
     "REPLAY_BY_RECEIPT_LOCATOR",
     "RECONSTRUCT_BY_RECEIPT_LOCATOR",
+    "COMPOSE_GOVERNED_RESPONSE",
     "RETURN_PROJECTION_CONTROL",
     "MANIFEST_LABEL_CONTROL",
 })
