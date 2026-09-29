@@ -9,8 +9,96 @@ from .ecosystem_diagnostic_runtime import (
     validate_diagnostic_request,
 )
 from .governance_ingress_runtime import external_manifest_to_public_request
+from .governance_navigation import canonical_sha256
 from .manifest_contract import validate_ingress_manifest
 from .route_resolution import route_from_manifest
+
+ORGANIZATION_BATCH_TASK_ID = "ORGANIZATION-BATCH-CUSTODY-REPLAY-001"
+ORGANIZATION_BATCH_COSV = "10000000100000"
+ORGANIZATION_BATCH_REQUEST_REF = (
+    "control/resident-execution-request.d/"
+    "canonical-work-organization-batch-custody-replay-001.json"
+)
+ORGANIZATION_BATCH_REQUEST_REQUIRED = {
+    "schema": "stegverse.resident-execution-request/v1",
+    "request_id": "RESIDENT-EXEC-ORGANIZATION-BATCH-CUSTODY-REPLAY-001",
+    "state": "REQUESTED",
+    "task_id": ORGANIZATION_BATCH_TASK_ID,
+    "cosv_profile": "task.v1",
+    "cosv_task_vector": ORGANIZATION_BATCH_COSV,
+    "pointer_source": "data/canonical-task-records/ORGANIZATION-BATCH-CUSTODY-REPLAY-001.json",
+    "mode": "CANONICAL_WORK_EVENT_BOOTSTRAP",
+    "entrypoint": "scripts/install_and_run_canonical_work_event_bootstrap.py",
+    "credential_authority": "TV/TVC",
+    "github_token_required": False,
+    "github_token_runtime_authority": "NONE",
+    "heartbeat_grants_execution_authority": False,
+    "oscillator_grants_execution_authority": False,
+    "second_machine_required": False,
+    "network_source_fetch_allowed": False,
+    "request_granted_authority": False,
+    "authority_effect": "NONE_REQUEST_ONLY",
+}
+
+
+def _organization_batch_governance_binding(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
+    extensions = manifest.get("extensions")
+    if not isinstance(extensions, Mapping):
+        return None
+    binding = extensions.get("stegverse_canonical_task")
+    if binding is None:
+        return None
+    if not isinstance(binding, Mapping):
+        raise ValueError("CANONICAL_TASK_BINDING_OBJECT_REQUIRED")
+    if binding.get("task_id") != ORGANIZATION_BATCH_TASK_ID:
+        raise ValueError("UNSUPPORTED_CANONICAL_GOVERNANCE_TASK_BINDING")
+    if binding.get("correlation_id") != ORGANIZATION_BATCH_TASK_ID:
+        raise ValueError("ORGANIZATION_BATCH_CORRELATION_ID_MISMATCH")
+    if binding.get("registry_repository") != "StegVerse-Labs/.github":
+        raise ValueError("ORGANIZATION_BATCH_CANONICAL_REGISTRY_MISMATCH")
+    generation = binding.get("observed_registry_generation")
+    if type(generation) is not int or generation < 1:
+        raise ValueError("ORGANIZATION_BATCH_REGISTRY_GENERATION_REQUIRED")
+    if binding.get("cosv_task_vector") != ORGANIZATION_BATCH_COSV:
+        raise ValueError("ORGANIZATION_BATCH_COSV_BINDING_MISMATCH")
+    if binding.get("canonical_request_ref") != ORGANIZATION_BATCH_REQUEST_REF:
+        raise ValueError("ORGANIZATION_BATCH_CANONICAL_REQUEST_REF_MISMATCH")
+    if binding.get("authority_effect") != "NONE":
+        raise ValueError("ORGANIZATION_BATCH_TASK_BINDING_MUST_NOT_GRANT_AUTHORITY")
+
+    original = manifest.get("payload")
+    if not isinstance(original, Mapping):
+        raise ValueError("ORGANIZATION_BATCH_UNCHANGED_CANONICAL_REQUEST_REQUIRED")
+    for key, expected in ORGANIZATION_BATCH_REQUEST_REQUIRED.items():
+        if original.get(key) != expected or type(original.get(key)) is not type(expected):
+            raise ValueError("ORGANIZATION_BATCH_UNCHANGED_REQUEST_MISMATCH:" + key)
+
+    batch = extensions.get("stegverse_organization_receipt_batch")
+    if not isinstance(batch, Mapping):
+        raise ValueError("ORGANIZATION_BATCH_RECEIPT_BATCH_POLICY_REQUIRED")
+    condition = batch.get("release_condition")
+    if not isinstance(condition, Mapping) or condition.get("type") != "COUNT":
+        raise ValueError("ORGANIZATION_BATCH_COUNT_RELEASE_CONDITION_REQUIRED")
+    count = condition.get("count")
+    if type(count) is not int or count < 1:
+        raise ValueError("ORGANIZATION_BATCH_RELEASE_COUNT_INVALID")
+    establishment = batch.get("establishment")
+    if establishment is not None:
+        if not isinstance(establishment, Mapping):
+            raise ValueError("ORGANIZATION_BATCH_ESTABLISHMENT_INVALID")
+        if not isinstance(establishment.get("heartbeat_id"), str) or not establishment["heartbeat_id"]:
+            raise ValueError("ORGANIZATION_BATCH_ESTABLISHMENT_HEARTBEAT_REQUIRED")
+        delta = establishment.get("expiry_delta_heartbeats")
+        if type(delta) is not int or delta < 1:
+            raise ValueError("ORGANIZATION_BATCH_ESTABLISHMENT_DELTA_INVALID")
+    return {
+        "task_id": ORGANIZATION_BATCH_TASK_ID,
+        "observed_registry_generation": generation,
+        "cosv_task_vector": ORGANIZATION_BATCH_COSV,
+        "canonical_request_ref": ORGANIZATION_BATCH_REQUEST_REF,
+        "original_request_sha256": canonical_sha256(dict(original)),
+        "receipt_batch": dict(batch),
+    }
 
 
 def derive_governance_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
@@ -19,10 +107,20 @@ def derive_governance_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]
     # The public request adapter validates the original wire manifest itself.
     # Derived canonical fields cannot be passed as top-level wire fields.
     request = external_manifest_to_public_request(manifest)
+    organization_batch = _organization_batch_governance_binding(manifest)
+    task_id = organization_batch["task_id"] if organization_batch else None
+    graph_id = "RTC-GOVERNED-PROCESSING-002"
+    if organization_batch:
+        graph_id += ":" + ORGANIZATION_BATCH_TASK_ID
+        request = {
+            **request,
+            "canonical_task_binding": organization_batch,
+            "authority_effect": "NONE_PUBLIC_GOVERNANCE_REQUEST_ONLY",
+        }
     return {
         "schema": "stegverse.sdk.installed-state-transition-graph/v1",
-        "graph_id": "RTC-GOVERNED-PROCESSING-002",
-        "canonical_task_id": None,
+        "graph_id": graph_id,
+        "canonical_task_id": task_id,
         "processing_capability": route["processor_capability"],
         "route_id": route["route_id"],
         "request": request,
