@@ -30,6 +30,7 @@ from stegverse.ecosystem_chat_entry import (
 )
 from stegverse.entry_point_parity import (
     AVAILABLE,
+    NODE_REGISTRATION_REQUIRED,
     CANONICAL_TASK_ID,
     CHAT_CAPABILITIES,
     DECLARED_GAP,
@@ -90,6 +91,39 @@ class EntryPointParityTests(unittest.TestCase):
         for row in self.report["rows"]:
             if row["verification_capability"]:
                 self.assertEqual(row["disposition"], AVAILABLE, row["capability"])
+
+    # --- transportability is a node capability, never a device property -----
+
+    def test_no_capability_is_ever_gated_on_a_device(self) -> None:
+        """A device is interchangeable; gating on device identity is prohibited."""
+        for row in self.report["rows"]:
+            with self.subTest(capability=row["capability"]):
+                self.assertEqual(row["device_identity_gate"], "NONE_PROHIBITED")
+        self.assertIs(self.report["transportability_conferred_by_device"], False)
+        self.assertEqual(self.report["transportability_conferred_by"], "NODE_REGISTRATION")
+
+    def test_a_transport_capability_is_conditioned_on_node_registration(self) -> None:
+        for row in self.report["rows"]:
+            with self.subTest(capability=row["capability"]):
+                expected = NODE_REGISTRATION_REQUIRED if row["requires_transportability"] else "NONE"
+                self.assertEqual(row["precondition"], expected)
+
+    def test_moving_data_requires_transportability_and_shaping_a_request_does_not(self) -> None:
+        """Submission and verification cross to custody; projection and labels shape a return."""
+        self.assertEqual(
+            sorted(self.report["requires_transportability"]),
+            ["RECONSTRUCT_BY_RECEIPT_LOCATOR", "REPLAY_BY_RECEIPT_LOCATOR",
+             "SUBMIT_PREFORMATTED_MANIFEST", "SUBMIT_RAW_USER_DATA"],
+        )
+        self.assertEqual(
+            sorted(self.report["available_without_node_registration"]),
+            ["MANIFEST_LABEL_CONTROL", "RETURN_PROJECTION_CONTROL"],
+        )
+
+    def test_registration_confers_transportability_and_no_authority(self) -> None:
+        """A node moves data; user verification stays exclusively with KV/SKAP."""
+        self.assertIs(self.report["node_confers_user_verifier_authority"], False)
+        self.assertIs(self.report["grants_execution_authority"], False)
 
     # --- gaps are granted, and they expire ----------------------------------
 

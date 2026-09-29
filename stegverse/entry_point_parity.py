@@ -16,6 +16,19 @@ This module states, per console capability, whether Chat reaches it. A gap may
 stand only as a declared gap naming its repair and owner, so Chat can never
 silently fall behind the console again.
 
+A device is interchangeable — `physical_device_identity_gate` is
+`NONE_PROHIBITED` and device identity is execution metadata only, so no
+capability may ever be gated on which device is in hand. What a capability may
+be conditioned on is **transportability**: a capability of a *registered node*,
+conferred by registration rather than owned by any device. An entry point
+reaches a transport-requiring capability when a node is registered, on whatever
+device that node was established or recovered on.
+
+Registration confers transportability and no authority. `node_user_verifier_authority`,
+`device_user_verifier_authority` and `transport_user_verifier_authority` are all
+NONE, and `user_verification_authority` is exclusively the KV/SKAP Vault. A node
+moves data; it never vouches for anyone.
+
 Non-authorizing. Source reconciliation only: it submits nothing, replays
 nothing, reconstructs nothing and grants no execution authority.
 """
@@ -28,6 +41,11 @@ from typing import Any
 SCHEMA = "stegverse.sdk.entry-point-parity/v1"
 
 CANONICAL_TASK_ID = re.compile(r"^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*-\d{3}$")
+
+#: Conferred by node registration, never by a device. A capability requiring it
+#: is reachable from any device on which a node is established or recovered.
+TRANSPORTABILITY = "TRANSPORTABILITY"
+NODE_REGISTRATION_REQUIRED = "REGISTERED_NODE_REQUIRED"
 
 AVAILABLE = "AVAILABLE_AT_CHAT"
 DECLARED_GAP = "DECLARED_GAP"
@@ -47,32 +65,39 @@ GAP_REQUIRED_FIELDS = (
 CONSOLE_CAPABILITIES: dict[str, dict[str, Any]] = {
     "000": {
         "capability": "GOVERNANCE_DEMO_DATASET",
+        "requires_transportability": False,
         "summary": "Run the bundled demonstration with full explanatory labels.",
     },
     "0A": {
         "capability": "SUBMIT_RAW_USER_DATA",
+        "requires_transportability": True,
         "summary": "Submit raw user data and have the SDK build the governance manifest.",
     },
     "0B": {
         "capability": "SUBMIT_PREFORMATTED_MANIFEST",
+        "requires_transportability": True,
         "summary": "Submit a manifest another framework already produced.",
     },
     "1": {
         "capability": "REPLAY_BY_RECEIPT_LOCATOR",
+        "requires_transportability": True,
         "summary": "Replay a retained result by its manifest receipt id.",
         "verification": True,
     },
     "2": {
         "capability": "RECONSTRUCT_BY_RECEIPT_LOCATOR",
+        "requires_transportability": True,
         "summary": "Reconstruct a retained result by its manifest receipt id.",
         "verification": True,
     },
     "return_projection": {
         "capability": "RETURN_PROJECTION_CONTROL",
+        "requires_transportability": False,
         "summary": "Choose whether the return projects ALL, SELECTED or NONE transition classes.",
     },
     "manifest_labels": {
         "capability": "MANIFEST_LABEL_CONTROL",
+        "requires_transportability": False,
         "summary": "Choose whether the returned package carries explanatory labels.",
     },
 }
@@ -124,11 +149,16 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
         capability = entry["capability"]
         reached = capability in CHAT_CAPABILITIES
         gap = DECLARED_GAPS.get(capability)
+        requires_transport = bool(entry.get("requires_transportability"))
         row: dict[str, Any] = {
             "console_selection": selection,
             "capability": capability,
             "summary": entry["summary"],
             "verification_capability": bool(entry.get("verification")),
+            # Conditioned on the node, never on the device.
+            "requires_transportability": requires_transport,
+            "precondition": NODE_REGISTRATION_REQUIRED if requires_transport else "NONE",
+            "device_identity_gate": "NONE_PROHIBITED",
             "chat_entry": AVAILABLE if reached else ("DECLARED_GAP" if gap else "ABSENT"),
             "grants_execution_authority": False,
             "evidence_ceiling": "SOURCE_RECONCILIATION_ONLY",
@@ -161,6 +191,18 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
         # The point of the exercise: a mobile user must be able to verify, not
         # only submit. A verification capability is never an acceptable gap.
         "verification_capabilities": [r["capability"] for r in verification],
+        # What an unregistered entry point reaches. Naming this is the point:
+        # the limit is registration, which anyone may obtain, not a device.
+        "requires_transportability": [
+            r["capability"] for r in rows if r["requires_transportability"]
+        ],
+        "available_without_node_registration": [
+            r["capability"] for r in rows
+            if not r["requires_transportability"] and r["disposition"] == AVAILABLE
+        ],
+        "transportability_conferred_by": "NODE_REGISTRATION",
+        "transportability_conferred_by_device": False,
+        "node_confers_user_verifier_authority": False,
         "verification_available_at_chat": all(
             r["disposition"] == AVAILABLE for r in verification
         ),
@@ -171,7 +213,7 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
 
 
 __all__ = [
-    "AVAILABLE", "CANONICAL_TASK_ID", "CHAT_CAPABILITIES", "CONSOLE_CAPABILITIES",
+    "AVAILABLE", "CANONICAL_TASK_ID", "NODE_REGISTRATION_REQUIRED", "TRANSPORTABILITY", "CHAT_CAPABILITIES", "CONSOLE_CAPABILITIES",
     "DECLARED_GAP", "DECLARED_GAPS", "GAP_REQUIRED_FIELDS", "SCHEMA", "STOP_DRIFT",
     "reconcile_entry_point_parity",
 ]

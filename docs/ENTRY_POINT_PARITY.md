@@ -10,6 +10,38 @@ that the evaluator was operating from an iPhone with no practical console
 surface, so another operator had to drive the console on their behalf — and the
 evidence file has to qualify its own claim because of it.
 
+## Transportability is a node capability, not a device property
+
+A device is **interchangeable**. `physical_device_identity_gate` is
+`NONE_PROHIBITED` and `device_identity_is_execution_metadata_only` is true, so
+no capability may ever be gated on which device is in hand. The correction was
+already made once for `SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004`, whose
+predicate `ONE_CURRENT_DEVICE_END_TO_END_PROVEN` was replaced by
+`ESTABLISHED_NODE_END_TO_END_PROVEN`; it had not been carried into Chat.
+
+What a capability may be conditioned on is **transportability**: a capability of
+a *registered node*, conferred by registration rather than owned by any device.
+A capability requiring it is reachable from any device on which a node is
+established or recovered.
+
+| requires transportability | available without node registration |
+|---|---|
+| `SUBMIT_RAW_USER_DATA` | `RETURN_PROJECTION_CONTROL` |
+| `SUBMIT_PREFORMATTED_MANIFEST` | `MANIFEST_LABEL_CONTROL` |
+| `REPLAY_BY_RECEIPT_LOCATOR` | |
+| `RECONSTRUCT_BY_RECEIPT_LOCATOR` | |
+
+Submission and verification cross to custody, so they move data. Projection and
+label control shape a return rather than being operations of their own, so they
+do not. Naming the limit this way matters: it is registration, which anyone may
+obtain on any eligible device, and never the device itself.
+
+Registration confers transportability and **no authority**.
+`node_user_verifier_authority`, `device_user_verifier_authority` and
+`transport_user_verifier_authority` are all NONE, and
+`user_verification_authority` is exclusively the KV/SKAP Vault. A node moves
+data; it never vouches for anyone.
+
 ## Replay and reconstruction are the point
 
 They are how a result is **verified** rather than trusted. An entry point that
