@@ -1,0 +1,46 @@
+name: SDK capability map conformance
+
+# Every pull request. A capability can be introduced in a module no path filter
+# anticipates, and the job takes about twelve seconds.
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  capability-map:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e .
+
+      - name: Every installed route is invocable or carries a declared exemption
+        run: python -m unittest tests.test_capability_map_conformance -v
+
+      - name: Publish the reconciled capability map
+        run: |
+          python -m stegverse capability-map | tee /tmp/capability-map.json
+          python - <<'PY'
+          import json
+          report = json.load(open("/tmp/capability-map.json", encoding="utf-8"))
+          assert report["drift_count"] == 0, report
+          assert report["expired_exemption_count"] == 0, report
+          assert report["exemption_baseline_matches"] is True, report
+          assert report["grants_execution_authority"] is False
+          print("CAPABILITY_MAP_CONFORMANCE_PASS"
+                f" invocable={report['evaluator_invocable_count']}"
+                f" exempt={report['declared_exemption_count']}"
+                f" drift={report['drift_count']}"
+                f" expired={report['expired_exemption_count']}")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sdk-capability-map
+          path: /tmp/capability-map.json
+          if-no-files-found: warn

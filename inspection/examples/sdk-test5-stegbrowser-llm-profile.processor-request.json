@@ -1,0 +1,24 @@
+{
+  "schema": "stegbrowser.llm-profile-request.v1",
+  "profile": "llm.v1",
+  "prompt": "Return the exact marker TEST5_EXAMPLE and identify this session.",
+  "response_marker": "TEST5_EXAMPLE",
+  "provider": "credential-free-huggingface-space",
+  "model": "Qwen3",
+  "secure_url": "https://huggingface.co/spaces/Zacheus10/free-ai-chat",
+  "journey": {
+    "schema": "stegverse.packet-carried-endpoint-receipt-journey/v1",
+    "journey_id": "sdk-test5-example",
+    "origin_endpoint": "stegverse:test5-origin",
+    "ephemeral_endpoint": "stegbrowser:ephemeral:example",
+    "outbound_manifest_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "return_manifest_sha256": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "return_predecessor_manifest_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "browser_actions": [
+    {"op": "fill", "frame_selector": "iframe", "selector": "#input", "value": "Return the exact marker TEST5_EXAMPLE and identify this session."},
+    {"op": "click", "frame_selector": "iframe", "selector": "#send"},
+    {"op": "wait_for", "frame_selector": "iframe", "selector": ".msg.ai .bubble", "state": "visible", "timeout_ms": 120000},
+    {"op": "read_text", "frame_selector": "iframe", "selector": ".msg.ai .bubble", "timeout_ms": 120000}
+  ]
+}
