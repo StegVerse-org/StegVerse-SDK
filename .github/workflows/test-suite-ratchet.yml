@@ -1,0 +1,51 @@
+name: Test suite ratchet
+
+# Every pull request, with no path filter. Every other workflow in this
+# repository names an explicit file list, so a test no workflow mentions is
+# never run by CI - 146 of 279 test files when this was added, and no workflow
+# ran tests/ as a directory.
+#
+# Among the unrun were the tests guarding the capability map and entry-point
+# parity. Their CLI reports ran in CI; the tests that exercise their claims did
+# not. A parity report reads drift_count: 0 even when the map claims a
+# capability the Chat contract has dropped, because the report compares the map
+# against a declared constant. Only the test catches that.
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ratchet:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      # The package's own dependencies, not just pytest. `requests` alone is
+      # imported by 208 test modules; installing pytest by itself collects them
+      # as errors and the gate then reads a failure set for an environment the
+      # suite cannot run in. `-e '.[dev]'` is this repository's own convention.
+      - run: python -m pip install -e '.[dev]'
+
+      - name: No change may add a test failure the baseline does not hold
+        run: python scripts/check_test_suite_ratchet.py
+
+      - name: Publish the run as structured findings
+        if: always()
+        run: |
+          python scripts/check_test_suite_ratchet.py --findings > /tmp/test-suite-ratchet.json || true
+          python - <<'PY'
+          import json
+          report = json.load(open("/tmp/test-suite-ratchet.json", encoding="utf-8"))
+          print(f"TEST_SUITE_RATCHET findings={report['finding_count']}")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-suite-ratchet
+          path: /tmp/test-suite-ratchet.json
+          if-no-files-found: warn
