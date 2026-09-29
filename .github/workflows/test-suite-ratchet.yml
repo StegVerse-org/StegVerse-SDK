@@ -24,9 +24,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      # Installed with the same interpreter the gate resolves its runner from,
-      # so the pytest that runs is the one sharing the tests' dependencies.
-      - run: python -m pip install pytest
+      # The package's own dependencies, not just pytest. `requests` alone is
+      # imported by 208 test modules; installing pytest by itself collects them
+      # as errors and the gate then reads a failure set for an environment the
+      # suite cannot run in. `-e '.[dev]'` is this repository's own convention.
+      - run: python -m pip install -e '.[dev]'
 
       - name: No change may add a test failure the baseline does not hold
         run: python scripts/check_test_suite_ratchet.py

@@ -66,12 +66,17 @@ def _pytest_command() -> list[str]:
     package instead of the installed distribution, and that shim supports
     neither the flags this gate needs nor the whole suite.
 
-    And PATH order is not a safe way to choose: this container has two pytest
-    installations, and the one PATH resolves first produced 209 collection
-    errors where the other ran the suite. A gate that silently picks the wrong
-    runner reports a failure set for something other than the suite. So prefer
-    the console script belonging to sys.executable, which is the pytest that
-    shares the interpreter the tests import their dependencies from.
+    And PATH order is not a safe way to choose. A pytest on PATH may belong to
+    an environment that does not have this package's dependencies installed,
+    and the suite then collects as errors rather than running: 208 test modules
+    import `requests` alone. That was observed here, where the pytest PATH
+    resolves first reported 209 collection errors and 199 passing tests where
+    the one belonging to sys.executable ran the suite. The difference was the
+    environment's installed dependencies, not the runner itself.
+
+    So prefer the console script belonging to sys.executable, which is the
+    pytest sharing the interpreter whose site-packages the tests import from.
+    The workflow installs the package into that same interpreter.
     """
     candidates = [Path(sysconfig.get_path("scripts")) / "pytest"]
     on_path = shutil.which("pytest")
@@ -171,12 +176,15 @@ def main() -> int:
             "target": args.target,
             "known_failing": sorted(x for x in observed
                                     if x not in {r["test"] for r in excluded}),
-            # Preserved across regeneration: an exclusion and its reason survive.
+            # Preserved across regeneration: an exclusion and its reason
+            # survive, and so does a recorded environment divergence.
             "excluded": excluded,
+            "environment_notes": existing.get("environment_notes") or [],
             # A floor, not the observed count: adding tests must not need a
             # baseline rewrite, but losing most of them must fail.
             "minimum_passing": int(passed * 0.95),
             "observed_passing_at_baseline": passed,
+            "generated_by_runner": runner,
             "baseline_is_a_ceiling_not_an_endorsement": True,
             "authority_effect": "NONE",
         }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
