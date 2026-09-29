@@ -13,6 +13,7 @@ import sys
 from typing import Any, Mapping
 
 from .capability_map import reconcile_capability_map
+from .entry_point_parity import reconcile_entry_point_parity
 from .sdk_surfaces import canonical_surface_name, get_sdk_surface, list_sdk_surfaces
 
 
@@ -325,6 +326,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("surfaces", help="list callable SDK surfaces")
     sub.add_parser("capabilities", help="print the user-facing surface registry as JSON")
+    sub.add_parser("entry-point-parity",
+                   help="show whether the Chat entry point equates to a console entry")
     sub.add_parser("capability-map",
                    help="reconcile installed routes against what an evaluator can invoke")
     governance = sub.add_parser("governance", help="guided demo/parameter/submit/replay/reconstruct governance navigation")
@@ -360,6 +363,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "governance":
             return _governance_guide(args)
+        if args.command == "entry-point-parity":
+            print(json.dumps(reconcile_entry_point_parity(), indent=2, sort_keys=True, default=list))
+            return 0
+
         if args.command == "capability-map":
             print(json.dumps(reconcile_capability_map(), indent=2, sort_keys=True, default=list))
             return 0

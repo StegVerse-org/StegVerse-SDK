@@ -1,0 +1,175 @@
+"""Chat equates to a console entry, or the gap is declared.
+
+Granular control belongs to the entry point. If Chat cannot reach a console
+capability, someone using Chat gives up an ability — and the ones that matter
+most are replay and reconstruction, because they are how a result is verified
+rather than trusted. The evaluator for Tests 1-3 was iPhone-only and needed
+another operator to drive the console; this gate exists so that cannot recur
+silently.
+
+The parity map is a set of claims. These tests exercise the Chat entry contract
+itself, so a claim that Chat reaches a capability fails here when it does not.
+
+Non-authorizing: request validation only. Nothing is submitted, replayed or
+reconstructed.
+"""
+from __future__ import annotations
+
+import unittest
+
+from stegverse.ecosystem_chat_entry import (
+    OPERATIONS,
+    RECONSTRUCT,
+    REPLAY,
+    SCHEMA,
+    SUBMIT_MANIFEST,
+    SUBMIT_RAW,
+    VERIFICATION_FIELDS,
+    console_equivalent_request,
+    validate_chat_entry,
+)
+from stegverse.entry_point_parity import (
+    AVAILABLE,
+    CANONICAL_TASK_ID,
+    CHAT_CAPABILITIES,
+    DECLARED_GAP,
+    DECLARED_GAPS,
+    GAP_REQUIRED_FIELDS,
+    _expired,
+    reconcile_entry_point_parity,
+)
+
+RECEIPT_ID = "MR-A1B2C3D4E5F60718"
+
+
+def entry(operation, **extra):
+    payload = {"schema": SCHEMA, "operation": operation}
+    if operation == SUBMIT_RAW:
+        payload.update(user_request="verify my claim", declared_goal="obtain a governed result")
+    elif operation == SUBMIT_MANIFEST:
+        payload["manifest"] = {"manifest_profile": "stegverse.ingress-manifest.v1"}
+    else:
+        payload["manifest_receipt_id"] = RECEIPT_ID
+    payload.update(extra)
+    return validate_chat_entry(payload)
+
+
+class EntryPointParityTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.report = reconcile_entry_point_parity()
+
+    # --- the map may not claim what the contract does not carry -------------
+
+    def test_every_capability_claimed_at_chat_is_actually_reachable(self) -> None:
+        """The claim is exercised, not trusted."""
+        reachable = {e["capability"] for e in
+                     (entry(op) for op in OPERATIONS)}
+        # Projection and label control are carried on every operation.
+        sample = entry(SUBMIT_RAW)
+        if sample.get("return_projection"):
+            reachable.add("RETURN_PROJECTION_CONTROL")
+        if sample.get("manifest_labels"):
+            reachable.add("MANIFEST_LABEL_CONTROL")
+        self.assertEqual(
+            set(CHAT_CAPABILITIES) - reachable, set(),
+            "the parity map claims a capability the Chat entry contract does not carry",
+        )
+
+    def test_no_console_capability_drifts_out_of_reach_undeclared(self) -> None:
+        drift = [r for r in self.report["rows"] if r["disposition"] not in
+                 {AVAILABLE, DECLARED_GAP}]
+        self.assertEqual(self.report["drift_count"], 0, f"undeclared gap: {drift}")
+
+    def test_verification_is_never_an_acceptable_gap(self) -> None:
+        """Submitting without being able to verify is the failure this prevents."""
+        self.assertTrue(self.report["verification_available_at_chat"])
+        self.assertEqual(
+            sorted(self.report["verification_capabilities"]),
+            ["RECONSTRUCT_BY_RECEIPT_LOCATOR", "REPLAY_BY_RECEIPT_LOCATOR"],
+        )
+        for row in self.report["rows"]:
+            if row["verification_capability"]:
+                self.assertEqual(row["disposition"], AVAILABLE, row["capability"])
+
+    # --- gaps are granted, and they expire ----------------------------------
+
+    def test_every_gap_is_actionable_and_granted_against_an_existing_goal(self) -> None:
+        for name, gap in DECLARED_GAPS.items():
+            with self.subTest(gap=name):
+                for field in GAP_REQUIRED_FIELDS:
+                    self.assertTrue(str(gap.get(field, "")).strip(), f"{name} missing {field}")
+                goal = gap["owning_existing_goal"]
+                self.assertRegex(goal, CANONICAL_TASK_ID)
+                self.assertIn(goal, gap["granted_by"], "a gap may not grant itself")
+                self.assertIsInstance(gap["observed_registry_generation"], int)
+
+    def test_no_gap_has_outlived_its_review_date(self) -> None:
+        self.assertEqual(self.report["expired_gap_count"], 0)
+
+    def test_a_malformed_review_date_counts_as_expired(self) -> None:
+        from datetime import date
+        self.assertTrue(_expired("2026-01-01", today=date(2026, 9, 29)))
+        self.assertFalse(_expired("2026-12-31", today=date(2026, 9, 29)))
+        self.assertTrue(_expired(None))
+
+    # --- the contract itself -------------------------------------------------
+
+    def test_chat_interfaces_with_the_builder_rather_than_building(self) -> None:
+        for operation in (SUBMIT_RAW, SUBMIT_MANIFEST):
+            with self.subTest(operation=operation):
+                row = entry(operation)
+                self.assertIs(row["chat_builds_manifest"], False)
+                self.assertIs(row["builder_directive"]["manifest_constructed_by_chat"], False)
+                self.assertTrue(row["builder_directive"]["builder"])
+
+    def test_a_verification_names_the_fields_a_person_compares(self) -> None:
+        for operation in (REPLAY, RECONSTRUCT):
+            with self.subTest(operation=operation):
+                verification = entry(operation)["verification"]
+                self.assertEqual(tuple(verification["compare_fields"]), VERIFICATION_FIELDS)
+                self.assertIn("receipt_sha256", verification["verified_when"])
+                self.assertIs(verification["consequence_reexecuted_expected"], False)
+                self.assertIs(verification["legible_without_a_console"], True)
+
+    def test_a_receipt_locator_is_canonicalized_and_a_bad_one_is_rejected(self) -> None:
+        self.assertEqual(entry(REPLAY, manifest_receipt_id=RECEIPT_ID.lower())["manifest_receipt_id"],
+                         RECEIPT_ID)
+        for bad in ("mr-2f8a", "MR-ZZZZZZZZZZZZZZZZ", "", "A1B2C3D4E5F60718"):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                entry(REPLAY, manifest_receipt_id=bad)
+
+    def test_chat_and_console_hand_the_same_request_to_the_same_handlers(self) -> None:
+        request = console_equivalent_request(entry(RECONSTRUCT))
+        self.assertEqual(request["selection"], RECONSTRUCT)
+        self.assertEqual(request["manifest_receipt_id"], RECEIPT_ID)
+        self.assertEqual(request["originating_entry_point"], "ECOSYSTEM_CHAT")
+        raw = console_equivalent_request(entry(SUBMIT_RAW))
+        self.assertIn("raw_submission", raw)
+        self.assertNotIn("manifest", raw, "chat does not hand over a manifest it built")
+
+    def test_projection_controls_the_return_and_never_custody(self) -> None:
+        row = entry(REPLAY, return_projection={"mode": "SELECTED",
+                                               "transition_classes": ["INGRESS_ADMITTED"]})
+        projection = row["return_projection"]
+        self.assertEqual(projection["mode"], "SELECTED")
+        self.assertIs(projection["suppresses_master_records_custody"], False)
+        self.assertIs(projection["erases_ecosystem_transitions"], False)
+        self.assertIs(projection["grants_authority"], False)
+
+    def test_an_unknown_operation_and_a_bad_schema_are_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_chat_entry({"schema": SCHEMA, "operation": "9"})
+        with self.assertRaises(ValueError):
+            validate_chat_entry({"schema": "something/v9", "operation": REPLAY})
+
+    def test_the_entry_grants_no_authority(self) -> None:
+        for operation in OPERATIONS:
+            with self.subTest(operation=operation):
+                row = entry(operation)
+                self.assertIs(row["grants_execution_authority"], False)
+                self.assertEqual(row["authority_effect"], "NONE_ENTRY_REQUEST_ONLY")
+        self.assertIs(self.report["grants_execution_authority"], False)
+
+
+if __name__ == "__main__":
+    unittest.main()
