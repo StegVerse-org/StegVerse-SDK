@@ -15,9 +15,12 @@ reconstructed.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import unittest
 
 from stegverse.ecosystem_chat_entry import (
+    COMPOSE,
     OPERATIONS,
     RECONSTRUCT,
     REPLAY,
@@ -43,12 +46,45 @@ from stegverse.entry_point_parity import (
 RECEIPT_ID = "MR-A1B2C3D4E5F60718"
 
 
+def _component(branch: str, provider: str, model: str) -> dict:
+    marker = f"MARKER-{branch}"
+    result = {
+        "schema": "stegbrowser.llm-profile-result.v1",
+        "profile": "llm.v1",
+        "request_commitment": f"sha256:{branch * 8}",
+        "response_marker": marker,
+        "provider": provider,
+        "model": model,
+        "response_text": f"One answer. {marker}",
+        "journey_id": f"FAN-PARITY:{branch}",
+    }
+    result["response_commitment"] = _sha256(result)
+    return result
+
+
+def _sha256(value) -> str:
+    data = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return "sha256:" + hashlib.sha256(data.encode("utf-8")).hexdigest()
+
+
+COMPOSITION_COMPONENTS = (
+    _component("b0", "anthropic", "claude-opus"),
+    _component("b1", "openai", "gpt"),
+)
+
+
 def entry(operation, **extra):
     payload = {"schema": SCHEMA, "operation": operation}
     if operation == SUBMIT_RAW:
         payload.update(user_request="verify my claim", declared_goal="obtain a governed result")
     elif operation == SUBMIT_MANIFEST:
         payload["manifest"] = {"manifest_profile": "stegverse.ingress-manifest.v1"}
+    elif operation == COMPOSE:
+        payload.update(
+            composition_id="CMP-PARITY-1",
+            fan_journey_id="FAN-PARITY",
+            components=list(COMPOSITION_COMPONENTS),
+        )
     else:
         payload["manifest_receipt_id"] = RECEIPT_ID
     payload.update(extra)
@@ -86,7 +122,8 @@ class EntryPointParityTests(unittest.TestCase):
         self.assertTrue(self.report["verification_available_at_chat"])
         self.assertEqual(
             sorted(self.report["verification_capabilities"]),
-            ["RECONSTRUCT_BY_RECEIPT_LOCATOR", "REPLAY_BY_RECEIPT_LOCATOR"],
+            ["COMPOSE_GOVERNED_RESPONSE", "RECONSTRUCT_BY_RECEIPT_LOCATOR",
+             "REPLAY_BY_RECEIPT_LOCATOR"],
         )
         for row in self.report["rows"]:
             if row["verification_capability"]:
@@ -112,8 +149,9 @@ class EntryPointParityTests(unittest.TestCase):
         """Submission and verification cross to custody; projection and labels shape a return."""
         self.assertEqual(
             sorted(self.report["requires_transportability"]),
-            ["RECONSTRUCT_BY_RECEIPT_LOCATOR", "REPLAY_BY_RECEIPT_LOCATOR",
-             "SUBMIT_PREFORMATTED_MANIFEST", "SUBMIT_RAW_USER_DATA"],
+            ["COMPOSE_GOVERNED_RESPONSE", "RECONSTRUCT_BY_RECEIPT_LOCATOR",
+             "REPLAY_BY_RECEIPT_LOCATOR", "SUBMIT_PREFORMATTED_MANIFEST",
+             "SUBMIT_RAW_USER_DATA"],
         )
         self.assertEqual(
             sorted(self.report["available_without_node_registration"]),

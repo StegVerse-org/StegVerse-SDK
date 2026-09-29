@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from .governed_composite_response import STRATEGIES, STRATEGY_UNANIMOUS
 from .governance_navigation import (
     normalize_manifest_labels,
     normalize_return_projection,
@@ -33,6 +34,7 @@ SUBMIT_RAW = "0A"
 SUBMIT_MANIFEST = "0B"
 REPLAY = "1"
 RECONSTRUCT = "2"
+COMPOSE = "3"
 
 #: Chat's operations, named by the same selection the console presents, so the
 #: two entry points are comparable rather than merely similar.
@@ -41,9 +43,11 @@ OPERATIONS: dict[str, str] = {
     SUBMIT_MANIFEST: "SUBMIT_PREFORMATTED_MANIFEST",
     REPLAY: "REPLAY_BY_RECEIPT_LOCATOR",
     RECONSTRUCT: "RECONSTRUCT_BY_RECEIPT_LOCATOR",
+    COMPOSE: "COMPOSE_GOVERNED_RESPONSE",
 }
 
 VERIFICATION_OPERATIONS = frozenset({REPLAY, RECONSTRUCT})
+RECEIPT_LOCATOR_OPERATIONS = frozenset({REPLAY, RECONSTRUCT})
 
 #: What a person has to compare for a verification to mean anything. Naming
 #: these on the request is what makes the check possible away from a console:
@@ -55,6 +59,21 @@ VERIFICATION_FIELDS: tuple[str, ...] = (
     "reconstruction_status",
     "immediate_predecessor_receipt_sha256",
     "consequence_reexecuted",
+)
+
+
+#: What a person compares to check a composite away from a console. A composite
+#: that agrees with its own reconstruction is verified; one that does not is not,
+#: and the comparison is two digests side by side.
+COMPOSITION_VERIFICATION_FIELDS: tuple[str, ...] = (
+    "composite_sha256",
+    "reconstructed_composite_sha256",
+    "reconstruction_status",
+    "selected_answer_sha256",
+    "distinct_answer_count",
+    "unanimous",
+    "disposition",
+    "governed_claim",
 )
 
 
@@ -112,6 +131,38 @@ def validate_chat_entry(payload: Mapping[str, Any] | None) -> dict[str, Any]:
             "builder": "stegverse.manifest_contract.validate_ingress_manifest",
             "manifest_constructed_by_chat": False,
         }
+    elif operation == COMPOSE:
+        # Chat poses the query and reads the composite back. It does not compose:
+        # composition is deterministic over the workers' returned answers, and
+        # Chat neither selects an answer nor generates one.
+        components = payload.get("components")
+        if not isinstance(components, list) or len(components) < 2:
+            raise ValueError("a composition requires at least two worker components")
+        strategy = str(payload.get("strategy") or STRATEGY_UNANIMOUS).strip().upper()
+        if strategy not in STRATEGIES:
+            raise ValueError("strategy must be one of " + ", ".join(sorted(STRATEGIES)))
+        entry["composition_request"] = {
+            "composition_id": _text(payload.get("composition_id"), "composition_id"),
+            "fan_journey_id": _text(payload.get("fan_journey_id"), "fan_journey_id"),
+            "strategy": strategy,
+            "component_count": len(components),
+            "components": [dict(c) for c in components if isinstance(c, Mapping)],
+        }
+        entry["composer_directive"] = {
+            "composer": "stegverse.governed_composite_response.compose_governed_response",
+            "composite_selected_by_chat": False,
+            "answer_generated_by_chat": False,
+        }
+        entry["verification"] = {
+            "operation": OPERATIONS[operation],
+            "compare_fields": list(COMPOSITION_VERIFICATION_FIELDS),
+            "consequence_reexecuted_expected": False,
+            "verified_when": (
+                "composite_sha256 equals reconstructed_composite_sha256 and "
+                "reconstruction_status is RECONSTRUCTED"
+            ),
+            "legible_without_a_console": True,
+        }
     else:
         entry["manifest_receipt_id"] = validate_manifest_receipt_id(
             _text(payload.get("manifest_receipt_id"), "manifest_receipt_id")
@@ -147,8 +198,10 @@ def console_equivalent_request(entry: Mapping[str, Any]) -> dict[str, Any]:
         "manifest_labels": entry["manifest_labels"],
         "originating_entry_point": entry["entry_point"],
     }
-    if operation in VERIFICATION_OPERATIONS:
+    if operation in RECEIPT_LOCATOR_OPERATIONS:
         request["manifest_receipt_id"] = entry["manifest_receipt_id"]
+    elif operation == COMPOSE:
+        request["composition"] = dict(entry["composition_request"])
     elif operation == SUBMIT_RAW:
         request["raw_submission"] = dict(entry["raw_submission"])
     else:
@@ -157,7 +210,9 @@ def console_equivalent_request(entry: Mapping[str, Any]) -> dict[str, Any]:
 
 
 __all__ = [
-    "OPERATIONS", "RECONSTRUCT", "REPLAY", "SCHEMA", "SUBMIT_MANIFEST",
+    "COMPOSE", "COMPOSITION_VERIFICATION_FIELDS", "OPERATIONS",
+    "RECEIPT_LOCATOR_OPERATIONS", "RECONSTRUCT", "REPLAY", "SCHEMA",
+    "SUBMIT_MANIFEST",
     "SUBMIT_RAW", "VERIFICATION_FIELDS", "VERIFICATION_OPERATIONS",
     "console_equivalent_request", "validate_chat_entry",
 ]

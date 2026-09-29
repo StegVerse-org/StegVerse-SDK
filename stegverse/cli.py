@@ -13,6 +13,12 @@ import sys
 from typing import Any, Mapping
 
 from .capability_map import reconcile_capability_map
+from .governed_composite_response import (
+    STRATEGIES,
+    STRATEGY_UNANIMOUS,
+    compose_governed_response,
+    reconstruct_governed_response,
+)
 from .entry_point_parity import reconcile_entry_point_parity
 from .sdk_surfaces import canonical_surface_name, get_sdk_surface, list_sdk_surfaces
 
@@ -321,6 +327,31 @@ def _run_surface(args: argparse.Namespace) -> int:
     return 0
 
 
+def _compose_response(args: argparse.Namespace) -> int:
+    """Compose worker answers from the console entry, optionally replaying them."""
+
+    components = json.loads(Path(args.components).read_text(encoding="utf-8"))
+    if not isinstance(components, list):
+        print("--components must hold a JSON list of worker results")
+        return 2
+    relation = None
+    if args.joint_relation:
+        relation = json.loads(Path(args.joint_relation).read_text(encoding="utf-8"))
+
+    composite = compose_governed_response(
+        components,
+        composition_id=args.composition_id,
+        fan_journey_id=args.fan,
+        strategy=args.strategy,
+        joint_relation=relation,
+    )
+    payload = {"composite": composite}
+    if args.replay:
+        payload["replay"] = reconstruct_governed_response(composite, components)
+    print(json.dumps(payload, indent=2, sort_keys=True, default=list))
+    return 0 if composite["disposition"] != "FAIL_CLOSED" else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="stegverse", description="Discover and use allowed local StegVerse SDK surfaces")
     sub = parser.add_subparsers(dest="command")
@@ -330,6 +361,19 @@ def build_parser() -> argparse.ArgumentParser:
                    help="show whether the Chat entry point equates to a console entry")
     sub.add_parser("capability-map",
                    help="reconcile installed routes against what an evaluator can invoke")
+    compose = sub.add_parser(
+        "compose-response",
+        help="compose N worker LLM answers into one governed composite response",
+    )
+    compose.add_argument("--components", required=True,
+                        help="JSON file holding a list of stegbrowser.llm-profile-result.v1 results")
+    compose.add_argument("--composition-id", required=True, help="caller-chosen composition identity")
+    compose.add_argument("--fan", required=True, help="fan journey_id the worker branches were issued under")
+    compose.add_argument("--strategy", choices=STRATEGIES, default=STRATEGY_UNANIMOUS)
+    compose.add_argument("--joint-relation",
+                        help="JSON file holding a validated joint-relation record; without one the composite is RELATION_UNRESOLVED")
+    compose.add_argument("--replay", action="store_true",
+                        help="also reconstruct the composite from the same components and report whether it matches")
     governance = sub.add_parser("governance", help="guided demo/parameter/submit/replay/reconstruct governance navigation")
     governance.add_argument("--select", choices=("000", "00", "0", "0A", "0B", "1", "2"), help="show guidance or execute one canonical governance option")
     governance.add_argument("--input", help="option 0A public-inspection request JSON to execute through the canonical sovereign runtime")
@@ -366,6 +410,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "entry-point-parity":
             print(json.dumps(reconcile_entry_point_parity(), indent=2, sort_keys=True, default=list))
             return 0
+
+        if args.command == "compose-response":
+            return _compose_response(args)
 
         if args.command == "capability-map":
             print(json.dumps(reconcile_capability_map(), indent=2, sort_keys=True, default=list))
