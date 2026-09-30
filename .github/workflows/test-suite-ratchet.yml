@@ -54,6 +54,25 @@ jobs:
           path: _stegbrowser_owner
           token: ${{ env.OWNER_TOKEN }}
 
+      # continue-on-error above keeps a missing secret from failing the gate for
+      # everyone, but it would also swallow a real checkout failure: the owner
+      # tests would skip and this job would still go green, reporting less
+      # coverage than a reader expects. So when the token IS set, the owner must
+      # actually be there. A secret that does not work is a loud failure, not a
+      # quiet reduction in what the gate covers.
+      - name: A supplied owner token must actually produce the owner
+        if: env.OWNER_TOKEN != ''
+        run: |
+          profile=_stegbrowser_owner/src/stegbrowser/llm_profile.py
+          if [ ! -f "$profile" ]; then
+            echo "STEGBROWSER_READ_TOKEN is set but $profile is absent."
+            echo "The owner checkout did not succeed, so the tests that verify"
+            echo "against the real owner would skip while this gate stayed green."
+            echo "Check the token's read access to StegVerse-Labs/StegBrowser."
+            exit 1
+          fi
+          echo "OWNER_PRESENT $profile"
+
       - name: No change may add a test failure the baseline does not hold
         run: python scripts/check_test_suite_ratchet.py
 
