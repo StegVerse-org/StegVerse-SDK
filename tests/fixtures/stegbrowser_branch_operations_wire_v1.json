@@ -1,0 +1,81 @@
+{
+  "authority_effect": "NONE",
+  "branch_operations": [
+    {
+      "browser_actions": [
+        {
+          "action": "read_text",
+          "selector": "#answer"
+        }
+      ],
+      "journey": {
+        "ephemeral_endpoint": "stegbrowser:ephemeral:b0",
+        "journey_id": "chat-ask-fan:b0",
+        "origin_endpoint": "stegverse:ecosystem-chat",
+        "outbound_manifest_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "return_manifest_sha256": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "return_predecessor_manifest_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "schema": "stegverse.packet-carried-endpoint-receipt-journey/v1"
+      },
+      "model": "claude-opus",
+      "profile": "llm.v1",
+      "prompt": "What does StegVerse govern at the execution boundary?",
+      "provider": "anthropic",
+      "response_marker": "MARKER-b0",
+      "schema": "stegbrowser.llm-profile-request.v1",
+      "secure_url": "https://b0.example.test/chat"
+    },
+    {
+      "browser_actions": [
+        {
+          "action": "read_text",
+          "selector": "#answer"
+        }
+      ],
+      "journey": {
+        "ephemeral_endpoint": "stegbrowser:ephemeral:b1",
+        "journey_id": "chat-ask-fan:b1",
+        "origin_endpoint": "stegverse:ecosystem-chat",
+        "outbound_manifest_sha256": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "return_manifest_sha256": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "return_predecessor_manifest_sha256": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "schema": "stegverse.packet-carried-endpoint-receipt-journey/v1"
+      },
+      "model": "gpt",
+      "profile": "llm.v1",
+      "prompt": "What does StegVerse govern at the execution boundary?",
+      "provider": "openai",
+      "response_marker": "MARKER-b1",
+      "schema": "stegbrowser.llm-profile-request.v1",
+      "secure_url": "https://b1.example.test/chat"
+    },
+    {
+      "browser_actions": [
+        {
+          "action": "read_text",
+          "selector": "#answer"
+        }
+      ],
+      "journey": {
+        "ephemeral_endpoint": "stegbrowser:ephemeral:b2",
+        "journey_id": "chat-ask-fan:b2",
+        "origin_endpoint": "stegverse:ecosystem-chat",
+        "outbound_manifest_sha256": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "return_manifest_sha256": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "return_predecessor_manifest_sha256": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "schema": "stegverse.packet-carried-endpoint-receipt-journey/v1"
+      },
+      "model": "gemini",
+      "profile": "llm.v1",
+      "prompt": "What does StegVerse govern at the execution boundary?",
+      "provider": "google",
+      "response_marker": "MARKER-b2",
+      "schema": "stegbrowser.llm-profile-request.v1",
+      "secure_url": "https://b2.example.test/chat"
+    }
+  ],
+  "captured_at_worker_commit": "527d26a..3acd6a6 era (pre-removal)",
+  "captured_from": "StegVerse-Labs/.github workers/manifest_state_transition_intr_ingress.py _branch_operations",
+  "schema": "stegverse.sdk.stegbrowser-branch-operations-wire/v1",
+  "why": "The GitHub Actions worker that used to execute the fan is being removed. Its branch-request wire format was verified byte-identical to the SDK's, and this file freezes that agreed format so the guarantee outlives the worker rather than dying with it."
+}

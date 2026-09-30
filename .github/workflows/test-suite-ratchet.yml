@@ -30,6 +30,23 @@ jobs:
       # suite cannot run in. `-e '.[dev]'` is this repository's own convention.
       - run: python -m pip install -e '.[dev]'
 
+      # The StegBrowser owner performs each branch's LLM interaction, and the
+      # tests that verify against the real owner skip without it. It cannot be
+      # pip-installed: the repository carries no packaging metadata and imports
+      # as src.stegbrowser from its own root. It is also private, so
+      # GITHUB_TOKEN cannot read it. This step therefore checks it out only when
+      # a token secret exists, and no-ops otherwise rather than failing the gate
+      # for everyone. Set STEGBROWSER_READ_TOKEN to close that coverage gap.
+      - name: Check out the StegBrowser owner when a token is available
+        id: owner
+        if: ${{ secrets.STEGBROWSER_READ_TOKEN != '' }}
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: StegVerse-Labs/StegBrowser
+          path: _stegbrowser_owner
+          token: ${{ secrets.STEGBROWSER_READ_TOKEN }}
+
       - name: No change may add a test failure the baseline does not hold
         run: python scripts/check_test_suite_ratchet.py
 

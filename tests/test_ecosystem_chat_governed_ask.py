@@ -54,15 +54,46 @@ from stegverse.stegbrowser_processor import JOURNEY_SCHEMA_V2, derive_state_grap
 QUESTION = "What does StegVerse govern at the execution boundary?"
 ANSWER = "It governs decision verification at the execution boundary."
 
+#: Checkout locations, used only when the owner is not installed. StegBrowser
+#: carries no packaging metadata, so a checkout is currently the only way to
+#: reach it; the CI workflow makes one when a read token is available.
 _BROWSER_PATHS = (
     Path("/home/user/stegbrowser/src/stegbrowser/llm_profile.py"),
     Path(__file__).resolve().parents[2] / "stegbrowser/src/stegbrowser/llm_profile.py",
+    # The path the test-suite-ratchet workflow checks the owner out to.
+    Path.cwd() / "_stegbrowser_owner/src/stegbrowser/llm_profile.py",
 )
 
 
+def _installed_browser_profile() -> Path | None:
+    """Locate the installed owner's llm_profile.py without importing the package.
+
+    The package's __init__ pulls chromium, publicsuffix2 and playwright, none of
+    which this module needs. find_spec resolves the package directory without
+    executing it, so the profile loads from an installed owner as cheaply as
+    from a checkout.
+    """
+    try:
+        spec = importlib.util.find_spec("stegbrowser")
+    except (ImportError, ValueError):
+        return None
+    for location in list(getattr(spec, "submodule_search_locations", None) or []):
+        candidate = Path(location) / "llm_profile.py"
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def _load_browser():
-    for path in _BROWSER_PATHS:
-        if not path.exists():
+    """Load the StegBrowser owner's profile: installed package, then checkout.
+
+    Preferring the installed package is what lets CI run these tests at all.
+    The owner ships in the `owner-test` extra; before it did, every test needing
+    it skipped, and the suite looked greener than it was.
+    """
+    installed = _installed_browser_profile()
+    for path in ((installed,) if installed else ()) + _BROWSER_PATHS:
+        if path is None or not path.exists():
             continue
         spec = importlib.util.spec_from_file_location("_sb_profile_ask", path)
         if spec is None or spec.loader is None:
@@ -183,17 +214,47 @@ def test_the_fan_collects_four_endpoint_receipts_per_branch() -> None:
     assert answer["fan_complete"] is True
 
 
-def test_sdk_branch_requests_match_the_workers_byte_for_byte() -> None:
-    """The replay-compatibility claim, checked against the worker itself.
+WIRE_FIXTURE = (Path(__file__).resolve().parent
+                / "fixtures/stegbrowser_branch_operations_wire_v1.json")
 
-    If these diverge, a packet produced one way would not replay the other, so
-    this compares canonical JSON rather than trusting that they agree.
+
+def _canonical(value: Any) -> str:
+    import json as _json
+
+    return _json.dumps(value, sort_keys=True, separators=(",", ":"))
+
+
+def test_sdk_branch_requests_match_the_frozen_worker_wire_format() -> None:
+    """The replay-compatibility guarantee, outliving the worker it came from.
+
+    The GitHub Actions worker that used to execute the fan produced these exact
+    branch requests, and the fixture was captured from it while it still existed
+    -- only after asserting the two agreed. Comparing against the fixture keeps
+    the guarantee once the worker is gone, and unlike a live comparison it runs
+    everywhere rather than only where a .github checkout happens to sit.
     """
     import json as _json
 
+    frozen = _json.loads(WIRE_FIXTURE.read_text(encoding="utf-8"))
+    graph = derive_state_graph(build_ask_manifest(QUESTION, journey()))
+    assert _canonical(branch_operations(graph)) == _canonical(frozen["branch_operations"])
+
+
+def test_the_frozen_wire_fixture_says_where_it_came_from() -> None:
+    """A frozen expectation nobody can trace is just a magic number."""
+    import json as _json
+
+    frozen = _json.loads(WIRE_FIXTURE.read_text(encoding="utf-8"))
+    assert "_branch_operations" in frozen["captured_from"]
+    assert frozen["why"]
+    assert frozen["authority_effect"] == "NONE"
+
+
+def test_sdk_branch_requests_still_match_the_live_worker_where_it_exists() -> None:
+    """Belt and braces while both exist; skips once the worker is removed."""
     worker_path = Path("/home/user/.github/workers/manifest_state_transition_intr_ingress.py")
     if not worker_path.exists():
-        pytest.skip(".github checkout not present")
+        pytest.skip("worker removed or .github checkout not present")
     for extra in ("/home/user/.github", "/home/user/.github/workers"):
         if extra not in sys.path:
             sys.path.insert(0, extra)
@@ -207,8 +268,7 @@ def test_sdk_branch_requests_match_the_workers_byte_for_byte() -> None:
         pytest.skip("worker module dependencies unavailable")
 
     graph = derive_state_graph(build_ask_manifest(QUESTION, journey()))
-    canonical = lambda v: _json.dumps(v, sort_keys=True, separators=(",", ":"))
-    assert canonical(branch_operations(graph)) == canonical(worker._branch_operations(graph))
+    assert _canonical(branch_operations(graph)) == _canonical(worker._branch_operations(graph))
 
 
 # --- a question becomes one governed, replayable answer ----------------------

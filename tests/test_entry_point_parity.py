@@ -36,7 +36,9 @@ from stegverse.entry_point_parity import (
     AVAILABLE,
     NODE_REGISTRATION_REQUIRED,
     CANONICAL_TASK_ID,
+    CONTINUITY_CONFERRED_BY,
     CONTRACT_ONLY,
+    REQUIRES_CONTINUITY,
     CHAT_CAPABILITIES,
     DECLARED_GAP,
     DECLARED_GAPS,
@@ -156,15 +158,46 @@ class EntryPointParityTests(unittest.TestCase):
         for row in self.report["rows"]:
             if row["verification_capability"]:
                 # A verification capability may be contract-carried while the
-                # surface catches up, but it may never be a declared gap.
-                self.assertIn(row["disposition"], {AVAILABLE, CONTRACT_ONLY},
-                              row["capability"])
+                # surface catches up, or wait on MyKV continuity, but it may
+                # never be a declared gap.
+                self.assertIn(
+                    row["disposition"],
+                    {AVAILABLE, CONTRACT_ONLY, REQUIRES_CONTINUITY},
+                    row["capability"],
+                )
 
     def test_a_phone_can_verify_at_least_one_result_on_the_surface(self) -> None:
         """The original failure was a Chat user who could submit but not check."""
         self.assertTrue(self.report["verification_available_at_chat"])
         self.assertIn("ASK_GOVERNED_QUESTION",
                       self.report["verification_served_by_surface"])
+
+    def test_acting_on_a_retained_result_waits_on_continuity_not_on_wiring(self) -> None:
+        """A node alone is ephemeral: it has nothing retained to replay from.
+
+        Continuity is what MyKV adds, so replay and reconstruction are a user
+        tier rather than an unfinished handler. Reporting them as merely
+        unserved would read as a wiring backlog and misstate what is needed.
+        """
+        self.assertEqual(
+            sorted(self.report["requires_continuity_capabilities"]),
+            ["RECONSTRUCT_BY_RECEIPT_LOCATOR", "REPLAY_BY_RECEIPT_LOCATOR"],
+        )
+        self.assertEqual(self.report["continuity_conferred_by"], CONTINUITY_CONFERRED_BY)
+        # Continuity is conferred by MyKV, never owned by a device.
+        self.assertIs(self.report["continuity_conferred_by_device"], False)
+        for row in self.report["rows"]:
+            if row["requires_continuity"]:
+                self.assertEqual(row["disposition"], REQUIRES_CONTINUITY, row["capability"])
+                self.assertEqual(row["continuity_conferred_by"], CONTINUITY_CONFERRED_BY)
+                self.assertEqual(row["device_identity_gate"], "NONE_PROHIBITED")
+
+    def test_a_continuity_capability_is_not_counted_as_unserved_wiring(self) -> None:
+        """The two dispositions mean different things and must not be merged."""
+        contract_only = set(self.report["contract_only_capabilities"])
+        continuity = set(self.report["requires_continuity_capabilities"])
+        self.assertFalse(contract_only & continuity)
+        self.assertEqual(self.report["requires_continuity_count"], len(continuity))
 
     def test_contract_carried_but_unserved_capabilities_are_counted_not_hidden(self) -> None:
         """The map once read green while the surface served no operation at all."""

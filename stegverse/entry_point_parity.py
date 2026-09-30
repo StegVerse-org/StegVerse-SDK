@@ -53,6 +53,16 @@ AVAILABLE = "AVAILABLE_AT_CHAT"
 #: capability read AVAILABLE_AT_CHAT while the surface served no operation at
 #: all, so the report was green about something a phone could not do.
 CONTRACT_ONLY = "CONTRACT_CARRIED_NOT_SERVED_BY_SURFACE"
+
+#: Not unwired work: a capability that needs retained custody to act on. A device
+#: acting only as a node is ephemeral, so it can ask a question and verify the
+#: answer it just received, but has nothing retained to replay from. Continuity
+#: is what MyKV adds, and the individual Ecosystem AI Assistant lives there --
+#: Ecosystem Chat is its precursor. Reporting these as merely "not served" would
+#: read as a wiring backlog rather than the user-tier advance it is.
+REQUIRES_CONTINUITY = "REQUIRES_MYKV_CONTINUITY"
+CONTINUITY = "CONTINUITY"
+CONTINUITY_CONFERRED_BY = "MYKV"
 DECLARED_GAP = "DECLARED_GAP"
 STOP_DRIFT = "STOP_ENTRY_POINT_DRIFT"
 
@@ -86,12 +96,14 @@ CONSOLE_CAPABILITIES: dict[str, dict[str, Any]] = {
     "1": {
         "capability": "REPLAY_BY_RECEIPT_LOCATOR",
         "requires_transportability": True,
+        "requires_continuity": True,
         "summary": "Replay a retained result by its manifest receipt id.",
         "verification": True,
     },
     "2": {
         "capability": "RECONSTRUCT_BY_RECEIPT_LOCATOR",
         "requires_transportability": True,
+        "requires_continuity": True,
         "summary": "Reconstruct a retained result by its manifest receipt id.",
         "verification": True,
     },
@@ -204,11 +216,24 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
             # read green while the surface served nothing.
             "carried_by_chat_contract": reached,
             "served_by_chat_surface": capability in served,
+            # Acting on a retained result needs continuity, which MyKV adds. A
+            # node alone is ephemeral; this is a tier, not a missing handler.
+            "requires_continuity": bool(entry.get("requires_continuity")),
+            "continuity_conferred_by": (
+                CONTINUITY_CONFERRED_BY if entry.get("requires_continuity") else "NONE"
+            ),
             "grants_execution_authority": False,
             "evidence_ceiling": "SOURCE_RECONCILIATION_ONLY",
         }
         if reached:
-            row["disposition"] = AVAILABLE if capability in served else CONTRACT_ONLY
+            if capability in served:
+                row["disposition"] = AVAILABLE
+            elif entry.get("requires_continuity"):
+                # Distinguished from CONTRACT_ONLY on purpose: this one is not
+                # waiting on wiring, it is waiting on the user installing MyKV.
+                row["disposition"] = REQUIRES_CONTINUITY
+            else:
+                row["disposition"] = CONTRACT_ONLY
         elif gap:
             row["disposition"] = DECLARED_GAP
             row.update(gap)
@@ -232,6 +257,13 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
         # Carried by the contract, not performed by the surface. Counted so the
         # distance between what Chat declares and what it serves stays visible.
         "contract_only_count": sum(1 for r in rows if r["disposition"] == CONTRACT_ONLY),
+        "requires_continuity_count": sum(
+            1 for r in rows if r["disposition"] == REQUIRES_CONTINUITY),
+        "requires_continuity_capabilities": [
+            r["capability"] for r in rows if r["requires_continuity"]
+        ],
+        "continuity_conferred_by": CONTINUITY_CONFERRED_BY,
+        "continuity_conferred_by_device": False,
         "contract_only_capabilities": [
             r["capability"] for r in rows if r["disposition"] == CONTRACT_ONLY
         ],
@@ -249,6 +281,11 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
         "verification_contract_only": [
             r["capability"] for r in verification
             if r["disposition"] == CONTRACT_ONLY
+        ],
+        # Verification a phone reaches only once MyKV gives it continuity.
+        "verification_requires_continuity": [
+            r["capability"] for r in verification
+            if r["disposition"] == REQUIRES_CONTINUITY
         ],
         # What an unregistered entry point reaches. Naming this is the point:
         # the limit is registration, which anyone may obtain, not a device.
@@ -278,7 +315,8 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
 
 
 __all__ = [
-    "AVAILABLE", "CANONICAL_TASK_ID", "CONTRACT_ONLY", "NODE_REGISTRATION_REQUIRED", "TRANSPORTABILITY", "CHAT_CAPABILITIES", "CONSOLE_CAPABILITIES",
+    "AVAILABLE", "CANONICAL_TASK_ID", "CONTINUITY", "CONTINUITY_CONFERRED_BY",
+    "CONTRACT_ONLY", "REQUIRES_CONTINUITY", "NODE_REGISTRATION_REQUIRED", "TRANSPORTABILITY", "CHAT_CAPABILITIES", "CONSOLE_CAPABILITIES",
     "DECLARED_GAP", "DECLARED_GAPS", "GAP_REQUIRED_FIELDS", "SCHEMA", "STOP_DRIFT",
     "reconcile_entry_point_parity",
 ]
