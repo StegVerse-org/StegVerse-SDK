@@ -250,25 +250,25 @@ def test_the_frozen_wire_fixture_says_where_it_came_from() -> None:
     assert frozen["authority_effect"] == "NONE"
 
 
-def test_sdk_branch_requests_still_match_the_live_worker_where_it_exists() -> None:
-    """Belt and braces while both exist; skips once the worker is removed."""
+def test_the_worker_no_longer_owns_the_branch_fan_where_it_can_be_read() -> None:
+    """The other half of the relocation, checked from this side.
+
+    This used to cross-check our branch requests against the worker's live
+    ``_branch_operations``. That helper is gone: the SDK owns the fan now, and
+    the frozen wire fixture above carries the replay guarantee it used to
+    provide. What is still worth asserting from here is that the worker has not
+    quietly grown the capability back, and that it points a caller at us when a
+    manifest names it. Only checkable where a .github checkout sits -- CI for
+    this repo never has one -- so it skips rather than pretending elsewhere.
+    """
     worker_path = Path("/home/user/.github/workers/manifest_state_transition_intr_ingress.py")
     if not worker_path.exists():
-        pytest.skip("worker removed or .github checkout not present")
-    for extra in ("/home/user/.github", "/home/user/.github/workers"):
-        if extra not in sys.path:
-            sys.path.insert(0, extra)
-    spec = importlib.util.spec_from_file_location("_fan_worker", worker_path)
-    if spec is None or spec.loader is None:
-        pytest.skip("worker module not loadable")
-    worker = importlib.util.module_from_spec(spec)
-    try:
-        spec.loader.exec_module(worker)
-    except Exception:  # its own runtime deps are not this repo's concern
-        pytest.skip("worker module dependencies unavailable")
+        pytest.skip(".github checkout not present; frozen fixture carries the guarantee")
+    source = worker_path.read_text(encoding="utf-8")
 
-    graph = derive_state_graph(build_ask_manifest(QUESTION, journey()))
-    assert _canonical(branch_operations(graph)) == _canonical(worker._branch_operations(graph))
+    assert "_branch_operations" not in source
+    assert "execute_manifested_llm_browser_operation" not in source
+    assert "stegverse.governed_llm_fan.run_governed_llm_fan" in source
 
 
 # --- a question becomes one governed, replayable answer ----------------------
