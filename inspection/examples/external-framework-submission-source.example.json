@@ -1,0 +1,21 @@
+{
+  "submission_id": "example-framework-submission-001",
+  "observations": [
+    {
+      "sequence": 1,
+      "observed": "Replace with something your framework legitimately observed. Any JSON-representable shape is accepted; StegVerse does not interpret your source semantics."
+    },
+    {
+      "sequence": 2,
+      "observed": "Add as many entries as your submission needs, or replace this array entirely with your own structure."
+    },
+    {
+      "sequence": 3,
+      "observed": "NO_FURTHER_INPUT",
+      "note": "A non-event is representable. Absence of input is an observation, not a missing field."
+    }
+  ],
+  "framework_interpretation": null,
+  "framework_action": null,
+  "notes": "Populate only what your framework legitimately exposes. Leave unknown internal state null rather than inferring it - StegVerse never supplies your semantics, and a null here is preserved as an explicit unknown rather than being filled in."
+}
