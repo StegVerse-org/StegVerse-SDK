@@ -10,17 +10,31 @@ import argparse
 import json
 from pathlib import Path
 import subprocess
-import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 
-from stegverse.framework_naming_guard import (  # noqa: E402
-    evaluate_framework_naming,
-    framework_named_paths,
-    load_baseline,
-    owned_schema_ids,
-)
+# Loaded by file path, not as `stegverse.framework_naming_guard`. Importing it
+# through the package would execute `stegverse/__init__.py`, which pulls in the
+# whole SDK and its runtime dependencies. This guard runs on every push with no
+# path filter, so it must not be able to fail because `requests` is missing: it
+# reads source text and needs nothing but the standard library.
+def _load_guard():
+    import importlib.util
+
+    path = ROOT / "stegverse" / "framework_naming_guard.py"
+    spec = importlib.util.spec_from_file_location("_framework_naming_guard", path)
+    if spec is None or spec.loader is None:  # pragma: no cover - defensive
+        raise RuntimeError(f"cannot load guard from {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_guard = _load_guard()
+evaluate_framework_naming = _guard.evaluate_framework_naming
+framework_named_paths = _guard.framework_named_paths
+load_baseline = _guard.load_baseline
+owned_schema_ids = _guard.owned_schema_ids
 
 SCANNED_SUFFIXES = (".py", ".json", ".md", ".yml", ".yaml", ".mjs", ".ts", ".js")
 

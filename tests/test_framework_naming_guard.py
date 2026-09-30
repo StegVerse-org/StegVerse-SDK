@@ -8,21 +8,38 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 
-from stegverse.framework_naming_guard import (
-    BASELINE_SCHEMA,
-    CAPABILITY_NAMED,
-    HISTORICAL,
-    PENDING_RENAME,
-    RECOGNIZED_EXTERNAL_SCHEMES,
-    STALE_BASELINE,
-    UNDECLARED,
-    FrameworkNamingGuardError,
-    evaluate_framework_naming,
-    framework_named_paths,
-    owned_schema_ids,
-    segments,
-    validate_baseline,
-)
+
+def _load_guard():
+    """Load by file path, as the runner does.
+
+    Importing `stegverse.framework_naming_guard` would execute the package
+    `__init__`, which pulls in the whole SDK and its runtime dependencies. The
+    guard must be able to run when those are absent.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "_framework_naming_guard", ROOT / "stegverse" / "framework_naming_guard.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_guard = _load_guard()
+BASELINE_SCHEMA = _guard.BASELINE_SCHEMA
+CAPABILITY_NAMED = _guard.CAPABILITY_NAMED
+HISTORICAL = _guard.HISTORICAL
+PENDING_RENAME = _guard.PENDING_RENAME
+RECOGNIZED_EXTERNAL_SCHEMES = _guard.RECOGNIZED_EXTERNAL_SCHEMES
+STALE_BASELINE = _guard.STALE_BASELINE
+UNDECLARED = _guard.UNDECLARED
+FrameworkNamingGuardError = _guard.FrameworkNamingGuardError
+evaluate_framework_naming = _guard.evaluate_framework_naming
+framework_named_paths = _guard.framework_named_paths
+owned_schema_ids = _guard.owned_schema_ids
+segments = _guard.segments
+validate_baseline = _guard.validate_baseline
 
 
 def _baseline(entries):
@@ -184,3 +201,27 @@ def test_committed_baseline_conforms_on_this_checkout():
     assert result["verdict"] == CAPABILITY_NAMED
     assert result["observed_count"] == result["declared_count"]
     assert result["pending_capability_rename"], "the rename backlog should be visible"
+
+
+def test_guard_runs_without_the_sdk_package_or_its_dependencies():
+    """Regression: the first CI run failed importing `requests` via the package.
+
+    A guard that runs on every push with no path filter must not be able to go
+    red because a runtime dependency of the product is missing.
+    """
+    probe = (
+        "import sys, runpy\n"
+        "sys.argv = ['check_framework_naming.py', '--strict']\n"
+        "try:\n"
+        "    runpy.run_path('scripts/check_framework_naming.py', run_name='__main__')\n"
+        "except SystemExit as exc:\n"
+        "    assert exc.code == 0, exc.code\n"
+        "assert 'stegverse' not in sys.modules, 'guard imported the SDK package'\n"
+        "assert 'requests' not in sys.modules, 'guard imported requests'\n"
+        "print('INDEPENDENT')\n"
+    )
+    proc = subprocess.run(
+        [sys.executable, "-c", probe], capture_output=True, text=True, cwd=ROOT
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "INDEPENDENT" in proc.stdout

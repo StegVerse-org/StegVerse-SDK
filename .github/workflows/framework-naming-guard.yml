@@ -22,6 +22,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      # Deliberately installs nothing. The guard reads source text and loads its
+      # module by file path, so it cannot go red because a runtime dependency of
+      # the SDK is missing - which is how its own first CI run failed.
       - name: Artifacts are named by capability, not by originating framework
         run: python scripts/check_framework_naming.py --strict
       - name: Guard tests
