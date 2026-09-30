@@ -23,6 +23,11 @@ from .governance_reference_graph import (
     EXTENSION_KEY as GOVERNANCE_REFERENCE_GRAPH_EXTENSION,
     validate_governance_reference_graph,
 )
+from .capability_graph import (
+    CLOSURE_RESOLVED,
+    EXTENSION_KEY as CAPABILITY_GRAPH_EXTENSION,
+    resolve_declared_capabilities,
+)
 from .manifest_contract import validate_ingress_manifest
 from .capability_resolution import ONLINE, OFFLINE, UNKNOWN_CAPABILITY, capability_development_request, classify_capability
 from .route_resolution import (
@@ -234,6 +239,7 @@ def build_manifest(
     egress_surface: str = DEFAULT_FRAMEWORK_EGRESS_SURFACE,
     destination_profile: str | None = None,
     governance_reference_graph: Mapping[str, Any] | None = None,
+    capability_graph: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     if not isinstance(source_framework, str) or not source_framework.strip():
         raise ValueError("source_framework is required")
@@ -267,6 +273,30 @@ def build_manifest(
         extensions[GOVERNANCE_REFERENCE_GRAPH_EXTENSION] = validate_governance_reference_graph(
             governance_reference_graph
         )
+    if capability_graph is not None:
+        capability_closure = resolve_declared_capabilities(
+            capability_graph,
+            processor_routes=PROCESSOR_ROUTES,
+            published_routes=PUBLISHED_ROUTES,
+            source_framework=source_framework,
+            source_output_id=source_output_id,
+            processor_request=processor_request,
+        )
+        if capability_closure["root_capability"] != normalized_process:
+            raise ValueError(
+                "capability graph root "
+                f"{capability_closure['root_capability']!r} does not match declared "
+                f"processing capability {normalized_process!r}"
+            )
+        if capability_closure["verdict"] != CLOSURE_RESOLVED:
+            return {
+                "schema": "stegverse.manifest-build-resolution/v1",
+                "state": "CAPABILITY_CLOSURE_UNRESOLVED",
+                "capability_closure": capability_closure,
+                "original_processor_request": deepcopy(dict(processor_request)),
+                "authority_effect": "NONE_RESOLUTION_ONLY",
+            }
+        extensions[CAPABILITY_GRAPH_EXTENSION] = capability_closure
     candidate = None
     hashes: dict[str, Any] = {"payload_sha256": canonical_sha256(data)}
 
