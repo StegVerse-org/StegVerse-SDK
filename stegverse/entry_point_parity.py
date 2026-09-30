@@ -48,6 +48,11 @@ TRANSPORTABILITY = "TRANSPORTABILITY"
 NODE_REGISTRATION_REQUIRED = "REGISTERED_NODE_REQUIRED"
 
 AVAILABLE = "AVAILABLE_AT_CHAT"
+#: Carried by the Chat entry contract but not performed by the deployed Chat
+#: surface. This distinction exists because the map once could not make it: a
+#: capability read AVAILABLE_AT_CHAT while the surface served no operation at
+#: all, so the report was green about something a phone could not do.
+CONTRACT_ONLY = "CONTRACT_CARRIED_NOT_SERVED_BY_SURFACE"
 DECLARED_GAP = "DECLARED_GAP"
 STOP_DRIFT = "STOP_ENTRY_POINT_DRIFT"
 
@@ -90,6 +95,15 @@ CONSOLE_CAPABILITIES: dict[str, dict[str, Any]] = {
         "summary": "Reconstruct a retained result by its manifest receipt id.",
         "verification": True,
     },
+    "4": {
+        "capability": "ASK_GOVERNED_QUESTION",
+        "requires_transportability": True,
+        "summary": (
+            "Ask the ecosystem a question and get one governed answer, composed "
+            "from several workers each calling a different LLM."
+        ),
+        "verification": True,
+    },
     "3": {
         "capability": "COMPOSE_GOVERNED_RESPONSE",
         "requires_transportability": True,
@@ -119,6 +133,7 @@ CHAT_CAPABILITIES: frozenset[str] = frozenset({
     "REPLAY_BY_RECEIPT_LOCATOR",
     "RECONSTRUCT_BY_RECEIPT_LOCATOR",
     "COMPOSE_GOVERNED_RESPONSE",
+    "ASK_GOVERNED_QUESTION",
     "RETURN_PROJECTION_CONTROL",
     "MANIFEST_LABEL_CONTROL",
 })
@@ -143,6 +158,20 @@ DECLARED_GAPS: dict[str, dict[str, Any]] = {
 }
 
 
+def _surface_served_capabilities() -> frozenset[str]:
+    """Capabilities the deployed Chat surface actually performs.
+
+    Read from the dispatcher, not declared here: a second declaration would be
+    another constant to drift out of step with the surface it describes.
+    """
+    from .ecosystem_chat_entry import OPERATIONS
+    from .ecosystem_chat_operations import SERVED_OPERATIONS
+
+    return frozenset(
+        OPERATIONS[op] for op in SERVED_OPERATIONS if op in OPERATIONS
+    )
+
+
 def _expired(review_by: Any, *, today: date | None = None) -> bool:
     """True when a gap's review date has passed; a malformed date counts as expired."""
     try:
@@ -154,6 +183,7 @@ def _expired(review_by: Any, *, today: date | None = None) -> bool:
 
 def reconcile_entry_point_parity() -> dict[str, Any]:
     """Return one row per console capability, saying whether Chat reaches it."""
+    served = _surface_served_capabilities()
     rows: list[dict[str, Any]] = []
     for selection, entry in CONSOLE_CAPABILITIES.items():
         capability = entry["capability"]
@@ -170,11 +200,15 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
             "precondition": NODE_REGISTRATION_REQUIRED if requires_transport else "NONE",
             "device_identity_gate": "NONE_PROHIBITED",
             "chat_entry": AVAILABLE if reached else ("DECLARED_GAP" if gap else "ABSENT"),
+            # Two different questions, and conflating them is what let the map
+            # read green while the surface served nothing.
+            "carried_by_chat_contract": reached,
+            "served_by_chat_surface": capability in served,
             "grants_execution_authority": False,
             "evidence_ceiling": "SOURCE_RECONCILIATION_ONLY",
         }
         if reached:
-            row["disposition"] = AVAILABLE
+            row["disposition"] = AVAILABLE if capability in served else CONTRACT_ONLY
         elif gap:
             row["disposition"] = DECLARED_GAP
             row.update(gap)
@@ -195,12 +229,27 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
         "schema": SCHEMA,
         "console_capability_count": len(rows),
         "available_at_chat_count": sum(1 for r in rows if r["disposition"] == AVAILABLE),
+        # Carried by the contract, not performed by the surface. Counted so the
+        # distance between what Chat declares and what it serves stays visible.
+        "contract_only_count": sum(1 for r in rows if r["disposition"] == CONTRACT_ONLY),
+        "contract_only_capabilities": [
+            r["capability"] for r in rows if r["disposition"] == CONTRACT_ONLY
+        ],
+        "served_by_chat_surface": [
+            r["capability"] for r in rows if r["served_by_chat_surface"]
+        ],
         "declared_gap_count": sum(1 for r in rows if r["disposition"] == DECLARED_GAP),
         "drift_count": sum(1 for r in rows if r["disposition"] == STOP_DRIFT),
         "expired_gap_count": sum(1 for r in rows if r.get("gap_expired") is True),
         # The point of the exercise: a mobile user must be able to verify, not
         # only submit. A verification capability is never an acceptable gap.
         "verification_capabilities": [r["capability"] for r in verification],
+        # A verification capability the contract carries but the surface does
+        # not serve still leaves a phone unable to check that result.
+        "verification_contract_only": [
+            r["capability"] for r in verification
+            if r["disposition"] == CONTRACT_ONLY
+        ],
         # What an unregistered entry point reaches. Naming this is the point:
         # the limit is registration, which anyone may obtain, not a device.
         "requires_transportability": [
@@ -213,9 +262,15 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
         "transportability_conferred_by": "NODE_REGISTRATION",
         "transportability_conferred_by_device": False,
         "node_confers_user_verifier_authority": False,
-        "verification_available_at_chat": all(
-            r["disposition"] == AVAILABLE for r in verification
+        # True when a phone can verify *something* end to end on the surface.
+        # The per-capability picture is verification_contract_only above, which
+        # is what says how much verification is still console-only.
+        "verification_available_at_chat": any(
+            r["served_by_chat_surface"] for r in verification
         ),
+        "verification_served_by_surface": [
+            r["capability"] for r in verification if r["served_by_chat_surface"]
+        ],
         "rows": tuple(rows),
         "grants_execution_authority": False,
         "authority_effect": "NONE_RECONCILIATION_ONLY",
@@ -223,7 +278,7 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
 
 
 __all__ = [
-    "AVAILABLE", "CANONICAL_TASK_ID", "NODE_REGISTRATION_REQUIRED", "TRANSPORTABILITY", "CHAT_CAPABILITIES", "CONSOLE_CAPABILITIES",
+    "AVAILABLE", "CANONICAL_TASK_ID", "CONTRACT_ONLY", "NODE_REGISTRATION_REQUIRED", "TRANSPORTABILITY", "CHAT_CAPABILITIES", "CONSOLE_CAPABILITIES",
     "DECLARED_GAP", "DECLARED_GAPS", "GAP_REQUIRED_FIELDS", "SCHEMA", "STOP_DRIFT",
     "reconcile_entry_point_parity",
 ]

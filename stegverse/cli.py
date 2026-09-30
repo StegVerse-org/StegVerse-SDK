@@ -13,6 +13,13 @@ import sys
 from typing import Any, Mapping
 
 from .capability_map import reconcile_capability_map
+from .ecosystem_chat_ask import (
+    answer_summary,
+    ask_governed_question,
+    plan_ask_journey,
+    verify_planned_journey,
+)
+from .governed_llm_fan import EXECUTOR_REPAIR, FAILURE_EXECUTOR_UNAVAILABLE, GovernedLlmFanError
 from .governed_composite_response import (
     STRATEGIES,
     STRATEGY_UNANIMOUS,
@@ -327,6 +334,48 @@ def _run_surface(args: argparse.Namespace) -> int:
     return 0
 
 
+def _ask_question(args: argparse.Namespace) -> int:
+    """Ask from the console entry: plan the journey, run the fan, answer."""
+
+    routes = json.loads(Path(args.routes).read_text(encoding="utf-8"))
+    if not isinstance(routes, list):
+        print("--routes must hold a JSON list of routes")
+        return 2
+    journey = plan_ask_journey(args.question, routes, fan_journey_id=args.fan)
+
+    if args.plan_only:
+        print(json.dumps({
+            "journey": journey,
+            "verification": verify_planned_journey(journey),
+        }, indent=2, sort_keys=True, default=list))
+        return 0
+
+    relation = None
+    if args.joint_relation:
+        relation = json.loads(Path(args.joint_relation).read_text(encoding="utf-8"))
+    try:
+        answer = ask_governed_question(
+            args.question, journey, strategy=args.strategy, joint_relation=relation,
+        )
+    except GovernedLlmFanError as error:
+        # The node's StegBrowser capability is what performs the branches. When
+        # it is not reachable, say so and name the repair rather than traceback.
+        print(json.dumps({
+            "disposition": "FAN_NOT_ATTEMPTED",
+            "failure_code": FAILURE_EXECUTOR_UNAVAILABLE,
+            "detail": str(error),
+            "required_evidence_or_repair": EXECUTOR_REPAIR,
+            "journey_planned": True,
+            "authority_effect": "NONE",
+        }, indent=2, sort_keys=True))
+        return 1
+    print(json.dumps({
+        "answer": answer,
+        "summary": answer_summary(answer),
+    }, indent=2, sort_keys=True, default=list))
+    return 0 if answer["governed_claim"] else 1
+
+
 def _compose_response(args: argparse.Namespace) -> int:
     """Compose worker answers from the console entry, optionally replaying them."""
 
@@ -361,6 +410,19 @@ def build_parser() -> argparse.ArgumentParser:
                    help="show whether the Chat entry point equates to a console entry")
     sub.add_parser("capability-map",
                    help="reconcile installed routes against what an evaluator can invoke")
+    ask = sub.add_parser(
+        "ask",
+        help="ask the ecosystem a question and get one governed multi-LLM answer",
+    )
+    ask.add_argument("--question", required=True)
+    ask.add_argument("--routes", required=True,
+                    help="JSON file holding a list of {provider, model, secure_url} routes")
+    ask.add_argument("--fan", required=True, help="fan journey_id for this question")
+    ask.add_argument("--strategy", choices=STRATEGIES, default=STRATEGY_UNANIMOUS)
+    ask.add_argument("--joint-relation",
+                    help="JSON file holding a validated joint-relation record")
+    ask.add_argument("--plan-only", action="store_true",
+                    help="plan and verify the journey without running the fan")
     compose = sub.add_parser(
         "compose-response",
         help="compose N worker LLM answers into one governed composite response",
@@ -410,6 +472,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "entry-point-parity":
             print(json.dumps(reconcile_entry_point_parity(), indent=2, sort_keys=True, default=list))
             return 0
+
+        if args.command == "ask":
+            return _ask_question(args)
 
         if args.command == "compose-response":
             return _compose_response(args)
