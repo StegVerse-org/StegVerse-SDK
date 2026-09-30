@@ -5,6 +5,8 @@ import pytest
 
 from stegverse.capability_graph import (
     CAPABILITY_GRAPH_SCHEMA,
+    CLOSURE_AWAITING_INGRESS,
+    INGRESS_TOGGLES,
     CLOSURE_MEMBER_OFFLINE,
     CLOSURE_MEMBER_UNKNOWN,
     CLOSURE_RESOLVED,
@@ -58,15 +60,46 @@ def _stegbrowser_request():
     }
 
 
-def test_declared_closure_resolves_to_its_installed_routes():
-    result = _resolve(_graph())
+def test_a_single_member_closure_resolves_to_its_installed_route():
+    result = _resolve(_graph(declared_capabilities=["governance"], requires={}))
     assert result["verdict"] == CLOSURE_RESOLVED
     assert result["resolved"] is True
+    assert result["closure"] == ["governance"]
+    assert result["route_ids"] == [PROCESSOR_ROUTES["governance"]]
+    assert result["next_action"] == "BUILD_AND_SUBMIT_MANIFEST"
+
+
+def test_multi_member_closure_is_gated_until_ingress_can_carry_it():
+    """A manifest binds one processor, so a wider closure is declaration-only."""
+    assert INGRESS_TOGGLES["multi_member_closure_execution"] is False
+    result = _resolve(_graph())
+    assert result["verdict"] == CLOSURE_AWAITING_INGRESS
+    assert result["resolved"] is False
+    assert result["gated_by_toggle"] == "multi_member_closure_execution"
+    assert result["members_would_resolve"] is True
+    assert "MANIFEST_BINDS_ONE_PROCESSOR_PER_SUBMISSION" in result["pending_ingress_development"]
+    assert "route_ids" not in result
+    # The closure itself is still reported; only the verdict is withheld.
     assert result["closure"] == ["governance", "stegbrowser"]
+
+
+def test_enabling_the_toggle_resolves_the_same_declaration():
+    result = _resolve(_graph(), ingress_toggles={"multi_member_closure_execution": True})
+    assert result["verdict"] == CLOSURE_RESOLVED
+    assert result["resolved"] is True
     assert result["route_ids"] == [
         PROCESSOR_ROUTES["governance"], PROCESSOR_ROUTES["stegbrowser"]
     ]
-    assert result["next_action"] == "BUILD_AND_SUBMIT_MANIFEST"
+
+
+def test_every_resolution_records_the_toggles_it_was_evaluated_under():
+    for graph in (_graph(), _graph(declared_capabilities=["governance"], requires={})):
+        assert _resolve(graph)["ingress_toggles"] == dict(INGRESS_TOGGLES)
+
+
+def test_an_unknown_ingress_toggle_raises():
+    with pytest.raises(CapabilityGraphError, match="unknown ingress toggles"):
+        _resolve(_graph(), ingress_toggles={"not_a_toggle": True})
 
 
 def test_a_requirement_the_declaration_omitted_is_fail_closed():
@@ -234,11 +267,13 @@ def test_a_shared_requirement_appears_once_in_the_closure():
             "atomic_task_worker": ["stegbrowser"],
         },
     ))
-    assert result["verdict"] == CLOSURE_RESOLVED
     assert result["closure"] == [
         "atomic_task_worker", "governance", "purpose_bound_worker", "stegbrowser",
     ]
     assert len(result["closure"]) == len(set(result["closure"]))
+    # Four members, so it is gated by default and resolves once ingress can carry it.
+    assert result["verdict"] == CLOSURE_AWAITING_INGRESS
+    assert result["members_would_resolve"] is True
 
 
 def test_a_deep_declaration_resolves_without_recursing_to_its_depth():
@@ -268,3 +303,19 @@ def test_a_deep_cycle_is_reported_rather_than_overflowing():
     ))
     assert result["verdict"] == REQUIREMENT_CYCLE
     assert result["resolved"] is False
+
+
+def test_builder_emits_no_manifest_for_a_gated_multi_member_closure():
+    """The builder cannot enable the toggle; a wider closure stops at the builder."""
+    result = build_manifest(
+        data={"x": 1}, source_framework="acme", source_output_id="cg-gated",
+        processor_request=_stegbrowser_request(), process="stegbrowser",
+        capability_graph=_graph(
+            root_capability="stegbrowser",
+            declared_capabilities=["stegbrowser", "governance"],
+            requires={"stegbrowser": ["governance"]},
+        ),
+    )
+    assert result["state"] == "CAPABILITY_CLOSURE_UNRESOLVED"
+    assert result["capability_closure"]["verdict"] == CLOSURE_AWAITING_INGRESS
+    assert "processing" not in result

@@ -67,6 +67,48 @@ declared, and the component has to resolve on its own. The second is the same
 rule read the other way — excess declaration is a defect, so a submitter cannot
 park an extra capability in the declaration and have the closure carry it in.
 
+## Ingress toggles ship disabled
+
+A declaration can be wider than what ingress can currently carry. `build_manifest`
+binds exactly one processor per submission, so a closure with more than one
+member describes work the SDK cannot yet execute or receipt per member.
+
+Rather than let that read as resolved, the behaviour sits behind a toggle that
+ships disabled:
+
+```text
+INGRESS_TOGGLES = {"multi_member_closure_execution": False}
+```
+
+With it off, a multi-member declaration is still validated, its closure is still
+walked, and every member is still classified — only the verdict is withheld:
+
+```text
+MULTI_MEMBER_CLOSURE_AWAITING_INGRESS_CAPABILITY
+  gated_by_toggle: multi_member_closure_execution
+  members_would_resolve: true
+  pending_ingress_development:
+    MANIFEST_BINDS_ONE_PROCESSOR_PER_SUBMISSION
+    NO_PER_MEMBER_EXECUTION_BINDING
+    NO_PER_MEMBER_RECEIPT_CHAIN
+  next_action: DEVELOP_MULTI_MEMBER_INGRESS_BEFORE_ENABLING_TOGGLE
+```
+
+No `route_ids` are emitted for a gated closure, and the builder returns
+`CAPABILITY_CLOSURE_UNRESOLVED` with no manifest. `build_manifest` takes no
+toggle argument: the toggle states what ingress can carry, which is not a
+per-submission choice.
+
+Every resolution records `ingress_toggles` as they stood when it was evaluated,
+so a stored record never implies a capability the ingress of the day did not
+have. Enabling the toggle later resolves the same declaration unchanged; the
+tests assert both sides.
+
+One thing deliberately not gated: an unknown member still mints a
+capability-development request. That contract already exists on the scalar path,
+it grants nothing, and gating it would hide which capability an external
+framework asked for.
+
 ## Bound to the declaration that produced it
 
 A resolution carries the declaration it was computed from:

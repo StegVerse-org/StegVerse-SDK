@@ -51,6 +51,32 @@ REQUIREMENT_CYCLE = "REQUIREMENT_CYCLE_DETECTED"
 
 DEFECT_VERDICTS = (UNDECLARED_REQUIREMENT, UNREACHED_DECLARATION, REQUIREMENT_CYCLE)
 
+# A declared closure can be wider than what ingress can currently carry. Where
+# acting on the declaration would need ingress that does not exist yet, the
+# behaviour sits behind a toggle that ships disabled: the declaration still
+# resolves structurally and its members are still classified, but the verdict
+# stops short of resolved and names what ingress must provide first.
+#
+# Every resolution records the toggles that were in force when it was evaluated,
+# so a record never implies a capability the ingress of the day did not have.
+CLOSURE_AWAITING_INGRESS = "MULTI_MEMBER_CLOSURE_AWAITING_INGRESS_CAPABILITY"
+
+INGRESS_TOGGLES: Mapping[str, bool] = {
+    # A closure with more than one member needs ingress that binds and executes
+    # more than one processor for a single manifest, and a receipt chain that
+    # distinguishes the members. `manifest_builder` binds exactly one processor
+    # per manifest today, so a multi-member closure is declaration-only.
+    "multi_member_closure_execution": False,
+}
+
+PENDING_INGRESS_DEVELOPMENT = {
+    "multi_member_closure_execution": (
+        "MANIFEST_BINDS_ONE_PROCESSOR_PER_SUBMISSION",
+        "NO_PER_MEMBER_EXECUTION_BINDING",
+        "NO_PER_MEMBER_RECEIPT_CHAIN",
+    ),
+}
+
 AUTHORITY_BOUNDARY = {
     "declaration_creates_capability": False,
     "closure_membership_grants_execution": False,
@@ -220,6 +246,7 @@ def resolve_declared_capabilities(
     source_framework: str = "",
     source_output_id: str = "",
     processor_request: Mapping[str, Any] | None = None,
+    ingress_toggles: Mapping[str, bool] | None = None,
 ) -> dict[str, Any]:
     """Resolve a declared capability set against the installed route table.
 
@@ -235,6 +262,15 @@ def resolve_declared_capabilities(
         "covers_root_capability": graph["root_capability"],
         "covers_declaration_sha256": declaration_sha256,
     }
+    toggles = dict(INGRESS_TOGGLES)
+    if ingress_toggles is not None:
+        unknown_toggles = sorted(set(ingress_toggles) - set(INGRESS_TOGGLES))
+        if unknown_toggles:
+            raise CapabilityGraphError(
+                f"unknown ingress toggles: {', '.join(unknown_toggles)}"
+            )
+        toggles.update({key: bool(value) for key, value in ingress_toggles.items()})
+
     base: dict[str, Any] = {
         "schema": RESOLUTION_SCHEMA,
         "graph_id": graph["graph_id"],
@@ -243,6 +279,7 @@ def resolve_declared_capabilities(
         "coverage": deepcopy(coverage),
         "authority_boundary": deepcopy(AUTHORITY_BOUNDARY),
         "authority_effect": "NONE_RESOLUTION_ONLY",
+        "ingress_toggles": dict(toggles),
     }
 
     closure, defect, detail = _walk_closure(graph)
@@ -304,6 +341,20 @@ def resolve_declared_capabilities(
             "resolved": False,
             "solution_required": True,
             "next_action": "ATTEMPT_GOVERNED_WORKAROUND_SELECTION",
+        }
+
+    if len(closure) > 1 and not toggles["multi_member_closure_execution"]:
+        return {
+            **result,
+            "verdict": CLOSURE_AWAITING_INGRESS,
+            "gated_by_toggle": "multi_member_closure_execution",
+            "pending_ingress_development": list(
+                PENDING_INGRESS_DEVELOPMENT["multi_member_closure_execution"]
+            ),
+            "members_would_resolve": True,
+            "resolved": False,
+            "solution_required": True,
+            "next_action": "DEVELOP_MULTI_MEMBER_INGRESS_BEFORE_ENABLING_TOGGLE",
         }
 
     return {
