@@ -19,6 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      # secrets is not an available context in a step-level `if`; env is, and a
+      # job-level env may read a secret. Referencing secrets directly in the
+      # step condition made this workflow invalid, so it failed to load and the
+      # gate silently stopped running -- which is the exact failure it exists to
+      # prevent.
+      OWNER_TOKEN: ${{ secrets.STEGBROWSER_READ_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -39,13 +46,13 @@ jobs:
       # for everyone. Set STEGBROWSER_READ_TOKEN to close that coverage gap.
       - name: Check out the StegBrowser owner when a token is available
         id: owner
-        if: ${{ secrets.STEGBROWSER_READ_TOKEN != '' }}
+        if: env.OWNER_TOKEN != ''
         uses: actions/checkout@v4
         continue-on-error: true
         with:
           repository: StegVerse-Labs/StegBrowser
           path: _stegbrowser_owner
-          token: ${{ secrets.STEGBROWSER_READ_TOKEN }}
+          token: ${{ env.OWNER_TOKEN }}
 
       - name: No change may add a test failure the baseline does not hold
         run: python scripts/check_test_suite_ratchet.py
