@@ -24,9 +24,17 @@ import json
 import re
 from typing import Any, Dict, List, Mapping, Optional, Sequence
 
+from .joint_relation import (
+    COVERAGE_MISMATCHED,
+    COVERS_COMPONENT_IDS,
+    COVERS_COMPOSITION_ID,
+    JOINT_RELATION_SCHEMA,
+    evaluate_relation_coverage,
+    validate_joint_relation,
+)
+
 COMPOSITE_SCHEMA = "stegverse.governed-composite-response.v1"
 COMPONENT_SCHEMA = "stegbrowser.llm-profile-result.v1"
-JOINT_RELATION_SCHEMA = "stegverse.governed_admissibility.joint_relation.v1"
 
 STRATEGY_UNANIMOUS = "UNANIMOUS"
 STRATEGY_MAJORITY = "MAJORITY"
@@ -46,6 +54,7 @@ FAILURE_FOREIGN_FAN = "COMPONENT_JOURNEY_ID_OUTSIDE_DECLARED_FAN"
 FAILURE_DUPLICATE_JOURNEY = "DUPLICATE_COMPONENT_JOURNEY_ID"
 FAILURE_NO_UNANIMITY = "COMPONENTS_DIVERGE_UNDER_UNANIMOUS_STRATEGY"
 FAILURE_NO_MAJORITY = "NO_STRICT_MAJORITY_ANSWER"
+FAILURE_RELATION_COVERAGE = "JOINT_RELATION_DOES_NOT_COVER_THIS_COMPOSITION"
 
 QUERY_BINDING_BASIS = "SHARED_FAN_JOURNEY_ID_PREFIX"
 QUERY_BINDING_LIMIT = (
@@ -107,23 +116,6 @@ def _component_failures(result: Mapping[str, Any]) -> List[str]:
     if not isinstance(supplied, str) or supplied != _sha256(recomputed):
         failures.append(FAILURE_COMPONENT_COMMITMENT)
     return failures
-
-
-def _validated_joint_relation(relation: Mapping[str, Any] | None) -> bool:
-    if not isinstance(relation, Mapping):
-        return False
-    if relation.get("schema") != JOINT_RELATION_SCHEMA:
-        return False
-    if str(relation.get("relation_status") or "") != "validated":
-        return False
-    for key in ("relation_id", "authority_source"):
-        value = relation.get(key)
-        if not isinstance(value, str) or not value.strip():
-            return False
-    return (
-        relation.get("evidence_posture") == "receipt_backed"
-        and relation.get("replay_posture") == "receipt_backed"
-    )
 
 
 def _select(
@@ -221,6 +213,10 @@ def compose_governed_response(
     ]
     groups.sort(key=lambda group: str(group["answer_sha256"]))
 
+    relation_coverage = evaluate_relation_coverage(
+        joint_relation, composition_id=cid, component_ids=journey_ids
+    )
+
     selected_digest: Optional[str] = None
     if failures:
         disposition = DISPOSITION_FAIL_CLOSED
@@ -229,10 +225,16 @@ def compose_governed_response(
         if selection_failure:
             failures.append(selection_failure)
             disposition = DISPOSITION_FAIL_CLOSED
-        elif _validated_joint_relation(joint_relation):
-            disposition = DISPOSITION_GOVERNED
-        else:
+        elif not validate_joint_relation(joint_relation):
             disposition = DISPOSITION_RELATION_UNRESOLVED
+        elif relation_coverage["coverage"] == COVERAGE_MISMATCHED:
+            # A relation that declares a coverage which is not this composition
+            # is worse than an absent one: it asserts a binding that does not
+            # hold. Fail closed rather than withhold the claim.
+            failures.append(FAILURE_RELATION_COVERAGE)
+            disposition = DISPOSITION_FAIL_CLOSED
+        else:
+            disposition = DISPOSITION_GOVERNED
 
     composite_answer: Optional[str] = None
     if selected_digest is not None and disposition != DISPOSITION_FAIL_CLOSED:
@@ -266,7 +268,14 @@ def compose_governed_response(
         "composite_answer": composite_answer,
         "failure_codes": sorted(set(failures)),
         "joint_relation_supplied": isinstance(joint_relation, Mapping),
-        "joint_relation_valid": _validated_joint_relation(joint_relation),
+        "joint_relation_valid": validate_joint_relation(joint_relation),
+        "joint_relation_id": (
+            joint_relation.get("relation_id")
+            if isinstance(joint_relation, Mapping)
+            else None
+        ),
+        "relation_coverage": relation_coverage,
+        "relation_binding_verified": bool(relation_coverage["binding_verified"]),
         "reconstruction": {
             "answer_normalization": ANSWER_NORMALIZATION,
             "component_answer_digests": sorted(
@@ -277,6 +286,8 @@ def compose_governed_response(
         "separability": {
             "component_admissibility_implies_composite_admissibility": False,
             "joint_relation_required_for_governed_claim": True,
+            "subset_relation_covers_superset_composition": False,
+            "relation_must_be_bound_to_be_checked": True,
         },
         "boundary": {
             "agreement_is_evidence_of_correctness": False,
@@ -304,16 +315,29 @@ def reconstruct_governed_response(
     if composite.get("schema") != COMPOSITE_SCHEMA:
         raise CompositeResponseError(f"composite schema must be {COMPOSITE_SCHEMA}")
 
+    # Rebuild the relation from what the composite recorded about it, so replay
+    # reproduces the coverage verdict rather than a generic stand-in. The
+    # composite pins relation_id and the declared coverage; authority_source is
+    # not recorded, and is a stand-in here because it feeds only the validity
+    # boolean, which the composite's own digest already covers.
     relation = None
     if composite.get("joint_relation_valid"):
         relation = {
             "schema": JOINT_RELATION_SCHEMA,
             "relation_status": "validated",
-            "relation_id": "reconstruction-placeholder",
+            "relation_id": composite.get("joint_relation_id") or "reconstruction-placeholder",
             "authority_source": "reconstruction-placeholder",
             "evidence_posture": "receipt_backed",
             "replay_posture": "receipt_backed",
         }
+        recorded = composite.get("relation_coverage")
+        if isinstance(recorded, Mapping):
+            declared_cid = recorded.get("declared_composition_id")
+            declared_ids = recorded.get("declared_component_ids")
+            if declared_cid is not None:
+                relation[COVERS_COMPOSITION_ID] = declared_cid
+            if declared_ids is not None:
+                relation[COVERS_COMPONENT_IDS] = list(declared_ids)
 
     try:
         recomputed = compose_governed_response(
@@ -332,8 +356,10 @@ def reconstruct_governed_response(
             "reconstructed_composite_sha256": None,
         }
 
-    # The joint relation identity is not recoverable from the composite, so it
-    # is excluded from the compared digest rather than guessed at.
+    # Every recorded field is compared except the composite's own digest, which
+    # is a function of the rest. The relation's recorded identity and coverage are
+    # part of that comparison, so a composite cannot be edited to claim a binding
+    # its components do not support.
     def _comparable(value: Mapping[str, Any]) -> Dict[str, Any]:
         stripped = dict(value)
         stripped.pop("composite_sha256", None)

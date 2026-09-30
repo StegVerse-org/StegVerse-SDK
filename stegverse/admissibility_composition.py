@@ -11,9 +11,23 @@ from __future__ import annotations
 from typing import Any, Dict, Mapping, Sequence
 
 from .admissibility import stable_hash, utc_now
+from .joint_relation import (
+    COVERAGE_MISMATCHED,
+    COVERAGE_UNDECLARED,
+    JOINT_RELATION_SCHEMA,
+    evaluate_relation_coverage,
+    validate_joint_relation,
+)
 
 COMPOSITION_RESULT_SCHEMA = "stegverse.governed_admissibility.composition_result.v1"
-JOINT_RELATION_SCHEMA = "stegverse.governed_admissibility.joint_relation.v1"
+
+# Re-exported: JOINT_RELATION_SCHEMA was a public name of this module before the
+# relation validator moved into joint_relation, and callers still import it here.
+__all__ = [
+    "COMPOSITION_RESULT_SCHEMA",
+    "JOINT_RELATION_SCHEMA",
+    "evaluate_admissibility_composition",
+]
 
 
 def _valid_local_result(result: Mapping[str, Any]) -> bool:
@@ -32,22 +46,6 @@ def _component_admissible(result: Mapping[str, Any]) -> bool:
     decision = str(classification.get("decision") or "")
     next_state = str(classification.get("allowed_next_state") or "")
     return decision.startswith("ALLOW_") and next_state not in {"", "hold", "fail_closed"}
-
-
-def _validated_joint_relation(relation: Mapping[str, Any] | None) -> bool:
-    if not isinstance(relation, Mapping):
-        return False
-    if relation.get("schema") != JOINT_RELATION_SCHEMA:
-        return False
-    if str(relation.get("relation_status") or "") != "validated":
-        return False
-    for key in ("relation_id", "authority_source"):
-        if not isinstance(relation.get(key), str) or not str(relation.get(key)).strip():
-            return False
-    return (
-        relation.get("evidence_posture") == "receipt_backed"
-        and relation.get("replay_posture") == "receipt_backed"
-    )
 
 
 def evaluate_admissibility_composition(
@@ -94,7 +92,13 @@ def evaluate_admissibility_composition(
             }
         )
 
-    joint_relation_valid = _validated_joint_relation(joint_relation)
+    joint_relation_valid = validate_joint_relation(joint_relation)
+    coverage = evaluate_relation_coverage(
+        joint_relation,
+        composition_id=cid,
+        component_ids=[str(summary["input_object_id"]) for summary in component_summaries],
+    )
+    relation_covers_this_composition = coverage["coverage"] != COVERAGE_MISMATCHED
 
     if not component_integrity:
         decision = "FAIL_CLOSED"
@@ -116,6 +120,23 @@ def evaluate_admissibility_composition(
             "basis": "one_or_more_components_not_individually_admissible",
         }
         required_follow_up = ["Composition cannot advance while any component is individually non-admissible."]
+    elif joint_relation_valid and not relation_covers_this_composition:
+        decision = "FAIL_CLOSED"
+        allowed_next_state = "fail_closed"
+        relation = {
+            "status": "resolved",
+            "maturity_class": "known_guard",
+            "execution_posture": "non_authorizing_fail_closed",
+            "basis": "joint_relation_does_not_cover_this_composition",
+            "relation_id": joint_relation.get("relation_id"),
+        }
+        required_follow_up = [
+            "The supplied relation declares a coverage that is not this composition: "
+            + ", ".join(coverage["mismatch_reasons"])
+            + ". Validate a joint relation over these components at this arity, or "
+            "correct the declaration; a relation validated for a subset does not "
+            "cover a superset."
+        ]
     elif not joint_relation_valid:
         decision = "FAIL_CLOSED"
         allowed_next_state = "fail_closed"
@@ -131,16 +152,32 @@ def evaluate_admissibility_composition(
     else:
         decision = "ALLOW_WITH_POSTURE"
         allowed_next_state = "composition_relation_backed_claim"
+        bound = coverage["coverage"] != COVERAGE_UNDECLARED
         relation = {
             "status": "resolved",
-            "maturity_class": "known_composition_with_posture",
+            "maturity_class": (
+                "known_composition_with_posture"
+                if bound
+                else "known_composition_with_unbound_relation"
+            ),
             "execution_posture": "non_authorizing_relation_evidence_only",
-            "basis": "validated_joint_relation_record",
+            "basis": (
+                "validated_joint_relation_record_bound_to_this_composition"
+                if bound
+                else "validated_joint_relation_record_not_bound_to_this_composition"
+            ),
             "relation_id": joint_relation.get("relation_id"),
         }
         required_follow_up = [
             "Keep the validated joint-relation record attached; this SDK result does not grant execution authority."
         ]
+        if not bound:
+            required_follow_up.append(
+                "This relation does not declare the composition or components it was "
+                "validated over, so nothing here establishes that it covers these "
+                f"{len(components)} components. Declare coverage on the relation to have "
+                "it checked."
+            )
 
     result: Dict[str, Any] = {
         "schema": COMPOSITION_RESULT_SCHEMA,
@@ -155,6 +192,8 @@ def evaluate_admissibility_composition(
         "high_consequence": high_consequence,
         "joint_relation_supplied": isinstance(joint_relation, Mapping),
         "joint_relation_valid": joint_relation_valid,
+        "relation_coverage": coverage,
+        "relation_binding_verified": bool(coverage["binding_verified"]),
         "classification": {
             "decision": decision,
             "allowed_next_state": allowed_next_state,
@@ -164,6 +203,11 @@ def evaluate_admissibility_composition(
         "separability": {
             "component_admissibility_implies_composition_admissibility": False,
             "joint_relation_required": True,
+            # The same rule one level up: a relation validated over a subset of
+            # these components, or at a smaller arity, does not cover this
+            # composition either.
+            "subset_relation_covers_superset_composition": False,
+            "relation_must_be_bound_to_be_checked": True,
         },
         "boundary": {
             "does_not_certify_domain_correctness": True,
