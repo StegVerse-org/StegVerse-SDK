@@ -142,6 +142,7 @@ def compose_governed_response(
     fan_journey_id: str,
     strategy: str = STRATEGY_UNANIMOUS,
     joint_relation: Mapping[str, Any] | None = None,
+    journey: Mapping[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Compose N verified worker answers into one reconstructable composite.
 
@@ -214,7 +215,7 @@ def compose_governed_response(
     groups.sort(key=lambda group: str(group["answer_sha256"]))
 
     relation_coverage = evaluate_relation_coverage(
-        joint_relation, composition_id=cid, component_ids=journey_ids
+        joint_relation, composition_id=cid, component_ids=journey_ids, journey=journey
     )
 
     selected_digest: Optional[str] = None
@@ -233,6 +234,13 @@ def compose_governed_response(
             # hold. Fail closed rather than withhold the claim.
             failures.append(FAILURE_RELATION_COVERAGE)
             disposition = DISPOSITION_FAIL_CLOSED
+        elif not relation_coverage["binding_verified"]:
+            # Governance covers all output, so output must not be labelled
+            # governed on a relation nothing checked against these components.
+            # An unbound relation is evidence that some joint relation exists,
+            # which is the same standing as no relation at all: the answer is
+            # still returned and still attributed, and only the claim is withheld.
+            disposition = DISPOSITION_RELATION_UNRESOLVED
         else:
             disposition = DISPOSITION_GOVERNED
 
@@ -288,6 +296,7 @@ def compose_governed_response(
             "joint_relation_required_for_governed_claim": True,
             "subset_relation_covers_superset_composition": False,
             "relation_must_be_bound_to_be_checked": True,
+            "verified_binding_required_for_governed_claim": True,
         },
         "boundary": {
             "agreement_is_evidence_of_correctness": False,
@@ -339,6 +348,26 @@ def reconstruct_governed_response(
             if declared_ids is not None:
                 relation[COVERS_COMPONENT_IDS] = list(declared_ids)
 
+    # The composite records the branch set the manifest declared, which is all
+    # the coverage check needs; rebuilding that is enough to replay the verdict
+    # without the composite having to carry the whole manifest.
+    replay_journey = None
+    recorded_coverage = composite.get("relation_coverage")
+    if isinstance(recorded_coverage, Mapping):
+        declared_branches = recorded_coverage.get("derived_component_ids")
+        fan = str(composite.get("fan_journey_id") or "")
+        if isinstance(declared_branches, list) and fan:
+            prefix = f"{fan}:"
+            replay_journey = {
+                "journey_id": fan,
+                "branch_count": len(declared_branches),
+                "branches": [
+                    {"branch_id": str(item)[len(prefix):]}
+                    for item in declared_branches
+                    if str(item).startswith(prefix)
+                ],
+            }
+
     try:
         recomputed = compose_governed_response(
             components,
@@ -346,6 +375,7 @@ def reconstruct_governed_response(
             fan_journey_id=str(composite.get("fan_journey_id") or ""),
             strategy=str(composite.get("strategy") or ""),
             joint_relation=relation,
+            journey=replay_journey,
         )
     except CompositeResponseError as exc:
         return {

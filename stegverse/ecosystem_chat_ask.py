@@ -377,6 +377,10 @@ def ask_governed_question(
         fan_journey_id=fan["fan_journey_id"],
         strategy=strategy,
         joint_relation=joint_relation,
+        # The ask request is manifested, and that manifest declared this branch
+        # set before any branch ran. Handing it to the composition is what makes
+        # the answer's governance checkable from the request's own shape.
+        journey=journey,
     )
     replay = reconstruct_governed_response(composite, fan["components"])
 
