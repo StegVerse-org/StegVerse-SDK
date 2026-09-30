@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from .ecosystem_chat_ask import ANSWER_VERIFICATION_FIELDS
 from .governed_composite_response import STRATEGIES, STRATEGY_UNANIMOUS
 from .governance_navigation import (
     normalize_manifest_labels,
@@ -35,6 +36,7 @@ SUBMIT_MANIFEST = "0B"
 REPLAY = "1"
 RECONSTRUCT = "2"
 COMPOSE = "3"
+ASK = "4"
 
 #: Chat's operations, named by the same selection the console presents, so the
 #: two entry points are comparable rather than merely similar.
@@ -44,6 +46,7 @@ OPERATIONS: dict[str, str] = {
     REPLAY: "REPLAY_BY_RECEIPT_LOCATOR",
     RECONSTRUCT: "RECONSTRUCT_BY_RECEIPT_LOCATOR",
     COMPOSE: "COMPOSE_GOVERNED_RESPONSE",
+    ASK: "ASK_GOVERNED_QUESTION",
 }
 
 VERIFICATION_OPERATIONS = frozenset({REPLAY, RECONSTRUCT})
@@ -131,6 +134,38 @@ def validate_chat_entry(payload: Mapping[str, Any] | None) -> dict[str, Any]:
             "builder": "stegverse.manifest_contract.validate_ingress_manifest",
             "manifest_constructed_by_chat": False,
         }
+    elif operation == ASK:
+        # Chat's primary function: ask the ecosystem a question and get one
+        # governed answer back. Chat poses the question and reads the answer.
+        # It does not build the manifest, run the fan, or pick which answer wins.
+        journey = payload.get("journey")
+        if not isinstance(journey, Mapping) or not journey:
+            raise ValueError("a governed question requires a planned journey")
+        strategy = str(payload.get("strategy") or STRATEGY_UNANIMOUS).strip().upper()
+        if strategy not in STRATEGIES:
+            raise ValueError("strategy must be one of " + ", ".join(sorted(STRATEGIES)))
+        entry["ask_request"] = {
+            "question": _text(payload.get("question"), "question"),
+            "journey": dict(journey),
+            "strategy": strategy,
+        }
+        entry["asker_directive"] = {
+            "asker": "stegverse.ecosystem_chat_ask.ask_governed_question",
+            "manifest_constructed_by_chat": False,
+            "fan_executed_by_chat": False,
+            "answer_selected_by_chat": False,
+            "worker_in_path": False,
+        }
+        entry["verification"] = {
+            "operation": OPERATIONS[operation],
+            "compare_fields": list(ANSWER_VERIFICATION_FIELDS),
+            "consequence_reexecuted_expected": False,
+            "verified_when": (
+                "composite_sha256 equals reconstructed_composite_sha256 and "
+                "reconstruction_status is RECONSTRUCTED"
+            ),
+            "legible_without_a_console": True,
+        }
     elif operation == COMPOSE:
         # Chat poses the query and reads the composite back. It does not compose:
         # composition is deterministic over the workers' returned answers, and
@@ -200,6 +235,8 @@ def console_equivalent_request(entry: Mapping[str, Any]) -> dict[str, Any]:
     }
     if operation in RECEIPT_LOCATOR_OPERATIONS:
         request["manifest_receipt_id"] = entry["manifest_receipt_id"]
+    elif operation == ASK:
+        request["ask"] = dict(entry["ask_request"])
     elif operation == COMPOSE:
         request["composition"] = dict(entry["composition_request"])
     elif operation == SUBMIT_RAW:
@@ -210,7 +247,7 @@ def console_equivalent_request(entry: Mapping[str, Any]) -> dict[str, Any]:
 
 
 __all__ = [
-    "COMPOSE", "COMPOSITION_VERIFICATION_FIELDS", "OPERATIONS",
+    "ASK", "COMPOSE", "COMPOSITION_VERIFICATION_FIELDS", "OPERATIONS",
     "RECEIPT_LOCATOR_OPERATIONS", "RECONSTRUCT", "REPLAY", "SCHEMA",
     "SUBMIT_MANIFEST",
     "SUBMIT_RAW", "VERIFICATION_FIELDS", "VERIFICATION_OPERATIONS",

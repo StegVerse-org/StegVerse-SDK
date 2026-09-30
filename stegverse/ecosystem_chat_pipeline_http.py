@@ -6,11 +6,28 @@ import json
 from typing import Any
 
 from .ecosystem_chat_http import ECOSYSTEM_CHAT_PATH
+from .ecosystem_chat_operations import handle_chat_entry, is_entry_request
 from .ecosystem_chat_pipeline import run_ecosystem_chat_pipeline
 
 
-def handle_ecosystem_chat_pipeline_http(method: str, path: str, body: str | bytes) -> tuple[int, dict[str, Any]]:
-    """Return an HTTP-style status and the full current pipeline result."""
+def handle_ecosystem_chat_pipeline_http(
+    method: str,
+    path: str,
+    body: str | bytes,
+    *,
+    executor: Any = None,
+    joint_relation: Any = None,
+) -> tuple[int, dict[str, Any]]:
+    """Return an HTTP-style status and either an operation result or the pipeline result.
+
+    An entry-contract request is dispatched to the operation it names, which is
+    how a question asked in Chat reaches the governed multi-LLM answer path. Any
+    other body is the historical pipeline payload and keeps its exact behaviour,
+    so this surface gains an operation without changing what it already served.
+
+    `executor` lets a caller supply the StegBrowser owner directly; over HTTP it
+    is absent and the installed owner package is used.
+    """
     if method.upper() != "POST":
         return 405, _error_result("method must be POST")
 
@@ -22,6 +39,14 @@ def handle_ecosystem_chat_pipeline_http(method: str, path: str, body: str | byte
         request_body = json.loads(raw_body)
     except (UnicodeDecodeError, json.JSONDecodeError):
         return 400, _error_result("body must be valid JSON")
+
+    if is_entry_request(request_body):
+        try:
+            return handle_chat_entry(
+                request_body, executor=executor, joint_relation=joint_relation,
+            )
+        except ValueError as error:
+            return 400, _error_result(str(error))
 
     try:
         payload, destination_config = _extract_request_parts(request_body)

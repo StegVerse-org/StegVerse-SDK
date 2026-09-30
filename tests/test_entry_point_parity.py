@@ -20,6 +20,7 @@ import json
 import unittest
 
 from stegverse.ecosystem_chat_entry import (
+    ASK,
     COMPOSE,
     OPERATIONS,
     RECONSTRUCT,
@@ -35,6 +36,7 @@ from stegverse.entry_point_parity import (
     AVAILABLE,
     NODE_REGISTRATION_REQUIRED,
     CANONICAL_TASK_ID,
+    CONTRACT_ONLY,
     CHAT_CAPABILITIES,
     DECLARED_GAP,
     DECLARED_GAPS,
@@ -73,12 +75,39 @@ COMPOSITION_COMPONENTS = (
 )
 
 
+def _ask_branch(branch_id: str, out: str, ret: str) -> dict:
+    return {
+        "branch_id": branch_id,
+        "ephemeral_endpoint": f"stegbrowser:ephemeral:{branch_id}",
+        "outbound_manifest_sha256": out,
+        "return_manifest_sha256": ret,
+        "return_predecessor_manifest_sha256": out,
+        "provider": "credential-free",
+        "model": f"model-{branch_id}",
+        "response_marker": f"MARKER-{branch_id}",
+        "secure_url": f"https://{branch_id}.example.test/chat",
+    }
+
+
+ASK_JOURNEY = {
+    "schema": "stegverse.packet-carried-endpoint-receipt-journey/v2",
+    "journey_id": "parity-ask",
+    "origin_endpoint": "stegverse:ecosystem-chat",
+    "branches": [
+        _ask_branch("b0", f"sha256:{'a' * 64}", f"sha256:{'b' * 64}"),
+        _ask_branch("b1", f"sha256:{'c' * 64}", f"sha256:{'d' * 64}"),
+    ],
+}
+
+
 def entry(operation, **extra):
     payload = {"schema": SCHEMA, "operation": operation}
     if operation == SUBMIT_RAW:
         payload.update(user_request="verify my claim", declared_goal="obtain a governed result")
     elif operation == SUBMIT_MANIFEST:
         payload["manifest"] = {"manifest_profile": "stegverse.ingress-manifest.v1"}
+    elif operation == ASK:
+        payload.update(question="what does the ecosystem govern?", journey=ASK_JOURNEY)
     elif operation == COMPOSE:
         payload.update(
             composition_id="CMP-PARITY-1",
@@ -119,15 +148,35 @@ class EntryPointParityTests(unittest.TestCase):
 
     def test_verification_is_never_an_acceptable_gap(self) -> None:
         """Submitting without being able to verify is the failure this prevents."""
-        self.assertTrue(self.report["verification_available_at_chat"])
         self.assertEqual(
             sorted(self.report["verification_capabilities"]),
-            ["COMPOSE_GOVERNED_RESPONSE", "RECONSTRUCT_BY_RECEIPT_LOCATOR",
-             "REPLAY_BY_RECEIPT_LOCATOR"],
+            ["ASK_GOVERNED_QUESTION", "COMPOSE_GOVERNED_RESPONSE",
+             "RECONSTRUCT_BY_RECEIPT_LOCATOR", "REPLAY_BY_RECEIPT_LOCATOR"],
         )
         for row in self.report["rows"]:
             if row["verification_capability"]:
-                self.assertEqual(row["disposition"], AVAILABLE, row["capability"])
+                # A verification capability may be contract-carried while the
+                # surface catches up, but it may never be a declared gap.
+                self.assertIn(row["disposition"], {AVAILABLE, CONTRACT_ONLY},
+                              row["capability"])
+
+    def test_a_phone_can_verify_at_least_one_result_on_the_surface(self) -> None:
+        """The original failure was a Chat user who could submit but not check."""
+        self.assertTrue(self.report["verification_available_at_chat"])
+        self.assertIn("ASK_GOVERNED_QUESTION",
+                      self.report["verification_served_by_surface"])
+
+    def test_contract_carried_but_unserved_capabilities_are_counted_not_hidden(self) -> None:
+        """The map once read green while the surface served no operation at all."""
+        contract_only = self.report["contract_only_capabilities"]
+        self.assertEqual(self.report["contract_only_count"], len(contract_only))
+        served = set(self.report["served_by_chat_surface"])
+        self.assertTrue(served)
+        self.assertFalse(served & set(contract_only))
+        for row in self.report["rows"]:
+            if row["disposition"] == CONTRACT_ONLY:
+                self.assertTrue(row["carried_by_chat_contract"])
+                self.assertFalse(row["served_by_chat_surface"])
 
     # --- transportability is a node capability, never a device property -----
 
@@ -149,13 +198,13 @@ class EntryPointParityTests(unittest.TestCase):
         """Submission and verification cross to custody; projection and labels shape a return."""
         self.assertEqual(
             sorted(self.report["requires_transportability"]),
-            ["COMPOSE_GOVERNED_RESPONSE", "RECONSTRUCT_BY_RECEIPT_LOCATOR",
-             "REPLAY_BY_RECEIPT_LOCATOR", "SUBMIT_PREFORMATTED_MANIFEST",
-             "SUBMIT_RAW_USER_DATA"],
+            ["ASK_GOVERNED_QUESTION", "COMPOSE_GOVERNED_RESPONSE",
+             "RECONSTRUCT_BY_RECEIPT_LOCATOR", "REPLAY_BY_RECEIPT_LOCATOR",
+             "SUBMIT_PREFORMATTED_MANIFEST", "SUBMIT_RAW_USER_DATA"],
         )
         self.assertEqual(
             sorted(self.report["available_without_node_registration"]),
-            ["MANIFEST_LABEL_CONTROL", "RETURN_PROJECTION_CONTROL"],
+            [],  # both shaping capabilities are contract-carried, not yet served
         )
 
     def test_registration_confers_transportability_and_no_authority(self) -> None:
