@@ -37,6 +37,8 @@ from stegverse.entry_point_parity import (
     NODE_REGISTRATION_REQUIRED,
     CANONICAL_TASK_ID,
     CONTRACT_ONLY,
+    PROSE_PROHIBITION,
+    PROSE_RETENTION_STORAGE,
     CHAT_CAPABILITIES,
     DECLARED_GAP,
     DECLARED_GAPS,
@@ -156,7 +158,8 @@ class EntryPointParityTests(unittest.TestCase):
         for row in self.report["rows"]:
             if row["verification_capability"]:
                 # A verification capability may be contract-carried while the
-                # surface catches up, but it may never be a declared gap.
+                # surface catches up, or wait on MyKV continuity, but it may
+                # never be a declared gap.
                 self.assertIn(row["disposition"], {AVAILABLE, CONTRACT_ONLY},
                               row["capability"])
 
@@ -165,6 +168,71 @@ class EntryPointParityTests(unittest.TestCase):
         self.assertTrue(self.report["verification_available_at_chat"])
         self.assertIn("ASK_GOVERNED_QUESTION",
                       self.report["verification_served_by_surface"])
+
+    def test_the_report_follows_the_postures_rather_than_a_hardcoded_answer(self) -> None:
+        """Dropping the prohibition from a posture must change what is reported."""
+        import stegverse.entry_point_parity as parity
+        from stegverse.security_posture import POSTURES
+
+        declaring = [pid for pid, p in POSTURES.items()
+                     if (p.get("prohibitions") or {}).get(PROSE_PROHIBITION)]
+        self.assertTrue(declaring, "no posture declares the prohibition")
+        target = declaring[0]
+        original = POSTURES[target]["prohibitions"][PROSE_PROHIBITION]
+        POSTURES[target]["prohibitions"][PROSE_PROHIBITION] = False
+        try:
+            report = parity.reconcile_entry_point_parity()
+            self.assertIn(target, report["postures_not_declaring_prose_prohibition"])
+            self.assertNotIn(target, report["postures_prohibiting_prose"])
+        finally:
+            POSTURES[target]["prohibitions"][PROSE_PROHIBITION] = original
+        restored = parity.reconcile_entry_point_parity()
+        self.assertIn(target, restored["postures_prohibiting_prose"])
+
+    def test_where_the_prose_prohibition_is_declared_is_reported_not_assumed(self) -> None:
+        """It is declared at HIGH and HIGHEST but not at SECURE.
+
+        Collapsing that into "prohibited everywhere" would be a broader claim
+        than the postures support, so the report names both sets.
+        """
+        report = self.report
+        self.assertEqual(report["prose_prohibited_by"], PROSE_PROHIBITION)
+        prohibiting = set(report["postures_prohibiting_prose"])
+        missing = set(report["postures_not_declaring_prose_prohibition"])
+        self.assertTrue(prohibiting)
+        self.assertFalse(prohibiting & missing)
+        self.assertEqual(
+            prohibiting | missing, set(report["prose_prohibition_by_posture"]))
+
+    def test_replay_verifies_transitions_and_decisions_not_prose(self) -> None:
+        """What a receipt locator establishes, stated rather than assumed.
+
+        Replay and reconstruction display the state transition path and make the
+        decision verifiable from the Ecosystem. Neither returns the question or
+        answer text. Reading them as "get my conversation back" would be wrong.
+        """
+        self.assertEqual(
+            sorted(self.report["capabilities_verifying_transitions"]),
+            ["RECONSTRUCT_BY_RECEIPT_LOCATOR", "REPLAY_BY_RECEIPT_LOCATOR"],
+        )
+        for row in self.report["rows"]:
+            if row["verifies"]:
+                self.assertEqual(
+                    sorted(row["verifies"]), ["DECISION", "STATE_TRANSITION_PATH"])
+                self.assertFalse(row["retains_prose"], row["capability"])
+
+    def test_the_ecosystem_retains_no_prose_and_says_where_it_lives(self) -> None:
+        """Retaining query and response text needs user-based storage, not the
+        Ecosystem. That is MyKV, and chat continuity depends on it.
+
+        The prohibition is pre-existing: every declared posture already forbids
+        raw sensitive data in an audit receipt. This reads that rather than
+        asserting it independently.
+        """
+        self.assertEqual(self.report["capabilities_retaining_prose"], [])
+        self.assertEqual(self.report["capabilities_retaining_prose"], [])
+        self.assertEqual(self.report["prose_retention_storage"], PROSE_RETENTION_STORAGE)
+        self.assertEqual(self.report["chat_continuity_requires"], PROSE_RETENTION_STORAGE)
 
     def test_contract_carried_but_unserved_capabilities_are_counted_not_hidden(self) -> None:
         """The map once read green while the surface served no operation at all."""
