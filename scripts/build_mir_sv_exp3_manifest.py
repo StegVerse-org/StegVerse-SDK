@@ -47,14 +47,25 @@ def build_exp3_manifest():
         created_at="2026-09-24T00:00:00Z",
     )
     # This named original is frozen to workflow artifact 10843328013. Later
-    # builder releases added review metadata fields which were NOT in its
-    # historical wire bytes; these two false flags are removed ONLY when
-    # reconstructing this exact original, never for new SDK manifests.
+    # builder releases added metadata fields which were NOT in its historical
+    # wire bytes; each is removed ONLY when reconstructing this exact original,
+    # never for new SDK manifests, and only when it still carries the value the
+    # current builder derives - a different value is a real difference and must
+    # reach the frozen-root check rather than be stripped.
+    #
+    # Release 1: external review flags.
     builder_metadata = manifest["extensions"]["manifest_builder"]
     if (builder_metadata.get("external_review_requested") is False
             and builder_metadata.get("publisher_required_by_review_default") is False):
         del builder_metadata["external_review_requested"]
         del builder_metadata["publisher_required_by_review_default"]
+    # Release 2: capability resolution, bound at manifest creation for every
+    # capability. ONLINE is what an installed ecosystem_diagnostic route
+    # resolves to; anything else means the route changed and must not be hidden.
+    if manifest["extensions"].get("capability_resolution", {}).get("status") == "ONLINE":
+        del manifest["extensions"]["capability_resolution"]
+        if builder_metadata.get("capability_status") == "ONLINE":
+            del builder_metadata["capability_status"]
     canonical = validate_ingress_manifest(manifest)
     if canonical["processing"]["capability"] != "ecosystem_diagnostic":
         raise ValueError("SDK selected unexpected processing capability")
