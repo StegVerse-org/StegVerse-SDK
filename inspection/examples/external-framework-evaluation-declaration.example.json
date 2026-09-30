@@ -1,0 +1,17 @@
+{
+  "what": "Replace with what you are asking to have evaluated, in your own terms.",
+  "how": "Replace with how your submission is manifested and bound - typically: manifest the state your framework exposes, bind it to the installed governance route, and retain exact-run evidence for replay and reconstruction.",
+  "why": "Replace with what the submission is meant to establish. State the question, not the expected answer.",
+  "expected_observation": "Replace with what you expect to see. Stating an expectation you may be wrong about is the point; a declaration that cannot be contradicted establishes nothing.",
+  "requested_capabilities": [
+    "master_records_custody",
+    "replay",
+    "reconstruction"
+  ],
+  "requested_evidence": [
+    "governance_decision",
+    "manifest_receipt",
+    "route_receipts",
+    "exact_run_custody"
+  ]
+}

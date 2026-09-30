@@ -1,0 +1,64 @@
+{
+  "candidate": {
+    "actor_class": "external_framework",
+    "action": "evaluate_manifested_state",
+    "target": "example-framework-submission-001",
+    "scope": "submission",
+    "parameters": {
+      "external_side_effect": false
+    }
+  },
+  "judgment": {
+    "refusal_available": true,
+    "operator_recoverability": "available",
+    "workload_state": "supported",
+    "time_pressure": "normal",
+    "isolation_state": "supported",
+    "evidence_refs": [
+      "example:submission-001:observable-state"
+    ]
+  },
+  "signal": {
+    "admitted_signal_refs": [
+      "example:submission-001:observable-state"
+    ],
+    "excluded_signal_refs": [],
+    "transformations": [],
+    "missing_inputs": [],
+    "uncertainty_state": "bounded",
+    "reference_state_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected_reference_state_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "reconstruction_available": true,
+    "transformation_provenance_complete": true
+  },
+  "execution": {
+    "actor_authority_current": true,
+    "policy_current": true,
+    "delegation_current": true,
+    "evidence_current": true,
+    "affected_entity_conditions_represented": true,
+    "recoverability_profile": "recoverable",
+    "validity_window_open": true,
+    "policy_ref": "example:submission-001:governance-policy",
+    "delegation_ref": "example:submission-001:bounded-evaluation",
+    "evidence_refs": [
+      "example:submission-001:observable-state"
+    ]
+  },
+  "capability": {
+    "allowed": true
+  },
+  "continuity": {
+    "required": false
+  },
+  "approval": {
+    "required": false
+  },
+  "permission_present": true,
+  "declared_context": {
+    "source_framework": "EXAMPLE_FRAMEWORK",
+    "source_output_id": "example-framework-submission-001",
+    "source_data_class": "example.submission-state.v1",
+    "note": "Descriptive only. The binding framework identity comes from --source-framework on the command line, not from this block; nothing in the SDK reads declared_context. Replace every value here with your own represented governance state - these are placeholders for path validation, not defaults you should submit."
+  }
+}

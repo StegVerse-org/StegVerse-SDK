@@ -2,7 +2,7 @@
   "schema": "stegverse.sdk.framework-named-historical-baseline/v1",
   "invariant": "ARTIFACTS_ARE_NAMED_BY_CAPABILITY_NOT_BY_ORIGINATING_FRAMEWORK",
   "declared_at": "2026-09-30",
-  "note": "Framework-named artifacts present when the guard was installed. Anything framework-named and absent from this list fails, so the set can only shrink. A declared entry whose artifact no longer exists also fails, so the baseline cannot rot.",
+  "note": "Framework-named artifacts present when the guard was installed. Anything framework-named and absent from this list fails, so the set can only shrink. A declared entry whose artifact no longer exists also fails, so the baseline cannot rot. Retired 2026-09-30: sdk-test3-richard-seam.processor-request.json, a person-named duplicate of the live sdk-test3-invariance-seam fixture, removed after a reference scan found zero referrers.",
   "entries": [
     {
       "artifact": ".github/workflows/elan-governance-evidence-test.yml",
@@ -146,11 +146,6 @@
     },
     {
       "artifact": "inspection/examples/mir-sv-exp3/stegverse-commit-time-assessment-v1.json",
-      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
-      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
-    },
-    {
-      "artifact": "inspection/examples/sdk-test3-richard-seam.processor-request.json",
       "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
       "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
     },
