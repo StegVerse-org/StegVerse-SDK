@@ -77,6 +77,45 @@ This is not a restriction on the ask path -- that path is manifested, so its
 answers are governed from the request's own shape. It is what stops an
 *unmanifested* composition from claiming governance it cannot demonstrate.
 
+## Standing is current, never carried
+
+Coverage says the relation is *about* this composition. It says nothing about
+whether the relation is still current, and the two are independent: a relation can
+cover this exact component set and have expired. The coverage check alone admitted
+that case.
+
+This is the point the formalism is most insistent about. `Admissible-Existence/RTG`
+states the authority invariant as `current_authority_reconstructable`, with
+"Historical review is not authority." `standing-proof-formalism` opens with
+"Standing is not inherited from prior review." `ECAT-ICAT` defines standing as
+"the current admissible status of a transition, claim, state, or relationship at
+the moment it is evaluated." And `GTG`'s TT binding receipt carries
+`material_drift_detected` beside five `current_*_reconstructed` fields.
+
+A relation may therefore declare `valid_from` and `expiration` -- the governance
+envelope's own field names, not new ones -- and standing is evaluated against a
+supplied instant.
+
+| standing | meaning | outcome |
+|---|---|---|
+| `WITHIN_DECLARED_VALIDITY_WINDOW` | declared, and the instant falls inside it | governed claim |
+| `VALIDITY_WINDOW_UNDECLARED` | declares nothing | accepted as before, `relation_standing_verified: false` |
+| `OUTSIDE_DECLARED_VALIDITY_WINDOW` | declared, and the instant falls outside | **fails closed** |
+| `DECLARED_WINDOW_NOT_CHECKABLE` | declared, but no instant or unparseable | **fails closed** -- unverifiable is not verified |
+
+Nothing here reads a clock. The instant is supplied, recorded, and read back on
+replay, so a replay asks the standing question at the moment the composite was
+judged rather than at whenever the replay runs. The ask path supplies the
+manifest's own `created_at`, which puts the instant inside the governed document.
+
+### What this does not check
+
+A verified window is currency of the window only. The result names the surfaces it
+could not check -- `actor_surface`, `policy_surface`, `delegation_surface`,
+`evidence_surface`, `context_surface`, `recoverability_surface` -- because those
+belong to the relation's issuer, and a result that implied it had checked them
+would be the silent collapse the continuity principles name as a falsifier.
+
 ## Every outcome carries a verdict
 
 Nothing from the ask path returns without one, which is what "govern all output"
