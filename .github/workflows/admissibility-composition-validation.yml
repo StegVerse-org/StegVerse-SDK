@@ -5,6 +5,10 @@ on:
     paths:
       - 'stegverse/admissibility.py'
       - 'stegverse/admissibility_composition.py'
+      # The relation validator and coverage check this evaluator depends on.
+      # Without it, a change to the relation logic skips the very gate that
+      # validates composition.
+      - 'stegverse/joint_relation.py'
       - 'tests/test_admissibility_composition.py'
       - 'tests/test_dynamic_admissibility.py'
       - 'tests/test_admissibility_bundle.py'
@@ -18,6 +22,10 @@ on:
     paths:
       - 'stegverse/admissibility.py'
       - 'stegverse/admissibility_composition.py'
+      # The relation validator and coverage check this evaluator depends on.
+      # Without it, a change to the relation logic skips the very gate that
+      # validates composition.
+      - 'stegverse/joint_relation.py'
       - 'tests/test_admissibility_composition.py'
       - 'tests/test_dynamic_admissibility.py'
       - 'tests/test_admissibility_bundle.py'
