@@ -1,0 +1,392 @@
+{
+  "schema": "stegverse.sdk.framework-named-historical-baseline/v1",
+  "invariant": "ARTIFACTS_ARE_NAMED_BY_CAPABILITY_NOT_BY_ORIGINATING_FRAMEWORK",
+  "declared_at": "2026-09-30",
+  "note": "Framework-named artifacts present when the guard was installed. Anything framework-named and absent from this list fails, so the set can only shrink. A declared entry whose artifact no longer exists also fails, so the baseline cannot rot.",
+  "entries": [
+    {
+      "artifact": ".github/workflows/elan-governance-evidence-test.yml",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": ".github/workflows/elan-stegverse-cross-evaluation.yml",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": ".github/workflows/mir-exp3-commit-time-capability-docs.yml",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": ".github/workflows/mir-leaf-v3-conformance.yml",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": ".github/workflows/mir-sv-exp3-sdk-manifest.yml",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "data/elan-next-phase-experiment-001.preregistration.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/ELAN_INTR_BRIDGE_CONTRACT.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/ELAN_NEXT_PHASE_EXPERIMENT_PREREGISTRATION.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/ELAN_NEXT_PHASE_EXPERIMENT_PROCEDURE.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/ELAN_TEST1_RUNBOOK.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/HGAI_GOVERNANCE_REFERENCE_GRAPH_EXAMPLE.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/MIR_DESTINATION_PROFILE_PROPAGATION_MIRROR_HANDOFF.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/MIR_LEAF_V3_CONFORMANCE_FIXTURE_MIRROR_HANDOFF.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/MIR_LEAF_V3_COUNTERPART_REPRODUCTION_GUIDE.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/MIR_SDK_RETURN_ASSEMBLY_CONTINUITY_MIRROR_HANDOFF.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/MIR_SDK_RETURN_MATERIALIZATION_MIRROR_HANDOFF.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/MIR_SITE_SDK_PROCESSING_HANDOFF_MIRROR_HANDOFF.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/MIR_STEGVERSE_HISTORICAL_ACCOUNTING_RUN_002_MIRROR_HANDOFF.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "docs/MIR_SV_EXP3_MANIFEST.md",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "fixtures/mir_leaf_v3_conformance_expected_result_v1.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "fixtures/mir_leaf_v3_conformance_fixture_v1.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "inspection/examples/elan-evaluation-declaration-test1.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "inspection/examples/elan-governance-request.example.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "inspection/examples/elan-relational-state-test1.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "inspection/examples/hgai-governance-reference-graph.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "inspection/examples/mir-sv-exp3/assessment-input.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "inspection/examples/mir-sv-exp3/diagnostic-request.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "inspection/examples/mir-sv-exp3/mir-stegverse-ingress-egress-addendum-v1.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "inspection/examples/mir-sv-exp3/stegverse-commit-time-assessment-v1.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "inspection/examples/sdk-test3-richard-seam.processor-request.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "schemas/elan-intr-bridge-envelope.schema.json",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "schemas/semantic-resolution-intr-bridge-envelope.schema.json",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "scripts/build_mir_sv_exp3_capability_documents.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "scripts/build_mir_sv_exp3_manifest.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "scripts/run_elan_manifest_governance_evidence_test.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "scripts/run_elan_observed_silence_governance_test.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "scripts/run_elan_stegverse_cross_evaluation.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "stegverse/mir_historical_accounting_delta.py",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse/historical_accounting_delta.py",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse/mir_leaf_v3.py",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse/transparency_log_leaf.py",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse/mir_run2_replay_reconstruction.py",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse/accounting_run_replay_reconstruction.py",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse_sdk/elan_intr_bridge.py",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse_sdk/semantic_resolution_intr_bridge.py",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "tasks/MIR-STEGVERSE-HISTORICAL-ACCOUNTING-RUN-002.json",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "tests/test_compare_mir_leaf_v3_result.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "tests/test_elan_intr_bridge.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "tests/test_mir_destination_profile_propagation.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "tests/test_mir_historical_accounting_delta.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "tests/test_mir_leaf_v3_conformance.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "tests/test_mir_run2_replay_reconstruction.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "tests/test_mir_sv_exp3_capability_documents.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "tests/test_mir_sv_exp3_manifest.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "tools/compare_mir_leaf_v3_result.py",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "tools/mir_leaf_v3_neutral_reproducer.mjs",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "stegverse.elan-cross-evaluation-result/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.cross-evaluation-result/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.elan-cross-evaluation-state-chain/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.cross-evaluation-state-chain/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.elan-cross-evaluation-summary/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.cross-evaluation-summary/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.elan-intr-bridge-receipt/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.semantic-resolution-intr-bridge-receipt/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.elan-local-sdk-governance-experiment/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.local-governance-evaluation-demo/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.elan-local-sdk-governance-observed-silence-experiment/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.observed-silence-evaluation-demo/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.elan.next-phase-experiment-preregistration/v3",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.evaluator-preregistration/v3",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.mir-leaf-v3-conformance-expected-result/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.transparency-log-leaf-conformance-expected-result/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.mir-leaf-v3-conformance-fixture/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.transparency-log-leaf-conformance-fixture/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.mir-leaf-v3-conformance-result/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.transparency-log-leaf-conformance-result/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.mir-leaf-v3-counterpart-comparison/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.transparency-log-counterpart-comparison/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.mir-node-mirror.accounting/v2",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "stegverse.mir-node-mirror.checkpoint.v2",
+      "disposition": "HISTORICAL_PRE_ORG_RECEIPT",
+      "reason": "Pre-org-receipt framework development artifact, retained as provenance of how the ecosystem was built. Proposed classification; move to PENDING_CAPABILITY_RENAME once a capability name is decided."
+    },
+    {
+      "artifact": "stegverse.mir-sv-exp3.capability-boundary-input/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.capability-boundary-assessment-input/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.mir-sv-exp3.commit-time-capability-document/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.commit-time-capability-document/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.mir-sv-exp3.ingress-egress-addendum/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.ingress-egress-addendum/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.mir.source-native-result/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.counterpart-source-native-result/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.publisher.mir-roundtrip-binding/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.publisher.counterpart-roundtrip-binding/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.sdk.mir-historical-accounting-delta/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.sdk.historical-accounting-delta/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.sdk.mir-run2-reconstruction/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.sdk.accounting-run-reconstruction/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    },
+    {
+      "artifact": "stegverse.sdk.mir-run2-replay/v1",
+      "disposition": "PENDING_CAPABILITY_RENAME",
+      "capability_name": "stegverse.sdk.accounting-run-replay/v1",
+      "reason": "Capability name derived from what the code does; the originating framework belongs in manifest data, not the identifier."
+    }
+  ]
+}
