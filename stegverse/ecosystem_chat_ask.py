@@ -336,6 +336,22 @@ def ask_governed_question(
             "basis": JOURNEY_PLANNING,
             "detail": JOURNEY_PLANNING_BASIS,
         },
+        # Replay and reconstruction make the state transition path and the
+        # decision verifiable from the Ecosystem. Neither hands back the prose:
+        # the question text and the answer text are returned here, in flight,
+        # and the Ecosystem does not retain them. Keeping the conversation
+        # requires storage that is user-based, which is what MyKV adds.
+        "retention": {
+            "prose_returned_in_flight": True,
+            # Scoped to this path: nothing in the fan or the composition writes
+            # the question or answer text to custody. Where the postures declare
+            # it, entry_point_parity reports per posture rather than globally.
+            "prose_retained_by_this_path": False,
+            "prose_retention_storage": "USER_BASED_MYKV",
+            "chat_continuity_requires": "USER_BASED_MYKV",
+            "replay_verifies": ["STATE_TRANSITION_PATH", "DECISION"],
+            "replay_returns_prose": False,
+        },
         "boundary": {
             "answer_is_certified_correct": False,
             "agreement_is_evidence_of_correctness": False,

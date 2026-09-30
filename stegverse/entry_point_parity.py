@@ -54,15 +54,43 @@ AVAILABLE = "AVAILABLE_AT_CHAT"
 #: all, so the report was green about something a phone could not do.
 CONTRACT_ONLY = "CONTRACT_CARRIED_NOT_SERVED_BY_SURFACE"
 
-#: Not unwired work: a capability that needs retained custody to act on. A device
-#: acting only as a node is ephemeral, so it can ask a question and verify the
-#: answer it just received, but has nothing retained to replay from. Continuity
-#: is what MyKV adds, and the individual Ecosystem AI Assistant lives there --
-#: Ecosystem Chat is its precursor. Reporting these as merely "not served" would
-#: read as a wiring backlog rather than the user-tier advance it is.
-REQUIRES_CONTINUITY = "REQUIRES_MYKV_CONTINUITY"
-CONTINUITY = "CONTINUITY"
-CONTINUITY_CONFERRED_BY = "MYKV"
+#: What replay and reconstruction establish, and what they do not.
+#:
+#: They display state transition paths and make decisions verifiable from the
+#: Ecosystem. That is ecosystem-side evidence, and it is what a receipt locator
+#: addresses. They do not return the prose: the actual question text and the
+#: actual answer text are not what custody retains.
+VERIFIES_TRANSITIONS_AND_DECISIONS = ("STATE_TRANSITION_PATH", "DECISION")
+
+#: Retaining prose is a different capability with a different owner. The
+#: Ecosystem does not store the query and response text; that requires storage
+#: which is user-based, and MyKV is where it lives. Chat continuity therefore
+#: comes from MyKV, and the individual Ecosystem AI Assistant lives there with
+#: Ecosystem Chat as its precursor. Conflating the two would suggest that
+#: replaying a receipt hands a person their conversation back. It does not.
+PROSE_RETENTION_STORAGE = "USER_BASED_MYKV"
+
+#: This is not a new claim: the security postures already prohibit raw sensitive
+#: data in an audit receipt. It is read from them rather than restated here,
+#: because a second declaration is a second thing that can drift from what it
+#: describes -- the same reason the Chat reachability claim is exercised rather
+#: than trusted.
+#:
+#: Reading it turned up something worth surfacing rather than smoothing over: the
+#: prohibition is declared at HIGH and HIGHEST but not at SECURE, whose
+#: prohibitions list only undeclared_sink and runtime_secret_inheritance. So the
+#: report states where it is declared instead of claiming it everywhere.
+PROSE_PROHIBITION = "raw_sensitive_data_in_audit_receipt"
+
+
+def _prose_prohibition_by_posture() -> dict[str, bool]:
+    """Which declared postures prohibit raw sensitive data in an audit receipt."""
+    from .security_posture import POSTURES
+
+    return {
+        posture_id: bool((posture.get("prohibitions") or {}).get(PROSE_PROHIBITION))
+        for posture_id, posture in POSTURES.items()
+    }
 DECLARED_GAP = "DECLARED_GAP"
 STOP_DRIFT = "STOP_ENTRY_POINT_DRIFT"
 
@@ -96,14 +124,16 @@ CONSOLE_CAPABILITIES: dict[str, dict[str, Any]] = {
     "1": {
         "capability": "REPLAY_BY_RECEIPT_LOCATOR",
         "requires_transportability": True,
-        "requires_continuity": True,
+        "verifies": VERIFIES_TRANSITIONS_AND_DECISIONS,
+        "retains_prose": False,
         "summary": "Replay a retained result by its manifest receipt id.",
         "verification": True,
     },
     "2": {
         "capability": "RECONSTRUCT_BY_RECEIPT_LOCATOR",
         "requires_transportability": True,
-        "requires_continuity": True,
+        "verifies": VERIFIES_TRANSITIONS_AND_DECISIONS,
+        "retains_prose": False,
         "summary": "Reconstruct a retained result by its manifest receipt id.",
         "verification": True,
     },
@@ -216,24 +246,15 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
             # read green while the surface served nothing.
             "carried_by_chat_contract": reached,
             "served_by_chat_surface": capability in served,
-            # Acting on a retained result needs continuity, which MyKV adds. A
-            # node alone is ephemeral; this is a tier, not a missing handler.
-            "requires_continuity": bool(entry.get("requires_continuity")),
-            "continuity_conferred_by": (
-                CONTINUITY_CONFERRED_BY if entry.get("requires_continuity") else "NONE"
-            ),
+            # What this capability makes verifiable from the Ecosystem, and
+            # whether it hands back the prose. Nothing here retains prose.
+            "verifies": list(entry.get("verifies") or []),
+            "retains_prose": bool(entry.get("retains_prose")),
             "grants_execution_authority": False,
             "evidence_ceiling": "SOURCE_RECONCILIATION_ONLY",
         }
         if reached:
-            if capability in served:
-                row["disposition"] = AVAILABLE
-            elif entry.get("requires_continuity"):
-                # Distinguished from CONTRACT_ONLY on purpose: this one is not
-                # waiting on wiring, it is waiting on the user installing MyKV.
-                row["disposition"] = REQUIRES_CONTINUITY
-            else:
-                row["disposition"] = CONTRACT_ONLY
+            row["disposition"] = AVAILABLE if capability in served else CONTRACT_ONLY
         elif gap:
             row["disposition"] = DECLARED_GAP
             row.update(gap)
@@ -257,13 +278,24 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
         # Carried by the contract, not performed by the surface. Counted so the
         # distance between what Chat declares and what it serves stays visible.
         "contract_only_count": sum(1 for r in rows if r["disposition"] == CONTRACT_ONLY),
-        "requires_continuity_count": sum(
-            1 for r in rows if r["disposition"] == REQUIRES_CONTINUITY),
-        "requires_continuity_capabilities": [
-            r["capability"] for r in rows if r["requires_continuity"]
+        # Replay and reconstruction make transitions and decisions verifiable;
+        # neither returns the prose, and the Ecosystem does not retain it.
+        "capabilities_verifying_transitions": [
+            r["capability"] for r in rows if r["verifies"]
         ],
-        "continuity_conferred_by": CONTINUITY_CONFERRED_BY,
-        "continuity_conferred_by_device": False,
+        "capabilities_retaining_prose": [
+            r["capability"] for r in rows if r["retains_prose"]
+        ],
+        # Named so a reader can check the source rather than trust this row, and
+        # reported per posture because it is not declared in all of them.
+        "prose_prohibited_by": PROSE_PROHIBITION,
+        "prose_prohibition_by_posture": _prose_prohibition_by_posture(),
+        "postures_prohibiting_prose": sorted(
+            pid for pid, on in _prose_prohibition_by_posture().items() if on),
+        "postures_not_declaring_prose_prohibition": sorted(
+            pid for pid, on in _prose_prohibition_by_posture().items() if not on),
+        "prose_retention_storage": PROSE_RETENTION_STORAGE,
+        "chat_continuity_requires": PROSE_RETENTION_STORAGE,
         "contract_only_capabilities": [
             r["capability"] for r in rows if r["disposition"] == CONTRACT_ONLY
         ],
@@ -282,11 +314,7 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
             r["capability"] for r in verification
             if r["disposition"] == CONTRACT_ONLY
         ],
-        # Verification a phone reaches only once MyKV gives it continuity.
-        "verification_requires_continuity": [
-            r["capability"] for r in verification
-            if r["disposition"] == REQUIRES_CONTINUITY
-        ],
+
         # What an unregistered entry point reaches. Naming this is the point:
         # the limit is registration, which anyone may obtain, not a device.
         "requires_transportability": [
@@ -315,8 +343,9 @@ def reconcile_entry_point_parity() -> dict[str, Any]:
 
 
 __all__ = [
-    "AVAILABLE", "CANONICAL_TASK_ID", "CONTINUITY", "CONTINUITY_CONFERRED_BY",
-    "CONTRACT_ONLY", "REQUIRES_CONTINUITY", "NODE_REGISTRATION_REQUIRED", "TRANSPORTABILITY", "CHAT_CAPABILITIES", "CONSOLE_CAPABILITIES",
+    "AVAILABLE", "CANONICAL_TASK_ID", "CONTRACT_ONLY",
+    "PROSE_PROHIBITION", "PROSE_RETENTION_STORAGE",
+    "VERIFIES_TRANSITIONS_AND_DECISIONS", "NODE_REGISTRATION_REQUIRED", "TRANSPORTABILITY", "CHAT_CAPABILITIES", "CONSOLE_CAPABILITIES",
     "DECLARED_GAP", "DECLARED_GAPS", "GAP_REQUIRED_FIELDS", "SCHEMA", "STOP_DRIFT",
     "reconcile_entry_point_parity",
 ]

@@ -36,9 +36,9 @@ from stegverse.entry_point_parity import (
     AVAILABLE,
     NODE_REGISTRATION_REQUIRED,
     CANONICAL_TASK_ID,
-    CONTINUITY_CONFERRED_BY,
     CONTRACT_ONLY,
-    REQUIRES_CONTINUITY,
+    PROSE_PROHIBITION,
+    PROSE_RETENTION_STORAGE,
     CHAT_CAPABILITIES,
     DECLARED_GAP,
     DECLARED_GAPS,
@@ -160,11 +160,8 @@ class EntryPointParityTests(unittest.TestCase):
                 # A verification capability may be contract-carried while the
                 # surface catches up, or wait on MyKV continuity, but it may
                 # never be a declared gap.
-                self.assertIn(
-                    row["disposition"],
-                    {AVAILABLE, CONTRACT_ONLY, REQUIRES_CONTINUITY},
-                    row["capability"],
-                )
+                self.assertIn(row["disposition"], {AVAILABLE, CONTRACT_ONLY},
+                              row["capability"])
 
     def test_a_phone_can_verify_at_least_one_result_on_the_surface(self) -> None:
         """The original failure was a Chat user who could submit but not check."""
@@ -172,32 +169,70 @@ class EntryPointParityTests(unittest.TestCase):
         self.assertIn("ASK_GOVERNED_QUESTION",
                       self.report["verification_served_by_surface"])
 
-    def test_acting_on_a_retained_result_waits_on_continuity_not_on_wiring(self) -> None:
-        """A node alone is ephemeral: it has nothing retained to replay from.
+    def test_the_report_follows_the_postures_rather_than_a_hardcoded_answer(self) -> None:
+        """Dropping the prohibition from a posture must change what is reported."""
+        import stegverse.entry_point_parity as parity
+        from stegverse.security_posture import POSTURES
 
-        Continuity is what MyKV adds, so replay and reconstruction are a user
-        tier rather than an unfinished handler. Reporting them as merely
-        unserved would read as a wiring backlog and misstate what is needed.
+        declaring = [pid for pid, p in POSTURES.items()
+                     if (p.get("prohibitions") or {}).get(PROSE_PROHIBITION)]
+        self.assertTrue(declaring, "no posture declares the prohibition")
+        target = declaring[0]
+        original = POSTURES[target]["prohibitions"][PROSE_PROHIBITION]
+        POSTURES[target]["prohibitions"][PROSE_PROHIBITION] = False
+        try:
+            report = parity.reconcile_entry_point_parity()
+            self.assertIn(target, report["postures_not_declaring_prose_prohibition"])
+            self.assertNotIn(target, report["postures_prohibiting_prose"])
+        finally:
+            POSTURES[target]["prohibitions"][PROSE_PROHIBITION] = original
+        restored = parity.reconcile_entry_point_parity()
+        self.assertIn(target, restored["postures_prohibiting_prose"])
+
+    def test_where_the_prose_prohibition_is_declared_is_reported_not_assumed(self) -> None:
+        """It is declared at HIGH and HIGHEST but not at SECURE.
+
+        Collapsing that into "prohibited everywhere" would be a broader claim
+        than the postures support, so the report names both sets.
+        """
+        report = self.report
+        self.assertEqual(report["prose_prohibited_by"], PROSE_PROHIBITION)
+        prohibiting = set(report["postures_prohibiting_prose"])
+        missing = set(report["postures_not_declaring_prose_prohibition"])
+        self.assertTrue(prohibiting)
+        self.assertFalse(prohibiting & missing)
+        self.assertEqual(
+            prohibiting | missing, set(report["prose_prohibition_by_posture"]))
+
+    def test_replay_verifies_transitions_and_decisions_not_prose(self) -> None:
+        """What a receipt locator establishes, stated rather than assumed.
+
+        Replay and reconstruction display the state transition path and make the
+        decision verifiable from the Ecosystem. Neither returns the question or
+        answer text. Reading them as "get my conversation back" would be wrong.
         """
         self.assertEqual(
-            sorted(self.report["requires_continuity_capabilities"]),
+            sorted(self.report["capabilities_verifying_transitions"]),
             ["RECONSTRUCT_BY_RECEIPT_LOCATOR", "REPLAY_BY_RECEIPT_LOCATOR"],
         )
-        self.assertEqual(self.report["continuity_conferred_by"], CONTINUITY_CONFERRED_BY)
-        # Continuity is conferred by MyKV, never owned by a device.
-        self.assertIs(self.report["continuity_conferred_by_device"], False)
         for row in self.report["rows"]:
-            if row["requires_continuity"]:
-                self.assertEqual(row["disposition"], REQUIRES_CONTINUITY, row["capability"])
-                self.assertEqual(row["continuity_conferred_by"], CONTINUITY_CONFERRED_BY)
-                self.assertEqual(row["device_identity_gate"], "NONE_PROHIBITED")
+            if row["verifies"]:
+                self.assertEqual(
+                    sorted(row["verifies"]), ["DECISION", "STATE_TRANSITION_PATH"])
+                self.assertFalse(row["retains_prose"], row["capability"])
 
-    def test_a_continuity_capability_is_not_counted_as_unserved_wiring(self) -> None:
-        """The two dispositions mean different things and must not be merged."""
-        contract_only = set(self.report["contract_only_capabilities"])
-        continuity = set(self.report["requires_continuity_capabilities"])
-        self.assertFalse(contract_only & continuity)
-        self.assertEqual(self.report["requires_continuity_count"], len(continuity))
+    def test_the_ecosystem_retains_no_prose_and_says_where_it_lives(self) -> None:
+        """Retaining query and response text needs user-based storage, not the
+        Ecosystem. That is MyKV, and chat continuity depends on it.
+
+        The prohibition is pre-existing: every declared posture already forbids
+        raw sensitive data in an audit receipt. This reads that rather than
+        asserting it independently.
+        """
+        self.assertEqual(self.report["capabilities_retaining_prose"], [])
+        self.assertEqual(self.report["capabilities_retaining_prose"], [])
+        self.assertEqual(self.report["prose_retention_storage"], PROSE_RETENTION_STORAGE)
+        self.assertEqual(self.report["chat_continuity_requires"], PROSE_RETENTION_STORAGE)
 
     def test_contract_carried_but_unserved_capabilities_are_counted_not_hidden(self) -> None:
         """The map once read green while the surface served no operation at all."""
