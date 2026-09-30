@@ -35,40 +35,61 @@ Measured before the change, with a single validated record reused:
 The same record also satisfied `composition_id` values naming entirely different
 compositions.
 
-## What a relation may now declare
+## The manifest is the binding
 
-Two optional fields, in `stegverse/joint_relation.py`:
+All actions and transitions are receipted and all data transport is by governed
+manifest, so the manifest of an ask **already states which components will exist
+before any of them runs**. That is the interlock property the journey work
+established: the component set is determined, not observed.
 
-- `covers_composition_id` — the composition it was validated over
-- `covers_component_ids` — the component set, hence the arity
+So governance here is the simple kind. A manifested request either has the right
+shape -- a journey whose declared branches are exactly the components composed --
+or it does not. Nothing has to opt in for the binding to be checkable, and no
+issuer handshake is needed to establish scope, because the manifest already
+carries it.
 
-A declared coverage is checked against the composition in front of it. Component
-identity is the module's existing one: input object ids for admissibility
-composition, branch journey ids for a governed composite response. The comparison
-is on the set, so component order cannot change the verdict.
+`derive_component_ids_from_journey` reads the declared branch set: a branch of
+journey `J` is component `"J:<branch_id>"`, the identity the composite already
+uses. It returns nothing when the journey does not determine a set -- absent, no
+branches, or a `branch_count` disagreeing with the branches enumerated, which is
+a malformed manifest rather than a coverage question.
 
-| state | meaning | outcome |
+| coverage | basis | outcome |
 |---|---|---|
-| `BOUND_TO_THIS_COMPOSITION` | declared, and matches | governed claim, `relation_binding_verified: true` |
-| `COVERAGE_UNDECLARED` | declares nothing | accepted as before, `relation_binding_verified: false` |
-| `DOES_NOT_COVER_THIS_COMPOSITION` | declared, does not match | **fails closed** |
+| `BOUND_TO_THIS_COMPOSITION` | `GOVERNED_MANIFEST_DECLARED_THE_BRANCH_SET` | governed claim |
+| `BOUND_TO_THIS_COMPOSITION` | `RELATION_ENUMERATED_THE_COMPONENT_SET` | governed claim |
+| `COVERAGE_UNDECLARED` | — | claim withheld: nothing states what should exist |
+| `DOES_NOT_COVER_THIS_COMPOSITION` | — | **fails closed** |
 
-Opting in is all-or-nothing. A record naming the composition but not the
-components still does not pin arity, which is the hole, so a partial declaration
-is a mismatch rather than a weaker kind of binding.
+A relation may still enumerate coverage explicitly (`covers_composition_id` +
+`covers_component_ids`), or name the journey (`covers_journey_id`). Every basis a
+relation declares must hold. Enumerating stays all-or-nothing, because naming the
+composition without the components leaves arity unpinned, which is the hole.
 
-## Why an undeclared relation is still accepted
+## A verified binding is required for a governed claim
 
-Withdrawing acceptance would make the existing three-LLM governed composition
-ungoverned — Test 6's own product. That is a call for the goal owner, not a
-detail of a coverage check. So the historical shape stays admissible and the
-result stops implying more than it has: `relation_binding_verified: false`,
-`maturity_class: known_composition_with_unbound_relation`, and a follow-up step
-naming what was not established.
+Governance covers all output, so output is not labelled governed on a relation
+nothing checked against these components. An unbound relation has the same
+standing as no relation: the answer is still returned and still attributed, and
+only the claim is withheld.
 
-A relation that *declares* a coverage and does not match is different, and fails
-closed. It asserts a binding that does not hold, which is worse than asserting
-none.
+This is not a restriction on the ask path -- that path is manifested, so its
+answers are governed from the request's own shape. It is what stops an
+*unmanifested* composition from claiming governance it cannot demonstrate.
+
+## Every outcome carries a verdict
+
+Nothing from the ask path returns without one, which is what "govern all output"
+requires:
+
+| situation | verdict |
+|---|---|
+| manifested, branches returned, answer selected | `GOVERNED_ANSWER`, governed |
+| a branch did not return | `FAN_INCOMPLETE`, claim withheld, no composite |
+| components are not the declared branch set | `FAIL_CLOSED`, coverage mismatch |
+| relation absent or unbound | `RELATION_UNRESOLVED`, answer returned, claim withheld |
+| strategy selected no answer | `NOT_COMPOSED` |
+| manifest shape wrong | rejected at intake, `ISSUANCE_BLOCKED`, never executed |
 
 ## What the composite now records
 
@@ -76,9 +97,11 @@ The composite carried two booleans about its relation — supplied, and valid �
 a verifier could not tell *which* relation to go and check. It now records
 `joint_relation_id` and the full `relation_coverage` verdict.
 
-Replay follows: `reconstruct_governed_response` rebuilds the relation from what
-the composite recorded, rather than a generic stand-in, so a coverage verdict
-replays as itself. A fail-closed composite reconstructs as the same failure, and
+Replay follows: `reconstruct_governed_response` rebuilds both the relation and
+the declared branch set from what the composite recorded, rather than a generic
+stand-in, so a coverage verdict replays as itself. The composite records the
+declared set, which is all the check needs -- it does not have to carry the whole
+manifest. A fail-closed composite reconstructs as the same failure, and
 a composite edited to claim a binding its components do not support diverges —
 the recorded coverage is inside the digest.
 
@@ -100,9 +123,12 @@ than that.
 - Non-vacuity: neutralizing the gate fails exactly 8 tests, across both modules,
   and no others.
 - Live surface, `POST` to the Chat endpoint with a real StegBrowser-backed
-  executor: an unbound relation returns `200 GOVERNED_ANSWER` `RECONSTRUCTED` as
-  before; a bound one returns the same plus `BOUND_TO_THIS_COMPOSITION`; a
-  relation validated over 2 of the 3 branches returns `422 NOT_COMPOSED` with no
-  governed claim.
+  executor: a manifested three-branch ask returns `200 GOVERNED_ANSWER`
+  `RECONSTRUCTED` with `basis: GOVERNED_MANIFEST_DECLARED_THE_BRANCH_SET`, while
+  the relation itself declares no coverage -- the manifest is the binding. A
+  relation enumerating 2 of the 3 branches fails closed. A malformed manifest
+  (repeated ephemeral endpoint, repeated response marker) is rejected at intake
+  with `ISSUANCE_BLOCKED` and never executes. A branch that does not return gives
+  `FAN_INCOMPLETE` before composition.
 - The duplicated validator is gone: both modules now import one
   `validate_joint_relation`, so a change to it cannot reach one and miss the other.

@@ -38,8 +38,15 @@ from stegverse.governed_composite_response import (
     reconstruct_governed_response,
 )
 from stegverse.joint_relation import (
+    BASIS_ENUMERATED,
+    BASIS_MANIFEST_DECLARED,
+    COVERS_JOURNEY_ID,
+    MISMATCH_JOURNEY,
+    MISMATCH_JOURNEY_UNAVAILABLE,
     COVERAGE_BOUND,
+    COVERAGE_MISMATCHED,
     COVERAGE_UNDECLARED,
+    MISMATCH_JOURNEY_BRANCHES,
     COVERS_COMPONENT_IDS,
     COVERS_COMPOSITION_ID,
     MISMATCH_COMPONENTS,
@@ -138,19 +145,47 @@ VALID_RELATION = {
 }
 
 
+def _journey_for(components: List[Mapping[str, Any]], *, fan: str = FAN) -> Dict[str, Any]:
+    """The journey whose manifest declared exactly these branches.
+
+    Real components arrive from a manifested fan, and that manifest states the
+    branch set before any branch runs. Composing without one is composing an
+    unmanifested request, which the tests below cover separately.
+    """
+    branch_ids = sorted(
+        str(c["journey_id"]).split(":", 1)[1]
+        for c in components
+        if ":" in str(c["journey_id"])
+    )
+    return {
+        "journey_id": fan,
+        "branch_count": len(branch_ids),
+        "branches": [{"branch_id": b} for b in branch_ids],
+    }
+
+
+_UNMANIFESTED = object()
+
+
 def _compose(
     components: List[Mapping[str, Any]],
     *,
     strategy: str = STRATEGY_UNANIMOUS,
     relation: Optional[Mapping[str, Any]] = VALID_RELATION,
     fan: str = FAN,
+    journey: Any = None,
 ) -> Dict[str, Any]:
+    if journey is _UNMANIFESTED:
+        journey = None
+    elif journey is None:
+        journey = _journey_for(components, fan=fan)
     return compose_governed_response(
         components,
         composition_id="CMP-TEST6",
         fan_journey_id=fan,
         strategy=strategy,
         joint_relation=relation,
+        journey=journey,
     )
 
 
@@ -475,12 +510,40 @@ def test_a_bound_relation_still_yields_a_governed_claim_and_reports_the_binding(
     assert composite["relation_coverage"]["actual_arity"] == 3
 
 
-def test_an_unbound_relation_is_still_governed_but_reports_no_binding() -> None:
-    """Preserved on purpose: withdrawing it would ungovern an existing fan."""
-    composite = _compose(_agreeing_fan())
-    assert composite["disposition"] == DISPOSITION_GOVERNED
+def test_an_unmanifested_composition_is_not_a_governed_claim() -> None:
+    """Governance covers all output, and here it is the simple kind: the request
+    either has the right manifest shape or it does not.
+
+    With no journey, nothing states which components should exist, so there is
+    nothing to check the composition against. The answer is still returned and
+    still attributed; only the claim is withheld -- the same standing as a
+    composition with no relation at all.
+    """
+    composite = _compose(_agreeing_fan(), journey=_UNMANIFESTED)
+    assert composite["disposition"] == DISPOSITION_RELATION_UNRESOLVED
+    assert composite["governed_claim"] is False
     assert composite["relation_binding_verified"] is False
     assert composite["relation_coverage"]["coverage"] == COVERAGE_UNDECLARED
+    assert composite["composite_answer"] == "The return leg is predecessor-linked."
+
+
+def test_a_manifested_composition_is_governed_from_the_requests_own_shape() -> None:
+    """The manifest declared these three branches, so the answer is governed."""
+    composite = _compose(_agreeing_fan())
+    assert composite["disposition"] == DISPOSITION_GOVERNED
+    assert composite["governed_claim"] is True
+    assert composite["relation_binding_verified"] is True
+    assert composite["relation_coverage"]["coverage"] == COVERAGE_BOUND
+    assert composite["relation_coverage"]["basis"] == BASIS_MANIFEST_DECLARED
+
+
+def test_a_manifest_declaring_more_branches_than_arrived_is_not_governed() -> None:
+    """A subset of a declared branch set is not the set the manifest stated."""
+    fan = _agreeing_fan()
+    composite = _compose(fan[:2], journey=_journey_for(fan))
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert FAILURE_RELATION_COVERAGE in composite["failure_codes"]
+    assert composite["relation_coverage"]["mismatch_reasons"] == [MISMATCH_JOURNEY_BRANCHES]
 
 
 def test_a_relation_for_two_branches_does_not_cover_three() -> None:
@@ -541,3 +604,41 @@ def test_claiming_a_binding_the_components_do_not_support_diverges() -> None:
     replay = reconstruct_governed_response(forged, fan)
     assert replay["reconstruction_status"] == "DIVERGED"
     assert replay["reconstructed"] is False
+
+
+def test_a_relation_naming_another_journey_does_not_cover_this_one() -> None:
+    """Naming a journey is a claim about which manifest, and it must be this one."""
+    fan = _agreeing_fan()
+    relation = dict(VALID_RELATION)
+    relation[COVERS_JOURNEY_ID] = "SOME-OTHER-FAN"
+    composite = _compose(fan, relation=relation)
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert composite["relation_coverage"]["mismatch_reasons"] == [MISMATCH_JOURNEY]
+    assert composite["relation_coverage"]["declared_journey_id"] == "SOME-OTHER-FAN"
+
+
+def test_a_relation_naming_a_journey_that_was_not_supplied_cannot_be_checked() -> None:
+    """Unverifiable is not the same as verified, so it does not pass."""
+    fan = _agreeing_fan()
+    relation = dict(VALID_RELATION)
+    relation[COVERS_JOURNEY_ID] = FAN
+    composite = _compose(fan, relation=relation, journey=_UNMANIFESTED)
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert composite["relation_coverage"]["mismatch_reasons"] == [MISMATCH_JOURNEY_UNAVAILABLE]
+
+
+def test_an_unmanifested_composition_can_still_be_bound_by_enumeration() -> None:
+    """The explicit basis, for a composition that has no journey to read."""
+    fan = _agreeing_fan()
+    composite = _compose(fan, relation=_bound_relation(fan), journey=_UNMANIFESTED)
+    assert composite["disposition"] == DISPOSITION_GOVERNED
+    assert composite["relation_binding_verified"] is True
+    assert composite["relation_coverage"]["basis"] == BASIS_ENUMERATED
+
+
+def test_a_relation_contradicting_the_manifest_fails_rather_than_averaging() -> None:
+    """Both bases declared, only one holds: the composition is not governed."""
+    fan = _agreeing_fan()
+    composite = _compose(fan, relation=_bound_relation(fan[:2]))
+    assert composite["relation_coverage"]["coverage"] == COVERAGE_MISMATCHED
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
