@@ -7,6 +7,7 @@ that happens to match what the SDK expects.
 
 from __future__ import annotations
 
+import copy
 from hashlib import sha256
 import importlib.util
 import json
@@ -27,6 +28,7 @@ from stegverse.governed_composite_response import (
     FAILURE_FOREIGN_FAN,
     FAILURE_NO_MAJORITY,
     FAILURE_NO_UNANIMITY,
+    FAILURE_RELATION_COVERAGE,
     JOINT_RELATION_SCHEMA,
     STRATEGY_ATTRIBUTED_SET,
     STRATEGY_MAJORITY,
@@ -34,6 +36,13 @@ from stegverse.governed_composite_response import (
     CompositeResponseError,
     compose_governed_response,
     reconstruct_governed_response,
+)
+from stegverse.joint_relation import (
+    COVERAGE_BOUND,
+    COVERAGE_UNDECLARED,
+    COVERS_COMPONENT_IDS,
+    COVERS_COMPOSITION_ID,
+    MISMATCH_COMPONENTS,
 )
 
 FAN = "FAN-TEST6"
@@ -429,3 +438,106 @@ def test_chat_cannot_request_an_undeclared_strategy() -> None:
                 "components": _agreeing_fan(),
             }
         )
+
+
+# --- the relation is bound to the composition it backs, or says it is not -----
+#
+# The composite recorded two booleans about its relation: supplied, and valid.
+# Neither said which relation, nor what that relation had been validated over, so
+# one record satisfied a pair and a dozen alike and satisfied any composition_id.
+# These pin the binding, at the arity where its absence matters.
+
+
+CID = "CMP-TEST6"
+
+
+def _bound_relation(components, *, composition_id=CID):
+    """The relation a fan of these components would actually be validated over."""
+    relation = dict(VALID_RELATION)
+    relation[COVERS_COMPOSITION_ID] = composition_id
+    relation[COVERS_COMPONENT_IDS] = sorted(str(c["journey_id"]) for c in components)
+    return relation
+
+
+def test_the_composite_records_which_relation_backed_it() -> None:
+    """A verifier could not previously tell which relation to go and check."""
+    composite = _compose(_agreeing_fan())
+    assert composite["joint_relation_id"] == "REL-TEST6-001"
+
+
+def test_a_bound_relation_still_yields_a_governed_claim_and_reports_the_binding() -> None:
+    fan = _agreeing_fan()
+    composite = _compose(fan, relation=_bound_relation(fan))
+    assert composite["disposition"] == DISPOSITION_GOVERNED
+    assert composite["governed_claim"] is True
+    assert composite["relation_binding_verified"] is True
+    assert composite["relation_coverage"]["coverage"] == COVERAGE_BOUND
+    assert composite["relation_coverage"]["actual_arity"] == 3
+
+
+def test_an_unbound_relation_is_still_governed_but_reports_no_binding() -> None:
+    """Preserved on purpose: withdrawing it would ungovern an existing fan."""
+    composite = _compose(_agreeing_fan())
+    assert composite["disposition"] == DISPOSITION_GOVERNED
+    assert composite["relation_binding_verified"] is False
+    assert composite["relation_coverage"]["coverage"] == COVERAGE_UNDECLARED
+
+
+def test_a_relation_for_two_branches_does_not_cover_three() -> None:
+    """2 to N: a relation validated over a subset must not carry the superset."""
+    fan = _agreeing_fan()
+    relation = _bound_relation(fan[:2])
+    composite = _compose(fan, relation=relation)
+
+    assert composite["joint_relation_valid"] is True, "the record itself is well formed"
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert FAILURE_RELATION_COVERAGE in composite["failure_codes"]
+    assert composite["relation_coverage"]["mismatch_reasons"] == [MISMATCH_COMPONENTS]
+    assert composite["relation_coverage"]["declared_arity"] == 2
+    assert composite["relation_coverage"]["actual_arity"] == 3
+    assert composite["separability"]["subset_relation_covers_superset_composition"] is False
+
+
+def test_a_relation_for_another_composition_does_not_cover_this_fan() -> None:
+    fan = _agreeing_fan()
+    composite = _compose(fan, relation=_bound_relation(fan, composition_id="OTHER-CMP"))
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert FAILURE_RELATION_COVERAGE in composite["failure_codes"]
+
+
+def test_a_bound_composite_reconstructs_including_its_coverage_verdict() -> None:
+    """Replay must reproduce the binding, not a generic stand-in relation."""
+    fan = _agreeing_fan()
+    composite = _compose(fan, relation=_bound_relation(fan))
+    replay = reconstruct_governed_response(composite, fan)
+
+    # The comparison covers every recorded field but the digest itself, so an
+    # equal digest is the statement that the coverage verdict replayed too.
+    assert replay["reconstruction_status"] == "RECONSTRUCTED"
+    assert replay["reconstructed_composite_sha256"] == composite["composite_sha256"]
+    assert composite["relation_binding_verified"] is True
+    assert composite["joint_relation_id"] == "REL-TEST6-001"
+
+
+def test_a_coverage_mismatch_reconstructs_as_the_same_failure() -> None:
+    """A fail-closed composite replays to the same verdict, not to a pass."""
+    fan = _agreeing_fan()
+    composite = _compose(fan, relation=_bound_relation(fan[:2]))
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    replay = reconstruct_governed_response(composite, fan)
+    assert replay["reconstruction_status"] == "RECONSTRUCTED"
+    assert replay["reconstructed_composite_sha256"] == composite["composite_sha256"]
+
+
+def test_claiming_a_binding_the_components_do_not_support_diverges() -> None:
+    """The recorded coverage is inside the digest, so it cannot be edited after."""
+    fan = _agreeing_fan()
+    composite = _compose(fan, relation=_bound_relation(fan[:2]))
+    forged = copy.deepcopy(composite)
+    forged["relation_binding_verified"] = True
+    forged["relation_coverage"] = dict(
+        forged["relation_coverage"], coverage=COVERAGE_BOUND, mismatch_reasons=[]
+    )
+    replay = reconstruct_governed_response(forged, fan)
+    assert replay["reconstruction_status"] == "DIVERGED"
+    assert replay["reconstructed"] is False
