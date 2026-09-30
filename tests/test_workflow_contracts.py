@@ -89,6 +89,33 @@ def test_the_whole_suite_gate_has_no_path_filter() -> None:
         )
 
 
+def test_a_tolerated_step_in_the_gate_is_followed_by_a_real_assertion() -> None:
+    """continue-on-error must not become a silent reduction in coverage.
+
+    The owner checkout is tolerated so a missing secret does not fail the gate
+    for everyone. That same tolerance would swallow a genuine checkout failure,
+    leaving the owner tests skipped and the job green. When the token is set, a
+    later step has to prove the owner is actually present.
+    """
+    path = next(p for p in WORKFLOWS if p.name == RATCHET)
+    workflow = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    steps = [step for _, step in _steps(workflow)]
+    tolerated = [s for s in steps if s.get("continue-on-error")]
+    if not tolerated:
+        pytest.skip("the gate tolerates no step, so nothing can be swallowed")
+    asserting = [
+        s for s in steps
+        if isinstance(s.get("run"), str) and "OWNER_PRESENT" in s["run"]
+        and isinstance(s.get("if"), str) and "OWNER_TOKEN" in s["if"]
+    ]
+    assert asserting, (
+        "the gate tolerates a step failure without any later step proving the "
+        "owner arrived; a broken token would quietly shrink coverage"
+    )
+    # And it must come after the step whose failure it is covering for.
+    assert steps.index(asserting[0]) > steps.index(tolerated[0])
+
+
 def test_the_whole_suite_gate_installs_the_packages_dependencies() -> None:
     """Installing pytest alone collected 208 modules as import errors."""
     path = next(p for p in WORKFLOWS if p.name == RATCHET)
