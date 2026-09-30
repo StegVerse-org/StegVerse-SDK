@@ -268,7 +268,185 @@ def evaluate_relation_coverage(
     return result
 
 
+
+# --- standing -------------------------------------------------------------
+#
+# Coverage and standing are different questions, and the difference is the one
+# the formalism is most insistent about: standing is current, never carried.
+# A relation that genuinely covered this composition when it was issued may have
+# no standing now. Coverage alone therefore cannot support a governed claim, and
+# a result that reported coverage while silently saying nothing about currency
+# would be exactly the collapse the continuity principles name as a falsifier.
+#
+# Field names mirror the governance envelope rather than inventing new ones:
+# ``expiration`` is its upper bound, ``valid_from`` an optional lower bound, and
+# ``evaluated_at`` the moment standing is being asked about. Nothing here reads a
+# clock: the evaluation time is supplied and recorded, so a replay asks the same
+# question at the same instant and reaches the same answer.
+
+VALID_FROM = "valid_from"
+EXPIRATION = "expiration"
+VALIDITY_FIELDS = (VALID_FROM, EXPIRATION)
+
+STANDING_WITHIN_WINDOW = "WITHIN_DECLARED_VALIDITY_WINDOW"
+STANDING_WINDOW_UNDECLARED = "VALIDITY_WINDOW_UNDECLARED"
+STANDING_OUTSIDE_WINDOW = "OUTSIDE_DECLARED_VALIDITY_WINDOW"
+STANDING_UNCHECKABLE = "DECLARED_WINDOW_NOT_CHECKABLE"
+
+STALE_EXPIRED = "expiration_precedes_this_evaluation"
+STALE_NOT_YET_VALID = "valid_from_follows_this_evaluation"
+STALE_NO_EVALUATION_TIME = "window_declared_but_no_evaluation_time_supplied"
+STALE_UNPARSEABLE = "declared_window_timestamps_are_not_parseable"
+
+#: What this module can check about standing, and what it cannot. The surfaces
+#: left out belong to the relation's issuer. Naming them is the point: a caller
+#: must not read a verified window as a verified authority.
+SURFACES_CHECKED_HERE = (
+    "scope_surface",
+    "target_surface",
+    "validity_window_surface",
+)
+SURFACES_NOT_CHECKABLE_HERE = (
+    "actor_surface",
+    "policy_surface",
+    "delegation_surface",
+    "evidence_surface",
+    "context_surface",
+    "recoverability_surface",
+)
+
+WINDOW_UNDECLARED_LIMIT = (
+    "This relation declares no validity window, so nothing here establishes that "
+    "it still has standing. Coverage was checked; currency was not."
+)
+WINDOW_HELD_LIMIT = (
+    "This relation's declared validity window contains the evaluation time. That "
+    "is currency of the window only -- authority, delegation, policy, evidence and "
+    "recoverability standing belong to the issuer and are not checked here."
+)
+
+
+def _parse_instant(value: Any) -> Any:
+    """Parse an ISO-8601 instant, or None when it cannot be read.
+
+    Accepts a trailing ``Z`` for UTC, which datetime.fromisoformat rejects before
+    3.11 and which the governance envelopes use.
+    """
+    if not isinstance(value, str) or not value.strip():
+        return None
+    text = value.strip()
+    if text.endswith(("Z", "z")):
+        text = text[:-1] + "+00:00"
+    try:
+        from datetime import datetime
+
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        from datetime import timezone
+
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
+def evaluate_relation_standing(
+    relation: Mapping[str, Any] | None,
+    *,
+    evaluated_at: str | None = None,
+) -> Dict[str, Any]:
+    """Report whether ``relation`` still has standing at ``evaluated_at``.
+
+    A declared window that does not contain the evaluation time is stale, and a
+    declared window with no evaluation time to check it against is unresolved --
+    unverifiable is not the same as verified. A relation declaring no window is
+    accepted as before and says so, because withdrawing that would ungovern every
+    relation issued before windows existed.
+    """
+    declared_from = relation.get(VALID_FROM) if isinstance(relation, Mapping) else None
+    declared_until = relation.get(EXPIRATION) if isinstance(relation, Mapping) else None
+    declared = any(
+        isinstance(relation, Mapping) and field in relation for field in VALIDITY_FIELDS
+    )
+
+    result: Dict[str, Any] = {
+        "declared_valid_from": declared_from if isinstance(declared_from, str) else None,
+        "declared_expiration": declared_until if isinstance(declared_until, str) else None,
+        "validity_declared": bool(declared),
+        "evaluated_at": evaluated_at,
+        "surfaces_checked_here": list(SURFACES_CHECKED_HERE),
+        "surfaces_not_checkable_here": list(SURFACES_NOT_CHECKABLE_HERE),
+        "stale_reasons": [],
+    }
+
+    if not declared:
+        result.update({
+            "standing": STANDING_WINDOW_UNDECLARED,
+            "standing_verified": False,
+            "limit": WINDOW_UNDECLARED_LIMIT,
+        })
+        return result
+
+    now = _parse_instant(evaluated_at)
+    if now is None:
+        result.update({
+            "standing": STANDING_UNCHECKABLE,
+            "standing_verified": False,
+            "stale_reasons": [STALE_NO_EVALUATION_TIME],
+        })
+        return result
+
+    lower = _parse_instant(declared_from) if declared_from is not None else None
+    upper = _parse_instant(declared_until) if declared_until is not None else None
+    if (declared_from is not None and lower is None) or (
+        declared_until is not None and upper is None
+    ):
+        result.update({
+            "standing": STANDING_UNCHECKABLE,
+            "standing_verified": False,
+            "stale_reasons": [STALE_UNPARSEABLE],
+        })
+        return result
+
+    reasons: list[str] = []
+    if lower is not None and now < lower:
+        reasons.append(STALE_NOT_YET_VALID)
+    if upper is not None and now > upper:
+        reasons.append(STALE_EXPIRED)
+
+    if reasons:
+        result.update({
+            "standing": STANDING_OUTSIDE_WINDOW,
+            "standing_verified": False,
+            "stale_reasons": reasons,
+        })
+        return result
+
+    result.update({
+        "standing": STANDING_WITHIN_WINDOW,
+        "standing_verified": True,
+        "limit": WINDOW_HELD_LIMIT,
+    })
+    return result
+
+
 __all__ = [
+    "evaluate_relation_standing",
+    "WINDOW_UNDECLARED_LIMIT",
+    "WINDOW_HELD_LIMIT",
+    "VALID_FROM",
+    "VALIDITY_FIELDS",
+    "SURFACES_NOT_CHECKABLE_HERE",
+    "SURFACES_CHECKED_HERE",
+    "STANDING_WINDOW_UNDECLARED",
+    "STANDING_WITHIN_WINDOW",
+    "STANDING_UNCHECKABLE",
+    "STANDING_OUTSIDE_WINDOW",
+    "STALE_UNPARSEABLE",
+    "STALE_NO_EVALUATION_TIME",
+    "STALE_NOT_YET_VALID",
+    "STALE_EXPIRED",
+    "EXPIRATION",
     "BASIS_ENUMERATED",
     "BASIS_MANIFEST_DECLARED",
     "BOUND_LIMIT",

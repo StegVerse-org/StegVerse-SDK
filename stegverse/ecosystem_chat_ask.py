@@ -381,6 +381,11 @@ def ask_governed_question(
         # set before any branch ran. Handing it to the composition is what makes
         # the answer's governance checkable from the request's own shape.
         journey=journey,
+        # Standing is asked at the instant the request was manifested, taken from
+        # the manifest rather than a clock: the instant is then part of the
+        # governed document, and a replay asks the same question at the same
+        # moment instead of at whenever the replay happens to run.
+        evaluated_at=manifest.get("created_at"),
     )
     replay = reconstruct_governed_response(composite, fan["components"])
 

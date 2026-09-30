@@ -26,10 +26,14 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 from .joint_relation import (
     COVERAGE_MISMATCHED,
+    STANDING_WINDOW_UNDECLARED,
     COVERS_COMPONENT_IDS,
     COVERS_COMPOSITION_ID,
+    EXPIRATION,
     JOINT_RELATION_SCHEMA,
+    VALID_FROM,
     evaluate_relation_coverage,
+    evaluate_relation_standing,
     validate_joint_relation,
 )
 
@@ -55,6 +59,7 @@ FAILURE_DUPLICATE_JOURNEY = "DUPLICATE_COMPONENT_JOURNEY_ID"
 FAILURE_NO_UNANIMITY = "COMPONENTS_DIVERGE_UNDER_UNANIMOUS_STRATEGY"
 FAILURE_NO_MAJORITY = "NO_STRICT_MAJORITY_ANSWER"
 FAILURE_RELATION_COVERAGE = "JOINT_RELATION_DOES_NOT_COVER_THIS_COMPOSITION"
+FAILURE_RELATION_STANDING = "JOINT_RELATION_HAS_NO_STANDING_AT_THIS_EVALUATION"
 
 QUERY_BINDING_BASIS = "SHARED_FAN_JOURNEY_ID_PREFIX"
 QUERY_BINDING_LIMIT = (
@@ -143,6 +148,7 @@ def compose_governed_response(
     strategy: str = STRATEGY_UNANIMOUS,
     joint_relation: Mapping[str, Any] | None = None,
     journey: Mapping[str, Any] | None = None,
+    evaluated_at: str | None = None,
 ) -> Dict[str, Any]:
     """Compose N verified worker answers into one reconstructable composite.
 
@@ -217,6 +223,11 @@ def compose_governed_response(
     relation_coverage = evaluate_relation_coverage(
         joint_relation, composition_id=cid, component_ids=journey_ids, journey=journey
     )
+    # Coverage says the relation is about this composition. Standing says it is
+    # still current. Both are required, and neither substitutes for the other.
+    relation_standing = evaluate_relation_standing(
+        joint_relation, evaluated_at=evaluated_at
+    )
 
     selected_digest: Optional[str] = None
     if failures:
@@ -233,6 +244,14 @@ def compose_governed_response(
             # is worse than an absent one: it asserts a binding that does not
             # hold. Fail closed rather than withhold the claim.
             failures.append(FAILURE_RELATION_COVERAGE)
+            disposition = DISPOSITION_FAIL_CLOSED
+        elif (relation_standing["standing"] != STANDING_WINDOW_UNDECLARED
+              and not relation_standing["standing_verified"]):
+            # A relation whose declared window does not hold -- or cannot be
+            # checked -- is stale, not merely unbound. Prior validity is not
+            # current standing, so this fails closed rather than withholding
+            # the claim.
+            failures.append(FAILURE_RELATION_STANDING)
             disposition = DISPOSITION_FAIL_CLOSED
         elif not relation_coverage["binding_verified"]:
             # Governance covers all output, so output must not be labelled
@@ -284,6 +303,8 @@ def compose_governed_response(
         ),
         "relation_coverage": relation_coverage,
         "relation_binding_verified": bool(relation_coverage["binding_verified"]),
+        "relation_standing": relation_standing,
+        "relation_standing_verified": bool(relation_standing["standing_verified"]),
         "reconstruction": {
             "answer_normalization": ANSWER_NORMALIZATION,
             "component_answer_digests": sorted(
@@ -297,6 +318,9 @@ def compose_governed_response(
             "subset_relation_covers_superset_composition": False,
             "relation_must_be_bound_to_be_checked": True,
             "verified_binding_required_for_governed_claim": True,
+            # Standing is current, never carried: coverage at issue time does not
+            # establish standing at composition time.
+            "prior_validity_is_current_standing": False,
         },
         "boundary": {
             "agreement_is_evidence_of_correctness": False,
@@ -330,6 +354,7 @@ def reconstruct_governed_response(
     # not recorded, and is a stand-in here because it feeds only the validity
     # boolean, which the composite's own digest already covers.
     relation = None
+    recorded_standing = composite.get("relation_standing")
     if composite.get("joint_relation_valid"):
         relation = {
             "schema": JOINT_RELATION_SCHEMA,
@@ -339,6 +364,12 @@ def reconstruct_governed_response(
             "evidence_posture": "receipt_backed",
             "replay_posture": "receipt_backed",
         }
+        if isinstance(recorded_standing, Mapping):
+            if recorded_standing.get("declared_valid_from") is not None:
+                relation[VALID_FROM] = recorded_standing["declared_valid_from"]
+            if recorded_standing.get("declared_expiration") is not None:
+                relation[EXPIRATION] = recorded_standing["declared_expiration"]
+
         recorded = composite.get("relation_coverage")
         if isinstance(recorded, Mapping):
             declared_cid = recorded.get("declared_composition_id")
@@ -376,6 +407,12 @@ def reconstruct_governed_response(
             strategy=str(composite.get("strategy") or ""),
             joint_relation=relation,
             journey=replay_journey,
+            # The same instant the composite was judged at, read back from the
+            # record, so replay asks the standing question identically.
+            evaluated_at=(
+                recorded_standing.get("evaluated_at")
+                if isinstance(recorded_standing, Mapping) else None
+            ),
         )
     except CompositeResponseError as exc:
         return {

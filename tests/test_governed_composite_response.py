@@ -29,6 +29,7 @@ from stegverse.governed_composite_response import (
     FAILURE_NO_MAJORITY,
     FAILURE_NO_UNANIMITY,
     FAILURE_RELATION_COVERAGE,
+    FAILURE_RELATION_STANDING,
     JOINT_RELATION_SCHEMA,
     STRATEGY_ATTRIBUTED_SET,
     STRATEGY_MAJORITY,
@@ -39,6 +40,17 @@ from stegverse.governed_composite_response import (
 )
 from stegverse.joint_relation import (
     BASIS_ENUMERATED,
+    EXPIRATION,
+    STALE_EXPIRED,
+    STALE_NOT_YET_VALID,
+    STALE_NO_EVALUATION_TIME,
+    STALE_UNPARSEABLE,
+    STANDING_OUTSIDE_WINDOW,
+    STANDING_UNCHECKABLE,
+    STANDING_WINDOW_UNDECLARED,
+    STANDING_WITHIN_WINDOW,
+    SURFACES_NOT_CHECKABLE_HERE,
+    VALID_FROM,
     BASIS_MANIFEST_DECLARED,
     COVERS_JOURNEY_ID,
     MISMATCH_JOURNEY,
@@ -174,6 +186,7 @@ def _compose(
     relation: Optional[Mapping[str, Any]] = VALID_RELATION,
     fan: str = FAN,
     journey: Any = None,
+    evaluated_at: Optional[str] = None,
 ) -> Dict[str, Any]:
     if journey is _UNMANIFESTED:
         journey = None
@@ -186,6 +199,7 @@ def _compose(
         strategy=strategy,
         joint_relation=relation,
         journey=journey,
+        evaluated_at=evaluated_at,
     )
 
 
@@ -642,3 +656,132 @@ def test_a_relation_contradicting_the_manifest_fails_rather_than_averaging() -> 
     composite = _compose(fan, relation=_bound_relation(fan[:2]))
     assert composite["relation_coverage"]["coverage"] == COVERAGE_MISMATCHED
     assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+
+
+# --- standing is current, never carried --------------------------------------
+#
+# Coverage says the relation is about this composition. It says nothing about
+# whether the relation is still current, and the two are independent: a relation
+# can cover this exact component set and have expired. The coverage check alone
+# admitted that case, which is the hole these close.
+
+NOW = "2026-09-30T04:00:00Z"
+
+
+def _timed_relation(components, *, valid_from=None, expiration=None):
+    relation = _bound_relation(components)
+    if valid_from is not None:
+        relation[VALID_FROM] = valid_from
+    if expiration is not None:
+        relation[EXPIRATION] = expiration
+    return relation
+
+
+def test_a_relation_with_no_window_is_governed_and_says_currency_was_not_checked() -> None:
+    """Preserved: withdrawing this would ungovern every window-less relation."""
+    composite = _compose(_agreeing_fan())
+    assert composite["disposition"] == DISPOSITION_GOVERNED
+    assert composite["relation_standing"]["standing"] == STANDING_WINDOW_UNDECLARED
+    assert composite["relation_standing_verified"] is False
+    assert "currency was not" in composite["relation_standing"]["limit"]
+
+
+def test_a_relation_inside_its_declared_window_has_verified_standing() -> None:
+    fan = _agreeing_fan()
+    composite = _compose(
+        fan,
+        relation=_timed_relation(fan, valid_from="2026-09-01T00:00:00Z",
+                                 expiration="2026-12-31T00:00:00Z"),
+        evaluated_at=NOW,
+    )
+    assert composite["disposition"] == DISPOSITION_GOVERNED
+    assert composite["relation_standing"]["standing"] == STANDING_WITHIN_WINDOW
+    assert composite["relation_standing_verified"] is True
+
+
+def test_an_expired_relation_that_still_covers_this_composition_fails_closed() -> None:
+    """The hole. Coverage holds; standing does not; the old check saw only coverage."""
+    fan = _agreeing_fan()
+    composite = _compose(
+        fan, relation=_timed_relation(fan, expiration="2026-01-01T00:00:00Z"),
+        evaluated_at=NOW,
+    )
+
+    # Coverage genuinely passes -- this relation is about exactly these branches.
+    assert composite["relation_coverage"]["coverage"] == COVERAGE_BOUND
+    assert composite["relation_binding_verified"] is True
+    # Standing is what refuses it.
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert FAILURE_RELATION_STANDING in composite["failure_codes"]
+    assert composite["relation_standing"]["standing"] == STANDING_OUTSIDE_WINDOW
+    assert composite["relation_standing"]["stale_reasons"] == [STALE_EXPIRED]
+    assert composite["separability"]["prior_validity_is_current_standing"] is False
+
+
+def test_a_relation_not_yet_valid_fails_closed() -> None:
+    fan = _agreeing_fan()
+    composite = _compose(
+        fan, relation=_timed_relation(fan, valid_from="2027-01-01T00:00:00Z"),
+        evaluated_at=NOW,
+    )
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert composite["relation_standing"]["stale_reasons"] == [STALE_NOT_YET_VALID]
+
+
+def test_a_declared_window_with_no_evaluation_time_is_not_treated_as_current() -> None:
+    """Unverifiable is not verified, so it fails closed rather than passing."""
+    fan = _agreeing_fan()
+    composite = _compose(fan, relation=_timed_relation(fan, expiration="2027-01-01T00:00:00Z"))
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert composite["relation_standing"]["standing"] == STANDING_UNCHECKABLE
+    assert composite["relation_standing"]["stale_reasons"] == [STALE_NO_EVALUATION_TIME]
+
+
+def test_an_unparseable_window_fails_closed_rather_than_being_ignored() -> None:
+    fan = _agreeing_fan()
+    composite = _compose(fan, relation=_timed_relation(fan, expiration="whenever"),
+                         evaluated_at=NOW)
+    assert composite["disposition"] == DISPOSITION_FAIL_CLOSED
+    assert composite["relation_standing"]["stale_reasons"] == [STALE_UNPARSEABLE]
+
+
+def test_verified_standing_names_the_surfaces_it_did_not_check() -> None:
+    """A verified window must not read as verified authority."""
+    fan = _agreeing_fan()
+    composite = _compose(
+        fan, relation=_timed_relation(fan, expiration="2027-01-01T00:00:00Z"),
+        evaluated_at=NOW,
+    )
+    standing = composite["relation_standing"]
+    assert standing["standing_verified"] is True
+    assert standing["surfaces_not_checkable_here"] == list(SURFACES_NOT_CHECKABLE_HERE)
+    for surface in ("actor_surface", "policy_surface", "delegation_surface"):
+        assert surface in standing["surfaces_not_checkable_here"]
+
+
+def test_an_expired_composite_replays_to_the_same_refusal() -> None:
+    """Replay asks the standing question at the recorded instant, not at now."""
+    fan = _agreeing_fan()
+    composite = _compose(
+        fan, relation=_timed_relation(fan, expiration="2026-01-01T00:00:00Z"),
+        evaluated_at=NOW,
+    )
+    replay = reconstruct_governed_response(composite, fan)
+    assert replay["reconstruction_status"] == "RECONSTRUCTED"
+    assert replay["reconstructed_composite_sha256"] == composite["composite_sha256"]
+
+
+def test_a_composite_edited_to_claim_standing_it_lacks_diverges() -> None:
+    fan = _agreeing_fan()
+    composite = _compose(
+        fan, relation=_timed_relation(fan, expiration="2026-01-01T00:00:00Z"),
+        evaluated_at=NOW,
+    )
+    forged = copy.deepcopy(composite)
+    forged["relation_standing_verified"] = True
+    forged["relation_standing"] = dict(
+        forged["relation_standing"], standing=STANDING_WITHIN_WINDOW, stale_reasons=[]
+    )
+    replay = reconstruct_governed_response(forged, fan)
+    assert replay["reconstruction_status"] == "DIVERGED"
+    assert replay["reconstructed"] is False
