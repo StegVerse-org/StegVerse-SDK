@@ -127,7 +127,7 @@ def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
             raise ValueError("completion.publisher must be an object")
         legacy_fields = {"stage", "required", "package_profile"}
         destination_fields = {"stage", "package_profile", "destination"}
-        fields = set(publisher)
+        fields = frozenset(publisher)
         if fields not in {frozenset(legacy_fields), frozenset(destination_fields)}:
             _require_exact_fields(publisher, destination_fields | legacy_fields, "completion.publisher")
             raise ValueError("completion.publisher must use either legacy required or explicit destination semantics")
