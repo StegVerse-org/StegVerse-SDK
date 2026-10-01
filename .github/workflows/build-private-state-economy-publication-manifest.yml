@@ -44,8 +44,17 @@ jobs:
           assert receipt['runtime_invoked'] is False
           assert receipt['authority_effect']=='NONE_SOURCE_ONLY'
           request=json.loads((root/'execution-request.json').read_text())
+          # The manifest freeze. Unchanged, and the thing that must not move.
           assert request['canonical_manifest_sha256']=='ba615d6e487f11853173154317782fad1ed83dec32ab0c18650703e063fcc9e3'
-          assert request['request_sha256']=='11db25adc816acb91d806bfbd6a0060859eba4d8898dbd488bf4526eb97f65be'
+          # The derived request's own hash. It moved when the request began
+          # carrying the destination the manifest declares; the manifest did not.
+          assert request['request_sha256']=='9472bbfe7580823b22d44f4864823073f71f09bac806b93f4580ee477110cdcf'
+          destination=request['manifest_declared_destination']
+          assert destination['final_stegverse_transition_surface']=='LLM_ADAPTER'
+          assert destination['destination_profile']=='GCAT-BCAT-Engine/Publisher'
+          assert destination['transport']=='INTERLOCK_INTR'
+          assert request['destination_resolution_source']=='MANIFEST_COMPLETION_EGRESS'
+          assert request['destination_resolution_environment_inputs']==[]
           PY
       - name: Attempt exact manifest through public run-manifest
         shell: bash
