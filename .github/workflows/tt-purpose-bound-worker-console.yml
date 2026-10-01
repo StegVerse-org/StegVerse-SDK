@@ -49,12 +49,15 @@ jobs:
           python - <<'PY'
           import json
           result = json.load(open("/tmp/sdk-test1.result.json", encoding="utf-8"))
-          assert result["schema"] == "stegverse.sdk.manifest-attachment-disposition/v1"
-          assert result["disposition"] == "FAIL_CLOSED"
-          assert result["evaluation_boundary"] == "SDK_MANIFEST_TRANSPORT_ATTACHMENT"
-          assert result["failed_predicate"] == "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED"
+          assert result["schema"] == "stegverse.sdk.manifest-transition-handoff/v1"
+          assert result["disposition"] == "ALLOW"
+          assert result["evaluation_boundary"] == "SDK_MANIFEST_HANDOFF"
+          assert result["destination_resolution_source"] == "MANIFEST_COMPLETION_EGRESS"
+          assert result["receiver_contacted"] is False
+          assert result["awaits_external_machine"] is False
+          assert result["intr_admission_observed"] is False
           assert result["consequence_committed"] is False
-          print("TEST1_RUN_MANIFEST_REACHED_GOVERNED_ATTACHMENT_BOUNDARY")
+          print("TEST1_RUN_MANIFEST_REACHED_GOVERNED_HANDOFF_BOUNDARY")
           PY
 
       - name: Retain Test 1 manifest and runtime evidence

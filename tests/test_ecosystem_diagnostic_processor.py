@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 from stegverse.ecosystem_diagnostic_runtime import execute_manifest
 from stegverse.manifest_execution import execute_manifest as sdk_run_manifest
-from stegverse.manifest_state_transition_runtime import INGRESS_URL_ENV
 from stegverse.manifest_builder import DIAGNOSTIC_RETURN_DEPTHS, available_processors, build_manifest
 from stegverse.manifest_contract import validate_ingress_manifest
 from stegverse.route_resolution import ECOSYSTEM_DIAGNOSTIC_ROUTE_ID, PUBLISHED_ROUTES, route_from_manifest
@@ -245,18 +244,21 @@ class HeldOutManifestedReadinessSourceOnly(unittest.TestCase):
                 # through existing Universal InTr; never mock a success there.
                 result = execute_manifest(manifest)
                 self.assertEqual(result["results"][0]["observation_state"], "NOT_OBSERVED")
-                with patch.dict("os.environ", {INGRESS_URL_ENV: ""}):
-                    attachment = sdk_run_manifest(manifest)
-                self.assertEqual(attachment["state"], "FAIL_CLOSED")
+                # The public run-manifest manifests and hands off to the
+                # manifest-declared destination. It never mocks a success on the
+                # far side, which stays unobserved from here.
+                handoff = sdk_run_manifest(manifest)
+                self.assertEqual(handoff["state"], "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF")
+                self.assertEqual(handoff["evaluation_boundary"], "SDK_MANIFEST_HANDOFF")
                 self.assertEqual(
-                    attachment["evaluation_boundary"], "SDK_MANIFEST_TRANSPORT_ATTACHMENT"
+                    handoff["destination_resolution_source"], "MANIFEST_COMPLETION_EGRESS"
                 )
-                self.assertEqual(
-                    attachment["failed_predicate"], "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED"
-                )
-                self.assertFalse(attachment["authentic_governance_disposition_observed"])
-                self.assertFalse(attachment["organization_receipt_observed"])
-                self.assertFalse(attachment["master_records_reconstruction_observed"])
+                self.assertFalse(handoff["receiver_contacted"])
+                self.assertFalse(handoff["awaits_external_machine"])
+                self.assertFalse(handoff["intr_admission_observed"])
+                self.assertFalse(handoff["far_side_transition_observed"])
+                self.assertFalse(handoff["organization_receipt_observed"])
+                self.assertFalse(handoff["master_records_reconstruction_observed"])
                 self.assertFalse(result["mutation_performed"])
                 self.assertEqual(result["authority_effect"], "NONE_DIAGNOSTIC_ONLY")
                 self.assertFalse(result["continuity_state_present"])

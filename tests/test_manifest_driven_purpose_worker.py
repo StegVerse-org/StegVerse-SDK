@@ -72,13 +72,18 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         self.assertEqual(graph["canonical_task_id"], "SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001")
         self.assertFalse(graph["adapter_executes_lifecycle"])
         result = execute_manifest(manifest)
-        # Public run-manifest must enter the governed Universal InTr path. Isolated
-        # source CI intentionally has no resident endpoint; local semantic execution
-        # remains available only as a non-authorizing processor fixture.
-        self.assertEqual(result["schema"], "stegverse.sdk.manifest-attachment-disposition/v1")
-        self.assertEqual(result["disposition"], "FAIL_CLOSED")
-        self.assertEqual(result["failed_predicate"], "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED")
-        self.assertEqual(result["evaluation_boundary"], "SDK_MANIFEST_TRANSPORT_ATTACHMENT")
+        # Public run-manifest manifests the transition and hands it to the governed
+        # Universal InTr path at the destination the manifest declares. Isolated
+        # source CI has no resident endpoint and needs none: the handoff does not
+        # depend on one. Local semantic execution remains available only as a
+        # non-authorizing processor fixture.
+        self.assertEqual(result["schema"], "stegverse.sdk.manifest-transition-handoff/v1")
+        self.assertEqual(result["disposition"], "ALLOW")
+        self.assertEqual(result["evaluation_boundary"], "SDK_MANIFEST_HANDOFF")
+        self.assertEqual(result["destination"]["transport"], "INTERLOCK_INTR")
+        self.assertFalse(result["receiver_availability_required"])
+        self.assertFalse(result["intr_admission_observed"])
+        self.assertFalse(result["consequence_committed"])
         direct_result = execute_processor_manifest(manifest)
         self.assertEqual(direct_result["schema"], "stegverse.sdk.purpose-bound-worker-manifest-result.v1")
         self.assertTrue(direct_result["evidence_expectations_satisfied"])
