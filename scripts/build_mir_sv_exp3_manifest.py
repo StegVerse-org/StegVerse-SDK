@@ -37,7 +37,6 @@ def build_exp3_manifest():
         return_depth="full-trace",
         initiator_class="organization",
         initiator_ref="StegVerse-Labs",
-        publisher_required=True,
         declared_intent="Produce the StegVerse-side four-dimension evidence assessment using the existing read-only diagnostic processor; preserve equal-weight limitations and unverified runtime states.",
         requested_consequence="Return a diagnostic evidence artifact with the declared Publisher stage and separately attributable unknowns; do not imply external egress or physical execution.",
         context_refs=[
@@ -46,7 +45,7 @@ def build_exp3_manifest():
         ],
         created_at="2026-09-24T00:00:00Z",
     )
-    # This named original is frozen to workflow artifact 10843328013. Later
+    # Reconstruct the historical v1 Publisher bytes explicitly. New manifests must use\n    # a typed destination; this block exists only to reproduce the already-frozen artifact.\n    manifest["completion"]["publisher"] = {\n        "stage": "PUBLISHER",\n        "required": True,\n        "package_profile": "stegverse.publisher.evidence-report-package/v1",\n    }\n    # This named original is frozen to workflow artifact 10843328013. Later
     # builder releases added metadata fields which were NOT in its historical
     # wire bytes; each is removed ONLY when reconstructing this exact original,
     # never for new SDK manifests, and only when it still carries the value the
@@ -58,7 +57,7 @@ def build_exp3_manifest():
     if (builder_metadata.get("external_review_requested") is False
             and builder_metadata.get("publisher_required_by_review_default") is False):
         del builder_metadata["external_review_requested"]
-        del builder_metadata["publisher_required_by_review_default"]
+        del builder_metadata["publisher_required_by_review_default"]\n    if builder_metadata.get("publisher_selected_by_destination") is False:\n        del builder_metadata["publisher_selected_by_destination"]
     # Release 2: capability resolution, bound at manifest creation for every
     # capability. ONLINE is what an installed ecosystem_diagnostic route
     # resolves to; anything else means the route changed and must not be hidden.
