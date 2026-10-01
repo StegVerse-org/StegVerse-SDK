@@ -1,0 +1,80 @@
+{
+  "authority_effect": "NONE_SOURCE_BASELINE_ONLY",
+  "canonical_registry": {
+    "observed_commit": "4d3e0daee5d06aaed98ed6d8034df5fff6a45224",
+    "path": "specs/universal-intr-connector-profiles.v1.json",
+    "registry_profile_count": 17,
+    "registry_schema": "stegverse.universal-intr.connector-profile-registry/v1",
+    "registry_state": "DEFINED_SOURCE_ONLY",
+    "repository": "StegVerse-Labs/StegOS"
+  },
+  "profiles": [
+    {
+      "authority_effect": "NONE",
+      "authorization_required": true,
+      "custody_mode": "REFERENCE",
+      "destination": {
+        "boundary": "STEGOS_ECOSYSTEM",
+        "subsystem": "SDK:EvaluatorReviewIngress"
+      },
+      "display_projection": "Site:EvaluatorReviewReceiptReport",
+      "downstream_owner_ref": "StegVerse-Labs/.github#431",
+      "operations": [
+        "READ_REVIEW"
+      ],
+      "payload_schema": "stegverse.evaluator_review.interlock_request.v1",
+      "profile_id": "evaluator-read-review",
+      "request_class": "EVALUATOR_READ_REVIEW",
+      "response": {
+        "destination": {
+          "boundary": "DEVICE_SYSTEM",
+          "subsystem": "Site:EvaluatorReview"
+        },
+        "source": {
+          "boundary": "STEGOS_ECOSYSTEM",
+          "subsystem": "SDK:EvaluatorReviewIngress"
+        }
+      },
+      "schema": "stegverse.universal-intr.connector-profile/v1",
+      "source": {
+        "boundary": "DEVICE_SYSTEM",
+        "subsystem": "Site:EvaluatorReview"
+      }
+    },
+    {
+      "authority_effect": "NONE",
+      "authorization_required": true,
+      "custody_mode": "EXACT_BYTES",
+      "destination": {
+        "boundary": "STEGOS_ECOSYSTEM",
+        "subsystem": "Publisher:Ingress"
+      },
+      "display_projection": "SDK:EvaluatorReviewReturn",
+      "downstream_owner_ref": "GCAT-BCAT-Engine/Publisher",
+      "operations": [
+        "TRANSFER",
+        "EXPORT"
+      ],
+      "payload_schema": "stegverse.publisher.artifact-transfer/v1",
+      "profile_id": "sdk-publisher-review",
+      "request_class": "SDK_PUBLISHER_EVALUATOR_REPORT",
+      "response": {
+        "destination": {
+          "boundary": "STEGOS_ECOSYSTEM",
+          "subsystem": "SDK:ReviewerReturn"
+        },
+        "source": {
+          "boundary": "STEGOS_ECOSYSTEM",
+          "subsystem": "Publisher:Export"
+        }
+      },
+      "schema": "stegverse.universal-intr.connector-profile/v1",
+      "source": {
+        "boundary": "STEGOS_ECOSYSTEM",
+        "subsystem": "SDK:ReviewerEvidenceExport"
+      }
+    }
+  ],
+  "purpose": "Verbatim copy of the canonical connector profiles that name an SDK subsystem, kept so the digests pinned in stegverse.connector_capability_overlay.SDK_SUBSYSTEM_BASELINE can be checked offline. Not a registry: the SDK neither owns nor extends the canonical registry, and this file is read, never consulted as authority.",
+  "schema": "stegverse.sdk.connector-profile-baseline/v1"
+}
