@@ -1,8 +1,10 @@
 """A route's surface must state what its transport requires, not leave a bare guard.
 
-The transport ingress is a resident loopback listener. The SDK may say what the
-surface requires; it may not discover the endpoint, start the listener, mint the
-credential, or accept an endpoint a manifest named for itself.
+The requirement is a state transition, not a machine. The SDK may say what the
+surface requires and recognize the instance an admission materialized; it may
+not discover an endpoint, admit the invocation, mint the credential, accept an
+endpoint a manifest named for itself, or make any host, standing runtime or
+device a predicate.
 """
 import os
 import unittest
@@ -15,10 +17,12 @@ from stegverse.manifest_state_transition_runtime import (
 from stegverse.route_resolution import PUBLISHED_ROUTES
 from stegverse.transport_ingress_profile import (
     AUTHORITY_BOUNDARY,
+    SUBSTRATE_REVIEW_ORDER,
     MISMATCH_NON_LOOPBACK_PLAINTEXT,
     MISMATCH_PATH,
     PROFILE_MISMATCH,
     SURFACE_UNKNOWN,
+    SURFACE_PROFILES,
     ingress_repair_instruction,
     resolve_ingress_profile,
     validate_ingress_instance,
@@ -54,7 +58,11 @@ class SurfaceCoverageTest(unittest.TestCase):
                 self.assertTrue(profile["transport_required"])
                 self.assertEqual(profile["transport"], "INTERLOCK_INTR")
                 self.assertEqual(profile["credential_authority"], "TV/TVC")
-                self.assertFalse(profile["reachable_from_hosted_ci"])
+                self.assertTrue(profile["selected_substrate_requires_intr_admission"])
+                self.assertEqual(profile["instance_source"],
+                                 "MANIFEST_BOUND_INVOCATION_ADMISSION")
+                self.assertEqual(profile["substrate_review_order"],
+                                 list(SUBSTRATE_REVIEW_ORDER))
 
     def test_routes_with_their_own_runtime_require_no_transport(self):
         local = [r for r in PUBLISHED_ROUTES.values()
@@ -64,6 +72,27 @@ class SurfaceCoverageTest(unittest.TestCase):
             with self.subTest(route_id=route["route_id"]):
                 profile = resolve_ingress_profile(route["routing_surface"])
                 self.assertFalse(profile["transport_required"])
+
+    def test_no_surface_makes_a_machine_a_predicate(self):
+        """The standard: nothing external is required, and nothing awaits."""
+        denied = ("standing_runtime_required", "external_runtime_connection_required",
+                  "generic_process_host_required", "hosted_carrier_required",
+                  "external_device_required", "second_user_operated_device_allowed",
+                  "route_discovery_allowed", "endpoint_discovery_allowed",
+                  "receiver_discovery_allowed")
+        for route in PUBLISHED_ROUTES.values():
+            profile = resolve_ingress_profile(route["routing_surface"])
+            for claim in denied:
+                with self.subTest(route_id=route["route_id"], claim=claim):
+                    self.assertFalse(profile[claim])
+
+    def test_absent_instance_reference_is_not_a_blocker(self):
+        profile = resolve_ingress_profile("EXISTING_UNIVERSAL_INTR")
+        self.assertEqual(profile["instance_reference_semantics"],
+                         "EVIDENCE_REACHABILITY_ONLY")
+        self.assertFalse(profile["instance_reference_absence_blocks_task_progression"])
+        self.assertFalse(
+            profile["instance_reference_absence_establishes_substrate_unsuitable"])
 
     def test_unknown_surface_is_not_defaulted_to_a_transport(self):
         profile = resolve_ingress_profile("SOME_UNPUBLISHED_SURFACE")
@@ -101,13 +130,26 @@ class InstanceRecognitionTest(unittest.TestCase):
 
 
 class RepairInstructionTest(unittest.TestCase):
-    def test_unconfigured_ingress_repair_names_the_listener_and_the_binding(self):
+    def test_unconfigured_ingress_repair_names_the_admission_transition(self):
         profile = resolve_ingress_profile("EXISTING_UNIVERSAL_INTR")
         repair = ingress_repair_instruction(profile, "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED")
-        self.assertIn("serve_hil_intr_materialization_ingress.py", repair)
-        self.assertIn("STEGVERSE_UNIVERSAL_INTR_INGRESS_URL", repair)
+        self.assertIn("INTR_ADMISSION", repair)
         self.assertIn("/intr/materialization", repair)
-        self.assertIn("not reachable from hosted CI", repair)
+        self.assertIn("not a blocker", repair)
+
+    def test_no_repair_asks_for_a_host_runtime_or_device(self):
+        """A repair that tells someone to stand up a machine is the defect."""
+        forbidden = ("resident host", "standing runtime", "process host",
+                     "hosted carrier", "external device", "start the listener",
+                     "run the listener", "hosted CI")
+        for surface in SURFACE_PROFILES:
+            profile = resolve_ingress_profile(surface)
+            for failure in ("UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED",
+                            "TV_TVC_RELAY_AUTHORIZATION_REQUIRED", PROFILE_MISMATCH):
+                repair = ingress_repair_instruction(profile, failure).lower()
+                for phrase in forbidden:
+                    with self.subTest(surface=surface, failure=failure, phrase=phrase):
+                        self.assertNotIn(phrase, repair)
 
     def test_credential_repair_does_not_claim_the_sdk_can_supply_it(self):
         profile = resolve_ingress_profile("EXISTING_UNIVERSAL_INTR")
@@ -129,8 +171,8 @@ class AttachmentRecordTest(unittest.TestCase):
         profile = result["transport_ingress_profile"]
         self.assertTrue(profile["resolved"])
         self.assertEqual(profile["routing_surface"], "CANONICAL_PRODUCTION")
-        self.assertIn("serve_hil_intr_materialization_ingress.py",
-                      result["required_evidence_or_repair"])
+        self.assertIn("INTR_ADMISSION", result["required_evidence_or_repair"])
+        self.assertFalse(profile["instance_reference_absence_blocks_task_progression"])
 
     def test_mismatched_endpoint_fails_closed_without_posting(self):
         with patch("stegverse.manifest_state_transition_runtime.urllib.request.urlopen") as opened:
