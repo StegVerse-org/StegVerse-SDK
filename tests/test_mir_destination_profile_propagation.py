@@ -45,7 +45,7 @@ def test_destination_profile_survives_manifest_validation_and_sdk_return_binding
         source_framework="MIR_TEST",
         source_output_id="mirror-signal-001",
         processor_request=governance_request(),
-        publisher_required=True,
+        publisher_destination={"type": "SDK_CONSOLE_SESSION", "session_ref": "mir-test"},
         destination_profile="MIR",
         created_at="2026-09-14T20:46:00Z",
     )
@@ -69,7 +69,7 @@ def test_destination_profile_rejects_empty_substitution():
         source_framework="MIR_TEST",
         source_output_id="mirror-signal-002",
         processor_request=governance_request(),
-        publisher_required=True,
+        publisher_destination={"type": "SDK_CONSOLE_SESSION", "session_ref": "mir-test"},
         destination_profile="MIR",
         created_at="2026-09-14T20:46:00Z",
     )
