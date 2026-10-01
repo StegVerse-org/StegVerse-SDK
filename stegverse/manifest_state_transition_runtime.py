@@ -16,13 +16,21 @@ import urllib.request
 from typing import Any, Mapping
 
 from .manifest_contract import validate_ingress_manifest
-from .route_resolution import canonical_sha256, route_from_manifest
+from .route_resolution import PUBLISHED_ROUTES, canonical_sha256, route_from_manifest
+from .transport_ingress_profile import (
+    INGRESS_URL_ENV,
+    PROFILE_MISMATCH,
+    TRANSPORT_AUTHORIZATION_ENV,
+    ingress_repair_instruction,
+    resolve_ingress_profile,
+    validate_ingress_instance,
+)
 
 REQUEST_SCHEMA = "stegverse.sdk.manifest-state-transition-request/v1"
 RESULT_SCHEMA = "stegverse.sdk.manifest-state-transition-result/v1"
 UNIVERSAL_RUNTIME_BINDING = "stegverse.manifest_state_transition_runtime.execute_manifest"
-INGRESS_URL_ENV = "STEGVERSE_UNIVERSAL_INTR_INGRESS_URL"
-TRANSPORT_AUTHORIZATION_ENV = "STEGVERSE_TVC_RELAY_AUTHORIZATION_ID"
+# Re-exported from transport_ingress_profile so the binding names cannot drift
+# between the gate that reads them and the profile that requires them.
 
 _REQUIRED_CLOSURE = {
     "state": "RECORDED",
@@ -110,6 +118,12 @@ def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
     return request
 
 
+def _routing_surface(route_id: Any) -> str:
+    """Read the published surface for a route. Never infers one for an unknown route."""
+    route = PUBLISHED_ROUTES.get(route_id) if isinstance(route_id, str) else None
+    return str((route or {}).get("routing_surface") or "")
+
+
 def _post_existing_intr(request_body: Mapping[str, Any]) -> dict[str, Any]:
     ingress_url = str(os.environ.get(INGRESS_URL_ENV) or "").strip()
     if not ingress_url:
@@ -117,6 +131,13 @@ def _post_existing_intr(request_body: Mapping[str, Any]) -> dict[str, Any]:
     authorization_id = str(os.environ.get(TRANSPORT_AUTHORIZATION_ENV) or "").strip()
     if not authorization_id:
         raise ValueError("TV_TVC_RELAY_AUTHORIZATION_REQUIRED")
+    # The resident host supplies the endpoint; the surface says what it must be.
+    # Recognize or reject it here rather than posting a governed transition to an
+    # endpoint the route authority never published.
+    profile = resolve_ingress_profile(_routing_surface(request_body.get("route_id")))
+    if profile.get("resolved") and profile.get("transport_required"):
+        if not validate_ingress_instance(profile, ingress_url).get("matched"):
+            raise ValueError(PROFILE_MISMATCH)
     raw = _canonical_bytes(request_body)
     req = urllib.request.Request(
         ingress_url,
@@ -540,12 +561,10 @@ def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any
 
 def _attachment_failure(request: Mapping[str, Any], failure: str) -> dict[str, Any]:
     """Report only the SDK's actual attachment boundary, never a downstream verdict."""
-    corrections = {
-        "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED": (
-            "Attach the existing manifest-selected transport ingress; no device discovery."),
-        "TV_TVC_RELAY_AUTHORIZATION_REQUIRED": (
-            "Supply the existing authorized TV/TVC relay credential for this invocation."),
-    }
+    # The route declares the surface; the surface declares what the transport
+    # requires. The repair names that requirement so a FAIL_CLOSED record never
+    # terminates on a blocker with no stated path to clear it.
+    profile = resolve_ingress_profile(_routing_surface(request.get("route_id")))
     result = {
         "schema": "stegverse.sdk.manifest-attachment-disposition/v1",
         "state": "FAIL_CLOSED",
@@ -553,8 +572,9 @@ def _attachment_failure(request: Mapping[str, Any], failure: str) -> dict[str, A
         "evaluation_boundary": "SDK_MANIFEST_TRANSPORT_ATTACHMENT",
         "failed_predicate": failure,
         "reason_code": failure,
-        "required_evidence_or_repair": corrections[failure],
+        "required_evidence_or_repair": ingress_repair_instruction(profile, failure),
         "retry_entrypoint": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "transport_ingress_profile": profile,
         "canonical_task_id": request.get("canonical_task_id"),
         "request_sha256": request["request_sha256"],
         "wire_manifest_sha256": request["wire_manifest_sha256"],
@@ -578,7 +598,9 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     try:
         result = _post_existing_intr(request)
     except ValueError as exc:
-        if str(exc) in {"UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED", "TV_TVC_RELAY_AUTHORIZATION_REQUIRED"}:
+        if str(exc) in {"UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED",
+                        "TV_TVC_RELAY_AUTHORIZATION_REQUIRED",
+                        PROFILE_MISMATCH}:
             return _attachment_failure(request, str(exc))
         raise
     checked = validate_runtime_result(result, request)
