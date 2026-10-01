@@ -1,0 +1,115 @@
+{
+  "assessment": {
+    "execution_identity": "generic_sdk_capability_assessment",
+    "mir_specific_execution_behavior": false,
+    "processing_route": "ecosystem_diagnostic",
+    "public_entrypoint": "stegverse run-manifest",
+    "source_framework": "STEGVERSE_SDK",
+    "subject": "Current StegVerse SDK capability and limitation assessment",
+    "invocation_count": 1
+  },
+  "constraints_preserved": {
+    "device_discovery_required": false,
+    "mir_specific_processor_added": false,
+    "new_authority_mechanism_added": false,
+    "new_credential_plane_added": false,
+    "new_runtime_added": false,
+    "second_user_operated_device_required": false
+  },
+  "evidence_boundary": {
+    "classification": "ACTIONABLE_NON_ALLOW_ATTACHMENT_FAILURE",
+    "github_actions_is_authentic_governance_runtime": false,
+    "local_diagnostic_promoted_to_governed_completion": false,
+    "missing_ingress_is_runtime_failure": false,
+    "next_unresolved_predicate": "EXISTING_MANIFEST_SELECTED_UNIVERSAL_INTR_INGRESS_ATTACHED",
+    "source_contract_documented_is_runtime_proof": false
+  },
+  "execution": {
+    "disposition": "FAIL_CLOSED",
+    "exact_sdk_workflow_head": "49f8b0b3ea49346affc63706d87b010cb2963941",
+    "reason_code": "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED",
+    "sdk_repair_instruction": "Attach the existing manifest-selected transport ingress; no device discovery.",
+    "workflow_artifact_id": 11134464675,
+    "workflow_artifact_sha256": "e8935ddf428815ca82395b4b9b15b6a50dadd6996c6587db5a134c9baad85373",
+    "workflow_run_id": 36800139545,
+    "workflow_run_url": "https://github.com/StegVerse-org/StegVerse-SDK/actions/runs/36800139545"
+  },
+  "four_dimension_projection": {
+    "demonstrate": {
+      "demonstrated": [
+        "fail-closed behavior at transport boundary",
+        "exact manifest/request/result lineage preservation"
+      ]
+    },
+    "observe": {
+      "not_observed": [
+        "authentic governance disposition",
+        "organization custody"
+      ],
+      "observed": [
+        "manifest construction",
+        "route resolution",
+        "request lineage",
+        "missing transport attachment"
+      ]
+    },
+    "reconstruct": {
+      "not_reached": [
+        "organization receipt-chain reconstruction",
+        "Master Records reconstruction"
+      ],
+      "reconstructable": [
+        "SDK manifest/request/result lineage"
+      ]
+    },
+    "retain": {
+      "not_reached": [
+        "organization-level receipt custody"
+      ],
+      "retained": [
+        "exact execution artifacts",
+        "SHA-256 evidence"
+      ]
+    }
+  },
+  "lineage": {
+    "canonical_manifest_sha256": "e178f6693fbc463a06ba3d261121dd5aeb52aa47bb29e33c04aa801efbb90a1e",
+    "manifest_file_sha256": "5eee5ea9a7ee00b3dc743ff47f19c86e1618821909384df0df1d46d7edd09ba1",
+    "result_file_sha256": "24308b615f301a5b6a412708e752fa6d175e6f41d60782da95d70c711d41d16b",
+    "run_manifest_request_sha256": "13c8aece06e127e33a5ee874f2818a5be4596ede6ae3c30ffcf445bfe6e63892",
+    "wire_manifest_sha256": "b7c2c004f3e136a0d92c927aed3d76da15f51d81465f3f7392e293926515d250"
+  },
+  "observations": {
+    "authentic_governance_disposition_observed": false,
+    "consequence_committed": false,
+    "governed_state_transition_graph_derived": true,
+    "installed_route_resolved": true,
+    "manifest_construction_succeeded": true,
+    "master_records_reconstruction_observed": false,
+    "organization_receipt_observed": false,
+    "request_lineage_bound": true,
+    "transport_attachment_attempted": true
+  },
+  "organization_receipt_chain_evaluation": {
+    "predicates": [
+      "organization_receipt_exact_hash",
+      "organization_receipt_immediate_predecessor",
+      "global_organization_interleaving",
+      "manifest_to_organization_receipt_binding",
+      "required_evidence_digest_binding",
+      "master_records_reconstruction",
+      "omitted_or_tampered_intermediate_receipt_rejection"
+    ],
+    "reason": "Execution stopped before Universal InTr ingress; no organization custody transition was observed.",
+    "requested": true,
+    "runtime_evidence_class": "NOT_OBSERVED"
+  },
+  "record_type": "machine_readable_review_record",
+  "recorded_at": "2026-09-30",
+  "review_status": "READY_FOR_REVIEW",
+  "schema": "stegverse.sdk-capability-assessment.execution-evidence/v1",
+  "successor": {
+    "instruction": "Trace and resolve only the existing generic Universal InTr ingress attachment contract used by stegverse.manifest_state_transition_runtime.execute_manifest. Then make one separately governed successor manifest attempt and retain its first authentic disposition plus any organization receipt-chain and Master Records evidence reached.",
+    "retry_same_request_permitted": false
+  }
+}
