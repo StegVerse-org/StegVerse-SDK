@@ -1,0 +1,81 @@
+name: Served surface assertion
+
+# Runs on the default branch as well as pull requests. A control that gates a
+# run's starting condition must itself be checked against the branch it is read
+# from, so a regression arriving by merge is reported rather than inherited.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  served-surface-assertion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      # The module is stdlib-only and loaded by file path, so this job installs
+      # nothing: a surface assertion must not be able to go red because an
+      # unrelated runtime dependency of the SDK is missing.
+      - name: A served surface that diverges from its frozen declaration fails closed
+        run: python -m unittest tests.test_served_surface_assertion -v
+
+      - name: An injected resource withholds evidence
+        run: |
+          python - <<'PY' | tee /tmp/served-surface-assertion.json
+          import importlib.util, json
+          spec = importlib.util.spec_from_file_location(
+              "served_surface_assertion", "stegverse/served_surface_assertion.py")
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+
+          digest = lambda seed: "sha256:" + (seed * 64)[:64]
+          declaration = module.declare_frozen_surface(
+              [{"resource_id": "DECLARED_A", "content_sha256": digest("1")},
+               {"resource_id": "DECLARED_B", "content_sha256": digest("2")}],
+              declaration_id="CI-FROZEN-SURFACE-001",
+              excluded_provenance=["CI-PRIOR-ATTEMPT-LANE"])
+
+          emitted = []
+          report = module.emit_under_served_surface_assertion(
+              declaration,
+              [{"resource_id": "DECLARED_A", "content_sha256": digest("1")},
+               {"resource_id": "DECLARED_B", "content_sha256": digest("2")},
+               {"resource_id": "INJECTED", "content_sha256": digest("9")}],
+              owning_existing_goal="SDK-SERVED-SURFACE-ASSERTION-001",
+              evidence_emitter=emitted.append)
+
+          assert emitted == [], "evidence was emitted under a divergent surface"
+          assert report["disposition"] == "FAIL_CLOSED", report
+          assert report["evidence_emitted"] is False, report
+          assert report["evidence_state"] == module.EVIDENCE_WITHHELD, report
+          assert [d["failed_predicate"] for d in report["divergences"]] == [
+              module.EXTRA_SERVED], report
+          assert report["authority_effect"] == "NONE_SURFACE_COMPARISON_ONLY"
+
+          conforming = module.emit_under_served_surface_assertion(
+              declaration,
+              [{"resource_id": "DECLARED_A", "content_sha256": digest("1")},
+               {"resource_id": "DECLARED_B", "content_sha256": digest("2")}],
+              owning_existing_goal="SDK-SERVED-SURFACE-ASSERTION-001",
+              evidence_emitter=lambda assertion: "CI-EVIDENCE-REF")
+          assert conforming["disposition"] == "ALLOW", conforming
+          assert conforming["evidence_emitted"] is True, conforming
+
+          print(json.dumps({"injected": report, "conforming": conforming},
+                           indent=2, sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sdk-served-surface-assertion
+          path: /tmp/served-surface-assertion.json
+          if-no-files-found: warn
