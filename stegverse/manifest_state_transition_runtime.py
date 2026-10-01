@@ -1,18 +1,31 @@
-"""Universal manifest state-transition runtime client.
+"""Universal manifest state-transition runtime.
 
 Every installed processing capability derives only its request/state graph locally.
 The consequential lifecycle is executed by the existing manifest-selected
-StegVerse processing and governance path; InTr transports its payloads. This module never invokes repository-local runners, WorkerCoordinator,
-Interlock/InTr, TV/TVC, StegAgents, or Master Records directly.
+StegVerse processing and governance path; InTr transports its payloads. This module
+never invokes repository-local runners, WorkerCoordinator, Interlock/InTr, TV/TVC,
+StegAgents, or Master Records directly.
+
+The SDK's job is to *manifest*. It builds the request, binds it to the destination
+the manifest itself declares in ``completion.egress``, and hands it to the receiving
+Interlock runtime, which owns transport and admission. It is not the transport: it
+opens no connection, supplies no transport credential, and awaits no receiver.
+
+The destination comes from the manifest and from nowhere else - no environment
+variable, no discovered host, no configured ingress. So long as the manifest
+declares a destination, the handoff is complete at the SDK boundary; whether the
+receiver is reachable at this instant is the Interlock's concern, answered by
+``DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION``.
+
+The return leg is ``admit_runtime_result``: results arrive after the receiving
+Interlock runtime has transported and admitted them, exactly as
+``evaluator_review_intr`` describes for its own lane.
 """
 from __future__ import annotations
 
 import hashlib
 import importlib
 import json
-import os
-import urllib.error
-import urllib.request
 from typing import Any, Mapping
 
 from .manifest_contract import validate_ingress_manifest
@@ -21,8 +34,11 @@ from .route_resolution import canonical_sha256, route_from_manifest
 REQUEST_SCHEMA = "stegverse.sdk.manifest-state-transition-request/v1"
 RESULT_SCHEMA = "stegverse.sdk.manifest-state-transition-result/v1"
 UNIVERSAL_RUNTIME_BINDING = "stegverse.manifest_state_transition_runtime.execute_manifest"
-INGRESS_URL_ENV = "STEGVERSE_UNIVERSAL_INTR_INGRESS_URL"
-TRANSPORT_AUTHORIZATION_ENV = "STEGVERSE_TVC_RELAY_AUTHORIZATION_ID"
+HANDOFF_SCHEMA = "stegverse.sdk.manifest-transition-handoff/v1"
+DESTINATION_RESOLUTION_SOURCE = "MANIFEST_COMPLETION_EGRESS"
+# The protocol's own answer to a receiver that is not listening. The SDK never
+# waits for one, and a receiver's availability is not a transition predicate.
+RECEIVER_UNAVAILABLE_DISPOSITION = "DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION"
 
 _REQUIRED_CLOSURE = {
     "state": "RECORDED",
@@ -49,6 +65,29 @@ def _load_adapter(binding: str):
     if not callable(function):
         raise ValueError(f"state-graph adapter is not callable: {binding}")
     return function
+
+
+def manifest_declared_destination(canonical: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Read the destination the manifest declares, or None when it declares none.
+
+    ``completion.egress`` is already validated and normalized by the manifest
+    contract, so a present egress block is well-formed by construction. This
+    reads it; it never supplies, discovers, defaults or configures a destination.
+    """
+    egress = (canonical.get("completion") or {}).get("egress")
+    if not isinstance(egress, Mapping):
+        return None
+    surface = egress.get("final_stegverse_transition_surface")
+    if not isinstance(surface, str) or not surface:
+        return None
+    destination: dict[str, Any] = {
+        "final_stegverse_transition_surface": surface,
+        "transport": "INTERLOCK_INTR",
+        "far_side_transition_required": True,
+        "destination_profile": egress.get("destination_profile"),
+    }
+    destination["destination_sha256"] = _sha256(destination)
+    return destination
 
 
 def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
@@ -80,6 +119,7 @@ def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("worker-claim state graph did not provide canonical_task_id")
     if task_id is not None and (not isinstance(task_id, str) or not task_id):
         raise ValueError("canonical_task_id must be null or a non-empty string")
+    destination = manifest_declared_destination(canonical)
     # Bind the unchanged wire manifest and normalized validated projection separately.
     manifest_hash = canonical["canonical_manifest_sha256"]
     projection = dict(canonical)
@@ -102,47 +142,17 @@ def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "claim_fence_authority": "WORKERCOORDINATOR",
         "transition_authority": "INTERLOCK_INTR",
         "custody_replay_reconstruction_authority": "MASTER_RECORDS",
+        "manifest_declared_destination": destination,
+        "destination_resolution_source": DESTINATION_RESOLUTION_SOURCE,
+        # Nothing outside the manifest may name a destination.
+        "destination_resolution_environment_inputs": [],
         "request_grants_authority": False,
         "sdk_executes_lifecycle": False,
+        "sdk_transports_request": False,
         "authority_effect": "NONE_MANIFEST_RUNTIME_REQUEST_ONLY",
     }
     request["request_sha256"] = _sha256(request)
     return request
-
-
-def _post_existing_intr(request_body: Mapping[str, Any]) -> dict[str, Any]:
-    ingress_url = str(os.environ.get(INGRESS_URL_ENV) or "").strip()
-    if not ingress_url:
-        raise ValueError("UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED")
-    authorization_id = str(os.environ.get(TRANSPORT_AUTHORIZATION_ENV) or "").strip()
-    if not authorization_id:
-        raise ValueError("TV_TVC_RELAY_AUTHORIZATION_REQUIRED")
-    raw = _canonical_bytes(request_body)
-    req = urllib.request.Request(
-        ingress_url,
-        data=raw,
-        method="POST",
-        headers={
-            "Content-Type": "application/json",
-            "X-StegVerse-Transport": "InTr",
-            "X-StegVerse-Transport-Origin": "TVC_RELAY_EGRESS",
-            "X-StegVerse-Authorization-Id": authorization_id,
-            "X-StegVerse-Payload-SHA256": hashlib.sha256(raw).hexdigest(),
-        },
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=1200) as response:
-            body = json.loads(response.read().decode("utf-8"))
-            if int(response.status) not in {200, 202}:
-                raise ValueError(f"UNIVERSAL_INTR_HTTP_STATUS:{response.status}")
-    except urllib.error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")[-2000:]
-        raise ValueError(f"UNIVERSAL_INTR_HTTP_ERROR:{exc.code}:{detail}") from exc
-    except urllib.error.URLError as exc:
-        raise ValueError(f"UNIVERSAL_INTR_UNREACHABLE:{exc.reason}") from exc
-    if not isinstance(body, Mapping):
-        raise ValueError("UNIVERSAL_INTR_RESULT_OBJECT_REQUIRED")
-    return dict(body)
 
 
 def _validate_transition_closures(result: Mapping[str, Any], graph: Mapping[str, Any]) -> None:
@@ -538,23 +548,22 @@ def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any
     return dict(result)
 
 
-def _attachment_failure(request: Mapping[str, Any], failure: str) -> dict[str, Any]:
-    """Report only the SDK's actual attachment boundary, never a downstream verdict."""
-    corrections = {
-        "UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED": (
-            "Attach the existing manifest-selected transport ingress; no device discovery."),
-        "TV_TVC_RELAY_AUTHORIZATION_REQUIRED": (
-            "Supply the existing authorized TV/TVC relay credential for this invocation."),
-    }
+def _destination_not_declared(request: Mapping[str, Any]) -> dict[str, Any]:
+    """The manifest declared no destination. That is a manifest defect, repairable
+    in the manifest, not a missing machine and not a reachability finding.
+    """
     result = {
-        "schema": "stegverse.sdk.manifest-attachment-disposition/v1",
+        "schema": "stegverse.sdk.manifest-handoff-disposition/v1",
         "state": "FAIL_CLOSED",
         "disposition": "FAIL_CLOSED",
-        "evaluation_boundary": "SDK_MANIFEST_TRANSPORT_ATTACHMENT",
-        "failed_predicate": failure,
-        "reason_code": failure,
-        "required_evidence_or_repair": corrections[failure],
+        "evaluation_boundary": "SDK_MANIFEST_DESTINATION_BINDING",
+        "failure_code": "MANIFEST_DECLARES_NO_EGRESS_DESTINATION",
+        "failed_predicate": "MANIFEST_COMPLETION_EGRESS_DECLARES_A_DESTINATION",
+        "required_evidence_or_repair": (
+            "Declare completion.egress.final_stegverse_transition_surface in the "
+            "manifest. The manifest determines the destination."),
         "retry_entrypoint": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "next_attempt": "RE_MANIFEST_WITH_A_DECLARED_EGRESS_DESTINATION",
         "canonical_task_id": request.get("canonical_task_id"),
         "request_sha256": request["request_sha256"],
         "wire_manifest_sha256": request["wire_manifest_sha256"],
@@ -566,46 +575,125 @@ def _attachment_failure(request: Mapping[str, Any], failure: str) -> dict[str, A
         "authentic_governance_disposition_observed": False,
         "organization_receipt_observed": False,
         "master_records_reconstruction_observed": False,
-        "evidence_class": "SDK_LOCAL_ATTACHMENT_ATTEMPT",
+        # Named so that no reader mistakes this for a machine or reachability gap.
+        "machine_dependency_introduced": False,
+        "external_machine_required": False,
+        "receiver_availability_consulted": False,
+        "evidence_class": "SDK_LOCAL_MANIFEST_BINDING",
         "authority_effect": "NONE",
     }
     result["diagnostic_sha256"] = _sha256(result)
     return result
 
 
+def build_intr_handoff(request: Mapping[str, Any]) -> dict[str, Any]:
+    """Hand the manifested request to the receiving Interlock runtime.
+
+    This is the SDK's terminal act for the outbound leg. It binds the request to
+    the destination the manifest declared and states what the Interlock now owns.
+    It opens no connection, carries no transport credential, and does not wait:
+    the handoff is complete whether or not a receiver is listening right now.
+    """
+    destination = request.get("manifest_declared_destination")
+    if not isinstance(destination, Mapping):
+        return _destination_not_declared(request)
+    handoff = {
+        "schema": HANDOFF_SCHEMA,
+        "state": "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF",
+        "disposition": "ALLOW",
+        "evaluation_boundary": "SDK_MANIFEST_HANDOFF",
+        "terminal": False,
+        "request_sha256": request["request_sha256"],
+        "wire_manifest_sha256": request["wire_manifest_sha256"],
+        "canonical_manifest_sha256": request["canonical_manifest_sha256"],
+        "graph_id": request["graph_id"],
+        "canonical_task_id": request.get("canonical_task_id"),
+        "processing_capability": request["processing_capability"],
+        "route_id": request["route_id"],
+        "destination": dict(destination),
+        "destination_resolution_source": DESTINATION_RESOLUTION_SOURCE,
+        "destination_resolution_environment_inputs": [],
+        # What the SDK did, and did not do.
+        "transport_performed_by_sdk": False,
+        "transport_credential_supplied_by_sdk": False,
+        "receiver_contacted": False,
+        "receiver_availability_required": False,
+        "receiver_unavailable_disposition": RECEIVER_UNAVAILABLE_DISPOSITION,
+        "awaits_external_machine": False,
+        # What remains with the Interlock, unobserved from here.
+        "transition_authority": "INTERLOCK_INTR",
+        "intr_admission_observed": False,
+        "far_side_transition_observed": False,
+        "organization_receipt_observed": False,
+        "master_records_reconstruction_observed": False,
+        "consequence_committed": False,
+        "next_transition_owner": "INTERLOCK_INTR",
+        "return_entrypoint": "stegverse.manifest_state_transition_runtime.admit_runtime_result",
+        "evidence_class": "SDK_LOCAL_MANIFEST_HANDOFF",
+        "authority_effect": "NONE_MANIFEST_HANDOFF_ONLY",
+    }
+    handoff["handoff_sha256"] = _sha256(handoff)
+    return handoff
+
+
 def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
-    request = derive_execution_request(manifest)
-    try:
-        result = _post_existing_intr(request)
-    except ValueError as exc:
-        if str(exc) in {"UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED", "TV_TVC_RELAY_AUTHORIZATION_REQUIRED"}:
-            return _attachment_failure(request, str(exc))
-        raise
+    """Manifest one transition and hand it to the receiving Interlock runtime.
+
+    Returns the handoff disposition. It does not return a runtime result, because
+    the SDK does not perform the transition and does not wait for one: a result
+    arrives separately, through ``admit_runtime_result``.
+    """
+    return build_intr_handoff(derive_execution_request(manifest))
+
+
+def admit_runtime_result(
+    manifest: Mapping[str, Any],
+    request: Mapping[str, Any],
+    result: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Validate a result the receiving Interlock runtime has returned.
+
+    The receiving runtime owns transport and admission before this is called. A
+    correctable manifest-binding DENY is repaired and re-manifested once, which
+    produces a new handoff with its own distinct hash - never a replay of the
+    identical request, and never a second transport attempt from here.
+    """
     checked = validate_runtime_result(result, request)
-    if (checked.get("disposition") == "DENY"
+    if not (checked.get("disposition") == "DENY"
             and checked.get("evaluation_boundary") == "SDK_MANIFEST_PROFILE"):
-        from .manifest_builder import correct_manifest_binding_deny
-        # The new request has a new hash and must enter existing governed ingress
-        # as a distinct transition. An unchanged envelope or terminal verdict
-        # cannot be resubmitted.
-        try:
-            repaired = correct_manifest_binding_deny(manifest, request, checked)
-        except ValueError as exc:
-            if str(exc) == "manifest_binding_repair_produced_unchanged_request":
-                return checked  # Retain precise DENY; never replay identical request.
-            raise
-        next_result = _post_existing_intr(repaired)
-        return validate_runtime_result(next_result, repaired)
-    return checked
+        return checked
+    from .manifest_builder import correct_manifest_binding_deny
+    try:
+        repaired = correct_manifest_binding_deny(manifest, request, checked)
+    except ValueError as exc:
+        if str(exc) == "manifest_binding_repair_produced_unchanged_request":
+            return checked  # Retain precise DENY; never replay identical request.
+        raise
+    return {
+        "schema": HANDOFF_SCHEMA,
+        "state": "REMANIFESTED_AFTER_CORRECTABLE_BINDING_DENY",
+        "disposition": "ALLOW",
+        "evaluation_boundary": "SDK_MANIFEST_HANDOFF",
+        "terminal": False,
+        "corrected_from_request_sha256": request.get("request_sha256"),
+        "corrected_from_disposition": dict(checked),
+        "handoff": build_intr_handoff(repaired),
+        "repaired_request": dict(repaired),
+        "authority_effect": "NONE_MANIFEST_HANDOFF_ONLY",
+    }
 
 
 __all__ = [
-    "INGRESS_URL_ENV",
+    "DESTINATION_RESOLUTION_SOURCE",
+    "HANDOFF_SCHEMA",
+    "RECEIVER_UNAVAILABLE_DISPOSITION",
     "REQUEST_SCHEMA",
     "RESULT_SCHEMA",
-    "TRANSPORT_AUTHORIZATION_ENV",
     "UNIVERSAL_RUNTIME_BINDING",
+    "admit_runtime_result",
+    "build_intr_handoff",
     "derive_execution_request",
     "execute_manifest",
+    "manifest_declared_destination",
     "validate_runtime_result",
 ]

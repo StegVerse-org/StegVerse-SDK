@@ -1,12 +1,11 @@
 """Acceptance checks for the *existing* SDK manifest and diagnostic route."""
 import json
 import unittest
-from unittest.mock import patch
 from copy import deepcopy
 from pathlib import Path
 from scripts.build_mir_sv_exp3_manifest import HERE, build_exp3_manifest
 from stegverse.manifest_contract import validate_ingress_manifest
-from stegverse.manifest_state_transition_runtime import derive_execution_request, execute_manifest, validate_runtime_result
+from stegverse.manifest_state_transition_runtime import admit_runtime_result, derive_execution_request, execute_manifest, validate_runtime_result
 from stegverse.manifest_builder import correct_manifest_binding_deny
 from stegverse.route_resolution import canonical_sha256
 from stegverse.ecosystem_diagnostic_runtime import execute_manifest as execute_local_diagnostic
@@ -135,9 +134,12 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
             "processing_capability": "ecosystem_diagnostic",
             "source_disposition_ref": "mock-evaluating-profile-path-not-sovereign-custody",
         }
-        with patch("stegverse.manifest_state_transition_runtime._post_existing_intr", return_value=denial) as post:
-            self.assertEqual(execute_manifest(original)["disposition"], "DENY")
-            self.assertEqual(post.call_count, 1)
+        # The receiving Interlock runtime returns this denial; the SDK admits it.
+        # An unchanged derived request is not a new governed attempt, so the exact
+        # DENY is retained rather than re-manifested.
+        admitted = admit_runtime_result(original, current, denial)
+        self.assertEqual(admitted["disposition"], "DENY")
+        self.assertEqual(admitted["evaluation_boundary"], "SDK_MANIFEST_PROFILE")
         self.assertEqual(original, self.m)
         altered = deepcopy(denial)
         altered["authentic_intr_admission_observed"] = True

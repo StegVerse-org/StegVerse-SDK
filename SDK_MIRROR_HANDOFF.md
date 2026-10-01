@@ -648,9 +648,12 @@ the canonical post-disposition custody order Organization Records -> Master
 Records before successor evaluation. Two evaluator manifests vary their marker,
 journey and source payload while using the same generic executor.
 
-A source run without attached Universal InTr returns the existing typed
-`FAIL_CLOSED / UNIVERSAL_INTR_INGRESS_NOT_CONFIGURED` attachment disposition.
-That is an SDK attachment attempt, not Test 5's authentic InTr outcome. Authentic
+A source run returns the typed `ALLOW / MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF`
+disposition, bound to the destination the manifest declares in `completion.egress`.
+Nothing is attached, contacted or awaited: the handoff completes whether or not a
+receiver is listening, and `receiver_unavailable_disposition` names the protocol's
+own answer when one is not.
+That is an SDK handoff, not Test 5's authentic InTr outcome. Authentic
 Test 5 completion requires the existing InTr/StegBrowser/provider path to return
 the governed transition, endpoint receipts, organization recording and Master
 Records reconstruction.
