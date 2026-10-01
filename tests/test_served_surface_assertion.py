@@ -4,24 +4,48 @@ The assertion runs against what was served, not what was meant to be served,
 and it holds the evidence emitter so a divergent surface cannot emit by a
 caller forgetting to check first.
 """
+import importlib.util
+from pathlib import Path
+import subprocess
+import sys
+import textwrap
 import unittest
 
-from stegverse.served_surface_assertion import (
-    AUTHORITY_BOUNDARY,
-    CONTENT_SUBSTITUTED,
-    DECLARATION_ALTERED,
-    DECLARED_NOT_SERVED,
-    EVIDENCE_WITHHELD,
-    EXTRA_SERVED,
-    POST_ATTEMPT_PROVENANCE,
-    SERVED_FROM_CACHE,
-    SURFACE_CONFORMS,
-    SURFACE_DIVERGED,
-    ServedSurfaceRefused,
-    assert_served_surface,
-    declare_frozen_surface,
-    emit_under_served_surface_assertion,
-)
+ROOT = Path(__file__).resolve().parents[1]
+MODULE_PATH = ROOT / "stegverse" / "served_surface_assertion.py"
+
+
+def _load_assertion():
+    """Load by file path, as the gate's own workflow does.
+
+    Importing ``stegverse.served_surface_assertion`` would execute the package
+    ``__init__``, which pulls in the whole SDK and its runtime dependencies. A
+    control that gates a run's starting condition must be able to run when
+    those are absent, so it is loaded here the way the workflow loads it.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "_served_surface_assertion", MODULE_PATH)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_assertion = _load_assertion()
+
+AUTHORITY_BOUNDARY = _assertion.AUTHORITY_BOUNDARY
+CONTENT_SUBSTITUTED = _assertion.CONTENT_SUBSTITUTED
+DECLARATION_ALTERED = _assertion.DECLARATION_ALTERED
+DECLARED_NOT_SERVED = _assertion.DECLARED_NOT_SERVED
+EVIDENCE_WITHHELD = _assertion.EVIDENCE_WITHHELD
+EXTRA_SERVED = _assertion.EXTRA_SERVED
+POST_ATTEMPT_PROVENANCE = _assertion.POST_ATTEMPT_PROVENANCE
+SERVED_FROM_CACHE = _assertion.SERVED_FROM_CACHE
+SURFACE_CONFORMS = _assertion.SURFACE_CONFORMS
+SURFACE_DIVERGED = _assertion.SURFACE_DIVERGED
+ServedSurfaceRefused = _assertion.ServedSurfaceRefused
+assert_served_surface = _assertion.assert_served_surface
+declare_frozen_surface = _assertion.declare_frozen_surface
+emit_under_served_surface_assertion = _assertion.emit_under_served_surface_assertion
 
 GOAL = "SDK-SERVED-SURFACE-ASSERTION-001"
 PRIOR_LANE = "PRIOR-ATTEMPT-LANE-001"
@@ -247,6 +271,46 @@ class DispositionContractTest(unittest.TestCase):
         for claim, value in AUTHORITY_BOUNDARY.items():
             with self.subTest(claim=claim):
                 self.assertFalse(value)
+
+
+class StdlibOnlyTest(unittest.TestCase):
+    def test_it_runs_with_sdk_runtime_dependencies_absent(self):
+        """The failure this test exists for.
+
+        The gate's workflow installs nothing, so a package import here goes red
+        on `requests` reaching `stegverse/__init__.py` rather than on anything
+        the control got wrong. Proven against a deliberately broken `requests`.
+        """
+        script = textwrap.dedent(f"""
+            import importlib.util, sys
+            try:
+                import requests
+            except ImportError:
+                pass
+            else:
+                raise SystemExit("requests should have been unavailable")
+            spec = importlib.util.spec_from_file_location("m", {str(MODULE_PATH)!r})
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            declaration = module.declare_frozen_surface(
+                [{{"resource_id": "A", "content_sha256": "sha256:" + "1" * 64}}],
+                declaration_id="D-1")
+            result = module.assert_served_surface(
+                declaration,
+                [{{"resource_id": "A", "content_sha256": "sha256:" + "1" * 64}}],
+                owning_existing_goal="G-1")
+            assert result["disposition"] == "ALLOW", result
+            print("STDLIB_ONLY_OK")
+        """)
+        with __import__("tempfile").TemporaryDirectory() as tmp:
+            broken = Path(tmp) / "requests.py"
+            broken.write_text('raise ImportError("deliberately unavailable")\n',
+                              encoding="utf-8")
+            completed = subprocess.run(
+                [sys.executable, "-c", script], capture_output=True, text=True,
+                env={"PYTHONPATH": tmp, "PATH": "/usr/bin:/bin"}, cwd=str(ROOT))
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("STDLIB_ONLY_OK", completed.stdout)
 
 
 if __name__ == "__main__":
