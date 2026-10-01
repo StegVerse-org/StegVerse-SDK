@@ -125,17 +125,31 @@ def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
     if publisher is not None:
         if not isinstance(publisher, Mapping):
             raise ValueError("completion.publisher must be an object")
-        _require_exact_fields(publisher, {"stage", "package_profile", "destination"}, "completion.publisher")
+        legacy_fields = {"stage", "required", "package_profile"}
+        destination_fields = {"stage", "package_profile", "destination"}
+        fields = set(publisher)
+        if fields not in {frozenset(legacy_fields), frozenset(destination_fields)}:
+            _require_exact_fields(publisher, destination_fields | legacy_fields, "completion.publisher")
+            raise ValueError("completion.publisher must use either legacy required or explicit destination semantics")
         if publisher.get("stage") != "PUBLISHER":
             raise ValueError("completion.publisher.stage must be PUBLISHER")
         package_profile = publisher.get("package_profile")
         if not isinstance(package_profile, str) or not package_profile.strip():
             raise ValueError("completion.publisher.package_profile is required")
-        normalized_publisher = {
-            "stage": "PUBLISHER",
-            "package_profile": package_profile.strip(),
-            "destination": _normalize_publisher_destination(publisher.get("destination")),
-        }
+        if "destination" in publisher:
+            normalized_publisher = {
+                "stage": "PUBLISHER",
+                "package_profile": package_profile.strip(),
+                "destination": _normalize_publisher_destination(publisher.get("destination")),
+            }
+        else:
+            if not isinstance(publisher.get("required"), bool):
+                raise ValueError("completion.publisher.required must be boolean in legacy v1 manifests")
+            normalized_publisher = {
+                "stage": "PUBLISHER",
+                "required": publisher["required"],
+                "package_profile": package_profile.strip(),
+            }
 
     egress = raw.get("egress")
     if not isinstance(egress, Mapping):
