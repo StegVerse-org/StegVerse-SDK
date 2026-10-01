@@ -17,16 +17,43 @@
     "extensions"
   ],
   "properties": {
-    "manifest_profile": {"const": "stegverse.ingress-manifest.v1"},
-    "manifest_profile_version": {"const": "1"},
-    "source_framework": {"type": "string", "minLength": 1},
-    "source_instance": {"type": ["string", "null"]},
-    "source_output_id": {"type": "string", "minLength": 1},
-    "created_at": {"type": "string", "minLength": 1},
-    "freshness": {"type": "object"},
+    "manifest_profile": {
+      "const": "stegverse.ingress-manifest.v1"
+    },
+    "manifest_profile_version": {
+      "const": "1"
+    },
+    "source_framework": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_instance": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_output_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "freshness": {
+      "type": "object"
+    },
     "payload": {
       "description": "The source framework's manifested native data. StegVerse does not require the payload to be a StegVerse-native semantic class.",
-      "type": ["object", "array", "string", "number", "boolean", "null"]
+      "type": [
+        "object",
+        "array",
+        "string",
+        "number",
+        "boolean",
+        "null"
+      ]
     },
     "payload_commitment": {
       "description": "A source-provided commitment used instead of an inline payload. The commitment profile declares how independent implementations verify it.",
@@ -36,50 +63,97 @@
     "payload_commitment_profile": {
       "description": "Verification profile for payload_commitment. The currently published profile is sha256.",
       "type": "string",
-      "enum": ["sha256"]
+      "enum": [
+        "sha256"
+      ]
     },
     "processing": {
       "description": "Caller-facing processing intent. This is distinct from runtime route mechanics. Existing v1 governance manifests that omit this object remain backward-compatible and derive governance only from the canonical governed route.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["capability", "route_id"],
+      "required": [
+        "capability",
+        "route_id"
+      ],
       "properties": {
-        "capability": {"type": "string", "minLength": 1},
-        "route_id": {"type": "string", "minLength": 1}
+        "capability": {
+          "type": "string",
+          "minLength": 1
+        },
+        "route_id": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "candidate": {
       "description": "Processor-specific proposition. Required for governance processing, optional for other processors. It never redefines the source payload's native semantics.",
       "type": "object"
     },
-    "declared_intent": {"type": "string", "minLength": 1},
-    "requested_consequence": {"type": "string", "minLength": 1},
-    "context_refs": {"type": "array", "items": {"type": "string"}},
-    "canonicalization_profile": {"type": "string"},
+    "declared_intent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requested_consequence": {
+      "type": "string",
+      "minLength": 1
+    },
+    "context_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "canonicalization_profile": {
+      "type": "string"
+    },
     "hashes": {
       "type": "object",
       "properties": {
-        "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-        "candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        "payload_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "candidate_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
       },
       "additionalProperties": true
     },
     "attestation": {},
     "extensions": {
       "type": "object",
-      "required": ["stegverse_route"],
+      "required": [
+        "stegverse_route"
+      ],
       "properties": {
         "stegverse_route": {
           "description": "Runtime route declaration. Structural ingress accepts a route identifier generically; executable runtime resolution separately requires an installed published route and its exact route contract.",
           "type": "object",
-          "required": ["route_id"],
+          "required": [
+            "route_id"
+          ],
           "properties": {
-            "route_id": {"type": "string", "minLength": 1},
-            "lane_class": {"type": "string"},
-            "routing_surface": {"type": "string"},
-            "containment": {"type": "string"},
-            "sandbox_required": {"type": "boolean"},
-            "external_consequence_enabled": {"type": "boolean"}
+            "route_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "lane_class": {
+              "type": "string"
+            },
+            "routing_surface": {
+              "type": "string"
+            },
+            "containment": {
+              "type": "string"
+            },
+            "sandbox_required": {
+              "type": "boolean"
+            },
+            "external_consequence_enabled": {
+              "type": "boolean"
+            }
           },
           "additionalProperties": true
         },
@@ -105,44 +179,157 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "mode": {"type": "string", "enum": ["ALL", "SELECTED", "NONE"]},
-        "transition_classes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+        "mode": {
+          "type": "string",
+          "enum": [
+            "ALL",
+            "SELECTED",
+            "NONE"
+          ]
+        },
+        "transition_classes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
       }
     },
     "completion": {
-      "description": "Complete governed communication lifecycle through presentation, SDK return assembly, ecosystem egress, Interlock/InTr, and the far-side transition. Legacy v1 manifests may omit this block but are not complete communication manifests.",
+      "description": "Complete governed communication lifecycle. Evaluator output remains directly observable in the submitting UI. Publisher is optional and exists only when an explicit typed delivery destination is present; absence of publisher means no Publisher invocation or document materialization.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["direction", "initiator", "publisher", "egress"],
+      "required": [
+        "direction",
+        "initiator",
+        "egress"
+      ],
       "properties": {
-        "direction": {"const": "SOUTH"},
+        "direction": {
+          "const": "SOUTH"
+        },
         "initiator": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["class", "ref"],
+          "required": [
+            "class",
+            "ref"
+          ],
           "properties": {
-            "class": {"type": "string", "minLength": 1},
-            "ref": {"type": "string", "minLength": 1}
+            "class": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ref": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
         "publisher": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["stage", "required", "package_profile"],
+          "required": [
+            "stage",
+            "package_profile",
+            "destination"
+          ],
           "properties": {
-            "stage": {"const": "PUBLISHER"},
-            "required": {"type": "boolean"},
-            "package_profile": {"type": "string", "minLength": 1}
+            "stage": {
+              "const": "PUBLISHER"
+            },
+            "package_profile": {
+              "type": "string",
+              "minLength": 1
+            },
+            "destination": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "session_ref"
+                  ],
+                  "properties": {
+                    "type": {
+                      "const": "SDK_CONSOLE_SESSION"
+                    },
+                    "session_ref": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "session_ref"
+                  ],
+                  "properties": {
+                    "type": {
+                      "const": "ECOSYSTEM_CHAT_SESSION"
+                    },
+                    "session_ref": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "kv_class",
+                    "kv_context_ref"
+                  ],
+                  "properties": {
+                    "type": {
+                      "const": "KV"
+                    },
+                    "kv_class": {
+                      "enum": [
+                        "MyKV",
+                        "OrgKV",
+                        "OrgMemberKV",
+                        "CompanyKV",
+                        "CompanyEmployeeKV"
+                      ]
+                    },
+                    "kv_context_ref": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              ]
+            }
           }
         },
         "egress": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["final_stegverse_transition_surface", "transport", "far_side_transition_required"],
+          "required": [
+            "final_stegverse_transition_surface",
+            "transport",
+            "far_side_transition_required"
+          ],
           "properties": {
-            "final_stegverse_transition_surface": {"type": "string", "minLength": 1},
-            "transport": {"const": "INTERLOCK_INTR"},
-            "far_side_transition_required": {"const": true},
+            "final_stegverse_transition_surface": {
+              "type": "string",
+              "minLength": 1
+            },
+            "transport": {
+              "const": "INTERLOCK_INTR"
+            },
+            "far_side_transition_required": {
+              "const": true
+            },
             "destination_profile": {
               "description": "Manifest-declared Interlock/InTr destination profile. When supplied it must survive SDK return assembly and the final egress handoff unchanged; it grants no authority.",
               "type": "string",
@@ -152,66 +339,152 @@
         }
       }
     },
-    "manifest_labels": {"type": "object"}
+    "manifest_labels": {
+      "type": "object"
+    }
   },
   "oneOf": [
-    {"required": ["payload"], "not": {"required": ["payload_commitment"]}},
-    {"required": ["payload_commitment", "payload_commitment_profile"], "not": {"required": ["payload"]}}
+    {
+      "required": [
+        "payload"
+      ],
+      "not": {
+        "required": [
+          "payload_commitment"
+        ]
+      }
+    },
+    {
+      "required": [
+        "payload_commitment",
+        "payload_commitment_profile"
+      ],
+      "not": {
+        "required": [
+          "payload"
+        ]
+      }
+    }
   ],
   "allOf": [
     {
-      "if": {"required": ["payload"]},
+      "if": {
+        "required": [
+          "payload"
+        ]
+      },
       "then": {
-        "properties": {"hashes": {"required": ["payload_sha256"]}},
-        "not": {"required": ["payload_commitment_profile"]}
+        "properties": {
+          "hashes": {
+            "required": [
+              "payload_sha256"
+            ]
+          }
+        },
+        "not": {
+          "required": [
+            "payload_commitment_profile"
+          ]
+        }
       }
     },
     {
       "if": {
-        "properties": {"payload_commitment_profile": {"const": "sha256"}},
-        "required": ["payload_commitment", "payload_commitment_profile"]
+        "properties": {
+          "payload_commitment_profile": {
+            "const": "sha256"
+          }
+        },
+        "required": [
+          "payload_commitment",
+          "payload_commitment_profile"
+        ]
       },
       "then": {
-        "properties": {"payload_commitment": {"pattern": "^[0-9a-f]{64}$"}}
+        "properties": {
+          "payload_commitment": {
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
       }
     },
     {
       "if": {
         "properties": {
           "processing": {
-            "properties": {"capability": {"const": "governance"}},
-            "required": ["capability"]
+            "properties": {
+              "capability": {
+                "const": "governance"
+              }
+            },
+            "required": [
+              "capability"
+            ]
           }
         },
-        "required": ["processing"]
+        "required": [
+          "processing"
+        ]
       },
       "then": {
-        "required": ["candidate"],
+        "required": [
+          "candidate"
+        ],
         "properties": {
-          "hashes": {"required": ["candidate_sha256"]},
-          "extensions": {"required": ["stegverse_route", "stegverse_governance_request"]}
+          "hashes": {
+            "required": [
+              "candidate_sha256"
+            ]
+          },
+          "extensions": {
+            "required": [
+              "stegverse_route",
+              "stegverse_governance_request"
+            ]
+          }
         }
       }
     },
     {
       "if": {
-        "not": {"required": ["processing"]},
+        "not": {
+          "required": [
+            "processing"
+          ]
+        },
         "properties": {
           "extensions": {
             "properties": {
               "stegverse_route": {
-                "properties": {"route_id": {"const": "stegverse.route.canonical-governed.v1"}},
-                "required": ["route_id"]
+                "properties": {
+                  "route_id": {
+                    "const": "stegverse.route.canonical-governed.v1"
+                  }
+                },
+                "required": [
+                  "route_id"
+                ]
               }
             }
           }
         }
       },
       "then": {
-        "required": ["candidate"],
+        "required": [
+          "candidate"
+        ],
         "properties": {
-          "hashes": {"required": ["candidate_sha256"]},
-          "extensions": {"required": ["stegverse_route", "stegverse_governance_request"]}
+          "hashes": {
+            "required": [
+              "candidate_sha256"
+            ]
+          },
+          "extensions": {
+            "required": [
+              "stegverse_route",
+              "stegverse_governance_request"
+            ]
+          }
         }
       }
     }
