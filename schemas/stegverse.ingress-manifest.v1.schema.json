@@ -229,87 +229,113 @@
           }
         },
         "publisher": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "stage",
-            "package_profile",
-            "destination"
-          ],
-          "properties": {
-            "stage": {
-              "const": "PUBLISHER"
-            },
-            "package_profile": {
-              "type": "string",
-              "minLength": 1
-            },
-            "destination": {
-              "oneOf": [
-                {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": [
-                    "type",
-                    "session_ref"
-                  ],
-                  "properties": {
-                    "type": {
-                      "const": "SDK_CONSOLE_SESSION"
-                    },
-                    "session_ref": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  }
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "stage",
+                "required",
+                "package_profile"
+              ],
+              "properties": {
+                "stage": {
+                  "const": "PUBLISHER"
                 },
-                {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": [
-                    "type",
-                    "session_ref"
-                  ],
-                  "properties": {
-                    "type": {
-                      "const": "ECOSYSTEM_CHAT_SESSION"
-                    },
-                    "session_ref": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  }
+                "required": {
+                  "type": "boolean"
                 },
-                {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": [
-                    "type",
-                    "kv_class",
-                    "kv_context_ref"
-                  ],
-                  "properties": {
-                    "type": {
-                      "const": "KV"
-                    },
-                    "kv_class": {
-                      "enum": [
-                        "MyKV",
-                        "OrgKV",
-                        "OrgMemberKV",
-                        "CompanyKV",
-                        "CompanyEmployeeKV"
-                      ]
-                    },
-                    "kv_context_ref": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  }
+                "package_profile": {
+                  "type": "string",
+                  "minLength": 1
                 }
-              ]
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "stage",
+                "package_profile",
+                "destination"
+              ],
+              "properties": {
+                "stage": {
+                  "const": "PUBLISHER"
+                },
+                "package_profile": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "destination": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "session_ref"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "SDK_CONSOLE_SESSION"
+                        },
+                        "session_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "session_ref"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "ECOSYSTEM_CHAT_SESSION"
+                        },
+                        "session_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "kv_class",
+                        "kv_context_ref"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "KV"
+                        },
+                        "kv_class": {
+                          "enum": [
+                            "MyKV",
+                            "OrgKV",
+                            "OrgMemberKV",
+                            "CompanyKV",
+                            "CompanyEmployeeKV"
+                          ]
+                        },
+                        "kv_context_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
             }
-          }
+          ],
+          "description": "New manifests use explicit destination semantics. The required-boolean shape remains accepted only for backward compatibility with frozen v1 manifests."
         },
         "egress": {
           "type": "object",
