@@ -27,6 +27,7 @@ import json
 from typing import Any, Mapping
 
 from .manifest_contract import validate_ingress_manifest
+from .connector_capability_overlay import resolve_organization_ingress
 from .route_resolution import canonical_sha256, route_from_manifest
 
 REQUEST_SCHEMA = "stegverse.sdk.manifest-state-transition-request/v1"
@@ -65,6 +66,10 @@ def _load_adapter(binding: str):
     return function
 
 
+def canonical_organization_destination(organization_boundary: Mapping[str, Any]) -> dict[str, Any]:
+    return resolve_organization_ingress(organization_boundary, profile_id="sdk-manifest-ingress", profile_name="SDK:ManifestIngress", operation="SUBMIT_MANIFEST")
+
+
 def manifest_declared_destination(canonical: Mapping[str, Any]) -> None:
     """Compatibility shim: completion.egress is not outbound organization routing.
 
@@ -76,7 +81,7 @@ def manifest_declared_destination(canonical: Mapping[str, Any]) -> None:
     return None
 
 
-def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
+def derive_execution_request(manifest: Mapping[str, Any], organization_boundary: Mapping[str, Any] | None = None) -> dict[str, Any]:
     canonical = validate_ingress_manifest(manifest)
     route = route_from_manifest(canonical)
     if route.get("runtime_binding") != UNIVERSAL_RUNTIME_BINDING:
@@ -105,7 +110,7 @@ def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("worker-claim state graph did not provide canonical_task_id")
     if task_id is not None and (not isinstance(task_id, str) or not task_id):
         raise ValueError("canonical_task_id must be null or a non-empty string")
-    destination = manifest_declared_destination(canonical)
+    destination = canonical_organization_destination(organization_boundary) if isinstance(organization_boundary, Mapping) else manifest_declared_destination(canonical)
     # Bind the unchanged wire manifest and normalized validated projection separately.
     manifest_hash = canonical["canonical_manifest_sha256"]
     projection = dict(canonical)
@@ -582,7 +587,7 @@ def build_intr_handoff(request: Mapping[str, Any]) -> dict[str, Any]:
     """Hand the manifested request to the receiving Interlock runtime.
 
     This is the SDK's terminal act for the outbound leg. It binds the request to
-    the destination the manifest declared and states what the Interlock now owns.
+    the organization-owned receiving operation and states what the Interlock now owns.
     It opens no connection, carries no transport credential, and does not wait:
     the handoff is complete whether or not a receiver is listening right now.
     """
@@ -628,14 +633,14 @@ def build_intr_handoff(request: Mapping[str, Any]) -> dict[str, Any]:
     return handoff
 
 
-def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
+def execute_manifest(manifest: Mapping[str, Any], organization_boundary: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Manifest one transition and hand it to the receiving Interlock runtime.
 
     Returns the handoff disposition. It does not return a runtime result, because
     the SDK does not perform the transition and does not wait for one: a result
     arrives separately, through ``admit_runtime_result``.
     """
-    return build_intr_handoff(derive_execution_request(manifest))
+    return build_intr_handoff(derive_execution_request(manifest, organization_boundary))
 
 
 def admit_runtime_result(
