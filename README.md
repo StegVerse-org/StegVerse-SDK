@@ -1151,3 +1151,8 @@ Every requested processing capability is resolved as ONLINE, OFFLINE, or UNKNOWN
 ### Generic worker state-graph execution boundary
 
 Purpose-bound worker manifests now follow the same universal execution split as other governed capabilities: the processor adapter derives the state graph only (`adapter_executes_lifecycle=false`); the SDK does not execute the lifecycle locally. The resulting request is submitted to the existing Universal InTr path, where WorkerCoordinator/InTr and downstream Organization Records -> Master Records remain the governing authorities. Local worker functions remain semantic fixtures and do not satisfy governed `run-manifest` completion.
+
+
+### Organization-owned manifest ingress resolution
+
+Outbound organization destination resolution for `sdk-manifest-ingress / SDK:ManifestIngress / SUBMIT_MANIFEST` is owned by the canonical organization `.github` Interlock/InTr boundary contract. The SDK may consume that passed-in contract through `connector_capability_overlay.resolve_organization_ingress`; it does not copy the endpoint into its connector baseline, select an ingress from environment configuration, or gain routing/admission/execution authority. `completion.egress` remains requester-facing completion/return metadata and cannot override the organization-owned receiving operation.
