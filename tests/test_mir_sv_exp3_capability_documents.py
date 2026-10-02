@@ -19,7 +19,7 @@ class MIRCapabilityDocumentsTests(unittest.TestCase):
     def test_addendum_is_separate_and_not_delivered(self):
         m, result, source = build("addendum")
         self.assertNotEqual(m["payload"]["schema"], build("primary")[0]["payload"]["schema"])
-        self.assertFalse(m["completion"]["publisher"]["required"])
+        self.assertNotIn("publisher", m["completion"])
         self.assertTrue(m["completion"]["egress"]["far_side_transition_required"])
         self.assertEqual(sum(x["observation_state"] == "NOT_OBSERVED" for x in result["results"]), 4)
         self.assertIn("MIR ingress", " ".join(source["required_runtime_evidence"]))

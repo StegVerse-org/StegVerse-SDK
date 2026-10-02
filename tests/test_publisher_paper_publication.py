@@ -78,7 +78,7 @@ class PublisherPaperManifestTests(unittest.TestCase):
         )
         self.assertEqual(m["hashes"]["payload_sha256"], canonical_sha256(m["payload"]))
         self.assertEqual(m["completion"]["egress"]["destination_profile"], TARGET_REPOSITORY)
-        self.assertTrue(m["completion"]["publisher"]["required"])
+        self.assertEqual(m["completion"]["publisher"]["destination"], {"type": "SDK_CONSOLE_SESSION", "session_ref": TASK_ID})
         self.assertEqual(m["extensions"]["security_posture_request"]["task_id"], TASK_ID)
         self.assertFalse(m["payload"]["candidate"]["publication_executed"])
         self.assertNotIn(TARGET_REPOSITORY, [v["repository"] for v in ACTIVE_TARGET_PROFILES.values()])

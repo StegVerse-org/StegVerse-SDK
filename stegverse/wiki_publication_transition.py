@@ -182,7 +182,10 @@ def prepare_wiki_publication_manifest(
         requested_consequence=requested_consequence,
         initiator_class="external_framework_publication_candidate",
         initiator_ref=canonical["package_id"],
-        publisher_required=decision == ALLOW,
+        publisher_destination=(
+            {"type": "SDK_CONSOLE_SESSION", "session_ref": canonical["publisher_ref"]}
+            if decision == ALLOW else None
+        ),
         publisher_package_profile=PUBLISHER_PACKAGE_PROFILE,
         destination_profile=target_repository,
     )

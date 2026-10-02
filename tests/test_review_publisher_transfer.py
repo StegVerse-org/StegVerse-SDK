@@ -14,6 +14,9 @@ from tests.test_publisher_return_binding import publisher_return_value
 
 
 def review_manifest(*, external_review=True, publisher_required=None):
+    destination = None if publisher_required is False or not external_review else {"type": "SDK_CONSOLE_SESSION", "session_ref": "review-fixture"}
+    if publisher_required is True:
+        destination = {"type": "SDK_CONSOLE_SESSION", "session_ref": "review-fixture"}
     return build_manifest(
         data={"source": "independent-assessment", "limitations": ["live runtime not observed"]},
         source_framework="StegVerse",
@@ -21,7 +24,7 @@ def review_manifest(*, external_review=True, publisher_required=None):
         processor_request=governance_request(),
         created_at="2026-09-24T00:00:00Z",
         external_review=external_review,
-        publisher_required=publisher_required,
+        publisher_destination=destination,
     )
 
 
@@ -81,14 +84,14 @@ def source_bundle():
 
 class ReviewerPublisherTests(unittest.TestCase):
     def test_default_for_explicit_review_but_not_ordinary_sdk(self):
-        self.assertTrue(review_manifest()["completion"]["publisher"]["required"])
-        self.assertFalse(review_manifest(external_review=False)["completion"]["publisher"]["required"])
+        self.assertEqual(review_manifest()["completion"]["publisher"]["destination"]["type"], "SDK_CONSOLE_SESSION")
+        self.assertNotIn("publisher", review_manifest(external_review=False)["completion"])
         self.assertTrue(review_manifest()["extensions"]["manifest_builder"]["external_review_requested"])
 
     def test_explicit_review_opt_out_remains_optional(self):
-        self.assertFalse(review_manifest(publisher_required=False)["completion"]["publisher"]["required"])
+        self.assertNotIn("publisher", review_manifest(publisher_required=False)["completion"])
         self.assertFalse(review_manifest(publisher_required=False)["extensions"]["manifest_builder"]["publisher_required_by_review_default"])
-        self.assertTrue(review_manifest(external_review=False,publisher_required=True)["completion"]["publisher"]["required"])
+        self.assertEqual(review_manifest(external_review=False,publisher_required=True)["completion"]["publisher"]["destination"]["type"], "SDK_CONSOLE_SESSION")
 
     def test_exact_publisher_transfer_uses_existing_schema_without_claiming_delivery(self):
         p=prepare_review_transfer(manifest=review_manifest(),authorized_export_bundle=source_bundle(),

@@ -119,7 +119,7 @@ def prepare_review_transfer(
     validated = validate_ingress_manifest(manifest)
     completion = validated.get("completion")
     publisher = completion.get("publisher") if isinstance(completion, Mapping) else None
-    if not isinstance(publisher, Mapping) or publisher.get("required") is not True:
+    if not isinstance(publisher, Mapping) or not ("destination" in publisher or publisher.get("required") is True):
         raise ReviewPublisherBoundaryError("review transfer requires Publisher on this manifest")
     if publisher.get("package_profile") != EXPORT_SCHEMA:
         raise ReviewPublisherBoundaryError("Publisher report profile mismatch")

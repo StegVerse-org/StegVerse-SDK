@@ -105,7 +105,7 @@ class WikiPublicationTransitionTests(unittest.TestCase):
         self.assertEqual(params["decision"], "ALLOW_PUBLICATION_CANDIDATE")
         self.assertEqual(params["evidence_references"], value["evidence_references"])
         self.assertFalse(params["publication_executed"])
-        self.assertTrue(manifest["completion"]["publisher"]["required"])
+        self.assertEqual(manifest["completion"]["publisher"]["destination"], {"type": "SDK_CONSOLE_SESSION", "session_ref": value["publisher_ref"]})
 
     def test_converter_does_not_synthesize_governance_candidate(self):
         value = transition()
@@ -137,7 +137,7 @@ class WikiPublicationTransitionTests(unittest.TestCase):
                 )
                 self.assertEqual(manifest["candidate"]["parameters"]["decision"], decision)
                 self.assertFalse(manifest["candidate"]["parameters"]["external_side_effect"])
-                self.assertFalse(manifest["completion"]["publisher"]["required"])
+                self.assertNotIn("publisher", manifest["completion"])
                 self.assertIn("zero repository mutation", manifest["requested_consequence"])
 
     def test_manifest_requires_authoritative_intr_posture_request(self):

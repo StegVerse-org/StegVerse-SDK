@@ -112,13 +112,13 @@ class ManifestBuilderTests(unittest.TestCase):
         manifest = self._build(
             initiator_class="external_framework",
             initiator_ref="elan-runtime-7",
-            publisher_required=True,
+            publisher_destination={"type": "SDK_CONSOLE_SESSION", "session_ref": "console-session-7"},
         )
         completion = manifest["completion"]
         self.assertEqual(completion["direction"], "SOUTH")
         self.assertEqual(completion["initiator"], {"class": "external_framework", "ref": "elan-runtime-7"})
         self.assertEqual(completion["publisher"]["stage"], "PUBLISHER")
-        self.assertTrue(completion["publisher"]["required"])
+        self.assertEqual(completion["publisher"]["destination"], {"type": "SDK_CONSOLE_SESSION", "session_ref": "console-session-7"})
         self.assertEqual(completion["publisher"]["package_profile"], DEFAULT_PUBLISHER_PACKAGE_PROFILE)
         self.assertEqual(completion["egress"]["final_stegverse_transition_surface"], "LLM_ADAPTER")
         self.assertEqual(completion["egress"]["transport"], "INTERLOCK_INTR")
@@ -127,6 +127,24 @@ class ManifestBuilderTests(unittest.TestCase):
         self.assertTrue(canonical["complete_communication_manifest"])
         self.assertTrue(canonical["publisher_is_manifest_stage"])
         self.assertTrue(canonical["communication_terminal_state_requires_far_side_intr_transition"])
+
+    def test_no_destination_means_no_publisher(self):
+        manifest = self._build(external_review=True)
+        self.assertNotIn("publisher", manifest["completion"])
+        canonical = validate_ingress_manifest(manifest)
+        self.assertFalse(canonical["publisher_is_manifest_stage"])
+
+    def test_kv_destination_requires_class_and_context(self):
+        manifest = self._build(publisher_destination={"type": "KV", "kv_class": "MyKV", "kv_context_ref": "mykv:owner"})
+        self.assertEqual(manifest["completion"]["publisher"]["destination"]["kv_class"], "MyKV")
+        invalid = deepcopy(manifest)
+        del invalid["completion"]["publisher"]["destination"]["kv_context_ref"]
+        with self.assertRaisesRegex(ValueError, "kv_context_ref is required"):
+            validate_ingress_manifest(invalid)
+
+    def test_company_department_kv_is_not_yet_admitted(self):
+        with self.assertRaisesRegex(ValueError, "not an admitted KV class"):
+            self._build(publisher_destination={"type": "KV", "kv_class": "CompanyDepartmentKV", "kv_context_ref": "department:research"})
 
     def test_legacy_v1_without_completion_remains_valid_but_not_complete_communication(self):
         manifest = self._build()
@@ -196,7 +214,8 @@ class ManifestBuilderTests(unittest.TestCase):
                 "--source-output-id", "fixture-output",
                 "--data-class", "fixture.native.v1",
                 "--return-depth", "full-trace",
-                "--publisher-required",
+                "--publisher-destination-type", "SDK_CONSOLE_SESSION",
+                "--publisher-session-ref", "fixture-console",
                 "--initiator-ref", "fixture-caller",
                 "--created-at", "2026-09-08T20:00:00Z",
                 "--output", str(output),
@@ -205,7 +224,7 @@ class ManifestBuilderTests(unittest.TestCase):
             manifest = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(manifest["processing"]["capability"], "governance")
             self.assertEqual(manifest["return_projection"]["mode"], "ALL")
-            self.assertTrue(manifest["completion"]["publisher"]["required"])
+            self.assertEqual(manifest["completion"]["publisher"]["destination"], {"type": "SDK_CONSOLE_SESSION", "session_ref": "fixture-console"})
             self.assertEqual(manifest["completion"]["initiator"]["ref"], "fixture-caller")
             self.assertEqual(manifest["completion"]["egress"]["final_stegverse_transition_surface"], "LLM_ADAPTER")
             validate_ingress_manifest(manifest)

@@ -82,7 +82,7 @@ def admitted_manifest(*, publisher_required=False):
         requested_consequence="Execute SDK-owned manifest-selected processing without creating MIR-specific transport or authority.",
         initiator_class="site_sdk_processing_handoff",
         initiator_ref="StegVerse-Labs/Site#1319",
-        publisher_required=publisher_required,
+        publisher_destination=({"type": "SDK_CONSOLE_SESSION", "session_ref": "site-sdk-handoff"} if publisher_required else None),
     )
 
 
@@ -165,7 +165,7 @@ class Tests(unittest.TestCase):
 
     def test_rejects_completion_mutation_after_hash_binding(self):
         handoff = site_handoff()
-        handoff["manifest"]["completion"]["publisher"]["required"] = True
+        handoff["manifest"]["completion"]["publisher"] = {"stage": "PUBLISHER", "package_profile": "stegverse.publisher.evidence-report-package/v1", "destination": {"type": "SDK_CONSOLE_SESSION", "session_ref": "tampered"}}
         with self.assertRaisesRegex(SiteSdkProcessingHandoffError, "manifest_hash"):
             validate_site_sdk_processing_handoff(handoff)
 
@@ -200,7 +200,7 @@ class Tests(unittest.TestCase):
         )
         self.assertFalse(result["publisher_transition_required"])
         self.assertEqual(
-            "stegverse.publisher.evidence-report-package/v1",
+            None,
             result["publisher_package_profile"],
         )
         self.assertEqual("LLM_ADAPTER", result["final_stegverse_side_egress_surface"])

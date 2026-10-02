@@ -79,30 +79,16 @@ def _normalize_completion_block(manifest: Mapping[str, Any]) -> dict[str, Any]:
     if completion.get("direction") != "SOUTH":
         raise SiteSdkProcessingHandoffError("manifest completion direction must be SOUTH")
     initiator = _require_mapping(completion.get("initiator"), "manifest.completion.initiator")
-    publisher = _require_mapping(completion.get("publisher"), "manifest.completion.publisher")
     egress = _require_mapping(completion.get("egress"), "manifest.completion.egress")
-
-    if publisher.get("stage") != "PUBLISHER":
-        raise SiteSdkProcessingHandoffError("manifest completion publisher stage must be PUBLISHER")
-    if not isinstance(publisher.get("required"), bool):
-        raise SiteSdkProcessingHandoffError("manifest completion publisher.required must be boolean")
     if egress.get("transport") != "INTERLOCK_INTR":
         raise SiteSdkProcessingHandoffError("manifest completion egress transport must be INTERLOCK_INTR")
     if egress.get("far_side_transition_required") is not True:
         raise SiteSdkProcessingHandoffError("manifest completion far-side transition is required")
-
-    return {
+    normalized = {
         "direction": "SOUTH",
         "initiator": {
             "class": _require_text(initiator.get("class"), "manifest.completion.initiator.class"),
             "ref": _require_text(initiator.get("ref"), "manifest.completion.initiator.ref"),
-        },
-        "publisher": {
-            "stage": "PUBLISHER",
-            "required": publisher["required"],
-            "package_profile": _require_text(
-                publisher.get("package_profile"), "manifest.completion.publisher.package_profile"
-            ),
         },
         "egress": {
             "final_stegverse_transition_surface": _require_text(
@@ -113,16 +99,25 @@ def _normalize_completion_block(manifest: Mapping[str, Any]) -> dict[str, Any]:
             "far_side_transition_required": True,
         },
     }
+    publisher = completion.get("publisher")
+    if publisher is not None:
+        normalized["publisher"] = deepcopy(_require_mapping(publisher, "manifest.completion.publisher"))
+    return normalized
 
 
 def _completion_declarations(completion: Mapping[str, Any]) -> dict[str, Any]:
-    publisher = _require_mapping(completion.get("publisher"), "completion.publisher")
     egress = _require_mapping(completion.get("egress"), "completion.egress")
+    publisher = completion.get("publisher")
+    publisher_selected = isinstance(publisher, Mapping) and (
+        "destination" in publisher or publisher.get("required") is True
+    )
     return {
-        "publisher_required": publisher.get("required") is True,
-        "publisher_package_profile": _require_text(
-            publisher.get("package_profile"), "completion.publisher.package_profile"
+        "publisher_required": publisher_selected,
+        "publisher_package_profile": (
+            _require_text(publisher.get("package_profile"), "completion.publisher.package_profile")
+            if publisher_selected else None
         ),
+        "publisher_destination": deepcopy(publisher.get("destination")) if isinstance(publisher, Mapping) else None,
         "final_stegverse_side_egress_surface": _require_text(
             egress.get("final_stegverse_transition_surface"),
             "completion.egress.final_stegverse_transition_surface",
