@@ -142,12 +142,14 @@ jobs:
           import json
           r=json.load(open('/tmp/test1.result.json'))
           assert r['schema'] == 'stegverse.sdk.manifest-handoff-disposition/v1'
-          assert r['disposition'] == 'FAIL_CLOSED'
-          assert r['evaluation_boundary'] == 'SDK_ORGANIZATION_DESTINATION_RESOLUTION'
+          assert r['disposition'] == 'ALLOW'
+          assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert r['receiver_availability_consulted'] is False
           assert r['external_machine_required'] is False
           assert r['authentic_governance_disposition_observed'] is False
+          assert r['intr_admission_observed'] is False
+          assert r['far_side_transition_observed'] is False
           assert r['consequence_committed'] is False
           print('MANIFEST_ONLY_TEST1_GOVERNED_HANDOFF_BOUNDARY_PASS')
           PY
@@ -159,12 +161,14 @@ jobs:
           import json
           r=json.load(open('/tmp/test2.result.json'))
           assert r['schema'] == 'stegverse.sdk.manifest-handoff-disposition/v1'
-          assert r['disposition'] == 'FAIL_CLOSED'
-          assert r['evaluation_boundary'] == 'SDK_ORGANIZATION_DESTINATION_RESOLUTION'
+          assert r['disposition'] == 'ALLOW'
+          assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert r['receiver_availability_consulted'] is False
           assert r['external_machine_required'] is False
           assert r['authentic_governance_disposition_observed'] is False
+          assert r['intr_admission_observed'] is False
+          assert r['far_side_transition_observed'] is False
           assert r['consequence_committed'] is False
           print('MANIFEST_ONLY_TEST2_GOVERNED_HANDOFF_BOUNDARY_PASS')
           PY
@@ -176,12 +180,14 @@ jobs:
           import json
           r=json.load(open('/tmp/test3.result.json'))
           assert r['schema'] == 'stegverse.sdk.manifest-handoff-disposition/v1'
-          assert r['disposition'] == 'FAIL_CLOSED'
-          assert r['evaluation_boundary'] == 'SDK_ORGANIZATION_DESTINATION_RESOLUTION'
+          assert r['disposition'] == 'ALLOW'
+          assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert r['receiver_availability_consulted'] is False
           assert r['external_machine_required'] is False
           assert r['authentic_governance_disposition_observed'] is False
+          assert r['intr_admission_observed'] is False
+          assert r['far_side_transition_observed'] is False
           assert r['consequence_committed'] is False
           print('MANIFEST_ONLY_TEST3_GOVERNED_HANDOFF_BOUNDARY_PASS')
           PY
@@ -193,12 +199,14 @@ jobs:
           import json
           r=json.load(open('/tmp/task4.result.json'))
           assert r['schema'] == 'stegverse.sdk.manifest-handoff-disposition/v1'
-          assert r['disposition'] == 'FAIL_CLOSED'
-          assert r['evaluation_boundary'] == 'SDK_ORGANIZATION_DESTINATION_RESOLUTION'
+          assert r['disposition'] == 'ALLOW'
+          assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert r['receiver_availability_consulted'] is False
           assert r['external_machine_required'] is False
           assert r['authentic_governance_disposition_observed'] is False
+          assert r['intr_admission_observed'] is False
+          assert r['far_side_transition_observed'] is False
           assert r['consequence_committed'] is False
           print('MANIFEST_ONLY_TASK4_GOVERNED_HANDOFF_BOUNDARY_PASS')
           PY
@@ -210,8 +218,8 @@ jobs:
           for path in ['/tmp/test1.result.json','/tmp/test2.result.json','/tmp/test3.result.json','/tmp/task4.result.json']:
               r=json.load(open(path))
               assert r['schema']=='stegverse.sdk.manifest-handoff-disposition/v1'
-              assert r['disposition']=='FAIL_CLOSED'
-              assert r['evaluation_boundary']=='SDK_ORGANIZATION_DESTINATION_RESOLUTION'
+              assert r['disposition']=='ALLOW'
+              assert r['evaluation_boundary']=='SDK_MANIFEST_HANDOFF'
               assert r['authentic_governance_disposition_observed'] is False
           print('FOUR_STAGE_GENERIC_GOVERNED_BOUNDARY_PASS')
           PY
