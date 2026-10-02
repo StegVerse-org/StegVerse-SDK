@@ -37,7 +37,6 @@ def build_exp3_manifest():
         return_depth="full-trace",
         initiator_class="organization",
         initiator_ref="StegVerse-Labs",
-        publisher_required=True,
         declared_intent="Produce the StegVerse-side four-dimension evidence assessment using the existing read-only diagnostic processor; preserve equal-weight limitations and unverified runtime states.",
         requested_consequence="Return a diagnostic evidence artifact with the declared Publisher stage and separately attributable unknowns; do not imply external egress or physical execution.",
         context_refs=[
@@ -46,6 +45,14 @@ def build_exp3_manifest():
         ],
         created_at="2026-09-24T00:00:00Z",
     )
+    # Reconstruct the historical v1 Publisher bytes explicitly. New manifests
+    # use typed destinations; this projection exists only for the already-frozen
+    # artifact and does not alter new-builder semantics.
+    manifest["completion"]["publisher"] = {
+        "stage": "PUBLISHER",
+        "required": True,
+        "package_profile": "stegverse.publisher.evidence-report-package/v1",
+    }
     # This named original is frozen to workflow artifact 10843328013. Later
     # builder releases added metadata fields which were NOT in its historical
     # wire bytes; each is removed ONLY when reconstructing this exact original,
@@ -59,6 +66,8 @@ def build_exp3_manifest():
             and builder_metadata.get("publisher_required_by_review_default") is False):
         del builder_metadata["external_review_requested"]
         del builder_metadata["publisher_required_by_review_default"]
+    if builder_metadata.get("publisher_selected_by_destination") is False:
+        del builder_metadata["publisher_selected_by_destination"]
     # Release 2: capability resolution, bound at manifest creation for every
     # capability. ONLINE is what an installed ecosystem_diagnostic route
     # resolves to; anything else means the route changed and must not be hidden.

@@ -77,12 +77,30 @@ def _normalize_processing(
     }
 
 
-def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
-    """Validate the complete governed southbound communication lifecycle.
+def _normalize_publisher_destination(value: Any) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError("completion.publisher.destination must be an object")
+    destination_type = value.get("type")
+    if destination_type not in {"SDK_CONSOLE_SESSION", "ECOSYSTEM_CHAT_SESSION", "KV"}:
+        raise ValueError("completion.publisher.destination.type is not an installed destination type")
+    if destination_type == "KV":
+        _require_exact_fields(value, {"type", "kv_class", "kv_context_ref"}, "completion.publisher.destination")
+        kv_class = value.get("kv_class")
+        if kv_class not in {"MyKV", "OrgKV", "OrgMemberKV", "CompanyKV", "CompanyEmployeeKV"}:
+            raise ValueError("completion.publisher.destination.kv_class is not an admitted KV class")
+        context = value.get("kv_context_ref")
+        if not isinstance(context, str) or not context.strip():
+            raise ValueError("completion.publisher.destination.kv_context_ref is required")
+        return {"type": "KV", "kv_class": kv_class, "kv_context_ref": context.strip()}
+    _require_exact_fields(value, {"type", "session_ref"}, "completion.publisher.destination")
+    session_ref = value.get("session_ref")
+    if not isinstance(session_ref, str) or not session_ref.strip():
+        raise ValueError("completion.publisher.destination.session_ref is required")
+    return {"type": destination_type, "session_ref": session_ref.strip()}
 
-    Legacy v1 manifests may omit completion for backward compatibility, but
-    omission means the manifest is not a complete communication manifest.
-    """
+
+def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Validate the governed southbound lifecycle and optional Publisher delivery."""
     raw = manifest.get("completion")
     if raw is None:
         return None
@@ -96,26 +114,42 @@ def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
     if not isinstance(initiator, Mapping):
         raise ValueError("completion.initiator must be an object")
     _require_exact_fields(initiator, {"class", "ref"}, "completion.initiator")
-    initiator_class = initiator.get("class")
-    initiator_ref = initiator.get("ref")
+    initiator_class, initiator_ref = initiator.get("class"), initiator.get("ref")
     if not isinstance(initiator_class, str) or not initiator_class.strip():
         raise ValueError("completion.initiator.class is required")
     if not isinstance(initiator_ref, str) or not initiator_ref.strip():
         raise ValueError("completion.initiator.ref is required")
 
+    normalized_publisher = None
     publisher = raw.get("publisher")
-    if not isinstance(publisher, Mapping):
-        raise ValueError("completion.publisher must be an object")
-    _require_exact_fields(
-        publisher, {"stage", "required", "package_profile"}, "completion.publisher"
-    )
-    if publisher.get("stage") != "PUBLISHER":
-        raise ValueError("completion.publisher.stage must be PUBLISHER")
-    if not isinstance(publisher.get("required"), bool):
-        raise ValueError("completion.publisher.required must be boolean")
-    package_profile = publisher.get("package_profile")
-    if not isinstance(package_profile, str) or not package_profile.strip():
-        raise ValueError("completion.publisher.package_profile is required")
+    if publisher is not None:
+        if not isinstance(publisher, Mapping):
+            raise ValueError("completion.publisher must be an object")
+        legacy_fields = {"stage", "required", "package_profile"}
+        destination_fields = {"stage", "package_profile", "destination"}
+        fields = frozenset(publisher)
+        if fields not in {frozenset(legacy_fields), frozenset(destination_fields)}:
+            _require_exact_fields(publisher, destination_fields | legacy_fields, "completion.publisher")
+            raise ValueError("completion.publisher must use either legacy required or explicit destination semantics")
+        if publisher.get("stage") != "PUBLISHER":
+            raise ValueError("completion.publisher.stage must be PUBLISHER")
+        package_profile = publisher.get("package_profile")
+        if not isinstance(package_profile, str) or not package_profile.strip():
+            raise ValueError("completion.publisher.package_profile is required")
+        if "destination" in publisher:
+            normalized_publisher = {
+                "stage": "PUBLISHER",
+                "package_profile": package_profile.strip(),
+                "destination": _normalize_publisher_destination(publisher.get("destination")),
+            }
+        else:
+            if not isinstance(publisher.get("required"), bool):
+                raise ValueError("completion.publisher.required must be boolean in legacy v1 manifests")
+            normalized_publisher = {
+                "stage": "PUBLISHER",
+                "required": publisher["required"],
+                "package_profile": package_profile.strip(),
+            }
 
     # completion.egress is requester-facing completion/return metadata. It MUST NOT
     # select the outbound organization destination; that belongs to the canonical
@@ -123,16 +157,7 @@ def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
     egress = raw.get("egress")
     if not isinstance(egress, Mapping):
         raise ValueError("completion.egress must be an object")
-    _require_exact_fields(
-        egress,
-        {
-            "final_stegverse_transition_surface",
-            "transport",
-            "far_side_transition_required",
-            "destination_profile",
-        },
-        "completion.egress",
-    )
+    _require_exact_fields(egress, {"final_stegverse_transition_surface", "transport", "far_side_transition_required", "destination_profile"}, "completion.egress")
     surface = egress.get("final_stegverse_transition_surface")
     if not isinstance(surface, str) or not surface.strip():
         raise ValueError("completion.egress.final_stegverse_transition_surface is required")
@@ -141,29 +166,18 @@ def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
     if egress.get("far_side_transition_required") is not True:
         raise ValueError("completion.egress.far_side_transition_required must be true")
     destination_profile = egress.get("destination_profile")
-    if destination_profile is not None and (
-        not isinstance(destination_profile, str) or not destination_profile.strip()
-    ):
+    if destination_profile is not None and (not isinstance(destination_profile, str) or not destination_profile.strip()):
         raise ValueError("completion.egress.destination_profile must be a non-empty string when supplied")
-
-    normalized_egress = {
-        "final_stegverse_transition_surface": surface.strip(),
-        "transport": "INTERLOCK_INTR",
-        "far_side_transition_required": True,
-    }
-    if destination_profile is not None:
-        normalized_egress["destination_profile"] = destination_profile.strip()
-
-    return {
+    normalized = {
         "direction": "SOUTH",
         "initiator": {"class": initiator_class.strip(), "ref": initiator_ref.strip()},
-        "publisher": {
-            "stage": "PUBLISHER",
-            "required": publisher["required"],
-            "package_profile": package_profile.strip(),
-        },
-        "egress": normalized_egress,
+        "egress": {"final_stegverse_transition_surface": surface.strip(), "transport": "INTERLOCK_INTR", "far_side_transition_required": True},
     }
+    if normalized_publisher is not None:
+        normalized["publisher"] = normalized_publisher
+    if destination_profile is not None:
+        normalized["egress"]["destination_profile"] = destination_profile.strip()
+    return normalized
 
 
 def validate_ingress_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
@@ -269,7 +283,7 @@ def validate_ingress_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     canonical["master_records_transition_custody_independent_of_return_projection"] = True
     canonical["manifest_labels_change_governance"] = False
     canonical["complete_communication_manifest"] = completion is not None
-    canonical["publisher_is_manifest_stage"] = completion is not None
+    canonical["publisher_is_manifest_stage"] = completion is not None and "publisher" in completion
     canonical["communication_terminal_state_requires_far_side_intr_transition"] = completion is not None
     canonical["canonical_manifest_sha256"] = canonical_sha256(canonical)
     return canonical

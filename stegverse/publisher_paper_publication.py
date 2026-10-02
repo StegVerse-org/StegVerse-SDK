@@ -172,7 +172,7 @@ def prepare_publisher_paper_manifest(
         ),
         initiator_class="publisher_paper_publication_candidate",
         initiator_ref=TASK_ID,
-        publisher_required=True,
+        publisher_destination={"type": "SDK_CONSOLE_SESSION", "session_ref": TASK_ID},
         publisher_package_profile=PUBLISHER_PACKAGE_PROFILE,
         destination_profile=TARGET_REPOSITORY,
     )

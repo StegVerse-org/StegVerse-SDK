@@ -180,7 +180,7 @@ def _completion_contract(
     *,
     initiator_class: str,
     initiator_ref: str,
-    publisher_required: bool,
+    publisher_destination: Mapping[str, Any] | None,
     publisher_package_profile: str,
     egress_surface: str,
     destination_profile: str | None,
@@ -197,25 +197,29 @@ def _completion_contract(
         not isinstance(destination_profile, str) or not destination_profile.strip()
     ):
         raise ValueError("destination_profile must be a non-empty string when supplied")
+    # Completion return binding only. Outbound organization routing is resolved
+    # from the canonical capability/connector mapping, never from this value.
     egress = {
-        # Completion return binding only. Outbound organization routing is resolved
-        # from the canonical capability/connector mapping, never from this value.
         "final_stegverse_transition_surface": egress_surface.strip(),
         "transport": "INTERLOCK_INTR",
         "far_side_transition_required": True,
     }
     if destination_profile is not None:
         egress["destination_profile"] = destination_profile.strip()
-    return {
+    completion = {
         "direction": "SOUTH",
         "initiator": {"class": initiator_class.strip(), "ref": initiator_ref.strip()},
-        "publisher": {
-            "stage": "PUBLISHER",
-            "required": bool(publisher_required),
-            "package_profile": publisher_package_profile.strip(),
-        },
         "egress": egress,
     }
+    if publisher_destination is not None:
+        if not isinstance(publisher_destination, Mapping):
+            raise ValueError("publisher_destination must be an object when supplied")
+        completion["publisher"] = {
+            "stage": "PUBLISHER",
+            "package_profile": publisher_package_profile.strip(),
+            "destination": deepcopy(dict(publisher_destination)),
+        }
+    return completion
 
 
 def build_manifest(
@@ -236,6 +240,7 @@ def build_manifest(
     initiator_class: str = "external_framework",
     initiator_ref: str | None = None,
     publisher_required: bool | None = None,
+    publisher_destination: Mapping[str, Any] | None = None,
     external_review: bool = False,
     publisher_package_profile: str = DEFAULT_PUBLISHER_PACKAGE_PROFILE,
     egress_surface: str = DEFAULT_FRAMEWORK_EGRESS_SURFACE,
@@ -338,7 +343,8 @@ def build_manifest(
         "source_semantic_custody": "EXTERNAL",
         "builder_grants_authority": False,
         "external_review_requested": external_review,
-        "publisher_required_by_review_default": external_review and publisher_required is None,
+        "publisher_required_by_review_default": False,
+        "publisher_selected_by_destination": publisher_destination is not None,
     }
     if data_class is not None:
         if not isinstance(data_class, str) or not data_class.strip():
@@ -368,7 +374,7 @@ def build_manifest(
         "completion": _completion_contract(
             initiator_class=initiator_class,
             initiator_ref=initiator_ref or source_framework,
-            publisher_required=(external_review if publisher_required is None else publisher_required),
+            publisher_destination=publisher_destination,
             publisher_package_profile=publisher_package_profile,
             egress_surface=egress_surface,
             destination_profile=destination_profile,
@@ -418,6 +424,10 @@ def main(argv: list[str] | None = None) -> int:
     publisher_selection.add_argument("--publisher-required", dest="publisher_required", action="store_true")
     publisher_selection.add_argument("--no-publisher", dest="publisher_required", action="store_false")
     build.set_defaults(publisher_required=None)
+    build.add_argument("--publisher-destination-type", choices=["SDK_CONSOLE_SESSION", "ECOSYSTEM_CHAT_SESSION", "KV"])
+    build.add_argument("--publisher-session-ref")
+    build.add_argument("--publisher-kv-class", choices=["MyKV", "OrgKV", "OrgMemberKV", "CompanyKV", "CompanyEmployeeKV"])
+    build.add_argument("--publisher-kv-context-ref")
     build.add_argument("--external-review", action="store_true", help="review-facing artifact; Publisher defaults to required unless explicitly overridden")
     build.add_argument("--publisher-package-profile", default=DEFAULT_PUBLISHER_PACKAGE_PROFILE)
     build.add_argument("--egress-surface", default=DEFAULT_FRAMEWORK_EGRESS_SURFACE)
@@ -446,6 +456,12 @@ def main(argv: list[str] | None = None) -> int:
                 initiator_class=args.initiator_class,
                 initiator_ref=args.initiator_ref,
                 publisher_required=args.publisher_required,
+            publisher_destination=(
+                {"type": args.publisher_destination_type, **(
+                    {"kv_class": args.publisher_kv_class, "kv_context_ref": args.publisher_kv_context_ref}
+                    if args.publisher_destination_type == "KV" else {"session_ref": args.publisher_session_ref}
+                )} if args.publisher_destination_type else None
+            ),
                 external_review=args.external_review,
                 publisher_package_profile=args.publisher_package_profile,
                 egress_surface=args.egress_surface,

@@ -198,13 +198,12 @@
       }
     },
     "completion": {
-      "description": "Governed requester-facing completion lifecycle through presentation, SDK return assembly, optional Publisher, and return-channel binding. This block does not select the outbound organization ingress destination; organization routing is resolved from the canonical capability/connector mapping.",
+      "description": "Governed requester-facing completion lifecycle through presentation, SDK return assembly, optional Publisher, and return-channel binding. Evaluator output remains directly observable in the submitting UI. Publisher exists only when explicitly selected; this block does not select the outbound organization ingress destination, which is resolved from the canonical capability/connector mapping.",
       "type": "object",
       "additionalProperties": false,
       "required": [
         "direction",
         "initiator",
-        "publisher",
         "egress"
       ],
       "properties": {
@@ -230,25 +229,113 @@
           }
         },
         "publisher": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "stage",
-            "required",
-            "package_profile"
-          ],
-          "properties": {
-            "stage": {
-              "const": "PUBLISHER"
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "stage",
+                "required",
+                "package_profile"
+              ],
+              "properties": {
+                "stage": {
+                  "const": "PUBLISHER"
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "package_profile": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
             },
-            "required": {
-              "type": "boolean"
-            },
-            "package_profile": {
-              "type": "string",
-              "minLength": 1
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "stage",
+                "package_profile",
+                "destination"
+              ],
+              "properties": {
+                "stage": {
+                  "const": "PUBLISHER"
+                },
+                "package_profile": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "destination": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "session_ref"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "SDK_CONSOLE_SESSION"
+                        },
+                        "session_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "session_ref"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "ECOSYSTEM_CHAT_SESSION"
+                        },
+                        "session_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "kv_class",
+                        "kv_context_ref"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "KV"
+                        },
+                        "kv_class": {
+                          "enum": [
+                            "MyKV",
+                            "OrgKV",
+                            "OrgMemberKV",
+                            "CompanyKV",
+                            "CompanyEmployeeKV"
+                          ]
+                        },
+                        "kv_context_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
             }
-          }
+          ],
+          "description": "New manifests use explicit destination semantics. The required-boolean shape remains accepted only for backward compatibility with frozen v1 manifests."
         },
         "egress": {
           "type": "object",
