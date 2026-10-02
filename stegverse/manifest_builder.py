@@ -72,7 +72,7 @@ DIAGNOSTIC_RETURN_DEPTHS = {
 }
 
 DEFAULT_PUBLISHER_PACKAGE_PROFILE = "stegverse.publisher.evidence-report-package/v1"
-DEFAULT_FRAMEWORK_EGRESS_SURFACE = "LLM_ADAPTER"
+DEFAULT_FRAMEWORK_EGRESS_SURFACE = "LLM_ADAPTER"  # requester return adapter; never organization routing
 
 
 _CORRECTABLE_MANIFEST_BINDING_DENIALS = frozenset({
@@ -198,6 +198,8 @@ def _completion_contract(
     ):
         raise ValueError("destination_profile must be a non-empty string when supplied")
     egress = {
+        # Completion return binding only. Outbound organization routing is resolved
+        # from the canonical capability/connector mapping, never from this value.
         "final_stegverse_transition_surface": egress_surface.strip(),
         "transport": "INTERLOCK_INTR",
         "far_side_transition_required": True,

@@ -59,32 +59,18 @@ def test_test5_two_workers_use_same_generic_run_manifest_route():
     assert derive_execution_request(a)["canonical_manifest_sha256"] != derive_execution_request(b)["canonical_manifest_sha256"]
 
 
-def test_test5_run_manifest_hands_off_to_the_manifest_declared_destination(monkeypatch):
-    """The same manifest that could not execute now manifests and hands off.
-
-    No environment is configured and no receiver exists. Neither is consulted:
-    the manifest declares the destination, so the handoff completes.
-    """
+def test_test5_run_manifest_waits_for_canonical_organization_endpoint_mapping(monkeypatch):
     monkeypatch.delenv("STEGVERSE_UNIVERSAL_INTR_INGRESS_URL", raising=False)
     monkeypatch.delenv("STEGVERSE_TVC_RELAY_AUTHORIZATION_ID", raising=False)
     result = execute_manifest(_manifest("A"))
-    assert result["disposition"] == "ALLOW"
-    assert result["state"] == "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF"
+    assert result["disposition"] == "FAIL_CLOSED"
+    assert result["state"] == "FAIL_CLOSED"
     assert result["processing_capability"] == "stegbrowser"
     assert result["canonical_task_id"] == "EPHEMERAL-STEGBROWSER-EXTERNAL-AI-ACTIVATION-001"
-    assert result["destination_resolution_source"] == "MANIFEST_COMPLETION_EGRESS"
-    assert result["destination_resolution_environment_inputs"] == []
-    assert result["destination"]["transport"] == "INTERLOCK_INTR"
-    # The SDK manifested; it did not transport, contact or await anything.
-    assert result["transport_performed_by_sdk"] is False
-    assert result["receiver_contacted"] is False
-    assert result["receiver_availability_required"] is False
-    assert result["awaits_external_machine"] is False
-    assert result["receiver_unavailable_disposition"] == (
-        "DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION"
-    )
-    # The far side remains unobserved: a handoff is not a transition.
-    assert result["intr_admission_observed"] is False
-    assert result["far_side_transition_observed"] is False
+    assert result["evaluation_boundary"] == "SDK_ORGANIZATION_DESTINATION_RESOLUTION"
+    assert result["destination_resolution_source"] == "CANONICAL_CONNECTOR_CAPABILITY_OVERLAY"
+    assert result["connector_profile_id"] == "sdk-manifest-ingress"
+    assert result["connector_destination_subsystem"] == "SDK:ManifestIngress"
+    assert result["completion_egress_controls_outbound_organization_routing"] is False
     assert result["consequence_committed"] is False
-    assert result["authority_effect"] == "NONE_MANIFEST_HANDOFF_ONLY"
+

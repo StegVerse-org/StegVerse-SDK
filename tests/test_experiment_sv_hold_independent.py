@@ -29,15 +29,9 @@ _spec = importlib.util.spec_from_file_location("experiment_sv_hold_independent",
 experiment = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(experiment)
 
-ALLOWED_DISPOSITIONS = {
-    "SOURCE_LOCAL_EXECUTION_REFUSED",
-    "REQUIRES_SEPARATELY_AUTHORIZED_LIVE_CALLER",
-}
-
-
 def _run() -> dict:
     with tempfile.TemporaryDirectory() as output:
-        return experiment.run(output_dir=Path(output))
+        return experiment.run(output_dir=Path(output), attempt_runtime=False)
 
 
 def test_the_experiment_imports() -> None:
@@ -67,23 +61,20 @@ def test_every_condition_source_validates_and_claims_nothing() -> None:
     assert summary["master_records_closure_claim"] is False
     for row in summary["conditions"]:
         assert row["source_validation"] == "PASS", row
-        assert row["runtime_disposition"] in ALLOWED_DISPOSITIONS, row
+        assert row["runtime_disposition"] == "NOT_ATTEMPTED", row
         assert row["actual_effect_observed"] is False, row
         assert row["master_records_reconstruction_observed"] is False, row
 
 
-def test_the_declared_far_side_is_recorded_and_unreached() -> None:
-    """The manifest declares a far side over InTr. Preparing a handoff is not
-    crossing to it, and the summary must show the difference."""
+def test_source_qualification_does_not_invent_an_organization_destination() -> None:
+    """Requester completion metadata is not canonical organization routing.
+    Source qualification therefore records no outbound destination and performs
+    no runtime attempt while the connector capability lacks a concrete .github
+    ingress endpoint."""
     summary = _run()
     for row in summary["conditions"]:
-        destination = row["declared_destination"]
-        assert destination["transport"] == "INTERLOCK_INTR"
-        assert destination["far_side_transition_required"] is True
-        assert destination["final_stegverse_transition_surface"]
-        assert destination["destination_sha256"]
-        assert row["far_side_transition_observed"] is False
-        assert row["runtime_disposition"] == "REQUIRES_SEPARATELY_AUTHORIZED_LIVE_CALLER"
+        assert "declared_destination" not in row
+        assert row["runtime_disposition"] == "NOT_ATTEMPTED"
 
 
 def test_a_prepared_handoff_carries_no_authority() -> None:
@@ -111,7 +102,7 @@ def test_skipping_the_runtime_attempt_leaves_every_condition_unattempted() -> No
 
 def test_the_experiment_writes_its_evidence() -> None:
     with tempfile.TemporaryDirectory() as output:
-        experiment.run(output_dir=Path(output))
+        experiment.run(output_dir=Path(output), attempt_runtime=False)
         written = {p.name for p in Path(output).glob("*.json")}
     assert "summary.json" in written
     for step, *_ in experiment.CONDITIONS:

@@ -72,17 +72,16 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         self.assertEqual(graph["canonical_task_id"], "SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001")
         self.assertFalse(graph["adapter_executes_lifecycle"])
         result = execute_manifest(manifest)
-        # Public run-manifest manifests the transition and hands it to the governed
-        # Universal InTr path at the destination the manifest declares. Isolated
-        # source CI has no resident endpoint and needs none: the handoff does not
-        # depend on one. Local semantic execution remains available only as a
-        # non-authorizing processor fixture.
-        self.assertEqual(result["schema"], "stegverse.sdk.manifest-transition-handoff/v1")
-        self.assertEqual(result["disposition"], "ALLOW")
-        self.assertEqual(result["evaluation_boundary"], "SDK_MANIFEST_HANDOFF")
-        self.assertEqual(result["destination"]["transport"], "INTERLOCK_INTR")
-        self.assertFalse(result["receiver_availability_required"])
-        self.assertFalse(result["intr_admission_observed"])
+        # Processing remains manifest-selected, but outbound organization routing
+        # must come from the canonical connector/capability mapping. Until that
+        # mapping resolves the concrete owning .github ingress endpoint, the
+        # public run-manifest boundary is an actionable FAIL_CLOSED.
+        self.assertEqual(result["schema"], "stegverse.sdk.manifest-handoff-disposition/v1")
+        self.assertEqual(result["disposition"], "FAIL_CLOSED")
+        self.assertEqual(result["evaluation_boundary"], "SDK_ORGANIZATION_DESTINATION_RESOLUTION")
+        self.assertEqual(result["connector_profile_id"], "sdk-manifest-ingress")
+        self.assertEqual(result["connector_destination_subsystem"], "SDK:ManifestIngress")
+        self.assertFalse(result["completion_egress_controls_outbound_organization_routing"])
         self.assertFalse(result["consequence_committed"])
         direct_result = execute_processor_manifest(manifest)
         self.assertEqual(direct_result["schema"], "stegverse.sdk.purpose-bound-worker-manifest-result.v1")

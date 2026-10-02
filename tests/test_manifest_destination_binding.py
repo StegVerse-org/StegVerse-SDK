@@ -1,12 +1,9 @@
-"""The manifest determines the destination, and nothing else may supply one.
+"""Outbound organization routing comes from canonical capability mapping, not completion.egress.
 
-This replaces the former transport-attachment boundary. That boundary asserted a
-machine dependency: execute_manifest refused until an environment variable named
-an HTTP ingress to POST to. Under the ecosystem standard - every action a
-manifest-bound state transition, no external machine awaited - that ingress could
-never be configured, so the SDK had no working path at all. The destination comes
-from completion.egress instead, and an absent destination is a manifest defect
-repairable in the manifest.
+The canonical registry declares sdk-manifest-ingress / SDK:ManifestIngress and
+its owner. Until that registry/overlay also resolves a concrete organization
+.github ingress endpoint, run-manifest fails closed rather than promoting
+LLM_ADAPTER, Publisher, or caller-authored completion metadata to routing authority.
 """
 import os
 import unittest
@@ -38,70 +35,40 @@ DESTINATION = {
 }
 
 
-class ManifestDeclaredDestinationTest(unittest.TestCase):
-    def test_destination_is_read_from_completion_egress(self):
-        canonical = {
-            "completion": {
-                "egress": {
-                    "final_stegverse_transition_surface": "surface.v1",
-                    "transport": "INTERLOCK_INTR",
-                    "far_side_transition_required": True,
-                    "destination_profile": "GCAT-BCAT-Engine/Publisher",
-                }
-            }
-        }
-        destination = manifest_declared_destination(canonical)
-        self.assertEqual(destination["final_stegverse_transition_surface"], "surface.v1")
-        self.assertEqual(destination["transport"], "INTERLOCK_INTR")
-        self.assertEqual(destination["destination_profile"], "GCAT-BCAT-Engine/Publisher")
-        self.assertTrue(destination["far_side_transition_required"])
-        self.assertEqual(len(destination["destination_sha256"]), 64)
+class CompletionEgressIsNotDestinationTest(unittest.TestCase):
+    def test_completion_egress_is_not_outbound_destination(self):
+        canonical = {"completion": {"egress": {
+            "final_stegverse_transition_surface": "LLM_ADAPTER",
+            "transport": "INTERLOCK_INTR",
+            "far_side_transition_required": True,
+            "destination_profile": "GCAT-BCAT-Engine/Publisher",
+        }}}
+        self.assertIsNone(manifest_declared_destination(canonical))
 
     def test_a_manifest_without_completion_declares_no_destination(self):
         self.assertIsNone(manifest_declared_destination({}))
         self.assertIsNone(manifest_declared_destination({"completion": {}}))
         self.assertIsNone(manifest_declared_destination({"completion": {"egress": {}}}))
 
-    def test_destination_profile_is_optional(self):
-        canonical = {"completion": {"egress": {"final_stegverse_transition_surface": "surface.v1"}}}
-        self.assertIsNone(manifest_declared_destination(canonical)["destination_profile"])
+    def test_destination_profile_cannot_be_promoted_to_routing(self):
+        canonical = {"completion": {"egress": {
+            "final_stegverse_transition_surface": "surface.v1",
+            "destination_profile": "GCAT-BCAT-Engine/Publisher",
+        }}}
+        self.assertIsNone(manifest_declared_destination(canonical))
 
 
 class HandoffTest(unittest.TestCase):
-    def test_declared_destination_hands_off_without_contacting_anything(self):
-        handoff = build_intr_handoff({**REQUEST, "manifest_declared_destination": DESTINATION})
-        self.assertEqual(handoff["disposition"], "ALLOW")
-        self.assertEqual(handoff["state"], "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF")
-        self.assertEqual(handoff["destination"], DESTINATION)
-        self.assertEqual(handoff["destination_resolution_source"], DESTINATION_RESOLUTION_SOURCE)
-        self.assertEqual(handoff["destination_resolution_environment_inputs"], [])
-        self.assertFalse(handoff["transport_performed_by_sdk"])
-        self.assertFalse(handoff["transport_credential_supplied_by_sdk"])
-        self.assertFalse(handoff["receiver_contacted"])
-        self.assertFalse(handoff["receiver_availability_required"])
-        self.assertFalse(handoff["awaits_external_machine"])
-        self.assertEqual(handoff["receiver_unavailable_disposition"], RECEIVER_UNAVAILABLE_DISPOSITION)
-        self.assertEqual(len(handoff["handoff_sha256"]), 64)
-
-    def test_handoff_claims_no_far_side_observation(self):
-        handoff = build_intr_handoff({**REQUEST, "manifest_declared_destination": DESTINATION})
-        self.assertFalse(handoff["intr_admission_observed"])
-        self.assertFalse(handoff["far_side_transition_observed"])
-        self.assertFalse(handoff["organization_receipt_observed"])
-        self.assertFalse(handoff["master_records_reconstruction_observed"])
-        self.assertFalse(handoff["consequence_committed"])
-        self.assertFalse(handoff["terminal"])
-        self.assertEqual(handoff["transition_authority"], "INTERLOCK_INTR")
-        self.assertEqual(handoff["next_transition_owner"], "INTERLOCK_INTR")
-        self.assertEqual(handoff["authority_effect"], "NONE_MANIFEST_HANDOFF_ONLY")
-
-    def test_a_receiver_that_is_not_listening_does_not_change_the_handoff(self):
-        """Destination existence is sufficient; liveness is not a predicate."""
-        with patch.dict(os.environ, {}, clear=True):
-            bare = build_intr_handoff({**REQUEST, "manifest_declared_destination": DESTINATION})
-        with patch.dict(os.environ, {"STEGVERSE_UNIVERSAL_INTR_INGRESS_URL": "https://example.invalid/x"}):
-            with_env = build_intr_handoff({**REQUEST, "manifest_declared_destination": DESTINATION})
-        self.assertEqual(bare, with_env)
+    def test_unresolved_canonical_endpoint_fails_closed(self):
+        result = build_intr_handoff({**REQUEST, "manifest_declared_destination": None})
+        self.assertEqual(result["disposition"], "FAIL_CLOSED")
+        self.assertEqual(result["evaluation_boundary"], "SDK_ORGANIZATION_DESTINATION_RESOLUTION")
+        self.assertEqual(result["failure_code"], "CANONICAL_ORGANIZATION_INGRESS_ENDPOINT_NOT_RESOLVED")
+        self.assertEqual(result["connector_profile_id"], "sdk-manifest-ingress")
+        self.assertEqual(result["connector_destination_subsystem"], "SDK:ManifestIngress")
+        self.assertFalse(result["completion_egress_controls_outbound_organization_routing"])
+        self.assertFalse(result["llm_adapter_is_outbound_organization_destination"])
+        self.assertFalse(result["publisher_is_outbound_organization_destination"])
 
 
 class UndeclaredDestinationTest(unittest.TestCase):
@@ -115,11 +82,11 @@ class UndeclaredDestinationTest(unittest.TestCase):
     def test_undeclared_destination_is_a_repairable_manifest_defect(self):
         result = self._result()
         self.assertEqual(result["disposition"], "FAIL_CLOSED")
-        self.assertEqual(result["evaluation_boundary"], "SDK_MANIFEST_DESTINATION_BINDING")
-        self.assertEqual(result["failure_code"], "MANIFEST_DECLARES_NO_EGRESS_DESTINATION")
-        self.assertEqual(result["failed_predicate"], "MANIFEST_COMPLETION_EGRESS_DECLARES_A_DESTINATION")
-        self.assertEqual(result["next_attempt"], "RE_MANIFEST_WITH_A_DECLARED_EGRESS_DESTINATION")
-        self.assertIn("completion.egress", result["required_evidence_or_repair"])
+        self.assertEqual(result["evaluation_boundary"], "SDK_ORGANIZATION_DESTINATION_RESOLUTION")
+        self.assertEqual(result["failure_code"], "CANONICAL_ORGANIZATION_INGRESS_ENDPOINT_NOT_RESOLVED")
+        self.assertEqual(result["failed_predicate"], "REGISTERED_CAPABILITY_RESOLVES_TO_CANONICAL_ORGANIZATION_GITHUB_INGRESS_ENDPOINT")
+        self.assertEqual(result["next_attempt"], "RETRY_AFTER_CANONICAL_ORGANIZATION_ENDPOINT_MAPPING_IS_AVAILABLE")
+        self.assertIn("sdk-manifest-ingress", result["required_evidence_or_repair"])
         self.assertEqual(result["request_sha256"], REQUEST["request_sha256"])
 
     def test_the_repair_names_no_machine_and_consults_no_receiver(self):
@@ -128,11 +95,12 @@ class UndeclaredDestinationTest(unittest.TestCase):
         self.assertFalse(result["external_machine_required"])
         self.assertFalse(result["receiver_availability_consulted"])
         self.assertFalse(result["consequence_committed"])
-        self.assertEqual(result["evidence_class"], "SDK_LOCAL_MANIFEST_BINDING")
+        self.assertEqual(result["evidence_class"], "SDK_LOCAL_CAPABILITY_DESTINATION_RESOLUTION")
         self.assertEqual(result["authority_effect"], "NONE")
         repair = result["required_evidence_or_repair"]
-        for forbidden in ("ingress", "URL", "host", "reachable", "device", "machine", "attach"):
-            self.assertNotIn(forbidden.lower(), repair.lower())
+        self.assertIn("sdk-manifest-ingress / SDK:ManifestIngress", repair)
+        self.assertIn(".github ingress endpoint", repair)
+        self.assertIn("Do not substitute", repair)
 
 
 class ReturnLegTest(unittest.TestCase):

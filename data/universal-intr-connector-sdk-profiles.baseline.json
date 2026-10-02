@@ -1,14 +1,46 @@
 {
   "authority_effect": "NONE_SOURCE_BASELINE_ONLY",
   "canonical_registry": {
-    "observed_commit": "4d3e0daee5d06aaed98ed6d8034df5fff6a45224",
+    "observed_commit": "adceffaa6fcdf0e89bff7a091dddf92d790cc439",
     "path": "specs/universal-intr-connector-profiles.v1.json",
-    "registry_profile_count": 17,
+    "registry_profile_count": 18,
     "registry_schema": "stegverse.universal-intr.connector-profile-registry/v1",
     "registry_state": "DEFINED_SOURCE_ONLY",
     "repository": "StegVerse-Labs/StegOS"
   },
   "profiles": [
+    {
+      "schema": "stegverse.universal-intr.connector-profile/v1",
+      "profile_id": "sdk-manifest-ingress",
+      "request_class": "SDK_MANIFEST_INGRESS",
+      "payload_schema": "stegverse.ingress-manifest.v1",
+      "operations": [
+        "SUBMIT_MANIFEST"
+      ],
+      "source": {
+        "boundary": "DEVICE_SYSTEM",
+        "subsystem": "ExternalNode:ManifestClient"
+      },
+      "destination": {
+        "boundary": "STEGOS_ECOSYSTEM",
+        "subsystem": "SDK:ManifestIngress"
+      },
+      "response": {
+        "source": {
+          "boundary": "STEGOS_ECOSYSTEM",
+          "subsystem": "SDK:ManifestIngress"
+        },
+        "destination": {
+          "boundary": "DEVICE_SYSTEM",
+          "subsystem": "ExternalNode:ManifestClient"
+        }
+      },
+      "downstream_owner_ref": "StegVerse-org/StegVerse-SDK",
+      "custody_mode": "REFERENCE",
+      "display_projection": null,
+      "authorization_required": true,
+      "authority_effect": "NONE"
+    },
     {
       "authority_effect": "NONE",
       "authorization_required": true,
