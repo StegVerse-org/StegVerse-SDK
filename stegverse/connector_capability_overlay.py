@@ -126,6 +126,33 @@ STOP_OVERLAY_DRIFT = "STOP_CONNECTOR_CAPABILITY_OVERLAY_DRIFT"
 OWNING_GOAL = "SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005"
 RETRY_ENTRYPOINT = "stegverse.connector_capability_overlay.reconcile_overlay"
 
+ORGANIZATION_BOUNDARY_SCHEMA = "stegverse.organization-interlock-intr-boundary/v1"
+ORGANIZATION_INGRESS_RESOLUTION_SCHEMA = "stegverse.organization-ingress-capability-resolution/v1"
+
+def resolve_organization_ingress(organization_boundary: Mapping[str, Any], *, profile_id: str, profile_name: str, operation: str) -> dict[str, Any]:
+    if organization_boundary.get("schema") != ORGANIZATION_BOUNDARY_SCHEMA:
+        raise ValueError("CANONICAL_ORGANIZATION_BOUNDARY_SCHEMA_REQUIRED")
+    organization = organization_boundary.get("organization")
+    owner_repository = organization_boundary.get("owner_repository")
+    if not isinstance(organization, str) or owner_repository != f"{organization}/.github":
+        raise ValueError("CANONICAL_ORGANIZATION_GITHUB_BOUNDARY_OWNER_REQUIRED")
+    ingress = organization_boundary.get("ingress")
+    bindings = ingress.get("capability_endpoint_bindings") if isinstance(ingress, Mapping) else None
+    if not isinstance(bindings, list):
+        raise ValueError("CANONICAL_ORGANIZATION_INGRESS_CAPABILITY_BINDINGS_REQUIRED")
+    matches = [x for x in bindings if isinstance(x, Mapping) and x.get("profile_id") == profile_id and x.get("profile_name") == profile_name and x.get("operation") == operation]
+    if len(matches) != 1:
+        raise ValueError("REGISTERED_CAPABILITY_RESOLVES_TO_CANONICAL_ORGANIZATION_GITHUB_INGRESS_ENDPOINT")
+    binding = dict(matches[0]); endpoint = binding.get("receiving_operation")
+    if not isinstance(endpoint, Mapping) or endpoint.get("owner_repository") != owner_repository:
+        raise ValueError("CANONICAL_ORGANIZATION_RECEIVING_OPERATION_OWNER_MISMATCH")
+    if binding.get("binding_role") != "ORGANIZATION_RECEIVING_OPERATION_RESOLUTION" or binding.get("authority_effect") != "NONE_BINDING_ONLY":
+        raise ValueError("CANONICAL_ORGANIZATION_INGRESS_BINDING_AUTHORITY_INVALID")
+    for key in ("grants_routing_authority","grants_admission_authority","grants_execution_authority","environment_selected_ingress"):
+        if binding.get(key) is not False:
+            raise ValueError("CANONICAL_ORGANIZATION_INGRESS_BINDING_MUST_BE_NON_AUTHORIZING")
+    return {"schema":ORGANIZATION_INGRESS_RESOLUTION_SCHEMA,"organization":organization,"owner_repository":owner_repository,"profile_id":profile_id,"profile_name":profile_name,"operation":operation,"receiving_operation":dict(endpoint),"resolution_source":"ORG_DOT_GITHUB_INTERLOCK_INTR_BOUNDARY","environment_inputs":[],"authority_effect":"NONE_BINDING_ONLY","grants_routing_authority":False,"grants_admission_authority":False,"grants_execution_authority":False}
+
 AUTHORITY_BOUNDARY = {
     "overlay_grants_authority": False,
     "overlay_selects_destination": False,

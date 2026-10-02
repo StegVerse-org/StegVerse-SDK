@@ -15,6 +15,7 @@ from stegverse.manifest_state_transition_runtime import (
     build_intr_handoff,
     execute_manifest,
     manifest_declared_destination,
+    canonical_organization_destination,
 )
 
 REQUEST = {
@@ -58,7 +59,45 @@ class CompletionEgressIsNotDestinationTest(unittest.TestCase):
         self.assertIsNone(manifest_declared_destination(canonical))
 
 
+ORGANIZATION_BOUNDARY = {
+    "schema": "stegverse.organization-interlock-intr-boundary/v1",
+    "organization": "StegVerse-Labs", "owner_repository": "StegVerse-Labs/.github",
+    "ingress": {"capability_endpoint_bindings": [{
+        "profile_id": "sdk-manifest-ingress", "profile_name": "SDK:ManifestIngress", "operation": "SUBMIT_MANIFEST",
+        "receiving_operation": {"method": "POST", "path": "/intr/materialization", "owner_repository": "StegVerse-Labs/.github", "source": "workers/universal_intr_profiled_ingress.py", "delegate": "workers/manifest_state_transition_intr_ingress.py::admit"},
+        "binding_role": "ORGANIZATION_RECEIVING_OPERATION_RESOLUTION", "authority_effect": "NONE_BINDING_ONLY",
+        "grants_routing_authority": False, "grants_admission_authority": False, "grants_execution_authority": False, "environment_selected_ingress": False,
+    }]},
+}
+
+
+class CanonicalOrganizationDestinationTest(unittest.TestCase):
+    def test_consumes_organization_owned_binding_without_environment_or_authority(self):
+        resolved = canonical_organization_destination(ORGANIZATION_BOUNDARY)
+        self.assertEqual(resolved["owner_repository"], "StegVerse-Labs/.github")
+        self.assertEqual(resolved["receiving_operation"]["path"], "/intr/materialization")
+        self.assertEqual(resolved["environment_inputs"], [])
+        self.assertEqual(resolved["authority_effect"], "NONE_BINDING_ONLY")
+        self.assertFalse(resolved["grants_routing_authority"])
+        self.assertFalse(resolved["grants_admission_authority"])
+        self.assertFalse(resolved["grants_execution_authority"])
+
+    def test_completion_metadata_cannot_override_organization_binding(self):
+        canonical = {"completion": {"egress": {"final_stegverse_transition_surface": "LLM_ADAPTER", "destination_profile": "GCAT-BCAT-Engine/Publisher"}}}
+        self.assertIsNone(manifest_declared_destination(canonical))
+        self.assertEqual(canonical_organization_destination(ORGANIZATION_BOUNDARY)["receiving_operation"]["path"], "/intr/materialization")
+
+
 class HandoffTest(unittest.TestCase):
+    def test_resolved_canonical_endpoint_produces_non_authorizing_handoff(self):
+        result = build_intr_handoff({**REQUEST, "manifest_declared_destination": canonical_organization_destination(ORGANIZATION_BOUNDARY)})
+        self.assertEqual(result["disposition"], "ALLOW")
+        self.assertEqual(result["destination"]["owner_repository"], "StegVerse-Labs/.github")
+        self.assertEqual(result["destination"]["receiving_operation"]["path"], "/intr/materialization")
+        self.assertFalse(result["transport_performed_by_sdk"])
+        self.assertFalse(result["receiver_contacted"])
+        self.assertFalse(result["intr_admission_observed"])
+
     def test_unresolved_canonical_endpoint_fails_closed(self):
         result = build_intr_handoff({**REQUEST, "manifest_declared_destination": None})
         self.assertEqual(result["disposition"], "FAIL_CLOSED")
