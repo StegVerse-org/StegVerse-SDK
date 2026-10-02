@@ -6,9 +6,11 @@ its owner. Until that registry/overlay also resolves a concrete organization
 LLM_ADAPTER, Publisher, or caller-authored completion metadata to routing authority.
 """
 import os
+import json
 import unittest
 from unittest.mock import patch
 
+from stegverse.manifest_execution import _canonical_organization_boundary
 from stegverse.manifest_state_transition_runtime import (
     DESTINATION_RESOLUTION_SOURCE,
     RECEIVER_UNAVAILABLE_DISPOSITION,
@@ -86,6 +88,37 @@ class CanonicalOrganizationDestinationTest(unittest.TestCase):
         canonical = {"completion": {"egress": {"final_stegverse_transition_surface": "LLM_ADAPTER", "destination_profile": "GCAT-BCAT-Engine/Publisher"}}}
         self.assertIsNone(manifest_declared_destination(canonical))
         self.assertEqual(canonical_organization_destination(ORGANIZATION_BOUNDARY)["receiving_operation"]["path"], "/intr/materialization")
+
+
+
+class PublicRunManifestCanonicalSourceTest(unittest.TestCase):
+    def test_existing_source_reader_binds_fixed_organization_contract(self):
+        calls = []
+        def fetch(binding):
+            calls.append((binding.repository, binding.path, binding.ref))
+            return {
+                "text": json.dumps(ORGANIZATION_BOUNDARY),
+                "repository": binding.repository,
+                "path": binding.path,
+                "ref": binding.ref,
+                "sha": "fixture-blob",
+            }
+        boundary = _canonical_organization_boundary(fetcher=fetch)
+        self.assertEqual(boundary, ORGANIZATION_BOUNDARY)
+        self.assertEqual(calls, [(
+            "StegVerse-Labs/.github",
+            "org-runtime/interlock-intr.json",
+            "75d68c83e28178af053b8af097de4c8ca7e5017e",
+        )])
+
+    def test_caller_cannot_select_repository_path_ref_or_endpoint(self):
+        import inspect
+        signature = inspect.signature(_canonical_organization_boundary)
+        self.assertEqual(set(signature.parameters), {"fetcher"})
+        self.assertEqual(
+            canonical_organization_destination(ORGANIZATION_BOUNDARY)["receiving_operation"]["path"],
+            "/intr/materialization",
+        )
 
 
 class HandoffTest(unittest.TestCase):

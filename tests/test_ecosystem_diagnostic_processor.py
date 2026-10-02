@@ -245,20 +245,18 @@ class HeldOutManifestedReadinessSourceOnly(unittest.TestCase):
                 result = execute_manifest(manifest)
                 self.assertEqual(result["results"][0]["observation_state"], "NOT_OBSERVED")
                 # completion.egress is return metadata, not organization routing.
-                # Until the canonical capability overlay resolves the concrete
-                # owning .github ingress endpoint, run-manifest fails closed.
+                # run-manifest now consumes the canonical organization-owned binding
+                # through the fixed read-only source seam. This is still only an SDK
+                # handoff: no Interlock admission, organization receipt, or reconstruction.
                 handoff = sdk_run_manifest(manifest)
-                self.assertEqual(handoff["state"], "FAIL_CLOSED")
-                self.assertEqual(
-                    handoff["evaluation_boundary"], "SDK_ORGANIZATION_DESTINATION_RESOLUTION"
-                )
-                self.assertEqual(
-                    handoff["failed_predicate"],
-                    "REGISTERED_CAPABILITY_RESOLVES_TO_CANONICAL_ORGANIZATION_GITHUB_INGRESS_ENDPOINT",
-                )
-                self.assertEqual(handoff["connector_profile_id"], "sdk-manifest-ingress")
-                self.assertEqual(handoff["connector_destination_subsystem"], "SDK:ManifestIngress")
-                self.assertFalse(handoff["completion_egress_controls_outbound_organization_routing"])
+                self.assertEqual(handoff["state"], "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF")
+                self.assertEqual(handoff["evaluation_boundary"], "SDK_MANIFEST_HANDOFF")
+                self.assertEqual(handoff["destination"]["owner_repository"], "StegVerse-Labs/.github")
+                self.assertEqual(handoff["destination"]["receiving_operation"]["path"], "/intr/materialization")
+                self.assertFalse(handoff["transport_performed_by_sdk"])
+                self.assertFalse(handoff["receiver_contacted"])
+                self.assertFalse(handoff["intr_admission_observed"])
+                self.assertFalse(handoff["far_side_transition_observed"])
                 self.assertFalse(handoff["organization_receipt_observed"])
                 self.assertFalse(handoff["master_records_reconstruction_observed"])
                 self.assertFalse(result["mutation_performed"])

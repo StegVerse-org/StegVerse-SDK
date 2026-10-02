@@ -1156,3 +1156,8 @@ Purpose-bound worker manifests now follow the same universal execution split as 
 ### Organization-owned manifest ingress resolution
 
 Outbound organization destination resolution for `sdk-manifest-ingress / SDK:ManifestIngress / SUBMIT_MANIFEST` is owned by the canonical organization `.github` Interlock/InTr boundary contract. The SDK may consume that passed-in contract through `connector_capability_overlay.resolve_organization_ingress`; it does not copy the endpoint into its connector baseline, select an ingress from environment configuration, or gain routing/admission/execution authority. `completion.egress` remains requester-facing completion/return metadata and cannot override the organization-owned receiving operation.
+
+
+### Public run-manifest canonical organization source binding
+
+For the universal manifest-state-transition route, the public `stegverse run-manifest` dispatcher now reads the canonical StegVerse-Labs organization Interlock/InTr boundary through the SDK's pre-existing allowlisted repository-source reader and credential-free GitHub fetcher. Repository, path and immutable canonical ref are SDK-owned source identity; callers cannot provide an endpoint or select an environment ingress. The retrieved organization contract remains non-authorizing source input and is passed to the installed runtime, which independently validates `sdk-manifest-ingress / SDK:ManifestIngress / SUBMIT_MANIFEST`. This does not prove Interlock/InTr admission or execute the far-side transition.
