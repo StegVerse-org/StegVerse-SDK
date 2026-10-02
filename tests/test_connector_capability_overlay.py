@@ -29,6 +29,7 @@ from stegverse.connector_capability_overlay import (
 )
 from stegverse.evaluator_review_intr import REQUEST_SCHEMA as EVALUATOR_REVIEW_SCHEMA
 from stegverse.publisher_return_binding import PUBLISHER_RETURN_SCHEMA
+from stegverse.manifest_contract import INGRESS_PROFILE as MANIFEST_INGRESS_SCHEMA
 from stegverse.review_publisher_transfer import TRANSFER_SCHEMA
 
 BASELINE_PATH = (Path(__file__).resolve().parent.parent / "data"
@@ -42,7 +43,7 @@ UPSTREAM_PINNED_EVALUATOR_REVIEW = (
 
 #: What the installed SDK actually binds, read from the modules themselves so a
 #: renamed or removed schema fails this suite rather than passing on a literal.
-SDK_BOUND = (EVALUATOR_REVIEW_SCHEMA, TRANSFER_SCHEMA, PUBLISHER_RETURN_SCHEMA)
+SDK_BOUND = (MANIFEST_INGRESS_SCHEMA, EVALUATOR_REVIEW_SCHEMA, TRANSFER_SCHEMA, PUBLISHER_RETURN_SCHEMA)
 
 
 def _baseline_registry():
@@ -93,6 +94,7 @@ class ReconciliationTest(unittest.TestCase):
     def test_capability_is_overlaid_on_its_owning_organization(self):
         result = reconcile_overlay(_baseline_registry(), bound_payload_schemas=SDK_BOUND)
         owners = {e["subsystem"]: e["owner_organization"] for e in result["sdk_capabilities"]}
+        self.assertEqual(owners["SDK:ManifestIngress"], "StegVerse-org")
         self.assertEqual(owners["SDK:EvaluatorReviewIngress"], "StegVerse-Labs")
         self.assertEqual(owners["SDK:ReviewerEvidenceExport"], "GCAT-BCAT-Engine")
         self.assertIn("StegVerse-Labs", result["overlaid_organizations"])
