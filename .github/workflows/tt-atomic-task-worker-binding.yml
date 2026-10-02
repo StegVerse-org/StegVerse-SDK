@@ -145,8 +145,8 @@ jobs:
           assert r['disposition'] == 'ALLOW'
           assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
-          assert r['receiver_availability_consulted'] is False
-          assert r['external_machine_required'] is False
+          assert r['transport_performed_by_sdk'] is False
+          assert r['receiver_contacted'] is False
           assert r['authentic_governance_disposition_observed'] is False
           assert r['intr_admission_observed'] is False
           assert r['far_side_transition_observed'] is False
@@ -164,8 +164,8 @@ jobs:
           assert r['disposition'] == 'ALLOW'
           assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
-          assert r['receiver_availability_consulted'] is False
-          assert r['external_machine_required'] is False
+          assert r['transport_performed_by_sdk'] is False
+          assert r['receiver_contacted'] is False
           assert r['authentic_governance_disposition_observed'] is False
           assert r['intr_admission_observed'] is False
           assert r['far_side_transition_observed'] is False
@@ -183,8 +183,8 @@ jobs:
           assert r['disposition'] == 'ALLOW'
           assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
-          assert r['receiver_availability_consulted'] is False
-          assert r['external_machine_required'] is False
+          assert r['transport_performed_by_sdk'] is False
+          assert r['receiver_contacted'] is False
           assert r['authentic_governance_disposition_observed'] is False
           assert r['intr_admission_observed'] is False
           assert r['far_side_transition_observed'] is False
@@ -202,8 +202,8 @@ jobs:
           assert r['disposition'] == 'ALLOW'
           assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
-          assert r['receiver_availability_consulted'] is False
-          assert r['external_machine_required'] is False
+          assert r['transport_performed_by_sdk'] is False
+          assert r['receiver_contacted'] is False
           assert r['authentic_governance_disposition_observed'] is False
           assert r['intr_admission_observed'] is False
           assert r['far_side_transition_observed'] is False
