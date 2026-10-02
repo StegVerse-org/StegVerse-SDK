@@ -59,18 +59,21 @@ def test_test5_two_workers_use_same_generic_run_manifest_route():
     assert derive_execution_request(a)["canonical_manifest_sha256"] != derive_execution_request(b)["canonical_manifest_sha256"]
 
 
-def test_test5_run_manifest_waits_for_canonical_organization_endpoint_mapping(monkeypatch):
+def test_test5_run_manifest_consumes_canonical_organization_endpoint_mapping(monkeypatch):
     monkeypatch.delenv("STEGVERSE_UNIVERSAL_INTR_INGRESS_URL", raising=False)
     monkeypatch.delenv("STEGVERSE_TVC_RELAY_AUTHORIZATION_ID", raising=False)
     result = execute_manifest(_manifest("A"))
-    assert result["disposition"] == "FAIL_CLOSED"
-    assert result["state"] == "FAIL_CLOSED"
+    assert result["disposition"] == "ALLOW"
+    assert result["state"] == "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF"
     assert result["processing_capability"] == "stegbrowser"
     assert result["canonical_task_id"] == "EPHEMERAL-STEGBROWSER-EXTERNAL-AI-ACTIVATION-001"
-    assert result["evaluation_boundary"] == "SDK_ORGANIZATION_DESTINATION_RESOLUTION"
+    assert result["evaluation_boundary"] == "SDK_MANIFEST_HANDOFF"
     assert result["destination_resolution_source"] == "CANONICAL_CONNECTOR_CAPABILITY_OVERLAY"
-    assert result["connector_profile_id"] == "sdk-manifest-ingress"
-    assert result["connector_destination_subsystem"] == "SDK:ManifestIngress"
-    assert result["completion_egress_controls_outbound_organization_routing"] is False
+    assert result["destination"]["owner_repository"] == "StegVerse-Labs/.github"
+    assert result["destination"]["receiving_operation"]["path"] == "/intr/materialization"
+    assert result["transport_performed_by_sdk"] is False
+    assert result["receiver_contacted"] is False
+    assert result["intr_admission_observed"] is False
+    assert result["far_side_transition_observed"] is False
     assert result["consequence_committed"] is False
 
