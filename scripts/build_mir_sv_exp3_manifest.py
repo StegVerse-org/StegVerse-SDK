@@ -57,7 +57,9 @@ def build_exp3_manifest():
     if (builder_metadata.get("external_review_requested") is False
             and builder_metadata.get("publisher_required_by_review_default") is False):
         del builder_metadata["external_review_requested"]
-        del builder_metadata["publisher_required_by_review_default"]\n    if builder_metadata.get("publisher_selected_by_destination") is False:\n        del builder_metadata["publisher_selected_by_destination"]
+        del builder_metadata["publisher_required_by_review_default"]
+    if builder_metadata.get("publisher_selected_by_destination") is False:
+        del builder_metadata["publisher_selected_by_destination"]
     # Release 2: capability resolution, bound at manifest creation for every
     # capability. ONLINE is what an installed ecosystem_diagnostic route
     # resolves to; anything else means the route changed and must not be hidden.
