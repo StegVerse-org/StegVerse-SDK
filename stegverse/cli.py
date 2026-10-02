@@ -404,6 +404,9 @@ def _compose_response(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="stegverse", description="Discover and use allowed local StegVerse SDK surfaces")
     sub = parser.add_subparsers(dest="command")
+    from .console_manifest_commands import COMMANDS
+    for name, (_, description) in COMMANDS.items():
+        sub.add_parser(name, help=description)
     sub.add_parser("surfaces", help="list callable SDK surfaces")
     sub.add_parser("capabilities", help="print the user-facing surface registry as JSON")
     sub.add_parser("entry-point-parity",
@@ -458,6 +461,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    from .console_manifest_commands import dispatch
+    argv = list(sys.argv[1:] if argv is None else argv)
+    dispatched = dispatch(argv)
+    if dispatched is not None:
+        return dispatched
     parser = build_parser()
     args = parser.parse_args(argv)
     try:

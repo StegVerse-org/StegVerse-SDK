@@ -26,6 +26,10 @@ def _install_versioned_governance_wrapper() -> None:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
+    from .console_manifest_commands import dispatch
+    dispatched = dispatch(args)
+    if dispatched is not None:
+        return dispatched
     if args and args[0] in {"contract", "evaluator-contract"}:
         return evaluator_contract.main(args[1:])
     if args and args[0] in {"governance-graph", "governance-reference-graph"}:
@@ -38,13 +42,6 @@ def main(argv: list[str] | None = None) -> int:
         return production_release_set.main(args[1:])
     if args and args[0] in {"test-procedure", "procedure"}:
         return test_procedure.main(args[1:])
-    if args and args[0] in {"manifest", "manifest-builder"}:
-        return manifest_builder.main(args[1:])
-    if args and args[0] in {"run-manifest", "manifest-run"}:
-        return manifest_execution.main(args[1:])
-    if args and args[0] in {"external-run", "framework-run"}:
-        _install_versioned_governance_wrapper()
-        return external_framework_runner.main(args[1:])
     if args and args[0] == "governance":
         _install_versioned_governance_wrapper()
     result = cli.main(args)

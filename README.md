@@ -1156,3 +1156,9 @@ Purpose-bound worker manifests now follow the same universal execution split as 
 ### Organization-owned manifest ingress resolution
 
 Outbound organization destination resolution for `sdk-manifest-ingress / SDK:ManifestIngress / SUBMIT_MANIFEST` is owned by the canonical organization `.github` Interlock/InTr boundary contract. The SDK may consume that passed-in contract through `connector_capability_overlay.resolve_organization_ingress`; it does not copy the endpoint into its connector baseline, select an ingress from environment configuration, or gain routing/admission/execution authority. `completion.egress` remains requester-facing completion/return metadata and cannot override the organization-owned receiving operation.
+
+
+
+## Machine discovery through submission
+
+Run `stegverse machine-contract` for `SDK_MACHINE_CONTRACT`, derived from installed builder inputs, processor routes, return projections and shared CLI dispatch. `stegverse --help` advertises the same manifest commands. LLM and external-framework instructions end at canonical manifest submission and retained submission evidence. Interlock/InTr remains internal post-submission machinery for Tests 5/6; reciprocal external Interlock/InTr is deferred. SDK-local preparation and structural standing validation do not prove authentic receiving-node observation. See [the machine-contract handoff](docs/SDK_MACHINE_CONTRACT_MIRROR_HANDOFF.md).
