@@ -75,22 +75,21 @@ jobs:
           assert manifest['processing']['route_id'] == 'stegverse.route.canonical-governed.v1'
           assert manifest['return_projection']['mode'] == 'ALL'
 
-          # Manifesting is the default path and hands off to the destination the
-          # manifest declares. No ingress is configured here and no receiver exists.
+          # Requester-facing completion metadata is not outbound organization routing.
+          # Until the canonical connector capability resolves a concrete owning
+          # .github ingress endpoint, source-only manifesting stops fail-closed here.
           assert result['evidence_class'] == 'SDK_LOCAL_MANIFEST_HANDOFF'
           handoff = result['handoff']
-          assert handoff['state'] == 'MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF'
-          assert handoff['destination_resolution_source'] == 'MANIFEST_COMPLETION_EGRESS'
-          assert handoff['destination_resolution_environment_inputs'] == []
-          assert result['manifest_declared_destination']['transport'] == 'INTERLOCK_INTR'
-          assert handoff['transport_performed_by_sdk'] is False
-          assert handoff['receiver_contacted'] is False
-          assert handoff['receiver_availability_required'] is False
-          assert handoff['awaits_external_machine'] is False
-          # The far side stays unobserved: a handoff is not a transition.
-          assert result['intr_admission_observed'] is False
-          assert result['far_side_transition_observed'] is False
-          assert result['organization_receipt_observed'] is False
+          assert handoff['state'] == 'FAIL_CLOSED'
+          assert handoff['disposition'] == 'FAIL_CLOSED'
+          assert handoff['evaluation_boundary'] == 'SDK_ORGANIZATION_DESTINATION_RESOLUTION'
+          assert handoff['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
+          assert handoff['connector_profile_id'] == 'sdk-manifest-ingress'
+          assert result['manifest_declared_destination'] is None
+          assert handoff['receiver_availability_consulted'] is False
+          assert handoff['external_machine_required'] is False
+          assert handoff['authentic_governance_disposition_observed'] is False
+          assert handoff['consequence_committed'] is False
           print('EXTERNAL_FRAMEWORK_PUBLIC_SUBMISSION_VALIDATION_PASS')
           PY
 
