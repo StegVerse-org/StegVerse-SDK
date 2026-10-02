@@ -49,11 +49,8 @@ jobs:
           # The derived request's own hash. It moved when the request began
           # carrying the destination the manifest declares; the manifest did not.
           assert request['request_sha256']=='9472bbfe7580823b22d44f4864823073f71f09bac806b93f4580ee477110cdcf'
-          destination=request['manifest_declared_destination']
-          assert destination['final_stegverse_transition_surface']=='LLM_ADAPTER'
-          assert destination['destination_profile']=='GCAT-BCAT-Engine/Publisher'
-          assert destination['transport']=='INTERLOCK_INTR'
-          assert request['destination_resolution_source']=='MANIFEST_COMPLETION_EGRESS'
+          assert request['manifest_declared_destination'] is None
+          assert request['destination_resolution_source']=='CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert request['destination_resolution_environment_inputs']==[]
           PY
       - name: Attempt exact manifest through public run-manifest
