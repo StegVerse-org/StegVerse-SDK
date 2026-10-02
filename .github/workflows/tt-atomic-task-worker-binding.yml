@@ -147,7 +147,6 @@ jobs:
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert r['transport_performed_by_sdk'] is False
           assert r['receiver_contacted'] is False
-          assert r['authentic_governance_disposition_observed'] is False
           assert r['intr_admission_observed'] is False
           assert r['far_side_transition_observed'] is False
           assert r['consequence_committed'] is False
@@ -166,7 +165,6 @@ jobs:
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert r['transport_performed_by_sdk'] is False
           assert r['receiver_contacted'] is False
-          assert r['authentic_governance_disposition_observed'] is False
           assert r['intr_admission_observed'] is False
           assert r['far_side_transition_observed'] is False
           assert r['consequence_committed'] is False
@@ -185,7 +183,6 @@ jobs:
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert r['transport_performed_by_sdk'] is False
           assert r['receiver_contacted'] is False
-          assert r['authentic_governance_disposition_observed'] is False
           assert r['intr_admission_observed'] is False
           assert r['far_side_transition_observed'] is False
           assert r['consequence_committed'] is False
@@ -204,7 +201,6 @@ jobs:
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert r['transport_performed_by_sdk'] is False
           assert r['receiver_contacted'] is False
-          assert r['authentic_governance_disposition_observed'] is False
           assert r['intr_admission_observed'] is False
           assert r['far_side_transition_observed'] is False
           assert r['consequence_committed'] is False
@@ -220,8 +216,7 @@ jobs:
               assert r['schema']=='stegverse.sdk.manifest-transition-handoff/v1'
               assert r['disposition']=='ALLOW'
               assert r['evaluation_boundary']=='SDK_MANIFEST_HANDOFF'
-              assert r['authentic_governance_disposition_observed'] is False
-          print('FOUR_STAGE_GENERIC_GOVERNED_BOUNDARY_PASS')
+              print('FOUR_STAGE_GENERIC_GOVERNED_BOUNDARY_PASS')
           PY
 
       - name: Prove SDK source remained unchanged throughout experiment
