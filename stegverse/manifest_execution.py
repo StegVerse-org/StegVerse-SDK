@@ -10,6 +10,8 @@ from typing import Any, Mapping
 
 from .manifest_contract import validate_ingress_manifest
 from .route_resolution import route_from_manifest
+from .repository_source_reader import AllowlistedRepositorySourceReader
+from .github_repository_fetcher import GitHubRepositoryFetcher
 
 
 _GOVERNED_WORKER_ROUTING_SURFACE = "STEGAGENTS_GOVERNED_RUNTIME"
@@ -19,6 +21,11 @@ _LOCAL_SEMANTIC_WORKER_BINDINGS = {
 }
 _RESULT_LINEAGE_SCHEMA = "stegverse.sdk.run-manifest-lineage.v1"
 _RUN_MANIFEST_REQUEST_SCHEMA = "stegverse.sdk.run-manifest-request.v1"
+_CANONICAL_ORGANIZATION_BOUNDARY_REPOSITORY = "StegVerse-Labs/.github"
+_CANONICAL_ORGANIZATION_BOUNDARY_PATH = "org-runtime/interlock-intr.json"
+_CANONICAL_ORGANIZATION_BOUNDARY_REF = "75d68c83e28178af053b8af097de4c8ca7e5017e"
+_CANONICAL_ORGANIZATION_BOUNDARY_SOURCE_ID = "stegverse-labs-organization-interlock-intr-boundary"
+
 _RESERVED_LINEAGE_FIELDS = {
     "canonical_manifest_sha256",
     "request_sha256",
@@ -108,7 +115,41 @@ def _require_nonterminal_local_semantic_boundary(route: Mapping[str, Any], bindi
         )
 
 
-def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
+
+def _canonical_organization_boundary(*, fetcher=None) -> dict[str, Any]:
+    """Read the canonical organization boundary through the existing read-only source seam."""
+    reader = AllowlistedRepositorySourceReader.from_bindings(
+        [{
+            "source_id": _CANONICAL_ORGANIZATION_BOUNDARY_SOURCE_ID,
+            "repository": _CANONICAL_ORGANIZATION_BOUNDARY_REPOSITORY,
+            "path": _CANONICAL_ORGANIZATION_BOUNDARY_PATH,
+            "ref": _CANONICAL_ORGANIZATION_BOUNDARY_REF,
+        }],
+        fetcher=fetcher or GitHubRepositoryFetcher(),
+    )
+    # The SDK fixes source identity; callers cannot supply repository/path/ref or endpoint.
+    from .canonical_source_collector import CanonicalSourceSpec
+    spec = CanonicalSourceSpec.from_mapping({
+        "source_id": _CANONICAL_ORGANIZATION_BOUNDARY_SOURCE_ID,
+        "repository": _CANONICAL_ORGANIZATION_BOUNDARY_REPOSITORY,
+        "path": _CANONICAL_ORGANIZATION_BOUNDARY_PATH,
+        "record_type": "ORGANIZATION_INTERLOCK_INTR_BOUNDARY",
+        "title": "StegVerse-Labs organization Interlock/InTr boundary",
+        "observed_at": "2026-10-02T00:00:00Z",
+        "canonical": True,
+        "authoritative": True,
+    })
+    retrieved = reader(spec)
+    try:
+        boundary = json.loads(str(retrieved["text"]))
+    except (KeyError, json.JSONDecodeError) as exc:
+        raise ValueError("CANONICAL_ORGANIZATION_BOUNDARY_JSON_REQUIRED") from exc
+    if not isinstance(boundary, Mapping):
+        raise ValueError("CANONICAL_ORGANIZATION_BOUNDARY_OBJECT_REQUIRED")
+    return dict(boundary)
+
+
+def execute_manifest(manifest: Mapping[str, Any], *, canonical_source_fetcher=None) -> dict[str, Any]:
     canonical = validate_ingress_manifest(manifest)
     route = route_from_manifest(canonical)
     binding = route.get("runtime_binding")
@@ -122,7 +163,10 @@ def execute_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     function = getattr(module, function_name, None)
     if not callable(function):
         raise ValueError(f"installed runtime binding is not callable: {binding}")
-    result = function(manifest)
+    if binding == "stegverse.manifest_state_transition_runtime.execute_manifest":
+        result = function(manifest, _canonical_organization_boundary(fetcher=canonical_source_fetcher))
+    else:
+        result = function(manifest)
     if not isinstance(result, Mapping):
         raise ValueError("manifest processor returned a non-object result")
     return _bind_result_lineage(
