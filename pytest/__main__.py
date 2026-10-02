@@ -4,6 +4,7 @@
 Supported surface:
 - positional Python test files or automatic ``tests/test_*.py`` discovery
 - functions named ``test_*``
+- ``unittest.TestCase`` subclasses and their ``test_*`` methods
 - plain assert statements
 - ``tmp_path`` fixture
 - ``pytest.raises``
@@ -20,6 +21,7 @@ import inspect
 import itertools
 import sys
 import tempfile
+import unittest
 import traceback
 from pathlib import Path
 from types import ModuleType
@@ -86,8 +88,41 @@ def iter_tests(module: ModuleType):
         if not name.startswith("test_"):
             continue
         value = getattr(module, name)
-        if callable(value):
+        if callable(value) and not (isinstance(value, type) and issubclass(value, unittest.TestCase)):
             yield name, value
+
+
+def iter_test_cases(module: ModuleType):
+    """``unittest.TestCase`` subclasses in this module.
+
+    A class is named for what it tests, not ``test_*``, so the name scan above
+    cannot see it. Collecting only ``test_*`` names made every class-based file
+    report ``0 passed`` and exit 0 - a green run asserting nothing.
+    """
+    for name in sorted(dir(module)):
+        value = getattr(module, name)
+        if (isinstance(value, type) and issubclass(value, unittest.TestCase)
+                and value is not unittest.TestCase
+                and value.__module__ == module.__name__):
+            yield name, value
+
+
+def run_test_cases(module: ModuleType, path: Path) -> tuple[int, int]:
+    """Run this module's TestCase classes through unittest; return (run, failed).
+
+    unittest owns setUp/tearDown and subTest, so the cases are handed to it
+    rather than reimplemented here.
+    """
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
+    for _, case in iter_test_cases(module):
+        suite.addTests(loader.loadTestsFromTestCase(case))
+    if not suite.countTestCases():
+        return 0, 0
+    result = unittest.TextTestRunner(stream=sys.stderr, verbosity=0).run(suite)
+    for case, _traceback in list(result.failures) + list(result.errors):
+        print(f"FAIL {path}::{case}", file=sys.stderr)
+    return result.testsRun, len(result.failures) + len(result.errors)
 
 
 def selected_files(argv: list[str]) -> list[Path]:
@@ -133,6 +168,13 @@ def main(argv: list[str]) -> int:
                     if maxfail is not None and failed >= maxfail:
                         stop = True
                         break
+        if stop:
+            break
+        case_total, case_failed = run_test_cases(module, path)
+        total += case_total
+        failed += case_failed
+        if maxfail is not None and failed >= maxfail:
+            stop = True
 
     if failed:
         print(f"{failed} failed, {total - failed} passed")
