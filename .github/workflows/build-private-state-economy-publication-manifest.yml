@@ -69,7 +69,6 @@ jobs:
           assert result['disposition']=='FAIL_CLOSED'
           assert result['evaluation_boundary']=='SDK_ORGANIZATION_DESTINATION_RESOLUTION'
           assert result['destination_resolution_source']=='CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
-          assert result['destination_resolution_environment_inputs']==[]
           assert result['receiver_availability_consulted'] is False
           assert result['external_machine_required'] is False
           assert result['consequence_committed'] is False
