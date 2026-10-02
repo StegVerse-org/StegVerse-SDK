@@ -149,7 +149,7 @@ jobs:
           assert r['receiver_availability_consulted'] is False
           assert r['external_machine_required'] is False
           assert r['authentic_governance_disposition_observed'] is False
-                    assert r['consequence_committed'] is False
+          assert r['consequence_committed'] is False
           print('MANIFEST_ONLY_TEST1_GOVERNED_HANDOFF_BOUNDARY_PASS')
           PY
 
