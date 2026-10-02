@@ -2,7 +2,15 @@ name: SV independent HOLD experiment — exact source and runtime boundary
 on:
   pull_request:
     paths:
+      # The experiment imports these. Naming only the script left the workflow
+      # blind to the change that broke it: destination binding moved out of the
+      # environment and into the manifest, and this gate never ran.
       - 'scripts/experiment_sv_hold_independent.py'
+      - 'stegverse/manifest_state_transition_runtime.py'
+      - 'stegverse/manifest_builder.py'
+      - 'stegverse/manifest_contract.py'
+      - 'stegverse/manifest_execution.py'
+      - 'tests/test_experiment_sv_hold_independent.py'
       - '.github/workflows/sv-hold-independent-source-experiment.yml'
   workflow_dispatch:
 

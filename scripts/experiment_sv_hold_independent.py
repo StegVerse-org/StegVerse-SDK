@@ -10,7 +10,6 @@ import argparse
 from copy import deepcopy
 import hashlib
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -18,7 +17,7 @@ from stegverse.manifest_builder import build_manifest
 from stegverse.manifest_contract import validate_ingress_manifest
 from stegverse.manifest_execution import execute_manifest
 from stegverse.manifest_state_transition_runtime import (
-    INGRESS_URL_ENV, TRANSPORT_AUTHORIZATION_ENV, derive_execution_request,
+    derive_execution_request, manifest_declared_destination,
 )
 
 EXPERIMENT_ID = "SV-HOLD-INDEPENDENT-BASELINE-20260926"
@@ -174,10 +173,27 @@ def run(*, output_dir: Path, attempt_runtime: bool = True) -> dict:
             "actual_effect_observed": False,
             "master_records_reconstruction_observed": False,
         }
+        # The destination is read from the manifest, never from the environment.
+        # Transport was removed from the runtime deliberately, so a manifest that
+        # declares a far side names work this SDK cannot itself complete.
+        destination = manifest_declared_destination(canonical)
+        if destination is not None:
+            trial["declared_destination"] = destination
+            trial["far_side_transition_observed"] = False
         if attempt_runtime:
-            if os.environ.get(INGRESS_URL_ENV) and os.environ.get(TRANSPORT_AUTHORIZATION_ENV):
-                # A generic CI workflow must not turn latent credentials into authority.
+            if destination is not None and destination.get("far_side_transition_required"):
+                # A declared far side needs a separately authorized caller to reach
+                # it. Preparing the handoff is not crossing to it.
                 trial["runtime_disposition"] = "REQUIRES_SEPARATELY_AUTHORIZED_LIVE_CALLER"
+                try:
+                    result = execute_manifest(manifest)
+                except ValueError as exc:
+                    trial["runtime_reason_code"] = str(exc)
+                else:
+                    (output_dir / f"{step}-runtime-response.json").write_text(
+                        json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+                    )
+                    trial["handoff_authority_effect"] = result.get("authority_effect")
             else:
                 try:
                     result = execute_manifest(manifest)
