@@ -48,7 +48,7 @@ def build(kind):
             "tests": checks,
         }, process="ecosystem_diagnostic", return_depth="full-trace",
         initiator_class="organization", initiator_ref="StegVerse-Labs",
-        publisher_required=False, created_at="2026-09-26T00:00:00Z",
+        created_at="2026-09-26T00:00:00Z",
     )
     validate_ingress_manifest(manifest)
     result = execute_manifest(manifest)
