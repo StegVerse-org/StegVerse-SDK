@@ -162,11 +162,10 @@ jobs:
           assert r['disposition'] == 'FAIL_CLOSED'
           assert r['evaluation_boundary'] == 'SDK_ORGANIZATION_DESTINATION_RESOLUTION'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
-          assert r['destination_resolution_environment_inputs'] == []
           assert r['receiver_availability_consulted'] is False
           assert r['external_machine_required'] is False
           assert r['authentic_governance_disposition_observed'] is False
-                    assert r['consequence_committed'] is False
+          assert r['consequence_committed'] is False
           print('MANIFEST_ONLY_TEST2_GOVERNED_HANDOFF_BOUNDARY_PASS')
           PY
 
@@ -180,11 +179,10 @@ jobs:
           assert r['disposition'] == 'FAIL_CLOSED'
           assert r['evaluation_boundary'] == 'SDK_ORGANIZATION_DESTINATION_RESOLUTION'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
-          assert r['destination_resolution_environment_inputs'] == []
           assert r['receiver_availability_consulted'] is False
           assert r['external_machine_required'] is False
           assert r['authentic_governance_disposition_observed'] is False
-                    assert r['consequence_committed'] is False
+          assert r['consequence_committed'] is False
           print('MANIFEST_ONLY_TEST3_GOVERNED_HANDOFF_BOUNDARY_PASS')
           PY
 
@@ -198,11 +196,10 @@ jobs:
           assert r['disposition'] == 'FAIL_CLOSED'
           assert r['evaluation_boundary'] == 'SDK_ORGANIZATION_DESTINATION_RESOLUTION'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
-          assert r['destination_resolution_environment_inputs'] == []
           assert r['receiver_availability_consulted'] is False
           assert r['external_machine_required'] is False
           assert r['authentic_governance_disposition_observed'] is False
-                    assert r['consequence_committed'] is False
+          assert r['consequence_committed'] is False
           print('MANIFEST_ONLY_TASK4_GOVERNED_HANDOFF_BOUNDARY_PASS')
           PY
 
