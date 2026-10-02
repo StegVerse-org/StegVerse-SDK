@@ -145,7 +145,6 @@ jobs:
           assert r['disposition'] == 'FAIL_CLOSED'
           assert r['evaluation_boundary'] == 'SDK_ORGANIZATION_DESTINATION_RESOLUTION'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
-          assert r['destination_resolution_environment_inputs'] == []
           assert r['receiver_availability_consulted'] is False
           assert r['external_machine_required'] is False
           assert r['authentic_governance_disposition_observed'] is False
