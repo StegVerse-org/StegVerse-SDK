@@ -203,7 +203,7 @@ class ProjectionCoverageTest(unittest.TestCase):
             projected_profile_ids=["evaluator-read-review"])
         coverage = result["projection_coverage"]
         self.assertFalse(coverage["projection_is_current"])
-        self.assertEqual(coverage["unprojected_profile_ids"], ["sdk-publisher-review"])
+        self.assertEqual(coverage["unprojected_profile_ids"], ["sdk-manifest-ingress", "sdk-publisher-review"])
         self.assertFalse(coverage["sdk_may_regenerate_projection"])
 
     def test_coverage_is_absent_unless_a_projection_is_supplied(self):
