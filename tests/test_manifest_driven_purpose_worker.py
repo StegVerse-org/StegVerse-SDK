@@ -72,16 +72,18 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         self.assertEqual(graph["canonical_task_id"], "SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001")
         self.assertFalse(graph["adapter_executes_lifecycle"])
         result = execute_manifest(manifest)
-        # Processing remains manifest-selected, but outbound organization routing
-        # must come from the canonical connector/capability mapping. Until that
-        # mapping resolves the concrete owning .github ingress endpoint, the
-        # public run-manifest boundary is an actionable FAIL_CLOSED.
-        self.assertEqual(result["schema"], "stegverse.sdk.manifest-handoff-disposition/v1")
-        self.assertEqual(result["disposition"], "FAIL_CLOSED")
-        self.assertEqual(result["evaluation_boundary"], "SDK_ORGANIZATION_DESTINATION_RESOLUTION")
-        self.assertEqual(result["connector_profile_id"], "sdk-manifest-ingress")
-        self.assertEqual(result["connector_destination_subsystem"], "SDK:ManifestIngress")
-        self.assertFalse(result["completion_egress_controls_outbound_organization_routing"])
+        # Processing remains manifest-selected; organization routing is consumed
+        # from the fixed canonical .github source binding. This proves only the
+        # SDK handoff boundary, not Interlock admission or governed execution.
+        self.assertEqual(result["schema"], "stegverse.sdk.manifest-transition-handoff/v1")
+        self.assertEqual(result["disposition"], "ALLOW")
+        self.assertEqual(result["evaluation_boundary"], "SDK_MANIFEST_HANDOFF")
+        self.assertEqual(result["destination"]["owner_repository"], "StegVerse-Labs/.github")
+        self.assertEqual(result["destination"]["receiving_operation"]["path"], "/intr/materialization")
+        self.assertFalse(result["transport_performed_by_sdk"])
+        self.assertFalse(result["receiver_contacted"])
+        self.assertFalse(result["intr_admission_observed"])
+        self.assertFalse(result["far_side_transition_observed"])
         self.assertFalse(result["consequence_committed"])
         direct_result = execute_processor_manifest(manifest)
         self.assertEqual(direct_result["schema"], "stegverse.sdk.purpose-bound-worker-manifest-result.v1")
