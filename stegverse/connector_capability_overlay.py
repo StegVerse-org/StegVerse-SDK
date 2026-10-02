@@ -41,7 +41,7 @@ CANONICAL_REGISTRY = {
     "repository": "StegVerse-Labs/StegOS",
     "path": "specs/universal-intr-connector-profiles.v1.json",
     "generator": "StegVerse-Labs/StegOS/tools/generate_intr_connector.py",
-    "observed_commit": "4d3e0daee5d06aaed98ed6d8034df5fff6a45224",
+    "observed_commit": "adceffaa6fcdf0e89bff7a091dddf92d790cc439",
     "sdk_may_write_registry": False,
     "sdk_may_regenerate_projection": False,
 }
@@ -65,6 +65,15 @@ SDK_SUBSYSTEM_PREFIX = "SDK:"
 #: reported, never absorbed: the SDK's own ingress/egress surface may only grow
 #: by a reviewed edit here.
 SDK_SUBSYSTEM_BASELINE: Mapping[str, Mapping[str, str]] = {
+    "SDK:ManifestIngress": {
+        "profile_id": "sdk-manifest-ingress",
+        "legs": ("destination", "response.source"),
+        "payload_schema": "stegverse.ingress-manifest.v1",
+        "binding_module": "stegverse.manifest_contract",
+        "profile_canonical_sha256": (
+            "sha256:6211212f1f0fe699826fac9436ada0744d8dbebd7949115cadd5794d1ea74971"),
+        "digest_provenance": "OBSERVED_AT_CANONICAL_REGISTRY_COMMIT_NOT_UPSTREAM_PROJECTED",
+    },
     "SDK:EvaluatorReviewIngress": {
         "profile_id": "evaluator-read-review",
         "legs": ("destination", "response.source"),
