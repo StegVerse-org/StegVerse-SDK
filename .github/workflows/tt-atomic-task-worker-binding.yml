@@ -141,7 +141,7 @@ jobs:
           python - <<'PY'
           import json
           r=json.load(open('/tmp/test1.result.json'))
-          assert r['schema'] == 'stegverse.sdk.manifest-handoff-disposition/v1'
+          assert r['schema'] == 'stegverse.sdk.manifest-transition-handoff/v1'
           assert r['disposition'] == 'ALLOW'
           assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
@@ -160,7 +160,7 @@ jobs:
           python - <<'PY'
           import json
           r=json.load(open('/tmp/test2.result.json'))
-          assert r['schema'] == 'stegverse.sdk.manifest-handoff-disposition/v1'
+          assert r['schema'] == 'stegverse.sdk.manifest-transition-handoff/v1'
           assert r['disposition'] == 'ALLOW'
           assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
@@ -179,7 +179,7 @@ jobs:
           python - <<'PY'
           import json
           r=json.load(open('/tmp/test3.result.json'))
-          assert r['schema'] == 'stegverse.sdk.manifest-handoff-disposition/v1'
+          assert r['schema'] == 'stegverse.sdk.manifest-transition-handoff/v1'
           assert r['disposition'] == 'ALLOW'
           assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
@@ -198,7 +198,7 @@ jobs:
           python - <<'PY'
           import json
           r=json.load(open('/tmp/task4.result.json'))
-          assert r['schema'] == 'stegverse.sdk.manifest-handoff-disposition/v1'
+          assert r['schema'] == 'stegverse.sdk.manifest-transition-handoff/v1'
           assert r['disposition'] == 'ALLOW'
           assert r['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert r['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
@@ -217,7 +217,7 @@ jobs:
           import json
           for path in ['/tmp/test1.result.json','/tmp/test2.result.json','/tmp/test3.result.json','/tmp/task4.result.json']:
               r=json.load(open(path))
-              assert r['schema']=='stegverse.sdk.manifest-handoff-disposition/v1'
+              assert r['schema']=='stegverse.sdk.manifest-transition-handoff/v1'
               assert r['disposition']=='ALLOW'
               assert r['evaluation_boundary']=='SDK_MANIFEST_HANDOFF'
               assert r['authentic_governance_disposition_observed'] is False
