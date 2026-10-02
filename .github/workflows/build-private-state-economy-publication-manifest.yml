@@ -48,7 +48,7 @@ jobs:
           assert request['canonical_manifest_sha256']=='ba615d6e487f11853173154317782fad1ed83dec32ab0c18650703e063fcc9e3'
           # The derived request's own hash. It moved when the request began
           # carrying the destination the manifest declares; the manifest did not.
-          assert request['request_sha256']=='9472bbfe7580823b22d44f4864823073f71f09bac806b93f4580ee477110cdcf'
+          assert request['request_sha256']=='86d75d902711abea61d31efb704b736e4155286eb00cfe62149367a6d1c7c6ea'
           assert request['manifest_declared_destination'] is None
           assert request['destination_resolution_source']=='CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert request['destination_resolution_environment_inputs']==[]
@@ -65,16 +65,15 @@ jobs:
           from pathlib import Path
           root=Path('/tmp/economic-publication-manifest')
           result=json.loads((root/'first-disposition.json').read_text())
-          assert result['schema']=='stegverse.sdk.manifest-transition-handoff/v1'
-          assert result['disposition']=='ALLOW'
-          assert result['evaluation_boundary']=='SDK_MANIFEST_HANDOFF'
-          assert result['destination_resolution_source']=='MANIFEST_COMPLETION_EGRESS'
+          assert result['schema']=='stegverse.sdk.manifest-handoff-disposition/v1'
+          assert result['disposition']=='FAIL_CLOSED'
+          assert result['evaluation_boundary']=='SDK_ORGANIZATION_DESTINATION_RESOLUTION'
+          assert result['destination_resolution_source']=='CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert result['destination_resolution_environment_inputs']==[]
-          assert result['receiver_contacted'] is False
-          assert result['awaits_external_machine'] is False
+          assert result['receiver_availability_consulted'] is False
+          assert result['external_machine_required'] is False
           assert result['consequence_committed'] is False
-          assert result['intr_admission_observed'] is False
-          assert result['far_side_transition_observed'] is False
+          assert result['authentic_governance_disposition_observed'] is False
           assert result['organization_receipt_observed'] is False
           print(json.dumps(result, sort_keys=True))
           PY
