@@ -6,16 +6,14 @@ StegVerse processing and governance path; InTr transports its payloads. This mod
 never invokes repository-local runners, WorkerCoordinator, Interlock/InTr, TV/TVC,
 StegAgents, or Master Records directly.
 
-The SDK's job is to *manifest*. It builds the request, binds it to the destination
-the manifest itself declares in ``completion.egress``, and hands it to the receiving
-Interlock runtime, which owns transport and admission. It is not the transport: it
-opens no connection, supplies no transport credential, and awaits no receiver.
-
-The destination comes from the manifest and from nowhere else - no environment
-variable, no discovered host, no configured ingress. So long as the manifest
-declares a destination, the handoff is complete at the SDK boundary; whether the
-receiver is reachable at this instant is the Interlock's concern, answered by
-``DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION``.
+The SDK's job is to *manifest*. Outbound organization routing is not selected by
+``completion.egress``: that block describes requester-facing completion/return
+semantics. The canonical Universal InTr connector registry declares
+``sdk-manifest-ingress / SDK:ManifestIngress`` and its owning organization, but
+the current registry does not yet supply a concrete organization ``.github``
+ingress endpoint to this runtime. Until that canonical mapping is available,
+run-manifest fails closed rather than treating LLM-adapter, Publisher, or any
+caller-authored completion surface as the organization destination.
 
 The return leg is ``admit_runtime_result``: results arrive after the receiving
 Interlock runtime has transported and admitted them, exactly as
@@ -35,7 +33,7 @@ REQUEST_SCHEMA = "stegverse.sdk.manifest-state-transition-request/v1"
 RESULT_SCHEMA = "stegverse.sdk.manifest-state-transition-result/v1"
 UNIVERSAL_RUNTIME_BINDING = "stegverse.manifest_state_transition_runtime.execute_manifest"
 HANDOFF_SCHEMA = "stegverse.sdk.manifest-transition-handoff/v1"
-DESTINATION_RESOLUTION_SOURCE = "MANIFEST_COMPLETION_EGRESS"
+DESTINATION_RESOLUTION_SOURCE = "CANONICAL_CONNECTOR_CAPABILITY_OVERLAY"
 # The protocol's own answer to a receiver that is not listening. The SDK never
 # waits for one, and a receiver's availability is not a transition predicate.
 RECEIVER_UNAVAILABLE_DISPOSITION = "DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION"
@@ -67,27 +65,15 @@ def _load_adapter(binding: str):
     return function
 
 
-def manifest_declared_destination(canonical: Mapping[str, Any]) -> dict[str, Any] | None:
-    """Read the destination the manifest declares, or None when it declares none.
+def manifest_declared_destination(canonical: Mapping[str, Any]) -> None:
+    """Compatibility shim: completion.egress is not outbound organization routing.
 
-    ``completion.egress`` is already validated and normalized by the manifest
-    contract, so a present egress block is well-formed by construction. This
-    reads it; it never supplies, discovers, defaults or configures a destination.
+    The canonical connector registry now declares sdk-manifest-ingress /
+    SDK:ManifestIngress and its owner. A concrete organization .github ingress
+    endpoint is not yet represented in the SDK-consumable canonical mapping, so
+    no outbound destination may be synthesized from completion.egress.
     """
-    egress = (canonical.get("completion") or {}).get("egress")
-    if not isinstance(egress, Mapping):
-        return None
-    surface = egress.get("final_stegverse_transition_surface")
-    if not isinstance(surface, str) or not surface:
-        return None
-    destination: dict[str, Any] = {
-        "final_stegverse_transition_surface": surface,
-        "transport": "INTERLOCK_INTR",
-        "far_side_transition_required": True,
-        "destination_profile": egress.get("destination_profile"),
-    }
-    destination["destination_sha256"] = _sha256(destination)
-    return destination
+    return None
 
 
 def derive_execution_request(manifest: Mapping[str, Any]) -> dict[str, Any]:
@@ -549,21 +535,21 @@ def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any
 
 
 def _destination_not_declared(request: Mapping[str, Any]) -> dict[str, Any]:
-    """The manifest declared no destination. That is a manifest defect, repairable
-    in the manifest, not a missing machine and not a reachability finding.
-    """
+    """Capability is known, but its canonical organization ingress endpoint is not."""
     result = {
         "schema": "stegverse.sdk.manifest-handoff-disposition/v1",
         "state": "FAIL_CLOSED",
         "disposition": "FAIL_CLOSED",
-        "evaluation_boundary": "SDK_MANIFEST_DESTINATION_BINDING",
-        "failure_code": "MANIFEST_DECLARES_NO_EGRESS_DESTINATION",
-        "failed_predicate": "MANIFEST_COMPLETION_EGRESS_DECLARES_A_DESTINATION",
+        "evaluation_boundary": "SDK_ORGANIZATION_DESTINATION_RESOLUTION",
+        "failure_code": "CANONICAL_ORGANIZATION_INGRESS_ENDPOINT_NOT_RESOLVED",
+        "failed_predicate": "REGISTERED_CAPABILITY_RESOLVES_TO_CANONICAL_ORGANIZATION_GITHUB_INGRESS_ENDPOINT",
         "required_evidence_or_repair": (
-            "Declare completion.egress.final_stegverse_transition_surface in the "
-            "manifest. The manifest determines the destination."),
+            "Consume the canonical capability/connector mapping that resolves "
+            "sdk-manifest-ingress / SDK:ManifestIngress to the owning organization's "
+            ".github ingress endpoint. Do not substitute completion.egress, "
+            "LLM-adapter, Publisher, an environment URL, host, or device."),
         "retry_entrypoint": "stegverse.manifest_state_transition_runtime.execute_manifest",
-        "next_attempt": "RE_MANIFEST_WITH_A_DECLARED_EGRESS_DESTINATION",
+        "next_attempt": "RETRY_AFTER_CANONICAL_ORGANIZATION_ENDPOINT_MAPPING_IS_AVAILABLE",
         "canonical_task_id": request.get("canonical_task_id"),
         "request_sha256": request["request_sha256"],
         "wire_manifest_sha256": request["wire_manifest_sha256"],
@@ -571,15 +557,21 @@ def _destination_not_declared(request: Mapping[str, Any]) -> dict[str, Any]:
         "graph_id": request["graph_id"],
         "processing_capability": request["processing_capability"],
         "route_id": request["route_id"],
+        "connector_profile_id": "sdk-manifest-ingress",
+        "connector_destination_subsystem": "SDK:ManifestIngress",
+        "connector_owner_ref": "StegVerse-org/StegVerse-SDK",
+        "destination_resolution_source": DESTINATION_RESOLUTION_SOURCE,
+        "completion_egress_controls_outbound_organization_routing": False,
+        "llm_adapter_is_outbound_organization_destination": False,
+        "publisher_is_outbound_organization_destination": False,
         "consequence_committed": False,
         "authentic_governance_disposition_observed": False,
         "organization_receipt_observed": False,
         "master_records_reconstruction_observed": False,
-        # Named so that no reader mistakes this for a machine or reachability gap.
         "machine_dependency_introduced": False,
         "external_machine_required": False,
         "receiver_availability_consulted": False,
-        "evidence_class": "SDK_LOCAL_MANIFEST_BINDING",
+        "evidence_class": "SDK_LOCAL_CAPABILITY_DESTINATION_RESOLUTION",
         "authority_effect": "NONE",
     }
     result["diagnostic_sha256"] = _sha256(result)
