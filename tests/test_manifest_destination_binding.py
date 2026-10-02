@@ -95,7 +95,7 @@ class UndeclaredDestinationTest(unittest.TestCase):
         self.assertFalse(result["external_machine_required"])
         self.assertFalse(result["receiver_availability_consulted"])
         self.assertFalse(result["consequence_committed"])
-        self.assertEqual(result["evidence_class"], "SDK_LOCAL_MANIFEST_BINDING")
+        self.assertEqual(result["evidence_class"], "SDK_LOCAL_CAPABILITY_DESTINATION_RESOLUTION")
         self.assertEqual(result["authority_effect"], "NONE")
         repair = result["required_evidence_or_repair"]
         self.assertIn("sdk-manifest-ingress / SDK:ManifestIngress", repair)
