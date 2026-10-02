@@ -45,7 +45,15 @@ def build_exp3_manifest():
         ],
         created_at="2026-09-24T00:00:00Z",
     )
-    # Reconstruct the historical v1 Publisher bytes explicitly. New manifests must use\n    # a typed destination; this block exists only to reproduce the already-frozen artifact.\n    manifest["completion"]["publisher"] = {\n        "stage": "PUBLISHER",\n        "required": True,\n        "package_profile": "stegverse.publisher.evidence-report-package/v1",\n    }\n    # This named original is frozen to workflow artifact 10843328013. Later
+    # Reconstruct the historical v1 Publisher bytes explicitly. New manifests
+    # use typed destinations; this projection exists only for the already-frozen
+    # artifact and does not alter new-builder semantics.
+    manifest["completion"]["publisher"] = {
+        "stage": "PUBLISHER",
+        "required": True,
+        "package_profile": "stegverse.publisher.evidence-report-package/v1",
+    }
+    # This named original is frozen to workflow artifact 10843328013. Later
     # builder releases added metadata fields which were NOT in its historical
     # wire bytes; each is removed ONLY when reconstructing this exact original,
     # never for new SDK manifests, and only when it still carries the value the
