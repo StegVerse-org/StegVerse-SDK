@@ -280,8 +280,8 @@ def assemble_publisher_return(
     egress = completion.get("egress")
     if not isinstance(initiator, Mapping):
         raise PublisherReturnBindingError("completion.initiator required")
-    if not isinstance(publisher, Mapping) or publisher.get("stage") != "PUBLISHER" or publisher.get("required") is not True:
-        raise PublisherReturnBindingError("manifest must require Publisher stage")
+    if (not isinstance(publisher, Mapping) or publisher.get("stage") != "PUBLISHER" or not ("destination" in publisher or publisher.get("required") is True)):
+        raise PublisherReturnBindingError("manifest must select Publisher stage")
     if not isinstance(egress, Mapping):
         raise PublisherReturnBindingError("completion.egress required")
     if egress.get("transport") != "INTERLOCK_INTR" or egress.get("far_side_transition_required") is not True:
