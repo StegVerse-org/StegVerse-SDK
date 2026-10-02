@@ -98,8 +98,9 @@ class UndeclaredDestinationTest(unittest.TestCase):
         self.assertEqual(result["evidence_class"], "SDK_LOCAL_MANIFEST_BINDING")
         self.assertEqual(result["authority_effect"], "NONE")
         repair = result["required_evidence_or_repair"]
-        for forbidden in ("host", "reachable", "device", "machine prerequisite", "attach"):
-            self.assertNotIn(forbidden.lower(), repair.lower())
+        self.assertIn("sdk-manifest-ingress / SDK:ManifestIngress", repair)
+        self.assertIn(".github ingress endpoint", repair)
+        self.assertIn("Do not substitute", repair)
 
 
 class ReturnLegTest(unittest.TestCase):
