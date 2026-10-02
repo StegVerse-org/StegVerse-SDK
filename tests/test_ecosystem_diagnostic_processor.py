@@ -244,19 +244,21 @@ class HeldOutManifestedReadinessSourceOnly(unittest.TestCase):
                 # through existing Universal InTr; never mock a success there.
                 result = execute_manifest(manifest)
                 self.assertEqual(result["results"][0]["observation_state"], "NOT_OBSERVED")
-                # The public run-manifest manifests and hands off to the
-                # manifest-declared destination. It never mocks a success on the
-                # far side, which stays unobserved from here.
+                # completion.egress is return metadata, not organization routing.
+                # Until the canonical capability overlay resolves the concrete
+                # owning .github ingress endpoint, run-manifest fails closed.
                 handoff = sdk_run_manifest(manifest)
-                self.assertEqual(handoff["state"], "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF")
-                self.assertEqual(handoff["evaluation_boundary"], "SDK_MANIFEST_HANDOFF")
+                self.assertEqual(handoff["state"], "FAIL_CLOSED")
                 self.assertEqual(
-                    handoff["destination_resolution_source"], "MANIFEST_COMPLETION_EGRESS"
+                    handoff["evaluation_boundary"], "SDK_ORGANIZATION_DESTINATION_RESOLUTION"
                 )
-                self.assertFalse(handoff["receiver_contacted"])
-                self.assertFalse(handoff["awaits_external_machine"])
-                self.assertFalse(handoff["intr_admission_observed"])
-                self.assertFalse(handoff["far_side_transition_observed"])
+                self.assertEqual(
+                    handoff["failed_predicate"],
+                    "REGISTERED_CAPABILITY_RESOLVES_TO_CANONICAL_ORGANIZATION_GITHUB_INGRESS_ENDPOINT",
+                )
+                self.assertEqual(handoff["connector_profile_id"], "sdk-manifest-ingress")
+                self.assertEqual(handoff["connector_destination_subsystem"], "SDK:ManifestIngress")
+                self.assertFalse(handoff["completion_egress_controls_outbound_organization_routing"])
                 self.assertFalse(handoff["organization_receipt_observed"])
                 self.assertFalse(handoff["master_records_reconstruction_observed"])
                 self.assertFalse(result["mutation_performed"])
