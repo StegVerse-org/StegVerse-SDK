@@ -117,6 +117,9 @@ def _normalize_completion(manifest: Mapping[str, Any]) -> dict[str, Any] | None:
     if not isinstance(package_profile, str) or not package_profile.strip():
         raise ValueError("completion.publisher.package_profile is required")
 
+    # completion.egress is requester-facing completion/return metadata. It MUST NOT
+    # select the outbound organization destination; that belongs to the canonical
+    # capability/connector mapping.
     egress = raw.get("egress")
     if not isinstance(egress, Mapping):
         raise ValueError("completion.egress must be an object")
