@@ -11,6 +11,7 @@ from stegverse.manifest_builder import (
     DEFAULT_PUBLISHER_PACKAGE_PROFILE,
     RETURN_DEPTHS,
     available_processors,
+    compatible_routes,
     build_manifest,
     main,
 )
@@ -201,22 +202,27 @@ class ManifestBuilderTests(unittest.TestCase):
     def test_current_processor_registry_exposes_installed_processors(self):
         self.assertEqual(available_processors(), ("atomic_task_worker", "ecosystem_diagnostic", "governance", "purpose_bound_worker", "stegbrowser", "svg_governance_cycle"))
 
-    def test_governance_execution_profiles_select_exact_nonfallback_routes(self):
-        local = self._build(execution_profile="LOCAL_CONFORMANCE")
-        ecosystem = self._build(execution_profile="ECOSYSTEM_CONNECTED")
+    def test_governance_routes_are_peer_capabilities_with_explicit_context_selection(self):
+        routes = compatible_routes("governance")
+        self.assertEqual({item["route_id"] for item in routes}, {
+            CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID, CANONICAL_PRODUCTION_ROUTE_ID,
+        })
+        self.assertTrue(all(item["automatic_substitution_permitted"] is False for item in routes))
+        self.assertTrue(all(item["operational_availability"] == "REQUIRES_EXECUTION_CONTEXT_EVIDENCE" for item in routes))
+        local = self._build(execution_context="CUSTOMER_LOCAL")
+        ecosystem = self._build(execution_context="ECOSYSTEM_CONNECTED")
         self.assertEqual(local["processing"]["route_id"], CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID)
-        self.assertEqual(local["extensions"]["stegverse_route"]["route_id"], CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID)
-        self.assertEqual(local["extensions"]["manifest_builder"]["execution_profile"], "LOCAL_CONFORMANCE")
+        self.assertEqual(local["extensions"]["manifest_builder"]["execution_context"], "CUSTOMER_LOCAL")
         self.assertEqual(ecosystem["processing"]["route_id"], CANONICAL_PRODUCTION_ROUTE_ID)
-        self.assertEqual(ecosystem["extensions"]["stegverse_route"]["route_id"], CANONICAL_PRODUCTION_ROUTE_ID)
-        self.assertEqual(ecosystem["extensions"]["manifest_builder"]["execution_profile"], "ECOSYSTEM_CONNECTED")
-        self.assertNotEqual(local["processing"]["route_id"], ecosystem["processing"]["route_id"])
+        self.assertEqual(ecosystem["extensions"]["manifest_builder"]["execution_context"], "ECOSYSTEM_CONNECTED")
+        self.assertFalse(local["extensions"]["manifest_builder"]["automatic_route_substitution_permitted"])
+        self.assertFalse(ecosystem["extensions"]["manifest_builder"]["automatic_route_substitution_permitted"])
 
-    def test_unknown_execution_profile_fails_closed(self):
-        with self.assertRaisesRegex(ValueError, "unsupported execution_profile"):
-            self._build(execution_profile="AUTO")
+    def test_unknown_execution_context_fails_closed(self):
+        with self.assertRaisesRegex(ValueError, "unsupported execution_context"):
+            self._build(execution_context="AUTO")
 
-    def test_cli_local_profile_persists_customer_local_route(self):
+    def test_cli_local_context_persists_customer_local_route(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             source = root / "source.json"
@@ -227,12 +233,12 @@ class ManifestBuilderTests(unittest.TestCase):
             rc = main([
                 "build", "--input", str(source), "--processor-request", str(request_path),
                 "--source-framework", "customer-fixture", "--source-output-id", "local-1",
-                "--execution-profile", "LOCAL_CONFORMANCE", "--output", str(output),
+                "--execution-context", "CUSTOMER_LOCAL", "--output", str(output),
             ])
             self.assertEqual(rc, 0)
             manifest = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(manifest["processing"]["route_id"], CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID)
-            self.assertEqual(manifest["extensions"]["manifest_builder"]["execution_profile"], "LOCAL_CONFORMANCE")
+            self.assertEqual(manifest["extensions"]["manifest_builder"]["execution_context"], "CUSTOMER_LOCAL")
 
     def test_cli_build_writes_submission_ready_complete_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
