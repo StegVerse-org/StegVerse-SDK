@@ -15,6 +15,10 @@ from stegverse.manifest_builder import (
     main,
 )
 from stegverse.manifest_contract import validate_ingress_manifest
+from stegverse.route_resolution import (
+    CANONICAL_PRODUCTION_ROUTE_ID,
+    CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID,
+)
 
 
 def governance_request():
@@ -196,6 +200,39 @@ class ManifestBuilderTests(unittest.TestCase):
 
     def test_current_processor_registry_exposes_installed_processors(self):
         self.assertEqual(available_processors(), ("atomic_task_worker", "ecosystem_diagnostic", "governance", "purpose_bound_worker", "stegbrowser", "svg_governance_cycle"))
+
+    def test_governance_execution_profiles_select_exact_nonfallback_routes(self):
+        local = self._build(execution_profile="LOCAL_CONFORMANCE")
+        ecosystem = self._build(execution_profile="ECOSYSTEM_CONNECTED")
+        self.assertEqual(local["processing"]["route_id"], CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID)
+        self.assertEqual(local["extensions"]["stegverse_route"]["route_id"], CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID)
+        self.assertEqual(local["extensions"]["manifest_builder"]["execution_profile"], "LOCAL_CONFORMANCE")
+        self.assertEqual(ecosystem["processing"]["route_id"], CANONICAL_PRODUCTION_ROUTE_ID)
+        self.assertEqual(ecosystem["extensions"]["stegverse_route"]["route_id"], CANONICAL_PRODUCTION_ROUTE_ID)
+        self.assertEqual(ecosystem["extensions"]["manifest_builder"]["execution_profile"], "ECOSYSTEM_CONNECTED")
+        self.assertNotEqual(local["processing"]["route_id"], ecosystem["processing"]["route_id"])
+
+    def test_unknown_execution_profile_fails_closed(self):
+        with self.assertRaisesRegex(ValueError, "unsupported execution_profile"):
+            self._build(execution_profile="AUTO")
+
+    def test_cli_local_profile_persists_customer_local_route(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source.json"
+            request_path = root / "governance.json"
+            output = root / "manifest.json"
+            source.write_text(json.dumps({"native": True}), encoding="utf-8")
+            request_path.write_text(json.dumps(governance_request()), encoding="utf-8")
+            rc = main([
+                "build", "--input", str(source), "--processor-request", str(request_path),
+                "--source-framework", "customer-fixture", "--source-output-id", "local-1",
+                "--execution-profile", "LOCAL_CONFORMANCE", "--output", str(output),
+            ])
+            self.assertEqual(rc, 0)
+            manifest = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["processing"]["route_id"], CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID)
+            self.assertEqual(manifest["extensions"]["manifest_builder"]["execution_profile"], "LOCAL_CONFORMANCE")
 
     def test_cli_build_writes_submission_ready_complete_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
