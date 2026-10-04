@@ -207,7 +207,7 @@ def reconcile_capability_map() -> dict[str, Any]:
             "evidence_ceiling": "SOURCE_RECONCILIATION_ONLY",
         }
         if paths and example_present:
-            row["example"] = EVALUATOR_EXAMPLES[capability]
+            row["example"] = dict(EVALUATOR_EXAMPLES[capability])
             if execution_profile:
                 row["example"]["execution_profile"] = execution_profile
 
