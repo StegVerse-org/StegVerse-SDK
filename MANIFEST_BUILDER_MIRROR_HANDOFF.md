@@ -164,3 +164,17 @@ Manifest intake no longer equates "not installed" with terminal unsupported inpu
 - UNKNOWN_CAPABILITY: no known capability binding exists; emit a user-requested capability-development/deployment request that first discovers an existing equivalent, otherwise defines the capability/profile contract, develops it within existing SDK authority, validates/deploys it through existing release authority, and retries the original user request.
 
 Classification and development requests grant no execution, credential, deployment, or transition authority. Actual deployment remains governed by the existing owners/TV-TVC/release path. The original user request is retained as the obligation being resolved.
+
+
+## Customer-local versus ecosystem-connected governance profile — 2026-10-04
+
+The portability review demonstrated one bounded construction gap after the general customer-local route had already merged: `build_manifest(process="governance")` still selected the single legacy governance mapping, so a repository-independent caller could not ask the public Manifest Builder to construct the already-published customer-local route.
+
+The existing builder now accepts an explicit `execution_profile` with exactly two governance values:
+
+- `LOCAL_CONFORMANCE -> stegverse.route.customer-local-governed.v1`
+- `ECOSYSTEM_CONNECTED -> stegverse.route.canonical-governed.v1`
+
+The CLI exposes the same contract as `stegverse manifest build --execution-profile ...`. `ECOSYSTEM_CONNECTED` remains the backward-compatible default. The selected route is retained identically in `processing.route_id`, `extensions.stegverse_route.route_id`, and Manifest Builder evidence. Unknown profiles fail closed. No profile may fall back to the other route.
+
+This repairs manifest construction/discovery only. Customer-local `run-manifest` still correctly fails closed with `CUSTOMER_LOCAL_HOST_BINDINGS_REQUIRED` unless the integrating customer supplies the independently trusted verifier, precommit recorder, bounded executor and result recorder through the existing programmatic customer-local runtime. No gateway, credential route, second SDK, hosted dependency, or authority plane is created.
