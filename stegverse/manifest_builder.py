@@ -32,6 +32,7 @@ from .manifest_contract import validate_ingress_manifest
 from .capability_resolution import ONLINE, OFFLINE, UNKNOWN_CAPABILITY, capability_development_request, classify_capability
 from .route_resolution import (
     CANONICAL_PRODUCTION_ROUTE_ID,
+    CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID,
     ECOSYSTEM_DIAGNOSTIC_ROUTE_ID,
     PURPOSE_BOUND_WORKER_ROUTE_ID,
     ATOMIC_TASK_WORKER_ROUTE_ID,
@@ -39,6 +40,14 @@ from .route_resolution import (
     STEGBROWSER_ROUTE_ID,
     PUBLISHED_ROUTES,
 )
+
+LOCAL_CONFORMANCE = "LOCAL_CONFORMANCE"
+ECOSYSTEM_CONNECTED = "ECOSYSTEM_CONNECTED"
+EXECUTION_PROFILES = (LOCAL_CONFORMANCE, ECOSYSTEM_CONNECTED)
+GOVERNANCE_PROFILE_ROUTES = {
+    LOCAL_CONFORMANCE: CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID,
+    ECOSYSTEM_CONNECTED: CANONICAL_PRODUCTION_ROUTE_ID,
+}
 
 PROCESSOR_ROUTES = {
     "governance": CANONICAL_PRODUCTION_ROUTE_ID,
@@ -135,9 +144,19 @@ def available_processors() -> tuple[str, ...]:
     return tuple(sorted(installed))
 
 
-def _route_declaration(process: str) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+def _route_declaration(
+    process: str, execution_profile: str = ECOSYSTEM_CONNECTED
+) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     normalized = process.strip().lower()
-    resolution = classify_capability(normalized, PROCESSOR_ROUTES, PUBLISHED_ROUTES)
+    profile = execution_profile.strip().upper()
+    if profile not in EXECUTION_PROFILES:
+        raise ValueError("unsupported execution_profile: " + execution_profile)
+    if normalized != "governance" and profile != ECOSYSTEM_CONNECTED:
+        raise ValueError("LOCAL_CONFORMANCE is currently defined only for governance")
+    processor_routes = dict(PROCESSOR_ROUTES)
+    if normalized == "governance":
+        processor_routes["governance"] = GOVERNANCE_PROFILE_ROUTES[profile]
+    resolution = classify_capability(normalized, processor_routes, PUBLISHED_ROUTES)
     if resolution["status"] != ONLINE:
         return None, resolution
     route_id = resolution["route_id"]
@@ -229,6 +248,7 @@ def build_manifest(
     source_output_id: str,
     processor_request: Mapping[str, Any],
     process: str = "governance",
+    execution_profile: str = ECOSYSTEM_CONNECTED,
     return_depth: str = "result+evidence",
     data_class: str | None = None,
     source_instance: str | None = None,
@@ -254,7 +274,8 @@ def build_manifest(
         raise ValueError("source_output_id is required")
 
     normalized_process = process.strip().lower()
-    route, capability_resolution = _route_declaration(normalized_process)
+    normalized_execution_profile = execution_profile.strip().upper()
+    route, capability_resolution = _route_declaration(normalized_process, normalized_execution_profile)
     if capability_resolution["status"] == UNKNOWN_CAPABILITY:
         return {
             "schema": "stegverse.manifest-build-resolution/v1",
@@ -339,6 +360,7 @@ def build_manifest(
         "processing_capability": normalized_process,
         "capability_status": capability_resolution["status"],
         "route_id": route["route_id"],
+        "execution_profile": normalized_execution_profile,
         "return_depth": depth_key,
         "source_semantic_custody": "EXTERNAL",
         "builder_grants_authority": False,
@@ -371,13 +393,16 @@ def build_manifest(
         "attestation": None,
         "extensions": extensions,
         "return_projection": return_projection,
-        "completion": _completion_contract(
-            initiator_class=initiator_class,
-            initiator_ref=initiator_ref or source_framework,
-            publisher_destination=publisher_destination,
-            publisher_package_profile=publisher_package_profile,
-            egress_surface=egress_surface,
-            destination_profile=destination_profile,
+        "completion": (
+            None if normalized_execution_profile == LOCAL_CONFORMANCE
+            else _completion_contract(
+                initiator_class=initiator_class,
+                initiator_ref=initiator_ref or source_framework,
+                publisher_destination=publisher_destination,
+                publisher_package_profile=publisher_package_profile,
+                egress_surface=egress_surface,
+                destination_profile=destination_profile,
+            )
         ),
         "manifest_labels": dict(manifest_labels or {"mode": "NONE"}),
     }
@@ -417,6 +442,7 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--source-instance")
     build.add_argument("--data-class")
     build.add_argument("--process", default="governance", help="requested processing capability; unknown names create a capability-development request")
+    build.add_argument("--execution-profile", default=ECOSYSTEM_CONNECTED, choices=EXECUTION_PROFILES, help="governance execution scope; selects exactly one published governance route and never grants authority")
     build.add_argument("--return-depth", default="result+evidence", choices=sorted(RETURN_DEPTHS))
     build.add_argument("--initiator-class", default="external_framework")
     build.add_argument("--initiator-ref")
@@ -452,6 +478,7 @@ def main(argv: list[str] | None = None) -> int:
                 data_class=args.data_class,
                 processor_request=_load_json(request_path),
                 process=args.process,
+                execution_profile=args.execution_profile,
                 return_depth=args.return_depth,
                 initiator_class=args.initiator_class,
                 initiator_ref=args.initiator_ref,
