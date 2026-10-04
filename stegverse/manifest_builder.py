@@ -41,8 +41,8 @@ from .route_resolution import (
     PUBLISHED_ROUTES,
 )
 
-EXECUTION_PROFILES = {
-    "LOCAL_CONFORMANCE": CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID,
+GOVERNANCE_EXECUTION_CONTEXTS = {
+    "CUSTOMER_LOCAL": CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID,
     "ECOSYSTEM_CONNECTED": CANONICAL_PRODUCTION_ROUTE_ID,
 }
 
@@ -141,15 +141,48 @@ def available_processors() -> tuple[str, ...]:
     return tuple(sorted(installed))
 
 
-def _route_declaration(process: str, execution_profile: str = "ECOSYSTEM_CONNECTED") -> tuple[dict[str, Any] | None, dict[str, Any]]:
+def compatible_routes(process: str) -> tuple[dict[str, Any], ...]:
+    """Expose compatible published routes without treating one as fallback for another."""
     normalized = process.strip().lower()
-    profile = execution_profile.strip().upper()
-    if profile not in EXECUTION_PROFILES:
-        raise ValueError("unsupported execution_profile; choices: " + ", ".join(sorted(EXECUTION_PROFILES)))
+    route_ids = (
+        tuple(GOVERNANCE_EXECUTION_CONTEXTS.values())
+        if normalized == "governance"
+        else ((PROCESSOR_ROUTES.get(normalized),) if PROCESSOR_ROUTES.get(normalized) else ())
+    )
+    candidates = []
+    for route_id in route_ids:
+        route = PUBLISHED_ROUTES.get(route_id) or {}
+        if route.get("processor_capability") != normalized:
+            continue
+        candidates.append({
+            "route_id": route_id,
+            "execution_context": next(
+                (name for name, candidate in GOVERNANCE_EXECUTION_CONTEXTS.items() if candidate == route_id),
+                "CAPABILITY_DEFAULT",
+            ),
+            "sdk_runtime_binding_installed": route.get("runtime_installed") is True,
+            "operational_availability": "REQUIRES_EXECUTION_CONTEXT_EVIDENCE",
+            "automatic_substitution_permitted": False,
+        })
+    return tuple(candidates)
+
+
+def _route_declaration(process: str, execution_context: str = "ECOSYSTEM_CONNECTED") -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    normalized = process.strip().lower()
     processor_routes = dict(PROCESSOR_ROUTES)
+    selected_context = "CAPABILITY_DEFAULT"
     if normalized == "governance":
-        processor_routes["governance"] = EXECUTION_PROFILES[profile]
+        selected_context = execution_context.strip().upper()
+        if selected_context not in GOVERNANCE_EXECUTION_CONTEXTS:
+            raise ValueError(
+                "unsupported execution_context; choices: "
+                + ", ".join(sorted(GOVERNANCE_EXECUTION_CONTEXTS))
+            )
+        processor_routes["governance"] = GOVERNANCE_EXECUTION_CONTEXTS[selected_context]
     resolution = classify_capability(normalized, processor_routes, PUBLISHED_ROUTES)
+    resolution["compatible_routes"] = list(compatible_routes(normalized))
+    resolution["selected_execution_context"] = selected_context
+    resolution["automatic_substitution_permitted"] = False
     if resolution["status"] != ONLINE:
         return None, resolution
     route_id = resolution["route_id"]
@@ -164,7 +197,6 @@ def _route_declaration(process: str, execution_profile: str = "ECOSYSTEM_CONNECT
         "sandbox_required": published["sandbox_required"],
         "external_consequence_enabled": published["external_consequence_enabled"],
     }, resolution
-
 
 def _validate_governance_request(value: Mapping[str, Any] | None) -> dict[str, Any]:
     if not isinstance(value, Mapping):
@@ -241,7 +273,7 @@ def build_manifest(
     source_output_id: str,
     processor_request: Mapping[str, Any],
     process: str = "governance",
-    execution_profile: str = "ECOSYSTEM_CONNECTED",
+    execution_context: str = "ECOSYSTEM_CONNECTED",
     return_depth: str = "result+evidence",
     data_class: str | None = None,
     source_instance: str | None = None,
@@ -267,7 +299,7 @@ def build_manifest(
         raise ValueError("source_output_id is required")
 
     normalized_process = process.strip().lower()
-    route, capability_resolution = _route_declaration(normalized_process, execution_profile)
+    route, capability_resolution = _route_declaration(normalized_process, execution_context)
     if capability_resolution["status"] == UNKNOWN_CAPABILITY:
         return {
             "schema": "stegverse.manifest-build-resolution/v1",
@@ -354,7 +386,9 @@ def build_manifest(
         "route_id": route["route_id"],
         "return_depth": depth_key,
         "source_semantic_custody": "EXTERNAL",
-        "execution_profile": execution_profile.strip().upper(),
+        "execution_context": capability_resolution["selected_execution_context"],
+        "compatible_routes": capability_resolution["compatible_routes"],
+        "automatic_route_substitution_permitted": False,
         "builder_grants_authority": False,
         "external_review_requested": external_review,
         "publisher_required_by_review_default": False,
@@ -431,7 +465,7 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--source-instance")
     build.add_argument("--data-class")
     build.add_argument("--process", default="governance", help="requested processing capability; unknown names create a capability-development request")
-    build.add_argument("--execution-profile", default="ECOSYSTEM_CONNECTED", choices=sorted(EXECUTION_PROFILES), help="governance route profile; LOCAL_CONFORMANCE is customer-local and ECOSYSTEM_CONNECTED is canonical networked governance")
+    build.add_argument("--execution-context", default="ECOSYSTEM_CONNECTED", choices=sorted(GOVERNANCE_EXECUTION_CONTEXTS), help="explicit governance execution context; routes are peers and are never automatically substituted")
     build.add_argument("--return-depth", default="result+evidence", choices=sorted(RETURN_DEPTHS))
     build.add_argument("--initiator-class", default="external_framework")
     build.add_argument("--initiator-ref")
@@ -467,7 +501,7 @@ def main(argv: list[str] | None = None) -> int:
                 data_class=args.data_class,
                 processor_request=_load_json(request_path),
                 process=args.process,
-                execution_profile=args.execution_profile,
+                execution_context=args.execution_context,
                 return_depth=args.return_depth,
                 initiator_class=args.initiator_class,
                 initiator_ref=args.initiator_ref,
