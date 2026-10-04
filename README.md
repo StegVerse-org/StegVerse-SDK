@@ -1161,3 +1161,17 @@ Outbound organization destination resolution for `sdk-manifest-ingress / SDK:Man
 ### Public run-manifest canonical organization source binding
 
 For the universal manifest-state-transition route, the public `stegverse run-manifest` dispatcher now reads the canonical StegVerse-Labs organization Interlock/InTr boundary through the SDK's pre-existing allowlisted repository-source reader and credential-free GitHub fetcher. Repository, path and immutable canonical ref are SDK-owned source identity; callers cannot provide an endpoint or select an environment ingress. The retrieved organization contract remains non-authorizing source input and is passed to the installed runtime, which independently validates `sdk-manifest-ingress / SDK:ManifestIngress / SUBMIT_MANIFEST`. This does not prove Interlock/InTr admission or execute the far-side transition.
+
+
+## Console governance execution profiles
+
+The installed SDK exposes one Manifest Builder and one `run-manifest` dispatcher. Governance manifest construction now makes execution scope explicit without creating a second SDK, ingress, runtime or authority plane:
+
+```text
+LOCAL_CONFORMANCE    -> stegverse.route.customer-local-governed.v1
+ECOSYSTEM_CONNECTED  -> stegverse.route.canonical-governed.v1
+```
+
+Use `stegverse manifest build --process governance --execution-profile LOCAL_CONFORMANCE ...` for the customer-local route, or `--execution-profile ECOSYSTEM_CONNECTED` for the canonical ecosystem route. The latter is the backward-compatible default. The selected canonical route is written into `processing.route_id`; route resolution revalidates it and never substitutes another route. `LOCAL_CONFORMANCE` emits no federated completion contract and still requires independently trusted customer host bindings for consequential local execution. `ECOSYSTEM_CONNECTED` does not fall back locally if organization/InTr admission is unavailable.
+
+Execution profile selects scope only and grants no authority. Dispositions remain `ALLOW`, `DENY`, or `FAIL_CLOSED`; locality is not a fourth disposition. Current production `run-manifest` source evidence reaches `SDK_MANIFEST_HANDOFF`. Authentic InTr admission/far-side execution requires request-bound receiving-operation evidence and the resulting organization transition receipt/readback, plus applicable Master Records custody; SDK-local handoff assertions are not substitutes for that evidence.
