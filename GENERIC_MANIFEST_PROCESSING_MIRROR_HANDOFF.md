@@ -271,3 +271,17 @@ Canonical owner `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`, COSV `7100000010
 ### PR #374 reconciliation after merged #375
 
 The multi-condition source evidence packet implementation and evaluator-bound API are owned by merged SDK PR #375. The sole distinct #374 obligation retained on current main is the requirement-order lineage negative control in `tests/test_manifest_plan.py`; it rejects a reordered requirement set against a previously derived plan. The historical #374 commits remain in the merge ancestry, but its older duplicate evidence-packet module and tests must not replace the merged #375 API. This is source-only validation and claims no original InTr, WorkerCoordinator, organization or Master Records runtime receipt.
+
+
+## Console governance execution profiles
+
+The installed SDK exposes one Manifest Builder and one `run-manifest` dispatcher. Governance manifest construction now makes execution scope explicit without creating a second SDK, ingress, runtime or authority plane:
+
+```text
+LOCAL_CONFORMANCE    -> stegverse.route.customer-local-governed.v1
+ECOSYSTEM_CONNECTED  -> stegverse.route.canonical-governed.v1
+```
+
+Use `stegverse manifest build --process governance --execution-profile LOCAL_CONFORMANCE ...` for the customer-local route, or `--execution-profile ECOSYSTEM_CONNECTED` for the canonical ecosystem route. The latter is the backward-compatible default. The selected canonical route is written into `processing.route_id`; route resolution revalidates it and never substitutes another route. `LOCAL_CONFORMANCE` emits no federated completion contract and still requires independently trusted customer host bindings for consequential local execution. `ECOSYSTEM_CONNECTED` does not fall back locally if organization/InTr admission is unavailable.
+
+Execution profile selects scope only and grants no authority. Dispositions remain `ALLOW`, `DENY`, or `FAIL_CLOSED`; locality is not a fourth disposition. Current production `run-manifest` source evidence reaches `SDK_MANIFEST_HANDOFF`. Authentic InTr admission/far-side execution requires request-bound receiving-operation evidence and the resulting organization transition receipt/readback, plus applicable Master Records custody; SDK-local handoff assertions are not substitutes for that evidence.
