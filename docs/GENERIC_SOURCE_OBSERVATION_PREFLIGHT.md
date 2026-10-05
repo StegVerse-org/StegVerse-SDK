@@ -6,14 +6,14 @@
 
 ```bash
 python -m stegverse.source_observation \
-  --input inspection/examples/source-observation-synthetic-hold.json \
+  --input inspection/examples/source-observation-synthetic.json \
   --output /tmp/source-preflight.json
 
 stegverse manifest build \
-  --input inspection/examples/source-observation-synthetic-hold.json \
+  --input inspection/examples/source-observation-synthetic.json \
   --processor-request inspection/examples/source-observation-synthetic-diagnostic-request.json \
   --source-framework synthetic_external_evaluator \
-  --source-output-id synthetic-hold-demo-001 \
+  --source-output-id synthetic-demo-001 \
   --process ecosystem_diagnostic \
   --return-depth full-trace \
   --output /tmp/source-manifest.json
