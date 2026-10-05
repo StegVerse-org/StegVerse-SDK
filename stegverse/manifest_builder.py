@@ -144,6 +144,26 @@ def available_processors() -> tuple[str, ...]:
     return tuple(sorted(installed))
 
 
+def compatible_routes(process: str) -> tuple[dict[str, Any], ...]:
+    """Expose compatible published routes without treating one as fallback for another."""
+    normalized = process.strip().lower()
+    if normalized != "governance":
+        return ()
+    candidates = []
+    for profile, route_id in GOVERNANCE_PROFILE_ROUTES.items():
+        route = PUBLISHED_ROUTES.get(route_id) or {}
+        if route.get("processor_capability") != normalized:
+            continue
+        candidates.append({
+            "route_id": route_id,
+            "execution_profile": profile,
+            "sdk_runtime_binding_installed": route.get("runtime_installed") is True,
+            "operational_availability": "REQUIRES_EXECUTION_PROFILE_EVIDENCE",
+            "automatic_substitution_permitted": False,
+        })
+    return tuple(candidates)
+
+
 def _route_declaration(
     process: str, execution_profile: str = ECOSYSTEM_CONNECTED
 ) -> tuple[dict[str, Any] | None, dict[str, Any]]:
@@ -369,6 +389,8 @@ def build_manifest(
     }
     if normalized_process == "governance":
         extensions["manifest_builder"]["execution_profile"] = normalized_execution_profile
+        extensions["manifest_builder"]["compatible_routes"] = list(compatible_routes(normalized_process))
+        extensions["manifest_builder"]["automatic_route_substitution_permitted"] = False
     if data_class is not None:
         if not isinstance(data_class, str) or not data_class.strip():
             raise ValueError("data_class must be a non-empty string when supplied")

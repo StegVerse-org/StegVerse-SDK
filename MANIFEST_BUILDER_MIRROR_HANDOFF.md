@@ -164,3 +164,19 @@ Manifest intake no longer equates "not installed" with terminal unsupported inpu
 - UNKNOWN_CAPABILITY: no known capability binding exists; emit a user-requested capability-development/deployment request that first discovers an existing equivalent, otherwise defines the capability/profile contract, develops it within existing SDK authority, validates/deploys it through existing release authority, and retries the original user request.
 
 Classification and development requests grant no execution, credential, deployment, or transition authority. Actual deployment remains governed by the existing owners/TV-TVC/release path. The original user request is retained as the obligation being resolved.
+
+
+## Customer-local and ecosystem-connected peer routes — 2026-10-04
+
+The portability review demonstrated one bounded construction gap: the public Manifest Builder selected one governance route per call but did not record that two published governance routes serve different execution contexts.
+
+Building on the console execution profiles (`--execution-profile`), governance manifests now also record the compatible governance routes as peers in `extensions.manifest_builder.compatible_routes`:
+
+- `LOCAL_CONFORMANCE -> stegverse.route.customer-local-governed.v1`
+- `ECOSYSTEM_CONNECTED -> stegverse.route.canonical-governed.v1`
+
+`ECOSYSTEM_CONNECTED` remains the backward-compatible default for existing callers; it is not a priority declaration. The selected route is retained identically in `processing.route_id` and `extensions.stegverse_route.route_id`. Each compatible route carries `automatic_substitution_permitted=false`, and the manifest carries `automatic_route_substitution_permitted=false`. The added metadata is scoped to governance manifests; manifests for other capabilities are unchanged.
+
+Route availability is independent. `runtime_installed` proves only that the SDK binding is installed. The builder records operational availability as requiring execution-profile evidence rather than inferring it. Ecosystem unavailability therefore cannot silently become local execution, and local unavailability is not inferred from ecosystem state. Acquisition/download failure, package/install integrity failure, and installation-location unavailability remain evidence owned by their existing acquisition/install/location contracts; this builder creates no duplicate detector or availability authority.
+
+Customer-local `run-manifest` still correctly fails closed with `CUSTOMER_LOCAL_HOST_BINDINGS_REQUIRED` unless the integrating customer supplies the independently trusted verifier, precommit recorder, bounded executor and result recorder through the existing programmatic customer-local runtime. No gateway, credential route, second SDK, hosted dependency, or authority plane is created.
