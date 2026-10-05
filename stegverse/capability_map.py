@@ -24,7 +24,9 @@ from pathlib import Path
 import re
 from typing import Any
 
-from .manifest_builder import PROCESSOR_ROUTES
+from .manifest_builder import (
+    ECOSYSTEM_CONNECTED, LOCAL_CONFORMANCE, GOVERNANCE_PROFILE_ROUTES, PROCESSOR_ROUTES,
+)
 from .route_resolution import CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID, PUBLISHED_ROUTES
 
 SCHEMA = "stegverse.sdk.capability-map-reconciliation/v1"
@@ -51,7 +53,6 @@ EXEMPTION_REQUIRED_FIELDS = (
 EXEMPTION_BASELINE = frozenset({
     "native_source_math",
     "sovereign_inference",
-    "stegverse.route.customer-local-governed.v1",
 })
 
 OWNING_GOAL = "SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005"
@@ -95,22 +96,8 @@ EVALUATOR_EXAMPLES: dict[str, dict[str, str]] = {
 #: Published routes the Manifest Builder cannot select even though their
 #: capability is bound, because ``--process <capability>`` resolves to exactly
 #: one route id. Keyed by route id rather than capability.
-ROUTE_SELECTION_EXEMPTIONS: dict[str, dict[str, str]] = {
-    CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID: {
-        "failed_predicate": "PROCESSING_CAPABILITY_SELECTS_THIS_ROUTE",
-        "required_evidence_or_repair": (
-            "parameterize route selection so a governance build may request the "
-            "customer-local lane, then declare its evaluator example"
-        ),
-        "retry_entrypoint": "stegverse.manifest_builder.build_manifest",
-        "owning_existing_goal": OWNING_GOAL,
-        "registry_repository": REGISTRY_REPOSITORY,
-        "observed_registry_generation": OBSERVED_REGISTRY_GENERATION,
-        "granted_by": GRANTED_BY,
-        "review_by": REVIEW_BY,
-        "current_reachability": "PROCESS_GOVERNANCE_RESOLVES_TO_CANONICAL_PRODUCTION_ROUTE_ONLY",
-    },
-}
+ROUTE_SELECTION_EXEMPTIONS: dict[str, dict[str, str]] = {}
+
 
 #: Routes published as installed that the Manifest Builder cannot reach. Each
 #: exemption is explicit and carries the predicate that is unsatisfied, the
@@ -189,6 +176,13 @@ def reconcile_capability_map() -> dict[str, Any]:
         installed = route.get("runtime_installed") is True
         selected_route = PROCESSOR_ROUTES.get(capability)
         bound = selected_route == route_id
+        execution_profile = None
+        if capability == "governance" and route_id in GOVERNANCE_PROFILE_ROUTES.values():
+            execution_profile = next(
+                profile for profile, selected in GOVERNANCE_PROFILE_ROUTES.items()
+                if selected == route_id
+            )
+            bound = True
         exemption = BUILDER_BINDING_EXEMPTIONS.get(capability)
         if selected_route is not None and not bound:
             exemption = ROUTE_SELECTION_EXEMPTIONS.get(route_id)
@@ -208,11 +202,14 @@ def reconcile_capability_map() -> dict[str, Any]:
                 "EXEMPT" if exemption else "ABSENT"
             ),
             "routing_surface": route.get("routing_surface"),
+            "execution_profile": execution_profile,
             "execution_authorized": False,
             "evidence_ceiling": "SOURCE_RECONCILIATION_ONLY",
         }
         if paths and example_present:
-            row["example"] = EVALUATOR_EXAMPLES[capability]
+            row["example"] = dict(EVALUATOR_EXAMPLES[capability])
+            if execution_profile:
+                row["example"]["execution_profile"] = execution_profile
 
         if bound and example_present:
             row["disposition"] = EVALUATOR_INVOCABLE
