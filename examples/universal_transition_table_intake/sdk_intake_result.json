@@ -1,0 +1,44 @@
+{
+  "manifest": {
+    "manifest_id": "uttp-manifest-canonical-only-package-001",
+    "package_id": "canonical-only-package-001",
+    "source_package_path": "/home/user/stegverse-sdk/examples/universal_transition_table_intake/transition_test_package.json",
+    "construction_status": "CONSTRUCTED",
+    "route_eligible": true,
+    "route_purpose": "UNIVERSAL_TRANSITION_TABLE_TEST",
+    "required_receipts": [
+      "commitment_candidate_receipt",
+      "intake_receipt",
+      "route_eligibility_receipt"
+    ],
+    "commitment_candidate_present": true,
+    "requires_fresh_standing_determination": true
+  },
+  "intake_receipt": {
+    "receipt_id": "uttp-intake-receipt-canonical-only-package-001",
+    "package_id": "canonical-only-package-001",
+    "manifest_id": "uttp-manifest-canonical-only-package-001",
+    "accepted_for_intake": true,
+    "reason": "Verified universal transition-table package accepted at SDK boundary.",
+    "next_receipt_required": "route_eligibility_receipt",
+    "commitment_candidate_non_authorizing": true
+  },
+  "route_eligibility_receipt": {
+    "receipt_id": "uttp-route-eligibility-canonical-only-package-001",
+    "package_id": "canonical-only-package-001",
+    "route_eligible": true,
+    "reason": "Package is constructed, route eligible, and has no blocked reasons.",
+    "blocked_reasons": [],
+    "fresh_standing_determination_required": true
+  },
+  "commitment_candidate_receipt": {
+    "receipt_id": "uttp-commitment-candidate-canonical-only-package-001",
+    "package_id": "canonical-only-package-001",
+    "candidate_type": "COMMITMENT_CANDIDATE",
+    "accepted_as_non_authorizing": true,
+    "authorizing": false,
+    "inherits_review_authority": false,
+    "implies_standing": false,
+    "requires_fresh_standing_determination": true
+  }
+}
