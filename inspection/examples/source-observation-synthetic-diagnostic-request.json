@@ -1,6 +1,6 @@
 {
   "schema": "stegverse.ecosystem-diagnostic-request.v1",
-  "diagnostic_request_id": "synthetic-hold-source-qualification",
+  "diagnostic_request_id": "synthetic-source-qualification",
   "scope": "component",
   "mutation_permitted": false,
   "expected_evidence_fields": [
