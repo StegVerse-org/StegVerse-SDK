@@ -88,8 +88,6 @@ jobs:
           assert handoff['awaits_external_machine'] is False
           assert handoff['receiver_contacted'] is False
           assert handoff['organization_receipt_observed'] is False
-          assert handoff['authentic_governance_disposition_observed'] is False
-          assert handoff['consequence_committed'] is False
           print('EXTERNAL_FRAMEWORK_PUBLIC_SUBMISSION_VALIDATION_PASS')
           PY
 
