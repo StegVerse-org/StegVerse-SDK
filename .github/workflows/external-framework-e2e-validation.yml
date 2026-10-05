@@ -75,19 +75,19 @@ jobs:
           assert manifest['processing']['route_id'] == 'stegverse.route.canonical-governed.v1'
           assert manifest['return_projection']['mode'] == 'ALL'
 
-          # Requester-facing completion metadata is not outbound organization routing.
-          # Until the canonical connector capability resolves a concrete owning
-          # .github ingress endpoint, source-only manifesting stops fail-closed here.
+          # Current canonical source resolves the existing organization boundary.
+          # This remains SDK-local handoff evidence and does not prove receiver observation.
           assert result['evidence_class'] == 'SDK_LOCAL_MANIFEST_HANDOFF'
           handoff = result['handoff']
-          assert handoff['state'] == 'FAIL_CLOSED'
-          assert handoff['disposition'] == 'FAIL_CLOSED'
-          assert handoff['evaluation_boundary'] == 'SDK_ORGANIZATION_DESTINATION_RESOLUTION'
+          assert handoff['state'] == 'MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF'
+          assert handoff['disposition'] == 'ALLOW'
+          assert handoff['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
           assert handoff['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
-          assert handoff['connector_profile_id'] == 'sdk-manifest-ingress'
-          assert result['manifest_declared_destination'] is None
-          assert handoff['receiver_availability_consulted'] is False
-          assert handoff['external_machine_required'] is False
+          assert result['manifest_declared_destination']['profile_id'] == 'sdk-manifest-ingress'
+          assert handoff['receiver_availability_required'] is False
+          assert handoff['awaits_external_machine'] is False
+          assert handoff['receiver_contacted'] is False
+          assert handoff['organization_receipt_observed'] is False
           assert handoff['authentic_governance_disposition_observed'] is False
           assert handoff['consequence_committed'] is False
           print('EXTERNAL_FRAMEWORK_PUBLIC_SUBMISSION_VALIDATION_PASS')
