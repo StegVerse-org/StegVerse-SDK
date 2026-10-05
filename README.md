@@ -1175,3 +1175,17 @@ ECOSYSTEM_CONNECTED  -> stegverse.route.canonical-governed.v1
 Use `stegverse manifest build --process governance --execution-profile LOCAL_CONFORMANCE ...` for the customer-local route, or `--execution-profile ECOSYSTEM_CONNECTED` for the canonical ecosystem route. The latter is the backward-compatible default. The selected canonical route is written into `processing.route_id`; route resolution revalidates it and never substitutes another route. `LOCAL_CONFORMANCE` emits no federated completion contract and still requires independently trusted customer host bindings for consequential local execution. `ECOSYSTEM_CONNECTED` does not fall back locally if organization/InTr admission is unavailable.
 
 Execution profile selects scope only and grants no authority. Dispositions remain `ALLOW`, `DENY`, or `FAIL_CLOSED`; locality is not a fourth disposition. Current production `run-manifest` source evidence reaches `SDK_MANIFEST_HANDOFF`. Authentic InTr admission/far-side execution requires request-bound receiving-operation evidence and the resulting organization transition receipt/readback, plus applicable Master Records custody; SDK-local handoff assertions are not substitutes for that evidence.
+
+
+### Test 5/6 machine submission reconciliation
+
+Existing goal: `SVORG-STEGOS-PORTABILITY-001` (parent counter 28/20).
+COSV source projection candidate: `20011100100000`, retained with exact metrics
+in StegVerse-org/.github `control/task-vector-index.json`; canonical admission
+requires review/merge. SDK `machine-contract` projects current declarations and
+peer execution profiles. The framework helper uses existing run-manifest routing;
+adapter discovery preserves its own receiving operation. External instructions
+end at canonical manifest submission and evidence retention. Local handoff is not
+receiver observation; external reciprocal Interlock/InTr remains deferred.
+See the repository's portability/canonical-standing/machine-contract mirror handoff
+for source validation and remaining evidence.

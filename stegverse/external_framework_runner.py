@@ -84,18 +84,17 @@ def prepare_external_framework_manifest(
     )
 
 
-def manifest_external_framework_submission(**kwargs: Any) -> dict[str, Any]:
+def manifest_external_framework_submission(*, canonical_source_fetcher=None, **kwargs: Any) -> dict[str, Any]:
     """Manifest the submission and hand it to Interlock/InTr. The SDK's whole job.
 
-    The manifest declares its own egress destination, so the handoff needs no
-    configured ingress and no reachable receiver: it completes whether or not one
-    is listening. Nothing is executed, transported or awaited here, and the far
-    side stays unobserved.
+    Reuse public run-manifest destination resolution from the canonical source
+    reader. Completion egress never chooses the outbound destination. No receiver
+    liveness check or transport is performed; the far side stays unobserved.
     """
-    from .manifest_state_transition_runtime import execute_manifest
+    from .manifest_execution import execute_manifest
 
     manifest = prepare_external_framework_manifest(**kwargs)
-    handoff = execute_manifest(manifest)
+    handoff = execute_manifest(manifest, canonical_source_fetcher=canonical_source_fetcher)
     return {
         "schema": "stegverse.sdk.external-framework-submission.v1",
         "status": "SUBMISSION_READY",

@@ -64,6 +64,13 @@ def governance_request():
 
 
 class ExternalFrameworkRunnerTests(unittest.TestCase):
+    def setUp(self):
+        from tests.test_manifest_destination_binding import ORGANIZATION_BOUNDARY
+        fixture = patch("stegverse.manifest_execution._canonical_organization_boundary",
+                        return_value=ORGANIZATION_BOUNDARY)
+        fixture.start()
+        self.addCleanup(fixture.stop)
+
     def test_preregistration_is_retained_outside_governance_request(self):
         declaration = {
             "what": "ELAN boundary test",
