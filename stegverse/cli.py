@@ -402,7 +402,13 @@ def _compose_response(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="stegverse", description="Discover and use allowed local StegVerse SDK surfaces")
+    from .machine_contract import MANIFEST_COMMANDS
+    parser = argparse.ArgumentParser(
+        prog="stegverse", description="Discover and use allowed local StegVerse SDK surfaces",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="Manifest commands:\n" + "\n".join(
+            f"{name}: {help_text}" for name, help_text in MANIFEST_COMMANDS.items()),
+    )
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("surfaces", help="list callable SDK surfaces")
     sub.add_parser("capabilities", help="print the user-facing surface registry as JSON")

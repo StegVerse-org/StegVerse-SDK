@@ -38,6 +38,9 @@ def main(argv: list[str] | None = None) -> int:
         return production_release_set.main(args[1:])
     if args and args[0] in {"test-procedure", "procedure"}:
         return test_procedure.main(args[1:])
+    if args and args[0] == "machine-contract":
+        from .machine_contract import main as machine_main
+        return machine_main(args[1:])
     if args and args[0] in {"manifest", "manifest-builder"}:
         return manifest_builder.main(args[1:])
     if args and args[0] in {"run-manifest", "manifest-run"}:

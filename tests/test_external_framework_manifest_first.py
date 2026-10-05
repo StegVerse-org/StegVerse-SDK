@@ -37,21 +37,27 @@ COMMON = dict(
 )
 
 
+def canonical_boundary_fixture():
+    from tests.test_manifest_destination_binding import ORGANIZATION_BOUNDARY
+    return patch("stegverse.manifest_execution._canonical_organization_boundary",
+                 return_value=ORGANIZATION_BOUNDARY)
+
+
 def manifested() -> dict:
-    return manifest_external_framework_submission(**COMMON)
+    with canonical_boundary_fixture():
+        return manifest_external_framework_submission(**COMMON)
 
 
-def test_manifesting_stops_at_canonical_organization_endpoint_resolution():
+def test_manifesting_uses_existing_canonical_organization_resolution():
     result = manifested()
     assert result["status"] == "SUBMISSION_READY"
     assert result["evidence_class"] == "SDK_LOCAL_MANIFEST_HANDOFF"
     handoff = result["handoff"]
-    assert handoff["state"] == "FAIL_CLOSED"
-    assert handoff["disposition"] == "FAIL_CLOSED"
-    assert handoff["evaluation_boundary"] == "SDK_ORGANIZATION_DESTINATION_RESOLUTION"
+    assert handoff["state"] == "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF"
+    assert handoff["disposition"] == "ALLOW"
+    assert handoff["evaluation_boundary"] == "SDK_MANIFEST_HANDOFF"
     assert handoff["destination_resolution_source"] == "CANONICAL_CONNECTOR_CAPABILITY_OVERLAY"
-    assert handoff["connector_profile_id"] == "sdk-manifest-ingress"
-    assert result["manifest_declared_destination"] is None
+    assert result["manifest_declared_destination"]["profile_id"] == "sdk-manifest-ingress"
 
 
 def test_manifesting_executes_transports_and_awaits_nothing():
@@ -60,8 +66,8 @@ def test_manifesting_executes_transports_and_awaits_nothing():
     assert result["execution_performed"] is False
     assert result["manifest_receipt_id"] is None
     assert result["posture_resolution_performed"] is False
-    assert handoff["receiver_availability_consulted"] is False
-    assert handoff["external_machine_required"] is False
+    assert handoff["receiver_availability_required"] is False
+    assert handoff["awaits_external_machine"] is False
 
 
 def test_manifesting_observes_nothing_on_the_far_side():
@@ -75,7 +81,8 @@ def test_manifesting_observes_nothing_on_the_far_side():
 def test_the_former_name_still_resolves_to_the_same_function():
     """Existing callers of prepare_external_framework_submission keep working."""
     assert prepare_external_framework_submission is manifest_external_framework_submission
-    assert prepare_external_framework_submission(**COMMON) == manifested()
+    with canonical_boundary_fixture():
+        assert prepare_external_framework_submission(**COMMON) == manifested()
 
 
 def enclosed_run(**overrides) -> dict:
@@ -138,7 +145,8 @@ def cli(tmp_path: Path, *flags: str) -> dict:
     ]
     (tmp_path / "data.json").write_text(json.dumps(COMMON["data"]), encoding="utf-8")
     (tmp_path / "request.json").write_text(json.dumps(governance_request()), encoding="utf-8")
-    assert main(argv) == 0
+    with canonical_boundary_fixture():
+        assert main(argv) == 0
     return json.loads(output.read_text(encoding="utf-8"))
 
 
@@ -146,8 +154,8 @@ def test_the_cli_default_is_manifesting_with_no_flag_at_all(tmp_path):
     result = cli(tmp_path)
     assert result["status"] == "SUBMISSION_READY"
     assert result["execution_performed"] is False
-    assert result["handoff"]["state"] == "FAIL_CLOSED"
-    assert result["handoff"]["evaluation_boundary"] == "SDK_ORGANIZATION_DESTINATION_RESOLUTION"
+    assert result["handoff"]["state"] == "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF"
+    assert result["handoff"]["evaluation_boundary"] == "SDK_MANIFEST_HANDOFF"
 
 
 def test_prepare_only_still_produces_exactly_the_default(tmp_path):

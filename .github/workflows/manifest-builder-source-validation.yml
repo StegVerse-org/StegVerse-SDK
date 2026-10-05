@@ -23,6 +23,9 @@ on:
       - stegverse/workspace_resource_consumer.py
       - stegverse/route_resolution.py
       - stegverse/evaluator_console.py
+      - stegverse/machine_contract.py
+      - tests/test_machine_contract.py
+      - tests/test_external_framework_manifest_first.py
       - schemas/stegverse.ingress-manifest.v1.schema.json
       - tests/test_manifest_builder.py
       - tests/test_governance_reference_graph.py
@@ -73,6 +76,9 @@ on:
       - stegverse/workspace_resource_consumer.py
       - stegverse/route_resolution.py
       - stegverse/evaluator_console.py
+      - stegverse/machine_contract.py
+      - tests/test_machine_contract.py
+      - tests/test_external_framework_manifest_first.py
       - schemas/stegverse.ingress-manifest.v1.schema.json
       - tests/test_manifest_builder.py
       - tests/test_governance_reference_graph.py
@@ -137,6 +143,7 @@ jobs:
           python -m unittest tests.test_state_transition_evidence
           python -m unittest tests.test_external_interlock_ingress_binding
           python -m unittest tests.test_workspace_resource_consumer
+          python -m pytest -q tests/test_machine_contract.py tests/test_external_framework_manifest_first.py
           python -m unittest tests.test_external_framework_runner
           python -m unittest tests.test_generic_manifest_processing_contract
           python -m unittest tests.test_governance_navigation
