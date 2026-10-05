@@ -360,7 +360,6 @@ def build_manifest(
         "processing_capability": normalized_process,
         "capability_status": capability_resolution["status"],
         "route_id": route["route_id"],
-        "execution_profile": normalized_execution_profile,
         "return_depth": depth_key,
         "source_semantic_custody": "EXTERNAL",
         "builder_grants_authority": False,
@@ -368,6 +367,8 @@ def build_manifest(
         "publisher_required_by_review_default": False,
         "publisher_selected_by_destination": publisher_destination is not None,
     }
+    if normalized_process == "governance":
+        extensions["manifest_builder"]["execution_profile"] = normalized_execution_profile
     if data_class is not None:
         if not isinstance(data_class, str) or not data_class.strip():
             raise ValueError("data_class must be a non-empty string when supplied")
