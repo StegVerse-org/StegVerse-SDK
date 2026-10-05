@@ -63,6 +63,7 @@ class CapabilityMapConformanceTests(unittest.TestCase):
                     source_output_id=f"capability-map-{row['capability_id']}",
                     processor_request=request,
                     process=row["capability_id"],
+                    execution_profile=row.get("execution_profile") or "ECOSYSTEM_CONNECTED",
                     return_depth="full-trace",
                     created_at="2026-09-29T00:00:00Z",
                 )
