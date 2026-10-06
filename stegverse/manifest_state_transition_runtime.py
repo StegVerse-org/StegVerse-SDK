@@ -437,10 +437,13 @@ def _validate_governance_runtime_result(
             raise ValueError(f"GOVERNANCE_RESULT_BINDING_MISMATCH:{key}")
     if result.get("processing_capability") != "governance":
         raise ValueError("GOVERNANCE_RESULT_CAPABILITY_MISMATCH")
-    if result.get("organization_records_before_master_records") is not True:
-        raise ValueError("GOVERNANCE_RESULT_ORGANIZATION_FIRST_REQUIRED")
-    if result.get("organization_master_records_closure_observed") is not True:
-        raise ValueError("GOVERNANCE_RESULT_MASTER_RECORDS_CLOSURE_REQUIRED")
+    # A governance decision is recorded in organization records only. Master
+    # Records is not part of the governance path, so a result claiming its
+    # closure is not a result this route produces.
+    if result.get("records_authority") != "ORGANIZATION_RECORDS_ONLY":
+        raise ValueError("GOVERNANCE_RESULT_ORGANIZATION_RECORDS_REQUIRED")
+    if result.get("organization_master_records_closure_observed"):
+        raise ValueError("GOVERNANCE_RESULT_MASTER_RECORDS_NOT_IN_GOVERNANCE_PATH")
     if result.get("publisher_executed") is not False or result.get("site_propagation_executed") is not False:
         raise ValueError("GOVERNANCE_RESULT_EXTERNAL_MUTATION_ESCALATION")
     _validate_transition_closures(result, request["state_graph"])
