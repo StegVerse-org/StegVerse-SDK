@@ -273,10 +273,24 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
                                root=str(self.peer_root))
 
         def leg2():
+            # SV-LLM's node state is supplied, as its materializer would; without
+            # it SV-LLM records a FAIL_CLOSED and consumes nothing.
+            node_state = self.scratch / "sv-llm-node-state"
+            node_state.mkdir(exist_ok=True)
             consumed = _run_in_org(self.peer_root, self.peer_ledger, "org-runtime/crossing.py", "ingress",
-                                   mesh_root=str(self.mesh), root=str(self.peer_root))
+                                   mesh_root=str(self.mesh), node_state_root=str(node_state),
+                                   root=str(self.peer_root))
             if not consumed:
                 return {"disposition": "DENY", "failed_predicate": "NO_FRAME_CONSUMED_BY_SV_LLM"}
+            # Each consumed entry carries SV-LLM's own disposition. A recorded
+            # refusal is a result, not a consumption, so it is never read as ALLOW.
+            refused = [entry for entry in consumed
+                       if not isinstance(entry, dict) or entry.get("disposition") != "ALLOW"]
+            if refused:
+                first = refused[0] if isinstance(refused[0], dict) else {}
+                return {"disposition": first.get("disposition") or "FAIL_CLOSED",
+                        "failed_predicate": first.get("failed_predicate") or "SV_LLM_INGRESS_NOT_ALLOWED",
+                        "result": first}
             return {"disposition": "ALLOW", "consumed": consumed}
 
         def leg3():
