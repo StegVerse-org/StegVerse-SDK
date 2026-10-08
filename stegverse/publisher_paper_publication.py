@@ -167,8 +167,9 @@ def prepare_publisher_paper_manifest(
         declared_intent="Evaluate exact owner-approved Publisher paper through existing governed ingress.",
         requested_consequence=(
             "Request governed publication decision for this exact paper. "
-            "No repository mutation before separately observed original Interlock/InTr ALLOW "
-            "and reconstructed same-transition Master Records closure."
+            "No repository mutation before a separately observed original Interlock/InTr ALLOW. "
+            "Interlock/InTr admits the transition; Master Records keeps its reconstructable "
+            "same-transition organization record."
         ),
         initiator_class="publisher_paper_publication_candidate",
         initiator_ref=TASK_ID,

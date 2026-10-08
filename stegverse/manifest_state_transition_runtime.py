@@ -29,6 +29,7 @@ from typing import Any, Mapping
 from .manifest_contract import validate_ingress_manifest
 from .connector_capability_overlay import resolve_organization_ingress
 from .route_resolution import canonical_sha256, route_from_manifest
+from .organization_record_names import LEGACY_ORGANIZATION_RECORD_OBSERVED_FIELD, ORGANIZATION_RECORD_OBSERVED_FIELD, read_field
 
 REQUEST_SCHEMA = "stegverse.sdk.manifest-state-transition-request/v1"
 RESULT_SCHEMA = "stegverse.sdk.manifest-state-transition-result/v1"
@@ -45,6 +46,13 @@ _REQUIRED_CLOSURE = {
     "required_evidence_validation_status": "PASS",
 }
 
+
+
+def _result_value(result: Mapping[str, Any], key: str) -> Any:
+    """Read a result field; the organization-record flag also accepts its legacy name."""
+    if key == ORGANIZATION_RECORD_OBSERVED_FIELD:
+        return read_field(result, ORGANIZATION_RECORD_OBSERVED_FIELD, LEGACY_ORGANIZATION_RECORD_OBSERVED_FIELD)
+    return result.get(key)
 
 def _canonical_bytes(value: Any) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
@@ -156,17 +164,17 @@ def _validate_transition_closures(result: Mapping[str, Any], graph: Mapping[str,
         if not isinstance(ordered, list) or not ordered or not all(isinstance(x, str) and x for x in ordered):
             raise ValueError("RUNTIME_CANONICAL_ORDERED_TRANSITIONS_REQUIRED")
     if not isinstance(closures, list) or len(closures) != len(ordered):
-        raise ValueError("MASTER_RECORDS_TRANSITION_CLOSURE_COUNT_MISMATCH")
+        raise ValueError("MASTER_RECORDS_ORGANIZATION_RECORD_COUNT_MISMATCH")
     previous_receipt = None
     for index, (expected_transition, raw) in enumerate(zip(ordered, closures)):
         if not isinstance(raw, Mapping):
-            raise ValueError(f"MASTER_RECORDS_CLOSURE_OBJECT_REQUIRED:{index}")
+            raise ValueError(f"MASTER_RECORDS_ORGANIZATION_RECORD_OBJECT_REQUIRED:{index}")
         closure = dict(raw)
         if closure.get("transition_id") != expected_transition:
             raise ValueError(f"MASTER_RECORDS_TRANSITION_ORDER_MISMATCH:{index}")
         for key, expected in _REQUIRED_CLOSURE.items():
             if closure.get(key) != expected:
-                raise ValueError(f"MASTER_RECORDS_CLOSURE_REQUIRED:{expected_transition}:{key}")
+                raise ValueError(f"MASTER_RECORDS_ORGANIZATION_RECORD_REQUIRED:{expected_transition}:{key}")
         receipt = closure.get("receipt_sha256")
         reconstructed = closure.get("reconstructed_receipt_sha256")
         if not isinstance(receipt, str) or not receipt or receipt != reconstructed:
@@ -205,7 +213,7 @@ def _validate_profile_source_deny(result: Mapping[str, Any], request: Mapping[st
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_BOUNDARY_MISMATCH")
     if result.get("authentic_intr_disposition_observed") is not False:
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_AUTHENTICITY_ESCALATION")
-    if result.get("organization_master_records_closure_observed") is not False:
+    if _result_value(result, ORGANIZATION_RECORD_OBSERVED_FIELD) is not False:
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_CUSTODY_ESCALATION")
     if result.get("terminal") is not is_terminal or result.get("automatic_retry_permitted") is not False:
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_RETRY_CONTRACT_MISMATCH")
@@ -218,7 +226,8 @@ def _validate_profile_source_deny(result: Mapping[str, Any], request: Mapping[st
     if not isinstance(result.get("evidence_refs"), list):
         raise ValueError("UNIVERSAL_INTR_DISPOSITION_EVIDENCE_REQUIRED")
     # The returned path is the resident profile's source-diagnostic locator,
-    # not an independently checked organization/Master Records custody receipt.
+    # not an independently checked organization record or Master Records
+    # organization-record receipt.
     return dict(result)
 
 
@@ -301,13 +310,13 @@ def _validate_worker_result_attachment_fail_closed(
         "failed_predicate": "EXACT_REQUEST_BOUND_PURPOSE_RUNTIME_RECEIPT_PRESENT",
         "consequence_committed_by_this_profile": False,
         "authentic_intr_disposition_observed": False,
-        "organization_master_records_closure_observed": False,
+        ORGANIZATION_RECORD_OBSERVED_FIELD: False,
         "retry_entrypoint": "EXISTING_SDK_MANIFEST_UNIVERSAL_INTR_INGRESS",
         "automatic_retry_permitted": False,
         "authority_effect": "NONE_PROFILE_BOUNDARY_DISPOSITION_ONLY",
     }
     for key, value in required.items():
-        if result.get(key) != value:
+        if _result_value(result, key) != value:
             raise ValueError(f"WORKER_ATTACHMENT_FAIL_CLOSED_CONTRACT_MISMATCH:{key}")
     for key in (
         "request_sha256", "canonical_manifest_sha256", "graph_id",
@@ -342,13 +351,13 @@ def _validate_manifest_binding_deny(result: Mapping[str, Any], request: Mapping[
         "evaluation_boundary": "SDK_MANIFEST_PROFILE",
         "transport_validated": True,
         "authentic_intr_admission_observed": False,
-        "organization_master_records_closure_observed": False,
+        ORGANIZATION_RECORD_OBSERVED_FIELD: False,
         "transition_id": "SDK_MANIFEST_BINDING",
         "repair_owner": "StegVerse-org/StegVerse-SDK:stegverse/manifest_builder.py",
         "authority_effect": "NONE_MANIFEST_PROFILE_DENY_ONLY",
     }
     for key, value in required.items():
-        if result.get(key) != value:
+        if _result_value(result, key) != value:
             raise ValueError(f"MANIFEST_BINDING_DENY_CONTRACT_MISMATCH:{key}")
     if result.get("reason_code") not in _CORRECTABLE_MANIFEST_BINDING_DENIALS:
         raise ValueError("MANIFEST_BINDING_DENY_REASON_UNAPPROVED")
@@ -384,12 +393,12 @@ def _validate_shwp_parent_profile_result(result: Mapping[str, Any], request: Map
         "terminal": False,
         "evaluation_boundary": "SDK_SHWP_MANIFEST_BOUND_PARENT_CONSUMER",
         "authentic_intr_disposition_observed": False,
-        "organization_master_records_closure_observed": False,
+        ORGANIZATION_RECORD_OBSERVED_FIELD: False,
         "consequence_committed_by_this_adapter": False,
         "authority_effect": "NONE_PROFILE_RETURN_ONLY",
         "owning_existing_goal": "SHWP-ECOSYSTEM-CHAT-INFERENCE-001",
     }.items():
-        if result.get(key) != expected:
+        if _result_value(result, key) != expected:
             raise ValueError("SHWP_RESULT_SOURCE_BOUNDARY_MISMATCH:" + key)
     if result.get("state") == "FAIL_CLOSED":
         if result.get("disposition") != "FAIL_CLOSED":
@@ -438,11 +447,11 @@ def _validate_governance_runtime_result(
     if result.get("processing_capability") != "governance":
         raise ValueError("GOVERNANCE_RESULT_CAPABILITY_MISMATCH")
     # A governance decision is recorded in organization records only. Master
-    # Records is not part of the governance path, so a result claiming its
-    # closure is not a result this route produces.
+    # Records is not part of the governance path, so a result claiming a Master
+    # Records organization record is not a result this route produces.
     if result.get("records_authority") != "ORGANIZATION_RECORDS_ONLY":
         raise ValueError("GOVERNANCE_RESULT_ORGANIZATION_RECORDS_REQUIRED")
-    if result.get("organization_master_records_closure_observed"):
+    if _result_value(result, ORGANIZATION_RECORD_OBSERVED_FIELD):
         raise ValueError("GOVERNANCE_RESULT_MASTER_RECORDS_NOT_IN_GOVERNANCE_PATH")
     if result.get("publisher_executed") is not False or result.get("site_propagation_executed") is not False:
         raise ValueError("GOVERNANCE_RESULT_EXTERNAL_MUTATION_ESCALATION")

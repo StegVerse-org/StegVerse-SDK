@@ -26,7 +26,7 @@ Running `stegverse-mcp-test` with no `--select` presents the same five selected-
 stegverse-mcp-test --select 000
 ```
 
-This prints the production-artifact route, authority boundary, Master Records custody requirements, and the point at which an MCP `tools/call` may occur.
+This prints the production-artifact route, authority boundary, Master Records organization record requirements, and the point at which an MCP `tools/call` may occur.
 
 Canonical path:
 
@@ -36,14 +36,14 @@ SDK MCP test entry
 -> exact tool contract + exact proposed call canonicalized/hashed
 -> portable MCP test packet
 -> canonical SDK ingress / Core-Lite manifested route
--> Master Records MRR-* checkpoint custody
+-> Master Records MRR-* checkpoint organization record
 -> canonical StegCore transaction
 -> canonical StegGate + commit-coherence evaluation
 -> bounded MCP tools/call only at the canonical consequence boundary
 -> MCP result captured as execution observation
--> Master Records MR-* exact-run custody
+-> Master Records MR-* exact-run organization record
 -> return ingestion/CGE
--> Master Records MRR-* return custody
+-> Master Records MRR-* return organization record
 -> same SDK caller connection
 ```
 
@@ -55,7 +55,7 @@ MCP discovery and packet construction have no authority effect.
 stegverse-mcp-test --select 00
 ```
 
-Caller return/explanation preferences never suppress canonical Master Records custody.
+Caller return/explanation preferences never suppress the canonical Master Records organization record.
 
 ## 0 — run an MCP production-artifact test
 
@@ -126,7 +126,7 @@ The packet is converted into an ordinary canonical StegGate request. The actual 
 ```bash
 stegverse-mcp-test --select 1 \
   --manifest-receipt-id MR-<SHA256> \
-  --custody-db ./stegverse-master-records-validation.db
+  --records-db ./stegverse-master-records-validation.db
 ```
 
 Replay is separately receipted ecosystem history and does not resend the original MCP `tools/call`.
@@ -136,7 +136,7 @@ Replay is separately receipted ecosystem history and does not resend the origina
 ```bash
 stegverse-mcp-test --select 2 \
   --manifest-receipt-id MR-<SHA256> \
-  --custody-db ./stegverse-master-records-validation.db
+  --records-db ./stegverse-master-records-validation.db
 ```
 
 Reconstruction rebuilds the retained trajectory from Master Records evidence. It does not resend the original MCP `tools/call`.
@@ -154,7 +154,7 @@ argument mutation changes call hash
 caller credential material is rejected
 000 exposes the actual production-artifact route
 MCP call is handed to the canonical consequence boundary rather than pre-executed
-canonical governed integration records Master Records custody
+canonical governed integration records the Master Records organization record
 replay does not reexecute consequence
 reconstruction does not reexecute consequence
 ```

@@ -18,12 +18,12 @@ The active continuation is recorded by `SDK_MIRROR_HANDOFF.md` and the custody/r
 Superseding invariant:
 
 ```text
-governed TEST transition -> Master Records exact-run custody required
+governed TEST transition -> Master Records exact-run organization record required
 successful governed TEST result without custody_status RECORDED -> prohibited
 local-only registry/ledger retention -> insufficient as canonical ecosystem custody
 ```
 
-The current runtime therefore requires an admitted Master Records endpoint before governance and records the complete exact-run evidence package before reporting success.
+The current runtime therefore checks that the Master Records organization-record routes are reachable, and records the complete exact-run evidence package before reporting success.
 
 Replay and reconstruction are also now actual SDK operations rather than guidance-only claims:
 

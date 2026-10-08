@@ -146,7 +146,7 @@ def review_stage1_org_receipt_snapshots(
             findings.append("UNRECOGNIZED_OR_NONADVANCING_TRANSITION_OUTCOME")
             break
         # Source pairs alone do not verify warrant, admission, independent
-        # origin, authentic Master Records closure or worker-absent replay.
+        # origin, an authentic Master Records organization record or worker-absent replay.
     if not first_failure and expected_index < len(EXPECTED):
         findings.append("NEXT_TRANSITION_NOT_EVIDENCED")
     if expected_index == len(EXPECTED) and first_failure is None:

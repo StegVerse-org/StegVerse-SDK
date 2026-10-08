@@ -11,6 +11,14 @@ from typing import Any, Mapping
 import requests
 
 from .public_inspection import PublicInspectionRequestError, load_public_inspection_request, validate_public_inspection_request
+from .organization_record_names import (
+    LEGACY_RECORD_STATUS_FIELD,
+    ORGANIZATION_RECORD_RECEIPT_FIELD,
+    ORGANIZATION_RECORD_STATUS_FIELD,
+    RECORD_REQUESTED_FIELD,
+    RECORD_STATUS_FIELD,
+    read_field,
+)
 
 
 class PublicInspectionRuntimeError(RuntimeError):
@@ -72,7 +80,7 @@ def _master_records_config(base_url: str | None = None, token: str | None = None
     url = (base_url or os.getenv("MASTER_RECORDS_URL") or "").rstrip("/")
     auth = token or os.getenv("MASTER_RECORDS_AUTH_TOKEN") or ""
     if not url or not auth:
-        raise PublicInspectionRuntimeError("Master Records custody is required. Configure MASTER_RECORDS_URL and MASTER_RECORDS_AUTH_TOKEN.")
+        raise PublicInspectionRuntimeError("A Master Records organization record is required. Configure MASTER_RECORDS_URL and MASTER_RECORDS_AUTH_TOKEN.")
     return url, auth
 
 
@@ -81,6 +89,11 @@ def _stegcore_config(base_url: str | None = None) -> str:
     if not url:
         raise PublicInspectionRuntimeError("STEGCORE_URL is required for production validation; no hosted-provider default is permitted")
     return url
+
+
+def _record_status(body: Mapping[str, Any]) -> Any:
+    """Record status from a Master Records response; pre-migration services use the legacy name."""
+    return read_field(body, RECORD_STATUS_FIELD, LEGACY_RECORD_STATUS_FIELD)
 
 
 def _headers(token: str) -> dict[str, str]:
@@ -94,9 +107,9 @@ def _preflight_master_records(base_url: str, token: str) -> None:
     except requests.RequestException as exc:
         raise PublicInspectionRuntimeError(f"Master Records preflight failed: {exc}") from exc
     if exact.status_code not in (200, 404):
-        raise PublicInspectionRuntimeError(f"Master Records exact-run custody route is not admitted: HTTP {exact.status_code}")
+        raise PublicInspectionRuntimeError(f"Master Records exact-run organization-record route is unavailable: HTTP {exact.status_code}")
     if route.status_code != 200:
-        raise PublicInspectionRuntimeError(f"Master Records manifested-route custody route is not admitted: HTTP {route.status_code}")
+        raise PublicInspectionRuntimeError(f"Master Records manifested-route organization-record route is unavailable: HTTP {route.status_code}")
 
 
 def _preflight_stegcore(base_url: str) -> dict[str, Any]:
@@ -119,25 +132,25 @@ def _retain_in_master_records(base_url: str, token: str, record: Any, evidence: 
     try:
         response = requests.post(f"{base_url}/api/master-records/manifest-receipts", headers=_headers(token), json=payload, timeout=30)
     except requests.RequestException as exc:
-        raise PublicInspectionRuntimeError(f"Master Records custody failed: {exc}") from exc
+        raise PublicInspectionRuntimeError(f"Master Records organization record failed: {exc}") from exc
     if response.status_code not in (200, 201):
-        raise PublicInspectionRuntimeError(f"Master Records custody failed: HTTP {response.status_code}: {response.text[:500]}")
+        raise PublicInspectionRuntimeError(f"Master Records organization record failed: HTTP {response.status_code}: {response.text[:500]}")
     body = response.json()
-    if body.get("custody_status") != "RECORDED":
-        raise PublicInspectionRuntimeError("Master Records did not confirm RECORDED custody")
+    if _record_status(body) != "RECORDED":
+        raise PublicInspectionRuntimeError("Master Records did not confirm a RECORDED organization record")
     return body
 
 
 def _record_route_event(base_url: str, token: str, route_manifest_id: str, event: Mapping[str, Any]) -> dict[str, Any]:
-    payload = {"schema": "stegverse.master-records.manifest-route-event-submission.v1", "event": dict(event), "custody_requested": True, "authority_requested": False}
+    payload = {"schema": "stegverse.master-records.manifest-route-event-submission.v1", "event": dict(event), RECORD_REQUESTED_FIELD: True, "authority_requested": False}
     try:
         response = requests.post(f"{base_url}/api/master-records/manifest-routes/{route_manifest_id}/events", headers=_headers(token), json=payload, timeout=30)
     except requests.RequestException as exc:
-        raise PublicInspectionRuntimeError(f"Master Records route custody failed: {exc}") from exc
+        raise PublicInspectionRuntimeError(f"Master Records route organization record failed: {exc}") from exc
     if response.status_code not in (200, 201):
-        raise PublicInspectionRuntimeError(f"Master Records route custody failed: HTTP {response.status_code}: {response.text[:500]}")
+        raise PublicInspectionRuntimeError(f"Master Records route organization record failed: HTTP {response.status_code}: {response.text[:500]}")
     body = response.json()
-    if body.get("custody_status") != "RECORDED":
+    if _record_status(body) != "RECORDED":
         raise PublicInspectionRuntimeError("Master Records did not record manifested-route transition")
     return body
 
@@ -157,15 +170,15 @@ def _get_json(url: str, token: str) -> dict[str, Any]:
 
 def _record_operation_event(base_url: str, token: str, manifest_receipt_id: str, operation_id: str, operation: str, sequence: int, event_type: str, *, details: Mapping[str, Any] | None = None, artifact: Mapping[str, Any] | None = None) -> dict[str, Any]:
     event = {"operation_id": operation_id, "operation": operation, "sequence": sequence, "event_type": event_type, "details": dict(details or {}), "artifact_sha256": _canonical_hash(artifact) if artifact is not None else None, "authority_granted": False}
-    payload = {"schema": "stegverse.master-records.manifest-operation-event-submission.v1", "event": event, "custody_requested": True, "authority_requested": False}
+    payload = {"schema": "stegverse.master-records.manifest-operation-event-submission.v1", "event": event, RECORD_REQUESTED_FIELD: True, "authority_requested": False}
     try:
         response = requests.post(f"{base_url}/api/master-records/manifest-receipts/{manifest_receipt_id}/operations", headers=_headers(token), json=payload, timeout=30)
     except requests.RequestException as exc:
-        raise PublicInspectionRuntimeError(f"Master Records operation custody failed: {exc}") from exc
+        raise PublicInspectionRuntimeError(f"Master Records operation organization record failed: {exc}") from exc
     if response.status_code not in (200, 201):
-        raise PublicInspectionRuntimeError(f"Master Records operation custody failed: HTTP {response.status_code}: {response.text[:500]}")
+        raise PublicInspectionRuntimeError(f"Master Records operation organization record failed: HTTP {response.status_code}: {response.text[:500]}")
     body = response.json()
-    if body.get("custody_status") != "RECORDED":
+    if _record_status(body) != "RECORDED":
         raise PublicInspectionRuntimeError("Master Records did not record operation transition")
     return body
 
@@ -248,15 +261,15 @@ def run_public_inspection_test(request: Mapping[str, Any], *, master_records_url
             "stegcore_service_url": core_url,
             "stegcore_runtime_identity": core_identity.get("runtime_identity"),
         }
-        custody = _retain_in_master_records(mr_url, token, record, evidence, build_submission)
+        organization_record = _retain_in_master_records(mr_url, token, record, evidence, build_submission)
         evaluation = result.execution_observation.get("evaluation") or {}
-        state.update({"result": result, "record": record, "custody": custody, "evaluation": evaluation})
+        state.update({"result": result, "record": record, "organization_record": organization_record, "evaluation": evaluation})
         return {
             "governance_state": evaluation.get("disposition"),
             "manifest_receipt_id": record.manifest_receipt_id,
             "transaction_id": record.transaction_id,
             "stegcore_chain_verified": bool(result.chain_verified),
-            "exact_run_custody_status": custody.get("custody_status"),
+            "exact_run_custody_status": _record_status(organization_record),
             "external_side_effect": False,
             "service_execution_surface": core_url,
         }
@@ -269,7 +282,7 @@ def run_public_inspection_test(request: Mapping[str, Any], *, master_records_url
     except RouteCarrierError as exc:
         raise PublicInspectionRuntimeError(str(exc)) from exc
 
-    record, result, custody, evaluation = state["record"], state["result"], state["custody"], state["evaluation"]
+    record, result, organization_record, evaluation = state["record"], state["result"], state["organization_record"], state["evaluation"]
     return {
         "schema": "stegverse.public-inspection-production-validation-result.v2",
         "request_id": normalized["request_id"],
@@ -289,8 +302,8 @@ def run_public_inspection_test(request: Mapping[str, Any], *, master_records_url
         "chain_verified": bool(result.chain_verified),
         "consequence_executor_invoked": bool(result.execution_observation.get("executor_invoked")),
         "external_side_effect": False,
-        "master_records_custody_status": custody.get("custody_status"),
-        "master_records_custody_receipt": custody,
+        ORGANIZATION_RECORD_STATUS_FIELD: _record_status(organization_record),
+        ORGANIZATION_RECORD_RECEIPT_FIELD: organization_record,
         "ecosystem_commit_status": "RECORDED",
         "locator_grants_authority": False,
         "github_grants_runtime_authority": False,

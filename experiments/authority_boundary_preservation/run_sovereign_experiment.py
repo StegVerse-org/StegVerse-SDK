@@ -13,6 +13,7 @@ from stegverse.sovereign_validation_runtime import (
     replay_sovereign,
     run_sovereign_validation,
 )
+from stegverse.organization_record_names import ORGANIZATION_RECORD_STATUS_FIELD
 
 ROOT = Path(__file__).resolve().parent
 FIXTURE = ROOT / "fixture.json"
@@ -138,7 +139,7 @@ def run_experiment(*, fixture_path: Path = FIXTURE, custody_db: str | Path) -> d
         assert result["route_transition_count"] == 10
         assert result["chain_verified"] is True
         assert result["transaction_identity_continuous"] is True
-        assert result["master_records_custody_status"] == "RECORDED"
+        assert result[ORGANIZATION_RECORD_STATUS_FIELD] == "RECORDED"
         assert result["third_party_host_required"] is False
         assert result["external_side_effect"] is False
         runs.append(
@@ -193,7 +194,7 @@ def run_experiment(*, fixture_path: Path = FIXTURE, custody_db: str | Path) -> d
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run the participant-neutral authority-boundary experiment through the sovereign SDK path")
     parser.add_argument("--fixture", type=Path, default=FIXTURE)
-    parser.add_argument("--custody-db", type=Path)
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
 

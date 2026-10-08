@@ -32,7 +32,10 @@ from .evaluator_manifest_builder import (
 )
 from .manifest_builder import RETURN_DEPTHS
 
-DEFAULT_CUSTODY_DB = "./stegverse-master-records-validation.db"
+# Local organization-record database used by the sovereign validation path.
+DEFAULT_RECORDS_DB = "./stegverse-master-records-validation.db"
+# Deprecated name of DEFAULT_RECORDS_DB, kept for pinned callers.
+DEFAULT_CUSTODY_DB = DEFAULT_RECORDS_DB
 DEFAULT_HOST_IDENTITY = "stegverse-sovereign-local"
 
 
@@ -134,7 +137,7 @@ def run_external_framework(
     data_class: str | None = None,
     source_instance: str | None = None,
     created_at: str | None = None,
-    custody_db: str = DEFAULT_CUSTODY_DB,
+    custody_db: str = DEFAULT_RECORDS_DB,
     host_identity: str = DEFAULT_HOST_IDENTITY,
     replay: bool = True,
     reconstruct: bool = True,
@@ -266,7 +269,7 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help=argparse.SUPPRESS,
     )
-    parser.add_argument("--custody-db", default=DEFAULT_CUSTODY_DB)
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", default=DEFAULT_RECORDS_DB)
     parser.add_argument("--host-identity", default=DEFAULT_HOST_IDENTITY)
     parser.add_argument("--no-replay", action="store_true")
     parser.add_argument("--no-reconstruct", action="store_true")

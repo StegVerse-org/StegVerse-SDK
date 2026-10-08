@@ -6,6 +6,7 @@ from typing import Any, Mapping, Sequence
 
 from .interlock_transition import validate_interlock_transition
 from .interlock_return import validate_interlock_return
+from .organization_record_names import ORGANIZATION_RECORD_CLAIMED_FIELD
 
 RECEIPT_SCHEMA = "stegverse.reference-participant-receipt.v1"
 
@@ -125,7 +126,7 @@ def build_reference_interlock_ingress(
             "sdk_authority": "NONE",
             "participant_truth_assumed": False,
             "interlock_transfers_authority": False,
-            "master_records_custody_claimed": False,
+            ORGANIZATION_RECORD_CLAIMED_FIELD: False,
             "execution_authorized": False,
         },
         "reconstruction": {

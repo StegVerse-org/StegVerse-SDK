@@ -17,6 +17,16 @@ from .public_inspection import (
     SUPPORTED_EVALUATION_CAPABILITIES,
     SUPPORTED_EVIDENCE_CLASSES,
 )
+from .organization_record_names import (
+    LEGACY_ORGANIZATION_RECORD_CAPABILITY,
+    ORGANIZATION_RECORD_CAPABILITY,
+)
+
+# Capabilities advertised to evaluators. The legacy capability name is still accepted
+# on input (see SUPPORTED_EVALUATION_CAPABILITIES) but is never advertised.
+PUBLISHED_EVALUATION_CAPABILITIES = frozenset(
+    SUPPORTED_EVALUATION_CAPABILITIES - {LEGACY_ORGANIZATION_RECORD_CAPABILITY}
+)
 
 
 def evaluator_contract_schema() -> dict[str, Any]:
@@ -139,7 +149,7 @@ def evaluator_contract_example() -> dict[str, Any]:
             "expected_observation": "Optional expected observation; this is not a decision input.",
             "requested_capabilities": [
                 "commit_time_admissibility",
-                "master_records_custody",
+                ORGANIZATION_RECORD_CAPABILITY,
                 "replay",
                 "reconstruction",
             ],
@@ -222,7 +232,7 @@ def evaluator_contract_summary() -> dict[str, Any]:
         "example_command": "stegverse contract --example",
         "governance_reference_graph_command": "stegverse governance-graph --all",
         "governance_reference_graph_is_authority": False,
-        "capabilities": sorted(SUPPORTED_EVALUATION_CAPABILITIES),
+        "capabilities": sorted(PUBLISHED_EVALUATION_CAPABILITIES),
         "evidence_classes": sorted(SUPPORTED_EVIDENCE_CLASSES),
         "authority_effect": "NONE",
         "configuration_not_augmentation": True,

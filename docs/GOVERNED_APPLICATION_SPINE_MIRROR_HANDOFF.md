@@ -27,7 +27,7 @@ external/user/model/tool/OSS capability
   -> reciprocal participant acknowledgement
   -> portable verification
   -> replay/reconstruction/discovery
-  -> Master Records custody only where separately admitted
+  -> Master Records organization record; Interlock/InTr admits the transition separately
 ```
 
 ## Authority boundary
@@ -38,7 +38,7 @@ SPE execution authority: NONE
 model output authority: NONE
 canonical StegGate runtime:
   stegverse:steggate:canonical:three-layer:v1
-Master Records custody authority: separate
+Master Records organization record authority: separate
 release/credential authority: TV/TVC
 ```
 
@@ -81,7 +81,7 @@ The runner is source-real and successor-release-aware. It requires:
 - PRE_STEGGATE portable governance bundle;
 - canonical StegCore standing/admissibility path;
 - real bounded state transition;
-- direct Master Records custody lookup;
+- direct Master Records organization record lookup;
 - reciprocal ACK;
 - portable/exchange verification;
 - replay and reconstruction without consequence re-execution.
@@ -138,7 +138,7 @@ SDK manifestation/interlock
 -> canonical StegGate
 -> bounded consequence
 -> return ingestion
--> Master Records custody
+-> Master Records organization record
 -> reciprocal ACK
 -> portable verification PASS
 -> replay PASS

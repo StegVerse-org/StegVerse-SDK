@@ -58,9 +58,9 @@
     "llm_adapter_bridge": "built_dependency_injected",
     "authenticated_http_transport": "built_server_side",
     "continuation_event_chain": "built",
-    "master_records_custody_client": "built_dependency_injected",
+    "master_records_organization_record_client": "built_dependency_injected",
     "master_records_http_transport": "built_server_side_token_resolver_injected",
-    "master_records_submit_route": "/api/custody/universal-entry",
+    "master_records_record_route": "/api/custody/universal-entry",
     "master_records_reconstruction_route": "/api/custody/universal-entry/receipts/{receipt_id}/reconstruction",
     "reconstruction_verifier": "built",
     "server_runtime_composition": "built_disabled_by_default",
@@ -99,6 +99,7 @@
       "tests/test_universal_entry_catalog_events.py",
       "tests/test_universal_entry_transport_projection.py",
       "tests/test_universal_entry_runtime_wrapper.py",
+      "tests/test_master_records_organization_record.py",
       "tests/test_master_records_custody.py",
       "tests/test_master_records_http.py",
       "tests/test_canonical_source_conversation.py",
@@ -108,5 +109,5 @@
       "tests/test_integration_config.py"
     ]
   },
-  "activation_definition": "The SDK may report implementation readiness only after current-main validation is observed. Live capability claims additionally require authorized repository and Master-Records credential resolvers, observed immutable GitHub reads, deployed provider and custody endpoints, Site transport, identity-matched receipts, and reconstructability evidence. No installed SDK contract or HTTP transport grants execution, delegation, publication, admissibility, custody, standing, deployment, activation, consciousness, personhood, or welfare status."
+  "activation_definition": "The SDK may report implementation readiness only after current-main validation is observed. Live capability claims additionally require authorized repository and Master-Records credential resolvers, observed immutable GitHub reads, deployed provider and organization-record endpoints, Site transport, identity-matched receipts, and reconstructability evidence. No installed SDK contract or HTTP transport grants execution, delegation, publication, admissibility, custody, standing, deployment, activation, consciousness, personhood, or welfare status."
 }

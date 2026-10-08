@@ -49,7 +49,7 @@ def _ingress(package_id, transition_id, run_id):
             "sdk_authority": "NONE",
             "participant_truth_assumed": False,
             "interlock_transfers_authority": False,
-            "master_records_custody_claimed": False,
+            "master_records_organization_record_claimed": False,
             "execution_authorized": False,
         },
         "reconstruction": {"required": True, "replay_scope": "MATERIAL_CAUSAL_CLOSURE", "linear_chain_is_special_case": True},

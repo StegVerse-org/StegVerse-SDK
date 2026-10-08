@@ -39,7 +39,7 @@ class GovernanceNavigationTests(unittest.TestCase):
             self.assertIn("manifest_profile", text)
             self.assertIn("return_projection", text)
             self.assertIn("manifest_labels", text)
-            self.assertIn("Master Records custody is independent", text)
+            self.assertIn("Master Records organization record is independent", text)
 
     def test_manifest_shape_labels_transition_and_receipt_classes(self):
         text = manifest_shape_guidance()
@@ -59,7 +59,7 @@ class GovernanceNavigationTests(unittest.TestCase):
         self.assertTrue(labels["include_receipt_class_labels"])
         self.assertTrue(labels["controls_return_explanation_only"])
         self.assertFalse(labels["changes_governance_decision"])
-        self.assertFalse(labels["suppresses_master_records_custody"])
+        self.assertFalse(labels["suppresses_master_records_organization_record"])
         self.assertFalse(labels["grants_authority"])
 
     def test_selected_manifest_labels_require_sections(self):
@@ -114,7 +114,7 @@ class GovernanceNavigationTests(unittest.TestCase):
         projection = normalize_return_projection({"mode": "NONE"})
         self.assertEqual(projection["mode"], "NONE")
         self.assertTrue(projection["controls_user_return_only"])
-        self.assertFalse(projection["suppresses_master_records_custody"])
+        self.assertFalse(projection["suppresses_master_records_organization_record"])
         self.assertFalse(projection["erases_ecosystem_transitions"])
         self.assertFalse(projection["grants_authority"])
 

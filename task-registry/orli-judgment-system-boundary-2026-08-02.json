@@ -124,7 +124,7 @@
     },
     {
       "task_id": "SDK-004",
-      "originating_goal": "Master-Records custody and independent reconstruction",
+      "originating_goal": "Master-Records organization record and independent reconstruction",
       "repository": "StegVerse-org/StegVerse-SDK",
       "branch": "main",
       "location": "stegverse/master_records_http.py; stegverse/master_records_custody.py",

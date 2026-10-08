@@ -43,13 +43,14 @@ def test_default_runtime_is_disabled_and_non_authorizing():
     assert result["server_runtime"] == {
         "source_collection_enabled": False,
         "provider_enabled": False,
-        "custody_enabled": False,
+        "organization_record_enabled": False,
         "activation_evidence_enabled": False,
         "credentials_exposed_to_entry_adapter": False,
         "deployment_authorized": False,
         "activation_performed": False,
     }
-    assert result["continuation"]["custody_submitted"] is False
+    assert result["continuation"]["record_submitted"] is False
+    assert result["continuation"]["organization_record_installed"] is False
 
 
 def test_unknown_configuration_fails_closed():
@@ -73,16 +74,30 @@ def test_provider_enablement_requires_provider():
         raise AssertionError("missing provider must fail")
 
 
-def test_custody_enablement_requires_client():
+def test_organization_record_enablement_requires_client():
     runtime = UniversalEntryServerRuntime(
-        UniversalEntryServerConfig(custody_enabled=True)
+        UniversalEntryServerConfig(organization_record_enabled=True)
     )
     try:
         runtime.process(envelope(), registry())
     except UniversalEntryServerRuntimeError as exc:
-        assert "custody enabled without" in str(exc)
+        assert "organization records enabled without" in str(exc)
     else:
-        raise AssertionError("missing custody client must fail")
+        raise AssertionError("missing organization-record client must fail")
+
+
+def test_legacy_custody_enabled_name_is_still_accepted():
+    assert UniversalEntryServerConfig(custody_enabled=True).organization_record_enabled is True
+    config = UniversalEntryServerConfig.from_mapping({"custody_enabled": True})
+    assert config.organization_record_enabled is True
+    assert config == UniversalEntryServerConfig(organization_record_enabled=True)
+    runtime = UniversalEntryServerRuntime(config)
+    try:
+        runtime.process(envelope(), registry())
+    except UniversalEntryServerRuntimeError as exc:
+        assert "organization records enabled without" in str(exc)
+    else:
+        raise AssertionError("missing organization-record client must fail")
 
 
 def test_source_collection_builds_authoritative_retriever():
@@ -179,9 +194,8 @@ def test_readiness_packet_never_activates():
             "provider_output_is_authority": False,
             "authorizing": False,
         },
-        "custody_verification": {
-            "custody_verified": True,
-            "master_records_installed": True,
+        "organization_record_verification": {
+            "organization_record_installed": True,
             "reconstructability_status": "PASS",
             "authorizing": False,
         },

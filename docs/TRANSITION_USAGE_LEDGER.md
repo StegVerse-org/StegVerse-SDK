@@ -48,7 +48,7 @@ SDK              validation and orchestration measurements
 LLM Adapter      provider calls, tokens, provider latency, recursive traces
 Runtime          node activation, execution, closure, runtime cost
 Ecosystem Chat   browser interaction and presentation measurements
-Master-Records   custody and persistence measurements
+Master-Records   organization record and persistence measurements
 ```
 
 Rendering a measurement does not make the renderer its owner.

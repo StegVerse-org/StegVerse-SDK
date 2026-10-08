@@ -24,7 +24,7 @@ class Tests(unittest.TestCase):
                 run.return_value = {
                     "manifest_receipt_id": "MR-" + "A" * 64,
                     "governance_state": "ALLOW",
-                    "master_records_custody_status": "RECORDED",
+                    "master_records_organization_record_status": "RECORDED",
                 }
                 rc = main([
                     "governance",

@@ -68,13 +68,14 @@ jobs:
           from pathlib import Path
           from workers import manifest_state_transition_intr_ingress as central
           from stegverse.manifest_state_transition_runtime import validate_runtime_result
+          from stegverse.organization_record_names import LEGACY_ORGANIZATION_RECORD_OBSERVED_FIELD, ORGANIZATION_RECORD_OBSERVED_FIELD, read_field
           request=json.loads(Path('/tmp/mir-sv-exp3.sdk-request.json').read_text())
           root=Path('/tmp/exp3-profile-evaluation')
           result=central.execute(root, request)
           assert result['disposition']=='DENY'
           assert result['reason_code']=='ECOSYSTEM_DIAGNOSTIC_NONWORKER_DISPATCH_UNWIRED'
           assert result['authentic_intr_disposition_observed'] is False
-          assert result['organization_master_records_closure_observed'] is False
+          assert read_field(result, ORGANIZATION_RECORD_OBSERVED_FIELD, LEGACY_ORGANIZATION_RECORD_OBSERVED_FIELD) is False
           assert validate_runtime_result(result,request)['disposition']=='DENY'
           exact=Path(result['source_disposition_ref'])
           assert exact.is_file(), 'SOURCE_DENY_RETENTION_REQUIRED'

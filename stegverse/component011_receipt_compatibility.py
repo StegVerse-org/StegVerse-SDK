@@ -173,7 +173,7 @@ def reconcile_component011_snapshots(
             and master_records.get("organization_receipt_sha256") == org_hash
         )
         if not structural["master_records_claim_shape"]:
-            findings.append("MASTER_RECORDS_CLOSURE_OR_ORG_BINDING_MISSING")
+            findings.append("MASTER_RECORDS_ORGANIZATION_RECORD_OR_ORG_BINDING_MISSING")
 
     findings.append("AUTHENTIC_AUTHORITY_AND_CUSTODY_INDEPENDENT_READBACK_REQUIRED")
     return {

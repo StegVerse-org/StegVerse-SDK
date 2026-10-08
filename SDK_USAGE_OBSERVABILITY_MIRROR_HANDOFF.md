@@ -64,7 +64,7 @@ SDK_USAGE_OBSERVABILITY_MIRROR_HANDOFF.md
 
 The canonical `stegverse governance --select 000|00|0|1|2` path records one non-authoritative `MENU_SELECTION` only after canonical navigation accepts the choice.
 
-`GovernedOperations` supplies the SDK execution adapter for actual option `0`, `1`, and `2` operations. It accepts injected canonical operation handlers because governance/custody transport authority belongs to StegCore/Master Records, not the SDK.
+`GovernedOperations` supplies the SDK execution adapter for actual option `0`, `1`, and `2` operations. It accepts injected canonical operation handlers because governance transport authority belongs to StegCore and organization-record transport belongs to Master Records, not the SDK.
 
 ```text
 option 0 submit
@@ -110,7 +110,7 @@ StegVerse-Labs/StegCore/docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md
 StegVerse-Labs/StegCore#85
 src/stegcore/manifest_receipts.py
 src/stegcore/manifest_receipt_provider.py
-master-records/orchestration canonical manifest-receipt custody surface
+master-records/orchestration canonical manifest-receipt organization-record surface
 ```
 
 That handoff explicitly requires exposing the same provider contract to SDK callers. This SDK lane must not duplicate the receipt-ID algorithm, evaluator, custody service, or consequence boundary.
@@ -118,7 +118,7 @@ That handoff explicitly requires exposing the same provider contract to SDK call
 Integration release condition:
 
 ```text
-StegCore admitted Master Records transport becomes available
+StegCore transport to Master Records organization records becomes available; Interlock/InTr admits its use
 -> bind submit/replay/reconstruct handlers into GovernedOperations
 -> prove one option 0, 1, and 2 operation through canonical transport
 -> verify each emits one GOVERNED_OPERATION observation

@@ -6,6 +6,11 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .governance_navigation import build_raw_submission_descriptor
+from .organization_record_names import (
+    LEGACY_ORGANIZATION_RECORD_CAPABILITY,
+    ORGANIZATION_RECORD_CAPABILITY,
+    ORGANIZATION_RECORD_STATUS_FIELD,
+)
 
 REQUEST_SCHEMA_VERSION = "1.0"
 REQUEST_PROFILES = {"ordinary", "longitudinal-boundary", "custom-declarative"}
@@ -14,7 +19,9 @@ LANE_CLASSES = {"PRODUCTION_VALIDATION", "ENCLOSED_DEMO_TEST"}
 SUPPORTED_EVALUATION_CAPABILITIES = {
     "commit_time_admissibility",
     "bounded_consequence",
-    "master_records_custody",
+    ORGANIZATION_RECORD_CAPABILITY,
+    # Accepted from pre-migration requests (MASTER-RECORDS-BULK-SEMANTIC-REMEDIATION-002).
+    LEGACY_ORGANIZATION_RECORD_CAPABILITY,
     "replay",
     "reconstruction",
 }
@@ -257,7 +264,7 @@ def prepare_public_inspection_submission(request: Mapping[str, Any]) -> dict[str
         "public_pr_is_submission_record_only": True,
         "trusted_processor_required": True,
         "runtime_processing_status": "NOT_RUN",
-        "master_records_custody_status": "NOT_CLAIMED",
+        ORGANIZATION_RECORD_STATUS_FIELD: "NOT_CLAIMED",
         "manifest_receipt_id": None,
         "authority_claim": False,
         "github_grants_runtime_authority": False,

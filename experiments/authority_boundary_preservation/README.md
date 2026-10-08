@@ -20,12 +20,12 @@ The experiment is designed for the canonical sovereign public inspection path de
 ```text
 SDK entry
 -> Core-Lite manifested route carrier
--> Master Records checkpoint custody
+-> Master Records checkpoint organization record
 -> canonical StegCore manifested transaction
 -> canonical StegGate evaluation
--> Master Records exact-run custody
+-> Master Records exact-run organization record
 -> return ingestion/CGE
--> Master Records return custody
+-> Master Records return organization record
 -> SDK return
 ```
 

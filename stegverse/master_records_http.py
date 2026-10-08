@@ -1,8 +1,9 @@
-"""Concrete server-side HTTP transport for Master-Records custody and reconstruction.
+"""Concrete server-side HTTP transport for Master-Records organization records and reconstruction.
 
 Credentials are resolved at call time through an injected resolver and are never stored
 in returned evidence. This module performs transport only; it does not itself validate
-custody or reconstructability. Pair it with MasterRecordsCustodyClient.
+organization-record receipts or reconstructability. Pair it with
+MasterRecordsOrganizationRecordClient.
 """
 from __future__ import annotations
 
@@ -28,7 +29,7 @@ def _validate_base_url(value: str, *, allow_localhost_http: bool) -> str:
     if parsed.scheme != "https" and not (
         allow_localhost_http and localhost and parsed.scheme == "http"
     ):
-        raise MasterRecordsHTTPError("remote Master-Records endpoints must use HTTPS")
+        raise MasterRecordsHTTPError("remote Master-Records record URLs must use HTTPS")
     if parsed.username or parsed.password:
         raise MasterRecordsHTTPError("base_url must not contain credentials")
     return value.rstrip("/")
@@ -42,7 +43,11 @@ def _json_object(value: Mapping[str, Any] | Any, *, operation: str) -> dict[str,
 
 @dataclass(frozen=True)
 class MasterRecordsHTTPTransport:
-    """Server-side HTTP adapter for Master-Records custody routes."""
+    """Server-side HTTP adapter for Master-Records organization-record routes.
+
+    The default paths are the Master Records service's own record routes; they are
+    route names on that service, not a transition API.
+    """
 
     base_url: str
     credential_ref: str
@@ -66,7 +71,7 @@ class MasterRecordsHTTPTransport:
         if self.timeout_seconds <= 0:
             raise MasterRecordsHTTPError("timeout_seconds must be positive")
         if not self.submit_path.startswith("/"):
-            raise MasterRecordsHTTPError("submit_path must be an absolute path")
+            raise MasterRecordsHTTPError("record path (submit_path) must be an absolute path")
         if "{receipt_id}" not in self.reconstruction_path_template:
             raise MasterRecordsHTTPError(
                 "reconstruction_path_template must include {receipt_id}"
@@ -89,7 +94,7 @@ class MasterRecordsHTTPTransport:
     def submit(self, submission: Mapping[str, Any]) -> dict[str, Any]:
         session_id = str(submission.get("session_id", "")).strip()
         if not session_id:
-            raise MasterRecordsHTTPError("custody submission session_id is required")
+            raise MasterRecordsHTTPError("organization-record request session_id is required")
         body = json.dumps(
             dict(submission), sort_keys=True, separators=(",", ":"), ensure_ascii=False
         ).encode("utf-8")
@@ -100,7 +105,7 @@ class MasterRecordsHTTPTransport:
             body,
             self.timeout_seconds,
         )
-        return _json_object(response, operation="custody submission")
+        return _json_object(response, operation="organization-record request")
 
     def reconstruct(self, receipt_id: str) -> dict[str, Any]:
         receipt_id = receipt_id.strip()
@@ -118,14 +123,25 @@ class MasterRecordsHTTPTransport:
         )
         return _json_object(response, operation="reconstruction")
 
-    def as_custody_client(self):
-        """Return the transport-neutral custody client bound to these HTTP methods."""
-        from .master_records_custody import MasterRecordsCustodyClient
+    def as_organization_record_client(self):
+        """Return the transport-neutral organization-record client bound to these HTTP methods."""
+        from .master_records_organization_record import MasterRecordsOrganizationRecordClient
 
-        return MasterRecordsCustodyClient(
+        return MasterRecordsOrganizationRecordClient(
             submit_transport=self.submit,
             reconstruct_transport=self.reconstruct,
         )
+
+    def as_custody_client(self):
+        """Deprecated alias of :meth:`as_organization_record_client`."""
+        import warnings
+
+        warnings.warn(
+            "as_custody_client is deprecated; use as_organization_record_client",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.as_organization_record_client()
 
 
 __all__ = ["MasterRecordsHTTPError", "MasterRecordsHTTPTransport"]

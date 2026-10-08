@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Options `000` and `00` are optional transparency and configuration surfaces. They exist so a human can explicitly inspect what StegVerse is using, what it is not using, what transitions and receipts mean, what may be returned to the caller, and what remains in canonical Master Records custody.
+Options `000` and `00` are optional transparency and configuration surfaces. They exist so a human can explicitly inspect what StegVerse is using, what it is not using, what transitions and receipts mean, what may be returned to the caller, and what remains in the canonical Master Records organization record.
 
 They are **not prerequisites for machine-to-machine governance** and they grant no additional authority.
 
@@ -102,7 +102,7 @@ manifest labels grant authority: false
 schema discovery grants authority: false
 manifest structural validity grants authority: false
 manifest_receipt_id grants authority: false
-Master Records custody is independent of caller-return projection
+The Master Records organization record is independent of caller-return projection
 ```
 
 Invoking `000` or `00` must never create a stronger governance path than submitting the same canonical manifest directly.

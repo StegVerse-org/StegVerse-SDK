@@ -78,12 +78,12 @@ The SDK is a client of production governance only.
 SDK grants authority: false
 SDK defines manifold disposition: false
 SDK performs external consequence: false
-SDK mints Master Records custody: false
+SDK mints a Master Records organization record: false
 SDK can override protected boundary: false
 StegCore canonical evaluator unchanged: true
 ```
 
-Actual consequence execution remains behind the existing StegCore governed commit/execution boundary and normal Master Records custody requirements.
+Actual consequence execution remains behind the existing StegCore governed commit/execution boundary and normal Master Records organization record requirements.
 
 ## Validation requirements
 

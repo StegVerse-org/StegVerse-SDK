@@ -22,7 +22,7 @@ def _sovereign_result():
         "governance_state": "ALLOW",
         "chain_verified": True,
         "transaction_identity_continuous": True,
-        "master_records_custody_status": "RECORDED",
+        "master_records_organization_record_status": "RECORDED",
         "execution_result": {
             "schema": "stegverse.reference-bounded-consequence.v1",
             "status": "STATE_TRANSITION_RECORDED",
@@ -62,7 +62,7 @@ def test_pending_return_binds_exact_canonical_custody_and_consequence():
     assert pending["acknowledgement"]["state"] == "PENDING"
     assert pending["binding"]["governance_record_hash"] == "sha256:" + H9
     assert pending["egress"]["receipts"][0]["receipt_id"].startswith("MR-")
-    assert pending["authority"]["master_records_custody_claimed"] is False
+    assert pending["authority"]["master_records_organization_record_claimed"] is False
 
 
 def test_complete_post_return_evidence_verifies_exchange_replay_and_reconstruction(tmp_path: Path):
@@ -117,9 +117,19 @@ def test_return_fails_closed_without_real_bounded_transition():
         build_pending_interlock_return(pre["ingress_interlock"], result, _custody())
 
 
-def test_return_fails_closed_without_master_records_custody():
+def test_return_fails_closed_without_master_records_organization_record():
     pre = _bundle()
     result = _sovereign_result()
+    result["master_records_organization_record_status"] = "PENDING"
+    with pytest.raises(ValueError, match="not recorded"):
+        build_pending_interlock_return(pre["ingress_interlock"], result, _custody())
+
+
+def test_return_reads_legacy_status_field_from_pre_migration_runs():
+    pre = _bundle()
+    result = _sovereign_result()
+    result["master_records_custody_status"] = result.pop("master_records_organization_record_status")
+    build_pending_interlock_return(pre["ingress_interlock"], result, _custody())
     result["master_records_custody_status"] = "PENDING"
     with pytest.raises(ValueError, match="not recorded"):
         build_pending_interlock_return(pre["ingress_interlock"], result, _custody())

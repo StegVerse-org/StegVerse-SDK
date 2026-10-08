@@ -211,7 +211,7 @@ def _governance_guide(args: argparse.Namespace) -> int:
         print("\nThis demonstration output is explanatory and non-authorizing. A new manifest must still be submitted through the normal governed path.")
     elif key == "00":
         print("Next: define permitted run preferences, including ALL, SELECTED, or NONE user-return transition projection.")
-        print("Master Records custody remains independent of the user-return projection.")
+        print("The Master Records organization record remains independent of the user-return projection.")
     elif key == "0":
         print("Next: choose 0A for raw/user data or 0B for a preformatted machine manifest.")
         print("Execute 0A: stegverse governance --select 0A --input <public-inspection-request.json>")
@@ -449,7 +449,7 @@ def build_parser() -> argparse.ArgumentParser:
     governance.add_argument("--manifest-receipt-id", help="canonical MR-* locator for option 1 replay or option 2 reconstruction")
     governance.add_argument("--fallback-operation", choices=("run", "replay", "reconstruct"), help="use the permanent canonical sovereign degraded-mode path")
     governance.add_argument("--fallback-target", help="request JSON path for fallback run, or manifest_receipt_id for replay/reconstruct")
-    governance.add_argument("--custody-db", default="./stegverse-master-records-validation.db", help="local canonical Master Records custody database")
+    governance.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db", help="local canonical Master Records organization-record database")
     governance.add_argument("--host-identity", default="stegverse-sovereign-local", help="local sovereign execution host identity")
     help_parser = sub.add_parser("help-surface", help="show help for a named SDK surface")
     help_parser.add_argument("surface")

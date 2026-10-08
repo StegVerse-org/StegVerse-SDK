@@ -114,7 +114,7 @@ def test_assessment_response_preserves_foreign_receipt_without_authority_promoti
     assert result["foreign_receipt"]["signature"] == "deadbeef"
     assert result["stegverse_admission_determined"] is False
     assert result["authority_granted"] is False
-    assert result["master_records_custody_recorded"] is False
+    assert result["master_records_organization_record_recorded"] is False
     assert result["foreign_signature_verified_by_stegverse"] is False
     assert result["authentic_external_transport_observed"] is False
 

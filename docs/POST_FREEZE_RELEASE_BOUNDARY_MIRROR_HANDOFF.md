@@ -73,7 +73,7 @@ external real-world consequence in canonical public governed TEST: intentionally
 ## Next executable work
 
 1. Complete the canonical `POST_RETURN` portable governance bundle using real StegGate decision/consequence evidence and reciprocal interlock acknowledgement.
-2. Retain Master Records custody plus replay/reconstruction evidence for that bundle and verify it with `stegverse-verify-governance`.
+2. Retain Master Records organization record plus replay/reconstruction evidence for that bundle and verify it with `stegverse-verify-governance`.
 3. Add a portable evidence-export/import surface so an evaluator can share a bounded verification bundle without sharing an entire local custody database.
 4. Add Python 3.13 validation only after the full package/runtime matrix passes; do not advertise it before evidence exists.
 5. Continue TV/TVC R3 release execution independently of moving-main development.

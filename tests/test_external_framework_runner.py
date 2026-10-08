@@ -139,7 +139,7 @@ class ExternalFrameworkRunnerTests(unittest.TestCase):
         run_manifest.return_value = {
             "manifest_receipt_id": "MR-TEST-001",
             "governance_state": "ADMIT",
-            "master_records_custody_status": "RECORDED",
+            "master_records_organization_record_status": "RECORDED",
         }
         replay.return_value = {"manifest_receipt_id": "MR-TEST-001", "replayed": True}
         reconstruct.return_value = {"manifest_receipt_id": "MR-TEST-001", "reconstructed": True}
@@ -156,7 +156,7 @@ class ExternalFrameworkRunnerTests(unittest.TestCase):
         )
         self.assertEqual(result["manifest_receipt_id"], "MR-TEST-001")
         self.assertTrue(result["execution_performed"])
-        self.assertEqual(result["governed_result"]["master_records_custody_status"], "RECORDED")
+        self.assertEqual(result["governed_result"]["master_records_organization_record_status"], "RECORDED")
         self.assertTrue(result["replay"]["replayed"])
         self.assertTrue(result["reconstruction"]["reconstructed"])
         run_manifest.assert_called_once()

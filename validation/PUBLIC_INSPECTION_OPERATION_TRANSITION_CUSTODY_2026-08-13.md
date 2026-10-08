@@ -11,6 +11,6 @@ REPLAY      REQUESTED -> SOURCE_RESOLVED -> EVALUATED -> RETURNED
 RECONSTRUCT REQUESTED -> SOURCE_RESOLVED -> ARTIFACT_DERIVED -> RETURNED
 ```
 
-The SDK now requires `RECORDED` Master Records custody for each transition and fails closed if any transition cannot be recorded. The returned artifact includes the operation ID and Master Records operation receipts.
+The SDK now reports success only when each transition has a `RECORDED` Master Records organization record; otherwise it fails closed. The returned artifact includes the operation ID and Master Records operation receipts.
 
-Integrated validation depends on the matching Master Records operation-event routes being merged and exercised through the canonical custody application.
+Integrated validation depends on the matching Master Records operation-event routes being merged and exercised through the canonical organization-record service.

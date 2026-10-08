@@ -40,7 +40,7 @@
   ],
   "blocked_reason": "The former private-source visibility defect is remediated in source, but exact immutable public PyPI releases for stegverse-stegcore==0.3.0 and stegverse-master-records==0.2.0 are not yet observed; SDK anonymous governed-runtime install run 34329494516 therefore fails at package installation before runtime execution.",
   "release_condition": "Exact immutable public distributions are published through the canonical TV/TVC-gated release path and the SDK anonymous clean install, governed ELAN Test 1, replay, and reconstruction all pass without repository credentials or protected source visibility.",
-  "next_executable_action": "Preserve SDK PR #163 as draft; after canonical exact releases are authentically published, rerun Anonymous Governed Runtime Install and require package identity, ELAN governed execution, Master Records custody, replay, and reconstruction PASS.",
+  "next_executable_action": "Preserve SDK PR #163 as draft; after canonical exact releases are authentically published, rerun Anonymous Governed Runtime Install and require package identity, ELAN governed execution, Master Records organization record, replay, and reconstruction PASS.",
   "fail_closed": true,
   "terminal_success": {
     "state": "COMPLETE",

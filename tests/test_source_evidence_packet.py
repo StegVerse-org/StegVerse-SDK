@@ -22,7 +22,7 @@ def test_two_unrelated_evaluators_have_distinct_bound_source_packets():
     assert all(not a[field] and not b[field] for field in (
         "execution_authorized", "authentic_intr_disposition_observed",
         "workercoordinator_claim_fence_observed",
-        "organization_master_records_custody_observed"))
+        "organization_master_records_organization_record_observed"))
 
 
 def test_multi_condition_packet_preserves_four_distinct_non_allow_predicates():
@@ -52,7 +52,7 @@ def test_packet_rejects_forged_authority_and_appended_receipts():
     packet = build_source_evidence_packet(manifest, reqs, evaluator_id="math")
     for field in ("execution_authorized", "authentic_intr_disposition_observed",
                   "workercoordinator_claim_fence_observed",
-                  "organization_master_records_custody_observed"):
+                  "organization_master_records_organization_record_observed"):
         altered = deepcopy(packet)
         altered[field] = True
         assert not verify_source_evidence_packet(manifest, reqs, altered)
@@ -85,3 +85,22 @@ def test_duplicate_or_empty_condition_ids_fail_closed():
             pass
         else:
             raise AssertionError("invalid condition set accepted")
+
+
+def test_legacy_source_packet_flag_name_still_verifies():
+    from stegverse.organization_record_names import (
+        LEGACY_SOURCE_PACKET_ORGANIZATION_RECORD_OBSERVED_FIELD,
+        ORGANIZATION_RECORD_OBSERVED_FIELD,
+    )
+    from stegverse.source_evidence_packet import _hash
+
+    manifest = {}
+    reqs = [{"requirement_id": "math", "capability_id": "native_source_math"}]
+    packet = build_source_evidence_packet(manifest, reqs, evaluator_id="math")
+    legacy = {key: value for key, value in packet.items() if key != "source_packet_sha256"}
+    legacy[LEGACY_SOURCE_PACKET_ORGANIZATION_RECORD_OBSERVED_FIELD] = legacy.pop(ORGANIZATION_RECORD_OBSERVED_FIELD)
+    legacy["source_packet_sha256"] = _hash(legacy)
+    assert verify_source_evidence_packet(manifest, reqs, legacy)
+    escalated = deepcopy(legacy)
+    escalated[LEGACY_SOURCE_PACKET_ORGANIZATION_RECORD_OBSERVED_FIELD] = True
+    assert not verify_source_evidence_packet(manifest, reqs, escalated)

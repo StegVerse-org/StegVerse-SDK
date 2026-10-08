@@ -65,7 +65,7 @@ class CrossFrameworkExecutionHarnessTests(unittest.TestCase):
         }
         result = {
             "manifest_receipt_id": manifest_receipt_id,
-            "master_records_custody_status": "RECORDED",
+            "master_records_organization_record_status": "RECORDED",
         }
         text = _replay_reference_text(
             manifest_receipt_id=manifest_receipt_id,

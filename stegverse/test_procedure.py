@@ -18,7 +18,7 @@ def test_procedure(*, include_catalog: bool = True) -> dict[str, Any]:
             "schema-and-capability-validation",
             "core-lite-manifested-route-carrier",
             "stegcore-steggate-commit-time-evaluation",
-            "master-records-exact-run-custody",
+            "master-records-exact-run-organization-record",
             "sdk-return",
         ],
         "submission_command": "stegverse governance --select 0 --input <request.json>",

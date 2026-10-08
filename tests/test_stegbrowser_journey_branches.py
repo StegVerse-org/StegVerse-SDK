@@ -133,7 +133,7 @@ def test_a_fan_requires_four_endpoint_receipts_per_branch():
     assert [r["branch_id"] for r in receipts["required_order"]] == (
         ["a"] * 4 + ["c"] * 4 + ["e"] * 4
     )
-    assert receipts["custody_order"] == ["ORGANIZATION_RECORDS", "MASTER_RECORDS"]
+    assert receipts["record_order"] == ["ORGANIZATION_RECORDS", "MASTER_RECORDS"]
 
 
 def test_each_branch_carries_its_own_llm_and_marker():

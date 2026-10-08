@@ -64,7 +64,7 @@ LLM Adapter owns provider-call and token measurements.
 SDK owns SDK validation and orchestration measurements.
 Runtime owns node, execution, closure, and runtime-cost measurements.
 Ecosystem Chat owns browser interaction and presentation measurements.
-Master-Records owns custody and persistence measurements.
+Master-Records keeps organization records and persistence measurements; the Organization owns custody.
 ```
 
 ## Extension rule

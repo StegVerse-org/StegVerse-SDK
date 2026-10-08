@@ -10,12 +10,12 @@ The canonical governed evaluator path is evaluator-neutral. A tester declares th
 Evaluator / test harness
 → StegVerse SDK manifest ingress (0B / stegverse.ingress-manifest.v1)
 → Core-Lite manifested route carrier
-→ Master Records checkpoint custody
+→ Master Records checkpoint organization record
 → StegCore manifested transaction
 → canonical StegGate + commit-coherence evaluation
-→ Master Records exact-run custody
+→ Master Records exact-run organization record
 → return ingestion/CGE
-→ Master Records return custody
+→ Master Records return organization record
 → SDK return
 → Evaluator
 ```
@@ -93,7 +93,7 @@ Public demo, formal runner, standing-proof, GLM/boundary studies, ODA3, and futu
 The SDK is the generalized testing surface.
 Evaluators provide experiment definitions as data/configuration.
 The published runtime provides execution semantics.
-Master Records provides required custody/evidence.
+Master Records keeps the required organization records for reconstruction.
 Specialized capabilities may be selected when published.
 No evaluator gets a custom SDK lane merely by naming a test.
 ```

@@ -75,7 +75,7 @@ def _pending_return():
             "sdk_authority": "NONE",
             "participant_truth_assumed": False,
             "return_transfers_authority": False,
-            "master_records_custody_claimed": False,
+            "master_records_organization_record_claimed": False,
             "execution_authorized": False,
         },
     }

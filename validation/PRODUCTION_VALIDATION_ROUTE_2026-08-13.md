@@ -4,13 +4,13 @@ State: CODE_COMPLETE_PENDING_HOSTED_DEPLOY_AND_INTEGRATED_RUN
 
 Installed route:
 
-SDK -> Core-Lite manifested route carrier -> Master Records route custody -> deployed StegCore manifested validation -> canonical StegGate -> exact-run Master Records custody -> Core-Lite return -> SDK return.
+SDK -> Core-Lite manifested route carrier -> Master Records route organization record -> deployed StegCore manifested validation -> canonical StegGate -> exact-run Master Records organization record -> Core-Lite return -> SDK return.
 
 Merged dependencies:
 
 StegCore manifested validation endpoint: 083557adec1bdbace09ebd10fb0765eb8e9a9d08
 Core-Lite manifested route carrier: 72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8
-Master Records route and operation custody: d0828441f2e92de736df1123bad5668f67e935fc
+Master Records route and operation organization records: d0828441f2e92de736df1123bad5668f67e935fc
 
 StegCore PR #90 passed all five required repository workflows before merge.
 

@@ -18,6 +18,6 @@ Installed entry surfaces: guide, PR template, request schema, example, validator
 
 Entry-layer validation passed and does not require a personal requester name. The public request remains declarative and non-authorizing.
 
-The next continuation binds a validated request to ordinary governance option `0A`. Its source of truth is `docs/PUBLIC_INSPECTION_GOVERNED_BINDING_MIRROR_HANDOFF.md`. That continuation must not claim runtime execution or Master Records custody until those later boundaries produce inspectable evidence.
+The next continuation binds a validated request to ordinary governance option `0A`. Its source of truth is `docs/PUBLIC_INSPECTION_GOVERNED_BINDING_MIRROR_HANDOFF.md`. That continuation must not claim runtime execution or Master Records organization record until those later boundaries produce inspectable evidence.
 
 No product tag or release is authorized by this scoped entry goal.

@@ -37,7 +37,7 @@ def fixture():
         "standing": {"policy_current": True, "warrant_current": True,
                      "intr_current_at_commit": True, "worker_fence_current": True},
         "evidence": {"independent_observer": True, "enforcement_observed": True,
-                     "predecessor_reconstructed": True, "master_records_closure": True},
+                     "predecessor_reconstructed": True, "master_records_organization_record": True},
     }
     return manifest, d
 
@@ -55,7 +55,7 @@ def test_bounded_pinned_package_still_never_grants_execution():
     assert result["proposed_denial_reasons"] == ["AUTHENTIC_COMPONENT_011_AND_INTR_RECEIPTS_REQUIRED"]
     assert result["authentic_containment_proven"] is False
     assert result["authentic_intr_admission_proven"] is False
-    assert result["authentic_master_records_custody_proven"] is False
+    assert result["authentic_master_records_organization_record_proven"] is False
     assert result["authority_effect"] == "NONE"
 
 
@@ -119,7 +119,7 @@ def test_missing_predecessor_or_independent_enforcement_unproven():
 
 
 def test_claimed_all_true_proof_still_not_authentic_runtime_proof():
-    assert review()["authentic_master_records_custody_proven"] is False
+    assert review()["authentic_master_records_organization_record_proven"] is False
 
 
 @pytest.mark.parametrize("field", ["manifest_sha256", "source_revision_sha256", "workspace_tree_sha256"])
@@ -151,7 +151,31 @@ def test_descriptor_rejects_executable_payload_instead_of_evaluating_it():
 def test_expired_fence_not_authorized_by_records_only_claim():
     def mutate(d):
         d["standing"]["worker_fence_current"] = False
-        d["evidence"]["master_records_closure"] = True
+        d["evidence"]["master_records_organization_record"] = True
     result = review(mutate)
     assert "CURRENT_STANDING_OR_CLAIM_NOT_ESTABLISHED" in result["proposed_denial_reasons"]
     assert result["decision"] != "ALLOW"
+
+
+def test_legacy_organization_record_evidence_name_is_still_read():
+    from stegverse.organization_record_names import (
+        LEGACY_ORGANIZATION_RECORD_EVIDENCE_FIELD,
+        ORGANIZATION_RECORD_EVIDENCE_FIELD,
+    )
+
+    def legacy(d):
+        d["evidence"][LEGACY_ORGANIZATION_RECORD_EVIDENCE_FIELD] = d["evidence"].pop(ORGANIZATION_RECORD_EVIDENCE_FIELD)
+
+    assert review(legacy)["proposed_denial_reasons"] == ["AUTHENTIC_COMPONENT_011_AND_INTR_RECEIPTS_REQUIRED"]
+
+    def legacy_false(d):
+        legacy(d)
+        d["evidence"][LEGACY_ORGANIZATION_RECORD_EVIDENCE_FIELD] = False
+
+    assert "CONTAINMENT_OR_CANONICAL_CUSTODY_NOT_ESTABLISHED" in review(legacy_false)["proposed_denial_reasons"]
+
+    def both(d):
+        d["evidence"][LEGACY_ORGANIZATION_RECORD_EVIDENCE_FIELD] = True
+
+    with pytest.raises(ValueError):
+        review(both)

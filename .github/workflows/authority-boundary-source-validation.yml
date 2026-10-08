@@ -46,4 +46,4 @@ jobs:
         run: |
           set -eu
           echo 'This hosted job validates source only.'
-          echo 'It does not claim SOVEREIGN_LOCAL execution, TV/TVC ROUTE_ADMITTED, Master Records production custody, or governed activation.'
+          echo 'It does not claim SOVEREIGN_LOCAL execution, a Master Records production organization record, TV/TVC ROUTE_ADMITTED, or governed activation.'

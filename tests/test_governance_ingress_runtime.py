@@ -182,7 +182,7 @@ class Tests(unittest.TestCase):
             "route_receipt_chain_head": "B" * 64,
             "governance_state": "ALLOW",
             "chain_verified": True,
-            "master_records_custody_status": "RECORDED",
+            "master_records_organization_record_status": "RECORDED",
             "external_side_effect": False,
             "third_party_host_required": False,
         }
@@ -190,7 +190,7 @@ class Tests(unittest.TestCase):
         processing = result["demo_dataset_processing"]
         self.assertEqual("PROCESSED_CANONICAL_RUNTIME", processing["canonical_processing_status"])
         self.assertTrue(processing["chain_verified"])
-        self.assertEqual("RECORDED", processing["master_records_custody_status"])
+        self.assertEqual("RECORDED", processing["master_records_organization_record_status"])
         self.assertFalse(processing["external_side_effect"])
         self.assertFalse(processing["do_not_claim_processed_until_receipts_exist"])
         self.assertTrue(run.called)

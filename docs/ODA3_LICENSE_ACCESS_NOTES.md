@@ -37,9 +37,9 @@ Private StegCore source must not be copied into the reviewer packet unless separ
 
 ## Master Records orchestration
 
-`master-records/orchestration` is currently private. The same access boundary applies: the reviewer packet may expose immutable release coordinates, custody/reconstruction evidence appropriate for independent verification, hashes, receipts and specifically authorized artifacts, but must not silently disclose private repository source.
+`master-records/orchestration` is currently private. The same access boundary applies: the reviewer packet may expose immutable release coordinates, organization records/reconstruction evidence appropriate for independent verification, hashes, receipts and specifically authorized artifacts, but must not silently disclose private repository source.
 
-Master Records custody evidence is required to prove the governed run; repository source access is a separate entitlement.
+Master Records organization record evidence is required to prove the governed run; repository source access is a separate entitlement.
 
 ## Credential and execution access
 
@@ -54,7 +54,7 @@ reviewer packet grants private repository access: false
 reviewer packet grants custody authority: false
 ```
 
-An evaluator may independently inspect public artifacts, validate hashes and schemas, install the released public SDK where permitted, run non-authorizing tests, and verify the returned evidence tuple. The actual governed proposition must still traverse the canonical StegVerse route and Master Records custody described by the experiment handoff.
+An evaluator may independently inspect public artifacts, validate hashes and schemas, install the released public SDK where permitted, run non-authorizing tests, and verify the returned evidence tuple. The actual governed proposition must still traverse the canonical StegVerse route and Master Records organization record described by the experiment handoff.
 
 ## Finalization gate
 

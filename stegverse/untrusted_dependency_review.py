@@ -13,6 +13,7 @@ from typing import Any
 
 from .governance_navigation import canonical_sha256
 from .manifest_contract import validate_ingress_manifest
+from .organization_record_names import LEGACY_ORGANIZATION_RECORD_EVIDENCE_FIELD, ORGANIZATION_RECORD_EVIDENCE_FIELD
 
 SCHEMA = "stegverse.sdk.untrusted-executable-ingress-review.v1"
 HEX = re.compile(r"^[0-9a-f]{64}$")
@@ -30,7 +31,9 @@ TOP_FIELDS = {"schema", "manifest_sha256", "source_revision_sha256",
 STANDING_FIELDS = {"policy_current", "warrant_current", "intr_current_at_commit",
                    "worker_fence_current"}
 EVIDENCE_FIELDS = {"independent_observer", "enforcement_observed",
-                   "predecessor_reconstructed", "master_records_closure"}
+                   "predecessor_reconstructed", ORGANIZATION_RECORD_EVIDENCE_FIELD}
+# Descriptors written before the organization-record migration use the legacy name.
+_ACCEPTED_EVIDENCE_FIELDS = EVIDENCE_FIELDS | {LEGACY_ORGANIZATION_RECORD_EVIDENCE_FIELD}
 
 
 def _object(value: Any, fields: set[str], name: str) -> Mapping[str, Any]:
@@ -124,7 +127,11 @@ def review_untrusted_executable_ingress(
     standing = _object(d.get("standing"), STANDING_FIELDS, "standing")
     if any(standing.get(key) is not True for key in STANDING_FIELDS):
         reasons.append("CURRENT_STANDING_OR_CLAIM_NOT_ESTABLISHED")
-    evidence = _object(d.get("evidence"), EVIDENCE_FIELDS, "evidence")
+    evidence = dict(_object(d.get("evidence"), _ACCEPTED_EVIDENCE_FIELDS, "evidence"))
+    if LEGACY_ORGANIZATION_RECORD_EVIDENCE_FIELD in evidence:
+        if ORGANIZATION_RECORD_EVIDENCE_FIELD in evidence:
+            raise ValueError("evidence carries both the organization-record field and its legacy name")
+        evidence[ORGANIZATION_RECORD_EVIDENCE_FIELD] = evidence.pop(LEGACY_ORGANIZATION_RECORD_EVIDENCE_FIELD)
     if any(evidence.get(key) is not True for key in EVIDENCE_FIELDS):
         reasons.append("CONTAINMENT_OR_CANONICAL_CUSTODY_NOT_ESTABLISHED")
 
@@ -138,7 +145,7 @@ def review_untrusted_executable_ingress(
         "candidate_operation_ids": sorted(seen),
         "authentic_containment_proven": False,
         "authentic_intr_admission_proven": False,
-        "authentic_master_records_custody_proven": False,
+        "authentic_master_records_organization_record_proven": False,
         "authority_effect": "NONE",
     }
 

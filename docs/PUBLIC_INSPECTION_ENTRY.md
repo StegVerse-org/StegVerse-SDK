@@ -26,7 +26,7 @@ python -m pip install -e ".[dev,governed-test]"
 python -m stegverse.public_inspection_runtime run inspection/examples/governed-test-request.json
 ```
 
-The default local custody file is `./stegverse-master-records-validation.db`. A different file may be selected with `--custody-db`.
+The default local organization-record file is `./stegverse-master-records-validation.db`. A different file may be selected with `--records-db` (the older `--custody-db` spelling is still accepted).
 
 The test consequence is simulated and produces no external side effect. A successful run is returned only after the canonical route and exact-run evidence are recorded locally.
 

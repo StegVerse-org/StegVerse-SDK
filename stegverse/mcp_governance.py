@@ -9,6 +9,7 @@ import uuid
 
 from .mcp_transport import MCPTransportError, StdioMCPClient, load_descriptor, reference_descriptor
 from .sovereign_validation_runtime import run_sovereign_validation
+from .organization_record_names import LEGACY_ORGANIZATION_RECORD_STATUS_FIELD, ORGANIZATION_RECORD_STATUS_FIELD, read_field
 
 
 class MCPGovernanceError(RuntimeError):
@@ -231,7 +232,9 @@ def run_mcp_governed_test(
         "descriptor_name": descriptor.get("name"),
         "portable_packet": packet,
         "governed_result": governed,
-        "master_records_custody_status": governed.get("master_records_custody_status"),
+        ORGANIZATION_RECORD_STATUS_FIELD: read_field(
+            governed, ORGANIZATION_RECORD_STATUS_FIELD, LEGACY_ORGANIZATION_RECORD_STATUS_FIELD
+        ),
         "manifest_receipt_id": governed.get("manifest_receipt_id"),
         "return_path": "canonical-ingestion/CGE->SDK",
     }

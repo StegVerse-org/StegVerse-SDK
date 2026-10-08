@@ -31,7 +31,7 @@ REQUIRED = (
     "EXPIRE",
     "DESTROY",
     "MIR transition reporting",
-    "Master Records custody/reconstruction",
+    "Master Records organization records/reconstruction",
     "one-current-device continuity evidence",
     "authority_effect: NONE",
 )

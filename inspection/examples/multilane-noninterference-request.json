@@ -10,7 +10,7 @@
     "expected_observation": "The independent manifest remains valid and prepares identically regardless of the unrelated R3 lane being blocked on its own release/runtime prerequisites.",
     "requested_capabilities": [
       "commit_time_admissibility",
-      "master_records_custody"
+      "master_records_organization_record"
     ],
     "requested_evidence": [
       "governance_decision",

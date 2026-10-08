@@ -38,4 +38,4 @@ The installed-wheel alignment verifier requires those exact values to match the 
 
 ## Preserved authority boundaries
 
-SDK authority remains NONE. SPE standing does not authorize execution by itself. Canonical StegGate remains the admissibility/consequence boundary. Master Records remains custody/reconstruction only. Hosted validation does not publish or activate anything. Release and credential authority remain TV/TVC only.
+SDK authority remains NONE. SPE standing does not authorize execution by itself. Canonical StegGate remains the admissibility/consequence boundary. Master Records remains organization records/reconstruction only. Hosted validation does not publish or activate anything. Release and credential authority remain TV/TVC only.

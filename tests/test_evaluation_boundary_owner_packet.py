@@ -57,7 +57,7 @@ def _paths(tmp_path: Path) -> dict[str, Path]:
         "sovereign_result": {"schema": "result"},
         "manifest_receipt": {"schema": "manifest-receipt"},
         "route_receipts": {"schema": "route-receipts"},
-        "master_records_custody": {"schema": "custody"},
+        "master_records_organization_record": {"schema": "organization-record"},
         "reconstruction": {"schema": "reconstruction"},
         "replay": {"schema": "replay"},
         "independent_pass": _verification(),
@@ -109,6 +109,16 @@ class EvaluationBoundaryOwnerPacketTests(unittest.TestCase):
         self.assertTrue(optional["complete"])
         self.assertFalse(required["complete"])
         self.assertIn("missing_argument:replay", required["errors"])
+
+    def test_legacy_organization_record_role_name_is_still_accepted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = _paths(Path(tmp))
+            paths["master_records_custody"] = paths.pop("master_records_organization_record")
+            packet = build_owner_packet(paths, replay_required=True)
+        self.assertTrue(packet["complete"])
+        roles = {artifact["role"] for artifact in packet["artifacts"]}
+        self.assertIn("master_records_organization_record", roles)
+        self.assertNotIn("master_records_custody", roles)
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ from .sovereign_validation_runtime import (
 )
 from .spe_steggate_bridge import stable_hash
 from .standing_execution_context import build_standing_execution_context
+from .organization_record_names import LEGACY_ORGANIZATION_RECORD_STATUS_FIELD, ORGANIZATION_RECORD_STATUS_FIELD, read_field
 
 PROOF_RUNNER_SCHEMA = "stegverse.sdk.post-return-production-runner-result.v1"
 
@@ -211,12 +212,12 @@ def _custody_record(custody_db: str | Path, manifest_receipt_id: str) -> dict[st
     custody = Custody(custody_db)
     record = custody.evidence_package(manifest_receipt_id)
     if not isinstance(record, Mapping):
-        raise RuntimeError("Master Records custody lookup did not return an object")
+        raise RuntimeError("Master Records organization-record lookup did not return an object")
     value = dict(record)
     if str(value.get("manifest_receipt_id") or "").strip().upper() != manifest_receipt_id.strip().upper():
-        raise RuntimeError("Master Records custody receipt identity mismatch")
+        raise RuntimeError("Master Records organization-record receipt identity mismatch")
     if not isinstance(value.get("evidence_package"), Mapping):
-        raise RuntimeError("Master Records custody evidence package missing")
+        raise RuntimeError("Master Records organization-record evidence package missing")
     return value
 
 
@@ -288,8 +289,10 @@ def run_post_return_production_proof(
     execution_result = sovereign_result.get("execution_result")
     if not isinstance(execution_result, Mapping) or execution_result.get("state_transition_performed") is not True:
         raise RuntimeError("bounded_sovereign_state_transition_not_performed")
-    if sovereign_result.get("master_records_custody_status") != "RECORDED":
-        raise RuntimeError("canonical_master_records_custody_not_recorded")
+    if read_field(
+        sovereign_result, ORGANIZATION_RECORD_STATUS_FIELD, LEGACY_ORGANIZATION_RECORD_STATUS_FIELD
+    ) != "RECORDED":
+        raise RuntimeError("canonical_master_records_organization_record_not_recorded")
 
     rid = str(sovereign_result.get("manifest_receipt_id") or "").strip()
     if not rid:
@@ -325,7 +328,7 @@ def run_post_return_production_proof(
         "manifest_receipt_id": rid,
         "transaction_id": sovereign_result.get("transaction_id"),
         "sovereign_result": sovereign_result,
-        "master_records_custody": {
+        "master_records_organization_record": {
             "manifest_receipt_id": custody_record.get("manifest_receipt_id"),
             "master_record_sha256": custody_record.get("master_record_sha256"),
             "status": "RECORDED",

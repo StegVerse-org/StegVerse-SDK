@@ -12,6 +12,7 @@ from stegverse.sovereign_validation_runtime import (
     replay_sovereign,
     run_sovereign_validation,
 )
+from stegverse.organization_record_names import LEGACY_ORGANIZATION_RECORD_STATUS_FIELD, ORGANIZATION_RECORD_STATUS_FIELD, read_field
 
 EXPECTED_MANIFEST_SHA256 = "07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f"
 EXPECTED_MANIFEST_GIT_BLOB_SHA1 = "59d818a15fc7be732c97dae7d2174d8cfe9a7bab"
@@ -150,8 +151,10 @@ def execute(
         host_identity=host_identity,
         derived_governance_request=native_request.model_dump(mode="json", exclude_none=False),
     )
-    if sovereign_result.get("master_records_custody_status") != "RECORDED":
-        raise CrossFrameworkExecutionError("canonical run did not establish Master Records custody")
+    if read_field(
+        sovereign_result, ORGANIZATION_RECORD_STATUS_FIELD, LEGACY_ORGANIZATION_RECORD_STATUS_FIELD
+    ) != "RECORDED":
+        raise CrossFrameworkExecutionError("canonical run did not establish a Master Records organization record")
 
     s1_observation = {
         "schema": "stegverse.sdk.cross-framework-s1-observation.v1",

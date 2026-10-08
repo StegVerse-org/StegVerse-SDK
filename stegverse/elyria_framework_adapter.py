@@ -2,7 +2,7 @@
 
 This module is deliberately framework-side only. It does not create an Interlock/InTr
 protocol, transport authority, transition authority, credential path, receipt system,
-or Master Records custody. Callers inject the transport that reaches an Elyria public
+or a Master Records organization record. Callers inject the transport that reaches an Elyria public
 surface; this codec validates and preserves foreign framework evidence.
 """
 from __future__ import annotations
@@ -82,7 +82,7 @@ def build_elyria_assessment_request(
         "authority": {
             "adapter_grants_authority": False,
             "foreign_verdict_is_stegverse_admission": False,
-            "foreign_receipt_is_master_records_custody": False,
+            "foreign_receipt_is_master_records_organization_record": False,
             "route_closure_claim_is_stegverse_observation": False,
         },
     }
@@ -135,7 +135,7 @@ def normalize_elyria_assessment_response(
         "foreign_framework_observation": True,
         "stegverse_admission_determined": False,
         "authority_granted": False,
-        "master_records_custody_recorded": False,
+        "master_records_organization_record_recorded": False,
         "foreign_signature_verified_by_stegverse": False,
         "authentic_external_transport_observed": False,
     }
@@ -171,7 +171,7 @@ def normalize_elyria_replay_response(
         "foreign_replay_all_checks_pass": all(bool(replay[field]) for field in required_checks),
         "stegverse_admission_determined": False,
         "authority_granted": False,
-        "master_records_custody_recorded": False,
+        "master_records_organization_record_recorded": False,
         "authentic_external_transport_observed": False,
     }
 
@@ -204,7 +204,7 @@ def normalize_elyria_no_bind_proof(
         "downstream_effect_observed_by_stegverse": False,
         "stegverse_admission_determined": False,
         "authority_granted": False,
-        "master_records_custody_recorded": False,
+        "master_records_organization_record_recorded": False,
     }
 
 

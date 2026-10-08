@@ -113,7 +113,7 @@ Authentic resident SDK diagnostic request/result: NOT OBSERVED
 1. Modify the existing Healer periodic ECE cycle to build a canonical `ecosystem_diagnostic` manifest from registered ECE predicates plus the current authentic observation bundle.
 2. Execute the manifest through the installed SDK diagnostic processor and retain exact diagnostic-result bytes/hash under the resident ECE cycle.
 3. Transform only SDK result observations into ECE observation input; the SDK result must never supply or override ECE continuity state.
-4. Bind SDK result identity/hash into ECE evaluation and Master Records custody/reconstruction evidence.
+4. Bind SDK result identity/hash into ECE evaluation and Master Records organization records/reconstruction evidence.
 5. Preserve `NOT_OBSERVED` when authentic observation packets are absent.
 6. Observe one authentic resident SDK diagnostic request/result before claiming this lane operational.
 

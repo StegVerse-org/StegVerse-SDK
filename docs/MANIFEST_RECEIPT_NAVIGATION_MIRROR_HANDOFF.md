@@ -30,7 +30,7 @@ Provide one public SDK governance vocabulary:
 2   -> exact-run reconstruction by manifest_receipt_id
 ```
 
-Every executable path remains non-authorizing at the SDK boundary. Canonical governance is StegCore/StegGate and canonical exact-run custody is Master Records.
+Every executable path remains non-authorizing at the SDK boundary. Canonical governance is StegCore/StegGate and Master Records keeps the canonical exact-run organization record.
 
 ## Installed execution surfaces
 
@@ -105,7 +105,7 @@ Standalone executable entry remains:
 
 ```bash
 python -m stegverse.governance_ingress_cli 0B <manifest.json> \
-  --custody-db ./stegverse-master-records-validation.db
+  --records-db ./stegverse-master-records-validation.db
 ```
 
 ## Option 000 — executable safe canonical demo
@@ -134,7 +134,7 @@ Executable entry:
 
 ```bash
 python -m stegverse.governance_ingress_cli 000 \
-  --custody-db ./stegverse-master-records-validation.db
+  --records-db ./stegverse-master-records-validation.db
 ```
 
 This preserves the anti-false-completion invariant: embedding a dataset is not represented as processing it.
@@ -144,7 +144,7 @@ This preserves the anti-false-completion invariant: embedding a dataset is not r
 ```text
 return_projection -> user-disclosable transition receipt projection
 manifest_labels   -> user-facing explanatory labels
-Master Records    -> canonical custody independent of both
+Master Records    -> canonical organization record independent of both
 ```
 
 Neither projection control grants authority or suppresses canonical custody.

@@ -60,7 +60,7 @@ Chronology does not silently create causality. Replay/reconstruction is scoped t
 sdk_authority == NONE
 participant_truth_assumed == false
 interlock_transfers_authority == false
-master_records_custody_claimed == false unless separately installed
+master_records_organization_record_claimed == false unless separately installed
 execution_authorized == false at SDK compatibility layers
 model_output_authority == NONE
 ```
@@ -103,7 +103,7 @@ model_output_authority == NONE
    - merge: 124ea6b53ff79db8f514cacf1aab295f03cacf74
    - validation: 32808051766 SUCCESS
 
-8. Master Records Universal Interlock custody baseline
+8. Master Records organization-record baseline for Universal Interlock
    - Master Records PR #38
    - merge: 3dae8832a167359612a15ccfde99a9f22b77fc8a
    - later Universal Interlock custody extensions are separately governed by Master Records handoffs
@@ -149,7 +149,7 @@ Issue #65 remains open until all of the following are evidenced:
 
 1. exact successor aggregate is immutably released through real TV/TVC authority;
 2. genuine SDK POST_RETURN production runner executes on released coordinates;
-3. bounded consequence is retained in canonical Master Records custody;
+3. bounded consequence is retained in the canonical Master Records organization record;
 4. reciprocal participant ACK is retained;
 5. portable verification PASS;
 6. replay PASS without consequence re-execution;

@@ -30,7 +30,7 @@ AdmittedCode -> governance/admission decision and reasons
 StegCore -> canonical transaction/governance implementation
 Interlock/InTr -> transition authority (not inferred from route traversal)
 StegAgents/runtime -> bounded worker execution (not inferred from a generic consequence)
-Master Records -> custody/reconstruction evidence
+Master Records -> organization records/reconstruction evidence
 LLM-adapter or another source product -> declared upstream provenance when carried by the ingress manifest
 ```
 

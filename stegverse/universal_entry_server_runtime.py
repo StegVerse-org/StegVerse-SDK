@@ -15,10 +15,17 @@ from .ecosystem_catalog import build_catalog, validate_catalog
 from .ecosystem_records import AuthoritativeEcosystemRetriever
 from .governed_conversation import GovernedConversationHandler
 from .llm_adapter_bridge import GovernedLLMAdapterProvider
-from .master_records_custody import MasterRecordsCustodyClient
+from .master_records_organization_record import MasterRecordsOrganizationRecordClient
 from .repository_source_reader import AllowlistedRepositorySourceReader
 from .universal_entry_handlers import build_default_handler_registry
 from .universal_entry_runtime import run_universal_entry
+
+
+OrganizationRecordClient = MasterRecordsOrganizationRecordClient
+
+# Legacy configuration key accepted by from_mapping only
+# (MASTER-RECORDS-BULK-SEMANTIC-REMEDIATION-002).
+LEGACY_ORGANIZATION_RECORD_ENABLED_KEY = "custody_enabled"
 
 
 class UniversalEntryServerRuntimeError(ValueError):
@@ -29,17 +36,29 @@ class UniversalEntryServerRuntimeError(ValueError):
 class UniversalEntryServerConfig:
     source_collection_enabled: bool = False
     provider_enabled: bool = False
-    custody_enabled: bool = False
+    organization_record_enabled: bool = False
     activation_evidence_enabled: bool = False
     catalog_built_at: str | None = None
     catalog_source_set_id: str | None = None
+    # Deprecated name of organization_record_enabled, accepted for pinned callers only.
+    custody_enabled: bool | None = None
+
+    def __post_init__(self) -> None:
+        if self.custody_enabled is not None:
+            object.__setattr__(
+                self,
+                "organization_record_enabled",
+                self.organization_record_enabled or self.custody_enabled is True,
+            )
+            object.__setattr__(self, "custody_enabled", None)
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, Any]) -> "UniversalEntryServerConfig":
         allowed = {
             "source_collection_enabled",
             "provider_enabled",
-            "custody_enabled",
+            "organization_record_enabled",
+            LEGACY_ORGANIZATION_RECORD_ENABLED_KEY,
             "activation_evidence_enabled",
             "catalog_built_at",
             "catalog_source_set_id",
@@ -52,7 +71,10 @@ class UniversalEntryServerConfig:
         return cls(
             source_collection_enabled=raw.get("source_collection_enabled") is True,
             provider_enabled=raw.get("provider_enabled") is True,
-            custody_enabled=raw.get("custody_enabled") is True,
+            organization_record_enabled=(
+                raw.get("organization_record_enabled") is True
+                or raw.get(LEGACY_ORGANIZATION_RECORD_ENABLED_KEY) is True
+            ),
             activation_evidence_enabled=raw.get("activation_evidence_enabled") is True,
             catalog_built_at=(str(raw["catalog_built_at"]) if raw.get("catalog_built_at") else None),
             catalog_source_set_id=(
@@ -69,7 +91,18 @@ class UniversalEntryServerRuntime:
     source_inventory: Sequence[Mapping[str, Any]] = ()
     source_reader: AllowlistedRepositorySourceReader | None = None
     provider: GovernedLLMAdapterProvider | None = None
-    custody_client: MasterRecordsCustodyClient | None = None
+    organization_record_client: MasterRecordsOrganizationRecordClient | None = None
+    # Deprecated name of organization_record_client, accepted for pinned callers only.
+    custody_client: OrganizationRecordClient | None = None
+
+    def __post_init__(self) -> None:
+        if self.custody_client is not None:
+            if self.organization_record_client is not None:
+                raise UniversalEntryServerRuntimeError(
+                    "pass organization_record_client only; custody_client is its deprecated name"
+                )
+            self.organization_record_client = self.custody_client
+            self.custody_client = None
 
     def _build_retriever(self) -> AuthoritativeEcosystemRetriever | None:
         if not self.config.source_collection_enabled:
@@ -106,9 +139,9 @@ class UniversalEntryServerRuntime:
             raise UniversalEntryServerRuntimeError(
                 "provider enabled without a governed provider"
             )
-        if self.config.custody_enabled and self.custody_client is None:
+        if self.config.organization_record_enabled and self.organization_record_client is None:
             raise UniversalEntryServerRuntimeError(
-                "custody enabled without a custody client"
+                "organization records enabled without an organization-record client"
             )
 
         retriever = self._build_retriever()
@@ -126,12 +159,16 @@ class UniversalEntryServerRuntime:
             capability_registry,
             handlers,
             initial_context=initial_context,
-            custody_client=(self.custody_client if self.config.custody_enabled else None),
+            organization_record_client=(
+                self.organization_record_client
+                if self.config.organization_record_enabled
+                else None
+            ),
         )
         result["server_runtime"] = {
             "source_collection_enabled": self.config.source_collection_enabled,
             "provider_enabled": self.config.provider_enabled,
-            "custody_enabled": self.config.custody_enabled,
+            "organization_record_enabled": self.config.organization_record_enabled,
             "activation_evidence_enabled": self.config.activation_evidence_enabled,
             "credentials_exposed_to_entry_adapter": False,
             "deployment_authorized": False,

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://stegverse.org/schemas/stegverse.ingress-manifest.v1.schema.json",
   "title": "StegVerse ingress manifest v1",
-  "description": "Processor-generic machine-to-machine ingress for externally manifested data. The source framework retains semantic custody of its payload. Processing capability, runtime route, caller-facing evidence projection, presentation stage, and governed southbound completion are distinct; none grants authority or suppresses canonical Master Records custody.",
+  "description": "Processor-generic machine-to-machine ingress for externally manifested data. The source framework retains semantic custody of its payload. Processing capability, runtime route, caller-facing evidence projection, presentation stage, and governed southbound completion are distinct; none grants authority or suppresses canonical Master Records organization record.",
   "type": "object",
   "additionalProperties": false,
   "required": [

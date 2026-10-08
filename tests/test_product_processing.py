@@ -36,11 +36,22 @@ def runtime_result():
         "manifest_receipt_id": "MR-" + "1" * 64,
         "governance_state": "ALLOW",
         "chain_verified": True,
-        "master_records_custody_status": "RECORDED",
+        "master_records_organization_record_status": "RECORDED",
     }
 
 
 class ProductProcessingTests(unittest.TestCase):
+    def test_legacy_status_field_from_pre_migration_runtimes_is_still_read(self):
+        legacy = runtime_result()
+        legacy["master_records_custody_status"] = legacy.pop("master_records_organization_record_status")
+        envelope, _admitted = build_product_processing(
+            normalized_request=request_with_llm_adapter_origin(),
+            runtime_result=legacy,
+            evaluation={"disposition": "ALLOW", "reason_codes": ["ok"], "reason": "ok"},
+        )
+        by_product = {c["product_id"]: c for c in envelope["contributions"]}
+        self.assertEqual("PROCESSED", by_product["Master Records"]["processing_status"])
+
     def test_composes_product_attribution_without_authority_collapse(self):
         envelope, admitted = build_product_processing(
             normalized_request=request_with_llm_adapter_origin(),
@@ -70,7 +81,11 @@ class ProductProcessingTests(unittest.TestCase):
         self.assertEqual("PROCESSED", by_product["StegCore"]["processing_status"])
         self.assertEqual("PROCESSED", by_product["Core-Lite"]["processing_status"])
         self.assertEqual("PROCESSED", by_product["Master Records"]["processing_status"])
-        self.assertEqual("CUSTODY_ONLY", by_product["Master Records"]["authority_effect"])
+        self.assertEqual("ORGANIZATION_RECORDS_ONLY", by_product["Master Records"]["authority_effect"])
+        self.assertEqual(
+            "organization_records_and_reconstruction", by_product["Master Records"]["product_role"]
+        )
+        self.assertEqual("RECORDED", by_product["Master Records"]["output_bindings"]["record_status"])
 
         self.assertEqual("NOT_OBSERVED", by_product["Interlock/InTr"]["processing_status"])
         self.assertEqual("NONE", by_product["Interlock/InTr"]["authority_effect"])

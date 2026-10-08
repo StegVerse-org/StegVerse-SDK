@@ -20,7 +20,7 @@ The goal is complete when the SDK independently validates the adapter event hash
 
 ## Successor goal
 
-After merge, bind the projected SDK transition usage event into a deterministic session usage receipt and optional Master-Records custody handoff while preserving:
+After merge, bind the projected SDK transition usage event into a deterministic session usage receipt and optional Master-Records organization record handoff while preserving:
 
 ```text
 sdk_validation_is_execution == false

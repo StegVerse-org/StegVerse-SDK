@@ -82,7 +82,7 @@ release_evidence: PR #43 merge 3b0ded7a4966d52390f4623c0867721dbd84cf0f + run 32
 
 ## Authority boundary
 
-This is an SDK-side falsification/relation-coverage surface. It does not execute component actions, certify domain correctness, create proof authority, or substitute for canonical StegCore/StegGate/Master Records execution-boundary evaluation and custody. TV/TVC remains credential authority.
+This is an SDK-side falsification/relation-coverage surface. It does not execute component actions, certify domain correctness, create proof authority, or substitute for canonical StegCore/StegGate execution-boundary evaluation or the Master Records organization record. TV/TVC remains credential authority.
 
 ## Cross-repository propagation assessment
 

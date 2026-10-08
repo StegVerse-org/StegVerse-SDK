@@ -57,7 +57,7 @@ The final packet MUST include or point to the following exact materials:
 6. explicit field-influence map separating governance decision inputs from evidence-only evaluator metadata;
 7. normalization and binding specification, canonicalization profile, algorithms, key ownership and verification procedure;
 8. runnable commands/tests for normal and deliberate boundary-violation conditions;
-9. representative route receipts, manifest receipt, Master Records custody, reconstruction material, replay material when requested, and negative-case outputs;
+9. representative route receipts, manifest receipt, Master Records organization record, reconstruction material, replay material when requested, and negative-case outputs;
 10. method proving tested runtime corresponds to identified source/release versions;
 11. applicable licenses and access limitations;
 12. exact file manifest, SHA-256 hashes and byte sizes for applicable source/evidence artifacts;
@@ -120,7 +120,7 @@ external evaluator
 -> ordinary StegVerse SDK manifest ingress
 -> Core-Lite manifested carrier
 -> canonical StegCore / StegGate
--> Master Records custody
+-> Master Records organization record
 -> governed return through manifested route
 ```
 
@@ -195,7 +195,7 @@ requires submitted_manifest_hash to equal the retained normalized manifest hash
 requires governance_request_hash to equal the retained exact model-dumped request hash
 independently verifies the full unmodified binding tuple before claiming harness success
 retains governed-result.json and independent-binding-verification.json
-exports actual route receipt events from Master Records custody
+exports actual route receipt events from the Master Records organization record
 exports the exact retained Master Records evidence package
 runs canonical reconstruction and retains its operation-custody evidence
 runs canonical replay by default and retains its operation-custody evidence
@@ -268,7 +268,7 @@ Once the verified aggregate receipt exists, continue without a new planning phas
 4 invoke scripts/run_oda3_evaluation_boundary_r3.py via ordinary SDK ingress only
 5 harness retains exact normalized manifest + exact model-normalized governance request + governed result
 6 harness verifies retained manifest/request hashes against the runtime bindings and independently verifies the unmodified tuple
-7 harness exports route/Master Records custody chain
+7 harness exports route/Master Records organization record chain
 8 harness retains reconstruction and requested replay
 9 harness invokes scripts/build_oda3_response_packet.py against real release/run evidence
 10 builder independently verifies unmodified tuple -> PASS

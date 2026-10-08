@@ -52,7 +52,7 @@ class CrossFrameworkResultPackagingTests(unittest.TestCase):
             },
             "STEGVERSE_RESULT.json": {
                 "manifest_receipt_id": manifest_receipt_id,
-                "master_records_custody_status": "RECORDED",
+                "master_records_organization_record_status": "RECORDED",
                 "external_side_effect": False,
             },
             "S1_OBSERVATION.json": {

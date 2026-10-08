@@ -108,7 +108,7 @@ sdk_authority = NONE
 spe_execution_authority = NONE
 steggate_decision_authority = CANONICAL_RUNTIME_ONLY
 execution_authorized = false
-master_records_custody_claimed = false
+master_records_organization_record_claimed = false
 ```
 
 ## Collision boundary

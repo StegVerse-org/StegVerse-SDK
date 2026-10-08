@@ -19,7 +19,7 @@
     "workflow_result": "SUCCESS",
     "dedicated_tests": "16 passed"
   },
-  "claim_release_condition": "Canonical StegCore/Master Records admitted transport is bound to the SDK adapter and one option 0, 1, and 2 integration proof is retained.",
+  "claim_release_condition": "Canonical StegCore transport to Master Records organization records is bound to the SDK adapter; Interlock/InTr admits that transport; one option 0, 1, and 2 integration proof is retained.",
   "collision_boundaries": [
     "Do not create a second manifest_receipt_id algorithm",
     "Do not create local custody authority",
@@ -36,7 +36,7 @@
   "dependencies": [
     "StegVerse-Labs/StegCore/docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md",
     "StegVerse-Labs/StegCore#85",
-    "master-records/orchestration canonical manifest-receipt custody transport",
+    "master-records/orchestration canonical manifest-receipt organization-record transport",
     "StegVerse-Labs/TVC/tasks/TVC-SDK-USAGE-NOTIFICATION-RELAY-001.json"
   ],
   "source_state": "COMPLETE_VALIDATED_MERGED",

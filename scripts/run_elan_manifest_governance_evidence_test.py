@@ -67,7 +67,7 @@ state_transitions = [
     {"step": 7, "state": "GOVERNANCE_CONSUMED", "evidence": "08-governance-decision.json"},
     {"step": 8, "state": "GOVERNANCE_DECISION_DENY", "evidence": "08-governance-decision.json", "reason": continuation["governance_decision"]["reason_code"]},
     {"step": 9, "state": "ROUTE_TRANSITIONS_RECORDED", "evidence": "09-route-receipts.json", "count": continuation["exact_run"]["route_transition_count"]},
-    {"step": 10, "state": "MASTER_RECORDS_STYLE_EXACT_RUN_CUSTODY_RECORDED", "evidence": "10-exact-run-custody.json"},
+    {"step": 10, "state": "MASTER_RECORDS_STYLE_EXACT_RUN_ORGANIZATION_RECORD_RECORDED", "evidence": "10-exact-run-custody.json"},
     {"step": 11, "state": "REPLAY_COMPLETED", "evidence": "11-replay.json"},
     {"step": 12, "state": "RECONSTRUCTION_COMPLETED", "evidence": "12-reconstruction.json"},
     {"step": 13, "state": "RESULT_RETURNED_TO_SDK", "evidence": "13-returned-result.json"},

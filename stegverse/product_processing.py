@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 from typing import Any, Mapping
+from .organization_record_names import LEGACY_ORGANIZATION_RECORD_STATUS_FIELD, ORGANIZATION_RECORD_STATUS_FIELD, read_field
 
 PRODUCT_PROCESSING_SCHEMA = "stegverse.sdk.product-processing.v1"
 ADMITTEDCODE_PROCESSING_SCHEMA = "stegverse.sdk.product-processing.admittedcode.v1"
@@ -237,21 +238,23 @@ def build_product_processing(
     )
     contributions.append(agents)
 
-    custody_status = runtime_result.get("master_records_custody_status")
+    record_status = read_field(
+        runtime_result, ORGANIZATION_RECORD_STATUS_FIELD, LEGACY_ORGANIZATION_RECORD_STATUS_FIELD
+    )
     master_records = _contribution(
-        contribution_id="master-records:custody",
+        contribution_id="master-records:organization-records",
         product_id="Master Records",
-        product_role="custody_and_reconstruction_evidence",
-        processing_status="PROCESSED" if custody_status == "RECORDED" else "NOT_OBSERVED",
-        processing_scope=["exact-run evidence custody"],
+        product_role="organization_records_and_reconstruction",
+        processing_status="PROCESSED" if record_status == "RECORDED" else "NOT_OBSERVED",
+        processing_scope=["exact-run organization record"],
         input_bindings={
             "manifest_receipt_id": manifest_receipt_id,
             "transaction_id": runtime_result.get("transaction_id"),
         },
-        output_bindings={"custody_status": custody_status},
+        output_bindings={"record_status": record_status},
         evidence_refs=[str(manifest_receipt_id)] if manifest_receipt_id else [],
-        authority_effect="CUSTODY_ONLY",
-        details={"custody_grants_execution_authority": False},
+        authority_effect="ORGANIZATION_RECORDS_ONLY",
+        details={"record_grants_execution_authority": False},
     )
     contributions.append(master_records)
 
@@ -355,8 +358,8 @@ def build_processor_product_processing(
          "EXPLICIT_ABSENCE_OF_AUTHENTIC_INTR_EVIDENCE"),
         ("StegAgents/runtime", "stegagents:bounded-runtime", "purpose_bounded_execution",
          "EXPLICIT_ABSENCE_OF_AUTHENTIC_WORKER_EVIDENCE"),
-        ("Master Records", "master-records:custody", "custody_and_reconstruction_evidence",
-         "EXPLICIT_ABSENCE_OF_CUSTODY_EVIDENCE"),
+        ("Master Records", "master-records:organization-records", "organization_records_and_reconstruction",
+         "EXPLICIT_ABSENCE_OF_ORGANIZATION_RECORD_EVIDENCE"),
     ):
         contributions.append(_contribution(
             contribution_id=contribution_id,

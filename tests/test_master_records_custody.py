@@ -1,137 +1,57 @@
-from copy import deepcopy
+"""Deprecated aliases in stegverse.master_records_custody forward to the new module.
+
+Pinned consumers still import the old path; see
+MASTER-RECORDS-BULK-SEMANTIC-REMEDIATION-002.
+"""
+import importlib
+import sys
+import warnings
 
 import pytest
 
-from stegverse.master_records_custody import (
-    MasterRecordsCustodyClient,
-    MasterRecordsCustodyError,
-    build_custody_submission,
-    validate_custody_receipt,
-    verify_reconstruction,
-)
+from stegverse import master_records_organization_record as current
 from stegverse.universal_entry_events import build_continuation_event
 
 
-def _envelope():
-    return {
-        "origin": {
-            "entry_point": "sdk",
-            "session_id": "session-1",
-            "message_id": "message-1",
-        },
-        "continuity": {"transition_id": "transition-1", "run_id": "run-1"},
-    }
+def _legacy_module():
+    sys.modules.pop("stegverse.master_records_custody", None)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        module = importlib.import_module("stegverse.master_records_custody")
+    assert any(issubclass(w.category, DeprecationWarning) for w in caught)
+    return module
 
 
 def _events():
+    envelope = {
+        "origin": {"entry_point": "sdk", "session_id": "session-1", "message_id": "message-1"},
+        "continuity": {"transition_id": "transition-1", "run_id": "run-1"},
+    }
     first = build_continuation_event(
-        event_type="routing",
-        envelope=_envelope(),
-        payload={"selected_lanes": ["conversation"]},
+        event_type="routing", envelope=envelope, payload={"selected_lanes": ["conversation"]}
     )
-    second = build_continuation_event(
-        event_type="synthesis",
-        envelope=_envelope(),
-        payload={"status": "completed"},
-        prior_event_id=first["event_id"],
-    )
-    return [first, second]
+    return [first]
 
 
-def _receipt(submission):
-    from stegverse.master_records_custody import _digest
-
-    body = {
-        "schema": "stegverse.master_records_custody_receipt.v0.1",
-        "submission_id": submission["submission_id"],
-        "session_id": submission["session_id"],
-        "message_id": submission["message_id"],
-        "transition_id": submission["transition_id"],
-        "run_id": submission["run_id"],
-        "first_event_id": submission["first_event_id"],
-        "last_event_id": submission["last_event_id"],
-        "event_count": submission["event_count"],
-        "events_digest": submission["events_digest"],
-        "custody_recorded": True,
-        "reconstruction_available": True,
-        "authorizing": False,
-        "execution_authority_granted": False,
-        "admissibility_determined": False,
-    }
-    body["receipt_id"] = _digest(body)
-    return body
+def test_legacy_class_names_are_the_new_classes():
+    legacy = _legacy_module()
+    assert legacy.MasterRecordsCustodyClient is current.MasterRecordsOrganizationRecordClient
+    assert legacy.MasterRecordsCustodyError is current.MasterRecordsOrganizationRecordError
+    assert legacy.verify_reconstruction is current.verify_reconstruction
 
 
-def _reconstruction(submission):
-    return {
-        "schema": "stegverse.master_records_reconstruction.v0.1",
-        "submission_id": submission["submission_id"],
-        "events": submission["events"],
-        "reconstructability_status": "PASS",
-        "authorizing": False,
-    }
+def test_legacy_functions_warn_and_forward():
+    legacy = _legacy_module()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        submission = legacy.build_custody_submission(_events())
+        with pytest.raises(current.MasterRecordsOrganizationRecordError):
+            legacy.validate_custody_receipt(submission, {"schema": "unknown"})
+    assert [w.category for w in caught] == [DeprecationWarning, DeprecationWarning]
+    assert submission == current.build_organization_record_request(_events())
 
 
-def test_build_submission_preserves_identity_and_chain():
-    submission = build_custody_submission(_events())
-    assert submission["event_count"] == 2
-    assert submission["session_id"] == "session-1"
-    assert submission["first_event_id"] == submission["events"][0]["event_id"]
-    assert submission["last_event_id"] == submission["events"][-1]["event_id"]
-    assert submission["custody_requested"] is True
-    assert submission["authorizing"] is False
-
-
-def test_receipt_identity_mismatch_fails_closed():
-    submission = build_custody_submission(_events())
-    receipt = _receipt(submission)
-    receipt["run_id"] = "other-run"
-    with pytest.raises(MasterRecordsCustodyError, match="identity mismatch"):
-        validate_custody_receipt(submission, receipt)
-
-
-def test_receipt_digest_tamper_fails_closed():
-    submission = build_custody_submission(_events())
-    receipt = _receipt(submission)
-    receipt["custody_recorded"] = False
-    with pytest.raises(MasterRecordsCustodyError):
-        validate_custody_receipt(submission, receipt)
-
-
-def test_reconstruction_event_drift_fails_closed():
-    submission = build_custody_submission(_events())
-    reconstruction = _reconstruction(submission)
-    reconstruction["events"] = deepcopy(reconstruction["events"])
-    reconstruction["events"][1]["payload"]["status"] = "changed"
-    with pytest.raises(MasterRecordsCustodyError):
-        verify_reconstruction(submission, reconstruction)
-
-
-def test_reconstruction_requires_pass():
-    submission = build_custody_submission(_events())
-    reconstruction = _reconstruction(submission)
-    reconstruction["reconstructability_status"] = "PENDING"
-    with pytest.raises(MasterRecordsCustodyError, match="did not pass"):
-        verify_reconstruction(submission, reconstruction)
-
-
-def test_client_submit_and_verify_success():
-    state = {}
-
-    def submit_transport(submission):
-        state["submission"] = submission
-        return _receipt(submission)
-
-    def reconstruct_transport(receipt_id):
-        assert receipt_id == _receipt(state["submission"])["receipt_id"]
-        return _reconstruction(state["submission"])
-
-    result = MasterRecordsCustodyClient(
-        submit_transport=submit_transport,
-        reconstruct_transport=reconstruct_transport,
-    ).submit_and_verify(_events())
-
-    assert result["verification"]["status"] == "PASS"
-    assert result["verification"]["custody_verified"] is True
-    assert result["verification"]["master_records_installed"] is True
-    assert result["verification"]["authorizing"] is False
+def test_legacy_error_name_still_catches_new_errors():
+    legacy = _legacy_module()
+    with pytest.raises(legacy.MasterRecordsCustodyError):
+        current.build_organization_record_request([])

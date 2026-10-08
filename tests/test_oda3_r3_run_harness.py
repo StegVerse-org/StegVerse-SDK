@@ -99,7 +99,7 @@ def test_run_harness_retains_exact_tuple_custody_reconstruction_replay_and_packe
         "transaction_id": "TX-ODA3",
         "route_manifest_id": "RM-ODA3",
         "route_transition_count": 4,
-        "master_records_custody_status": "RECORDED",
+        "master_records_organization_record_status": "RECORDED",
         "submitted_manifest_hash": canonical_sha256(normalized),
         "governance_request_hash": canonical_sha256(canonical_request),
     }

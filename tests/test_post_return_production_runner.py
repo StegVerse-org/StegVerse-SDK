@@ -168,7 +168,7 @@ def test_success_path_passes_standing_to_canonical_runtime_and_uses_direct_custo
     sovereign = {
         "declared_execution_context_consumed_by_canonical_runtime": True,
         "governance_state": "ALLOW",
-        "master_records_custody_status": "RECORDED",
+        "master_records_organization_record_status": "RECORDED",
         "manifest_receipt_id": "MR-" + "A" * 64,
         "transaction_id": "tx-production-proof",
         "execution_result": {

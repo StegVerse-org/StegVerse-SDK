@@ -341,7 +341,7 @@ class EntryPointParityTests(unittest.TestCase):
                                                "transition_classes": ["INGRESS_ADMITTED"]})
         projection = row["return_projection"]
         self.assertEqual(projection["mode"], "SELECTED")
-        self.assertIs(projection["suppresses_master_records_custody"], False)
+        self.assertIs(projection["suppresses_master_records_organization_record"], False)
         self.assertIs(projection["erases_ecosystem_transitions"], False)
         self.assertIs(projection["grants_authority"], False)
 

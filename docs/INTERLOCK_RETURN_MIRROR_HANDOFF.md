@@ -24,7 +24,7 @@ participant terminal receipt
   -> participant successor state
 ```
 
-This SDK contract is structural and non-authorizing. It does not run SPE, StegGate, an executor, or Master Records custody.
+This SDK contract is structural and non-authorizing. It does not run SPE, StegGate, an executor, or Master Records organization record.
 
 ## Contract
 
@@ -73,7 +73,7 @@ REJECTED
 sdk_authority == NONE
 participant_truth_assumed == false
 return_transfers_authority == false
-master_records_custody_claimed == false
+master_records_organization_record_claimed == false
 execution_authorized == false
 ```
 

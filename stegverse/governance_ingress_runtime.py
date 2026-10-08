@@ -29,6 +29,7 @@ from .route_resolution import (
     resolve_route_declaration,
     route_from_manifest,
 )
+from .organization_record_names import LEGACY_ORGANIZATION_RECORD_STATUS_FIELD, ORGANIZATION_RECORD_STATUS_FIELD, read_field
 
 GOVERNANCE_REQUEST_EXTENSION = "stegverse_governance_request"
 
@@ -316,7 +317,9 @@ def run_000_demo(*, custody_db: str, host_identity: str = "stegverse-sovereign-l
         "receipt_chain_head": result.get("route_receipt_chain_head"),
         "governance_state": result.get("governance_state"),
         "chain_verified": bool(result.get("chain_verified")),
-        "master_records_custody_status": result.get("master_records_custody_status"),
+        ORGANIZATION_RECORD_STATUS_FIELD: read_field(
+            result, ORGANIZATION_RECORD_STATUS_FIELD, LEGACY_ORGANIZATION_RECORD_STATUS_FIELD
+        ),
         "external_side_effect": result.get("external_side_effect"),
         "third_party_host_required": result.get("third_party_host_required"),
         "do_not_claim_processed_until_receipts_exist": False,

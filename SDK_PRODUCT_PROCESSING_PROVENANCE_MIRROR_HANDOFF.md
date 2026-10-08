@@ -35,7 +35,7 @@ StegCore/StegGate -> canonical governance implementation
 Core-Lite -> manifested route carrier where actually traversed
 Interlock/InTr -> governed transition authority; must remain NOT_OBSERVED unless authentic evidence is present
 StegAgents/runtime -> bounded execution product; must remain NOT_OBSERVED unless authentic worker/runtime evidence is present
-Master Records -> custody/reconstruction product evidence
+Master Records -> organization records/reconstruction product evidence
 LLM-adapter -> upstream product contribution only from bound source/product provenance; SDK does not infer adapter internals
 TV/TVC -> credential authority; not replaced by this envelope
 ```
@@ -93,7 +93,7 @@ GENERIC_PRODUCT_PROCESSING_ENVELOPE_SOURCE_VALIDATED: PASS
 ADMITTEDCODE_TYPED_PROJECTION_SOURCE_VALIDATED: PASS
 UPSTREAM_LLM_ADAPTER_PROVENANCE_DECLARED_NOT_INFERRED: PASS
 UNOBSERVED_INTR_AND_STEGAGENTS_NOT_OVERCLAIMED: PASS
-MASTER_RECORDS_CUSTODY_ATTRIBUTION_PRESERVES_AUTHORITY_BOUNDARY: PASS
+MASTER_RECORDS_ORGANIZATION_RECORD_ATTRIBUTION_PRESERVES_AUTHORITY_BOUNDARY: PASS
 SDK_RETURN_BINDING_COVERS_PRODUCT_PROVENANCE: PASS
 EXISTING_CANONICAL_RUNTIME_RESULT_BINDING_PRESERVED: PASS
 README_AND_HANDOFF_CURRENT: PASS
@@ -102,7 +102,7 @@ NO_DUPLICATE_EVALUATOR_RUNTIME_OR_AUTHORITY_PLANE: PASS
 
 The governed SDK path and the installed non-governance `ecosystem_diagnostic` processor both use the same product-processing contribution model. AdmittedCode is `PROCESSED` only where the route actually traverses it and `NOT_PROCESSED` on the diagnostic route. Interlock/InTr, StegAgents/runtime, and custody contributions are not inferred from unrelated route or execution labels.
 
-This source-goal completion does not claim authentic Interlock/InTr execution, StegAgents worker materialization, new Master Records runtime custody beyond evidence already present in a particular result, provider execution, release activation, or downstream product activation.
+This source-goal completion does not claim authentic Interlock/InTr execution, StegAgents worker materialization, new Master Records runtime organization record beyond evidence already present in a particular result, provider execution, release activation, or downstream product activation.
 
 ## Closeout
 

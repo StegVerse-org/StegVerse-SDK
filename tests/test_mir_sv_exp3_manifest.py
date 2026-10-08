@@ -121,7 +121,7 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
             "retry_condition": "CORRECT_ENVELOPE_IN_EXISTING_MANIFEST_BUILDER_THEN_NEW_GOVERNED_ATTEMPT",
             "evaluation_boundary": "SDK_MANIFEST_PROFILE", "transport_validated": True,
             "authentic_intr_admission_observed": False,
-            "organization_master_records_closure_observed": False,
+            "organization_master_records_organization_record_observed": False,
             "transition_id": "SDK_MANIFEST_BINDING",
             "repair_owner": "StegVerse-org/StegVerse-SDK:stegverse/manifest_builder.py",
             "authority_effect": "NONE_MANIFEST_PROFILE_DENY_ONLY",

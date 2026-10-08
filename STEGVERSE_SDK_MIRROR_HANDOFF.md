@@ -14,7 +14,7 @@ default branch: main
 role: user-facing, non-authorizing intake and compatibility boundary
 ```
 
-SDK validation, compatibility, submission, aggregation, ingestion, device discovery, capability declaration, or communication demonstration are not execution, authority, admissibility, standing, commit-time validation, publication, deployment, bearer delivery, or Master-Records custody.
+SDK validation, compatibility, submission, aggregation, ingestion, device discovery, capability declaration, or communication demonstration are not execution, authority, admissibility, standing, commit-time validation, publication, deployment, bearer delivery, or Master-Records organization record.
 
 ## Completed goals retained
 
@@ -297,7 +297,7 @@ External evaluator feedback corrected the original draft so material policy-basi
 
 Human review is provided through the non-authorizing Site evaluator-review front end. Site PR #576 implemented/validated/merged the generic UI; Site PR #590 validated/merged the exact v0.2 public projection as `dd7e6d5685abea6c87429e90e36b1069bd9c9b9d`. Public-route observation remains pending. Site never becomes test, approval, freeze, execution, credential, custody, replay, or reconstruction authority.
 
-Next boundary: observe the public Site v0.2 projection; external evaluator reviews the exact v0.2 manifest blob/hash above (current PR head may contain non-manifest handoff changes); any content change invalidates approval for freeze purposes; only matching exact-revision/hash approvals may proceed to canonical freeze, followed by independent execution and ordinary TV/TVC + Master Records evidence/custody boundaries.
+Next boundary: observe the public Site v0.2 projection; external evaluator reviews the exact v0.2 manifest blob/hash above (current PR head may contain non-manifest handoff changes); any content change invalidates approval for freeze purposes; only matching exact-revision/hash approvals may proceed to canonical freeze, followed by independent execution and ordinary TV/TVC boundaries and Master Records organization records/reconstruction.
 
 
 ### Manifest-content continuity note — PR #94 head advance

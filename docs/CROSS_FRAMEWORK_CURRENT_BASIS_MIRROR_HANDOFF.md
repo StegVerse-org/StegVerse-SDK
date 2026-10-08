@@ -145,7 +145,7 @@ freeze != execution
 native derivation != common input conclusion
 transition receipt != pre-execution authority
 post-observation receipt != retroactive permission
-Master Records custody != admissibility
+Master Records organization record != admissibility
 TV/TVC remains credential authority
 ```
 \n\n## Freeze / execution evidence\n\n```text\nevidence/evaluator/cross-framework-current-basis-v0.4-source-validation-2026-08-29.json\nevidence/evaluator/cross-framework-current-basis-v0.4-owner-freeze-attestation-2026-08-29.json\nevidence/evaluator/cross-framework-current-basis-v0.4-execution-window-2026-08-29.json\n```\n
@@ -194,7 +194,7 @@ retention: 90 days
 
 Publication is fail-closed. The packet cannot be published as successful unless `RUN_COMPLETE.json` binds the exact frozen v0.4 SHA-256 and Git blob identity and asserts completed independent execution, S1 observation, post-observation transition-receipt binding, custody, replay, and reconstruction. The packager independently recomputes the frozen manifest SHA-256 and inventories every attached file with its own SHA-256.
 
-GitHub Actions is an optional mirror only. It does not execute governance, mint the transition receipt, create runtime authority, replace Master Records custody, provide required evaluator availability, or determine completion. The required external handoff is the StegVerse-native retained packet plus its copy-safe replay reference. Any GitHub artifact is supplemental and disposable.
+GitHub Actions is an optional mirror only. It does not execute governance, mint the transition receipt, create runtime authority, replace the Master Records organization record, provide required evaluator availability, or determine completion. The required external handoff is the StegVerse-native retained packet plus its copy-safe replay reference. Any GitHub artifact is supplemental and disposable.
 
 
 ## Authentic StegVerse execution harness — prepared 2026-08-29
@@ -209,7 +209,7 @@ tests/test_cross_framework_current_basis_execution.py
 
 The harness consumes only the exact frozen v0.4 manifest bytes, verifies SHA-256 `07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f`, calls canonical merged `stegcore.current_basis` for native derivation/evaluation, then passes the derived canonical request into the existing sovereign validation runtime. It does not place architecture-native currentness fields into the frozen common manifest and does not consume counterpart results before completion.
 
-After the canonical run returns Master Records custody, the harness records S1 observation, then creates the S0->S1 post-observation evidence receipt, then invokes canonical replay and reconstruction. Only if all gates are observed does it write `RUN_COMPLETE.json` with the flags required by the external result packager.
+After the canonical run returns the Master Records organization record, the harness records S1 observation, then creates the S0->S1 post-observation evidence receipt, then invokes canonical replay and reconstruction. Only if all gates are observed does it write `RUN_COMPLETE.json` with the flags required by the external result packager.
 
 Expected result directory:
 `evidence/evaluator/cross-framework-current-basis-v0.4-result/`
@@ -235,7 +235,7 @@ Site frozen v0.4 projection: MERGED / PUBLICLY OBSERVED
 actual canonical internal SDK/Master Records execution: NOT OBSERVED
 StegVerse S1: NOT OBSERVED
 post-observation S0->S1 receipt: NOT OBSERVED
-Master Records custody/replay/reconstruction for the authentic run: NOT OBSERVED
+Master Records organization records/reconstruction for the authentic run: NOT OBSERVED
 RUN_COMPLETE.json: NOT OBSERVED
 StegVerse-native result retention / evaluator availability: NOT YET OBSERVED
 optional GitHub mirror: NOT REQUIRED
@@ -248,9 +248,9 @@ Authoritative execution-boundary correction:
 
 Historical resident/runtime plumbing may remain useful for genuine external-ingress or resident-observation scenarios, but it is not a prerequisite for this internally resident v0.4 experiment and must not be reintroduced as its blocker.
 
-Current connected-tool reachability check on 2026-08-30 found no retained result directory on `main` and no connected execution surface that both runs the pinned SDK/StegCore/Core-Lite/Master Records stack and durably retains the resulting Master Records custody. GitHub Actions is source validation/distribution only; an ephemeral chat/container execution whose custody disappears is not an acceptable substitute.
+Current connected-tool reachability check on 2026-08-30 found no retained result directory on `main` and no connected execution surface that both runs the pinned SDK/StegCore/Core-Lite/Master Records stack and durably retains the resulting Master Records organization record. GitHub Actions is source validation/distribution only; an ephemeral chat/container execution whose custody disappears is not an acceptable substitute.
 
-The remaining experiment transition is therefore actual canonical internal SDK/Master Records execution with durable custody, followed by S1 observation, post-observation transition receipt, replay, reconstruction, `RUN_COMPLETE.json`, host-neutral packaging, and StegVerse-native durable evaluator availability. Third-party publication is outside the completion gate.
+The remaining experiment transition is therefore actual canonical internal SDK execution with a Master Records organization record, followed by S1 observation, post-observation transition receipt, replay, reconstruction, `RUN_COMPLETE.json`, host-neutral packaging, and StegVerse-native durable evaluator availability. Third-party publication is outside the completion gate.
 
 ## Result publication hardening — 2026-08-30
 
@@ -307,7 +307,7 @@ The remaining #106 completion evidence is exactly:
 authentic independent StegVerse execution
 -> S1 observed
 -> post-observation S0->S1 receipt bound
--> Master Records custody
+-> Master Records organization record
 -> replay custody
 -> reconstruction custody
 -> RUN_COMPLETE.json

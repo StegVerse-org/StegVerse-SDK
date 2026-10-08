@@ -144,11 +144,11 @@ external evaluator
 -> generalized SDK 0B manifested ingress
 -> Core-Lite manifested route
 -> StegCore / canonical StegGate
--> Master Records exact-run custody
+-> Master Records exact-run organization record
 -> SDK return
 ```
 
-The exact-run packet must retain normalized manifest, exact governance request, sovereign result, three binding hashes, manifest/route receipts, Master Records custody, reconstruction/replay evidence, independent unmodified PASS, deliberate manifest/request/result tamper FAIL evidence, runtime identity confirmation, and reproduction instructions.
+The exact-run packet must retain normalized manifest, exact governance request, sovereign result, three binding hashes, manifest/route receipts, Master Records organization record, reconstruction/replay evidence, independent unmodified PASS, deliberate manifest/request/result tamper FAIL evidence, runtime identity confirmation, and reproduction instructions.
 
 ## Cross-repository coordination
 

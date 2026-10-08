@@ -78,7 +78,7 @@ POST /api/master-records/manifest-receipts/{manifest_receipt_id}/operations
 GET  /api/master-records/manifest-receipts/{manifest_receipt_id}/operations/{operation_id}
 ```
 
-Master Records owns operation event IDs, sequencing, hash linkage, and durable custody. The SDK only requests custody and refuses to return success until `RECORDED` is confirmed.
+Master Records assigns operation event IDs, sequencing and hash linkage in the organization record; the Organization owns custody. The SDK only requests the organization record and refuses to return success until `RECORDED` is confirmed.
 
 ## Validation gate
 

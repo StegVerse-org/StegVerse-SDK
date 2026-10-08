@@ -20,7 +20,7 @@ An explicit `--no-publisher` keeps a review-intent manifest non-publishing. A re
 
 ## Exact original evidence via existing transfer, not a new transport
 
-`stegverse.review_publisher_transfer.prepare_review_transfer(...)` prepares **exact canonical** `stegverse.publisher.artifact-transfer/v1` bytes for the *existing* sovereign Universal InTr destination `GCAT-BCAT-Engine/Publisher`. It consumes a pre-existing source-owner-authorized `stegverse.publisher.evidence-report-package/v1` export. It does not create that authorization, fabricate source custody or substitute for Master Records.
+`stegverse.review_publisher_transfer.prepare_review_transfer(...)` prepares **exact canonical** `stegverse.publisher.artifact-transfer/v1` bytes for the *existing* sovereign Universal InTr destination `GCAT-BCAT-Engine/Publisher`. It consumes a pre-existing source-owner-authorized `stegverse.publisher.evidence-report-package/v1` export. It does not create that authorization or substitute for a Master Records organization record; it does not fabricate source custody.
 
 The source export must contain a complete list of original evidence entries under `evidence/`. The exact supplied `evaluator_assets` entries must cover the entire declared list; each original image/PDF retains its exact bytes, SHA-256, media type and attribution. Missing/mutated originals, invalid paths, duplicate identifiers, source digest mismatch, disabled source authorization or publication/release/exec authority expansion fail closed. The prepared packet is explicitly `PREPARED_NOT_TRANSPORTED`.
 

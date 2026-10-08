@@ -33,18 +33,18 @@ SDK MCP test entry
 -> exact selected tool contract + proposed call canonicalized/hashed
 -> portable MCP test packet (non-authorizing evidence)
 -> Core-Lite manifested route carrier / ingestion-CGE
--> Master Records route checkpoint custody
+-> Master Records route checkpoint organization record
 -> canonical StegCore manifested transaction
 -> canonical StegGate + commit-coherence evaluation
 -> bounded MCP tools/call only after canonical ALLOW + coherence ALLOW
 -> MCP result captured into canonical execution observation
--> Master Records exact-run custody
+-> Master Records exact-run organization record
 -> return ingestion/CGE
--> Master Records return custody
+-> Master Records return organization record
 -> SDK caller return
 ```
 
-Every manifested transition is receipted. Master Records custody is independent of caller projection.
+Every manifested transition is receipted. The Master Records organization record is independent of caller projection.
 
 ## Selected mode
 
@@ -77,7 +77,7 @@ portable packet grants authority: FALSE
 manifest_receipt_id grants authority: FALSE
 caller request external_consequence_enabled: FALSE
 bounded consequence executor installed outside caller authority payload: TRUE
-successful governed run without Master Records custody: PROHIBITED
+successful governed run without a Master Records organization record: PROHIBITED
 non-TV/TVC secret/token use: PROHIBITED
 GitHub runtime authority: NONE
 external MCP credential authority: TV/TVC_ONLY
@@ -184,7 +184,7 @@ A credential-sanitized source-equivalent local diagnostic exercised the complete
 ```text
 inspect_state:
   governance: ALLOW
-  Master Records custody: RECORDED
+  Master Records organization record: RECORDED
   transaction identity continuous: true
   StegCore receipt chain verified: true
   route transitions: 10
@@ -196,7 +196,7 @@ inspect_state:
 
 write_bounded_value(42):
   governance: ALLOW
-  Master Records custody: RECORDED
+  Master Records organization record: RECORDED
   transaction identity continuous: true
   StegCore receipt chain verified: true
   MCP result: UPDATED / bounded_value=42

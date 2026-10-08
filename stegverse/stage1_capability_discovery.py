@@ -116,6 +116,6 @@ def review_stage1_capabilities(
         "external_participation_proven": False,
         "independent_origin_proven": False,
         "authentic_governance_proven": False,
-        "master_records_custody_proven": False,
+        "master_records_organization_record_proven": False,
         "authority_effect": "NONE",
     }

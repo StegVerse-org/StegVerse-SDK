@@ -10,6 +10,7 @@ import json
 from typing import Any, Mapping, Sequence
 
 from .manifest_plan import derive_execution_plan, verify_plan_lineage
+from .organization_record_names import LEGACY_SOURCE_PACKET_ORGANIZATION_RECORD_OBSERVED_FIELD, ORGANIZATION_RECORD_OBSERVED_FIELD
 
 
 def _hash(value: Any) -> str:
@@ -59,7 +60,7 @@ def build_source_evidence_packet(
         "execution_authorized": False,
         "authentic_intr_disposition_observed": False,
         "workercoordinator_claim_fence_observed": False,
-        "organization_master_records_custody_observed": False,
+        ORGANIZATION_RECORD_OBSERVED_FIELD: False,
         "evidence_ceiling": "SOURCE_QUALIFICATION_ONLY",
     }
     return {**packet, "source_packet_sha256": _hash(packet)}
@@ -78,4 +79,12 @@ def verify_source_evidence_packet(
         )
     except (KeyError, TypeError, ValueError):
         return False
+    if LEGACY_SOURCE_PACKET_ORGANIZATION_RECORD_OBSERVED_FIELD in packet:
+        # Packets built before the organization-record migration carry the legacy
+        # flag name inside their digest; verify them in that legacy form.
+        legacy = {key: value for key, value in expected.items() if key != "source_packet_sha256"}
+        legacy[LEGACY_SOURCE_PACKET_ORGANIZATION_RECORD_OBSERVED_FIELD] = legacy.pop(
+            ORGANIZATION_RECORD_OBSERVED_FIELD
+        )
+        expected = {**legacy, "source_packet_sha256": _hash(legacy)}
     return dict(packet) == expected

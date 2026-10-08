@@ -12,6 +12,7 @@ from typing import Any, Callable, Mapping
 from .active_probe_execution import ProbeExecutor, execute_active_probes
 from .external_interlock_ingress_binding import validate_ingress_bound_interlock_request
 from .governance_navigation import canonical_sha256
+from .organization_record_names import ORGANIZATION_RECORD_CLAIMED_FIELD
 
 WORKSPACE_CONSUMER_PROFILE = "stegverse.workspace-resource-consumer.v1"
 SUPPORTED_OPERATIONS = {"OBSERVE", "MATERIALIZE", "REFRESH", "REVOKE", "EXPIRE", "DESTROY"}
@@ -109,7 +110,7 @@ def consume_workspace_resource(
         "governance_authority": False,
         "intr_receipt_minted": False,
         "mir_custody_claimed": False,
-        "master_records_custody_claimed": False,
+        ORGANIZATION_RECORD_CLAIMED_FIELD: False,
     }
     state["projection_state_ref"] = "sha256:" + canonical_sha256(state)
     return state

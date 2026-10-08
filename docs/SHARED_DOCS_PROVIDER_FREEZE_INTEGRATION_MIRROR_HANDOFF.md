@@ -80,7 +80,7 @@ The SDK binds authentic provider observations to exact Shared Docs `document_id 
 
 ## Runtime/evidence state
 
-Source construction is complete through the canonical WorkerCoordinator addressability path. Authentic runtime evidence is still required for: resident execution; WorkerCoordinator claim/fence; TV/TVC provider credential/session use; provider content-integrity execution; exact provider version/content SHA for the selected invocation; SDK binding of that authentic result; Master Records custody/reconstruction; and any conditional Interlock/InTr successor-revision transition.
+Source construction is complete through the canonical WorkerCoordinator addressability path. Authentic runtime evidence is still required for: resident execution; WorkerCoordinator claim/fence; TV/TVC provider credential/session use; provider content-integrity execution; exact provider version/content SHA for the selected invocation; SDK binding of that authentic result; Master Records organization records/reconstruction; and any conditional Interlock/InTr successor-revision transition.
 
 No source merge, CI pass, workflow run, or registry record substitutes for those runtime observations.
 
@@ -115,4 +115,4 @@ Session continuation rule: resume from the canonical WorkerCoordinator path abov
 
 ## Current next action
 
-Use the canonical WorkerCoordinator path now merged in `.github` to claim/fence and execute one exact read-only provider observation on an eligible sovereign resident. Retain authentic document/version/`google-drive.downloaded-bytes.v1`/SHA-256 evidence, normalize it through the existing SDK seam, and submit required evidence to Master Records. Use Interlock/InTr only if the observed provider state requires a successor-revision transition. No second user-operated device is permitted.
+Use the canonical WorkerCoordinator path now merged in `.github` to claim/fence and execute one exact read-only provider observation on an eligible sovereign resident. Retain authentic document/version/`google-drive.downloaded-bytes.v1`/SHA-256 evidence, normalize it through the existing SDK seam, and record the required evidence as a Master Records organization record. Use Interlock/InTr only if the observed provider state requires a successor-revision transition. No second user-operated device is permitted.
