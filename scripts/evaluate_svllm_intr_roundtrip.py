@@ -42,6 +42,8 @@ def verify(result, manifest):
         result["forward_intr"]["receipt_id"], result["return_intr"]["receipt_id"]
     ], "ORIGIN_DID_NOT_VERIFY_BOTH_INTR_RECEIPTS")
     require(result.get("master_records_reconstruction_verified") is True, "MASTER_RECORDS_RECONSTRUCTION_NOT_VERIFIED")
+    require(result.get("evidence_source") == "AUTHENTIC_SOVEREIGN_READBACK", "AUTHENTIC_EVIDENCE_SOURCE_REQUIRED")
+    require(isinstance(result.get("evidence_refs"), list) and bool(result["evidence_refs"]), "INDEPENDENT_EVIDENCE_REFERENCES_REQUIRED")
     return {"state": "ALLOW", "verified": True}
 
 
@@ -68,11 +70,13 @@ def main():
         require(manifest.get("manifest_profile") == "stegverse.ingress-manifest.v1",
                 "MANIFEST_BUILDER_DID_NOT_RETURN_CANONICAL_MANIFEST")
         (out / "builder-manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+        require(args.process == "stegbrowser", "STEGBROWSER_PROCESSING_REQUIRED")
         transport = importlib.import_module(args.transport_module)
         submit = getattr(transport, "submit", None)
         require(callable(submit), "AUTHORIZED_TRANSPORT_SUBMIT_NOT_EXPOSED")
-        report["execution_observed"] = True
+        report["transport_invocation_attempted"] = True
         result = submit(manifest)
+        report["execution_observed"] = True
         (out / "transport-result.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
         report.update(verify(result, manifest))
         report["failed_predicate"] = None
