@@ -2,8 +2,9 @@ name: SV-LLM InTr Round Trip Conformance (Non-Authorizing)
 
 # Drives the Manifest Builder's manifest through StegVerse-org/.github and
 # SV-LLM/.github boundary code (tests/test_sv_llm_intr_roundtrip.py), each
-# organization in its own interpreter with its own scratch ledger. Both
-# organization repositories are pinned; bump the pins in a reviewed change.
+# organization in its own interpreter with its own scratch ledger, then hands
+# the run to GCAT-BCAT-Engine/Publisher, which returns the PDF and JSON. All
+# three repositories are pinned; bump the pins in a reviewed change.
 # Evidence class: same-host scratch code-path conformance only. This is not
 # inter-organization runtime proof and grants no authority.
 
@@ -12,12 +13,16 @@ on:
     branches: [main]
     paths:
       - stegverse/manifest_builder.py
+      - stegverse/review_publisher_transfer.py
+      - stegverse/publisher_return_binding.py
       - tests/test_sv_llm_intr_roundtrip.py
       - .github/workflows/sv-llm-intr-roundtrip.yml
   push:
     branches: [main]
     paths:
       - stegverse/manifest_builder.py
+      - stegverse/review_publisher_transfer.py
+      - stegverse/publisher_return_binding.py
       - tests/test_sv_llm_intr_roundtrip.py
       - .github/workflows/sv-llm-intr-roundtrip.yml
   workflow_dispatch:
@@ -28,6 +33,7 @@ permissions:
 env:
   STEGVERSE_ORG_DOTGITHUB_SHA: d173ed91ab3af1b8baaa1f1a9192f25c92eaea44
   SV_LLM_DOTGITHUB_SHA: 6d3c388f015f38ae5f576c31a8555acf9e87e003
+  PUBLISHER_SHA: 1b3fc65c1bcab5c835985b878508e7b848d13025
 
 jobs:
   roundtrip:
@@ -48,6 +54,13 @@ jobs:
           ref: ${{ env.SV_LLM_DOTGITHUB_SHA }}
           path: _orgs/sv-llm
           persist-credentials: false
+      - name: Materialize GCAT-BCAT-Engine/Publisher at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: GCAT-BCAT-Engine/Publisher
+          ref: ${{ env.PUBLISHER_SHA }}
+          path: _orgs/publisher
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -57,7 +70,9 @@ jobs:
         env:
           STEGVERSE_ORG_DOTGITHUB_ROOT: ${{ github.workspace }}/_orgs/stegverse-org
           SV_LLM_DOTGITHUB_ROOT: ${{ github.workspace }}/_orgs/sv-llm
+          GCAT_BCAT_PUBLISHER_ROOT: ${{ github.workspace }}/_orgs/publisher
           SV_LLM_ROUNDTRIP_REPORT: ${{ runner.temp }}/sv-llm-intr-roundtrip-run.json
+          SV_LLM_ROUNDTRIP_PUBLISHER_DIR: ${{ runner.temp }}/publisher-return
         run: |
           set -eu
           python -B -m unittest tests.test_sv_llm_intr_roundtrip -v 2>&1 | tee "$RUNNER_TEMP/roundtrip.log"
@@ -68,6 +83,10 @@ jobs:
           report = json.load(open(os.environ["SV_LLM_ROUNDTRIP_REPORT"], encoding="utf-8"))
           assert report["all_legs_allow"] is True, report
           assert report["evidence_class"] == "SAME_HOST_SCRATCH_CODE_PATH_CONFORMANCE_ONLY", report
+          pub = report["publisher_return"]
+          assert pub["sdk_return_binding_observed"] is True, pub
+          out = os.environ["SV_LLM_ROUNDTRIP_PUBLISHER_DIR"]
+          assert open(os.path.join(out, pub["pdf"]["path"]), "rb").read(5) == b"%PDF-", pub
           print("SV_LLM_INTR_ROUNDTRIP_CONFORMANCE_PASS legs=%d" % len(report["legs"]))
           PY
       - name: Publish run report
@@ -77,5 +96,6 @@ jobs:
           name: sv-llm-intr-roundtrip-run
           path: |
             ${{ runner.temp }}/sv-llm-intr-roundtrip-run.json
+            ${{ runner.temp }}/publisher-return
             ${{ runner.temp }}/roundtrip.log
           if-no-files-found: warn

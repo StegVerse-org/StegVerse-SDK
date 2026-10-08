@@ -12,17 +12,21 @@ Each organization's legs run in their own Python process with their own
 ledgers: both runtimes import sibling modules by bare name (``ledger_store``),
 so sharing one interpreter would let one organization's leg execute the other
 organization's modules.
-The Publisher PDF is not produced here; only GCAT-BCAT-Engine/Publisher renders
-it. The run report is the JSON half of the Publisher return.
+The last leg hands the run report to GCAT-BCAT-Engine/Publisher through its
+existing artifact-transfer adapter, in Publisher's own interpreter, and binds
+the PDF and JSON it returns to the original manifest. The test declares the
+export's review authorization itself; no owner issued it.
 
 Run:
   STEGVERSE_ORG_DOTGITHUB_ROOT=<StegVerse-org/.github checkout> \
   SV_LLM_DOTGITHUB_ROOT=<SV-LLM/.github checkout> \
-  [SV_LLM_ROUNDTRIP_REPORT=<path>] \
+  GCAT_BCAT_PUBLISHER_ROOT=<GCAT-BCAT-Engine/Publisher checkout> \
+  [SV_LLM_ROUNDTRIP_REPORT=<path>] [SV_LLM_ROUNDTRIP_PUBLISHER_DIR=<dir>] \
   python -m unittest tests.test_sv_llm_intr_roundtrip -v
 """
 from __future__ import annotations
 
+import base64
 import json
 import os
 import shutil
@@ -33,6 +37,9 @@ import unittest
 from pathlib import Path
 
 from stegverse.manifest_builder import build_manifest
+from stegverse.review_publisher_transfer import (
+    bind_exact_review_return, digest, digest_bytes, prepare_review_transfer,
+)
 
 ORG = "StegVerse-org"
 PEER = "SV-LLM"
@@ -79,6 +86,79 @@ def _run_in_org(org_root: Path, ledger_root: Path, module: str, function: str, *
 
 SDK_INGRESS = "stegverse-org.sdk-manifest-ingress"
 SDK_INGRESS_TRANSITION = "ORGANIZATION_SDK_MANIFEST_INGRESS"
+PUBLISHER = "GCAT-BCAT-Engine/Publisher"
+RUN_ORIGINAL = "evidence/sv-llm-intr-roundtrip-run.json"
+LEG_NAMES = ["SDK_MANIFEST_BUILD", "STEGVERSE_ORG_EGRESS_TO_SV_LLM", "SV_LLM_ORG_LEDGER_GENESIS", "SV_LLM_INGRESS",
+             "SV_LLM_EGRESS_TO_STEGVERSE_ORG", "STEGVERSE_ORG_INGRESS_TO_SDK", "PUBLISHER_RENDER_AND_RETURN"]
+NOT_PROVEN = [
+    "Crossing between separate runners: both organizations ran on one host and crossed through a shared folder.",
+    "Origin attestation: needs a TV/TVC-issued credential, and none has been issued.",
+    "StegVerse-Labs deciding the governance request and returning it.",
+    "Owner-issued Publisher authorization: the review authorization on this export is declared by the test.",
+]
+
+
+def _publisher_export(manifest: dict, legs: list, run_bytes: bytes) -> dict:
+    # Publisher's evidence-report package: one section per leg, every section
+    # sourced from the exact run report, which travels as the original.
+    def section(section_id, heading, body):
+        return {"section_id": section_id, "heading": heading, "body": body, "content_class": "OWNER_AUTHORED",
+                "fidelity": "semantic_reconstruction", "source_subject_ids": [RUN_ORIGINAL]}
+
+    sections = [section("summary", "Summary",
+                        "Route: StegVerse-SDK Manifest Builder -> StegVerse-org/.github egress -> SV-LLM/.github "
+                        "ingress -> SV-LLM/.github egress -> StegVerse-org/.github SDK manifest ingress -> "
+                        "GCAT-BCAT-Engine/Publisher. Legs 0-5 all ALLOW: %s. Evidence class: "
+                        "SAME_HOST_SCRATCH_CODE_PATH_CONFORMANCE_ONLY; each organization ran in its own interpreter "
+                        "with its own scratch ledger." % ("yes" if all(e["disposition"] == "ALLOW" for e in legs) else "no"))]
+    for entry in legs:
+        facts = {k: v for k, v in (entry.get("result") or {}).items()
+                 if k in ("failed_predicate", "destination_service", "sdk_manifest_ingress_receipts",
+                          "onward_frames", "consumed", "frames_consumed")} if isinstance(entry.get("result"), dict) else {}
+        body = "Disposition: %s. %s%s" % (
+            entry["disposition"],
+            ("Predicate: %s. " % entry["failed_predicate"]) if entry.get("failed_predicate") else "",
+            ("Facts: %s." % json.dumps(facts, sort_keys=True, default=str)[:600]) if facts else "")
+        sections.append(section("leg-%d" % entry["leg"], "Leg %d - %s" % (entry["leg"], entry["name"]), body))
+    sections.append(section("not-proven", "Not proven by this run", " ".join(
+        "(%d) %s" % (i, text) for i, text in enumerate(NOT_PROVEN, start=1))))
+    sections.append(section("reproduce", "Reproduce",
+                            "StegVerse-SDK workflow sv-llm-intr-roundtrip.yml runs tests/test_sv_llm_intr_roundtrip.py "
+                            "against pinned StegVerse-org/.github, SV-LLM/.github and GCAT-BCAT-Engine/Publisher "
+                            "commits. The exact run report is attached to this report as %s." % RUN_ORIGINAL))
+    bundle = {
+        "schema_version": "stegverse.publisher.evidence-report-package/v1",
+        "export_id": "sv-llm-intr-roundtrip-001",
+        "created_at": "2026-10-08T00:00:00Z",
+        "authorization": {
+            "authority_ref": "sdk-roundtrip-test-declared-not-owner-issued", "receipt_id": "sdk-roundtrip-test",
+            "status": "active", "revoked": False, "destination": PUBLISHER, "purpose": "EXTERNAL_EVALUATOR_REVIEW",
+            "scope": [RUN_ORIGINAL], "allowed_formats": ["pdf", "json"], "expires_at": "2099-12-31T23:59:59Z",
+        },
+        "requested_formats": ["pdf", "json"],
+        "source": {"repository": "StegVerse-org/StegVerse-SDK", "release": "sv-llm-intr-roundtrip-test",
+                   "verification_root": digest(manifest), "event_ids": [RUN_ORIGINAL], "vault_class": "SOURCE_REPORT"},
+        "evidence": [{"subject_id": RUN_ORIGINAL, "path": RUN_ORIGINAL, "content_hash": digest_bytes(run_bytes),
+                      "bytes": len(run_bytes), "media_type": "application/json", "fidelity": "exact",
+                      "retention_class": "full_fidelity", "payload_available": True, "derived_index": False,
+                      "restricted": False, "superseded": False, "contains_credentials": False, "artifact_refs": []}],
+        "document": {"document_id": "sv-llm-intr-roundtrip-001", "document_type": "REPORT",
+                     "title": "Manifest Builder InTr round trip: StegVerse-org -> SV-LLM -> StegVerse-org -> SDK",
+                     "authors": [{"name": "StegVerse-SDK round-trip test", "affiliation": "StegVerse"}],
+                     "sections": sections},
+        "redaction": {"profile": "sdk-roundtrip-test", "removed_paths": [], "restricted_content_present": False,
+                      "review_state": "OWNER_APPROVED"},
+        "publication_authorized": False, "release_authorized": False, "execution_authorized": False,
+        "authority_effect": "NONE",
+    }
+    bundle["export_sha256"] = digest(bundle)
+    return bundle
+
+
+def _run_original(run_bytes: bytes) -> dict:
+    return {"path": RUN_ORIGINAL, "media_type": "application/json", "sha256": digest_bytes(run_bytes),
+            "bytes": len(run_bytes), "content_base64": base64.b64encode(run_bytes).decode("ascii"),
+            "source_class": "SDK_SOURCE_VALIDATED_ARTIFACT"}
 
 
 def _receipt_classes(ledger_root: Path) -> dict:
@@ -140,25 +220,25 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
         self.legs.append(entry)
         return entry
 
-    def _report(self, manifest) -> dict:
+    def _report(self, manifest, *, names=LEG_NAMES, write=True) -> dict:
         reached = {e["leg"] for e in self.legs}
-        names = ["SDK_MANIFEST_BUILD", "STEGVERSE_ORG_EGRESS_TO_SV_LLM", "SV_LLM_ORG_LEDGER_GENESIS", "SV_LLM_INGRESS",
-                 "SV_LLM_EGRESS_TO_STEGVERSE_ORG", "STEGVERSE_ORG_INGRESS_TO_SDK"]
+        publisher = next((e.get("result") for e in self.legs if e["name"] == "PUBLISHER_RENDER_AND_RETURN"), None)
         report = {
             "schema": "stegverse.sdk.sv-llm-intr-roundtrip-run/v0.1",
             "task": "SV-LLM-INTR-ROUNDTRIP-TEST-PROPOSAL-001",
-            "route": [ORG, PEER, ORG, "StegVerse-SDK"],
+            "route": [ORG, PEER, ORG, "StegVerse-SDK", PUBLISHER],
             "manifest_sha256": (manifest or {}).get("payload_sha256") if isinstance(manifest, dict) else None,
             "legs": self.legs + [{"leg": i, "name": n, "disposition": "NOT_REACHED"}
                                  for i, n in enumerate(names) if i not in reached],
             "all_legs_allow": all(e["disposition"] == "ALLOW" for e in self.legs) and len(reached) == len(names),
-            "publisher_pdf": "NOT_PRODUCED_HERE_REQUIRES_GCAT-BCAT-Engine/Publisher",
+            "publisher_return": publisher if isinstance(publisher, dict) else "NOT_PRODUCED",
+            "not_proven": NOT_PROVEN,
             "evidence_class": "SAME_HOST_SCRATCH_CODE_PATH_CONFORMANCE_ONLY",
             "process_isolation": "ONE_INTERPRETER_PER_ORGANIZATION_LEG",
             "authority_effect": "NONE_TEST_ONLY",
         }
         out = os.environ.get("SV_LLM_ROUNDTRIP_REPORT")
-        if out:
+        if out and write:
             Path(out).write_text(json.dumps(report, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
         return report
 
@@ -170,7 +250,9 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
             manifest = build_manifest(data={"probe": "sv-llm-roundtrip"}, source_framework="StegVerse-SDK",
                                       source_output_id="sv-llm-roundtrip-001",
                                       processor_request=_governance_request(),
-                                      created_at="2026-10-08T00:00:00Z")
+                                      created_at="2026-10-08T00:00:00Z", external_review=True,
+                                      publisher_destination={"type": "SDK_CONSOLE_SESSION",
+                                                             "session_ref": "sv-llm-roundtrip"})
             return {"disposition": "ALLOW", "manifest_keys": sorted(manifest)}
 
         def leg1():
@@ -222,9 +304,56 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
             return {"disposition": "ALLOW", "result": result, "sdk_manifest_ingress_receipts": ingress,
                     "onward_frames": _frames_by_destination(self.mesh)}
 
+        def leg5_publisher():
+            # The manifest selected Publisher; the run so far is the original it renders.
+            publisher_root = os.environ.get("GCAT_BCAT_PUBLISHER_ROOT")
+            if not publisher_root:
+                return {"disposition": "FAIL_CLOSED", "failed_predicate": "PUBLISHER_CHECKOUT_NOT_SUPPLIED"}
+            run_bytes = (json.dumps(self._report(manifest, names=LEG_NAMES[:-1], write=False), indent=2,
+                                    sort_keys=True, default=str) + "\n").encode("utf-8")
+            prepared = prepare_review_transfer(manifest=manifest,
+                                               authorized_export_bundle=_publisher_export(manifest, self.legs, run_bytes),
+                                               original_assets=[_run_original(run_bytes)],
+                                               transfer_id="sv-llm-intr-roundtrip-001")
+            work = self.scratch / "publisher"
+            work.mkdir()
+            (work / "transfer.json").write_bytes(prepared["transfer_bytes"])
+            done = subprocess.run([sys.executable, "-B", "tools/process_intr_artifact_transfer.py",
+                                   str(work / "transfer.json"), "--output-dir", str(work / "out"),
+                                   "--return-packet", str(work / "return.json")],
+                                  capture_output=True, text=True, cwd=publisher_root, timeout=600)
+            if done.returncode:
+                return {"disposition": "DENY", "failed_predicate": "PUBLISHER_REJECTED_TRANSFER",
+                        "reason": done.stderr[-500:]}
+            returned = (work / "return.json").read_bytes()
+            # The SDK accepts the return only if it binds to this transfer and this manifest.
+            bound = bind_exact_review_return(prepared=prepared, manifest=manifest,
+                                             manifest_receipt_id="MR-" + digest(manifest)[7:39].upper(),
+                                             publisher_return_bytes=returned)
+            artifacts = {a["format"]: a for a in json.loads(returned)["artifacts"]}
+            if not {"pdf", "json"} <= set(artifacts):
+                return {"disposition": "DENY", "failed_predicate": "PUBLISHER_RETURN_MISSING_PDF_OR_JSON",
+                        "formats": sorted(artifacts)}
+            out_dir = os.environ.get("SV_LLM_ROUNDTRIP_PUBLISHER_DIR")
+            if out_dir:
+                Path(out_dir).mkdir(parents=True, exist_ok=True)
+                for fmt in ("pdf", "json"):
+                    (Path(out_dir) / artifacts[fmt]["path"]).write_bytes(
+                        base64.b64decode(artifacts[fmt]["content_base64"]))
+                (Path(out_dir) / RUN_ORIGINAL.split("/")[-1]).write_bytes(run_bytes)
+                (Path(out_dir) / "publisher-return.json").write_bytes(returned)
+            return {"disposition": "ALLOW", "transfer_sha256": prepared["transfer_sha256"],
+                    "return_sha256": digest_bytes(returned), "manifest_sha256": digest(manifest),
+                    "pdf": {k: artifacts["pdf"][k] for k in ("path", "sha256", "bytes")},
+                    "json": {k: artifacts["json"][k] for k in ("path", "sha256", "bytes")},
+                    "original": {"path": RUN_ORIGINAL, "sha256": digest_bytes(run_bytes)},
+                    "sdk_return_binding_observed": bound.get("sdk_return_binding_observed"),
+                    "communication_complete": bound.get("communication_complete")}
+
         for i, (name, fn) in enumerate([("SDK_MANIFEST_BUILD", leg0), ("STEGVERSE_ORG_EGRESS_TO_SV_LLM", leg1),
                                         ("SV_LLM_ORG_LEDGER_GENESIS", leg2_genesis), ("SV_LLM_INGRESS", leg2), ("SV_LLM_EGRESS_TO_STEGVERSE_ORG", leg3),
-                                        ("STEGVERSE_ORG_INGRESS_TO_SDK", leg4)]):
+                                        ("STEGVERSE_ORG_INGRESS_TO_SDK", leg4),
+                                        ("PUBLISHER_RENDER_AND_RETURN", leg5_publisher)]):
             if self._leg(i, name, fn)["disposition"] != "ALLOW":
                 break
 
