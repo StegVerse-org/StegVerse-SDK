@@ -195,5 +195,66 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
                                        default=str)[:400]))
 
 
+class SVLLMIntrRoundTripBoundaryCases(SVLLMIntrRoundTrip):
+    """Non-ALLOW and receiver-unavailable cases at the same real boundaries."""
+
+    def test_manifest_crosses_to_sv_llm_and_returns(self):  # covered by the parent class
+        self.skipTest("positive path runs once, in SVLLMIntrRoundTrip")
+
+    def _frames(self):
+        return sorted(p for p in self.mesh.rglob("*") if p.is_file())
+
+    def _genesis(self):
+        return _run_in_org(self.peer_root, self.peer_ledger, "org-runtime/crossing.py", "open_organization_ledger",
+                           root=str(self.peer_root))
+
+    def _peer_egress(self, manifest):
+        return _run_in_org(self.peer_root, self.peer_ledger, "org-runtime/crossing.py", "egress", args=[manifest],
+                           standing=GENESIS, mesh_root=str(self.mesh), root=str(self.peer_root))
+
+    def test_undeclared_destination_is_refused_and_nothing_is_published(self):
+        result = _run_in_org(self.org_root, self.org_ledger, "resident-runtime/organization_egress_boundary.py", "emit",
+                             args=["NO-SUCH-ORGANIZATION", {"message_class": "ecosystem.work.request",
+                                                            "communication_id": "sv-llm-roundtrip-undeclared",
+                                                            "subject": "undeclared destination", "body": {}}],
+                             standing=GENESIS, root=str(self.org_root), mesh_root=str(self.mesh), hb_epoch=32)
+        self.assertEqual(result["disposition"], "DENY")
+        self.assertEqual(result["failed_predicate"], "DESTINATION_IS_A_DECLARED_PEER_OF_THIS_ORGANIZATION")
+        self.assertEqual(self._frames(), [])
+
+    def test_reply_manifest_without_destination_is_refused(self):
+        self._genesis()
+        result = self._peer_egress({"manifest_id": "sv-llm-roundtrip-tampered", "payload": {}})
+        self.assertEqual(result["disposition"], "DENY")
+        self.assertEqual(result["failed_predicate"], "MANIFEST_DESTINATION_MISSING")
+        self.assertEqual(self._frames(), [])
+
+    def test_reply_to_an_organization_outside_the_directory_is_refused(self):
+        self._genesis()
+        result = self._peer_egress({"manifest_id": "sv-llm-roundtrip-undeclared-reply",
+                                    "destination": {"organization": "NO-SUCH-ORGANIZATION"}, "payload": {}})
+        self.assertEqual(result["disposition"], "DENY")
+        self.assertEqual(result["failed_predicate"], "DESTINATION_NOT_IN_FEDERATION_DIRECTORY")
+        self.assertEqual(self._frames(), [])
+
+    def test_unavailable_receiver_does_not_hold_the_transition(self):
+        # StegVerse-org never runs a cycle here: the reply is durably queued, not awaited.
+        self._genesis()
+        result = self._peer_egress({"manifest_id": "sv-llm-roundtrip-queued",
+                                    "destination": {"organization": ORG}, "payload": {}})
+        self.assertEqual(result["disposition"], "ALLOW")
+        self.assertIs(result["awaits_receiver"], False)
+        self.assertEqual(result["receiver_unavailable_disposition"], "DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION")
+        self.assertTrue(self._frames(), "an allowed egress must leave a durable frame in the mesh")
+
+    def test_organization_ledgers_are_not_shared(self):
+        # Regression for a shared interpreter: StegVerse-org writing its own ledger
+        # must not open SV-LLM's. Without SV-LLM's own genesis, its record is refused.
+        self.test_undeclared_destination_is_refused_and_nothing_is_published()
+        with self.assertRaisesRegex(RuntimeError, "ORG_LEDGER_GENESIS_NOT_DECLARED"):
+            self._peer_egress({"manifest_id": "sv-llm-roundtrip-no-genesis",
+                               "destination": {"organization": ORG}, "payload": {}})
+
+
 if __name__ == "__main__":
     unittest.main()
