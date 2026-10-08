@@ -98,7 +98,7 @@ def adapter_response(**overrides):
             "repository_mutation_allowed": False,
             "publication_allowed": False,
             "final_response_receipt_is_repository_execution_authority": False,
-            "local_persistence_is_master_records_custody": False,
+            "local_persistence_is_master_records_organization_record": False,
             "site_grants_admissibility": False,
         },
     }
@@ -187,16 +187,26 @@ def test_provider_bridge_dispatches_through_shared_runtime():
 
 
 def test_bridge_failure_fails_closed_without_simulated_provider_output():
-    def bad_transport(request):
-        response = adapter_response()
-        response["authority"]["local_persistence_is_master_records_custody"] = True
-        return response
-
-    provider = GovernedLLMAdapterProvider(bad_transport)
-    result = dispatch_universal_entry(
-        envelope("search the web"), registry(),
-        build_default_handler_registry(external_llm_provider=provider),
+    from stegverse.organization_record_names import (
+        LEGACY_LOCAL_PERSISTENCE_IS_ORGANIZATION_RECORD_FIELD,
+        LOCAL_PERSISTENCE_IS_ORGANIZATION_RECORD_FIELD,
     )
-    external = next(item for item in result["lane_results"] if item["lane"] == "external_llm")
-    assert external["status"] == "failed_closed"
-    assert result["status"] == "failed_closed"
+
+    # The new flag name and the legacy one from pre-migration adapters both escalate.
+    for flag in (
+        LOCAL_PERSISTENCE_IS_ORGANIZATION_RECORD_FIELD,
+        LEGACY_LOCAL_PERSISTENCE_IS_ORGANIZATION_RECORD_FIELD,
+    ):
+        def bad_transport(request, flag=flag):
+            response = adapter_response()
+            response["authority"][flag] = True
+            return response
+
+        provider = GovernedLLMAdapterProvider(bad_transport)
+        result = dispatch_universal_entry(
+            envelope("search the web"), registry(),
+            build_default_handler_registry(external_llm_provider=provider),
+        )
+        external = next(item for item in result["lane_results"] if item["lane"] == "external_llm")
+        assert external["status"] == "failed_closed"
+        assert result["status"] == "failed_closed"

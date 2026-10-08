@@ -56,7 +56,7 @@ class WorkspaceResourceConsumerTests(unittest.TestCase):
         self.assertFalse(state["governance_authority"])
         self.assertFalse(state["intr_receipt_minted"])
         self.assertFalse(state["mir_custody_claimed"])
-        self.assertFalse(state["master_records_custody_claimed"])
+        self.assertFalse(state["master_records_organization_record_claimed"])
 
     def test_probe_required_blocks_materialize_and_refresh(self):
         for operation in ("MATERIALIZE", "REFRESH"):

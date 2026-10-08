@@ -23,7 +23,7 @@ The installed runtime uses the canonical StegCore `run_manifested_transaction` a
 
 Important validation limit:
 
-This evidence validates the SDK runtime contract and static compatibility with the pinned public StegCore revision. The execution environment used for this validation did not have outbound GitHub network access, so the pinned optional dependency could not be freshly installed and executed end-to-end from GitHub in that environment. Do not convert this validation record into a production Master Records custody claim.
+This evidence validates the SDK runtime contract and static compatibility with the pinned public StegCore revision. The execution environment used for this validation did not have outbound GitHub network access, so the pinned optional dependency could not be freshly installed and executed end-to-end from GitHub in that environment. Do not convert this validation record into a production Master Records organization record claim.
 
 Public governed TEST behavior is intentionally stronger than descriptor preparation and weaker than production custody:
 
@@ -34,5 +34,5 @@ request -> canonical StegCore governed TEST -> local exact-run registry -> resul
 Production custody remains:
 
 ```text
-canonical governed run -> admitted Master Records transport -> exact-run production custody
+canonical governed run -> Interlock/InTr-admitted transport -> exact-run Master Records production organization record
 ```

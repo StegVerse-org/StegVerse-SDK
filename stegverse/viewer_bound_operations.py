@@ -1,7 +1,7 @@
 """Viewer-bound replay/reconstruction adapter for the self-characterization lane.
 
 Canonical replay/reconstruction remain unchanged. This adapter appends a separate
-non-authorizing viewer-binding event to the same Master Records custody so each
+non-authorizing viewer-binding event to the same Master Records organization record so each
 viewer's access can be correlated and reconstructed without mutating the source run.
 """
 from __future__ import annotations

@@ -56,5 +56,5 @@
     "admissibility_determined": false,
     "production_binding_enabled": false
   },
-  "authority": {"system_boundary_declaration_is_execution_authority": false, "system_boundary_receipt_is_master_records_custody": false}
+  "authority": {"system_boundary_declaration_is_execution_authority": false, "system_boundary_receipt_is_master_records_organization_record": false}
 }

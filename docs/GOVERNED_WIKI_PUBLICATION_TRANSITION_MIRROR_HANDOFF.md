@@ -6,7 +6,7 @@ COSV ID: NOT ESTABLISHED IN CANONICAL TASK REGISTRY
 
 ## Canonical goal
 
-Bind an already-reviewed `external_framework_wiki_publication_transition` candidate through the existing StegVerse SDK external-manifest ingress, require Interlock/InTr-governed Master Records closure with:
+Bind an already-reviewed `external_framework_wiki_publication_transition` candidate through the existing StegVerse SDK external-manifest ingress, require an Interlock/InTr-governed transition whose Master Records organization record has:
 
 - `state=RECORDED`
 - `reconstruction_status=PASS`
@@ -35,7 +35,7 @@ publication-transition candidate
 -> existing stegverse.ingress-manifest.v1 validation
 -> existing SDK governance runtime
 -> Interlock/InTr governed result
--> canonical Master Records closure
+-> canonical Master Records organization record
 -> existing publication mutation adapter
 -> repository mutation receipt
 ```
@@ -46,7 +46,7 @@ publication-transition candidate
 - publication candidate grants publication authority: false
 - SDK manifest validation grants publication authority: false
 - Interlock/InTr remains governed transition authority
-- Master Records remains custody/reconstruction authority and grants no transition authority
+- Master Records remains organization records/reconstruction authority and grants no transition authority
 - Publisher/mutation adapter may execute only after exact governed closure
 - `DENY_PUBLICATION` and `REVIEW_REQUIRED` must never reach mutation
 - no new runtime, scheduler, dispatcher, WorkerCoordinator, custody store, authority plane, credential path, or second user-operated device
@@ -72,7 +72,7 @@ The converter must not claim execution, publication authorization, repository mu
 
 ## Downstream gate to repair
 
-The existing LLM-adapter repository mutation route currently validates stored `ALLOW_PUBLICATION_CANDIDATE`, mutator identity/delegation/policy/freshness, repository head, and target blob. It does not yet require the exact SDK/Interlock/InTr/Master Records closure. That is the next existing seam after SDK conversion.
+The existing LLM-adapter repository mutation route currently validates stored `ALLOW_PUBLICATION_CANDIDATE`, mutator identity/delegation/policy/freshness, repository head, and target blob. It does not yet require the exact SDK/Interlock/InTr governed result and its Master Records organization record. That is the next existing seam after SDK conversion.
 
 ## Reuse scope
 

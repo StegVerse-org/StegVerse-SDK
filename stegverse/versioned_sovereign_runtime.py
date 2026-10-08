@@ -98,7 +98,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Canonical StegVerse production validation with immutable production release-set evidence")
     parser.add_argument("operation", choices=("run", "replay", "reconstruct"))
     parser.add_argument("target")
-    parser.add_argument("--custody-db", default="./stegverse-master-records-validation.db")
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db")
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
     args = parser.parse_args(argv)
     if args.operation == "run":

@@ -58,16 +58,31 @@ def test_reconstruct_escapes_receipt_identity_and_uses_get():
     assert "X-SteGVerse-Session" not in headers
 
 
-def test_transport_can_bind_transport_neutral_custody_client():
-    transport = MasterRecordsHTTPTransport(
+def _bindable_transport():
+    return MasterRecordsHTTPTransport(
         base_url="https://records.example",
         credential_ref="secret://master-records/token",
         token_resolver=lambda ref: "resolved-token",
         executor=lambda *args: {},
     )
-    client = transport.as_custody_client()
+
+
+def test_transport_can_bind_transport_neutral_organization_record_client():
+    transport = _bindable_transport()
+    client = transport.as_organization_record_client()
     assert client.submit_transport == transport.submit
     assert client.reconstruct_transport == transport.reconstruct
+
+
+def test_legacy_client_binding_name_warns_and_forwards():
+    import warnings
+
+    transport = _bindable_transport()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        client = transport.as_custody_client()
+    assert any(issubclass(w.category, DeprecationWarning) for w in caught)
+    assert client == transport.as_organization_record_client()
 
 
 def test_rejects_remote_http():

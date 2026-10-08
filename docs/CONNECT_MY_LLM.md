@@ -116,6 +116,6 @@ The SDK helper `stegverse.llm_connection.build_submission()` builds the same sha
 
 ## Boundaries
 
-A successful connection proves only that a user-controlled LLM can reach the canonical adapter surface with a credential-free identity descriptor. It does not prove or grant StegGate admission, consequence execution, provider authority, publication authority, Master Records custody, or public product activation.
+A successful connection proves only that a user-controlled LLM can reach the canonical adapter surface with a credential-free identity descriptor. It does not prove or grant StegGate admission, consequence execution, provider authority, publication authority, Master Records organization record, or public product activation.
 
 MCP remains a separate tool/capability transport. If an LLM is connected to StegVerse, its StegVerse submissions use the LLM-adapter boundary even if that LLM also exposes MCP tools.

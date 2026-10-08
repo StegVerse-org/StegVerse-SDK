@@ -133,7 +133,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--tool", help="exact tool name from the MCP tools/list response")
     parser.add_argument("--arguments", help="path to a JSON object containing tools/call arguments")
     parser.add_argument("--manifest-receipt-id", help="MR-* locator used by selected modes 1 and 2")
-    parser.add_argument("--custody-db", default="./stegverse-master-records-validation.db")
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db")
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
     return parser
 

@@ -4,7 +4,7 @@
   "why": "Replace with what the submission is meant to establish. State the question, not the expected answer.",
   "expected_observation": "Replace with what you expect to see. Stating an expectation you may be wrong about is the point; a declaration that cannot be contradicted establishes nothing.",
   "requested_capabilities": [
-    "master_records_custody",
+    "master_records_organization_record",
     "replay",
     "reconstruction"
   ],

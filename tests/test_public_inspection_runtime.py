@@ -175,7 +175,7 @@ class Tests(unittest.TestCase):
 
     @patch("stegverse.production_validation_runtime.requests.post")
     @patch("stegverse.production_validation_runtime._record_route_event", return_value={"custody_status": "RECORDED", "event": {"route_receipt_id": "MRR-X", "event_hash": "eh"}})
-    @patch("stegverse.production_validation_runtime._retain_in_master_records", return_value={"custody_status": "RECORDED"})
+    @patch("stegverse.production_validation_runtime._retain_in_master_records", return_value={"record_status": "RECORDED"})
     @patch("stegverse.production_validation_runtime._preflight_master_records")
     @patch("stegverse.production_validation_runtime._preflight_stegcore", return_value={"runtime_identity": "stegverse:steggate:canonical:three-layer:v1", "manifested_validation_endpoint": "/v1/manifested-validation"})
     @patch("stegverse.production_validation_runtime._load_route_carrier", return_value=(Carrier, RouteError, make_manifest, lambda: []))

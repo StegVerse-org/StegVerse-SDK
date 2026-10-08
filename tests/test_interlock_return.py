@@ -65,7 +65,7 @@ def _record(*, state="ACKNOWLEDGED"):
             "sdk_authority": "NONE",
             "participant_truth_assumed": False,
             "return_transfers_authority": False,
-            "master_records_custody_claimed": False,
+            "master_records_organization_record_claimed": False,
             "execution_authorized": False,
         },
     }
@@ -146,3 +146,15 @@ def test_hash_is_deterministic_and_mutation_visible():
     assert canonical_hash(record) == canonical_hash(duplicate)
     duplicate["binding"]["governance_record_hash"] = H8
     assert canonical_hash(record) != canonical_hash(duplicate)
+
+
+def test_legacy_organization_record_claim_name_is_still_read():
+    record = _record()
+    record["authority"]["master_records_custody_claimed"] = record["authority"].pop(
+        "master_records_organization_record_claimed"
+    )
+    assert validate_interlock_return(record) == record
+
+    record["authority"]["master_records_custody_claimed"] = True
+    with pytest.raises(ValueError, match="master_records_organization_record_claimed"):
+        validate_interlock_return(record)

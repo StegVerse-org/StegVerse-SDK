@@ -129,7 +129,7 @@ class MCPProductionArtifactUnitTests(unittest.TestCase):
             captured["execution"] = result
             return {
                 "manifest_receipt_id": "MR-" + "A" * 64,
-                "master_records_custody_status": "RECORDED",
+                "master_records_organization_record_status": "RECORDED",
                 "governance_state": "ALLOW",
                 "external_side_effect": True,
                 "execution_result": result,
@@ -143,7 +143,7 @@ class MCPProductionArtifactUnitTests(unittest.TestCase):
                 arguments={},
                 custody_db=":memory:",
             )
-        self.assertEqual("RECORDED", result["master_records_custody_status"])
+        self.assertEqual("RECORDED", result["master_records_organization_record_status"])
         self.assertEqual("MCP_TOOL_RESULT_OBSERVED", captured["execution"]["status"])
         self.assertEqual("canonical-ingestion/CGE->SDK", result["return_path"])
         self.assertNotIn("mcp_packet", captured["request"]["input"]["input_data"])
@@ -185,7 +185,7 @@ class MCPProductionArtifactGovernedIntegrationTests(unittest.TestCase):
             governed = result["governed_result"]
             packet = result["portable_packet"]
             execution = governed["execution_result"]
-            self.assertEqual("RECORDED", governed["master_records_custody_status"])
+            self.assertEqual("RECORDED", governed["master_records_organization_record_status"])
             self.assertTrue(governed["chain_verified"])
             self.assertTrue(governed["transaction_identity_continuous"])
             self.assertTrue(governed["route_receipt_ids"])
@@ -221,7 +221,7 @@ class MCPProductionArtifactGovernedIntegrationTests(unittest.TestCase):
             packet = result["portable_packet"]
             execution = governed["execution_result"]
             mcp_result = execution["mcp_result"]
-            self.assertEqual("RECORDED", governed["master_records_custody_status"])
+            self.assertEqual("RECORDED", governed["master_records_organization_record_status"])
             self.assertTrue(governed["chain_verified"])
             self.assertTrue(governed["transaction_identity_continuous"])
             self.assertEqual("MCP_TOOL_RESULT_OBSERVED", execution["status"])

@@ -24,7 +24,7 @@ Make the SDK contract explicit and executable for external frameworks that:
 3. declare a caller-facing StegVerse processing capability independently of payload class;
 4. bind that capability to an installed runtime route without conflating capability with route mechanics;
 5. supply only the processor-specific evidence/state required by the selected processor;
-6. choose caller-facing artifact depth without suppressing canonical Master Records custody; and
+6. choose caller-facing artifact depth without suppressing the canonical Master Records organization record; and
 7. receive the selected processing/state-transition artifact plus `manifest_receipt_id`.
 
 ## Corrected contract
@@ -37,7 +37,7 @@ external framework
 -> processing.route_id == extensions.stegverse_route.route_id
 -> processor-specific request/evidence
 -> installed processor/runtime binding
--> canonical runtime + Master Records custody
+-> canonical runtime + Master Records organization record
 -> return_projection
 -> returned artifact + manifest_receipt_id
 ```
@@ -185,7 +185,7 @@ legacy canonical-governed v1 manifest without processing remains compatible: PAS
 payload commitment requires explicit verification profile: PASS
 SELECTED/ALL/NONE projection semantics remain unchanged: PASS
 manifest/processing/route selection grants authority: FALSE
-Master Records custody suppression by projection: FALSE
+Master Records organization record suppression by projection: FALSE
 ```
 
 ## Preflight determination
@@ -224,7 +224,7 @@ Do not duplicate the SDK processor or evaluator in downstream repositories. Prop
 
 ## Customer-local canonical governance route (draft SDK source; not a product release)
 
-SDK #334 adds a **general** `stegverse.route.customer-local-governed.v1` route, entirely separate from the existing remote `stegverse.route.canonical-governed.v1`. The customer-local SDK module imports canonical StegCore **only when** a deploying host supplies its independently trusted standing verifier, precommit recorder, bounded consequence callback and result recorder. No credential, standing, Master Records custody or live customer authority is bundled. `stegverse run-manifest` without those host callbacks intentionally returns `CUSTOMER_LOCAL_HOST_BINDINGS_REQUIRED`; host integrations use `stegverse.customer_local_governance.execute_local_manifest(...)`. The SDK route is source-installed but is not an activated customer product; release artifacts, trustworthy callbacks, ICV local replay reservations, independent checkpoint/reconstruction and full actual StegCore integration still require their respective owners and authentic proof. Selection of this route does not create permission or require remote StegVerse infrastructure.
+SDK #334 adds a **general** `stegverse.route.customer-local-governed.v1` route, entirely separate from the existing remote `stegverse.route.canonical-governed.v1`. The customer-local SDK module imports canonical StegCore **only when** a deploying host supplies its independently trusted standing verifier, precommit recorder, bounded consequence callback and result recorder. No credential, standing, Master Records organization record or live customer authority is bundled. `stegverse run-manifest` without those host callbacks intentionally returns `CUSTOMER_LOCAL_HOST_BINDINGS_REQUIRED`; host integrations use `stegverse.customer_local_governance.execute_local_manifest(...)`. The SDK route is source-installed but is not an activated customer product; release artifacts, trustworthy callbacks, ICV local replay reservations, independent checkpoint/reconstruction and full actual StegCore integration still require their respective owners and authentic proof. Selection of this route does not create permission or require remote StegVerse infrastructure.
 
 Native source validation: `tests/test_customer_local_governance.py` exercises actual SDK manifest/route resolution, preserves the old remote InTr binding, checks fail-closed missing host dependencies and rejects federated completion; its injected StegCore/authority executor doubles are **not** authentic runtime or credential proof. The dedicated PR CI runs that suite and the existing generic manifest contract regressions. Central ICV admission #2731 remains distinct; ICV native PR #3 owns customer package/custody adapters, StegCore #203 owns propagation *after* its existing TV/TVC release gate. No additional task scheduler, issuer, device or source fork.
 
@@ -240,11 +240,11 @@ Canonical owner: `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`; COSV `710000001
 
 The first 1.5 source slice merged in SDK PR #360. It derives the installed capability inventory directly from the canonical `PUBLISHED_ROUTES` table and returns explicit per-requirement source dispositions: `SUPPORTED`, `MISSING_INPUT`, `UNSUPPORTED`, `PROBE_REQUIRED`, and `VERSION_INCOMPATIBLE`. All source-qualified rows retain `execution_authorized=false`, `route_substitution_permitted=false`, and a source-only evidence ceiling. Exact-head package artifact validation for PR #360 completed successfully before merge at `ce7f709c6cbe4d04e635ccba2b272df4bf42786f`.
 
-The next bounded slice adds immutable manifest-to-derived-plan lineage. The derived plan binds the original manifest digest, exact requirement-set digest, qualification result, exact matched route where supported, explicit failing predicate where not supported, and a final plan digest. Lineage verification must fail after mutation of the manifest, requirements, or derived plan. `PROBE_REQUIRED` preserves the runtime observation boundary and cannot be translated into a source success. No new scheduler, runtime, credential, authority gate, device requirement, Publisher authority, TV/TVC authority, InTr authority, or Master Records custody path is introduced.
+The next bounded slice adds immutable manifest-to-derived-plan lineage. The derived plan binds the original manifest digest, exact requirement-set digest, qualification result, exact matched route where supported, explicit failing predicate where not supported, and a final plan digest. Lineage verification must fail after mutation of the manifest, requirements, or derived plan. `PROBE_REQUIRED` preserves the runtime observation boundary and cannot be translated into a source success. No new scheduler, runtime, credential, authority gate, device requirement, Publisher authority, TV/TVC authority, InTr authority, or Master Records organization record path is introduced.
 
 ## SDK 1.5 unrelated evaluator evidence packet — 2026-09-27
 
-Owner: `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`; COSV `71000000100110`. The dedicated regression `tests/test_sdk_15_unrelated_evaluator_evidence.py` uses two unrelated installed evaluator capabilities (`native_source_math` and `ecosystem_diagnostic`) with exact distinct route IDs. Four explicit negative controls preserve `REQUIRED_INPUT_PRESENT`, `CAPABILITY_INSTALLED`, `REQUESTED_VERSION_COMPATIBLE`, and `AUTHENTIC_RUNTIME_EVIDENCE_OBSERVED` as failing predicates; a cross-route negative control forbids substitution. Manifest and requirement hashes plus derived-plan digest are independently checked. All results are source-only until exact-head CI and, separately, authentic manifest-directed runtime receipts establish further evidence. This work adds no device, receiver, runtime, scheduler, credential, authority gate, Publisher/TV-TVC authority, or Master Records custody.
+Owner: `SDK-GENERIC-MANIFEST-ECOSYSTEM-INVARIANT-005`; COSV `71000000100110`. The dedicated regression `tests/test_sdk_15_unrelated_evaluator_evidence.py` uses two unrelated installed evaluator capabilities (`native_source_math` and `ecosystem_diagnostic`) with exact distinct route IDs. Four explicit negative controls preserve `REQUIRED_INPUT_PRESENT`, `CAPABILITY_INSTALLED`, `REQUESTED_VERSION_COMPATIBLE`, and `AUTHENTIC_RUNTIME_EVIDENCE_OBSERVED` as failing predicates; a cross-route negative control forbids substitution. Manifest and requirement hashes plus derived-plan digest are independently checked. All results are source-only until exact-head CI and, separately, authentic manifest-directed runtime receipts establish further evidence. This work adds no device, receiver, runtime, scheduler, credential, authority gate, Publisher/TV-TVC authority, or Master Records organization record.
 
 
 ### SDK 1.5 full-plan integrity repair
@@ -284,4 +284,4 @@ ECOSYSTEM_CONNECTED  -> stegverse.route.canonical-governed.v1
 
 Use `stegverse manifest build --process governance --execution-profile LOCAL_CONFORMANCE ...` for the customer-local route, or `--execution-profile ECOSYSTEM_CONNECTED` for the canonical ecosystem route. The latter is the backward-compatible default. The selected canonical route is written into `processing.route_id`; route resolution revalidates it and never substitutes another route. `LOCAL_CONFORMANCE` emits no federated completion contract and still requires independently trusted customer host bindings for consequential local execution. `ECOSYSTEM_CONNECTED` does not fall back locally if organization/InTr admission is unavailable.
 
-Execution profile selects scope only and grants no authority. Dispositions remain `ALLOW`, `DENY`, or `FAIL_CLOSED`; locality is not a fourth disposition. Current production `run-manifest` source evidence reaches `SDK_MANIFEST_HANDOFF`. Authentic InTr admission/far-side execution requires request-bound receiving-operation evidence and the resulting organization transition receipt/readback, plus applicable Master Records custody; SDK-local handoff assertions are not substitutes for that evidence.
+Execution profile selects scope only and grants no authority. Dispositions remain `ALLOW`, `DENY`, or `FAIL_CLOSED`; locality is not a fourth disposition. Current production `run-manifest` source evidence reaches `SDK_MANIFEST_HANDOFF`. Authentic InTr admission/far-side execution requires request-bound receiving-operation evidence and the resulting organization transition receipt/readback, plus applicable Master Records organization record; SDK-local handoff assertions are not substitutes for that evidence.

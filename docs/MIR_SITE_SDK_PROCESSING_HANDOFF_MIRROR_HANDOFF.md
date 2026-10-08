@@ -69,7 +69,7 @@ Site-to-SDK handoff packet: implemented and merged from Site
 SDK handoff validation: implemented and merged
 SDK manifest-selected processing execution: implemented and merged
 SDK admitted manifest/completion carry-forward: implemented, validated, and merged
-Master Records custody/readback when requested: not claimed by this branch
+Master Records organization-record readback when requested: not claimed by this branch
 Publisher transition when declared: not claimed by this branch
 SDK return binding: not claimed by this branch
 final StegVerse-side governed egress: not claimed by this branch

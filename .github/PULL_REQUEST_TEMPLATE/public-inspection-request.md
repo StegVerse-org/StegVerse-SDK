@@ -4,7 +4,7 @@ Request JSON: `inspection/requests/<request-id>.json`
 
 Please confirm that the PR contains declarative inspection data only, includes no credentials or executable evaluator/runtime code, declares `authority_claim: false`, and uses only a public requester label you intentionally chose to publish.
 
-This PR is a visible submission record. It does not establish execution authority or Master Records custody.
+This PR is a visible submission record. It does not establish execution authority or Master Records organization record.
 
 To validate only:
 
@@ -12,10 +12,10 @@ To validate only:
 python scripts/validate_public_inspection_request.py inspection/requests/<request-id>.json
 ```
 
-To actually run a governed TEST, configure an admitted canonical Master Records endpoint and use the trusted SDK checkout:
+To actually run a governed TEST, configure the canonical Master Records URL for organization records and use the trusted SDK checkout:
 
 ```bash
-export MASTER_RECORDS_URL="<admitted-master-records-base-url>"
+export MASTER_RECORDS_URL="<master-records-base-url>"
 export MASTER_RECORDS_AUTH_TOKEN="<authorized-token>"
 python -m pip install -e ".[dev,governed-test]"
 python -m stegverse.public_inspection_runtime run inspection/requests/<request-id>.json
@@ -24,7 +24,7 @@ python -m stegverse.public_inspection_runtime run inspection/requests/<request-i
 A governed result may be posted back to this PR only after the SDK reports:
 
 ```text
-master_records_custody_status: RECORDED
+master_records_organization_record_status: RECORDED
 manifest_receipt_id: MR-...
 ```
 

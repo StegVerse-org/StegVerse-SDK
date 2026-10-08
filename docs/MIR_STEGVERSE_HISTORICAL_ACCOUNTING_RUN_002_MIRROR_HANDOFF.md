@@ -39,7 +39,7 @@ Retain at minimum:
 - governance disposition/result artifact;
 - manifest receipt identity;
 - ordered route/transition receipts from initiation through handoff;
-- Master Records custody locator/status where emitted;
+- Master Records organization record locator/status where emitted;
 - replay/reconstruction locators/results where supported;
 - exact software/runtime identities required for reconstruction.
 

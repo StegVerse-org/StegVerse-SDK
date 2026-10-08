@@ -37,7 +37,7 @@ The published evaluator-facing capability identifiers currently include:
 ```text
 commit_time_admissibility
 bounded_consequence
-master_records_custody
+master_records_organization_record
 replay
 reconstruction
 ```

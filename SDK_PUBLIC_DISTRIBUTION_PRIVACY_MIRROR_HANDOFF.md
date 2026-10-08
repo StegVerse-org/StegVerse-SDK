@@ -65,7 +65,7 @@ materializes exact public SDK source with no GitHub credential
 -> verify stegverse-master-records==0.2.0
 -> execute ELAN Test 1 through stegverse external-run
 -> require manifest_receipt_id
--> require Master Records custody RECORDED
+-> require a Master Records organization record RECORDED
 -> require replay
 -> require reconstruction
 ```
@@ -111,7 +111,8 @@ Do not:
 
 - make `master-records/orchestration` public merely to repair SDK installation;
 - use `GITHUB_TOKEN`, `GH_TOKEN`, or another non-TV/TVC credential to fetch protected source as a substitute for public distribution;
-- duplicate StegCore, Core-Lite, Master Records, TV, TVC, publication, evaluator, or custody logic inside the SDK;
+- duplicate StegCore, Core-Lite, Master Records, TV, TVC, publication or evaluator logic inside the SDK;
+- duplicate Organization custody logic inside the SDK;
 - claim an exact public distribution exists merely because its Trusted Publisher is configured;
 - claim the governed-test extra is anonymously installable until the exact anonymous install/E2E gate passes;
 - retarget the frozen SDK `v1.2.0` release identity.

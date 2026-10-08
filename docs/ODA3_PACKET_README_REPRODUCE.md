@@ -59,7 +59,7 @@ governance_request_hash
 result_binding_hash
 route receipts
 manifest receipt
-Master Records exact-run custody evidence
+Master Records exact-run organization record evidence
 reconstruction evidence
 replay evidence when requested
 runtime/source release identity evidence

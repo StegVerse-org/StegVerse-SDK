@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the current continuation source for universal-entry routing, governed conversation, canonical ecosystem retrieval, provider transport, continuation events, Master-Records custody verification, allowlisted repository source reading, server-side composition, non-secret external integration configuration, and activation-evidence binding in `StegVerse-org/StegVerse-SDK`.
+This document is the current continuation source for universal-entry routing, governed conversation, canonical ecosystem retrieval, provider transport, continuation events, Master-Records organization record verification, allowlisted repository source reading, server-side composition, non-secret external integration configuration, and activation-evidence binding in `StegVerse-org/StegVerse-SDK`.
 
 ## Installed runtime surfaces
 
@@ -140,31 +140,30 @@ bounded local conversation
 
 Provider fallback occurs only for `GENERAL_CONVERSATION_MODEL_NOT_ATTACHED`. Provider attempts to grant authority, execution, custody, mutation, publication, or admissibility fail closed.
 
-## Continuation and custody path
+## Continuation and organization-record path
 
 ```text
 routing event
 -> retrieval / provider_usage / solver event as applicable
 -> synthesis event as applicable
 -> event-chain validation
--> build_custody_submission
--> authenticated custody transport
+-> build_organization_record_request
+-> authenticated Master Records organization-record transport
 -> identity-matched receipt validation
 -> reconstruction retrieval
 -> independent event-chain validation
 -> reconstructability_status: PASS
 ```
 
-Without an injected custody client, the governed return records:
+Without an injected organization-record client, the governed return records:
 
 ```text
-custody_submitted: false
-custody_verified: false
-master_records_installed: false
+record_submitted: false
+organization_record_installed: false
 reconstructability_status: NOT_SUBMITTED
 ```
 
-Only an external identity-matched custody receipt plus independently verified reconstruction may set custody and installation fields true.
+Only an external identity-matched organization-record receipt plus independently verified reconstruction may set the organization-record fields true.
 
 ## Activation evidence
 
@@ -208,10 +207,10 @@ LLM-adapter HTTP transport: installed
 live deployed provider endpoint: not_connected
 provider usage preservation: installed
 continuation event chain: installed
-Master-Records custody client: installed_dependency_injected
-custody receipt validation: installed
+Master-Records organization record client: installed_dependency_injected
+organization-record receipt validation: installed
 reconstruction verification: installed
-live Master-Records endpoint: not_connected
+live Master-Records record URL: not_connected
 activation evidence binder: installed_non_authorizing
 Site universal-envelope transport: not_connected
 ```
@@ -252,7 +251,7 @@ Server composition, integration configuration, reader code, transport code, fixt
 3. Produce a reviewed integration-configuration packet with approved endpoint identities, immutable source refs, and secret-manager references, but no credential values.
 4. Supply an explicitly authorized repository fetcher to `AllowlistedRepositorySourceReader` and preserve immutable refs, blob identities, content digests, and read receipts.
 5. Supply an authorized deployed LLM-adapter endpoint to `LLMAdapterHTTPTransport` and preserve provider and usage evidence.
-6. Supply an authorized Master-Records endpoint to `MasterRecordsCustodyClient` and preserve the external custody receipt and reconstructed chain.
+6. Supply an authorized Master-Records URL to `MasterRecordsOrganizationRecordClient` and preserve the external organization-record receipt and reconstructed chain.
 7. Add Site universal-envelope construction and same-origin shared-router submission only after Site handoff gates permit mutation.
 8. Build one activation-evidence packet only after SDK validation, Site validation, canonical retrieval, provider use, entry-point parity, custody, and reconstructability PASS are observed together.
 9. Do not deploy, activate, release, merge, or tag from this handoff.

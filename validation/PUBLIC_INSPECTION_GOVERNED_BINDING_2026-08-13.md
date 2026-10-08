@@ -18,7 +18,7 @@ submission_descriptor.ingress_mode == sdk_manifested_raw_data: PASS
 return_projection ALL preserved: PASS
 manifest_labels ALL preserved: PASS
 runtime_processing_status == NOT_RUN: PASS
-master_records_custody_status == NOT_CLAIMED: PASS
+master_records_organization_record_status == NOT_CLAIMED: PASS
 manifest_receipt_id is null before runtime: PASS
 authority_claim == false: PASS
 authority escalation rejected: PASS

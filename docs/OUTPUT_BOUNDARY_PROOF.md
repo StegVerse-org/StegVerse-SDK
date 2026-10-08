@@ -66,7 +66,7 @@ This local proof is distinct from canonical Master Records replay by `manifest_r
 
 The proof independently rebuilds the LLM tester packet from the candidate evidence and checks the stable object identity, provider/model identity, prompt/output hashes, and decision projection.
 
-This semantic reconstruction is intentionally distinguished from canonical sovereign state reconstruction through Master Records custody.
+This semantic reconstruction is intentionally distinguished from canonical sovereign state reconstruction through the Master Records organization record.
 
 ## Authority boundary
 

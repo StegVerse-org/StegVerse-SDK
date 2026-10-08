@@ -49,7 +49,7 @@ def test_runner_requires_real_custody_shape_without_claiming_external_execution(
             "route_transition_count": 10,
             "chain_verified": True,
             "transaction_identity_continuous": True,
-            "master_records_custody_status": "RECORDED",
+            "master_records_organization_record_status": "RECORDED",
             "third_party_host_required": False,
             "external_side_effect": False,
         }

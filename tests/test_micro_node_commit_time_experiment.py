@@ -260,7 +260,7 @@ def test_stage1_consistent_fixture_still_proves_no_external_capability():
     assert outcome["independent_origin_proven"] is False
     assert outcome["external_participation_proven"] is False
     assert outcome["authentic_governance_proven"] is False
-    assert outcome["master_records_custody_proven"] is False
+    assert outcome["master_records_organization_record_proven"] is False
     assert outcome["decision"] == "NON_AUTHORIZING_LOCAL_REVIEW_ONLY"
 
 

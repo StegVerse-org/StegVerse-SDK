@@ -36,7 +36,7 @@ Only after the pre-consent evidence above is satisfied, a qualifying proof bundl
 7. SDK bridge output showing evidence normalization only, with no readiness assignment;
 8. active-probe engine output showing readiness was recomputed from complete predicate state;
 9. state-transition evidence for `OBSERVE -> MATERIALIZE -> REFRESH`, followed by authorization/probe change and `REVOKE` or `EXPIRE`, then `DESTROY`;
-10. MIR transition reporting and independent Master Records custody/reconstruction evidence;
+10. MIR transition reporting and independent Master Records organization records/reconstruction evidence;
 11. one-current-device continuity evidence for the complete execution lineage.
 
 ## Required negative assertions

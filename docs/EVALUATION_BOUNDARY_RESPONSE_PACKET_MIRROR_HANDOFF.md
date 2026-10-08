@@ -73,7 +73,7 @@ external evaluator manifest
 -> governing-state binding
 -> Core-Lite manifested carrier
 -> StegCore / canonical StegGate
--> Master Records exact-run custody
+-> Master Records exact-run organization record
 -> governed return through SDK
 ```
 
@@ -91,7 +91,7 @@ governance_request_hash
 result_binding_hash
 route receipts
 manifest receipt
-Master Records custody evidence
+Master Records organization record evidence
 reconstruction
 replay when requested
 independent unmodified tuple PASS
@@ -163,7 +163,7 @@ exact-commit artifact manifest: PASS
 release/runtime authority: NONE
 \`\`\`
 
-This is post-merge source validation. It does not alter the still-open TVC aggregate-release, governed-runtime, Master Records custody, replay/reconstruction, or external-evidence gates.
+This is post-merge source validation. It does not alter the still-open TVC aggregate-release, governed-runtime or external-evidence gates; the Master Records organization record and replay/reconstruction evidence also remain pending.
 
 
 ## Exact neutral tooling source pin

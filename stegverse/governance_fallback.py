@@ -124,7 +124,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("operation", choices=OPERATIONS)
     parser.add_argument("target", help="request JSON path for run, or manifest_receipt_id for replay/reconstruct")
-    parser.add_argument("--custody-db", default="./stegverse-master-records-validation.db")
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db")
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
     args = parser.parse_args(argv)
 

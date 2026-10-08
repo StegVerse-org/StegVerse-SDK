@@ -36,7 +36,7 @@ class EvaluatorManifestMultilaneNonInterferenceTests(unittest.TestCase):
         self.assertFalse(prepared["testing_contract"]["evaluator_identity_is_decision_input"])
         self.assertFalse(prepared["testing_contract"]["declared_expected_observation_is_decision_input"])
         self.assertEqual("NOT_RUN", prepared["runtime_processing_status"])
-        self.assertEqual("NOT_CLAIMED", prepared["master_records_custody_status"])
+        self.assertEqual("NOT_CLAIMED", prepared["master_records_organization_record_status"])
 
     def test_r3_task_state_is_not_an_input_to_independent_manifest_semantics(self):
         manifest = self.load_manifest()

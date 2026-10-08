@@ -6,7 +6,7 @@ Protected credential and route semantics belong to TV/TVC. Public SDK inputs and
 
 ## Sovereign evaluator path
 
-The canonical `stegverse.public_inspection_runtime` path is sovereign/local and uses pinned canonical Core-Lite, StegCore/StegGate, and Master Records implementations with local validation custody.
+The canonical `stegverse.public_inspection_runtime` path is sovereign/local and uses pinned canonical Core-Lite, StegCore/StegGate, and Master Records implementations with a local validation organization-record store.
 
 It does not require a public caller to manage a protected Master Records credential and does not use a GitHub token as StegVerse runtime authority.
 
@@ -27,7 +27,7 @@ public SDK request != authority
 provider output != authority
 manifest_receipt_id != authority
 GitHub != StegVerse runtime authority
-Master Records custody != execution authority
+Master Records organization record != execution authority
 ```
 
 Canonical evaluator state and validation evidence are recorded in `SDK_MIRROR_HANDOFF.md` and `validation/SOVEREIGN_FROZEN_EVALUATOR_VALIDATION_2026-08-13.md`.

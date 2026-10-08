@@ -77,7 +77,7 @@ docs/SDK_CONSOLE.md
 ```text
 commit_time_admissibility
 bounded_consequence
-master_records_custody
+master_records_organization_record
 replay
 reconstruction
 ```
@@ -94,7 +94,7 @@ governance_request_hash
 result_binding_hash
 ```
 
-The first two are also included in exact-run transaction metadata before Master Records custody. The evaluator declaration is retained in metadata for later comparison between the pre-execution proposition and post-execution claims, but it is not provided to the StegGate decision model.
+The first two are also included in exact-run transaction metadata before the Master Records organization record. The evaluator declaration is retained in metadata for later comparison between the pre-execution proposition and post-execution claims, but it is not provided to the StegGate decision model.
 
 ## Related repository assessment
 
@@ -102,7 +102,7 @@ The first two are also included in exact-run transaction metadata before Master 
 
 The existing StegCore evaluator-reference handoff explicitly prohibits demo-specific and parallel evaluators and preserves participant-neutral evaluation. This SDK change strengthens that boundary at manifest submission rather than creating another evaluator.
 
-Master Records already retains exact-run evidence-package metadata through the canonical custody path used by the SDK; no new custody authority or separate storage route is introduced here.
+Master Records already keeps exact-run evidence-package metadata as an organization record through the canonical path used by the SDK; no new authority or separate storage route is introduced here.
 
 ## Prior validation
 
@@ -252,7 +252,7 @@ external evaluator
 -> StegVerse SDK manifested submission / normalization / binding
 -> Core-Lite manifested route carrier
 -> StegCore / canonical StegGate
--> Master Records custody
+-> Master Records organization record
 -> governed result returned through the manifested route
 ```
 
@@ -291,7 +291,7 @@ Remaining activation/evidence milestones:
 6. TV/TVC-governed release tags published for all four exact candidates
 7. tag resolutions verified and SDK release catalog reports all_components_release_tag_bound=true
 8. exact governed boundary run executed from evaluator -> SDK through canonical manifested route
-9. representative route receipts + manifest receipt + Master Records custody retained
+9. representative route receipts + manifest receipt + Master Records organization record retained
 10. replay/reconstruction evidence retained where requested
 11. independent unmodified verification PASS retained
 12. manifest/governance-result tamper verification FAIL evidence retained
@@ -359,7 +359,7 @@ ODA3 exact governed run: PENDING (#47)
 ODA3 exact-run evidence packet: PENDING (#47)
 ODA3 independent reproduction: PENDING (#47)
 new StegCore evaluator required: FALSE
-new Master Records custody route required: FALSE
+new Master Records organization record route required: FALSE
 new evaluator-specific route required: FALSE
 scoped state: ACTIVE_DISTINCT_SUPPORT
 ```
@@ -413,7 +413,7 @@ workflow: Evaluator Manifest Source Validation (Non-Authorizing)
 result: MERGED_POST_MERGE_VALIDATED
 ```
 
-This establishes source/runtime-preparation non-interference for independent evaluator manifests while R3 is blocked on its own release/runtime prerequisites. It does **not** claim that a second exact sovereign governed run with Master Records custody was executed by GitHub Actions, and it does not alter R3's frozen release gate. GitHub remains non-authorizing.
+This establishes source/runtime-preparation non-interference for independent evaluator manifests while R3 is blocked on its own release/runtime prerequisites. It does **not** claim that a second exact sovereign governed run with the Master Records organization record was executed by GitHub Actions, and it does not alter R3's frozen release gate. GitHub remains non-authorizing.
 
 Current conclusion:
 

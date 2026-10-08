@@ -206,7 +206,7 @@ route selection grants authority: false
 manifest validity grants authority: false
 missing processor evidence synthesized: false
 unsupported processor/route executed: false
-caller projection suppresses Master Records custody: false
+caller projection suppresses the Master Records organization record: false
 Publisher is out-of-band when required by manifest: false
 Publisher creates missing evidence: false
 new Publisher output automatically starts new processing: false

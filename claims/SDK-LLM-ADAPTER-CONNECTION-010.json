@@ -31,7 +31,7 @@
     "source_materialization": "anonymous exact-SHA archive"
   },
   "collision_boundaries": [
-    "No second LLM evaluator, provider runtime, StegGate, TV/TVC credential broker, heartbeat, or Master Records custody authority was created.",
+    "No second LLM evaluator, provider runtime, StegGate, TV/TVC credential broker, heartbeat, or Master Records organization record authority was created.",
     "No provider API key, password, Authorization header, provider token, GitHub token, or generic credential map is accepted by the SDK connector.",
     "Connection/probe success does not imply downstream execution, governance admission, custody, publication, or product activation."
   ],

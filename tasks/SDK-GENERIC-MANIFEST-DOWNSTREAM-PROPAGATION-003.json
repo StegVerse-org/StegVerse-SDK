@@ -124,7 +124,7 @@
     "authentic_provider_probe": "NOT_PROVEN",
     "shared_docs_runtime_proof": "NOT_PROVEN",
     "mir_transition_reporting": "NOT_PROVEN",
-    "master_records_custody_reconstruction": "NOT_PROVEN",
+    "master_records_organization_record_reconstruction": "NOT_PROVEN",
     "one_device_end_to_end": "NOT_PROVEN"
   },
   "public_surface": {

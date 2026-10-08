@@ -2,7 +2,7 @@
 
 This module derives request intent only. It does not execute StegCore, mint a
 WorkerCoordinator claim/fence, admit Interlock/InTr, grant credentials, commit a
-consequence, or create organization/Master Records custody.
+consequence, or create an organization record or a Master Records organization record.
 """
 from __future__ import annotations
 

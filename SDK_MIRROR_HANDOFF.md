@@ -47,12 +47,12 @@ No person-specific evaluator route is canonical.
 ## Governing invariants
 
 ```text
-every successful governed SDK transition is retained through canonical Master Records custody
+every successful governed SDK transition is retained through the canonical Master Records organization record
 manifest establishes intended route
 recorded checkpoint receipt clears the next manifest leg
-successful governed SDK run without Master Records custody: PROHIBITED
+successful governed SDK run without a Master Records organization record: PROHIBITED
 successful replay/reconstruction return without operation-transition custody: PROHIBITED
-caller projection may suppress Master Records custody: FALSE
+caller projection may suppress the Master Records organization record: FALSE
 manifest_receipt_id grants authority: FALSE
 third_party_host_required: FALSE
 GitHub grants runtime authority: FALSE
@@ -92,12 +92,12 @@ python -m stegverse.governance_ingress_cli 0B <manifest.json>
 ```text
 SDK entry
 -> Core-Lite manifested route carrier
--> Master Records MRR-* checkpoint custody
+-> Master Records MRR-* checkpoint organization record
 -> canonical StegCore manifested transaction
 -> canonical StegGate + commit-coherence evaluation
--> Master Records MR-* exact-run custody
+-> Master Records MR-* exact-run organization record
 -> return ingestion/CGE
--> Master Records MRR-* return custody
+-> Master Records MRR-* return organization record
 -> SDK return
 ```
 
@@ -161,7 +161,7 @@ production_activation_role: NONE
 
 The exact participant-neutral fixture still requires sovereign MR/MRR/MRO execution/custody before that extension is complete. This work remains a repository-native SDK/Master Records workstream; it is not an archive dependency of the superseding current-session v7 inventory unless a new user goal explicitly reopens it.
 
-Do not conflate this extension with the original frozen T0/T1-A/T1-B evaluator run. The canonical Master Records custody handoff separately records retained sovereign exact-run, manifested-route, replay, and reconstruction evidence for the frozen run.
+Do not conflate this extension with the original frozen T0/T1-A/T1-B evaluator run. The canonical Master Records organization record handoff separately records retained sovereign exact-run, manifested-route, replay, and reconstruction evidence for the frozen run.
 
 ## Local model/runtime convergence
 
@@ -271,7 +271,7 @@ StegVerse-002/stegguardian-wiki/STEGGUARDIAN_WIKI_MIRROR_HANDOFF.md -> VERIFIED_
 master-records/core-lite/MASTER_RECORDS_MIRROR_HANDOFF.md -> VERIFIED_NO_CHANGE
 ```
 
-Only admissibility-wiki directly required semantic transfer. The evaluator was not duplicated there. Site/Publisher do not currently establish direct consumption of the changed SDK relation contract; Guardian is downstream of bounded admissibility interpretation; Master Records custody/reconstruction contracts were not changed by this goal.
+Only admissibility-wiki directly required semantic transfer. The evaluator was not duplicated there. Site/Publisher do not currently establish direct consumption of the changed SDK relation contract; Guardian is downstream of bounded admissibility interpretation; Master Records organization records/reconstruction contracts were not changed by this goal.
 
 Archive-purpose session source of truth:
 
@@ -446,7 +446,7 @@ stegverse-sdk 1.1.0 wheel/sdist + Trusted Publisher provenance
 verified TVC aggregate release receipt
 \`\`\`
 
-Once the aggregate receipt exists, the SDK lane proceeds with the already-pinned neutral harness, exact evaluator manifest retention, canonical route execution, Master Records custody, reconstruction, independent verification, and tamper-negative evidence. Moving current main or substituting another runtime does not satisfy that proof.
+Once the aggregate receipt exists, the SDK lane proceeds with the already-pinned neutral harness, exact evaluator manifest retention, canonical route execution, Master Records organization record, reconstruction, independent verification, and tamper-negative evidence. Moving current main or substituting another runtime does not satisfy that proof.
 
 ## Production manifold governance SDK demo/test — 2026-08-27
 
@@ -510,7 +510,7 @@ External evaluator feedback corrected the original draft so material policy-basi
 
 Human review is provided through the non-authorizing Site evaluator-review front end. Site PR #576 implemented/validated/merged the generic UI; Site PR #590 validated/merged the exact v0.2 public projection as `dd7e6d5685abea6c87429e90e36b1069bd9c9b9d`. Public-route observation remains pending. Site never becomes test, approval, freeze, execution, credential, custody, replay, or reconstruction authority.
 
-Next boundary: observe the public Site v0.2 projection; external evaluator reviews the exact v0.2 manifest blob/hash above (current PR head may contain non-manifest handoff changes); any content change invalidates approval for freeze purposes; only matching exact-revision/hash approvals may proceed to canonical freeze, followed by independent execution and ordinary TV/TVC + Master Records evidence/custody boundaries.
+Next boundary: observe the public Site v0.2 projection; external evaluator reviews the exact v0.2 manifest blob/hash above (current PR head may contain non-manifest handoff changes); any content change invalidates approval for freeze purposes; only matching exact-revision/hash approvals may proceed to canonical freeze, followed by independent execution and ordinary TV/TVC boundaries and Master Records organization records/reconstruction.
 
 
 ### Manifest-content continuity note — PR #94 head advance
@@ -560,7 +560,7 @@ AdmittedCode -> admission/evidence projection
 StegCore -> canonical governance transaction implementation
 Interlock/InTr -> transition authority; NOT_OBSERVED unless authentic transition evidence exists
 StegAgents/runtime -> bounded worker execution; NOT_OBSERVED unless authentic worker evidence exists
-Master Records -> custody/reconstruction evidence
+Master Records -> organization records/reconstruction evidence
 LLM-adapter/other source product -> declared upstream provenance when supplied by the ingress manifest; SDK does not infer its internals
 ```
 
@@ -599,7 +599,7 @@ Canonical coordination handoff: `StegVerse-Labs/.github:docs/SDK_FOUR_STAGE_EVID
 
 This development line preserves `SDK-FOUR-STAGE-POST-LINEAGE-EVIDENCE-PACKAGE-001` as immutable retired evidence while repairing future experiment semantics. Task 4 now uses disjoint contiguous source partitions with exact reconstruction evidence; invocation overlap is measured only around the local worker call after both group barriers and is paired with a serialized negative control that must produce no overlap; group-result binding is recomputed over the exact per-worker bindings; local semantic worker processors are explicitly declared `SDK_LOCAL_SEMANTIC_DEMONSTRATION` and are rejected if presented under `STEGAGENTS_GOVERNED_RUNTIME`; Test 2 and Test 3 are compared by an explicit invariance projection modulo identity/proposition fields.
 
-Provenance correction: preregistration was anchored in canonical coordination commit `0127082e415fb220c709962ab7d0645e06105a4c` before run `35547155843` attempt 2. Attempt 1 also concluded SUCCESS. The updated workflow retains environment capture, raw stage-result text, the Task-4 processor request, serialized-control result, and their hashes. No authentic governed-runtime standing, Master Records custody, HB authority, or retained retirement is claimed by these local-semantic tests; those predicates belong to a separate successor task after this remediation validates and merges.
+Provenance correction: preregistration was anchored in canonical coordination commit `0127082e415fb220c709962ab7d0645e06105a4c` before run `35547155843` attempt 2. Attempt 1 also concluded SUCCESS. The updated workflow retains environment capture, raw stage-result text, the Task-4 processor request, serialized-control result, and their hashes. No authentic governed-runtime standing, Master Records organization record, HB authority, or retained retirement is claimed by these local-semantic tests; those predicates belong to a separate successor task after this remediation validates and merges.
 
 
 ## Proposed multi-worker micro-node admissibility source contract
@@ -609,7 +609,7 @@ Canonical owner: `StegVerse-Labs/.github:data/canonical-task-records/SDK-MICRO-N
 
 ## Stage-1 capability-source compatibility — 2026-09-23
 
-Canonical owner: `StegVerse-Labs/.github:data/canonical-task-records/SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001.json`; COSV `71000000111111`; canonical handoff `docs/SDK_MICRO_NODE_COMMIT_TIME_ADMISSIBILITY_MIRROR_HANDOFF.md`. The SDK `stegverse/stage1_capability_discovery.py` is a pure post-validator over existing three-worker ingress and evidence descriptors. Its extra descriptor binds exact pre-existing manifest/group/result identities, claimed source/custodian, observation packet hash, limits and INGEST/OBSERVE/RECONSTRUCT claim states. Deterministic source fixtures cover distinct declared inputs, shared packet/custodian, altered identities, missing limits, conflicting/UNKNOWN observations, missing claim evidence and packet tampering. This does NOT authenticate participant origin, actual external participation, worker lifecycle, current CTA standing, InTr admission or Master Records custody; all results are explicitly non-authorizing. `SDK-TT-RICHARD-SEAM-AUTHENTIC-RUNTIME-001` retains existing WorkerCoordinator/StegAgents lifecycle ownership; no new runtime or device dependency. Stage 2 third-party execution and empirical pre/post observation remain subsequent proposed work.
+Canonical owner: `StegVerse-Labs/.github:data/canonical-task-records/SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001.json`; COSV `71000000111111`; canonical handoff `docs/SDK_MICRO_NODE_COMMIT_TIME_ADMISSIBILITY_MIRROR_HANDOFF.md`. The SDK `stegverse/stage1_capability_discovery.py` is a pure post-validator over existing three-worker ingress and evidence descriptors. Its extra descriptor binds exact pre-existing manifest/group/result identities, claimed source/custodian, observation packet hash, limits and INGEST/OBSERVE/RECONSTRUCT claim states. Deterministic source fixtures cover distinct declared inputs, shared packet/custodian, altered identities, missing limits, conflicting/UNKNOWN observations, missing claim evidence and packet tampering. This does NOT authenticate participant origin, actual external participation, worker lifecycle, current CTA standing, InTr admission or Master Records organization record; all results are explicitly non-authorizing. `SDK-TT-RICHARD-SEAM-AUTHENTIC-RUNTIME-001` retains existing WorkerCoordinator/StegAgents lifecycle ownership; no new runtime or device dependency. Stage 2 third-party execution and empirical pre/post observation remain subsequent proposed work.
 
 
 ## Stage-1 org-level receipt snapshot reconciliation — 2026-09-24
@@ -623,7 +623,7 @@ Canonical ownership stays `SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001` / COSV 
 
 The bounded `stegverse/worker_participation_history.py` reviewer accepts an exact manifest hash and existing receipt-shaped transition copies for multiple manifested workers. It reconstructs per-worker predecessor and state continuity across ASSIGNED, EVALUATING, WORKING, REFUSED, COMPLETED, CLOSING, RETIRED and EXPIRED. Independent observation descriptors bind operations to a transition position; a single refusal or DENY receipt **never** establishes behavior. Refusal completes worker participation when governed closure is evidenced, not its unperformed assigned partition. The parent task independently decides whether remaining work is admissibly reassignable. A reported attempted out-of-scope operation and a reported external effect remain distinct and unverified by the local reviewer. Missing predecessors, incomplete closure, unbound observations and absent external measurement retain explicit limitations.
 
-Focused inert tests cover normal refusal/retirement, reported post-refusal denied operation, reported external effect, predecessor gap, state discontinuity, unbound operation observation and worker-absent records-only reconstruction. Existing Manifest Builder source CI exercises the tests. The pure reviewer never runs worker code, opens a network connection, grants an operation, authenticates an observer, verifies sovereign Master Records, or changes WorkerCoordinator/InTr authority. Actual independent containment, authentic organization/Master Records custody and human–AI review remain separate evidence-dependent transitions. Canonical goal: `SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001`; adjacent boundary owner: `SDK-UNTRUSTED-DEPENDENCY-EXECUTION-BOUNDARY-001`. No new scheduler, ledger, authority plane or device requirement.
+Focused inert tests cover normal refusal/retirement, reported post-refusal denied operation, reported external effect, predecessor gap, state discontinuity, unbound operation observation and worker-absent records-only reconstruction. Existing Manifest Builder source CI exercises the tests. The pure reviewer never runs worker code, opens a network connection, grants an operation, authenticates an observer, verifies sovereign Master Records, or changes WorkerCoordinator/InTr authority. Actual independent containment, authentic organization/Master Records organization record and human–AI review remain separate evidence-dependent transitions. Canonical goal: `SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001`; adjacent boundary owner: `SDK-UNTRUSTED-DEPENDENCY-EXECUTION-BOUNDARY-001`. No new scheduler, ledger, authority plane or device requirement.
 
 ## Worker-cost evidence qualification candidate — 2026-09-26
 

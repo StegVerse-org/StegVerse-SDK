@@ -67,7 +67,7 @@ MCP remains a separate capability/tool transport; it does not replace the LLM-ad
 
 The SDK recursively rejects secret/token-shaped descriptor and payload fields while permitting only exact non-secret policy metadata keys whose values are separately validated. It accepts no provider API key, password, Authorization header, provider token, GitHub token, private key, or generic credential map. Protected credential authority remains TV/TVC.
 
-Connection success does not grant StegGate admission, provider execution, publication authority, Master Records custody, or product activation.
+Connection success does not grant StegGate admission, provider execution, publication authority, Master Records organization record, or product activation.
 
 ## Validation evidence
 

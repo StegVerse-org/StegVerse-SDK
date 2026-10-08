@@ -1,4 +1,8 @@
-from stegverse.master_records_custody import MasterRecordsCustodyClient, _digest
+from stegverse.master_records_organization_record import (
+    ORGANIZATION_RECORD_RECEIPT_SCHEMA,
+    MasterRecordsOrganizationRecordClient,
+    _digest,
+)
 from stegverse.universal_entry_handlers import build_default_handler_registry
 from stegverse.universal_entry_runtime import run_universal_entry
 
@@ -34,7 +38,7 @@ def registry():
 
 def _receipt(submission):
     body = {
-        "schema": "stegverse.master_records_custody_receipt.v0.1",
+        "schema": ORGANIZATION_RECORD_RECEIPT_SCHEMA,
         "submission_id": submission["submission_id"],
         "session_id": submission["session_id"],
         "message_id": submission["message_id"],
@@ -44,7 +48,7 @@ def _receipt(submission):
         "last_event_id": submission["last_event_id"],
         "event_count": submission["event_count"],
         "events_digest": submission["events_digest"],
-        "custody_recorded": True,
+        "organization_record_recorded": True,
         "reconstruction_available": True,
         "authorizing": False,
         "execution_authority_granted": False,
@@ -63,9 +67,9 @@ def test_runtime_attaches_validated_continuation_chain():
         "synthesis",
     ]
     assert result["continuation"]["event_count"] == 3
-    assert result["continuation"]["custody_submitted"] is False
-    assert result["continuation"]["custody_verified"] is False
-    assert result["continuation"]["master_records_installed"] is False
+    assert result["continuation"]["record_submitted"] is False
+    assert result["continuation"]["organization_record_installed"] is False
+    assert "master_records_installed" not in result["continuation"]
     assert result["continuation"]["reconstructability_status"] == "NOT_SUBMITTED"
     assert result["continuation"]["last_event_id"] == result["continuation_events"][-1]["event_id"]
 
@@ -80,7 +84,7 @@ def test_runtime_failed_closed_still_emits_routing_event():
     assert result["continuation_events"][0]["event_type"] == "routing"
 
 
-def test_runtime_marks_custody_only_after_receipt_and_reconstruction_pass():
+def _transports():
     state = {}
 
     def submit(submission):
@@ -97,14 +101,30 @@ def test_runtime_marks_custody_only_after_receipt_and_reconstruction_pass():
             "authorizing": False,
         }
 
+    return submit, reconstruct
+
+
+def test_runtime_marks_organization_record_only_after_receipt_and_reconstruction_pass():
+    submit, reconstruct = _transports()
     result = run_universal_entry(
         envelope(),
         registry(),
         build_default_handler_registry(),
-        custody_client=MasterRecordsCustodyClient(submit, reconstruct),
+        organization_record_client=MasterRecordsOrganizationRecordClient(submit, reconstruct),
     )
-    assert result["continuation"]["custody_submitted"] is True
-    assert result["continuation"]["custody_verified"] is True
-    assert result["continuation"]["master_records_installed"] is True
+    assert result["continuation"]["record_submitted"] is True
+    assert result["continuation"]["organization_record_installed"] is True
     assert result["continuation"]["reconstructability_status"] == "PASS"
-    assert result["custody"]["verification"]["authorizing"] is False
+    assert result["continuation"]["organization_record_receipt_id"].startswith("sha256:")
+    assert result["organization_record"]["verification"]["authorizing"] is False
+
+
+def test_runtime_still_accepts_legacy_client_keyword():
+    submit, reconstruct = _transports()
+    result = run_universal_entry(
+        envelope(),
+        registry(),
+        build_default_handler_registry(),
+        custody_client=MasterRecordsOrganizationRecordClient(submit, reconstruct),
+    )
+    assert result["continuation"]["organization_record_installed"] is True

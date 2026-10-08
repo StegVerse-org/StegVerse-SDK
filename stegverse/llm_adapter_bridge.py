@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping
+from .organization_record_names import LEGACY_LOCAL_PERSISTENCE_IS_ORGANIZATION_RECORD_FIELD, LOCAL_PERSISTENCE_IS_ORGANIZATION_RECORD_FIELD
 
 
 class LLMAdapterBridgeError(ValueError):
@@ -81,7 +82,8 @@ def normalize_adapter_response(
         "repository_mutation_allowed",
         "publication_allowed",
         "final_response_receipt_is_repository_execution_authority",
-        "local_persistence_is_master_records_custody",
+        LOCAL_PERSISTENCE_IS_ORGANIZATION_RECORD_FIELD,
+        LEGACY_LOCAL_PERSISTENCE_IS_ORGANIZATION_RECORD_FIELD,
         "site_grants_admissibility",
     )
     escalated = [name for name in forbidden_true if authority.get(name) is True]

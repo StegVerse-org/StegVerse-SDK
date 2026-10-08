@@ -15,6 +15,7 @@ from stegverse.sovereign_validation_runtime import (
     replay_sovereign,
     run_sovereign_validation,
 )
+from stegverse.organization_record_names import LEGACY_ORGANIZATION_RECORD_STATUS_FIELD, ORGANIZATION_RECORD_STATUS_FIELD, read_field
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -80,9 +81,9 @@ def run_exact_r3(
 
     This harness adds no evaluator, route, decision semantics, credential authority,
     or custody path. It calls the canonical SDK sovereign runtime, exports evidence
-    already retained by Master Records custody, records reconstruction/replay as
-    separately custodied operations, and optionally invokes the fail-closed packet
-    builder.
+    already kept as a Master Records organization record, records reconstruction/replay
+    as separate organization-record operations, and optionally invokes the fail-closed
+    packet builder.
     """
     release_receipt = _load_object(release_receipt_path)
     release_check = verify_release_receipt(release_receipt)
@@ -154,7 +155,9 @@ def run_exact_r3(
         "transaction_id": governed_result.get("transaction_id"),
         "route_manifest_id": governed_result.get("route_manifest_id"),
         "route_transition_count": governed_result.get("route_transition_count"),
-        "master_records_custody_status": governed_result.get("master_records_custody_status"),
+        ORGANIZATION_RECORD_STATUS_FIELD: read_field(
+            governed_result, ORGANIZATION_RECORD_STATUS_FIELD, LEGACY_ORGANIZATION_RECORD_STATUS_FIELD
+        ),
         "independent_binding_verification_pass": True,
         "reconstruction_retained": True,
         "replay_retained": replay is not None,
@@ -167,7 +170,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run and retain the exact ODA3 R3 governed evaluation-boundary evidence")
     parser.add_argument("--release-receipt", required=True)
     parser.add_argument("--manifest", required=True)
-    parser.add_argument("--custody-db", required=True)
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", required=True)
     parser.add_argument("--run-dir", required=True)
     parser.add_argument("--packet-dir")
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")

@@ -12,6 +12,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from stegverse.organization_record_names import (
+    LEGACY_ORGANIZATION_RECORD_CAPABILITY,
+    ORGANIZATION_RECORD_CAPABILITY,
+)
+
 RELEASE_SET_ID = "EVALUATION-BOUNDARY-2026-08-19-R3"
 RELEASE_SCHEMA = "stegverse.tvc.aggregate-release-receipt.v1"
 VERIFIER_SCHEMA = "stegverse.evaluation-boundary-verification.v1"
@@ -106,6 +111,11 @@ def validate_tamper_report(report: dict[str, Any], expected_failed_check: str, l
 
 
 def build_owner_packet(paths: dict[str, Path], *, replay_required: bool) -> dict[str, Any]:
+    paths = dict(paths)
+    # Callers written before the organization-record migration pass the legacy role name.
+    legacy_path = paths.pop(LEGACY_ORGANIZATION_RECORD_CAPABILITY, None)
+    if legacy_path is not None:
+        paths.setdefault(ORGANIZATION_RECORD_CAPABILITY, legacy_path)
     errors: list[str] = []
     artifacts: list[dict[str, Any]] = []
     required_names = {
@@ -115,7 +125,7 @@ def build_owner_packet(paths: dict[str, Path], *, replay_required: bool) -> dict
         "sovereign_result",
         "manifest_receipt",
         "route_receipts",
-        "master_records_custody",
+        ORGANIZATION_RECORD_CAPABILITY,
         "reconstruction",
         "independent_pass",
         "tamper_manifest",
@@ -156,10 +166,10 @@ def build_owner_packet(paths: dict[str, Path], *, replay_required: bool) -> dict
             _load_object(paths["tamper_result"]), "result_binding", "tamper_result"
         ))
         # Exact run core evidence must be structured JSON objects. Their deeper
-        # semantic validation remains with their canonical route/custody tools.
+        # semantic validation remains with their canonical route/organization-record tools.
         for role in (
             "normalized_manifest", "governance_request", "sovereign_result",
-            "manifest_receipt", "route_receipts", "master_records_custody", "reconstruction"
+            "manifest_receipt", "route_receipts", ORGANIZATION_RECORD_CAPABILITY, "reconstruction"
         ):
             _load_object(paths[role])
         if replay_required:
@@ -199,7 +209,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sovereign-result", required=True)
     parser.add_argument("--manifest-receipt", required=True)
     parser.add_argument("--route-receipts", required=True)
-    parser.add_argument("--master-records-custody", required=True)
+    parser.add_argument(
+        "--master-records-organization-record",
+        "--master-records-custody",  # deprecated option name, accepted for pinned callers
+        dest=ORGANIZATION_RECORD_CAPABILITY,
+        required=True,
+    )
     parser.add_argument("--reconstruction", required=True)
     parser.add_argument("--replay")
     parser.add_argument("--replay-required", action="store_true")

@@ -6,7 +6,7 @@ to governance; it is never an ALLOW decision.
 
 A manifest may request both (a) which transition evidence is projected back to
 the caller and (b) which explanatory labels are attached to the returned
-package. Neither return control changes canonical Master Records custody.
+package. Neither return control changes the canonical Master Records organization record.
 """
 from __future__ import annotations
 
@@ -95,8 +95,8 @@ Explanation-label projection:
 - manifest_labels.mode = NONE     -> return no explanatory manifest labels.
 
 Neither NONE mode means StegVerse skipped, erased, or failed to retain underlying
-state transitions. Master Records custody is independent of both caller-facing
-return controls.
+state transitions. The Master Records organization record is independent of both
+caller-facing return controls.
 
 The manifest_receipt_id is always the canonical locator for the exact immutable
 run and is not an authority token. It remains the handle for later replay or
@@ -152,9 +152,10 @@ Important boundary:
 - return_projection controls user-visible transition evidence;
 - manifest_labels controls user-visible explanatory labels;
 - neither controls whether ecosystem transitions occurred or were retained;
-- Master Records remains the canonical ecosystem custody surface;
-- a caller cannot use run parameters to suppress canonical Master Records
-  recording, erase a transition, grant authority, or rewrite historical state.
+- the Organization owns custody of its transitions; Master Records keeps the
+  canonical organization records and supports reconstruction from them;
+- a caller cannot use run parameters to suppress the canonical Master Records
+  organization record, erase a transition, grant authority, or rewrite historical state.
 
 The final manifest_receipt_id remains a locator for the exact immutable run and
 is not execution or admissibility authority.
@@ -183,7 +184,7 @@ What will happen:
 - the transaction enters canonical ingestion -> StegGate governance ->
   commit/consequence boundary -> return ingestion;
 - submission and manifest validity do not grant authority;
-- Master Records custody is independent of caller return formatting;
+- the Master Records organization record is independent of caller return formatting;
 - the completed run returns the permitted user-facing result and final
   manifest_receipt_id identifying the exact immutable master-record run.
 """
@@ -290,7 +291,7 @@ def normalize_manifest_labels(value: Mapping[str, Any] | None) -> dict[str, Any]
         "include_authority_boundary_labels": bool(labels.get("include_authority_boundary_labels", defaults)),
         "controls_return_explanation_only": True,
         "changes_governance_decision": False,
-        "suppresses_master_records_custody": False,
+        "suppresses_master_records_organization_record": False,
         "grants_authority": False,
     }
 
@@ -466,14 +467,14 @@ def demo_output_manifest_shape() -> dict[str, Any]:
             {"order": 2, "stage": "steggate", "transition_class": "governance", "receipt_class": "governance-decision"},
             {"order": 3, "stage": "consequence_boundary", "transition_class": "consequence", "receipt_class": "execution-observation"},
             {"order": 4, "stage": "return_ingestion", "transition_class": "return_ingestion", "receipt_class": "RESULT_INGESTED"},
-            {"order": 5, "stage": "master_records", "transition_class": "custody", "receipt_class": "manifest-receipt"},
+            {"order": 5, "stage": "organization_records", "transition_class": "custody", "receipt_class": "manifest-receipt"},
             {"order": 6, "stage": "caller_projection", "transition_class": "disclosure_projection", "receipt_class": "projection-decision"},
             {"order": 7, "stage": "return_labeling", "transition_class": "return_label_projection", "receipt_class": "manifest-label-projection"},
         ],
         "reconstruction_notes": {
             "human": "Verify demo_dataset_processing first. Then copy canonical_manifest_example, replace editable values, recompute required hashes, choose receipt/label projections, and submit through the normal manifest path.",
             "llm": "Treat manifest_label objects as explanatory metadata requested by the manifest. Produce a new stegverse.ingress-manifest.v1 object; preserve or modify manifest_labels according to the user's desired return explanations, and never copy demo governance outcomes as authority.",
-            "master_records_custody_independent_of_caller_projection": True,
+            "master_records_organization_record_independent_of_caller_projection": True,
         },
         "demo_grants_authority": False,
     }
@@ -504,7 +505,7 @@ def normalize_return_projection(value: Mapping[str, Any] | None) -> dict[str, An
         "mode": mode,
         "transition_classes": selected,
         "controls_user_return_only": True,
-        "suppresses_master_records_custody": False,
+        "suppresses_master_records_organization_record": False,
         "erases_ecosystem_transitions": False,
         "grants_authority": False,
     }

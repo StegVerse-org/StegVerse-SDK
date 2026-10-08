@@ -40,7 +40,7 @@
     "exact normalized-manifest.json produced from that frozen input by the released SDK",
     "exact AdmissibilityRequest.model_dump(mode=json, exclude_none=false) governance-request.json retained for the run",
     "exact governed-result.json returned by the frozen runtime",
-    "route/manifest/Master Records custody evidence",
+    "route/manifest/Master Records organization record evidence",
     "reconstruction evidence",
     "replay evidence when requested"
   ],
@@ -54,7 +54,7 @@
     "source_only_proof_may_satisfy_runtime_proof": false,
     "harness_adds_runtime_semantics": false,
     "harness_adds_credential_authority": false,
-    "harness_exports_existing_master_records_custody": true,
+    "harness_exports_existing_master_records_organization_record": true,
     "harness_records_reconstruction_and_replay_via_canonical_runtime": true,
     "harness_retains_exact_model_normalized_governance_request": true,
     "harness_requires_pre_custody_independent_binding_pass": true

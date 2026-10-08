@@ -15,6 +15,7 @@ from .route_resolution import (
     governance_state_hash,
     validate_runtime_provenance,
 )
+from .organization_record_names import ORGANIZATION_RECORD_STATUS_FIELD
 
 
 class SovereignValidationError(RuntimeError):
@@ -273,7 +274,7 @@ def run_sovereign_validation(
         "governance_state": observation["evaluation"]["disposition"],
         "chain_verified": bool(result.chain_verified),
         "transaction_identity_continuous": record.transaction_id == route_result["transaction_id"] == result.transaction_id,
-        "master_records_custody_status": "RECORDED",
+        ORGANIZATION_RECORD_STATUS_FIELD: "RECORDED",
         "external_side_effect": external_effect,
         "third_party_host_required": False,
         "declared_execution_context_consumed_by_canonical_runtime": declared_execution_context is not None,
@@ -354,7 +355,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Canonical StegVerse production validation without a third-party host")
     parser.add_argument("operation", choices=("run", "replay", "reconstruct"))
     parser.add_argument("target")
-    parser.add_argument("--custody-db", default="./stegverse-master-records-validation.db")
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db")
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
     args = parser.parse_args(argv)
     if args.operation == "run":

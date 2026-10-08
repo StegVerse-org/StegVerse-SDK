@@ -4,6 +4,7 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from typing import Any, Mapping
+from .organization_record_names import ORGANIZATION_RECORD_CLAIMED_FIELD
 
 SCHEMA_ID = "stegverse.sdk.spe-steggate-bridge.v1"
 CANONICAL_STEGGATE_RUNTIME = "stegverse:steggate:canonical:three-layer:v1"
@@ -115,7 +116,7 @@ def _validate_receipt(receipt: Mapping[str, Any], envelope: Mapping[str, Any]) -
     if value.get("execution_performed") is not False:
         raise ValueError("SPE receipt cannot claim execution")
     if value.get("master_record_installed") is not False:
-        raise ValueError("SPE receipt cannot claim Master Records custody")
+        raise ValueError("SPE receipt cannot claim a Master Records organization record")
     expected_next = "GOVERNED_EXECUTION_AUTHORITY" if result == "ALLOW" else None
     if value.get("next_boundary") != expected_next:
         raise ValueError("SPE receipt next_boundary mismatch")
@@ -238,7 +239,7 @@ def build_steggate_request_candidate(
             "spe_execution_authority": "NONE",
             "steggate_decision_authority": "CANONICAL_RUNTIME_ONLY",
             "execution_authorized": False,
-            "master_records_custody_claimed": False,
+            ORGANIZATION_RECORD_CLAIMED_FIELD: False,
         },
     }
     return {**bridge_core, "bridge_hash": stable_hash(bridge_core)}

@@ -176,7 +176,7 @@ class Tests(unittest.TestCase):
             "route_receipt_chain_head": "d" * 64,
             "governance_state": "ALLOW",
             "chain_verified": True,
-            "master_records_custody_status": "RECORDED",
+            "master_records_organization_record_status": "RECORDED",
             "external_side_effect": False,
             "third_party_host_required": False,
         }
@@ -221,7 +221,7 @@ class Tests(unittest.TestCase):
             "route_receipt_chain_head": "e" * 64,
             "governance_state": "ALLOW",
             "chain_verified": True,
-            "master_records_custody_status": "RECORDED",
+            "master_records_organization_record_status": "RECORDED",
             "external_side_effect": False,
             "third_party_host_required": False,
         }

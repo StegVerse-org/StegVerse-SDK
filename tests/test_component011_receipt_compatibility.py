@@ -117,7 +117,7 @@ def test_master_records_claims_must_match_org_receipt_and_exact_digest():
     x = list(sample())
     x[4]["reconstructed_receipt_sha256"] = "mismatch"
     x[4]["organization_receipt_sha256"] = "wrong"
-    assert "MASTER_RECORDS_CLOSURE_OR_ORG_BINDING_MISSING" in inspect(*x)["missing_or_unproven"]
+    assert "MASTER_RECORDS_ORGANIZATION_RECORD_OR_ORG_BINDING_MISSING" in inspect(*x)["missing_or_unproven"]
 
 
 def test_incorrect_consumption_does_not_become_runtime_execution():

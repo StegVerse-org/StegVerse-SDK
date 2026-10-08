@@ -28,7 +28,7 @@ Preparation remains explicitly non-authorizing and non-custodial:
 
 ```text
 runtime_processing_status: NOT_RUN
-master_records_custody_status: NOT_CLAIMED
+master_records_organization_record_status: NOT_CLAIMED
 manifest_receipt_id: null
 authority_claim: false
 github_grants_runtime_authority: false

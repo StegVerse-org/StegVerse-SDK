@@ -14,7 +14,7 @@ provider credential required by StegVerse proof surface: FALSE
 non-TV/TVC secret required: FALSE
 ```
 
-This handoff owns the SDK-facing credentialless provider-output proof surface. It does not own canonical StegCore policy authority, Master Records custody, Node Sovereign membership, provider accounts, or provider credentials.
+This handoff owns the SDK-facing credentialless provider-output proof surface. It does not own canonical StegCore policy authority, Master Records organization record, Node Sovereign membership, provider accounts, or provider credentials.
 
 Parent handoffs:
 

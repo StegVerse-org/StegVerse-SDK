@@ -77,7 +77,7 @@
   "collision_scope": [
     "merged-main canonical governed integration validation",
     "MCP reference-server exact-run/replay/reconstruction evidence",
-    "Master Records MR/MRR/MRO custody evidence",
+    "Master Records MR/MRR/MRO organization record evidence",
     "machine worker owns exact execution after scheduler claim",
     "chat/manual execution must not compete with the worker or mutate its claim/fence"
   ],
@@ -96,7 +96,7 @@
     "worker verifies the SDK/StegCore/Core-Lite/Master Records local source roots are already materialized; it performs no repository checkout",
     "worker launches a scrubbed child process environment containing no GitHub/provider/wallet credentials and no non-TV/TVC runtime secret/token",
     "worker runs MCPProductionArtifactGovernedIntegrationTests and fails closed if the suite skips or fails",
-    "worker executes inspect_state through the canonical governed path against fresh Master Records custody",
+    "worker executes inspect_state through the canonical governed path against fresh Master Records organization record",
     "worker proves exact contract/call hashes, ALLOW + commit-coherence-gated tools/call, continuous transaction identity, MR/MRR custody and verified chain",
     "worker replays and reconstructs the exact MR and proves consequence_reexecuted=false with MRO custody",
     "worker executes write_bounded_value(42) and retains UPDATED=42 through the governed result",
@@ -126,7 +126,7 @@
     "machine_worker_registration_and_validation": true,
     "exact_artifact_task_state_receipt": false
   },
-  "complete_condition": "The current merged-main reference MCP test traverses the canonical exact production-artifact route under the registered sovereign worker with continuous transaction identity, exact-run and route-transition Master Records custody, governed MCP execution observation, replay/reconstruction no-reexecution proof, bounded-write proof, and no prohibited credential use.",
+  "complete_condition": "The current merged-main reference MCP test traverses the canonical exact production-artifact route under the registered sovereign worker with continuous transaction identity, exact-run and route-transition Master Records organization record, governed MCP execution observation, replay/reconstruction no-reexecution proof, bounded-write proof, and no prohibited credential use.",
   "blocked_condition": "No eligible declared non-hosted StegVerse node currently presents all four exact canonical local source roots to the registered worker without prohibited credential use.",
   "blocked_release_condition": "The canonical scheduler observes an eligible sovereign node with all four required already-materialized local source roots and assigns the worker a collision-safe claim; or an exact worker BLOCKED receipt identifies a narrower machine-observable missing-artifact condition.",
   "failed_condition": "Any MCP call occurs before canonical governance/commit coherence, any required exact receipt/custody evidence is absent, transaction identity is discontinuous, replay/reconstruction reexecutes the consequence, contract/call binding cannot be proven, or prohibited credential material is required/observed.",

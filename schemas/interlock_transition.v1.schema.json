@@ -72,11 +72,17 @@
     "authority": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["sdk_authority", "participant_truth_assumed", "interlock_transfers_authority", "master_records_custody_claimed", "execution_authorized"],
+      "required": ["sdk_authority", "participant_truth_assumed", "interlock_transfers_authority", "execution_authorized"],
+      "oneOf": [
+        {"required": ["master_records_organization_record_claimed"], "not": {"required": ["master_records_custody_claimed"]}},
+        {"required": ["master_records_custody_claimed"], "not": {"required": ["master_records_organization_record_claimed"]}}
+      ],
+      "$comment": "master_records_custody_claimed is the legacy name, accepted from pre-migration records (MASTER-RECORDS-BULK-SEMANTIC-REMEDIATION-002).",
       "properties": {
         "sdk_authority": {"const": "NONE"},
         "participant_truth_assumed": {"const": false},
         "interlock_transfers_authority": {"const": false},
+        "master_records_organization_record_claimed": {"const": false},
         "master_records_custody_claimed": {"const": false},
         "execution_authorized": {"const": false}
       }

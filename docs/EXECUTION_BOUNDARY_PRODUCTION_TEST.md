@@ -136,8 +136,8 @@ material transition evidence and state hashes
 fresh boundary admissibility result + local receipt hash
 execution-boundary SDK result + local receipt hash
 canonical manifest / receipt identifiers
-Master Records MRR checkpoint custody
-Master Records MR exact-run custody
+Master Records MRR checkpoint organization record
+Master Records MR exact-run organization record
 return MRR custody
 replay result
 reconstruction result

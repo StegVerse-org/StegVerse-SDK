@@ -179,7 +179,7 @@ Authoritative handoff inspected: `MASTER_RECORDS_MIRROR_HANDOFF.md`.
 current_scope: evidence custody / reconstruction resolution / inference-evidence qualification
 local_runtime_duplicate_prohibited: true
 propagation_decision: VERIFIED_NO_CHANGE
-reason: SDK relation maturity/composition semantics do not change Master Records custody or reconstruction-resolution contracts in this goal; existing hosted MR-IW blocker remains separately owned by issue #31
+reason: SDK relation maturity/composition semantics do not change the Master Records organization record or reconstruction-resolution contracts in this goal; existing hosted MR-IW blocker remains separately owned by issue #31
 ```
 
 ## Global activation reconciliation — 2026-08-17 19:04 -05:00
@@ -271,7 +271,7 @@ workflow success != production authority
 SDK semantic merge != Site publication
 SDK semantic merge != Publisher acceptance
 SDK semantic merge != Guardian enforcement
-SDK semantic merge != Master Records custody change
+SDK semantic merge != Master Records organization record change
 relation evidence != execution authority
 local model source completion != live sovereign runtime activation
 archive-ready session != global ecosystem activation

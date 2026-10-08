@@ -18,7 +18,7 @@ class PublicInspectionRequestTests(unittest.TestCase):
                 "how": "Use the published canonical route without runtime augmentation.",
                 "why": "Test the declared proposition independently of evaluator identity.",
                 "expected_observation": "Disposition follows current governing state.",
-                "requested_capabilities": ["commit_time_admissibility", "master_records_custody"],
+                "requested_capabilities": ["commit_time_admissibility", "master_records_organization_record"],
                 "requested_evidence": ["governance_decision", "manifest_receipt", "exact_run_custody"],
             },
             "execution_provenance": {

@@ -95,7 +95,7 @@ authorized-resident Personal-KV source custody
 -> exact provider-file metadata probe + durable replay/use evidence
 -> SDK normalization / active-probe predicate re-evaluation
 -> lifecycle/MIR reporting
--> independent Master Records custody/reconstruction
+-> independent Master Records organization records/reconstruction
 -> one-current-device end-to-end evidence
 ```
 
@@ -123,7 +123,7 @@ Authentic owner-present external-collaboration consent: NOT PROVEN
 Authentic authoritative provider-file probe: NOT PROVEN
 SDK active-probe complete predicate re-evaluation: NOT PROVEN
 MIR transition reporting: NOT PROVEN
-Master Records authentic custody/reconstruction: NOT PROVEN
+Master Records authentic organization records/reconstruction: NOT PROVEN
 One-current-device authentic end-to-end execution: NOT PROVEN
 Downstream propagation complete: FALSE
 Public distributions complete: FALSE

@@ -23,7 +23,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--release-receipt", required=True)
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--pre-steggate-bundle", required=True)
-    parser.add_argument("--custody-db", required=True)
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", required=True)
     parser.add_argument("--state-path", required=True)
     parser.add_argument("--exchange-path", required=True)
     parser.add_argument("--proof-path", required=True)

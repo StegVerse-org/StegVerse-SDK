@@ -36,7 +36,7 @@ def custody_binding():
     return {
         "enabled": True,
         "base_url": "https://records.example.test",
-        "credential_ref": "tvc://master-records/custody",
+        "credential_ref": "tvc://master-records/organization-records",
         "expected_service": "stegverse-master-records",
         "expected_schema_version": "1.0.0",
         "session_identity_required": True,

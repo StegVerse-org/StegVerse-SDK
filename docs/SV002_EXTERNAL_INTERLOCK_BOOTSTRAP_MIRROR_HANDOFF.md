@@ -56,7 +56,7 @@ SDK builds exact manifest/request
 -> StegVerse-002 response
 -> InTr egress receipt
 -> SDK external organization
--> Master Records custody/reconstruction
+-> Master Records organization records/reconstruction
 ```
 
 SDK source/validation does not prove any arrow occurred.

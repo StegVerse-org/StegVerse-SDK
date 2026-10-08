@@ -182,7 +182,7 @@ StegVerse-002/stegguardian-wiki
 
 master-records/core-lite
   VERIFIED_NO_SCHEMA_CHANGE from this SDK-local helper.
-  Canonical production run still requires MR/MRR/MRO custody/replay/reconstruction evidence; existing Master Records authority remains unchanged.
+  Canonical production run still requires MR/MRR/MRO organization records/reconstruction evidence; existing Master Records authority remains unchanged.
 ```
 
 ## Authority boundary
@@ -201,10 +201,10 @@ Actual consequential execution remains the canonical path described by `SDK_MIRR
 ```text
 SDK entry
 -> Core-Lite manifested route carrier
--> Master Records checkpoint custody
+-> Master Records checkpoint organization record
 -> StegCore manifested transaction
 -> StegGate + commit-coherence evaluation
--> Master Records exact-run custody
+-> Master Records exact-run organization record
 -> return ingestion/CGE
 -> return custody
 -> SDK return
@@ -228,7 +228,7 @@ canonical runtime production test: PENDING EXTERNAL/QUALIFIED-CLIENT TRAJECTORY
 ## Remaining work
 
 1. Select the bounded production or qualified-client trajectory with the external participant.
-2. Route the case through canonical 0B/StegCore/StegGate/Master Records custody.
+2. Route the case through canonical 0B/StegCore/StegGate/Master Records organization record.
 3. Preserve execution-boundary, replay, reconstruction, and consequence evidence.
 4. Only after that evidence exists may production activation be claimed.
 

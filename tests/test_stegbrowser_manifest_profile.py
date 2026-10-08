@@ -46,7 +46,7 @@ def test_test5_two_workers_use_same_generic_run_manifest_route():
         assert req["processing_capability"] == "stegbrowser"
         assert req["state_graph"]["capability"] == "StegBrowser"
         assert req["state_graph"]["profile"] == "llm.v1"
-        assert req["state_graph"]["endpoint_receipt_journey"]["custody_order"] == [
+        assert req["state_graph"]["endpoint_receipt_journey"]["record_order"] == [
             "ORGANIZATION_RECORDS", "MASTER_RECORDS"
         ]
         assert req["state_graph"]["endpoint_receipt_journey"]["branch_count"] == 1

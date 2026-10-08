@@ -57,7 +57,7 @@ It does not mint authority. It does not create a second evaluator. `run_000_demo
 Executable entry:
 
 ```bash
-python -m stegverse.governance_ingress_cli 000 --custody-db ./stegverse-master-records-validation.db
+python -m stegverse.governance_ingress_cli 000 --records-db ./stegverse-master-records-validation.db
 ```
 
 ## Anti-false-processing invariant
@@ -76,7 +76,7 @@ manifest_receipt_id
 receipt_chain_head
 governance_state
 chain_verified
-master_records_custody_status
+master_records_organization_record_status
 external_side_effect
 third_party_host_required
 ```
@@ -126,7 +126,7 @@ dataset SHA-256 == submitted payload SHA-256
 manifest_receipt_id present
 receipt chain head present
 chain_verified=true
-Master Records custody recorded
+Master Records organization record recorded
 external_side_effect=false
 third_party_host_required=false
 replay/reconstruction available from exact-run locator

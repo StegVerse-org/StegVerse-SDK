@@ -92,7 +92,7 @@ admissibility
 physical actuation authority
 external export authority
 federated commit authority
-Master Records custody acceptance
+Master Records organization record acceptance
 publication acceptance
 deployment proof
 governed activation at a live node

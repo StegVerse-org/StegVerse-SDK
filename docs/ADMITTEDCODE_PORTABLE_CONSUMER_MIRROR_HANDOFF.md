@@ -6,7 +6,7 @@ This file is the task source of truth for the AdmittedCode portable receipt-cons
 
 ## Goal
 
-Consume and independently verify portable AdmittedCode receipts, including source-verification annotations, without turning SDK validation into execution, authority, admissibility, publication, deployment, or Master-Records custody.
+Consume and independently verify portable AdmittedCode receipts, including source-verification annotations, without turning SDK validation into execution, authority, admissibility, publication, deployment, or Master-Records organization record.
 
 ## Status
 

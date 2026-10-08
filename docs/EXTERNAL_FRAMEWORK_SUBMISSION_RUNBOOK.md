@@ -57,7 +57,7 @@ your bytes.
 
 It establishes nothing about execution. `execution_performed: false` and
 `manifest_receipt_id: null` are load-bearing, not placeholders. Canonical
-governed execution, Master Records custody, replay and reconstruction are a
+governed execution, Master Records organization record, replay and reconstruction are a
 separate step through the StegVerse runtime, and this command deliberately
 cannot claim them.
 

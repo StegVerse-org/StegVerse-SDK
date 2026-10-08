@@ -10,6 +10,12 @@ from .interlock_transition import canonical_hash as interlock_hash, validate_int
 from .portable_governance_exchange import create_exchange, verify_exchange
 from .portable_governance_verifier import verify_portable_governance_bundle
 from .reference_interlock_participant import acknowledge_interlock_return
+from .organization_record_names import (
+    LEGACY_ORGANIZATION_RECORD_STATUS_FIELD,
+    ORGANIZATION_RECORD_CLAIMED_FIELD,
+    ORGANIZATION_RECORD_STATUS_FIELD,
+    read_field,
+)
 
 RETURN_SCHEMA = "stegverse.interlock-return.v1"
 PROOF_SCHEMA = "stegverse.sdk.post-return-production-proof.v1"
@@ -44,7 +50,7 @@ def build_pending_interlock_return(
     result = dict(sovereign_result)
     custody = dict(custody_record)
 
-    if result.get("master_records_custody_status") != "RECORDED":
+    if read_field(result, ORGANIZATION_RECORD_STATUS_FIELD, LEGACY_ORGANIZATION_RECORD_STATUS_FIELD) != "RECORDED":
         raise ValueError("canonical run is not recorded in Master Records")
     if result.get("chain_verified") is not True:
         raise ValueError("canonical StegCore receipt chain is not verified")
@@ -121,7 +127,7 @@ def build_pending_interlock_return(
             "sdk_authority": "NONE",
             "participant_truth_assumed": False,
             "return_transfers_authority": False,
-            "master_records_custody_claimed": False,
+            ORGANIZATION_RECORD_CLAIMED_FIELD: False,
             "execution_authorized": False,
         },
     }

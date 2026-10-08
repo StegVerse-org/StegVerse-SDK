@@ -209,7 +209,7 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
             "journey_id": journey["journey_id"],
             "branch_count": journey["branch_count"],
             "required_order": _required_receipt_order(journey),
-            "custody_order": ["ORGANIZATION_RECORDS", "MASTER_RECORDS"],
+            "record_order": ["ORGANIZATION_RECORDS", "MASTER_RECORDS"],
         },
         "authority_effect": "NONE_GRAPH_DERIVATION_ONLY",
     }

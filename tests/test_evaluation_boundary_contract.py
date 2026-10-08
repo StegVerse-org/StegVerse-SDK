@@ -39,7 +39,7 @@ class EvaluationBoundaryContractTests(unittest.TestCase):
                 "expected_observation": "A governed disposition is retained.",
                 "requested_capabilities": [
                     "commit_time_admissibility",
-                    "master_records_custody",
+                    "master_records_organization_record",
                 ],
                 "requested_evidence": [
                     "governance_decision",
@@ -68,7 +68,7 @@ class EvaluationBoundaryContractTests(unittest.TestCase):
             "manifest_receipt_id": "MR-" + "A" * 64,
             "route_manifest_id": "MF-" + "B" * 64,
             "transaction_id": "TX-ODA3-BOUNDARY",
-            "master_records_custody_status": "RECORDED",
+            "master_records_organization_record_status": "RECORDED",
             "configuration_not_augmentation": True,
             "route_augmentation_permitted": False,
         }

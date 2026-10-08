@@ -4,6 +4,7 @@ import hashlib
 import json
 import re
 from typing import Any, Mapping
+from .organization_record_names import ORGANIZATION_RECORD_CLAIMED_FIELD, read_compatible
 
 SCHEMA_ID = "stegverse.interlock-return.v1"
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -121,11 +122,12 @@ def validate_interlock_return(record: Mapping[str, Any]) -> dict[str, Any]:
         "sdk_authority": "NONE",
         "participant_truth_assumed": False,
         "return_transfers_authority": False,
-        "master_records_custody_claimed": False,
+        ORGANIZATION_RECORD_CLAIMED_FIELD: False,
         "execution_authorized": False,
     }
     for field, expected in required_authority.items():
-        if authority.get(field) != expected:
+        # Pre-migration records carry the legacy name of the organization-record flag.
+        if read_compatible(authority, field) != expected:
             raise ValueError(f"authority.{field} must be {expected!r}")
 
     return value

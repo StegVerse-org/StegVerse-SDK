@@ -181,7 +181,7 @@ release activation owner: tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json
 exact run/custody owner: claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json
 fallback trigger: primary execution unavailable before canonical governance result
 fallback output: unchanged canonical run/replay/reconstruct result
-persistent state: canonical Master Records custody selected by sovereign runtime
+persistent state: canonical Master Records organization record selected by sovereign runtime
 fail closed: yes
 ```
 

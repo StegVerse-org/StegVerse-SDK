@@ -64,7 +64,7 @@ T0 ALLOW: PASS
 T1-A DENY: PASS
 T1-B DENY: PASS
 StegCore receipt chain verified for every run: PASS
-Master Records exact-run custody for every run: PASS
+Master Records exact-run organization record for every run: PASS
 10 manifested route transitions for every run: PASS
 one transaction identity across each route: PASS
 production-validation provenance retained: PASS
@@ -74,7 +74,7 @@ reconstruction operation custody, four transitions per case: PASS
 original consequence reexecuted by replay/reconstruction: FALSE
 ```
 
-The corresponding portable Master Records custody snapshot is retained in `master-records/orchestration` at:
+The corresponding portable Master Records organization record snapshot is retained in `master-records/orchestration` at:
 
 ```text
 validation/evaluator-frozen-sovereign-custody-2026-08-13.zlib.b64

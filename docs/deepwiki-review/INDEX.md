@@ -54,7 +54,7 @@ Current official DeepWiki `.devin/wiki.json` requires both `repo_notes` and expl
 - The Actions workflow's `contents: read` does not modify repository source or Pages. The export's `publication_allowed` is false.
 - Audit title/section retention, code-link accuracy, potential third-party generation reuse terms, SHA-256 and current source revision before copying any generated material into official public docs.
 - The existing official SDK wiki remains canonical, already served from repository-local exact-source builder and main-only Pages workflow.
-- No local generated wiki content is treated as Master Records custody, InTr/far-side execution evidence, propagation readback or source release authorization.
+- No local generated wiki content is treated as the Master Records organization record, InTr/far-side execution evidence, propagation readback or source release authorization.
 
 ## Markdown link-integrity review finding
 

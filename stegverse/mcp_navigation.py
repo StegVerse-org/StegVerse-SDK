@@ -25,18 +25,19 @@ Canonical route:
   -> exact discovered tool contract + proposed arguments canonicalized and hashed
   -> portable MCP test packet constructed (authority effect: NONE)
   -> canonical SDK ingress / Core-Lite manifested route carrier
-  -> Master Records MRR-* checkpoint custody
+  -> Master Records MRR-* checkpoint organization record
   -> canonical StegCore manifested transaction
   -> canonical StegGate + commit-coherence evaluation
   -> only when the canonical transaction permits consequence: MCP tools/call
   -> MCP result captured as execution observation
-  -> Master Records MR-* exact-run custody
+  -> Master Records MR-* exact-run organization record
   -> canonical return ingestion/CGE
-  -> Master Records MRR-* return custody
+  -> Master Records MRR-* return organization record
   -> same SDK caller connection receives permitted return projection
 
-Every canonical route transition is manifested/receipted. Master Records custody
-is independent of what transition details the caller elects to receive.
+Every canonical route transition is manifested/receipted. The Master Records
+organization record is independent of what transition details the caller elects
+to receive.
 
 MCP source choices for option 0:
   reference -> StegVerse General MCP, an inspectable ordinary stdio MCP server
@@ -63,7 +64,7 @@ This selected mode follows the ordinary SDK option 00 semantics.
 The caller may request ALL, SELECTED, or NONE user-return transition projection
 and explanatory labels where supported by the canonical ingress profile.
 Those preferences control disclosure to the caller only. They do not suppress
-Master Records custody, erase route checkpoints, alter a governance decision, or
+the Master Records organization record, erase route checkpoints, alter a governance decision, or
 grant MCP execution authority.
 """
 

@@ -17,7 +17,7 @@ Manual user action required: false
 
 ## Authority boundary
 
-The SDK prepares, transports, validates, aggregates, and hands off governed objects. It is not provider execution, runtime authority, navigation authority, admissibility, standing, commit-time validation, publication authority, attribution authority, endorsement authority, external-association authority, or Master-Records custody.
+The SDK prepares, transports, validates, aggregates, and hands off governed objects. It is not provider execution, runtime authority, navigation authority, admissibility, standing, commit-time validation, publication authority, attribution authority, endorsement authority, external-association authority, or Master-Records organization record.
 
 Required invariants:
 

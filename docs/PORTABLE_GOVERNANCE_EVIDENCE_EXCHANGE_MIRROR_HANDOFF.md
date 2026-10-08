@@ -25,7 +25,7 @@ custody installation: FALSE
 
 `verify` checks the exact archive member set, rejects unsafe/duplicate paths, verifies file sizes and SHA-256 hashes, re-runs the portable governance verifier, requires exact equality with the retained verification report, verifies identity continuity in the exchange manifest, and verifies the non-transfer authority boundary.
 
-`extract` runs full exchange verification before writing the bounded three-file packet. Extraction returns `EXTRACTED_VERIFIED_NOT_IMPORTED_AS_CUSTODY`. It never writes to Master Records and never treats copied evidence as canonical custody.
+`extract` runs full exchange verification before writing the bounded three-file packet. Extraction returns `EXTRACTED_VERIFIED_NOT_IMPORTED_AS_CUSTODY`. It never writes to Master Records and never treats copied evidence as a canonical organization record.
 
 ## CLI
 
@@ -71,7 +71,7 @@ The validation run also exposed and repaired a pre-existing portability defect i
 ```text
 source implementation: COMPLETE_VALIDATED_MERGED
 bounded evidence sharing without whole custody DB: IMPLEMENTED
-copied evidence becomes Master Records custody: FALSE
+copied evidence becomes the Master Records organization record: FALSE
 PRE_STEGGATE exchange verification: PROVEN_IN_SOURCE_VALIDATION
 POST_RETURN production exchange proof: PENDING_REAL_CANONICAL_EVIDENCE
 ```
@@ -84,14 +84,14 @@ This exchange does not:
 - establish participant truth;
 - decide admissibility;
 - execute a consequence;
-- install or replace Master Records custody;
+- install or replace the Master Records organization record;
 - make a copied receipt canonical merely because its hashes verify.
 
 Full `POST_RETURN` production proof remains pending real canonical StegGate decision/consequence/return evidence, Master Records preservation, replay/reconstruction, and reciprocal participant acknowledgement.
 
 ## Next executable work
 
-1. Produce a real canonical POST_RETURN bundle from the public reference interlock participant through StegGate/consequence/return and Master Records custody.
+1. Produce a real canonical POST_RETURN bundle from the public reference interlock participant through StegGate/consequence/return and Master Records organization record.
 2. Package that exact bundle with `stegverse-governance-exchange create`.
 3. Independently verify the archive and reproduce the POST_RETURN report.
 4. Retain replay/reconstruction evidence while preserving the distinction between copied verification evidence and canonical custody.

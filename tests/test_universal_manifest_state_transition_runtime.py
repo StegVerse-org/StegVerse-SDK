@@ -120,7 +120,7 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
             "retry_condition": "NEW_GOVERNED_ATTEMPT_AFTER_EXISTING_OWNER_DISPATCH_REPAIR",
             "evaluation_boundary": "SDK_MANIFEST_PROFILE_SOURCE_ONLY",
             "authentic_intr_disposition_observed": False,
-            "organization_master_records_closure_observed": False,
+            "organization_master_records_organization_record_observed": False,
             "reason_code": "ECOSYSTEM_DIAGNOSTIC_NONWORKER_DISPATCH_UNWIRED",
             "failed_predicate": "INSTALLED_NONWORKER_EVENT_EPHEMERAL_DIAGNOSTIC_DISPATCH",
             "transition_id": "SDK_ECOSYSTEM_DIAGNOSTIC_DISPATCH",
@@ -139,7 +139,7 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
         for key, value in [
             ("request_sha256", "0" * 64),
             ("authentic_intr_disposition_observed", True),
-            ("organization_master_records_closure_observed", True),
+            ("organization_master_records_organization_record_observed", True),
             ("automatic_retry_permitted", True),
             ("terminal", True),
             ("evaluation_boundary", "INTERLOCK_INTR"),
@@ -148,6 +148,18 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
             altered[key] = value
             with self.assertRaises(ValueError, msg=key):
                 validate_runtime_result(altered, request)
+
+        # Pre-migration peers (pinned central workers) still emit the legacy field name.
+        from stegverse.organization_record_names import (
+            LEGACY_ORGANIZATION_RECORD_OBSERVED_FIELD,
+            ORGANIZATION_RECORD_OBSERVED_FIELD,
+        )
+        legacy = copy.deepcopy(deny)
+        legacy[LEGACY_ORGANIZATION_RECORD_OBSERVED_FIELD] = legacy.pop(ORGANIZATION_RECORD_OBSERVED_FIELD)
+        self.assertEqual(validate_runtime_result(legacy, request)["disposition"], "DENY")
+        legacy[LEGACY_ORGANIZATION_RECORD_OBSERVED_FIELD] = True
+        with self.assertRaises(ValueError):
+            validate_runtime_result(legacy, request)
         fabricated_allow = copy.deepcopy(deny)
         fabricated_allow["state"] = "ALLOW"
         fabricated_allow["disposition"] = "ALLOW"
@@ -171,7 +183,7 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
             "canonical_manifest_sha256": req["canonical_manifest_sha256"],
             "consequence_committed_by_this_profile": False,
             "authentic_intr_disposition_observed": False,
-            "organization_master_records_closure_observed": False,
+            "organization_master_records_organization_record_observed": False,
             "required_evidence_refs": [
                 "EXACT_REQUEST_BOUND_ORIGINAL_INTR_DISPOSITION",
                 "ORGANIZATION_LEDGER_RECEIPT_AND_PREDECESSOR",
@@ -202,7 +214,7 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
             "retry_condition":"SEPARATELY_GOVERNED_FUTURE_REENTRY_ONLY",
             "evaluation_boundary":"SDK_ADMITTED_DIAGNOSTIC_CONSUMER_LOCAL",
             "authentic_intr_disposition_observed":False,
-            "organization_master_records_closure_observed":False,
+            "organization_master_records_organization_record_observed":False,
             "reason_code":"ADMITTED_SDK_DIAGNOSTIC_PROCESS_EXECUTION_FAILED",
             "failed_predicate":"ADMITTED_SDK_DIAGNOSTIC_PROCESS_EXECUTION_FAILED",
             "transition_id":"SDK_ECOSYSTEM_DIAGNOSTIC_DISPATCH",

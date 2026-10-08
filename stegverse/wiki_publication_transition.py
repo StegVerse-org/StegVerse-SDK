@@ -162,7 +162,8 @@ def prepare_wiki_publication_manifest(
     ]
     requested_consequence = (
         "Evaluate the reviewed wiki publication candidate through canonical governance; "
-        "repository mutation remains forbidden until exact governed Master Records closure."
+        "repository mutation remains forbidden until Interlock/InTr admits the exact governed "
+        "transition; Master Records keeps its organization record."
         if decision == ALLOW
         else
         "Record the reviewed wiki publication disposition through canonical governance "

@@ -27,7 +27,7 @@ COMMANDS = [
     "from stegverse.http_transport import AuthenticatedJSONTransport, LLMAdapterHTTPTransport",
     "from stegverse.llm_adapter_bridge import GovernedLLMAdapterProvider, normalize_adapter_response",
     "from stegverse.universal_entry_events import build_dispatch_event_chain, validate_event_chain",
-    "from stegverse.master_records_custody import MasterRecordsCustodyClient, verify_reconstruction",
+    "from stegverse.master_records_organization_record import MasterRecordsOrganizationRecordClient, verify_reconstruction",
     "from stegverse.master_records_http import MasterRecordsHTTPTransport",
     "from stegverse.activation_evidence import evaluate_activation_evidence, validate_activation_evidence",
     "from stegverse.integration_config import build_integration_config, validate_integration_config",

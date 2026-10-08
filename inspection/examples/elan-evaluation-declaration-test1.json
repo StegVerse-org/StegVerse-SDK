@@ -4,7 +4,7 @@
   "why": "Test whether relational restraint and independent governance remain compositionally coherent without collapsing one into the other.",
   "expected_observation": "ELAN and governance may point in different directions while each preserves its own responsibility.",
   "requested_capabilities": [
-    "master_records_custody",
+    "master_records_organization_record",
     "replay",
     "reconstruction"
   ],
