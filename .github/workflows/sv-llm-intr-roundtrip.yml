@@ -1,0 +1,81 @@
+name: SV-LLM InTr Round Trip Conformance (Non-Authorizing)
+
+# Drives the Manifest Builder's manifest through StegVerse-org/.github and
+# SV-LLM/.github boundary code (tests/test_sv_llm_intr_roundtrip.py), each
+# organization in its own interpreter with its own scratch ledger. Both
+# organization repositories are pinned; bump the pins in a reviewed change.
+# Evidence class: same-host scratch code-path conformance only. This is not
+# inter-organization runtime proof and grants no authority.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - stegverse/manifest_builder.py
+      - tests/test_sv_llm_intr_roundtrip.py
+      - .github/workflows/sv-llm-intr-roundtrip.yml
+  push:
+    branches: [main]
+    paths:
+      - stegverse/manifest_builder.py
+      - tests/test_sv_llm_intr_roundtrip.py
+      - .github/workflows/sv-llm-intr-roundtrip.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  STEGVERSE_ORG_DOTGITHUB_SHA: 2486e5273f5df4b21d688c10d748d4a61e88dd19
+  SV_LLM_DOTGITHUB_SHA: 3db781fe30ae35d8763e409b6d4c486dfafe6eea
+
+jobs:
+  roundtrip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Materialize StegVerse-org/.github at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: StegVerse-org/.github
+          ref: ${{ env.STEGVERSE_ORG_DOTGITHUB_SHA }}
+          path: _orgs/stegverse-org
+          persist-credentials: false
+      - name: Materialize SV-LLM/.github at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: SV-LLM/.github
+          ref: ${{ env.SV_LLM_DOTGITHUB_SHA }}
+          path: _orgs/sv-llm
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the SDK and its declared dependencies
+        run: python -m pip install -q -e .
+      - name: Round trip and boundary cases
+        env:
+          STEGVERSE_ORG_DOTGITHUB_ROOT: ${{ github.workspace }}/_orgs/stegverse-org
+          SV_LLM_DOTGITHUB_ROOT: ${{ github.workspace }}/_orgs/sv-llm
+          SV_LLM_ROUNDTRIP_REPORT: ${{ runner.temp }}/sv-llm-intr-roundtrip-run.json
+        run: |
+          set -eu
+          python -B -m unittest tests.test_sv_llm_intr_roundtrip -v 2>&1 | tee "$RUNNER_TEMP/roundtrip.log"
+          # The positive path must have run, not skipped.
+          test -s "$SV_LLM_ROUNDTRIP_REPORT"
+          python - <<'PY'
+          import json, os
+          report = json.load(open(os.environ["SV_LLM_ROUNDTRIP_REPORT"], encoding="utf-8"))
+          assert report["all_legs_allow"] is True, report
+          assert report["evidence_class"] == "SAME_HOST_SCRATCH_CODE_PATH_CONFORMANCE_ONLY", report
+          print("SV_LLM_INTR_ROUNDTRIP_CONFORMANCE_PASS legs=%d" % len(report["legs"]))
+          PY
+      - name: Publish run report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sv-llm-intr-roundtrip-run
+          path: |
+            ${{ runner.temp }}/sv-llm-intr-roundtrip-run.json
+            ${{ runner.temp }}/roundtrip.log
+          if-no-files-found: warn
