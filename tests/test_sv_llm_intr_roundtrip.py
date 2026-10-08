@@ -44,7 +44,7 @@ from stegverse.review_publisher_transfer import (
 ORG = "StegVerse-org"
 PEER = "SV-LLM"
 GENESIS = {"mode": "ESTABLISH_GENESIS", "node_ref": "sv-llm-roundtrip", "predecessor": None}
-LEDGER_ENV = ("STEGVERSE_REPO_LEDGER_ROOT", "STEGVERSE_ORG_LEDGER_ROOT")
+LEDGER_ENV = ("STEGVERSE_REPO_LEDGER_ROOT", "STEGVERSE_ORG_LEDGER_ROOT", "STEGVERSE_REPO_LEDGER_HOME")
 
 
 # Runs one organization operation in a fresh interpreter rooted at that
@@ -71,6 +71,9 @@ def _run_in_org(org_root: Path, ledger_root: Path, module: str, function: str, *
     env = {k: v for k, v in os.environ.items() if k not in LEDGER_ENV}
     env["STEGVERSE_REPO_LEDGER_ROOT"] = str(ledger_root / "repo")
     env["STEGVERSE_ORG_LEDGER_ROOT"] = str(ledger_root / "org")
+    # Where the organization's repository ledgers live, for receipt propagation.
+    # Supplied like the other ledger locations; never derived from the host.
+    env["STEGVERSE_REPO_LEDGER_HOME"] = str(ledger_root / "repo-ledgers")
     request = {"name": module.replace("/", "_").replace(".py", ""), "module": str(org_root / module),
                "function": function, "args": list(args), "kwargs": kwargs}
     completed = subprocess.run([sys.executable, "-B", "-c", _DRIVER], input=json.dumps(request, default=str),
