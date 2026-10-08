@@ -101,7 +101,7 @@ They do not themselves establish fresh SPE standing or canonical StegGate admiss
 
 - StegCore remains canonical StegGate/AdmittedCode owner.
 - Standing-Proof-Engine remains standing owner.
-- Master Records remains custody/reconstruction authority where separately admitted.
+- Master Records remains limited to organization records and reconstruction where separately admitted.
 - Active StegCore PR #141 remains a transaction-lifecycle collision boundary.
 - TV/TVC only for credentials; no GitHub-token runtime authority.
 - no alternate demo backend, receipt authority, evaluator, heartbeat, scheduler, or provider runtime is introduced.

@@ -81,7 +81,7 @@ SDK parallel evaluator: false
 SDK external consequence authority: false
 StegCore production governance authority: unchanged
 TV/TVC credential authority: unchanged
-Master Records custody/replay/reconstruction: unchanged where applicable
+Master Records organization records and reconstruction: unchanged where applicable
 ```
 
 ## Validation + merge evidence

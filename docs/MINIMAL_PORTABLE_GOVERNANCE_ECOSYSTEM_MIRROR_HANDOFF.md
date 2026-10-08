@@ -137,7 +137,7 @@ issue #65: OPEN
 - SDK #64 remains provider interoperability/conformance owner.
 - Standing-Proof-Engine remains standing owner.
 - StegCore remains canonical StegGate/AdmittedCode owner.
-- Master Records remains custody/reconstruction authority where separately admitted.
+- Master Records remains limited to organization records and reconstruction where separately admitted.
 - TV/TVC remains credential and successor-release authority.
 - StegCore PR #141 remains a separate active transaction/capability-context lane; do not reinterpret it as this protocol's completion.
 - GitHub-hosted validation is not release/runtime authority.
