@@ -77,6 +77,36 @@ def _run_in_org(org_root: Path, ledger_root: Path, module: str, function: str, *
     return result["value"]
 
 
+SDK_INGRESS = "stegverse-org.sdk-manifest-ingress"
+SDK_INGRESS_TRANSITION = "ORGANIZATION_SDK_MANIFEST_INGRESS"
+
+
+def _receipt_classes(ledger_root: Path) -> dict:
+    counts: dict = {}
+    for path in ledger_root.rglob("*.json"):
+        try:
+            record = json.loads(path.read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            continue
+        name = record.get("transition_class") if isinstance(record, dict) else None
+        if name:
+            counts[name] = counts.get(name, 0) + 1
+    return counts
+
+
+def _frames_by_destination(mesh: Path) -> dict:
+    counts: dict = {}
+    for path in mesh.rglob("*.json"):
+        try:
+            frame = json.loads(path.read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            continue
+        org = frame.get("destination_org") if isinstance(frame, dict) else None
+        if org:
+            counts[org] = counts.get(org, 0) + 1
+    return counts
+
+
 def _governance_request() -> dict:
     # The Manifest Builder's own fixture, so this test exercises the builder exactly as its gate does.
     from tests.test_manifest_builder import governance_request
@@ -165,10 +195,17 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
             return {"disposition": "ALLOW", "consumed": consumed}
 
         def leg3():
-            reply = {"manifest_id": "sv-llm-roundtrip-reply-001", "destination": {"organization": ORG},
+            # The reply declares the capability it is for, so SV-LLM addresses
+            # StegVerse-org's SDK manifest ingress rather than its control service.
+            reply = {"manifest_id": "sv-llm-roundtrip-reply-001",
+                     "destination": {"organization": ORG, "capability": "sdk-manifest-ingress"},
                      "in_reply_to": "sv-llm-roundtrip-001", "payload": {"manifest": manifest}}
-            return _run_in_org(self.peer_root, self.peer_ledger, "org-runtime/crossing.py", "egress", args=[reply],
+            emitted = _run_in_org(self.peer_root, self.peer_ledger, "org-runtime/crossing.py", "egress", args=[reply],
                                standing=GENESIS, mesh_root=str(self.mesh), root=str(self.peer_root))
+            if emitted.get("disposition") == "ALLOW" and emitted.get("destination_service") != SDK_INGRESS:
+                return {"disposition": "DENY", "failed_predicate": "REPLY_NOT_ADDRESSED_TO_SDK_MANIFEST_INGRESS",
+                        "result": emitted}
+            return emitted
 
         def leg4():
             node_state = self.scratch / "org-node-state"
@@ -178,7 +215,12 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
             if not isinstance(result, dict) or not result.get("frames_consumed"):
                 return {"disposition": "DENY", "failed_predicate": "NO_REPLY_FRAME_CONSUMED_BY_STEGVERSE_ORG",
                         "result": result}
-            return {"disposition": "ALLOW", "result": result}
+            ingress = _receipt_classes(self.org_ledger).get(SDK_INGRESS_TRANSITION, 0)
+            if not ingress:
+                return {"disposition": "DENY", "failed_predicate": "SDK_MANIFEST_INGRESS_NOT_RECORDED_BY_STEGVERSE_ORG",
+                        "result": result}
+            return {"disposition": "ALLOW", "result": result, "sdk_manifest_ingress_receipts": ingress,
+                    "onward_frames": _frames_by_destination(self.mesh)}
 
         for i, (name, fn) in enumerate([("SDK_MANIFEST_BUILD", leg0), ("STEGVERSE_ORG_EGRESS_TO_SV_LLM", leg1),
                                         ("SV_LLM_ORG_LEDGER_GENESIS", leg2_genesis), ("SV_LLM_INGRESS", leg2), ("SV_LLM_EGRESS_TO_STEGVERSE_ORG", leg3),
