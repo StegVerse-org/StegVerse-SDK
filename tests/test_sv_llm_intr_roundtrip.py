@@ -8,6 +8,10 @@ either checkout is written by a test run.
 
 The test passes only when every leg allows. A loopback does not count: leg 2
 must be consumed by SV-LLM's own crossing code, and leg 4 by StegVerse-org's.
+Each organization's legs run in their own Python process with their own
+ledgers: both runtimes import sibling modules by bare name (``ledger_store``),
+so sharing one interpreter would let one organization's leg execute the other
+organization's modules.
 The Publisher PDF is not produced here; only GCAT-BCAT-Engine/Publisher renders
 it. The run report is the JSON half of the Publisher return.
 
@@ -19,10 +23,11 @@ Run:
 """
 from __future__ import annotations
 
-import importlib.util
 import json
 import os
 import shutil
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -35,11 +40,41 @@ GENESIS = {"mode": "ESTABLISH_GENESIS", "node_ref": "sv-llm-roundtrip", "predece
 LEDGER_ENV = ("STEGVERSE_REPO_LEDGER_ROOT", "STEGVERSE_ORG_LEDGER_ROOT")
 
 
-def _load(name: str, path: Path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+# Runs one organization operation in a fresh interpreter rooted at that
+# organization's checkout. Paths in kwargs named *root are passed as Path.
+_DRIVER = r"""
+import importlib.util, json, sys
+from pathlib import Path
+req = json.load(sys.stdin)
+spec = importlib.util.spec_from_file_location(req["name"], req["module"])
+mod = importlib.util.module_from_spec(spec)
+try:
+    spec.loader.exec_module(mod)
+    kwargs = {k: (Path(v) if k.endswith("root") and v is not None else v) for k, v in req["kwargs"].items()}
+    out = getattr(mod, req["function"])(*req.get("args", []), **kwargs)
+    print(json.dumps({"ok": True, "value": out}, default=str))
+except SystemExit as exc:
+    print(json.dumps({"ok": False, "type": "SystemExit", "reason": str(exc)}))
+except Exception as exc:
+    print(json.dumps({"ok": False, "type": type(exc).__name__, "reason": str(exc)[:500]}))
+"""
+
+
+def _run_in_org(org_root: Path, ledger_root: Path, module: str, function: str, *, args=(), **kwargs):
+    env = {k: v for k, v in os.environ.items() if k not in LEDGER_ENV}
+    env["STEGVERSE_REPO_LEDGER_ROOT"] = str(ledger_root / "repo")
+    env["STEGVERSE_ORG_LEDGER_ROOT"] = str(ledger_root / "org")
+    request = {"name": module.replace("/", "_").replace(".py", ""), "module": str(org_root / module),
+               "function": function, "args": list(args), "kwargs": kwargs}
+    completed = subprocess.run([sys.executable, "-B", "-c", _DRIVER], input=json.dumps(request, default=str),
+                               capture_output=True, text=True, cwd=org_root, env=env, timeout=600)
+    lines = [ln for ln in completed.stdout.splitlines() if ln.startswith("{")]
+    if not lines:
+        raise RuntimeError("org process produced no result: rc=%s %s" % (completed.returncode, completed.stderr[-500:]))
+    result = json.loads(lines[-1])
+    if not result["ok"]:
+        raise RuntimeError("%s: %s" % (result["type"], result["reason"]))
+    return result["value"]
 
 
 def _governance_request() -> dict:
@@ -60,11 +95,8 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
         shutil.copytree(os.environ["SV_LLM_DOTGITHUB_ROOT"], self.peer_root, ignore=shutil.ignore_patterns(".git"))
         self.mesh = self.scratch / "mesh"
         self.mesh.mkdir()
-        previous = {name: os.environ.get(name) for name in LEDGER_ENV}
-        for name in LEDGER_ENV:
-            os.environ[name] = str(self.scratch / "ledger" / name.lower())
-        self.addCleanup(lambda: [os.environ.pop(n, None) if v is None else os.environ.__setitem__(n, v)
-                                 for n, v in previous.items()])
+        self.org_ledger = self.scratch / "ledger" / "stegverse-org"
+        self.peer_ledger = self.scratch / "ledger" / "sv-llm"
         self.legs: list[dict] = []
 
     def _leg(self, leg: int, name: str, fn):
@@ -72,7 +104,7 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
             result = fn()
             disposition = result.get("disposition", "ALLOW") if isinstance(result, dict) else "ALLOW"
             entry = {"leg": leg, "name": name, "disposition": disposition, "result": result}
-        except (Exception, SystemExit) as exc:  # a crash or refusal exit is a fail-closed leg, recorded with its predicate
+        except Exception as exc:  # a crash or refusal exit is a fail-closed leg, recorded with its predicate
             entry = {"leg": leg, "name": name, "disposition": "FAIL_CLOSED",
                      "failed_predicate": type(exc).__name__, "reason": str(exc)[:500]}
         self.legs.append(entry)
@@ -80,7 +112,7 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
 
     def _report(self, manifest) -> dict:
         reached = {e["leg"] for e in self.legs}
-        names = ["SDK_MANIFEST_BUILD", "STEGVERSE_ORG_EGRESS_TO_SV_LLM", "SV_LLM_INGRESS",
+        names = ["SDK_MANIFEST_BUILD", "STEGVERSE_ORG_EGRESS_TO_SV_LLM", "SV_LLM_ORG_LEDGER_GENESIS", "SV_LLM_INGRESS",
                  "SV_LLM_EGRESS_TO_STEGVERSE_ORG", "STEGVERSE_ORG_INGRESS_TO_SDK"]
         report = {
             "schema": "stegverse.sdk.sv-llm-intr-roundtrip-run/v0.1",
@@ -91,6 +123,8 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
                                  for i, n in enumerate(names) if i not in reached],
             "all_legs_allow": all(e["disposition"] == "ALLOW" for e in self.legs) and len(reached) == len(names),
             "publisher_pdf": "NOT_PRODUCED_HERE_REQUIRES_GCAT-BCAT-Engine/Publisher",
+            "evidence_class": "SAME_HOST_SCRATCH_CODE_PATH_CONFORMANCE_ONLY",
+            "process_isolation": "ONE_INTERPRETER_PER_ORGANIZATION_LEG",
             "authority_effect": "NONE_TEST_ONLY",
         }
         out = os.environ.get("SV_LLM_ROUNDTRIP_REPORT")
@@ -110,38 +144,44 @@ class SVLLMIntrRoundTrip(unittest.TestCase):
             return {"disposition": "ALLOW", "manifest_keys": sorted(manifest)}
 
         def leg1():
-            egress = _load("roundtrip_org_egress", self.org_root / "resident-runtime/organization_egress_boundary.py")
-            return egress.emit(PEER, {"message_class": "ecosystem.work.request",
-                                      "communication_id": "sv-llm-roundtrip-001",
-                                      "subject": "manifest builder round trip",
-                                      "body": {"manifest": manifest}},
-                               standing=GENESIS, root=self.org_root, mesh_root=self.mesh, hb_epoch=32)
+            return _run_in_org(self.org_root, self.org_ledger, "resident-runtime/organization_egress_boundary.py", "emit",
+                               args=[PEER, {"message_class": "ecosystem.work.request",
+                                            "communication_id": "sv-llm-roundtrip-001",
+                                            "subject": "manifest builder round trip",
+                                            "body": {"manifest": manifest}}],
+                               standing=GENESIS, root=str(self.org_root), mesh_root=str(self.mesh), hb_epoch=32)
+
+        def leg2_genesis():
+            # SV-LLM's own declared ledger-opening transition, as its live lane runs it
+            # (org-runtime/authentic_live_lane.py). Scratch ledger only.
+            return _run_in_org(self.peer_root, self.peer_ledger, "org-runtime/crossing.py", "open_organization_ledger",
+                               root=str(self.peer_root))
 
         def leg2():
-            crossing = _load("roundtrip_sv_llm_crossing", self.peer_root / "org-runtime/crossing.py")
-            consumed = crossing.ingress(mesh_root=self.mesh, root=self.peer_root)
+            consumed = _run_in_org(self.peer_root, self.peer_ledger, "org-runtime/crossing.py", "ingress",
+                                   mesh_root=str(self.mesh), root=str(self.peer_root))
             if not consumed:
                 return {"disposition": "DENY", "failed_predicate": "NO_FRAME_CONSUMED_BY_SV_LLM"}
             return {"disposition": "ALLOW", "consumed": consumed}
 
         def leg3():
-            crossing = _load("roundtrip_sv_llm_crossing_out", self.peer_root / "org-runtime/crossing.py")
             reply = {"manifest_id": "sv-llm-roundtrip-reply-001", "destination": {"organization": ORG},
                      "in_reply_to": "sv-llm-roundtrip-001", "payload": {"manifest": manifest}}
-            return crossing.egress(reply, standing=GENESIS, mesh_root=self.mesh, root=self.peer_root)
+            return _run_in_org(self.peer_root, self.peer_ledger, "org-runtime/crossing.py", "egress", args=[reply],
+                               standing=GENESIS, mesh_root=str(self.mesh), root=str(self.peer_root))
 
         def leg4():
-            cycle = _load("roundtrip_org_cycle", self.org_root / "resident-runtime/federation_cycle.py")
             node_state = self.scratch / "org-node-state"
             node_state.mkdir(exist_ok=True)
-            result = cycle.main(mesh_root=self.mesh, node_state_root=node_state)
+            result = _run_in_org(self.org_root, self.org_ledger, "resident-runtime/federation_cycle.py", "main",
+                                 mesh_root=str(self.mesh), node_state_root=str(node_state))
             if not isinstance(result, dict) or not result.get("frames_consumed"):
                 return {"disposition": "DENY", "failed_predicate": "NO_REPLY_FRAME_CONSUMED_BY_STEGVERSE_ORG",
                         "result": result}
             return {"disposition": "ALLOW", "result": result}
 
         for i, (name, fn) in enumerate([("SDK_MANIFEST_BUILD", leg0), ("STEGVERSE_ORG_EGRESS_TO_SV_LLM", leg1),
-                                        ("SV_LLM_INGRESS", leg2), ("SV_LLM_EGRESS_TO_STEGVERSE_ORG", leg3),
+                                        ("SV_LLM_ORG_LEDGER_GENESIS", leg2_genesis), ("SV_LLM_INGRESS", leg2), ("SV_LLM_EGRESS_TO_STEGVERSE_ORG", leg3),
                                         ("STEGVERSE_ORG_INGRESS_TO_SDK", leg4)]):
             if self._leg(i, name, fn)["disposition"] != "ALLOW":
                 break
