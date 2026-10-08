@@ -121,7 +121,7 @@ No GitHub Actions workflow run is observable for the current v0.4 branch head, a
 4. Open the agreed execution window.
 5. Execute both architectures independently against the same exact frozen identity.
 6. Observe S1 independently and only then mint/bind each S0->S1 transition receipt.
-7. Preserve Master Records custody/replay/reconstruction evidence and compare semantic results.
+7. Preserve Master Records organization records and reconstruction evidence and compare semantic results.
 
 ## Downstream propagation
 

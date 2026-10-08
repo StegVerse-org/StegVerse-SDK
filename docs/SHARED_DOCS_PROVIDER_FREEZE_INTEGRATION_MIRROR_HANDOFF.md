@@ -20,7 +20,7 @@ Selected components/canonical owners:
 3. Existing TV/TVC provider content-integrity runtime plus steggfin non-exportable provider operation.
 4. `RTC-ROUNDTRIP-003` for provider request/response correlation.
 5. `RTC-SDK-RETURN-006` for provider-result normalization into Shared Docs freeze intake.
-6. `RTC-EVIDENCE-CUSTODY-004` for Master Records custody/readback/reconstruction.
+6. `RTC-EVIDENCE-CUSTODY-004` for Master Records organization records and reconstruction.
 7. `RTC-INTERLOCK-INTR-TRANSPORT-008` only when an observed edit requires a successor-revision transition.
 
 Not selected: Publisher projection, StegVerse final egress, far-side final transition, terminal cleanup/entropy recovery.
@@ -35,7 +35,7 @@ The already-merged `.github` consumer `control/resident-execution-request.d/cons
 - StegOS device: interchangeable transport/execution node only.
 - TV/TVC: credential/session/provider-operation authority.
 - Interlock/InTr: governed transition/admission authority.
-- Master Records: observed-reality custody/readback/reconstruction.
+- Master Records: organization records/reconstruction.
 - HeartBeat: timing/freshness/liveness/correlation/observability only.
 - GitHub: source/evidence coordination only.
 

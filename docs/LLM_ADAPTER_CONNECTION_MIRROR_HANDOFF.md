@@ -118,7 +118,7 @@ The connector is therefore source-complete and validated. This is not yet distri
 
 ## Collision / ownership
 
-The SDK owns only connection discovery, help/CLI, non-secret descriptor persistence, and request-envelope construction. `StegVerse-org/LLM-adapter` remains the adapter/runtime owner; StegCore remains governance authority; TV/TVC remains credential/route authority; Master Records remains custody/reconstruction authority.
+The SDK owns only connection discovery, help/CLI, non-secret descriptor persistence, and request-envelope construction. `StegVerse-org/LLM-adapter` remains the adapter/runtime owner; StegCore remains governance authority; TV/TVC remains credential/route authority; Master Records remains limited to organization records and reconstruction.
 
 ## Continuation
 
