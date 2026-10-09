@@ -93,6 +93,26 @@ def _record_navigation_usage(selection: str) -> None:
         print(f"WARNING: SDK usage observation unavailable: {exc}", file=sys.stderr)
 
 
+CANONICAL_MANIFEST_ENTRYPOINT = "stegverse.manifest_execution.execute_manifest"
+RESULT_RETURN_ENTRYPOINT = "stegverse.manifest_state_transition_runtime.admit_runtime_result"
+CLI_SUBMISSION_SCHEMA = "stegverse.sdk.cli-governance-submission/v1"
+LOCAL_ENCLOSED_LANE = {
+    "lane": "SDK_LOCAL_ENCLOSED_VALIDATION",
+    "canonical": False,
+    "authorizing": False,
+    "selected_by_manifest_route": False,
+    "canonical_lifecycle_performed": False,
+    "custody_store_is_local": True,
+    "may_be_promoted_to_canonical_closure": False,
+    "authority_effect": "NONE_ENCLOSED_VALIDATION_ONLY",
+}
+
+
+def _local_enclosed_output(operation: str, result: Mapping[str, Any]) -> dict[str, Any]:
+    """Label an explicitly local option so it cannot be read as canonical closure."""
+    return {"local_operation": operation, "sdk_execution_lane": dict(LOCAL_ENCLOSED_LANE), "result": dict(result)}
+
+
 def _run_governance_fallback(args: argparse.Namespace) -> int:
     """Run the permanent degraded-mode path without rewriting its canonical result."""
     from .governance_fallback import GovernanceFallbackError, execute_fallback
@@ -109,37 +129,30 @@ def _run_governance_fallback(args: argparse.Namespace) -> int:
     except GovernanceFallbackError as exc:
         print(json.dumps(exc.as_dict(), indent=2, sort_keys=True))
         return 2
-    print(json.dumps(dict(result), indent=2, sort_keys=True))
+    output = _local_enclosed_output(f"fallback:{args.fallback_operation}", result)
+    print(json.dumps(output, indent=2, sort_keys=True))
     return 0
 
 
-def _canonical_governed_operations(args: argparse.Namespace):
-    """Bind ordinary options 0A/1/2 to the canonical sovereign runtime.
+def _local_enclosed_operations(args: argparse.Namespace):
+    """Bind options 1/2 to the local enclosed replay/reconstruct libraries.
 
-    The SDK supplies no credential and creates no second evaluator. The existing
-    ``GovernedOperations`` adapter records only bounded usage observations after
-    canonical run identity/evidence has been returned.
+    These read the caller's local custody store. They are not the canonical
+    manifest-route-selected path and never authorize anything; every output is
+    labelled SDK_LOCAL_ENCLOSED_VALIDATION.
     """
     from .governed_operations import GovernedOperations
-    from .sovereign_validation_runtime import (
-        reconstruct_sovereign,
-        replay_sovereign,
-        run_sovereign_validation,
-    )
+    from .sovereign_validation_runtime import reconstruct_sovereign, replay_sovereign
 
-    def submit(request: Mapping[str, Any], **_kwargs: Any) -> Mapping[str, Any]:
-        return run_sovereign_validation(
-            request,
-            custody_db=args.custody_db,
-            host_identity=args.host_identity,
-        )
+    def submit(_request: Mapping[str, Any], **_kwargs: Any) -> Mapping[str, Any]:
+        raise ValueError("LOCAL_ENCLOSED_SUBMISSION_NOT_EXPOSED: submit through 0A or 0B")
 
     def replay(manifest_receipt_id: str, **_kwargs: Any) -> Mapping[str, Any]:
         return replay_sovereign(manifest_receipt_id, custody_db=args.custody_db)
 
     def reconstruct(manifest_receipt_id: str, **_kwargs: Any) -> Mapping[str, Any]:
         result = dict(reconstruct_sovereign(manifest_receipt_id, custody_db=args.custody_db))
-        # Reconstruction is defined by the canonical runtime as non-consequential.
+        # Reconstruction is defined by the runtime as non-consequential.
         # Supply the adapter's explicit proof field without changing the retained
         # reconstruction artifact or creating execution authority.
         result.setdefault("manifest_receipt_id", manifest_receipt_id.strip().upper())
@@ -153,26 +166,96 @@ def _canonical_governed_operations(args: argparse.Namespace):
     )
 
 
+def _build_0a_manifest(args: argparse.Namespace) -> dict[str, Any]:
+    """Option 0A: raw user data becomes a manifest only through the Manifest Builder."""
+    import hashlib
+    from .manifest_builder import build_manifest
+
+    if not args.processor_request:
+        raise ValueError("MANIFEST_BUILDER_PROCESSOR_REQUEST_REQUIRED: 0A requires --processor-request <request.json>")
+    data = json.loads(Path(args.input).read_text(encoding="utf-8"))
+    digest = hashlib.sha256(
+        json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+    return build_manifest(
+        data=data,
+        source_framework=args.source_framework,
+        source_output_id=args.source_output_id or f"cli-0a-{digest[:16]}",
+        processor_request=_load_json(args.processor_request, "processor request"),
+        process=args.process,
+    )
+
+
+def _submit_canonical_manifest(key: str, args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
+    """Options 0A and 0B converge here: one manifest-route-selected entrypoint.
+
+    The console selection decides only how the manifest is prepared (built by
+    the Manifest Builder for 0A, taken as supplied for 0B). The runtime is
+    whatever the manifest's declared route binds; results come back only
+    through admit_runtime_result.
+    """
+    from .manifest_contract import validate_ingress_manifest
+    from .manifest_execution import execute_manifest
+
+    built = key != "0B"
+    output: dict[str, Any] = {
+        "schema": CLI_SUBMISSION_SCHEMA,
+        "selection": "0A" if built else "0B",
+        "manifest_preparation": "SDK_MANIFEST_BUILDER" if built else "SUPPLIED_MANIFEST_VALIDATED_WITHOUT_REBUILD",
+        "canonical_entrypoint": CANONICAL_MANIFEST_ENTRYPOINT,
+        "runtime_selected_by": "MANIFEST_ROUTE_RUNTIME_BINDING",
+        "console_selection_selects_runtime": False,
+        "result_return_entrypoint": RESULT_RETURN_ENTRYPOINT,
+        "authority_effect": "NONE",
+    }
+    try:
+        if built:
+            manifest = _build_0a_manifest(args)
+            if manifest.get("manifest_profile") is None:
+                # The builder returned a resolution (unknown, offline or
+                # unresolved capability); nothing is dispatched.
+                output.update({
+                    "disposition": "FAIL_CLOSED",
+                    "failed_predicate": "MANIFEST_BUILDER_PRODUCED_EXECUTABLE_MANIFEST",
+                    "evidence": manifest,
+                })
+                return 2, output
+            output["manifest"] = manifest
+        else:
+            manifest = dict(_load_json(args.manifest, "ingress manifest"))
+        output["canonical_manifest_sha256"] = validate_ingress_manifest(manifest)["canonical_manifest_sha256"]
+        result = execute_manifest(manifest)
+    except (OSError, json.JSONDecodeError, ValueError, ImportError, AttributeError) as exc:
+        output.update({
+            "disposition": "FAIL_CLOSED",
+            "failed_predicate": str(exc).split(":", 1)[0] or type(exc).__name__,
+            "evidence": f"{type(exc).__name__}: {exc}",
+        })
+        return 2, output
+    lineage = (result.get("manifest_lineage") or {}).get("run_manifest_request") or {}
+    output.update({
+        "route_id": lineage.get("route_id"),
+        "runtime_binding": lineage.get("runtime_binding"),
+        "disposition": result.get("disposition"),
+        "failed_predicate": result.get("failed_predicate"),
+        "result": result,
+    })
+    return (0 if result.get("disposition") == "ALLOW" else 2), output
+
+
 def _execute_selected_governance(args: argparse.Namespace, key: str) -> int | None:
     """Execute ordinary 0A/0B/1/2 when the caller supplied the required operand."""
-    operations = _canonical_governed_operations(args)
-    if key in {"0", "0A"} and args.input:
-        from .public_inspection import load_public_inspection_request
-        result = operations.submit(load_public_inspection_request(args.input))
-    elif key == "0B" and args.manifest:
-        from .governance_ingress_runtime import run_external_manifest
-        result = run_external_manifest(
-            _load_json(args.manifest, "ingress manifest"),
-            custody_db=args.custody_db,
-            host_identity=args.host_identity,
-        )
-    elif key == "1" and args.manifest_receipt_id:
-        result = operations.replay(args.manifest_receipt_id)
+    if (key in {"0", "0A"} and args.input) or (key == "0B" and args.manifest):
+        rc, output = _submit_canonical_manifest(key, args)
+        print(json.dumps(output, indent=2, sort_keys=True))
+        return rc
+    if key == "1" and args.manifest_receipt_id:
+        output = _local_enclosed_output("replay", _local_enclosed_operations(args).replay(args.manifest_receipt_id))
     elif key == "2" and args.manifest_receipt_id:
-        result = operations.reconstruct(args.manifest_receipt_id)
+        output = _local_enclosed_output("reconstruct", _local_enclosed_operations(args).reconstruct(args.manifest_receipt_id))
     else:
         return None
-    print(json.dumps(dict(result), indent=2, sort_keys=True))
+    print(json.dumps(output, indent=2, sort_keys=True))
     return 0
 
 
@@ -188,7 +271,7 @@ def _governance_guide(args: argparse.Namespace) -> int:
             selection = input("\nSelect an option: ").strip()
         except EOFError:
             print("\nUse: stegverse governance --select 000|00|0|0A|0B|1|2")
-            print("Execute 0A: stegverse governance --select 0A --input <public-inspection-request.json>")
+            print("Execute 0A: stegverse governance --select 0A --input <raw-data.json> --processor-request <request.json>")
             print("Execute 0B: stegverse governance --select 0B --manifest <stegverse.ingress-manifest.v1.json>")
             print("Replay: stegverse governance --select 1 --manifest-receipt-id <MR-...>")
             print("Reconstruct: stegverse governance --select 2 --manifest-receipt-id <MR-...>")
@@ -214,12 +297,12 @@ def _governance_guide(args: argparse.Namespace) -> int:
         print("The Master Records organization record remains independent of the user-return projection.")
     elif key == "0":
         print("Next: choose 0A for raw/user data or 0B for a preformatted machine manifest.")
-        print("Execute 0A: stegverse governance --select 0A --input <public-inspection-request.json>")
+        print("Execute 0A: stegverse governance --select 0A --input <raw-data.json> --processor-request <request.json>")
         print("Execute 0B: stegverse governance --select 0B --manifest <stegverse.ingress-manifest.v1.json>")
     elif key == "0A":
-        print("Provide --input <public-inspection-request.json> to execute option 0A.")
+        print("Provide --input <raw-data.json> --processor-request <request.json> to build and submit option 0A.")
     elif key == "0B":
-        print("Provide --manifest <stegverse.ingress-manifest.v1.json> to validate, canonicalize, and execute option 0B.")
+        print("Provide --manifest <stegverse.ingress-manifest.v1.json> to validate and submit option 0B through its declared route.")
     elif key == "1":
         print("Next: provide the manifest_receipt_id returned by the original run.")
         print("Execute: stegverse governance --select 1 --manifest-receipt-id <MR-...>")
@@ -444,12 +527,16 @@ def build_parser() -> argparse.ArgumentParser:
                         help="also reconstruct the composite from the same components and report whether it matches")
     governance = sub.add_parser("governance", help="guided demo/parameter/submit/replay/reconstruct governance navigation")
     governance.add_argument("--select", choices=("000", "00", "0", "0A", "0B", "1", "2"), help="show guidance or execute one canonical governance option")
-    governance.add_argument("--input", help="option 0A public-inspection request JSON to execute through the canonical sovereign runtime")
-    governance.add_argument("--manifest", help="option 0B stegverse.ingress-manifest.v1 JSON to validate/canonicalize and execute through the canonical sovereign runtime")
-    governance.add_argument("--manifest-receipt-id", help="canonical MR-* locator for option 1 replay or option 2 reconstruction")
-    governance.add_argument("--fallback-operation", choices=("run", "replay", "reconstruct"), help="use the permanent canonical sovereign degraded-mode path")
+    governance.add_argument("--input", help="option 0A raw data JSON; the SDK Manifest Builder builds the manifest, then it is submitted through its declared route")
+    governance.add_argument("--processor-request", help="option 0A processor request JSON passed to the SDK Manifest Builder")
+    governance.add_argument("--process", default="governance", help="option 0A processing capability declared in the built manifest")
+    governance.add_argument("--source-framework", default="stegverse-cli", help="option 0A source_framework recorded in the built manifest")
+    governance.add_argument("--source-output-id", help="option 0A source_output_id; default derives from the data digest")
+    governance.add_argument("--manifest", help="option 0B stegverse.ingress-manifest.v1 JSON; validated without rebuild and submitted through its declared route")
+    governance.add_argument("--manifest-receipt-id", help="MR-* locator for option 1 replay or option 2 reconstruction against the local enclosed custody store (non-canonical)")
+    governance.add_argument("--fallback-operation", choices=("run", "replay", "reconstruct"), help="local enclosed degraded-mode path (SDK_LOCAL_ENCLOSED_VALIDATION, non-canonical, non-authorizing)")
     governance.add_argument("--fallback-target", help="request JSON path for fallback run, or manifest_receipt_id for replay/reconstruct")
-    governance.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db", help="local canonical Master Records organization-record database")
+    governance.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db", help="local enclosed custody store used only by options 1/2 and --fallback-operation (non-canonical)")
     governance.add_argument("--host-identity", default="stegverse-sovereign-local", help="local sovereign execution host identity")
     help_parser = sub.add_parser("help-surface", help="show help for a named SDK surface")
     help_parser.add_argument("surface")

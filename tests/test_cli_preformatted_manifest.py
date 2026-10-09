@@ -1,31 +1,39 @@
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from stegverse.cli import main
+from tests.test_organization_batch_manifest_task_binding import fixture
+
+
+HANDOFF = {
+    "disposition": "ALLOW",
+    "state": "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF",
+    "manifest_lineage": {"run_manifest_request": {
+        "route_id": "stegverse.route.canonical-governed.v1",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
+    }},
+}
 
 
 class Tests(unittest.TestCase):
+    # SDK#368: 0B no longer runs the local governance lifecycle. The supplied
+    # manifest goes, without rebuild, to the canonical manifest-route-selected
+    # entrypoint stegverse.manifest_execution.execute_manifest.
     def test_primary_cli_executes_0b_with_supplied_manifest(self):
-        manifest = {
-            "manifest_profile": "stegverse.ingress-manifest.v1",
-            "manifest_profile_version": "1",
-            "source_framework": "fixture-framework",
-            "source_output_id": "fixture-output",
-        }
+        manifest = fixture()
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "manifest.json"
             path.write_text(json.dumps(manifest), encoding="utf-8")
-            with patch("stegverse.governance_ingress_runtime.run_external_manifest") as run:
-                run.return_value = {
-                    "manifest_receipt_id": "MR-" + "A" * 64,
-                    "governance_state": "ALLOW",
-                    "master_records_organization_record_status": "RECORDED",
-                }
+            with patch("stegverse.manifest_execution.execute_manifest", return_value=HANDOFF) as run, \
+                    patch("stegverse.governance_ingress_runtime.run_external_manifest") as local, \
+                    contextlib.redirect_stdout(io.StringIO()):
                 rc = main([
                     "governance",
                     "--select", "0B",
@@ -35,26 +43,31 @@ class Tests(unittest.TestCase):
                 ])
 
         self.assertEqual(0, rc)
-        run.assert_called_once()
-        args, kwargs = run.call_args
-        self.assertEqual(manifest, args[0])
-        self.assertEqual(":memory:", kwargs["custody_db"])
-        self.assertEqual("fixture-host", kwargs["host_identity"])
+        run.assert_called_once_with(manifest)
+        local.assert_not_called()
 
     def test_primary_cli_keeps_0_as_neutral_submission_selector(self):
         rc = main(["governance", "--select", "0"])
         self.assertEqual(0, rc)
 
+    # SDK#368: 0A raw data passes through the SDK Manifest Builder, then the
+    # same canonical entrypoint as 0B.
     def test_primary_cli_accepts_explicit_0a_selector(self):
-        operations = Mock()
-        operations.submit.return_value = {"manifest_receipt_id": "MR-" + "B" * 64}
-        with patch("stegverse.cli._canonical_governed_operations", return_value=operations):
-            with patch("stegverse.public_inspection.load_public_inspection_request") as load:
-                load.return_value = {"request_id": "fixture"}
-                rc = main(["governance", "--select", "0A", "--input", "fixture.json"])
+        manifest = fixture()
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp) / "data.json"
+            data.write_text(json.dumps({"request_id": "fixture"}), encoding="utf-8")
+            request = Path(tmp) / "request.json"
+            request.write_text(json.dumps({"candidate": {}}), encoding="utf-8")
+            with patch("stegverse.manifest_builder.build_manifest", return_value=manifest) as build, \
+                    patch("stegverse.manifest_execution.execute_manifest", return_value=HANDOFF) as run, \
+                    contextlib.redirect_stdout(io.StringIO()):
+                rc = main(["governance", "--select", "0A", "--input", str(data), "--processor-request", str(request)])
         self.assertEqual(0, rc)
-        load.assert_called_once_with("fixture.json")
-        operations.submit.assert_called_once_with({"request_id": "fixture"})
+        build.assert_called_once()
+        self.assertEqual({"request_id": "fixture"}, build.call_args.kwargs["data"])
+        self.assertEqual({"candidate": {}}, build.call_args.kwargs["processor_request"])
+        run.assert_called_once_with(manifest)
 
 
 if __name__ == "__main__":
