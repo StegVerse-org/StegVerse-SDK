@@ -10,8 +10,8 @@ from typing import Any, Mapping
 
 from .manifest_contract import validate_ingress_manifest
 from .route_resolution import route_from_manifest
-from .repository_source_reader import AllowlistedRepositorySourceReader
-from .github_repository_fetcher import GitHubRepositoryFetcher
+from .repository_source_reader import AllowlistedRepositorySourceReader, RepositorySourceReaderError
+from .github_repository_fetcher import GitHubRepositoryFetcher, GitHubRepositoryFetcherError
 
 
 _GOVERNED_WORKER_ROUTING_SURFACE = "STEGAGENTS_GOVERNED_RUNTIME"
@@ -163,12 +163,22 @@ def execute_manifest(manifest: Mapping[str, Any], *, canonical_source_fetcher=No
     function = getattr(module, function_name, None)
     if not callable(function):
         raise ValueError(f"installed runtime binding is not callable: {binding}")
+    boundary_unavailable = None
     if binding == "stegverse.manifest_state_transition_runtime.execute_manifest":
-        result = function(manifest, _canonical_organization_boundary(fetcher=canonical_source_fetcher))
+        try:
+            boundary = _canonical_organization_boundary(fetcher=canonical_source_fetcher)
+        except (GitHubRepositoryFetcherError, RepositorySourceReaderError, OSError) as exc:
+            # No boundary means no resolvable organization ingress endpoint. The
+            # runtime turns that into its FAIL_CLOSED destination disposition;
+            # nothing is substituted and no receiver is consulted.
+            boundary, boundary_unavailable = None, f"{type(exc).__name__}: {exc}"
+        result = function(manifest, boundary)
     else:
         result = function(manifest)
     if not isinstance(result, Mapping):
         raise ValueError("manifest processor returned a non-object result")
+    if boundary_unavailable is not None:
+        result = {**result, "canonical_organization_boundary_unavailable": boundary_unavailable}
     return _bind_result_lineage(
         canonical=canonical,
         route=route,

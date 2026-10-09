@@ -11,21 +11,20 @@ def _ops(*, submit=None, replay=None, reconstruct=None):
     return value
 
 
-def test_option_0_executes_canonical_operation_when_input_is_supplied(capsys):
-    canonical = {
-        "governance_state": "ALLOW",
-        "manifest_receipt_id": "MR-ABCDEF0123456789",
-        "transaction_id": "TX-1",
-        "route_receipt_chain_head": "sha256:head",
-    }
-    operations = _ops(submit=lambda request: canonical)
-    with patch("stegverse.cli._canonical_governed_operations", return_value=operations), patch(
-        "stegverse.public_inspection.load_public_inspection_request", return_value={"schema_version": "1.0"}
-    ):
+def test_option_0_builds_manifest_and_submits_through_canonical_entrypoint(capsys):
+    # SDK#368: option 0/0A input is raw data for the SDK Manifest Builder; the
+    # built manifest goes to the canonical manifest-route-selected entrypoint.
+    built = {"manifest_profile": "stegverse.ingress-manifest.v1"}
+    handoff = {"disposition": "ALLOW", "state": "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF"}
+    with patch("stegverse.cli._build_0a_manifest", return_value=built), patch(
+        "stegverse.manifest_contract.validate_ingress_manifest", return_value={"canonical_manifest_sha256": "a" * 64}
+    ), patch("stegverse.manifest_execution.execute_manifest", return_value=handoff) as execute:
         rc = main(["governance", "--select", "0", "--input", "request.json"])
     assert rc == 0
-    assert '"governance_state": "ALLOW"' in capsys.readouterr().out
-    operations.submit.assert_called_once_with({"schema_version": "1.0"})
+    output = capsys.readouterr().out
+    assert '"state": "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF"' in output
+    assert '"canonical_entrypoint": "stegverse.manifest_execution.execute_manifest"' in output
+    execute.assert_called_once_with(built)
 
 
 def test_option_1_executes_replay_by_manifest_receipt_id(capsys):
@@ -35,7 +34,7 @@ def test_option_1_executes_replay_by_manifest_receipt_id(capsys):
         "consequence_reexecuted": False,
     }
     operations = _ops(replay=lambda receipt_id: canonical)
-    with patch("stegverse.cli._canonical_governed_operations", return_value=operations):
+    with patch("stegverse.cli._local_enclosed_operations", return_value=operations):
         rc = main([
             "governance", "--select", "1",
             "--manifest-receipt-id", "MR-ABCDEF0123456789",
@@ -52,7 +51,7 @@ def test_option_2_executes_reconstruction_by_manifest_receipt_id(capsys):
         "consequence_reexecuted": False,
     }
     operations = _ops(reconstruct=lambda receipt_id: canonical)
-    with patch("stegverse.cli._canonical_governed_operations", return_value=operations):
+    with patch("stegverse.cli._local_enclosed_operations", return_value=operations):
         rc = main([
             "governance", "--select", "2",
             "--manifest-receipt-id", "MR-ABCDEF0123456789",
@@ -64,7 +63,7 @@ def test_option_2_executes_reconstruction_by_manifest_receipt_id(capsys):
 
 def test_option_0_without_input_remains_guidance_not_false_execution(capsys):
     operations = Mock()
-    with patch("stegverse.cli._canonical_governed_operations", return_value=operations):
+    with patch("stegverse.cli._local_enclosed_operations", return_value=operations):
         rc = main(["governance", "--select", "0"])
     assert rc == 0
     assert "Execute current canonical 0A request" in capsys.readouterr().out
