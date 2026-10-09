@@ -30,6 +30,8 @@ from .capability_graph import (
     resolve_declared_capabilities,
 )
 from .manifest_contract import validate_ingress_manifest
+from .capability_inventory import DEFAULT_MAX_EVIDENCE_AGE_SECONDS, EvidenceVerifier, hmac_evidence_verifier
+from .manifest_plan import QUALIFIED_READY, qualify_manifest_readiness
 from .capability_resolution import ONLINE, OFFLINE, UNKNOWN_CAPABILITY, capability_development_request, classify_capability
 from .route_resolution import (
     CANONICAL_PRODUCTION_ROUTE_ID,
@@ -290,6 +292,7 @@ def build_manifest(
     destination_profile: str | None = None,
     governance_reference_graph: Mapping[str, Any] | None = None,
     capability_graph: Mapping[str, Any] | None = None,
+    workaround_selection: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     if not isinstance(source_framework, str) or not source_framework.strip():
         raise ValueError("source_framework is required")
@@ -397,6 +400,9 @@ def build_manifest(
         extensions["manifest_builder"]["execution_profile"] = normalized_execution_profile
         extensions["manifest_builder"]["compatible_routes"] = list(compatible_routes(normalized_process))
         extensions["manifest_builder"]["automatic_route_substitution_permitted"] = False
+    if workaround_selection is not None:
+        # Bound into the new manifest digest; a selection never rides beside it.
+        extensions[WORKAROUND_SELECTION_EXTENSION] = deepcopy(dict(workaround_selection))
     if data_class is not None:
         if not isinstance(data_class, str) or not data_class.strip():
             raise ValueError("data_class must be a non-empty string when supplied")
@@ -440,6 +446,154 @@ def build_manifest(
 
     validate_ingress_manifest(manifest)
     return manifest
+
+
+WORKAROUND_SELECTION_EXTENSION = "stegverse_workaround_selection"
+BUILD_QUALIFICATION_SCHEMA = "stegverse.manifest-build-qualification/v1"
+
+
+def qualify_draft_manifest(
+    manifest: Mapping[str, Any],
+    *,
+    attempt_id: str,
+    readiness_evidence: list[Mapping[str, Any]] | tuple[Mapping[str, Any], ...] = (),
+    evidence_verifier: EvidenceVerifier | None = None,
+    now: datetime | None = None,
+    max_evidence_age_seconds: int = DEFAULT_MAX_EVIDENCE_AGE_SECONDS,
+    alternative_routes: tuple[str, ...] | list[str] = (),
+) -> dict[str, Any]:
+    """Wrap a schema-valid draft with its non-authorizing readiness qualification.
+
+    The draft is always preserved for editing. ``executable`` is true only when
+    every required node of the manifest-selected path is READY on supplied,
+    authenticated, invocation-bound evidence; this never grants authority.
+    """
+    qualification = qualify_manifest_readiness(
+        manifest,
+        attempt_id=attempt_id,
+        readiness_evidence=readiness_evidence,
+        evidence_verifier=evidence_verifier,
+        now=now,
+        max_evidence_age_seconds=max_evidence_age_seconds,
+        alternative_routes=alternative_routes,
+    )
+    ready = qualification["qualification"] == QUALIFIED_READY
+    return {
+        "schema": BUILD_QUALIFICATION_SCHEMA,
+        "state": "READY" if ready else "NOT_READY",
+        "disposition": qualification["disposition"],
+        "failed_predicate": qualification["failed_predicate"],
+        "draft_manifest": deepcopy(dict(manifest)),
+        "draft_manifest_sha256": qualification["manifest_sha256"],
+        "executable": ready,
+        "qualification": qualification,
+        "builder_grants_authority": False,
+        "runtime_allow_claimed": False,
+        "authority_effect": "NONE_QUALIFICATION_ONLY",
+    }
+
+
+def build_qualified_manifest(
+    *,
+    attempt_id: str,
+    readiness_evidence: list[Mapping[str, Any]] | tuple[Mapping[str, Any], ...] = (),
+    evidence_verifier: EvidenceVerifier | None = None,
+    now: datetime | None = None,
+    max_evidence_age_seconds: int = DEFAULT_MAX_EVIDENCE_AGE_SECONDS,
+    alternative_routes: tuple[str, ...] | list[str] = (),
+    **build_kwargs: Any,
+) -> dict[str, Any]:
+    """Build a manifest, then qualify the exact manifest-selected path."""
+    built = build_manifest(**build_kwargs)
+    if built.get("manifest_profile") is None:
+        return {
+            "schema": BUILD_QUALIFICATION_SCHEMA,
+            "state": built.get("state"),
+            "disposition": "FAIL_CLOSED",
+            "failed_predicate": "MANIFEST_BUILDER_PRODUCED_EXECUTABLE_MANIFEST",
+            "resolution": built,
+            "executable": False,
+            "authority_effect": "NONE_RESOLUTION_ONLY",
+        }
+    return qualify_draft_manifest(
+        built, attempt_id=attempt_id, readiness_evidence=readiness_evidence,
+        evidence_verifier=evidence_verifier, now=now,
+        max_evidence_age_seconds=max_evidence_age_seconds, alternative_routes=alternative_routes,
+    )
+
+
+def apply_workaround_selection(
+    build_result: Mapping[str, Any],
+    *,
+    route_id: str,
+    user_selection: Mapping[str, Any],
+    build_kwargs: Mapping[str, Any],
+    attempt_id: str,
+    readiness_evidence: list[Mapping[str, Any]] | tuple[Mapping[str, Any], ...] = (),
+    evidence_verifier: EvidenceVerifier | None = None,
+    now: datetime | None = None,
+    max_evidence_age_seconds: int = DEFAULT_MAX_EVIDENCE_AGE_SECONDS,
+) -> dict[str, Any]:
+    """Build a new manifest for an explicitly user-selected verified workaround.
+
+    Only a VERIFIED candidate of a NOT_READY build may be selected, the user
+    must acknowledge every degraded function, and the result is a new manifest
+    (new digest) that is qualified afresh. Nothing is dispatched here.
+    """
+    qualification = build_result.get("qualification") or {}
+    workarounds = qualification.get("workarounds") or {}
+    candidate = next(
+        (c for c in workarounds.get("candidates") or () if c.get("route_id") == route_id), None
+    )
+    if candidate is None or candidate.get("candidate_state") != "VERIFIED_REQUIRES_USER_SELECTION":
+        raise ValueError("WORKAROUND_NOT_VERIFIED: only an independently READY declared alternative may be selected")
+    original_sha256 = build_result.get("draft_manifest_sha256")
+    if (
+        not isinstance(user_selection, Mapping)
+        or user_selection.get("explicit") is not True
+        or user_selection.get("selected_route_id") != route_id
+        or user_selection.get("original_manifest_sha256") != original_sha256
+        or not isinstance(user_selection.get("selected_by"), str) or not user_selection.get("selected_by")
+        or not set(candidate["degraded_functions"]) <= set(user_selection.get("acknowledged_degraded_functions") or ())
+    ):
+        raise ValueError("EXPLICIT_USER_SELECTION_REQUIRED: selection must name the route, original digest and every degraded function")
+    profile = next((p for p, r in GOVERNANCE_PROFILE_ROUTES.items() if r == route_id), None)
+    if profile is None:
+        raise ValueError("WORKAROUND_ROUTE_HAS_NO_BUILDER_BINDING")
+    selection = {
+        "schema": "stegverse.workaround-selection/v1",
+        "supersedes_manifest_sha256": original_sha256,
+        "original_route_id": qualification.get("route_id"),
+        "selected_route_id": route_id,
+        "degraded_functions": list(candidate["degraded_functions"]),
+        "user_selection": deepcopy(dict(user_selection)),
+        "automatic": False,
+    }
+    kwargs = dict(build_kwargs)
+    kwargs.update(execution_profile=profile, workaround_selection=selection)
+    rebuilt = build_qualified_manifest(
+        attempt_id=attempt_id, readiness_evidence=readiness_evidence,
+        evidence_verifier=evidence_verifier, now=now,
+        max_evidence_age_seconds=max_evidence_age_seconds, **kwargs,
+    )
+    if rebuilt.get("draft_manifest_sha256") in (None, original_sha256):
+        raise ValueError("WORKAROUND_SELECTION_REQUIRES_NEW_MANIFEST_DIGEST")
+    rebuilt["workaround_selection"] = selection
+    return rebuilt
+
+
+def load_readiness_inputs(evidence_path: str | None, keys_path: str | None) -> tuple[list[Any], EvidenceVerifier | None]:
+    """CLI helper: evidence records and the operator-configured HMAC key set."""
+    evidence = _load_json(evidence_path) if evidence_path else []
+    if not isinstance(evidence, list):
+        raise ValueError("readiness evidence must be a JSON array of evidence records")
+    verifier = None
+    if keys_path:
+        keys = _load_json(keys_path)
+        if not isinstance(keys, Mapping) or not all(isinstance(v, str) for v in keys.values()):
+            raise ValueError("readiness keys must be a JSON object of key_id -> hex key")
+        verifier = hmac_evidence_verifier(keys)
+    return evidence, verifier
 
 
 def _load_json(path: str) -> Any:
@@ -489,6 +643,9 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--destination-profile")
     build.add_argument("--governance-reference-graph", help="JSON file containing a hash-bound non-authorizing Governance Reference Graph")
     build.add_argument("--created-at")
+    build.add_argument("--attempt-id", help="qualify readiness for this attempt; output is a build-qualification wrapper")
+    build.add_argument("--readiness-evidence", help="JSON array of authenticated invocation-bound component readiness evidence")
+    build.add_argument("--readiness-keys", help="JSON object key_id -> hex HMAC key trusted for readiness evidence")
     build.add_argument("--output", help="write manifest JSON to this path; default stdout")
 
     args = parser.parse_args(argv)
@@ -529,6 +686,11 @@ def main(argv: list[str] | None = None) -> int:
                 ),
                 created_at=args.created_at,
             )
+            if args.attempt_id and manifest.get("manifest_profile") is not None:
+                evidence, verifier = load_readiness_inputs(args.readiness_evidence, args.readiness_keys)
+                manifest = qualify_draft_manifest(
+                    manifest, attempt_id=args.attempt_id, readiness_evidence=evidence, evidence_verifier=verifier,
+                )
             _write_json(manifest, args.output)
             return 0
         except ValueError as exc:

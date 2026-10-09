@@ -80,6 +80,23 @@ class ConvergenceTests(unittest.TestCase):
             "--source-output-id", payload["request_id"],
         ]
 
+    def _ready_0a_args(self):
+        """0A dispatches only a READY draft (SDK#368 readiness gate)."""
+        from datetime import datetime, timedelta, timezone
+        from tests.test_manifest_readiness_gate import ATTEMPT, KEY, KEY_ID, _all_ready
+
+        payload = canonical_request()
+        draft = manifest_builder.build_manifest(
+            data=payload, source_framework="StegVerse-Labs/.github", source_output_id=payload["request_id"],
+            processor_request=governance_request(payload), process="governance",
+        )
+        evidence = _all_ready(draft, at=datetime.now(timezone.utc) - timedelta(seconds=5))
+        return self._0a_args() + [
+            "--attempt-id", ATTEMPT,
+            "--readiness-evidence", self._write("evidence.json", evidence),
+            "--readiness-keys", self._write("keys.json", {KEY_ID: KEY}),
+        ]
+
     def test_0b_handoff_bound_to_same_manifest_digest_and_route(self):
         manifest = governance_manifest()
         rc, output, fetched = self._run(["governance", "--select", "0B", "--manifest", self._write("m.json", manifest)])
@@ -109,8 +126,9 @@ class ConvergenceTests(unittest.TestCase):
             built.append(real(**kwargs))
             return copy.deepcopy(built[-1])
 
+        args = self._ready_0a_args()
         with patch("stegverse.manifest_builder.build_manifest", side_effect=capture) as builder:
-            rc, output, _ = self._run(self._0a_args())
+            rc, output, _ = self._run(args)
         self.assertEqual(rc, 0)
         builder.assert_called_once()
         self.assertEqual(builder.call_args.kwargs["process"], "governance")
@@ -133,7 +151,7 @@ class ConvergenceTests(unittest.TestCase):
         fetched.assert_not_called()
 
     def test_console_mode_cannot_select_a_different_runtime(self):
-        _, built, _ = self._run(self._0a_args())
+        _, built, _ = self._run(self._ready_0a_args())
         _, supplied, _ = self._run(["governance", "--select", "0B", "--manifest", self._write("built.json", built["manifest"])])
         self.assertEqual(built["runtime_binding"], supplied["runtime_binding"])
         self.assertEqual(built["route_id"], supplied["route_id"])

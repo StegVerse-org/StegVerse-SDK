@@ -21,6 +21,8 @@ HANDOFF = {
     }},
 }
 
+READY = {"state": "READY", "executable": True, "qualification": {"qualification": "READY"}}
+
 
 class Tests(unittest.TestCase):
     # SDK#368: 0B no longer runs the local governance lifecycle. The supplied
@@ -61,12 +63,17 @@ class Tests(unittest.TestCase):
             request.write_text(json.dumps({"candidate": {}}), encoding="utf-8")
             with patch("stegverse.manifest_builder.build_manifest", return_value=manifest) as build, \
                     patch("stegverse.manifest_execution.execute_manifest", return_value=HANDOFF) as run, \
+                    patch("stegverse.manifest_builder.qualify_draft_manifest", return_value=READY) as qualify, \
+                    patch("stegverse.manifest_plan.require_ready_qualification") as require, \
                     contextlib.redirect_stdout(io.StringIO()):
                 rc = main(["governance", "--select", "0A", "--input", str(data), "--processor-request", str(request)])
         self.assertEqual(0, rc)
         build.assert_called_once()
         self.assertEqual({"request_id": "fixture"}, build.call_args.kwargs["data"])
         self.assertEqual({"candidate": {}}, build.call_args.kwargs["processor_request"])
+        # SDK#368: the built draft is qualified before the canonical entrypoint.
+        self.assertIs(qualify.call_args.args[0], manifest)
+        require.assert_called_once_with(manifest, READY["qualification"])
         run.assert_called_once_with(manifest)
 
 

@@ -273,3 +273,98 @@ def validate_runtime_provenance(provenance: Any) -> dict[str, Any]:
     if supplied_capability is not None and supplied_capability != resolved["processor_capability"]:
         raise ValueError("execution_provenance processor_capability conflicts with resolved route")
     return resolved
+
+
+# --- Readiness dependency contract (SDK#368) --------------------------------
+# Source declarations of what each published route depends on. They name the
+# components whose readiness must be evidenced; they are never readiness
+# themselves (``runtime_installed`` is a source fact, not an observation).
+READINESS_DEPENDENCY_ROLES = (
+    "ingress",
+    "authorization",
+    "route",
+    "processor",
+    "consequence",
+    "custody",
+    "return",
+)
+ORGANIZATION_LEDGER_CUSTODY = "ORGANIZATION_LEDGER_CUSTODY"
+CUSTOMER_CONTROLLED_CUSTODY = "CUSTOMER_CONTROLLED_CUSTODY"
+_STATE_TRANSITION_RUNTIME_BINDING = "stegverse.manifest_state_transition_runtime.execute_manifest"
+_CUSTOMER_LOCAL_RUNTIME_BINDING = "stegverse.customer_local_governance.execute_manifest"
+_BINDING_SEMANTICS: dict[str, dict[str, Any]] = {
+    _STATE_TRANSITION_RUNTIME_BINDING: {
+        "authorization": "TVC_RELAY_AUTHORIZATION_INTERLOCK_INTR",
+        "custody": ORGANIZATION_LEDGER_CUSTODY,
+        "return": "stegverse.manifest_state_transition_runtime.admit_runtime_result",
+    },
+    _CUSTOMER_LOCAL_RUNTIME_BINDING: {
+        "authorization": "CUSTOMER_OWNED_AUTHORITY_CALLBACKS",
+        "custody": CUSTOMER_CONTROLLED_CUSTODY,
+        "return": _CUSTOMER_LOCAL_RUNTIME_BINDING,
+    },
+}
+
+# Alternatives are only ever enumerated from these declarations (or from routes
+# a caller explicitly declares). A declaration is not a substitution: each one
+# needs its own readiness qualification and an explicit user selection.
+DECLARED_ALTERNATIVE_ROUTES: dict[str, tuple[str, ...]] = {
+    CANONICAL_PRODUCTION_ROUTE_ID: (CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID,),
+}
+
+
+def route_semantics(route: Mapping[str, Any]) -> dict[str, Any]:
+    """Authorization, custody and return semantics declared by a route's binding."""
+    declared = _BINDING_SEMANTICS.get(route.get("runtime_binding"), {})
+    return {
+        "authorization": declared.get("authorization"),
+        "custody": declared.get("custody"),
+        "return": declared.get("return") or route.get("runtime_binding"),
+        "consequence": route.get("external_consequence_enabled") is True,
+        "containment": route.get("containment"),
+    }
+
+
+def route_readiness_dependencies(
+    route_id: str,
+    *,
+    published_routes: Mapping[str, Mapping[str, Any]] | None = None,
+) -> tuple[dict[str, Any], ...]:
+    """Return the dependency nodes of one published route, in DAG order."""
+    routes = PUBLISHED_ROUTES if published_routes is None else published_routes
+    route = routes.get(route_id)
+    if not isinstance(route, Mapping):
+        raise ValueError(f"unsupported manifest route: {route_id!r}")
+    semantics = route_semantics(route)
+    declaration_hash = canonical_sha256({field: route.get(field) for field in _ROUTE_FIELDS})
+    components = {
+        "ingress": route.get("routing_surface"),
+        "authorization": semantics["authorization"],
+        "route": route_id,
+        "processor": route.get("runtime_binding"),
+        "consequence": route.get("containment") if semantics["consequence"] else None,
+        "custody": semantics["custody"],
+        "return": semantics["return"],
+    }
+    nodes = []
+    previous: str | None = None
+    for role in READINESS_DEPENDENCY_ROLES:
+        component = components[role]
+        node_id = f"{route_id}#{role}"
+        nodes.append({
+            "node_id": node_id,
+            "role": role,
+            "route_id": route_id,
+            "component": component,
+            "required": component is not None,
+            "depends_on": [previous] if previous else [],
+            "contract_ref": canonical_sha256({
+                "route_declaration_hash": declaration_hash,
+                "role": role,
+                "component": component,
+            }),
+            "source_runtime_installed": route.get("runtime_installed") is True,
+        })
+        if component is not None:
+            previous = node_id
+    return tuple(nodes)

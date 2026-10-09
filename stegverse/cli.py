@@ -221,6 +221,35 @@ def _submit_canonical_manifest(key: str, args: argparse.Namespace) -> tuple[int,
                 })
                 return 2, output
             output["manifest"] = manifest
+            # SDK#368: a schema-valid draft is not runnable until every required
+            # node of its manifest-selected path is READY on supplied evidence.
+            from .manifest_builder import load_readiness_inputs, qualify_draft_manifest
+            from .manifest_plan import require_ready_qualification
+
+            evidence, verifier = load_readiness_inputs(
+                getattr(args, "readiness_evidence", None), getattr(args, "readiness_keys", None)
+            )
+            qualified = qualify_draft_manifest(
+                manifest,
+                attempt_id=getattr(args, "attempt_id", None) or str(manifest.get("source_output_id")),
+                readiness_evidence=evidence,
+                evidence_verifier=verifier,
+            )
+            output["readiness_qualification"] = qualified["qualification"]
+            output["executable"] = qualified["executable"]
+            if not qualified["executable"]:
+                output.update({
+                    "disposition": "FAIL_CLOSED",
+                    "failed_predicate": "MANIFEST_READINESS_QUALIFIED",
+                    "evidence": {
+                        "qualification": qualified["state"],
+                        "failing_nodes": qualified["qualification"]["failing_nodes"],
+                        "workarounds": qualified["qualification"]["workarounds"],
+                    },
+                    "draft_preserved": True,
+                })
+                return 2, output
+            require_ready_qualification(manifest, qualified["qualification"])
         else:
             manifest = dict(_load_json(args.manifest, "ingress manifest"))
         output["canonical_manifest_sha256"] = validate_ingress_manifest(manifest)["canonical_manifest_sha256"]
@@ -532,6 +561,9 @@ def build_parser() -> argparse.ArgumentParser:
     governance.add_argument("--process", default="governance", help="option 0A processing capability declared in the built manifest")
     governance.add_argument("--source-framework", default="stegverse-cli", help="option 0A source_framework recorded in the built manifest")
     governance.add_argument("--source-output-id", help="option 0A source_output_id; default derives from the data digest")
+    governance.add_argument("--attempt-id", help="option 0A readiness attempt id; default is the manifest source_output_id")
+    governance.add_argument("--readiness-evidence", help="option 0A JSON array of authenticated invocation-bound component readiness evidence")
+    governance.add_argument("--readiness-keys", help="option 0A JSON object key_id -> hex HMAC key trusted for readiness evidence")
     governance.add_argument("--manifest", help="option 0B stegverse.ingress-manifest.v1 JSON; validated without rebuild and submitted through its declared route")
     governance.add_argument("--manifest-receipt-id", help="MR-* locator for option 1 replay or option 2 reconstruction against the local enclosed custody store (non-canonical)")
     governance.add_argument("--fallback-operation", choices=("run", "replay", "reconstruct"), help="local enclosed degraded-mode path (SDK_LOCAL_ENCLOSED_VALIDATION, non-canonical, non-authorizing)")

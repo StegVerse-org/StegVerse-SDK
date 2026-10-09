@@ -18,7 +18,14 @@ def test_option_0_builds_manifest_and_submits_through_canonical_entrypoint(capsy
     handoff = {"disposition": "ALLOW", "state": "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF"}
     with patch("stegverse.cli._build_0a_manifest", return_value=built), patch(
         "stegverse.manifest_contract.validate_ingress_manifest", return_value={"canonical_manifest_sha256": "a" * 64}
-    ), patch("stegverse.manifest_execution.execute_manifest", return_value=handoff) as execute:
+    ), patch(
+        # SDK#368: the draft is qualified before dispatch; readiness is covered
+        # by tests/test_manifest_readiness_gate.py.
+        "stegverse.manifest_builder.qualify_draft_manifest",
+        return_value={"state": "READY", "executable": True, "qualification": {"qualification": "READY"}},
+    ), patch("stegverse.manifest_plan.require_ready_qualification"), patch(
+        "stegverse.manifest_execution.execute_manifest", return_value=handoff
+    ) as execute:
         rc = main(["governance", "--select", "0", "--input", "request.json"])
     assert rc == 0
     output = capsys.readouterr().out
