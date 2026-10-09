@@ -40,11 +40,16 @@ DESTINATION_RESOLUTION_SOURCE = "CANONICAL_CONNECTOR_CAPABILITY_OVERLAY"
 # waits for one, and a receiver's availability is not a transition predicate.
 RECEIVER_UNAVAILABLE_DISPOSITION = "DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION"
 
+# What an authentic Organization/Interlock transition closure must carry to be
+# admitted. Master Records reconstruction is not part of admission: it is
+# organization-records evidence only and never gates a result (owner directive,
+# StegVerse-SDK#368 issuecomment-6089922594: "Master Records reconstruction is
+# evidence-only and non-gating").
 _REQUIRED_CLOSURE = {
     "state": "RECORDED",
-    "reconstruction_status": "PASS",
     "required_evidence_validation_status": "PASS",
 }
+MASTER_RECORDS_EVIDENCE_SCHEMA = "stegverse.sdk.master-records-reconstruction-evidence/v1"
 
 
 
@@ -154,7 +159,64 @@ def derive_execution_request(manifest: Mapping[str, Any], organization_boundary:
     return request
 
 
-def _validate_transition_closures(result: Mapping[str, Any], graph: Mapping[str, Any]) -> None:
+def _closure_reconstruction_evidence(closure: Mapping[str, Any]) -> dict[str, Any]:
+    """Report one closure's Master Records reconstruction as evidence, never as a gate."""
+    status = closure.get("reconstruction_status")
+    reconstructed = closure.get("reconstructed_receipt_sha256")
+    if status is None and reconstructed is None:
+        observed = "NOT_PROVIDED"
+    elif status == "PASS" and reconstructed == closure.get("receipt_sha256"):
+        observed = "PASS"
+    else:
+        observed = "FAIL"
+    return {
+        "transition_id": closure.get("transition_id"),
+        "reconstruction_status": status,
+        "reconstructed_receipt_matches": None if reconstructed is None else reconstructed == closure.get("receipt_sha256"),
+        "evidence_status": observed,
+    }
+
+
+def _master_records_evidence(
+    result: Mapping[str, Any], graph: Mapping[str, Any], closures: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Validate manifest-declared reconstruction evidence as evidence only.
+
+    A route's state graph declares reconstruction-specific evidence through its
+    ``terminal_requirements``. That declaration is checked and reported here; it
+    does not decide admission of the Organization-records result.
+    """
+    terminal = graph.get("terminal_requirements")
+    terminal = terminal if isinstance(terminal, Mapping) else {}
+    declared = "reconstruction_status" in terminal or "exact_receipt_reconstruction_digest_equality" in terminal
+    statuses = [row["evidence_status"] for row in closures]
+    for key in ("replay_status", "reconstruction_status"):
+        if key in result:
+            statuses.append("PASS" if result.get(key) == "PASS" else "FAIL")
+    if "FAIL" in statuses:
+        overall = "FAIL"
+    elif statuses and all(item == "PASS" for item in statuses):
+        overall = "PASS"
+    elif "PASS" in statuses:
+        overall = "PARTIAL"
+    else:
+        overall = "NOT_PROVIDED"
+    return {
+        "schema": MASTER_RECORDS_EVIDENCE_SCHEMA,
+        "declared_by_manifest": declared,
+        "declared_requirements_satisfied": (overall == "PASS") if declared else None,
+        "replay_status": result.get("replay_status"),
+        "reconstruction_status": result.get("reconstruction_status"),
+        "closures": closures,
+        "evidence_status": overall,
+        "gates_admission": False,
+        "authority": "MASTER_RECORDS",
+        "authority_effect": "NONE_EVIDENCE_ONLY",
+    }
+
+
+def _validate_transition_closures(result: Mapping[str, Any], graph: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Admit the Organization/Interlock closure chain; return reconstruction evidence rows."""
     closures = result.get("transition_closures")
     ordered = graph.get("ordered_transitions")
     if not isinstance(ordered, list):
@@ -166,6 +228,7 @@ def _validate_transition_closures(result: Mapping[str, Any], graph: Mapping[str,
     if not isinstance(closures, list) or len(closures) != len(ordered):
         raise ValueError("MASTER_RECORDS_ORGANIZATION_RECORD_COUNT_MISMATCH")
     previous_receipt = None
+    evidence = []
     for index, (expected_transition, raw) in enumerate(zip(ordered, closures)):
         if not isinstance(raw, Mapping):
             raise ValueError(f"MASTER_RECORDS_ORGANIZATION_RECORD_OBJECT_REQUIRED:{index}")
@@ -176,13 +239,16 @@ def _validate_transition_closures(result: Mapping[str, Any], graph: Mapping[str,
             if closure.get(key) != expected:
                 raise ValueError(f"MASTER_RECORDS_ORGANIZATION_RECORD_REQUIRED:{expected_transition}:{key}")
         receipt = closure.get("receipt_sha256")
-        reconstructed = closure.get("reconstructed_receipt_sha256")
-        if not isinstance(receipt, str) or not receipt or receipt != reconstructed:
+        if not isinstance(receipt, str) or not receipt:
+            # The Organization transition receipt itself is required; only its
+            # Master Records reconstruction is evidence.
             raise ValueError(f"MASTER_RECORDS_RECEIPT_RECONSTRUCTION_MISMATCH:{expected_transition}")
         if index:
             if closure.get("predecessor_receipt_sha256") != previous_receipt:
                 raise ValueError(f"MASTER_RECORDS_IMMEDIATE_PREDECESSOR_MISMATCH:{expected_transition}")
         previous_receipt = receipt
+        evidence.append(_closure_reconstruction_evidence(closure))
+    return evidence
 
 
 def _validate_profile_source_deny(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
@@ -455,7 +521,7 @@ def _validate_governance_runtime_result(
         raise ValueError("GOVERNANCE_RESULT_MASTER_RECORDS_NOT_IN_GOVERNANCE_PATH")
     if result.get("publisher_executed") is not False or result.get("site_propagation_executed") is not False:
         raise ValueError("GOVERNANCE_RESULT_EXTERNAL_MUTATION_ESCALATION")
-    _validate_transition_closures(result, request["state_graph"])
+    reconstruction = _validate_transition_closures(result, request["state_graph"])
 
     action = result.get("manifest_directed_action")
     task_id = request.get("canonical_task_id")
@@ -508,7 +574,10 @@ def _validate_governance_runtime_result(
             raise ValueError("ORGANIZATION_BATCH_NONALLOW_MUST_NOT_EXECUTE_ACTION")
     elif action is not None:
         raise ValueError("UNBOUND_MANIFEST_DIRECTED_ACTION_RESULT")
-    return dict(result)
+    checked = dict(result)
+    checked["master_records_reconstruction_evidence"] = _master_records_evidence(
+        result, request["state_graph"], reconstruction)
+    return checked
 
 
 def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
@@ -533,11 +602,9 @@ def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any
         if result.get(key) != request.get(key):
             raise ValueError(f"UNIVERSAL_INTR_RESULT_BINDING_MISMATCH:{key}")
     graph = request["state_graph"]
-    _validate_transition_closures(result, graph)
-    if result.get("replay_status") != "PASS":
-        raise ValueError("MASTER_RECORDS_REPLAY_REQUIRED")
-    if result.get("reconstruction_status") != "PASS":
-        raise ValueError("MASTER_RECORDS_RECONSTRUCTION_REQUIRED")
+    reconstruction = _validate_transition_closures(result, graph)
+    # Master Records replay and reconstruction are reported as evidence below;
+    # a missing or failed status does not refuse an otherwise-valid result.
     terminal = result.get("terminal_state")
     if not isinstance(terminal, Mapping):
         raise ValueError("TERMINAL_STATE_REQUIRED")
@@ -548,7 +615,9 @@ def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any
     receipt_id = result.get("manifest_receipt_id")
     if not isinstance(receipt_id, str) or not receipt_id:
         raise ValueError("MANIFEST_RECEIPT_ID_REQUIRED")
-    return dict(result)
+    checked = dict(result)
+    checked["master_records_reconstruction_evidence"] = _master_records_evidence(result, graph, reconstruction)
+    return checked
 
 
 def _destination_not_declared(request: Mapping[str, Any]) -> dict[str, Any]:
@@ -695,6 +764,7 @@ def admit_runtime_result(
 __all__ = [
     "DESTINATION_RESOLUTION_SOURCE",
     "HANDOFF_SCHEMA",
+    "MASTER_RECORDS_EVIDENCE_SCHEMA",
     "RECEIVER_UNAVAILABLE_DISPOSITION",
     "REQUEST_SCHEMA",
     "RESULT_SCHEMA",

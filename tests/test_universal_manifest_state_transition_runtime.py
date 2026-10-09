@@ -283,12 +283,16 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"CONTRACT_MISMATCH"):
             validate_runtime_result(bad,req)
 
-    def test_digest_mismatch_fails_closed(self):
+    def test_reconstruction_digest_mismatch_is_evidence_not_admission_gate(self):
+        # SDK#368: Master Records reconstruction is evidence-only and non-gating.
         request = derive_execution_request(manifest())
         result = complete_result(request)
         result["transition_closures"][0]["reconstructed_receipt_sha256"] = "f" * 64
-        with self.assertRaisesRegex(ValueError, "MASTER_RECORDS_RECEIPT_RECONSTRUCTION_MISMATCH"):
-            validate_runtime_result(result, request)
+        checked = validate_runtime_result(result, request)
+        self.assertEqual(checked["state"], "COMPLETE")
+        evidence = checked["master_records_reconstruction_evidence"]
+        self.assertEqual(evidence["evidence_status"], "FAIL")
+        self.assertIs(evidence["gates_admission"], False)
 
 
 if __name__ == "__main__":
