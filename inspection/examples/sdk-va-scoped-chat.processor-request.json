@@ -1,0 +1,14 @@
+{
+  "schema": "stegverse.va-scoped-chat-request/v1",
+  "session_ref": "va-chat-session-example-001",
+  "message": "Summarize the admissibility posture for this VA.",
+  "requested_topic": "admissibility",
+  "va_scope": {
+    "policy_id": "va-scope-policy-example",
+    "va_ref": "va-example",
+    "allowed_topics": [
+      "admissibility",
+      "governed-lanes"
+    ]
+  }
+}

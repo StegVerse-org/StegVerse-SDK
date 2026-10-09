@@ -19,6 +19,14 @@ from .atomic_task_worker_processor import REQUEST_EXTENSION as ATOMIC_TASK_WORKE
 from .svg_governance_cycle_processor import REQUEST_EXTENSION as SVG_GOVERNANCE_CYCLE_REQUEST_EXTENSION, validate_svg_governance_cycle_request
 from .stegbrowser_processor import REQUEST_EXTENSION as STEGBROWSER_REQUEST_EXTENSION, validate_stegbrowser_request
 from .organization_role_conformance_processor import REQUEST_EXTENSION as ORGANIZATION_ROLE_CONFORMANCE_REQUEST_EXTENSION, validate_organization_role_conformance_request
+from .collab_ingress_processor import (
+    ECOSYSTEM_CHAT_REQUEST_EXTENSION,
+    HIL_INTAKE_REQUEST_EXTENSION,
+    VA_SCOPED_CHAT_REQUEST_EXTENSION,
+    validate_ecosystem_chat_request,
+    validate_hil_intake_request,
+    validate_va_scoped_chat_request,
+)
 from .governance_navigation import INGRESS_PROFILE, canonical_sha256
 from .governance_reference_graph import (
     EXTENSION_KEY as GOVERNANCE_REFERENCE_GRAPH_EXTENSION,
@@ -42,6 +50,9 @@ from .route_resolution import (
     SVG_GOVERNANCE_CYCLE_ROUTE_ID,
     STEGBROWSER_ROUTE_ID,
     ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID,
+    ECOSYSTEM_CHAT_ROUTE_ID,
+    VA_SCOPED_CHAT_ROUTE_ID,
+    HIL_INTAKE_ROUTE_ID,
     PUBLISHED_ROUTES,
 )
 
@@ -61,6 +72,11 @@ PROCESSOR_ROUTES = {
     "svg_governance_cycle": SVG_GOVERNANCE_CYCLE_ROUTE_ID,
     "stegbrowser": STEGBROWSER_ROUTE_ID,
     "organization_role_conformance": ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID,
+    # Collaborative ingress (SDK-MANIFEST-COLLAB-INGRESS-CONFORMANCE-001); all
+    # dispatch through stegverse.manifest_execution.execute_manifest.
+    "ecosystem_chat": ECOSYSTEM_CHAT_ROUTE_ID,
+    "va_scoped_chat": VA_SCOPED_CHAT_ROUTE_ID,
+    "hil_intake": HIL_INTAKE_ROUTE_ID,
 }
 
 GOVERNANCE_REQUEST_FIELDS = (
@@ -377,6 +393,12 @@ def build_manifest(
     elif normalized_process == "organization_role_conformance":
         normalized_request = validate_organization_role_conformance_request(processor_request)
         extensions[ORGANIZATION_ROLE_CONFORMANCE_REQUEST_EXTENSION] = normalized_request
+    elif normalized_process == "ecosystem_chat":
+        extensions[ECOSYSTEM_CHAT_REQUEST_EXTENSION] = validate_ecosystem_chat_request(processor_request)
+    elif normalized_process == "va_scoped_chat":
+        extensions[VA_SCOPED_CHAT_REQUEST_EXTENSION] = validate_va_scoped_chat_request(processor_request)
+    elif normalized_process == "hil_intake":
+        extensions[HIL_INTAKE_REQUEST_EXTENSION] = validate_hil_intake_request(processor_request)
     else:
         raise ValueError(f"processing capability {normalized_process!r} has no builder binding")
 

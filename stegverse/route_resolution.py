@@ -25,6 +25,10 @@ SHWP_SOVEREIGN_INFERENCE_ROUTE_ID = "stegverse.route.shwp-sovereign-inference.v1
 SVG_GOVERNANCE_CYCLE_ROUTE_ID = "stegverse.route.svg-governance-cycle.v1"
 STEGBROWSER_ROUTE_ID = "stegverse.route.stegbrowser.v1"
 ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID = "stegverse.route.organization-role-conformance.v1"
+# Collaborative ingress (owner SDK-MANIFEST-COLLAB-INGRESS-CONFORMANCE-001).
+ECOSYSTEM_CHAT_ROUTE_ID = "stegverse.route.ecosystem-chat.v1"
+VA_SCOPED_CHAT_ROUTE_ID = "stegverse.route.va-scoped-chat.v1"
+HIL_INTAKE_ROUTE_ID = "stegverse.route.hil-intake.v1"
 
 _ROUTE_FIELDS = (
     "route_id",
@@ -37,6 +41,46 @@ _ROUTE_FIELDS = (
 _ROUTE_MATCH_FIELDS = tuple(field for field in _ROUTE_FIELDS if field != "route_id")
 
 PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
+    # Collaborative ingress on the existing universal InTr path. VA-scoped chat
+    # is the Ecosystem Chat path with a manifest-declared scope policy; an
+    # out-of-scope request is refused before handoff. Nothing here answers,
+    # decides or transports.
+    ECOSYSTEM_CHAT_ROUTE_ID: {
+        "route_id": ECOSYSTEM_CHAT_ROUTE_ID,
+        "processor_capability": "ecosystem_chat",
+        "lane_class": "MANIFEST_BOUND_ECOSYSTEM_CHAT",
+        "routing_surface": "EXISTING_UNIVERSAL_INTR",
+        "containment": "RECEIVING_ORGANIZATION_GOVERNED_CONVERSATION",
+        "sandbox_required": False,
+        "external_consequence_enabled": False,
+        "state_graph_adapter_binding": "stegverse.collab_ingress_processor.derive_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "runtime_installed": True,
+    },
+    VA_SCOPED_CHAT_ROUTE_ID: {
+        "route_id": VA_SCOPED_CHAT_ROUTE_ID,
+        "processor_capability": "va_scoped_chat",
+        "lane_class": "MANIFEST_BOUND_VA_SCOPED_CHAT",
+        "routing_surface": "EXISTING_UNIVERSAL_INTR",
+        "containment": "RECEIVING_ORGANIZATION_GOVERNED_CONVERSATION",
+        "sandbox_required": False,
+        "external_consequence_enabled": False,
+        "state_graph_adapter_binding": "stegverse.collab_ingress_processor.derive_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "runtime_installed": True,
+    },
+    HIL_INTAKE_ROUTE_ID: {
+        "route_id": HIL_INTAKE_ROUTE_ID,
+        "processor_capability": "hil_intake",
+        "lane_class": "MANIFEST_BOUND_HUMAN_IN_THE_LOOP_INTAKE",
+        "routing_surface": "EXISTING_UNIVERSAL_INTR",
+        "containment": "RECEIVING_ORGANIZATION_HUMAN_DECISION",
+        "sandbox_required": False,
+        "external_consequence_enabled": False,
+        "state_graph_adapter_binding": "stegverse.collab_ingress_processor.derive_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "runtime_installed": True,
+    },
     # The receiving organization evaluates its own source and appends the
     # disposition on its existing manifest ingress; this route derives the
     # request graph only.
