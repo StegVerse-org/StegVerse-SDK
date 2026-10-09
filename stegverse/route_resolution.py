@@ -24,6 +24,7 @@ NATIVE_SOURCE_MATH_ROUTE_ID = "stegverse.route.source-native-math.v1"
 SHWP_SOVEREIGN_INFERENCE_ROUTE_ID = "stegverse.route.shwp-sovereign-inference.v1"
 SVG_GOVERNANCE_CYCLE_ROUTE_ID = "stegverse.route.svg-governance-cycle.v1"
 STEGBROWSER_ROUTE_ID = "stegverse.route.stegbrowser.v1"
+ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID = "stegverse.route.organization-role-conformance.v1"
 
 _ROUTE_FIELDS = (
     "route_id",
@@ -36,6 +37,21 @@ _ROUTE_FIELDS = (
 _ROUTE_MATCH_FIELDS = tuple(field for field in _ROUTE_FIELDS if field != "route_id")
 
 PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
+    # The receiving organization evaluates its own source and appends the
+    # disposition on its existing manifest ingress; this route derives the
+    # request graph only.
+    ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID: {
+        "route_id": ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID,
+        "processor_capability": "organization_role_conformance",
+        "lane_class": "MANIFEST_BOUND_ORGANIZATION_ROLE_CONFORMANCE",
+        "routing_surface": "EXISTING_UNIVERSAL_INTR",
+        "containment": "RECEIVING_ORGANIZATION_SOURCE_READ_ONLY_EVALUATION",
+        "sandbox_required": False,
+        "external_consequence_enabled": False,
+        "state_graph_adapter_binding": "stegverse.organization_role_conformance_processor.derive_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "runtime_installed": True,
+    },
     STEGBROWSER_ROUTE_ID: {
         "route_id": STEGBROWSER_ROUTE_ID,
         "processor_capability": "stegbrowser",

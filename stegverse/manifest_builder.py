@@ -18,6 +18,7 @@ from .purpose_bound_worker_processor import REQUEST_EXTENSION as PURPOSE_BOUND_W
 from .atomic_task_worker_processor import REQUEST_EXTENSION as ATOMIC_TASK_WORKER_REQUEST_EXTENSION, validate_atomic_task_worker_request
 from .svg_governance_cycle_processor import REQUEST_EXTENSION as SVG_GOVERNANCE_CYCLE_REQUEST_EXTENSION, validate_svg_governance_cycle_request
 from .stegbrowser_processor import REQUEST_EXTENSION as STEGBROWSER_REQUEST_EXTENSION, validate_stegbrowser_request
+from .organization_role_conformance_processor import REQUEST_EXTENSION as ORGANIZATION_ROLE_CONFORMANCE_REQUEST_EXTENSION, validate_organization_role_conformance_request
 from .governance_navigation import INGRESS_PROFILE, canonical_sha256
 from .governance_reference_graph import (
     EXTENSION_KEY as GOVERNANCE_REFERENCE_GRAPH_EXTENSION,
@@ -38,6 +39,7 @@ from .route_resolution import (
     ATOMIC_TASK_WORKER_ROUTE_ID,
     SVG_GOVERNANCE_CYCLE_ROUTE_ID,
     STEGBROWSER_ROUTE_ID,
+    ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID,
     PUBLISHED_ROUTES,
 )
 
@@ -56,6 +58,7 @@ PROCESSOR_ROUTES = {
     "atomic_task_worker": ATOMIC_TASK_WORKER_ROUTE_ID,
     "svg_governance_cycle": SVG_GOVERNANCE_CYCLE_ROUTE_ID,
     "stegbrowser": STEGBROWSER_ROUTE_ID,
+    "organization_role_conformance": ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID,
 }
 
 GOVERNANCE_REQUEST_FIELDS = (
@@ -368,6 +371,9 @@ def build_manifest(
     elif normalized_process == "stegbrowser":
         normalized_request = validate_stegbrowser_request(processor_request)
         extensions[STEGBROWSER_REQUEST_EXTENSION] = normalized_request
+    elif normalized_process == "organization_role_conformance":
+        normalized_request = validate_organization_role_conformance_request(processor_request)
+        extensions[ORGANIZATION_ROLE_CONFORMANCE_REQUEST_EXTENSION] = normalized_request
     else:
         raise ValueError(f"processing capability {normalized_process!r} has no builder binding")
 

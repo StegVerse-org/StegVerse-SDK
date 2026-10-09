@@ -1,0 +1,37 @@
+{
+  "schema": "stegverse.organization-role-conformance-request/v1",
+  "issuer": {
+    "repository": "StegVerse-Labs/StegDB",
+    "owner_task_id": "STEGDB-ORGANIZATION-ROLE-VERSION-PROPAGATION-002"
+  },
+  "destination_organization": "StegVerse-Labs",
+  "manifest_binding": {
+    "repository": "StegVerse-Labs/.github",
+    "path": "data/canonical-task-records/STEGDB-ORGANIZATION-ROLE-VERSION-PROPAGATION-002.json",
+    "commit": "e0b8998e91b9f7ef9e00b5c2c5d760ec93eb36b3",
+    "sha256": "sha256:eac427b36e305bf47af586e1ad54b571d8ad36a67298d85cadb1bdc9fe76536b"
+  },
+  "target_role_version": {
+    "version_id": "org-role-example",
+    "contract_digest": "sha256:3491ab59ab5981c88dd3a92cea8e6133a59beb6c23e5300f72693ac8c0ec8890",
+    "reference": {
+      "repository": "StegVerse-Labs/.github",
+      "ref": "e0b8998e91b9f7ef9e00b5c2c5d760ec93eb36b3"
+    },
+    "files": [
+      {
+        "path": "resident-runtime/ledger_store.py",
+        "blob_sha": "4a9ff50e0d9763dc44a481735b6c0f7ee7fe77c0",
+        "byte_count": 6910,
+        "contract_digest": "sha256:a3c52fb8a8f28bd0cd56135eecef19e469b8b23513650c6c0cf9dfa870e67db3"
+      },
+      {
+        "path": "resident-runtime/organization_egress_boundary.py",
+        "blob_sha": "3fae8c803d5a41033652a12997461b2c7477ff9c",
+        "byte_count": 45534,
+        "contract_digest": "sha256:3c2915b6c3847dd5bd08da52dd4bd27c677cc49b9afe1053da5e537a763bd52d"
+      }
+    ],
+    "digest_scope": "SHA256_OF_CANONICAL_JSON_OF_FILES_LIST"
+  }
+}

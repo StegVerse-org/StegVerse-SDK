@@ -91,6 +91,10 @@ EVALUATOR_EXAMPLES: dict[str, dict[str, str]] = {
         "source": SHARED_SOURCE,
         "processor_request": "sdk-test5-stegbrowser-llm-profile.processor-request.json",
     },
+    "organization_role_conformance": {
+        "source": SHARED_SOURCE,
+        "processor_request": "sdk-organization-role-conformance.processor-request.json",
+    },
 }
 
 #: Published routes the Manifest Builder cannot select even though their

@@ -200,7 +200,7 @@ class ManifestBuilderTests(unittest.TestCase):
             )
 
     def test_current_processor_registry_exposes_installed_processors(self):
-        self.assertEqual(available_processors(), ("atomic_task_worker", "ecosystem_diagnostic", "governance", "purpose_bound_worker", "stegbrowser", "svg_governance_cycle"))
+        self.assertEqual(available_processors(), ("atomic_task_worker", "ecosystem_diagnostic", "governance", "organization_role_conformance", "purpose_bound_worker", "stegbrowser", "svg_governance_cycle"))
 
     def test_governance_routes_are_peer_capabilities_with_explicit_profile_selection(self):
         routes = compatible_routes("governance")
