@@ -95,6 +95,18 @@ EVALUATOR_EXAMPLES: dict[str, dict[str, str]] = {
         "source": SHARED_SOURCE,
         "processor_request": "sdk-organization-role-conformance.processor-request.json",
     },
+    "ecosystem_chat": {
+        "source": SHARED_SOURCE,
+        "processor_request": "sdk-ecosystem-chat.processor-request.json",
+    },
+    "va_scoped_chat": {
+        "source": SHARED_SOURCE,
+        "processor_request": "sdk-va-scoped-chat.processor-request.json",
+    },
+    "hil_intake": {
+        "source": SHARED_SOURCE,
+        "processor_request": "sdk-hil-intake.processor-request.json",
+    },
 }
 
 #: Published routes the Manifest Builder cannot select even though their

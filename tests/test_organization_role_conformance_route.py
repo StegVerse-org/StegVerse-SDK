@@ -52,6 +52,12 @@ PRE_EXISTING_ROUTE_HASHES = {
     "stegverse.route.atomic-task-worker.v1": "9d42074cc4f1407453fa9416f040e6dfc5656d0ff84a56549095b2af2ba44946",
 }
 PRE_EXISTING_ROUTES_SHA256 = "349eef31690afbac7958d3deb8142be0a09603bd7c23faa865ad182e7e0a27c9"
+#: Published later by SDK#368 PR-4 (SDK-MANIFEST-COLLAB-INGRESS-CONFORMANCE-001).
+COLLAB_INGRESS_ROUTE_IDS = {
+    "stegverse.route.ecosystem-chat.v1",
+    "stegverse.route.va-scoped-chat.v1",
+    "stegverse.route.hil-intake.v1",
+}
 
 
 def conformance_route():
@@ -186,7 +192,8 @@ class OrganizationRoleConformanceRouteTests(unittest.TestCase):
     # (e) compatibility guard
     def test_every_pre_existing_route_resolves_unchanged(self):
         self.assertEqual(
-            set(PRE_EXISTING_ROUTE_HASHES) | {ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID}, set(PUBLISHED_ROUTES)
+            set(PRE_EXISTING_ROUTE_HASHES) | {ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID} | COLLAB_INGRESS_ROUTE_IDS,
+            set(PUBLISHED_ROUTES),
         )
         before = {route_id: PUBLISHED_ROUTES[route_id] for route_id in PRE_EXISTING_ROUTE_HASHES}
         self.assertEqual(

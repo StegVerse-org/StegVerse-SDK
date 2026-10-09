@@ -1,0 +1,9 @@
+{
+  "schema": "stegverse.hil-intake-request/v1",
+  "session_ref": "hil-session-example-001",
+  "subject_ref": "review-subject-example",
+  "requested_decision": "APPROVE_OR_REJECT",
+  "context_refs": [
+    "inspection/examples/sdk-tt-shared-source.json"
+  ]
+}

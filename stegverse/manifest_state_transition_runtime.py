@@ -664,6 +664,38 @@ def _destination_not_declared(request: Mapping[str, Any]) -> dict[str, Any]:
     return result
 
 
+def manifest_policy_refusal(request: Mapping[str, Any]) -> dict[str, Any]:
+    """Governed refusal of a request outside its manifest-declared policy.
+
+    Decided from the manifest alone, before any handoff: nothing is transported
+    and no consequence exists to commit.
+    """
+    refusal = request["state_graph"]["manifest_policy_refusal"]
+    result = {
+        "schema": "stegverse.sdk.manifest-policy-refusal/v1",
+        "state": "DENY",
+        "disposition": "DENY",
+        "terminal": True,
+        "evaluation_boundary": refusal["evaluation_boundary"],
+        "failed_predicate": refusal["failed_predicate"],
+        "evidence": dict(refusal["evidence"]),
+        "request_sha256": request["request_sha256"],
+        "wire_manifest_sha256": request["wire_manifest_sha256"],
+        "canonical_manifest_sha256": request["canonical_manifest_sha256"],
+        "graph_id": request["graph_id"],
+        "canonical_task_id": request.get("canonical_task_id"),
+        "processing_capability": request["processing_capability"],
+        "route_id": request["route_id"],
+        "transport_performed_by_sdk": False,
+        "receiver_contacted": False,
+        "consequence_committed": False,
+        "evidence_class": "SDK_LOCAL_MANIFEST_DECLARED_POLICY",
+        "authority_effect": "NONE_REFUSAL_ONLY",
+    }
+    result["refusal_sha256"] = _sha256(result)
+    return result
+
+
 def build_intr_handoff(request: Mapping[str, Any]) -> dict[str, Any]:
     """Hand the manifested request to the receiving Interlock runtime.
 
@@ -721,7 +753,11 @@ def execute_manifest(manifest: Mapping[str, Any], organization_boundary: Mapping
     the SDK does not perform the transition and does not wait for one: a result
     arrives separately, through ``admit_runtime_result``.
     """
-    return build_intr_handoff(derive_execution_request(manifest, organization_boundary))
+    request = derive_execution_request(manifest, organization_boundary)
+    graph = request.get("state_graph")
+    if isinstance(graph, Mapping) and isinstance(graph.get("manifest_policy_refusal"), Mapping):
+        return manifest_policy_refusal(request)
+    return build_intr_handoff(request)
 
 
 def admit_runtime_result(
@@ -774,5 +810,6 @@ __all__ = [
     "derive_execution_request",
     "execute_manifest",
     "manifest_declared_destination",
+    "manifest_policy_refusal",
     "validate_runtime_result",
 ]

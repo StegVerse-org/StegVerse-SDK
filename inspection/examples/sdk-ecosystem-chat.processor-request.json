@@ -1,0 +1,6 @@
+{
+  "schema": "stegverse.ecosystem-chat-request/v1",
+  "session_ref": "chat-session-example-001",
+  "message": "Which governed lanes are available to this organization?",
+  "requested_topic": "governed-lanes"
+}
