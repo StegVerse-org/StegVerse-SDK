@@ -23,7 +23,7 @@ _RESULT_LINEAGE_SCHEMA = "stegverse.sdk.run-manifest-lineage.v1"
 _RUN_MANIFEST_REQUEST_SCHEMA = "stegverse.sdk.run-manifest-request.v1"
 _CANONICAL_ORGANIZATION_BOUNDARY_REPOSITORY = "StegVerse-Labs/.github"
 _CANONICAL_ORGANIZATION_BOUNDARY_PATH = "org-runtime/interlock-intr.json"
-_CANONICAL_ORGANIZATION_BOUNDARY_REF = "75d68c83e28178af053b8af097de4c8ca7e5017e"
+_CANONICAL_ORGANIZATION_BOUNDARY_REF = "aa2f89ac877e6a84bedb81a8b4efb30f4910d5f4"
 _CANONICAL_ORGANIZATION_BOUNDARY_SOURCE_ID = "stegverse-labs-organization-interlock-intr-boundary"
 
 _RESERVED_LINEAGE_FIELDS = {
@@ -135,7 +135,7 @@ def _canonical_organization_boundary(*, fetcher=None) -> dict[str, Any]:
         "path": _CANONICAL_ORGANIZATION_BOUNDARY_PATH,
         "record_type": "ORGANIZATION_INTERLOCK_INTR_BOUNDARY",
         "title": "StegVerse-Labs organization Interlock/InTr boundary",
-        "observed_at": "2026-10-02T00:00:00Z",
+        "observed_at": "2026-10-07T19:24:08Z",
         "canonical": True,
         "authoritative": True,
     })

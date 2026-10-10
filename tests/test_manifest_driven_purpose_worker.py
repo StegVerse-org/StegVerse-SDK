@@ -79,7 +79,7 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         self.assertEqual(result["disposition"], "ALLOW")
         self.assertEqual(result["evaluation_boundary"], "SDK_MANIFEST_HANDOFF")
         self.assertEqual(result["destination"]["owner_repository"], "StegVerse-Labs/.github")
-        self.assertEqual(result["destination"]["receiving_operation"]["path"], "/intr/materialization")
+        self.assertEqual(result["destination"]["receiving_operation"]["operation_id"], "ORGANIZATION_SDK_MANIFEST_INGRESS")
         self.assertFalse(result["transport_performed_by_sdk"])
         self.assertFalse(result["receiver_contacted"])
         self.assertFalse(result["intr_admission_observed"])

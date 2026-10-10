@@ -252,7 +252,7 @@ class HeldOutManifestedReadinessSourceOnly(unittest.TestCase):
                 self.assertEqual(handoff["state"], "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF")
                 self.assertEqual(handoff["evaluation_boundary"], "SDK_MANIFEST_HANDOFF")
                 self.assertEqual(handoff["destination"]["owner_repository"], "StegVerse-Labs/.github")
-                self.assertEqual(handoff["destination"]["receiving_operation"]["path"], "/intr/materialization")
+                self.assertEqual(handoff["destination"]["receiving_operation"]["operation_id"], "ORGANIZATION_SDK_MANIFEST_INGRESS")
                 self.assertFalse(handoff["transport_performed_by_sdk"])
                 self.assertFalse(handoff["receiver_contacted"])
                 self.assertFalse(handoff["intr_admission_observed"])

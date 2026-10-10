@@ -70,7 +70,7 @@ def test_test5_run_manifest_consumes_canonical_organization_endpoint_mapping(mon
     assert result["evaluation_boundary"] == "SDK_MANIFEST_HANDOFF"
     assert result["destination_resolution_source"] == "CANONICAL_CONNECTOR_CAPABILITY_OVERLAY"
     assert result["destination"]["owner_repository"] == "StegVerse-Labs/.github"
-    assert result["destination"]["receiving_operation"]["path"] == "/intr/materialization"
+    assert result["destination"]["receiving_operation"]["operation_id"] == "ORGANIZATION_SDK_MANIFEST_INGRESS"
     assert result["transport_performed_by_sdk"] is False
     assert result["receiver_contacted"] is False
     assert result["intr_admission_observed"] is False
