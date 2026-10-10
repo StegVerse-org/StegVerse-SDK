@@ -232,9 +232,12 @@ def run_mcp_governed_test(
         "descriptor_name": descriptor.get("name"),
         "portable_packet": packet,
         "governed_result": governed,
+        # Downstream local run store status; completion is the organization ledger's.
         ORGANIZATION_RECORD_STATUS_FIELD: read_field(
             governed, ORGANIZATION_RECORD_STATUS_FIELD, LEGACY_ORGANIZATION_RECORD_STATUS_FIELD
         ),
+        "sovereign_completion": governed.get("sovereign_completion") is True,
+        "organization_ledger_completion": governed.get("organization_ledger_completion"),
         "manifest_receipt_id": governed.get("manifest_receipt_id"),
         "return_path": "canonical-ingestion/CGE->SDK",
     }
