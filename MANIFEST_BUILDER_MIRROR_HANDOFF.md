@@ -1,5 +1,32 @@
 # Manifest Builder Mirror Handoff
 
+## 2026-10-10 SDK #368 readiness evidence lineage repair
+
+Existing canonical owner: `SDK-MANIFEST-IDENTITY-ROUTING-REGRESSION-GATE-001`,
+COSV `71000000100125`; registry and canonical coordination handoff:
+`StegVerse-Labs/.github:data/canonical-task-records/SDK-MANIFEST-IDENTITY-ROUTING-REGRESSION-GATE-001.json`
+and `docs/SDK_MANIFEST_IDENTITY_ROUTING_REGRESSION_GATE_MIRROR_HANDOFF.md`.
+Source continuation uses existing branch `claude/368-pr3-readiness-gate` after
+its previous PR #446 merged; no concurrent source branch is overwritten.
+
+At SDK `8c4d373451e9c3c5f6fa927b03b145584308f157`, evidence for one draft
+incorrectly qualified changed `requested_consequence`, `declared_intent` and
+`source_instance` as READY. `manifest_plan.readiness_invocation_binding` now
+requires the validated full manifest digest and uses binding schema v2. Prior
+v1 evidence cannot qualify a new invocation. A workaround selection returns a
+preserved NOT_READY draft until independently qualified with evidence for the
+new digest; there is no automatic dispatch or route substitution. Option 0A
+accepts the original draft timestamp via `--created-at` for repeatable evidence
+binding; option 0B still validates the supplied manifest without rebuilding.
+
+Regression coverage includes changed consequence, intent, initiator instance,
+return projection and authority-context extension, plus changed workaround
+selection and fresh-evidence recovery. These use signed test fixtures only.
+No authentic runtime transition, credential custody, sovereign Organization
+readback, Master Records reconstruction or release is asserted. Coordination
+state remains ACTIVE; no WorkerCoordinator claim/fence is minted by this repair.
+No new repository dependency or external-machine wait is introduced.
+
 ## Source of truth
 
 ```text

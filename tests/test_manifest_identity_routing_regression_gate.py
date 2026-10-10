@@ -277,6 +277,7 @@ class _GateCase(unittest.TestCase):
             "--process", capability,
             "--source-framework", _source_framework(capability),
             "--source-output-id", _source_output_id(capability),
+            "--created-at", manifest["created_at"],
             *self._evidence_args(manifest, ready),
         ]
 
