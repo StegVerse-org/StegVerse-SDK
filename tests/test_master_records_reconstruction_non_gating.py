@@ -82,7 +82,8 @@ class GenericResultAdmissionTests(unittest.TestCase):
         self.assertEqual(self.request["transition_receipt_authority"], "ORGANIZATION_LEDGER")
         self.assertEqual(self.request["downstream_batch_receipt_recorder"], "MASTER_RECORDS")
         self.assertIs(self.request["downstream_batch_receipt_recording_gates_transition"], False)
-        self.assertNotIn("custody_replay_reconstruction_authority", self.request)
+        # Legacy wire field kept only for the pinned receiving Interlock.
+        self.assertEqual(self.request["custody_replay_reconstruction_authority"], "MASTER_RECORDS")
         evidence = validate_runtime_result(self.result, self.request)["master_records_reconstruction_evidence"]
         self.assertNotIn("authority", evidence)
         self.assertEqual(evidence["recorder_role"], "DOWNSTREAM_RELEASED_BATCH_RECEIPT_RECORDING")

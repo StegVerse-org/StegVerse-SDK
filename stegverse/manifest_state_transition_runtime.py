@@ -151,6 +151,11 @@ def derive_execution_request(manifest: Mapping[str, Any], organization_boundary:
         "claim_fence_authority": "WORKERCOORDINATOR",
         "transition_authority": "INTERLOCK_INTR",
         "transition_receipt_authority": "ORGANIZATION_LEDGER",
+        # Legacy wire field still required verbatim by the pinned receiving
+        # Interlock (StegVerse-Labs/.github manifest_state_transition_intr_ingress);
+        # it confers nothing here. Removal is tracked under
+        # LLMA-DECLARED-PATH-CONFORMANCE-368 and needs that receiver changed first.
+        "custody_replay_reconstruction_authority": "MASTER_RECORDS",
         "downstream_batch_receipt_recorder": "MASTER_RECORDS",
         "downstream_batch_receipt_recording_gates_transition": False,
         "manifest_declared_destination": destination,
