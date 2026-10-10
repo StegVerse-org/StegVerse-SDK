@@ -101,7 +101,7 @@ They do not themselves establish fresh SPE standing or canonical StegGate admiss
 
 - StegCore remains canonical StegGate/AdmittedCode owner.
 - Standing-Proof-Engine remains standing owner.
-- Master Records remains limited to organization records and reconstruction where separately admitted.
+- Master Records remains limited to downstream, non-gating recording of released organization batch receipts for reconstruction.
 - Active StegCore PR #141 remains a transaction-lifecycle collision boundary.
 - TV/TVC only for credentials; no GitHub-token runtime authority.
 - no alternate demo backend, receipt authority, evaluator, heartbeat, scheduler, or provider runtime is introduced.
@@ -115,4 +115,4 @@ This slice is not complete on source presence. Required evidence before marking 
 3. PR merged to current main;
 4. issue #65 updated with exact commit/run evidence.
 
-Full #65 remains open until a real StegVerse module and an external/reference participant perform reciprocal interlock binding through the production governance path and Master Records reconstruction passes.
+Full #65 remains open until a real StegVerse module and an external/reference participant perform reciprocal interlock binding through the production governance path and the transition closes on the organization-ledger transition receipt (Master Records reconstruction is optional downstream evidence, not a gate).

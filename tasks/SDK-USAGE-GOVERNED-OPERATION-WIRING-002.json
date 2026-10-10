@@ -19,7 +19,7 @@
     "workflow_result": "SUCCESS",
     "dedicated_tests": "16 passed"
   },
-  "claim_release_condition": "Canonical StegCore transport to Master Records organization records is bound to the SDK adapter; Interlock/InTr admits that transport; one option 0, 1, and 2 integration proof is retained.",
+  "claim_release_condition": "Canonical StegCore manifest-receipt transport (organization-ledger-backed; Master Records only records released batch receipts downstream) is bound to the SDK adapter; Interlock/InTr admits that transport; one option 0, 1, and 2 integration proof is retained.",
   "collision_boundaries": [
     "Do not create a second manifest_receipt_id algorithm",
     "Do not create local custody authority",
@@ -36,14 +36,14 @@
   "dependencies": [
     "StegVerse-Labs/StegCore/docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md",
     "StegVerse-Labs/StegCore#85",
-    "master-records/orchestration canonical manifest-receipt organization-record transport",
+    "master-records/orchestration downstream batch-receipt recording (optional, non-gating; not a prerequisite of the transport binding)",
     "StegVerse-Labs/TVC/tasks/TVC-SDK-USAGE-NOTIFICATION-RELAY-001.json"
   ],
   "source_state": "COMPLETE_VALIDATED_MERGED",
   "validation_state": "HOSTED_PASS_16_OF_16",
   "integration_state": "BLOCKED_ON_CANONICAL_PROVIDER_TRANSPORT",
   "blocker": {
-    "owner": "StegVerse-Labs/StegCore + master-records/orchestration",
+    "owner": "StegVerse-Labs/StegCore",
     "evidence": "StegVerse-Labs/StegCore/docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md + issue #85",
     "release_condition": "admitted manifest-receipt transport proves immutable submit/resolve/replay/reconstruct contract and is exposed to SDK callers",
     "next_action": "bind that released provider transport to GovernedOperations and retain one option 0/1/2 end-to-end usage observation proof"

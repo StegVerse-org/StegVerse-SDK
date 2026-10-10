@@ -95,7 +95,7 @@ authorized-resident Personal-KV source custody
 -> exact provider-file metadata probe + durable replay/use evidence
 -> SDK normalization / active-probe predicate re-evaluation
 -> lifecycle/MIR reporting
--> independent Master Records organization records/reconstruction
+-> (downstream, non-gating) independent Master Records recording of the released batch receipt / reconstruction
 -> one-current-device end-to-end evidence
 ```
 
@@ -152,7 +152,7 @@ Parent prompt ceiling: `20/20`. Remaining work is canonically transferred to act
 3. For `BLOCKED`, remediate only the exact resident prerequisite through its canonical owner; do not create a substitute executor.
 4. After target-purpose custody/readback and listener health exist, require authentic sovereign `stegverse.org` ingress/callback reachability through Service Gateway #72.
 5. Only after custody and callback reachability are proven, perform owner-present Google consent on the current iPhone.
-6. Execute one exact authoritative provider-file metadata probe, feed only secret-free result/use evidence through the SDK bridge/active-probe engine, then complete MIR, Master Records, one-current-device proof, downstream propagation, and public-distribution evidence.
+6. Execute one exact authoritative provider-file metadata probe, feed only secret-free result/use evidence through the SDK bridge/active-probe engine, then complete MIR, one-current-device proof, downstream propagation, and public-distribution evidence (Master Records recording of the released batch receipt is optional downstream evidence, not a step gate).
 
 ## Current status
 

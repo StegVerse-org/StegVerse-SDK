@@ -124,18 +124,18 @@
     },
     {
       "task_id": "SDK-004",
-      "originating_goal": "Master-Records organization record and independent reconstruction",
+      "originating_goal": "Master-Records downstream batch-receipt recording and independent reconstruction (non-gating)",
       "repository": "StegVerse-org/StegVerse-SDK",
       "branch": "main",
       "location": "stegverse/master_records_http.py; stegverse/master_records_custody.py",
-      "owner": "authorized Master-Records integration lane",
+      "owner": "authorized Master-Records downstream recording integration lane (non-gating)",
       "claim_state": "BLOCKED",
       "completion_state": "implementation complete; external evidence missing",
       "validation_state": "local transport and custody tests installed",
       "integration_state": "base URL and credential resolver not configured",
       "evidence_location": "SDK_MIRROR_HANDOFF.md#master-records-http-custody-path",
       "next_action": "submit one identity-bound chain and independently reconstruct it",
-      "release_condition": "validated external custody receipt and reconstruction PASS",
+      "release_condition": "validated downstream batch receipt and reconstruction PASS (optional evidence; not a gate for any transition)",
       "archival_dependency": false
     },
     {

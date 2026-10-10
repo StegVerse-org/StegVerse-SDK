@@ -74,7 +74,7 @@ Implementation merged with SDK validation passing and documentation describing t
 
 ## Implementation refinement
 
-Canonical replay/reconstruction implementation remains unchanged. The lane uses `stegverse/viewer_bound_operations.py` to invoke the canonical operation and then append a sequence-4 `VIEWER_BOUND` event to the same Master Records organization record. This preserves the source run and canonical operation semantics while making viewer identity and deterministic viewer replay/reconstruction IDs durable evidence context.
+Canonical replay/reconstruction implementation remains unchanged. The lane uses `stegverse/viewer_bound_operations.py` to invoke the canonical operation and then append a sequence-4 `VIEWER_BOUND` event to the same retained run record (currently held in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)). This preserves the source run and canonical operation semantics while making viewer identity and deterministic viewer replay/reconstruction IDs durable evidence context.
 
 
 ## Transition-receipt continuation — 2026-08-31

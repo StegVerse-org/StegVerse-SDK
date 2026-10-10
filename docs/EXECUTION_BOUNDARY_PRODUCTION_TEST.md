@@ -14,7 +14,7 @@ a consequence is admissible only if the materially relevant observable state
 at the execution boundary establishes current admissibility.
 ```
 
-The SDK helper is evidence-producing and non-authorizing. Actual consequential execution must remain on the canonical StegCore/StegGate/Master Records path.
+The SDK helper is evidence-producing and non-authorizing. Actual consequential execution must remain on the canonical StegCore/StegGate path (Master Records only records released batch receipts downstream, non-gating).
 
 ## Prerequisites
 
@@ -136,8 +136,8 @@ material transition evidence and state hashes
 fresh boundary admissibility result + local receipt hash
 execution-boundary SDK result + local receipt hash
 canonical manifest / receipt identifiers
-Master Records MRR checkpoint organization record
-Master Records MR exact-run organization record
+MRR checkpoint record (local run store: master-records package, known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
+MR exact-run record (same local run store; not Master Records custody)
 return MRR custody
 replay result
 reconstruction result

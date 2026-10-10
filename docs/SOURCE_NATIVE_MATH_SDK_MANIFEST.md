@@ -8,7 +8,7 @@ Source packages implement `evaluate(document, original_specimen_bytes=actual_byt
 
 For original CHF, the source owner must supply its **own** approved and installed distribution exposing `tools/evaluate_chf_specimen_thresholds.py::evaluate_specimen` at source file blob `784be9beb839fc42f337758363facba0ed3958e9`. The frozen synthetic specimen SHA-256 is `fa95f04d35e51df5892a35dc2dd28e823696334082320c60df29d06c50bead02`. Original expected native case suffixes: positive `40765ba64002847bb58d83a1d1745758be3f8b087beb58283f73b5ff479a2e3c`, below absorption `40c855e6f41de8afa4faf195d34f8598795c9d172ea676802b891c4a5ba6b052`, unknown observability `c97596105a3de44ecc473cf97c04005923439291c79bf4057453ba397bb247ea`. An actual original-source package plus manifested execution is required for **SDK_MANIFEST_INVOKABLE**; mocked installed entry points prove only SDK adapter semantics, not CHF installation.
 
-No source-only output grants governance permission or genuine execution. CHF consequence horizon remains NOT_ESTABLISHED and physical heat NOT_OBSERVED. The real SPE/StegGate/Interlock/InTr/Master Records path remains separately authorized; component-010's host-attested ChatGPT session origin and organization event history are independently UNKNOWN.
+No source-only output grants governance permission or genuine execution. CHF consequence horizon remains NOT_ESTABLISHED and physical heat NOT_OBSERVED. The real SPE/StegGate/Interlock/InTr path remains separately authorized (Master Records only records released batch receipts downstream and authorizes nothing); component-010's host-attested ChatGPT session origin and organization event history are independently UNKNOWN.
 
 ## ST-014 validator impact / ST-017 validation scope
 

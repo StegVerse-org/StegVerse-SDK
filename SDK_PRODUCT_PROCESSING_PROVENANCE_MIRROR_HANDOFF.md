@@ -35,7 +35,7 @@ StegCore/StegGate -> canonical governance implementation
 Core-Lite -> manifested route carrier where actually traversed
 Interlock/InTr -> governed transition authority; must remain NOT_OBSERVED unless authentic evidence is present
 StegAgents/runtime -> bounded execution product; must remain NOT_OBSERVED unless authentic worker/runtime evidence is present
-Master Records -> organization records/reconstruction product evidence
+Master Records -> downstream recorder of released organization batch receipts (reconstruction evidence; not custody or authority)
 LLM-adapter -> upstream product contribution only from bound source/product provenance; SDK does not infer adapter internals
 TV/TVC -> credential authority; not replaced by this envelope
 ```

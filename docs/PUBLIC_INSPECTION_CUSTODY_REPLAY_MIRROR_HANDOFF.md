@@ -14,7 +14,7 @@ release_state: NOT_RELEASED
 
 ## Goal
 
-Enforce the ecosystem invariant that every state transition required by SDK run, replay, and reconstruction is retained in Master Records before the corresponding artifact is returned.
+Enforce the ecosystem invariant that every state transition required by SDK run, replay, and reconstruction is retained in the local run store before the corresponding artifact is returned (the store is currently the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody); Master Records is not a gate).
 
 ## Governed-run ordering
 
@@ -25,7 +25,7 @@ public inspection request
 -> canonical run_manifested_transaction
 -> complete hash-chained transition trajectory
 -> canonical manifest_receipt_id
--> POST exact-run evidence package to Master Records
+-> POST exact-run evidence package to the local run store (master-records package API; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
 -> require custody_status: RECORDED
 -> return governed result
 ```
@@ -43,7 +43,7 @@ REQUESTED
 -> RETURNED
 ```
 
-Each transition is appended to Master Records under a distinct replay `operation_id`, hash-linked in sequence, and assigned an operation-event receipt. The SDK fails closed if any transition cannot be recorded. Only after `RETURNED` is recorded may the replay artifact be returned to the caller.
+Each transition is appended to the local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368) under a distinct replay `operation_id`, hash-linked in sequence, and assigned an operation-event receipt. The SDK fails closed if any transition cannot be recorded. Only after `RETURNED` is recorded may the replay artifact be returned to the caller.
 
 ## Reconstruction operation custody
 
@@ -58,7 +58,7 @@ REQUESTED
 -> RETURNED
 ```
 
-Those transitions are likewise recorded in Master Records before the reconstruction artifact is returned.
+Those transitions are likewise recorded in the same local run store before the reconstruction artifact is returned.
 
 ## Correct boundary
 
@@ -71,21 +71,21 @@ operation_transition_custody: required
 
 ## Cross-repository dependency
 
-The SDK operation-event client requires the matching `master-records/orchestration` operation-event API:
+The SDK operation-event client requires the matching `master-records/orchestration` operation-event API (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody):
 
 ```text
 POST /api/master-records/manifest-receipts/{manifest_receipt_id}/operations
 GET  /api/master-records/manifest-receipts/{manifest_receipt_id}/operations/{operation_id}
 ```
 
-Master Records assigns operation event IDs, sequencing and hash linkage in the organization record; the Organization owns custody. The SDK only requests the organization record and refuses to return success until `RECORDED` is confirmed.
+The master-records package API currently assigns operation event IDs, sequencing and hash linkage in the local run record (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368); the Organization keeps its ledger record and owns custody. The SDK refuses to return success until that local store confirms `RECORDED`.
 
 ## Validation gate
 
 Before merge/release claim:
 
 ```text
-1. Master Records operation-transition implementation/tests PASS.
+1. master-records package operation-transition implementation/tests PASS (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368).
 2. Canonical custody app exposes operation POST/GET routes.
 3. One governed TEST returns only after exact-run custody RECORDED.
 4. Replay records REQUESTED/SOURCE_RESOLVED/EVALUATED/RETURNED and then returns artifact.

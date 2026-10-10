@@ -20,12 +20,12 @@ The experiment is designed for the canonical sovereign public inspection path de
 ```text
 SDK entry
 -> Core-Lite manifested route carrier
--> Master Records checkpoint organization record
+-> checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> canonical StegCore manifested transaction
 -> canonical StegGate evaluation
--> Master Records exact-run organization record
+-> exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> return ingestion/CGE
--> Master Records return organization record
+-> return receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> SDK return
 ```
 

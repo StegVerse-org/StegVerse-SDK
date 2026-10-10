@@ -128,7 +128,7 @@ admissibility-wiki: doctrine and Judgment Architecture research ownership
 LLM-adapter: runtime declaration and self-starting live activation monitor
 StegVerse-SDK: canonical consumer, validation, integration, and consolidation ownership
 Site: downstream transport and public status only after its handoff gate
-master-records/orchestration: organization records and reconstruction only after authorized endpoint evidence
+master-records/orchestration: downstream, non-gating recording of released organization batch receipts and reconstruction support (not custody)
 Publisher and wikis: automated projection only after immutable verified upstream evidence
 ```
 
@@ -139,7 +139,7 @@ No incomplete work is owned by this session. Remaining repository work is intent
 - SDK current-main validation observation;
 - live immutable repository read;
 - live deployed adapter transport;
-- external Master-Records organization records and reconstruction;
+- optional downstream Master-Records recording of released batch receipts and reconstruction (non-gating);
 - Site transport after validation authorization;
 - downstream verified projection;
 - release and tag after machine gates.

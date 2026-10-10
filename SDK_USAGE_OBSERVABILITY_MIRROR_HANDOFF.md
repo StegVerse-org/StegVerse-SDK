@@ -64,7 +64,7 @@ SDK_USAGE_OBSERVABILITY_MIRROR_HANDOFF.md
 
 The canonical `stegverse governance --select 000|00|0|1|2` path records one non-authoritative `MENU_SELECTION` only after canonical navigation accepts the choice.
 
-`GovernedOperations` supplies the SDK execution adapter for actual option `0`, `1`, and `2` operations. It accepts injected canonical operation handlers because governance transport authority belongs to StegCore and organization-record transport belongs to Master Records, not the SDK.
+`GovernedOperations` supplies the SDK execution adapter for actual option `0`, `1`, and `2` operations. It accepts injected canonical operation handlers because governance transport authority belongs to StegCore and organization-ledger custody stays with the Organization (Master Records only records released batch receipts downstream), not the SDK.
 
 ```text
 option 0 submit
@@ -110,7 +110,7 @@ StegVerse-Labs/StegCore/docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md
 StegVerse-Labs/StegCore#85
 src/stegcore/manifest_receipts.py
 src/stegcore/manifest_receipt_provider.py
-master-records/orchestration canonical manifest-receipt organization-record surface
+master-records/orchestration manifest-receipt recording surface (downstream recorder of released batch receipts; not an authority)
 ```
 
 That handoff explicitly requires exposing the same provider contract to SDK callers. This SDK lane must not duplicate the receipt-ID algorithm, evaluator, custody service, or consequence boundary.
@@ -118,7 +118,7 @@ That handoff explicitly requires exposing the same provider contract to SDK call
 Integration release condition:
 
 ```text
-StegCore transport to Master Records organization records becomes available; Interlock/InTr admits its use
+StegCore manifest-receipt transport (organization-ledger-backed) becomes available; Interlock/InTr admits its use
 -> bind submit/replay/reconstruct handlers into GovernedOperations
 -> prove one option 0, 1, and 2 operation through canonical transport
 -> verify each emits one GOVERNED_OPERATION observation
@@ -185,7 +185,7 @@ The SDK holds no GitHub credential. TV/TVC is the only credential authority for 
 [done] hosted validation PASS for operation adapter
 [done] PR #28 merged
 [done] implementation claim released to integration blocker
-[blocked] bind actual canonical StegCore/Master Records provider transport
+[blocked] bind actual canonical StegCore manifest-receipt provider transport (Master Records recording is downstream and not a blocker)
 [pending] TV/TVC relay PR #24 validation/merge
 [pending] first real TV/TVC-owned GitHub dispatch observed by StegCore issue #117
 [pending] evaluate deterministic pre-install historical backfill
@@ -195,7 +195,7 @@ The SDK holds no GitHub credential. TV/TVC is the only credential authority for 
 
 ```text
 SDK provider integration blocker:
-  owner: StegVerse-Labs/StegCore + master-records/orchestration
+  owner: StegVerse-Labs/StegCore (master-records/orchestration is a downstream recorder only, not a blocker owner)
   release: admitted manifest-receipt transport proves immutable resolve/replay/reconstruct contract and is exposed to SDK callers
   evidence: docs/MANIFEST_RECEIPT_ID_MIRROR_HANDOFF.md + issue #85
   session role: observation/integration after release; no duplicate transport implementation
@@ -213,7 +213,7 @@ The sovereign local-model/runtime goal is complete at source and must not be reo
 ```text
 MERGED INTO: StegVerse-002/micro-node-runtime/docs/SOVEREIGN_LOCAL_MODEL_RUNTIME_MIRROR_HANDOFF.md
 source/formal model/discovery/private launch/inference/usage/proof: COMPLETE_RELEASED
-live activation: MACHINE_OWNED via StegVerse-Labs/.github#60 -> TVC -> LLM-adapter -> master-records/orchestration
+live activation: MACHINE_OWNED via StegVerse-Labs/.github#60 -> TVC -> LLM-adapter (master-records/orchestration may record the released batch receipt downstream, non-gating)
 ```
 
 The trade-ready goal is also a separate canonical machine-owned workstream:

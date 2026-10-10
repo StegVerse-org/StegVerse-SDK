@@ -16,7 +16,7 @@ release_state: NOT_RELEASED
 
 ## Goal
 
-Option `000` is the SDK-owned teaching lane. It must demonstrate the complete governance vocabulary without pretending that four mutually exclusive teaching examples are four decisions from one transaction, then optionally execute the entire SDK-owned dataset through the canonical sovereign StegGate/Master Records path.
+Option `000` is the SDK-owned teaching lane. It must demonstrate the complete governance vocabulary without pretending that four mutually exclusive teaching examples are four decisions from one transaction, then optionally execute the entire SDK-owned dataset through the canonical sovereign StegGate path (its local validation lane currently stores runs in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)).
 
 ## Dataset
 
@@ -126,7 +126,7 @@ dataset SHA-256 == submitted payload SHA-256
 manifest_receipt_id present
 receipt chain head present
 chain_verified=true
-Master Records organization record recorded
+organization-ledger transition receipt recorded (Master Records recording is optional, downstream and non-gating)
 external_side_effect=false
 third_party_host_required=false
 replay/reconstruction available from exact-run locator

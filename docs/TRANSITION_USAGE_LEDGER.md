@@ -48,7 +48,7 @@ SDK              validation and orchestration measurements
 LLM Adapter      provider calls, tokens, provider latency, recursive traces
 Runtime          node activation, execution, closure, runtime cost
 Ecosystem Chat   browser interaction and presentation measurements
-Master-Records   organization record and persistence measurements
+Master-Records   downstream released-batch-receipt recording measurements (non-gating)
 ```
 
 Rendering a measurement does not make the renderer its owner.
@@ -135,8 +135,8 @@ StegVerse-Labs/Site
   -> cross-entry session ledger page
   -> entry-point and processor timeline
 
-master-records
-  -> canonical custody
+master-records (downstream, non-gating; custody stays with each Organization ledger)
+  -> released organization batch receipt records
   -> deduplication index
   -> session and transition lineage reconstruction
 ```

@@ -1,6 +1,6 @@
 {
   "task_id": "SDK-MCP-CANONICAL-VALIDATION-009",
-  "originating_goal": "Validate the MCP production-artifact test lane through the same canonical SDK -> ingestion/CGE -> StegCore/StegGate -> Master Records -> return ingestion/CGE -> SDK path using production artifacts and no prohibited credentials.",
+  "originating_goal": "Validate the MCP production-artifact test lane through the same canonical SDK -> ingestion/CGE -> StegCore/StegGate -> return ingestion/CGE -> SDK path (Master Records only records released batch receipts downstream, non-gating) using production artifacts and no prohibited credentials.",
   "repository": "StegVerse-org/StegVerse-SDK",
   "source_branch": "main",
   "target_branch": "main",
@@ -77,7 +77,7 @@
   "collision_scope": [
     "merged-main canonical governed integration validation",
     "MCP reference-server exact-run/replay/reconstruction evidence",
-    "Master Records MR/MRR/MRO organization record evidence",
+    "MR/MRR/MRO run-store evidence in the master-records package local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)",
     "machine worker owns exact execution after scheduler claim",
     "chat/manual execution must not compete with the worker or mutate its claim/fence"
   ],
@@ -93,10 +93,10 @@
   ],
   "execution_sequence": [
     "canonical sovereign scheduler assigns a collision-safe claim to sdk-mcp-canonical-validation-worker on a declared non-hosted StegVerse node",
-    "worker verifies the SDK/StegCore/Core-Lite/Master Records local source roots are already materialized; it performs no repository checkout",
+    "worker verifies the SDK/StegCore/Core-Lite/Master Records local source roots are already materialized (the master-records root is the lane's known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody); it performs no repository checkout",
     "worker launches a scrubbed child process environment containing no GitHub/provider/wallet credentials and no non-TV/TVC runtime secret/token",
     "worker runs MCPProductionArtifactGovernedIntegrationTests and fails closed if the suite skips or fails",
-    "worker executes inspect_state through the canonical governed path against fresh Master Records organization record",
+    "worker executes inspect_state through the canonical governed path against a fresh local run store (the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody))",
     "worker proves exact contract/call hashes, ALLOW + commit-coherence-gated tools/call, continuous transaction identity, MR/MRR custody and verified chain",
     "worker replays and reconstructs the exact MR and proves consequence_reexecuted=false with MRO custody",
     "worker executes write_bounded_value(42) and retains UPDATED=42 through the governed result",
@@ -126,7 +126,7 @@
     "machine_worker_registration_and_validation": true,
     "exact_artifact_task_state_receipt": false
   },
-  "complete_condition": "The current merged-main reference MCP test traverses the canonical exact production-artifact route under the registered sovereign worker with continuous transaction identity, exact-run and route-transition Master Records organization record, governed MCP execution observation, replay/reconstruction no-reexecution proof, bounded-write proof, and no prohibited credential use.",
+  "complete_condition": "The current merged-main reference MCP test traverses the canonical exact production-artifact route under the registered sovereign worker with continuous transaction identity, exact-run and route-transition receipts closing on the organization-ledger transition receipt (any Master Records batch receipt is optional downstream evidence, not a completion condition), governed MCP execution observation, replay/reconstruction no-reexecution proof, bounded-write proof, and no prohibited credential use.",
   "blocked_condition": "No eligible declared non-hosted StegVerse node currently presents all four exact canonical local source roots to the registered worker without prohibited credential use.",
   "blocked_release_condition": "The canonical scheduler observes an eligible sovereign node with all four required already-materialized local source roots and assigns the worker a collision-safe claim; or an exact worker BLOCKED receipt identifies a narrower machine-observable missing-artifact condition.",
   "failed_condition": "Any MCP call occurs before canonical governance/commit coherence, any required exact receipt/custody evidence is absent, transaction identity is discontinuous, replay/reconstruction reexecutes the consequence, contract/call binding cannot be proven, or prohibited credential material is required/observed.",

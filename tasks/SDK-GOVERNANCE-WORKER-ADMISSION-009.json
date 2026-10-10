@@ -19,7 +19,7 @@
     "or the organization control plane explicitly supersedes task 007 into another canonical worker with equivalent deterministic inputs/outputs"
   ],
   "required_worker_properties": [
-    "local already-materialized SDK/StegCore/Master Records inputs only",
+    "local already-materialized SDK/StegCore inputs only (the lane's current master-records package store input is a known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368, not a Master Records gate)",
     "no network source checkout requirement",
     "no GitHub/provider/wallet secret environment",
     "writes only SDK governance validation receipts or returned task-state evidence",

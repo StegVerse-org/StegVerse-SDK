@@ -29,7 +29,7 @@ Task Registry = coordination only
 WorkerCoordinator = claim/fence authority
 Interlock/InTr = governed transition authority
 TV/TVC = credential/provider/release authority
-Master Records = organization records/reconstruction
+Master Records = downstream recorder of released organization batch receipts / reconstruction (non-gating, not custody)
 Service Gateway #72 = bounded sovereign HTTP ingress owner
 GitHub Actions = validation/evidence transport only
 GitHub runtime authority = NONE
@@ -159,7 +159,7 @@ Continue only under `SDK-WORKSPACE-EXTCOLLAB-AUTHENTIC-RUNTIME-004` and its cano
 4. On that same existing resident, if Gateway TLS adoption is absent, allow the already-bound TVC machine owner to execute exact CMC-029. Do not wait for G18 terminalization. Stop after authentic TLS adoption so the existing Gateway owner can reconcile/restart.
 5. Independently prove the merged Service Gateway #332 public routes through `stegverse.org` with no callback-query leakage.
 6. Only after target client-secret custody and sovereign callback reachability are both proven, perform owner-present Google consent on the current iPhone.
-7. Execute one exact authoritative provider-file metadata probe and retain secret-free durable replay/use evidence; feed it through SDK normalization/active-probe re-evaluation, lifecycle/MIR, Master Records reconstruction, and one-device proof.
+7. Execute one exact authoritative provider-file metadata probe and retain secret-free durable replay/use evidence; feed it through SDK normalization/active-probe re-evaluation, lifecycle/MIR, and one-device proof (Master Records reconstruction of the released batch receipt is optional downstream evidence, not a step gate).
 8. Separately, wait for authentic TV/TVC GRANTED release authority and resident SKAP/double-Interlock release evidence; the canonical TVC release operation—not a manual substitute—may then publish the exact successor release set.
 9. After lawful StegCore publication, issue #203 verifies PyPI/public propagation, anonymous installation, and applicable downstream consumers.
 10. Close this goal only after authentic runtime, downstream propagation, and public-distribution predicates are all proven.

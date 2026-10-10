@@ -21,7 +21,7 @@
   ],
   "must_not_modify": [
     "StegVerse-Labs/StegCore governance authority",
-    "master-records/orchestration custody authority",
+    "master-records/orchestration downstream batch-receipt recording (not custody or authority)",
     "StegVerse-Labs/TV or StegVerse-Labs/TVC credential authority",
     "claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json machine-owned exact-run evidence lane"
   ],

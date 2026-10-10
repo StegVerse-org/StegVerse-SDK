@@ -11,19 +11,19 @@ original_merge_pr: #21
 original_merge_commit: 4d98e6e51f86e15f3262e67fe36eaad61f99778d
 ```
 
-The original goal closed the preparation-only gap by adding canonical StegCore TEST execution. Its local-only retention boundary is no longer sufficient because every governed ecosystem state transition must be recorded in Master Records.
+The original goal closed the preparation-only gap by adding canonical StegCore TEST execution. Its local-only retention boundary is no longer sufficient because every governed ecosystem state transition must close on its organization-ledger transition receipt; Master Records only records released organization batch receipts downstream (non-gating).
 
 The active continuation is recorded by `SDK_MIRROR_HANDOFF.md` and the custody/replay implementation in `stegverse/public_inspection_runtime.py`.
 
 Superseding invariant:
 
 ```text
-governed TEST transition -> Master Records exact-run organization record required
+governed TEST transition -> organization-ledger transition receipt required (Master Records recording is downstream and non-gating)
 successful governed TEST result without custody_status RECORDED -> prohibited
 local-only registry/ledger retention -> insufficient as canonical ecosystem custody
 ```
 
-The current runtime therefore checks that the Master Records organization-record routes are reachable, and records the complete exact-run evidence package before reporting success.
+The current runtime still checks that the master-records package organization-record routes are reachable, and stores the complete exact-run evidence package in that package's local run store before reporting success (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody).
 
 Replay and reconstruction are also now actual SDK operations rather than guidance-only claims:
 

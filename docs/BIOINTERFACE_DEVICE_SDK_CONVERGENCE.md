@@ -128,4 +128,4 @@ Required next implementation work belongs to a dedicated SDK task/issue and shou
 
 ## Relationship to continuity/reconstruction
 
-The shared SDK must preserve enough timing, sequence, configuration, provenance, and source identity for downstream HB/DeltaHB and Master Records reconstruction. Master Records, not the SDK, owns inference-window/reconstruction qualification.
+The shared SDK must preserve enough timing, sequence, configuration, provenance, and source identity for downstream HB/DeltaHB and Master Records reconstruction. The SDK does not own inference-window/reconstruction qualification; Master Records is a downstream, non-gating recorder of released organization batch receipts, not a qualification authority.

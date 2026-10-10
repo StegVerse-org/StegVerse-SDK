@@ -182,7 +182,7 @@ StegVerse-002/stegguardian-wiki
 
 master-records/core-lite
   VERIFIED_NO_SCHEMA_CHANGE from this SDK-local helper.
-  Canonical production run still requires MR/MRR/MRO organization records/reconstruction evidence; existing Master Records authority remains unchanged.
+  Canonical production run closes on the organization-ledger transition receipt; Master Records only records released batch receipts downstream (non-gating, not an authority).
 ```
 
 ## Authority boundary
@@ -201,16 +201,16 @@ Actual consequential execution remains the canonical path described by `SDK_MIRR
 ```text
 SDK entry
 -> Core-Lite manifested route carrier
--> Master Records checkpoint organization record
+-> checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> StegCore manifested transaction
 -> StegGate + commit-coherence evaluation
--> Master Records exact-run organization record
+-> exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> return ingestion/CGE
 -> return custody
 -> SDK return
 ```
 
-Source merge and external run-readiness are not equivalent to production activation. Production activation requires an actual qualified-client or bounded production trajectory with retained MR/MRR/MRO evidence.
+Source merge and external run-readiness are not equivalent to production activation. Production activation requires an actual qualified-client or bounded production trajectory closing on the organization-ledger transition receipt (any MR/MRR/MRO batch receipt is optional downstream evidence).
 
 ## Completion denominator
 
@@ -228,7 +228,7 @@ canonical runtime production test: PENDING EXTERNAL/QUALIFIED-CLIENT TRAJECTORY
 ## Remaining work
 
 1. Select the bounded production or qualified-client trajectory with the external participant.
-2. Route the case through canonical 0B/StegCore/StegGate/Master Records organization record.
+2. Route the case through canonical 0B/StegCore/StegGate to the organization-ledger transition receipt (Master Records may record the released batch receipt downstream; non-gating).
 3. Preserve execution-boundary, replay, reconstruction, and consequence evidence.
 4. Only after that evidence exists may production activation be claimed.
 

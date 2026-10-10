@@ -43,7 +43,7 @@
     "exact governance request",
     "governed result",
     "route + manifest receipts",
-    "Master Records exact-run organization record",
+    "organization-ledger transition receipt (any Master Records batch receipt is optional downstream evidence)",
     "reconstruction",
     "replay when requested",
     "independent unmodified tuple PASS",

@@ -114,7 +114,7 @@ SOURCE_GENERATED_NOT_DESTINATION_ACCEPTED
 ```
 
 The SDK rejects a fixture that inserts a destination custody receipt. An
-independent Master Records consumer must verify the source hashes and issue its
+independent destination Organization consumer must verify the source hashes and issue its
 own accept or reject receipt before custody can be claimed.
 
 ## Verification

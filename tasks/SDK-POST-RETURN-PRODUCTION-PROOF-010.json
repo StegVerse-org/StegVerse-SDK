@@ -1,7 +1,7 @@
 {
   "schema": "stegverse.sdk-task.v1",
   "task_id": "SDK-POST-RETURN-PRODUCTION-PROOF-010",
-  "goal": "Produce the exact reciprocal interlock POST_RETURN proof from a canonical sovereign governed run, retained Master Records organization record, participant acknowledgement, portable exchange, replay, and reconstruction.",
+  "goal": "Produce the exact reciprocal interlock POST_RETURN proof from a canonical sovereign governed run closing on the organization-ledger transition receipt (any Master Records batch receipt is optional downstream evidence), participant acknowledgement, portable exchange, replay, and reconstruction.",
   "state": "SOURCE_CHAIN_NEAR_COMPLETE_FINAL_SUCCESSOR_RUNNER_VALIDATION_PENDING_RUNTIME_AUTHORITY_GATES_OPEN",
   "authority": {
     "credential_authority": "TV/TVC",
@@ -100,15 +100,15 @@
     },
     {
       "gate": "EXACT_SOVEREIGN_POST_RETURN_RUN",
-      "owner": "SDK canonical sovereign runtime + Master Records",
-      "required": "Consume the coherent successor release receipt and real PRE_STEGGATE bundle with the final production runner; retain bounded state transition, exact Master Records organization record, reciprocal ACK, POST_RETURN exchange, independent verification, replay and reconstruction PASS.",
+      "owner": "SDK canonical sovereign runtime",
+      "required": "Consume the coherent successor release receipt and real PRE_STEGGATE bundle with the final production runner; retain bounded state transition closing on the organization-ledger transition receipt (Master Records recording optional, downstream, non-gating), reciprocal ACK, POST_RETURN exchange, independent verification, replay and reconstruction PASS.",
       "state": "PENDING_UPSTREAM_AUTHORITY_GATES"
     }
   ],
-  "completion_rule": "COMPLETE requires an exact sovereign run whose immutable release receipt contains the exact proof capabilities exercised by that run, whose PRE_STEGGATE standing proposition is canonically bound to the submitted governance request, plus a canonical standing-bound StegGate decision, real bounded state mutation, direct canonical Master Records organization record, reciprocal ACKNOWLEDGED return, independently verified POST_RETURN exchange, replay/reconstruction operation custody PASS, and retained immutable evidence. Historical release validity, source validation, PR merge, release readiness, or a copied evidence archive are insufficient.",
+  "completion_rule": "COMPLETE requires an exact sovereign run whose immutable release receipt contains the exact proof capabilities exercised by that run, whose PRE_STEGGATE standing proposition is canonically bound to the submitted governance request, plus a canonical standing-bound StegGate decision, real bounded state mutation, the organization-ledger transition receipt (Master Records recording is optional downstream evidence, not a completion condition), reciprocal ACKNOWLEDGED return, independently verified POST_RETURN exchange, replay/reconstruction operation custody PASS, and retained immutable evidence. Historical release validity, source validation, PR merge, release readiness, or a copied evidence archive are insufficient.",
   "preserved_invariants": [
     "unsupported evaluator capability fails closed",
-    "verified copied exchange evidence is not canonical Master Records organization record",
+    "verified copied exchange evidence is not the canonical organization-ledger record",
     "default public governed TEST does not grant arbitrary external network side-effect authority",
     "GitHub grants no StegVerse runtime/release authority",
     "historical release evidence cannot certify later source",

@@ -24,7 +24,7 @@ Make the SDK contract explicit and executable for external frameworks that:
 3. declare a caller-facing StegVerse processing capability independently of payload class;
 4. bind that capability to an installed runtime route without conflating capability with route mechanics;
 5. supply only the processor-specific evidence/state required by the selected processor;
-6. choose caller-facing artifact depth without suppressing the canonical Master Records organization record; and
+6. choose caller-facing artifact depth without suppressing the organization-ledger record or any downstream Master Records batch receipt; and
 7. receive the selected processing/state-transition artifact plus `manifest_receipt_id`.
 
 ## Corrected contract
@@ -37,7 +37,7 @@ external framework
 -> processing.route_id == extensions.stegverse_route.route_id
 -> processor-specific request/evidence
 -> installed processor/runtime binding
--> canonical runtime + Master Records organization record
+-> canonical runtime + organization-ledger transition receipt (Master Records records the released batch receipt downstream, non-gating)
 -> return_projection
 -> returned artifact + manifest_receipt_id
 ```
@@ -284,4 +284,4 @@ ECOSYSTEM_CONNECTED  -> stegverse.route.canonical-governed.v1
 
 Use `stegverse manifest build --process governance --execution-profile LOCAL_CONFORMANCE ...` for the customer-local route, or `--execution-profile ECOSYSTEM_CONNECTED` for the canonical ecosystem route. The latter is the backward-compatible default. The selected canonical route is written into `processing.route_id`; route resolution revalidates it and never substitutes another route. `LOCAL_CONFORMANCE` emits no federated completion contract and still requires independently trusted customer host bindings for consequential local execution. `ECOSYSTEM_CONNECTED` does not fall back locally if organization/InTr admission is unavailable.
 
-Execution profile selects scope only and grants no authority. Dispositions remain `ALLOW`, `DENY`, or `FAIL_CLOSED`; locality is not a fourth disposition. Current production `run-manifest` source evidence reaches `SDK_MANIFEST_HANDOFF`. Authentic InTr admission/far-side execution requires request-bound receiving-operation evidence and the resulting organization transition receipt/readback, plus applicable Master Records organization record; SDK-local handoff assertions are not substitutes for that evidence.
+Execution profile selects scope only and grants no authority. Dispositions remain `ALLOW`, `DENY`, or `FAIL_CLOSED`; locality is not a fourth disposition. Current production `run-manifest` source evidence reaches `SDK_MANIFEST_HANDOFF`. Authentic InTr admission/far-side execution requires request-bound receiving-operation evidence and the resulting organization transition receipt/readback, which closes the transition (any Master Records batch receipt is optional downstream evidence, not a requirement); SDK-local handoff assertions are not substitutes for that evidence.

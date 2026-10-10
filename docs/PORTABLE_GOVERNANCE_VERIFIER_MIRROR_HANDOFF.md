@@ -48,7 +48,7 @@ The verifier does not:
 The verifier consumes only published bundle objects and deterministic hashing/contract rules. It does not require the producing application, provider secrets, a particular UI, or a special demo backend. The same verifier is intended for internal StegVerse modules and external interlock participants.
 
 ## Collision boundary
-StegCore PR #141 remains active on transaction receipts/reconstruction and is not modified by this SDK slice. Canonical StegGate decision evidence and Master Records organization record remain downstream authorities.
+StegCore PR #141 remains active on transaction receipts/reconstruction and is not modified by this SDK slice. Canonical StegGate decision evidence remains a downstream authority; Master Records is a downstream, non-gating recorder of released batch receipts, not an authority.
 
 ## Completion boundary
-This source slice is complete only after exact-head SDK package validation and merge. Full portable verification is not complete until a real `POST_RETURN` bundle contains canonical StegGate decision/consequence evidence, reciprocal participant acknowledgement, Master Records preservation, and replay/reconstruction PASS.
+This source slice is complete only after exact-head SDK package validation and merge. Full portable verification is not complete until a real `POST_RETURN` bundle contains canonical StegGate decision/consequence evidence, reciprocal participant acknowledgement, organization-ledger transition receipt (Master Records recording is optional, downstream and non-gating), and replay/reconstruction PASS.

@@ -16,7 +16,7 @@ external evaluator
 -> generalized StegVerse SDK manifest surface
 -> Core-Lite manifested route carrier
 -> StegCore / canonical StegGate
--> Master Records organization record
+-> organization-ledger transition receipt; (downstream, non-gating) Master Records records the released batch receipt
 -> governed result returned through the manifested route
 ```
 
@@ -158,7 +158,7 @@ external evaluator
 -> generalized SDK validation/canonicalization/binding
 -> canonical manifested route
 -> StegGate evaluation
--> Master Records organization record
+-> organization-ledger transition receipt; (downstream, non-gating) Master Records records the released batch receipt
 -> SDK return
 ```
 
@@ -172,7 +172,7 @@ The exact run must retain:
 - submitted-manifest, governance-request, and result binding hashes;
 - manifest receipt identifier;
 - route receipt chain;
-- Master Records exact-run organization record evidence;
+- organization-ledger transition receipt evidence (plus any downstream Master Records batch-receipt record);
 - reconstruction output;
 - replay output when requested;
 - canonical StegGate runtime identity `stegverse:steggate:canonical:three-layer:v1`;
@@ -194,7 +194,7 @@ SDK 1.1.0 artifact/release identity
 normalized experiment manifest
 canonical governed result
 route + manifest receipts
-Master Records organization record evidence
+organization-ledger transition receipt evidence (plus any downstream Master Records batch-receipt record)
 reconstruction/replay evidence
 independent PASS verifier output
 three deliberate tamper FAIL outputs

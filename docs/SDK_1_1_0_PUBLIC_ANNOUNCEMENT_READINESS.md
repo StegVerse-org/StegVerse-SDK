@@ -79,7 +79,7 @@ A user with only the SDK source but without the referenced custody record cannot
 
 ### 6. Local custody is not automatically shared custody
 
-The public inspection runtime defaults to a local custody database (`./stegverse-master-records-validation.db`). One user's local exact-run evidence is not automatically visible to another observer. Independent observation requires deliberate transfer/publication of the relevant evidence or a separately accessible canonical custody artifact.
+The public inspection runtime defaults to a local validation run store (`./stegverse-master-records-validation.db`, the master-records package local store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody). One user's local exact-run evidence is not automatically visible to another observer. Independent observation requires deliberate transfer/publication of the relevant evidence or a separately accessible canonical custody artifact.
 
 ### 7. Some ecosystem capabilities are intentionally separate components
 
@@ -142,7 +142,7 @@ GitHub Release identity verified
 stegverse-sdk 1.1.0 package publication verified
 published package metadata/artifact identity matches frozen candidate
 R3 aggregate release receipt present and independently verified
-exact governed R3 evaluator run completed with required Master Records evidence
+exact governed R3 evaluator run completed with its organization-ledger transition receipt (Master Records recording optional, downstream, non-gating)
 ```
 
 Canonical release-state sources remain `VERSION.json`, `PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md`, and `SDK_MIRROR_HANDOFF.md`.

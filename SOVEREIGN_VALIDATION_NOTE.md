@@ -1,1 +1,1 @@
-Third-party hosting is optional. Canonical production-validation must have a sovereign local execution path using the same merged StegCore, Core-Lite, and Master Records implementations.
+Third-party hosting is optional. Canonical production-validation must have a sovereign local execution path using the same merged StegCore and Core-Lite implementations (the local lane's current use of the master-records package as its run store is a known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody).

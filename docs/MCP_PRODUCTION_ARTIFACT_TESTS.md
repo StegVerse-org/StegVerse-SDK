@@ -1,6 +1,6 @@
 # MCP Production-Artifact Tests
 
-The MCP test lane exercises the same canonical StegVerse SDK, Core-Lite, StegCore/StegGate, and Master Records artifacts used by the existing governed test path. The test environment controls the MCP target and proposed operation; it does not substitute mock governance or a second custody system.
+The MCP test lane exercises the same canonical StegVerse SDK, Core-Lite, StegCore/StegGate, and Master Records artifacts used by the existing governed test path (the Master Records package is the local run store: known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody). The test environment controls the MCP target and proposed operation; it does not substitute mock governance or a second custody system.
 
 ## Install
 
@@ -26,7 +26,7 @@ Running `stegverse-mcp-test` with no `--select` presents the same five selected-
 stegverse-mcp-test --select 000
 ```
 
-This prints the production-artifact route, authority boundary, Master Records organization record requirements, and the point at which an MCP `tools/call` may occur.
+This prints the production-artifact route, authority boundary, local run-record requirements (master-records package store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368), and the point at which an MCP `tools/call` may occur.
 
 Canonical path:
 
@@ -36,14 +36,14 @@ SDK MCP test entry
 -> exact tool contract + exact proposed call canonicalized/hashed
 -> portable MCP test packet
 -> canonical SDK ingress / Core-Lite manifested route
--> Master Records MRR-* checkpoint organization record
+-> MRR-* checkpoint record (local run store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
 -> canonical StegCore transaction
 -> canonical StegGate + commit-coherence evaluation
 -> bounded MCP tools/call only at the canonical consequence boundary
 -> MCP result captured as execution observation
--> Master Records MR-* exact-run organization record
+-> MR-* exact-run record (local run store; not Master Records custody)
 -> return ingestion/CGE
--> Master Records MRR-* return organization record
+-> MRR-* return record (local run store; not Master Records custody)
 -> same SDK caller connection
 ```
 
@@ -55,7 +55,7 @@ MCP discovery and packet construction have no authority effect.
 stegverse-mcp-test --select 00
 ```
 
-Caller return/explanation preferences never suppress the canonical Master Records organization record.
+Caller return/explanation preferences never suppress the canonical run record.
 
 ## 0 — run an MCP production-artifact test
 
@@ -139,7 +139,7 @@ stegverse-mcp-test --select 2 \
   --records-db ./stegverse-master-records-validation.db
 ```
 
-Reconstruction rebuilds the retained trajectory from Master Records evidence. It does not resend the original MCP `tools/call`.
+Reconstruction rebuilds the retained trajectory from the retained run evidence in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody). It does not resend the original MCP `tools/call`.
 
 ## Test claims
 
@@ -154,7 +154,7 @@ argument mutation changes call hash
 caller credential material is rejected
 000 exposes the actual production-artifact route
 MCP call is handed to the canonical consequence boundary rather than pre-executed
-canonical governed integration records the Master Records organization record
+canonical governed integration records the run record in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
 replay does not reexecute consequence
 reconstruction does not reexecute consequence
 ```
@@ -165,4 +165,4 @@ Run unit tests:
 python -m unittest tests.test_mcp_production_artifact -v
 ```
 
-With the governed-test dependencies installed, the same test module also executes the full canonical Core-Lite -> StegCore/StegGate -> Master Records integration path.
+With the governed-test dependencies installed, the same test module also executes the full canonical Core-Lite -> StegCore/StegGate integration path, including the master-records package's local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368).

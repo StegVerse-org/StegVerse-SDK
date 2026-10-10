@@ -34,7 +34,8 @@
     "sdk_helper_side_effect_free": true,
     "sdk_helper_grants_execution_authority": false,
     "sdk_helper_executes_or_prevents_external_action": false,
-    "canonical_execution_authority_remains_stegcore_steggate_master_records": true
+    "canonical_execution_authority_remains_stegcore_steggate": true,
+    "master_records_is_execution_authority": false
   },
   "source_of_truth": "EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md"
 }

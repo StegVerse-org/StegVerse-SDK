@@ -40,7 +40,7 @@
     "exact normalized-manifest.json produced from that frozen input by the released SDK",
     "exact AdmissibilityRequest.model_dump(mode=json, exclude_none=false) governance-request.json retained for the run",
     "exact governed-result.json returned by the frozen runtime",
-    "route/manifest/Master Records organization record evidence",
+    "route/manifest evidence and the organization-ledger transition receipt (any Master Records batch receipt is optional downstream evidence)",
     "reconstruction evidence",
     "replay evidence when requested"
   ],
@@ -88,7 +88,8 @@
     "retained_exact_model_governance_request_hash_matches_runtime_governance_request_hash": true,
     "pre_custody_independent_unmodified_tuple_pass": true,
     "route_receipt_evidence_present": true,
-    "master_records_exact_run_evidence_present": true,
+    "organization_ledger_transition_receipt_present": true,
+    "master_records_batch_receipt_required": false,
     "reconstruction_evidence_present": true,
     "independent_unmodified_tuple_pass": true,
     "manifest_tamper_binding_fail": true,

@@ -76,7 +76,7 @@ stegverse governance --select 2 --manifest-receipt-id <MR-...>
 Semantics:
 
 ```text
-option 0A -> existing public-inspection request -> GovernedOperations -> sovereign_validation_runtime -> Core-Lite -> StegCore/StegGate -> Master Records
+option 0A -> existing public-inspection request -> GovernedOperations -> sovereign_validation_runtime -> Core-Lite -> StegCore/StegGate -> master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 option 1  -> manifest_receipt_id -> canonical sovereign replay
 option 2  -> manifest_receipt_id -> canonical sovereign reconstruction
 ```
@@ -181,7 +181,7 @@ release activation owner: tasks/SDK-SOVEREIGN-RELEASE-ACTIVATION-004.json
 exact run/custody owner: claims/SDK-AUTHORITY-BOUNDARY-SOVEREIGN-RUN-002.json
 fallback trigger: primary execution unavailable before canonical governance result
 fallback output: unchanged canonical run/replay/reconstruct result
-persistent state: canonical Master Records organization record selected by sovereign runtime
+persistent state: master-records package local run store selected by sovereign runtime (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 fail closed: yes
 ```
 

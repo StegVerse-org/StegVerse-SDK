@@ -20,7 +20,7 @@
     "StegVerse-002/micro-node-runtime local model/runtime implementation",
     "StegVerse-Labs/.github resident heartbeat state or fences",
     "StegVerse-Labs/TV or StegVerse-Labs/TVC credential/route authority",
-    "master-records/orchestration custody authority",
+    "master-records/orchestration downstream batch-receipt recording (not custody or authority)",
     "StegVerse-Labs/stegfin-governance machine-owned live trade execution"
   ],
   "credential_authority": "TV/TVC",
@@ -51,6 +51,6 @@
     "4-transition reconstruction MRO custody",
     "independent reviewer interpretation"
   ],
-  "next_owner": "canonical sovereign SDK execution lane using stegverse.public_inspection_runtime with Master Records organization record",
+  "next_owner": "canonical sovereign SDK execution lane using stegverse.public_inspection_runtime, closing on the organization-ledger transition receipt (Master Records recording optional, downstream, non-gating)",
   "next_task_after_release": "Execute the merged runner in the canonical sovereign lane and retain immutable exact-run/replay/reconstruction evidence; independent review remains external interpretation only."
 }
