@@ -286,11 +286,7 @@ A caller that already has a preformatted `stegverse.ingress-manifest.v1` can sub
 stegverse governance --select 0B --manifest my-manifest.json
 ```
 
-The equivalent credential-free module entry remains available:
-
-```bash
-python -m stegverse.governance_ingress_cli 0B my-manifest.json
-```
+The credential-free module entry `python -m stegverse.governance_ingress_cli` serves option `000` only; it refuses `0B` and points back to the console command above, because it did not qualify readiness or converge on the canonical manifest entrypoint.
 
 `000` and `00` are optional human/LLM transparency surfaces. Option `0A` manifests raw/user request data through the SDK. Option `0B` first validates the processor-generic ingress envelope, then resolves the declared installed route and processor binding. The currently installed 0B binding is governance, which additionally requires and verifies the governance request and candidate identity before delegating to the canonical sovereign runtime. Invalid, incomplete, conflicting, unsupported, or unavailable processor/route requests fail closed rather than being converted by invented semantics.
 

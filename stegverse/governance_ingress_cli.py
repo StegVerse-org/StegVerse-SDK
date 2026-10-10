@@ -1,49 +1,75 @@
-"""Credential-free executable entry for SDK governance options 000 and 0B."""
+"""Credential-free executable entry for SDK governance option 000.
+
+Option 0B is deliberately not accepted here (SDK#368). The former module 0B
+entry ran the local sovereign lane (``governance_ingress_runtime.run_external_manifest``)
+without readiness qualification and printed its result unlabelled, so it did
+not converge on the canonical manifest entrypoint the primary console uses.
+An explicit ``0B`` invocation is refused with a pointer to that console.
+"""
 from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
-from typing import Any, Mapping
+import sys
 
-from .governance_ingress_runtime import run_000_demo, run_external_manifest
+from .governance_ingress_runtime import run_000_demo
+
+CANONICAL_0B_ENTRY = "stegverse governance --select 0B --manifest <stegverse.ingress-manifest.v1.json>"
+REMOVED_0B_LANE = "stegverse.governance_ingress_runtime.run_external_manifest"
 
 
-def _load_manifest(path: str) -> Mapping[str, Any]:
-    try:
-        value = json.loads(Path(path).read_text(encoding="utf-8"))
-    except OSError as exc:
-        raise ValueError(f"unable to read ingress manifest: {exc}") from exc
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"ingress manifest is not valid JSON: {exc}") from exc
-    if not isinstance(value, Mapping):
-        raise ValueError("ingress manifest must contain a JSON object")
-    return value
+def _first_positional(argv: list[str]) -> str | None:
+    """Return the option operand without parsing, so 0B is refused before any file is read."""
+    expects_value = False
+    for token in argv:
+        if expects_value:
+            expects_value = False
+            continue
+        if token.startswith("-"):
+            expects_value = token.startswith("--") and "=" not in token
+            continue
+        return token
+    return None
+
+
+def _refuse_0b() -> dict[str, object]:
+    from .cli import CANONICAL_MANIFEST_ENTRYPOINT
+
+    return {
+        "status": "REFUSED",
+        "failed_predicate": "NON_CONVERGENT_0B_MODULE_ENTRY",
+        "error": (
+            "option 0B is not accepted by python -m stegverse.governance_ingress_cli: that entry bound "
+            f"the local lane {REMOVED_0B_LANE} without readiness qualification and did not converge on "
+            "the canonical manifest entrypoint; submit the manifest through the primary console"
+        ),
+        "canonical_entry": CANONICAL_0B_ENTRY,
+        "canonical_entrypoint": CANONICAL_MANIFEST_ENTRYPOINT,
+        "authority_effect": "NONE",
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if (_first_positional(argv) or "").upper() == "0B":
+        print(json.dumps(_refuse_0b(), indent=2, sort_keys=True))
+        return 2
     parser = argparse.ArgumentParser(
         prog="python -m stegverse.governance_ingress_cli",
-        description="Execute SDK governance option 000 or 0B through the canonical sovereign runtime",
+        description=(
+            "Execute SDK governance option 000 through the canonical sovereign runtime. "
+            f"Option 0B is served only by: {CANONICAL_0B_ENTRY}"
+        ),
     )
-    parser.add_argument("option", choices=("000", "0B", "0b"))
-    parser.add_argument("target", nargs="?", help="stegverse.ingress-manifest.v1 JSON file for option 0B")
+    parser.add_argument("option", choices=("000",))
+    parser.add_argument("target", nargs="?", help=argparse.SUPPRESS)
     parser.add_argument("--records-db", "--custody-db", dest="custody_db", default=None)
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
     args = parser.parse_args(argv)
     try:
-        if args.option == "000":
-            if args.target:
-                raise ValueError("option 000 does not accept an external target")
-            result = run_000_demo(custody_db=args.custody_db, host_identity=args.host_identity)
-        else:
-            if not args.target:
-                raise ValueError("option 0B requires a stegverse.ingress-manifest.v1 JSON file")
-            result = run_external_manifest(
-                _load_manifest(args.target),
-                custody_db=args.custody_db,
-                host_identity=args.host_identity,
-            )
+        if args.target:
+            raise ValueError("option 000 does not accept an external target")
+        result = run_000_demo(custody_db=args.custody_db, host_identity=args.host_identity)
     except ValueError as exc:
         print(json.dumps({"status": "INVALID_REQUEST", "error": str(exc), "authority_effect": "NONE"}, indent=2, sort_keys=True))
         return 2
