@@ -197,7 +197,7 @@ class ConvergenceTests(unittest.TestCase):
         rc, output, fetched = self._run(self._ready_0b_args(local, "local.json"))
         self.assertEqual(rc, 2)
         self.assertEqual(output["disposition"], "FAIL_CLOSED")
-        self.assertEqual(output["failed_predicate"], "MANIFEST_READINESS_QUALIFIED")
+        self.assertEqual(output["failed_predicate"], "CUSTOMER_LOCAL_HOST_BINDINGS_REQUIRED")
         fetched.assert_not_called()
 
     def test_missing_organization_boundary_fails_closed(self):
