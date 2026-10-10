@@ -99,7 +99,12 @@ def test_complete_post_return_evidence_verifies_exchange_replay_and_reconstructi
         replay=replay,
         reconstruct=reconstruct,
     )
-    assert proof["status"] == "PASS"
+    # Local evidence passes, but without an organization-ledger readback the lane is not complete.
+    assert proof["local_evidence_status"] == "PASS"
+    assert proof["status"] == "FAIL_CLOSED"
+    assert proof["sovereign_completion"] is False
+    assert proof["failed_predicate"] == "ORGANIZATION_LEDGER_READBACK_PRESENT"
+    assert proof["local_run_record"]["completes_transition"] is False
     assert proof["interlock_return_state"] == "ACKNOWLEDGED"
     assert proof["portable_verification"]["stage"] == "POST_RETURN"
     assert proof["portable_verification"]["status"] == "PASS"

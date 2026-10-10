@@ -10,6 +10,7 @@ from .interlock_transition import canonical_hash as interlock_hash, validate_int
 from .portable_governance_exchange import create_exchange, verify_exchange
 from .portable_governance_verifier import verify_portable_governance_bundle
 from .reference_interlock_participant import acknowledge_interlock_return
+from .organization_ledger_evidence import verify_organization_ledger_readback
 from .organization_record_names import (
     LEGACY_ORGANIZATION_RECORD_STATUS_FIELD,
     ORGANIZATION_RECORD_CLAIMED_FIELD,
@@ -45,7 +46,12 @@ def build_pending_interlock_return(
     sovereign_result: Mapping[str, Any],
     custody_record: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Bind an exact canonical sovereign run and Master Records record into return evidence."""
+    """Bind an exact canonical sovereign run and its local run record into pending return evidence.
+
+    The local record is input evidence for the binding hashes only; it is not
+    completion. Sovereign completion is decided in complete_post_return_evidence
+    from the organization-ledger readback.
+    """
     ingress_value = validate_interlock_transition(ingress)
     result = dict(sovereign_result)
     custody = dict(custody_record)
@@ -164,8 +170,18 @@ def complete_post_return_evidence(
     exchange_path: str | Path,
     replay: Callable[[str], Mapping[str, Any]],
     reconstruct: Callable[[str], Mapping[str, Any]],
+    organization_ledger_readback: Mapping[str, Any] | None = None,
+    organization_receipt_sha256: str | None = None,
+    canonical_manifest_sha256: str | None = None,
 ) -> dict[str, Any]:
-    """Finish return, exchange, independent verification, replay, and reconstruction after the canonical run."""
+    """Finish return, exchange, independent verification, replay, and reconstruction after the canonical run.
+
+    ``status`` is PASS only when the organization-ledger readback verifies (the
+    transition is in the organization ledger and bound to its manifest). Without
+    it the local evidence is still returned, under ``local_evidence_status``, and
+    ``status`` is FAIL_CLOSED with the six refusal fields. Local Master Records
+    custody is downstream, non-gating evidence and never completes the lane.
+    """
     pending = build_pending_interlock_return(
         pre_steggate_bundle["ingress_interlock"],
         sovereign_result,
@@ -201,16 +217,33 @@ def complete_post_return_evidence(
     if reconstruct_result.get("operation_transition_custody_status") != "RECORDED":
         raise ValueError("reconstruction operation transition is not in custody")
 
+    completion = verify_organization_ledger_readback(
+        organization_ledger_readback,
+        organization_receipt_sha256=organization_receipt_sha256,
+        canonical_manifest_sha256=canonical_manifest_sha256,
+    )
+    refusal = {
+        key: completion[key]
+        for key in ("failure_code", "failed_predicate", "required_evidence_or_repair",
+                    "retry_entrypoint", "owning_existing_goal", "next_attempt")
+        if key in completion
+    }
     return {
         "schema": PROOF_SCHEMA,
-        "status": "PASS",
+        "status": "PASS" if completion["disposition"] == "ALLOW" else "FAIL_CLOSED",
+        **refusal,
+        "local_evidence_status": "PASS",
+        "sovereign_completion": completion["sovereign_completion"],
+        "organization_ledger_completion": completion,
         "manifest_receipt_id": rid,
         "transaction_id": sovereign_result["transaction_id"],
         "governance_state": sovereign_result.get("governance_state"),
         "bounded_consequence": dict(sovereign_result["execution_result"]),
-        "master_records": {
+        "local_run_record": {
             "status": "RECORDED",
             "master_record_sha256": custody_record["master_record_sha256"],
+            "role": "DOWNSTREAM_NON_GATING_EVIDENCE",
+            "completes_transition": False,
         },
         "interlock_return_state": acknowledged["acknowledgement"]["state"],
         "participant_successor_receipt": acknowledgement["participant_successor_receipt"],
