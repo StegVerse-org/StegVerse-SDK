@@ -73,6 +73,11 @@ jobs:
           fi
           echo "OWNER_PRESENT $profile"
 
+      # SDK-MANIFEST-IDENTITY-ROUTING-REGRESSION-GATE-001 (SDK#368): a hard
+      # gate, not a ratchet entry. No baseline failure may be held against it.
+      - name: Manifest identity and routing regression gate
+        run: python -m pytest tests/test_manifest_identity_routing_regression_gate.py -q -p no:cacheprovider
+
       - name: No change may add a test failure the baseline does not hold
         run: python scripts/check_test_suite_ratchet.py
 

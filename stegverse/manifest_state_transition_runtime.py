@@ -104,6 +104,14 @@ def derive_execution_request(manifest: Mapping[str, Any], organization_boundary:
     route = route_from_manifest(canonical)
     if route.get("runtime_binding") != UNIVERSAL_RUNTIME_BINDING:
         raise ValueError("installed route does not use the universal manifest state-transition runtime")
+    # The declared processing capability is part of the admitted manifest's
+    # identity; it must name the processor its route binds, on every route and
+    # not only where an adapter happens to check it.
+    if canonical["processing"]["capability"] != route["processor_capability"]:
+        raise ValueError(
+            "MANIFEST_PROCESSING_CAPABILITY_ROUTE_MISMATCH: manifest processing "
+            f"capability does not select {route['processor_capability']}"
+        )
     adapter_binding = route.get("state_graph_adapter_binding")
     adapter = _load_adapter(str(adapter_binding or ""))
     # The adapter receives the original wire manifest. validate_ingress_manifest()
