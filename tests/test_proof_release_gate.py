@@ -1,4 +1,5 @@
 from stegverse.proof_release_gate import (
+    DOWNSTREAM_EVIDENCE_CAPABILITIES,
     PROOF_CAPABILITY_SCHEMA,
     REQUIRED_POST_RETURN_CAPABILITIES,
     verify_release_proof_capabilities,
@@ -18,7 +19,7 @@ def _receipt():
     }
     release_commit_for = {component["repository"]: component["commit_sha"] for component in components}
     capabilities = []
-    for index, capability_id in enumerate(REQUIRED_POST_RETURN_CAPABILITIES, start=4):
+    for index, capability_id in enumerate(REQUIRED_POST_RETURN_CAPABILITIES + DOWNSTREAM_EVIDENCE_CAPABILITIES, start=4):
         repository = repository_for[capability_id]
         capabilities.append(
             {
@@ -62,3 +63,22 @@ def test_release_cannot_claim_feature_without_containment_verification():
     result = verify_release_proof_capabilities(receipt)
     assert result["verified"] is False
     assert "STEGCORE_SPE_STANDING_BINDING_V1:feature_not_in_release" in result["reasons"]
+
+
+def test_local_run_store_capability_is_downstream_and_never_gates():
+    receipt = _receipt()
+    receipt["proof_capabilities"] = [
+        c for c in receipt["proof_capabilities"] if c["capability_id"] not in DOWNSTREAM_EVIDENCE_CAPABILITIES
+    ]
+    result = verify_release_proof_capabilities(receipt)
+    assert result["verified"] is True
+    assert result["downstream_evidence"]["observed"] == []
+    assert result["downstream_evidence"]["gates_release"] is False
+
+    receipt = _receipt()
+    for capability in receipt["proof_capabilities"]:
+        if capability["capability_id"] in DOWNSTREAM_EVIDENCE_CAPABILITIES:
+            capability["release_commit_sha"] = "9" * 40
+    result = verify_release_proof_capabilities(receipt)
+    assert result["verified"] is True
+    assert "MASTER_RECORDS_OPERATION_CUSTODY_V1:release_commit_mismatch" in result["downstream_evidence"]["reasons"]

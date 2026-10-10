@@ -16,6 +16,12 @@ from stegverse.sovereign_validation_runtime import (
     run_sovereign_validation,
 )
 from stegverse.organization_record_names import LEGACY_ORGANIZATION_RECORD_STATUS_FIELD, ORGANIZATION_RECORD_STATUS_FIELD, read_field
+from stegverse.organization_ledger_evidence import (
+    LOCAL_RUN_STORE_ROLE,
+    load_readback,
+    refusal_fields,
+    verify_organization_ledger_readback,
+)
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -44,7 +50,7 @@ def _canonical_governance_request(raw: Mapping[str, Any]) -> dict[str, Any]:
     return Request.model_validate(raw).model_dump(mode="json", exclude_none=False)
 
 
-def _export_custody(*, custody_db: Path, governed_result: dict[str, Any], run_dir: Path) -> None:
+def _export_custody(*, custody_db: Path, governed_result: dict[str, Any], run_dir: Path) -> str:
     (_Carrier, _build, _route, Custody, _submit, _Registry, _Request, _eval, _Ledger, _run) = _components()
     custody = Custody(custody_db)
 
@@ -61,10 +67,12 @@ def _export_custody(*, custody_db: Path, governed_result: dict[str, Any], run_di
     for index, event in enumerate(route_events):
         _write_json(run_dir / "route-receipts" / f"{index:03d}.json", event)
 
+    # Downstream, non-gating local evidence: exported when present, never required.
     evidence = custody.evidence_package(manifest_receipt_id)
-    if not isinstance(evidence, dict) or not evidence:
-        raise RuntimeError("master_records_evidence_package_missing")
-    _write_json(run_dir / "master-records" / "evidence-package.json", evidence)
+    if isinstance(evidence, dict) and evidence:
+        _write_json(run_dir / "master-records" / "evidence-package.json", evidence)
+        return "EXPORTED"
+    return "NOT_PROVIDED"
 
 
 def run_exact_r3(
@@ -76,14 +84,21 @@ def run_exact_r3(
     packet_dir: Path | None = None,
     host_identity: str = "stegverse-sovereign-local",
     include_replay: bool = True,
+    organization_ledger_readback_path: Path | None = None,
+    organization_receipt_sha256: str | None = None,
+    canonical_manifest_sha256: str | None = None,
 ) -> dict[str, Any]:
     """Execute the frozen ODA3 R3 proposition only after verified release proof exists.
 
     This harness adds no evaluator, route, decision semantics, credential authority,
-    or custody path. It calls the canonical SDK sovereign runtime, exports evidence
-    already kept as a Master Records organization record, records reconstruction/replay
-    as separate organization-record operations, and optionally invokes the fail-closed
-    packet builder.
+    or custody path. It calls the canonical SDK sovereign runtime, exports the local
+    run store's evidence as downstream non-gating evidence, records reconstruction/replay
+    as separate local operations, and optionally invokes the fail-closed packet builder.
+
+    ``status`` is ``ok`` only when ``organization_ledger_readback_path`` holds a
+    readback that verifies for this run's manifest-directed transition request;
+    otherwise the retained evidence is still returned but ``status`` is
+    ``FAIL_CLOSED`` with the six refusal fields.
     """
     release_receipt = _load_object(release_receipt_path)
     release_check = verify_release_receipt(release_receipt)
@@ -129,7 +144,7 @@ def run_exact_r3(
 
     _write_json(run_dir / "governed-result.json", governed_result)
     _write_json(run_dir / "independent-binding-verification.json", independent)
-    _export_custody(custody_db=custody_db, governed_result=governed_result, run_dir=run_dir)
+    local_evidence_status = _export_custody(custody_db=custody_db, governed_result=governed_result, run_dir=run_dir)
 
     manifest_receipt_id = str(governed_result["manifest_receipt_id"])
     reconstruction = reconstruct_sovereign(manifest_receipt_id, custody_db=custody_db)
@@ -140,6 +155,16 @@ def run_exact_r3(
         replay = replay_sovereign(manifest_receipt_id, custody_db=custody_db)
         _write_json(run_dir / "replay" / "replay.json", replay)
 
+    readback = load_readback(organization_ledger_readback_path)
+    completion = verify_organization_ledger_readback(
+        readback,
+        organization_receipt_sha256=organization_receipt_sha256,
+        canonical_manifest_sha256=canonical_manifest_sha256,
+    )
+    if readback is not None:
+        _write_json(run_dir / "organization-ledger" / "readback.json", readback)
+    _write_json(run_dir / "organization-ledger" / "completion.json", completion)
+
     packet_result = None
     if packet_dir is not None:
         packet_result = build_packet(
@@ -149,7 +174,12 @@ def run_exact_r3(
         )
 
     return {
-        "status": "ok",
+        "status": "ok" if completion["disposition"] == "ALLOW" else "FAIL_CLOSED",
+        **refusal_fields(completion),
+        "sovereign_completion": completion["sovereign_completion"],
+        "organization_ledger_completion": completion,
+        "local_evidence_status": "ok",
+        "local_run_store": {"evidence_package": local_evidence_status, **LOCAL_RUN_STORE_ROLE},
         "release_set_id": release_check["release_set_id"],
         "manifest_receipt_id": manifest_receipt_id,
         "transaction_id": governed_result.get("transaction_id"),
@@ -175,6 +205,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--packet-dir")
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
     parser.add_argument("--no-replay", action="store_true")
+    parser.add_argument("--organization-ledger-readback", default=None,
+                        help="readback JSON for this run's transition request; required for status ok")
+    parser.add_argument("--organization-receipt-sha256", default=None)
+    parser.add_argument("--canonical-manifest-sha256", default=None)
     args = parser.parse_args(argv)
     try:
         result = run_exact_r3(
@@ -185,12 +219,17 @@ def main(argv: list[str] | None = None) -> int:
             packet_dir=Path(args.packet_dir) if args.packet_dir else None,
             host_identity=args.host_identity,
             include_replay=not args.no_replay,
+            organization_ledger_readback_path=(
+                Path(args.organization_ledger_readback) if args.organization_ledger_readback else None
+            ),
+            organization_receipt_sha256=args.organization_receipt_sha256,
+            canonical_manifest_sha256=args.canonical_manifest_sha256,
         )
     except Exception as exc:
         print(json.dumps({"status": "failed", "reason": str(exc), "authority_granted": False}, indent=2))
         return 2
     print(json.dumps(result, indent=2, sort_keys=True))
-    return 0
+    return 0 if result["status"] == "ok" else 2
 
 
 if __name__ == "__main__":

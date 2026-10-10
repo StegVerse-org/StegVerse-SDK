@@ -7,6 +7,8 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+from stegverse.organization_ledger_evidence import verify_organization_ledger_readback
+
 EXPECTED_MANIFEST_SHA256 = "07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f"
 EXPECTED_MANIFEST_BLOB_SHA1 = "59d818a15fc7be732c97dae7d2174d8cfe9a7bab"
 TEST_ID = "cross-framework-current-basis-001"
@@ -15,7 +17,7 @@ REQUIRED_COMPLETE_FLAGS = {
     "independent_execution_complete": True,
     "s1_observed": True,
     "transition_receipt_bound": True,
-    "custody_recorded": True,
+    "sovereign_completion": True,
     "replay_recorded": True,
     "reconstruction_recorded": True,
     "counterpart_result_consumed_before_completion": False,
@@ -30,6 +32,7 @@ REQUIRED_EVIDENCE_FILES = (
     "RECONSTRUCTION.json",
     "REPLAY_REFERENCE.txt",
     "RUN_COMPLETE.json",
+    "ORGANIZATION_LEDGER_READBACK.json",
 )
 
 
@@ -146,6 +149,14 @@ def package_results(*, result_dir: Path, manifest_path: Path, output_dir: Path) 
     for key, expected in expected_reference_values.items():
         if not expected or replay_reference.get(key) != expected:
             raise RuntimeError(f"REPLAY_REFERENCE.txt mismatch: {key}")
+
+    # Publication is terminal: re-verify the organization-ledger readback the run completed on.
+    completion = verify_organization_ledger_readback(
+        _load_json(result_dir / "ORGANIZATION_LEDGER_READBACK.json"),
+        organization_receipt_sha256=complete.get("organization_receipt_sha256"),
+    )
+    if completion["disposition"] != "ALLOW":
+        raise RuntimeError("organization ledger readback does not verify: " + completion["failed_predicate"])
 
     if replay.get("operation_transition_custody_status") != "RECORDED":
         raise RuntimeError("replay custody evidence is not recorded")

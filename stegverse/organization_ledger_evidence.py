@@ -25,15 +25,26 @@ READBACK_SCHEMA = "stegverse.organization-ledger-readback/v1"
 COMPLETION_SCHEMA = "stegverse.sdk.organization-ledger-completion/v1"
 OWNING_EXISTING_GOAL = "SDK-MR-A-VALIDATION-CUSTODY-001"
 RETRY_ENTRYPOINT = "stegverse/organization_ledger_evidence.py::verify_organization_ledger_readback"
+# A lane run with no readback has no organization-ledger transition yet: the
+# repair is a manifest-directed transition request on the organization's
+# existing ingress (organization-ledger-transition.yml), not anything in the SDK.
+TRANSITION_REQUEST_ENTRYPOINT = "StegVerse-org/.github:.stegverse/transition-requests/"
 FAILURE_CODE = "SOVEREIGN_COMPLETION_REQUIRES_ORGANIZATION_LEDGER_READBACK"
+LOCAL_RUN_STORE_ROLE = {
+    "role": "DOWNSTREAM_NON_GATING_EVIDENCE",
+    "completes_transition": False,
+    "gates_transition": False,
+}
 
 
 class _Refused(Exception):
-    def __init__(self, failed_predicate: str, required: str, next_attempt: str) -> None:
+    def __init__(self, failed_predicate: str, required: str, next_attempt: str,
+                 retry_entrypoint: str = RETRY_ENTRYPOINT) -> None:
         super().__init__(failed_predicate)
         self.failed_predicate = failed_predicate
         self.required = required
         self.next_attempt = next_attempt
+        self.retry_entrypoint = retry_entrypoint
 
 
 def _digest(value: Any) -> str | None:
@@ -45,7 +56,12 @@ def _digest(value: Any) -> str | None:
     return "sha256:" + text
 
 
-def fail_closed(failed_predicate: str, required_evidence_or_repair: str, next_attempt: str) -> dict[str, Any]:
+def fail_closed(
+    failed_predicate: str,
+    required_evidence_or_repair: str,
+    next_attempt: str,
+    retry_entrypoint: str = RETRY_ENTRYPOINT,
+) -> dict[str, Any]:
     return {
         "schema": COMPLETION_SCHEMA,
         "disposition": "FAIL_CLOSED",
@@ -53,7 +69,7 @@ def fail_closed(failed_predicate: str, required_evidence_or_repair: str, next_at
         "failure_code": FAILURE_CODE,
         "failed_predicate": failed_predicate,
         "required_evidence_or_repair": required_evidence_or_repair,
-        "retry_entrypoint": RETRY_ENTRYPOINT,
+        "retry_entrypoint": retry_entrypoint,
         "owning_existing_goal": OWNING_EXISTING_GOAL,
         "next_attempt": next_attempt,
         "master_records_gating": False,
@@ -63,7 +79,8 @@ def fail_closed(failed_predicate: str, required_evidence_or_repair: str, next_at
 
 _REFETCH = "fetch refs/stegverse/organization-ledger again and rerun organization_ledger_readback.py with --ingress-result"
 _SUBMIT = ("commit the lane result as a transition request under StegVerse-org/.github "
-           ".stegverse/transition-requests/ and retain the readback of that run")
+           ".stegverse/transition-requests/ and retain the readback of that run "
+           "(organization_ledger_readback.py --ingress-result)")
 
 
 def _check(
@@ -73,7 +90,8 @@ def _check(
 ) -> dict[str, Any]:
     if not isinstance(readback, Mapping):
         raise _Refused("ORGANIZATION_LEDGER_READBACK_PRESENT",
-                       "an organization-ledger readback document (" + READBACK_SCHEMA + ")", _SUBMIT)
+                       "an organization-ledger readback document (" + READBACK_SCHEMA + ") for this lane's "
+                       "manifest-directed transition request", _SUBMIT, TRANSITION_REQUEST_ENTRYPOINT)
     if readback.get("schema") != READBACK_SCHEMA:
         raise _Refused("ORGANIZATION_LEDGER_READBACK_SCHEMA", "readback schema " + READBACK_SCHEMA, _REFETCH)
     if readback.get("disposition") != "ALLOW":
@@ -105,10 +123,12 @@ def _check(
     receipt = readback.get("ingress_organization_receipt_sha256")
     if receipt is None or readback.get("ingress_receipt_in_chain") is not True:
         raise _Refused("INGRESS_RECEIPT_IS_IN_THE_ORGANIZATION_LEDGER",
-                       "a readback run with --ingress-result for this lane's transition", _SUBMIT)
+                       "a readback run with --ingress-result for this lane's transition", _SUBMIT,
+                       TRANSITION_REQUEST_ENTRYPOINT)
     if readback.get("ingress_refused") is not False:
         raise _Refused("INGRESS_RECEIPT_IS_NOT_A_REFUSAL",
-                       "an admitted organization receipt; a recorded refusal is not completion", _SUBMIT)
+                       "an admitted organization receipt; a recorded refusal is not completion", _SUBMIT,
+                       TRANSITION_REQUEST_ENTRYPOINT)
     if organization_receipt_sha256 is not None and receipt != organization_receipt_sha256:
         raise _Refused("INGRESS_RECEIPT_IS_THE_EXPECTED_RECEIPT",
                        "readback of organization receipt " + organization_receipt_sha256, _REFETCH)
@@ -125,7 +145,8 @@ def _check(
                        "receipt predecessor state equal to sha256:<canonical manifest>", _REFETCH)
     if canonical_manifest_sha256 is not None and manifest != _digest(canonical_manifest_sha256):
         raise _Refused("RECEIPT_IS_BOUND_TO_THE_EXPECTED_MANIFEST",
-                       "readback for canonical manifest " + str(canonical_manifest_sha256), _SUBMIT)
+                       "readback for canonical manifest " + str(canonical_manifest_sha256), _SUBMIT,
+                       TRANSITION_REQUEST_ENTRYPOINT)
     if readback.get("master_records_awaited") not in (None, False):
         raise _Refused("MASTER_RECORDS_NOT_AWAITED", "a readback that awaits nothing from Master Records", _REFETCH)
 
@@ -156,7 +177,32 @@ def verify_organization_ledger_readback(
     try:
         return _check(readback, organization_receipt_sha256, canonical_manifest_sha256)
     except _Refused as exc:
-        return fail_closed(exc.failed_predicate, exc.required, exc.next_attempt)
+        return fail_closed(exc.failed_predicate, exc.required, exc.next_attempt, exc.retry_entrypoint)
+
+
+REFUSAL_FIELDS = (
+    "failure_code",
+    "failed_predicate",
+    "required_evidence_or_repair",
+    "retry_entrypoint",
+    "owning_existing_goal",
+    "next_attempt",
+)
+
+
+def refusal_fields(completion: Mapping[str, Any]) -> dict[str, Any]:
+    """The six refusal fields of a non-ALLOW completion, for a lane to carry on its own result."""
+    return {key: completion[key] for key in REFUSAL_FIELDS if key in completion}
+
+
+def load_readback(path: str | Path | None) -> Any:
+    """Read a readback document; an absent path or file is None, unreadable JSON is a non-readback."""
+    if path is None or not Path(path).is_file():
+        return None
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except ValueError:
+        return {"schema": None}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -165,12 +211,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--organization-receipt-sha256", default=None)
     parser.add_argument("--canonical-manifest-sha256", default=None)
     args = parser.parse_args(argv)
-    readback = None
-    if args.readback is not None and args.readback.is_file():
-        try:
-            readback = json.loads(args.readback.read_text(encoding="utf-8"))
-        except ValueError:
-            readback = {"schema": None}
+    readback = load_readback(args.readback)
     result = verify_organization_ledger_readback(
         readback,
         organization_receipt_sha256=args.organization_receipt_sha256,
@@ -184,7 +225,12 @@ __all__ = [
     "READBACK_SCHEMA",
     "COMPLETION_SCHEMA",
     "OWNING_EXISTING_GOAL",
+    "TRANSITION_REQUEST_ENTRYPOINT",
+    "LOCAL_RUN_STORE_ROLE",
+    "REFUSAL_FIELDS",
     "fail_closed",
+    "load_readback",
+    "refusal_fields",
     "verify_organization_ledger_readback",
     "main",
 ]

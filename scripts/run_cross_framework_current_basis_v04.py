@@ -13,6 +13,7 @@ from stegverse.sovereign_validation_runtime import (
     run_sovereign_validation,
 )
 from stegverse.organization_record_names import LEGACY_ORGANIZATION_RECORD_STATUS_FIELD, ORGANIZATION_RECORD_STATUS_FIELD, read_field
+from stegverse.organization_ledger_evidence import load_readback, refusal_fields, verify_organization_ledger_readback
 
 EXPECTED_MANIFEST_SHA256 = "07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f"
 EXPECTED_MANIFEST_GIT_BLOB_SHA1 = "59d818a15fc7be732c97dae7d2174d8cfe9a7bab"
@@ -128,8 +129,16 @@ def execute(
     custody_db: Path,
     output_dir: Path,
     host_identity: str,
+    organization_ledger_readback_path: Path | None = None,
+    organization_receipt_sha256: str | None = None,
+    canonical_manifest_sha256: str | None = None,
 ) -> dict[str, Any]:
+    """Run the frozen comparison; RUN_COMPLETE is COMPLETE only with a verified organization-ledger readback.
+
+    The local run store's RECORDED status is downstream, non-gating evidence.
+    """
     manifest = _load_manifest(manifest_path)
+    readback = load_readback(organization_ledger_readback_path)
     vector = manifest["input"]["comparison_input"]
 
     try:
@@ -150,11 +159,18 @@ def execute(
         custody_db=custody_db,
         host_identity=host_identity,
         derived_governance_request=native_request.model_dump(mode="json", exclude_none=False),
+        organization_ledger_readback=readback,
+        organization_receipt_sha256=organization_receipt_sha256,
+        canonical_manifest_sha256=canonical_manifest_sha256,
     )
-    if read_field(
+    local_run_store_recorded = read_field(
         sovereign_result, ORGANIZATION_RECORD_STATUS_FIELD, LEGACY_ORGANIZATION_RECORD_STATUS_FIELD
-    ) != "RECORDED":
-        raise CrossFrameworkExecutionError("canonical run did not establish a Master Records organization record")
+    ) == "RECORDED"
+    completion = verify_organization_ledger_readback(
+        readback,
+        organization_receipt_sha256=organization_receipt_sha256,
+        canonical_manifest_sha256=canonical_manifest_sha256,
+    )
 
     s1_observation = {
         "schema": "stegverse.sdk.cross-framework-s1-observation.v1",
@@ -202,10 +218,16 @@ def execute(
     _write(output_dir / "REPLAY.json", replay)
     _write(output_dir / "RECONSTRUCTION.json", reconstruction)
     (output_dir / "REPLAY_REFERENCE.txt").write_text(replay_reference_text, encoding="utf-8")
+    if readback is not None:
+        _write(output_dir / "ORGANIZATION_LEDGER_READBACK.json", readback)
+    _write(output_dir / "ORGANIZATION_LEDGER_COMPLETION.json", completion)
 
     complete = {
         "schema": "stegverse.sdk.cross-framework-run-complete.v1",
-        "status": "COMPLETE",
+        "status": "COMPLETE" if completion["disposition"] == "ALLOW" else "FAIL_CLOSED",
+        **refusal_fields(completion),
+        "sovereign_completion": completion["sovereign_completion"],
+        "organization_receipt_sha256": completion.get("organization_receipt_sha256"),
         "test_id": TEST_ID,
         "vector_schema": VECTOR_SCHEMA,
         "manifest_sha256": EXPECTED_MANIFEST_SHA256,
@@ -218,7 +240,8 @@ def execute(
         "s1_observed": True,
         "transition_receipt_bound": True,
         "transition_receipt_hash": transition_receipt["receipt_hash"],
-        "custody_recorded": True,
+        "local_run_store_recorded": local_run_store_recorded,
+        "local_run_store_gates_completion": False,
         "replay_recorded": replay_recorded,
         "reconstruction_recorded": reconstruction_recorded,
         "external_side_effect": bool(sovereign_result.get("external_side_effect")),
@@ -247,15 +270,22 @@ def main() -> int:
         default=Path("evidence/evaluator/cross-framework-current-basis-v0.4-result"),
     )
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
+    parser.add_argument("--organization-ledger-readback", type=Path, default=None,
+                        help="readback JSON for this run's transition request; required for COMPLETE")
+    parser.add_argument("--organization-receipt-sha256", default=None)
+    parser.add_argument("--canonical-manifest-sha256", default=None)
     args = parser.parse_args()
     result = execute(
         manifest_path=args.manifest,
         custody_db=args.custody_db,
         output_dir=args.output_dir,
         host_identity=args.host_identity,
+        organization_ledger_readback_path=args.organization_ledger_readback,
+        organization_receipt_sha256=args.organization_receipt_sha256,
+        canonical_manifest_sha256=args.canonical_manifest_sha256,
     )
     print(json.dumps(result, indent=2, sort_keys=True))
-    return 0
+    return 0 if result["status"] == "COMPLETE" else 2
 
 
 if __name__ == "__main__":

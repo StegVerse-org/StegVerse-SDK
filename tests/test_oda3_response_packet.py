@@ -7,6 +7,7 @@ import pytest
 
 from scripts.build_oda3_response_packet import build_packet
 from stegverse.evaluation_boundary_verifier import canonical_sha256
+from tests.test_organization_ledger_evidence import _readback
 
 
 def _write(path: Path, value) -> None:
@@ -123,3 +124,25 @@ def test_packet_builder_emits_independent_pass_tamper_fails_and_file_manifest(tm
     assert file_manifest["packet_complete_for_binding_review"] is True
     assert file_manifest["required_route_custody_evidence_present"] is True
     assert file_manifest["authority_granted"] is False
+
+
+def test_packet_master_records_export_is_optional_and_completion_needs_readback(tmp_path: Path):
+    receipt_path = tmp_path / "receipt.json"
+    run_dir = tmp_path / "run"
+    _write(receipt_path, _release_receipt())
+    _runtime_tuple(run_dir)
+    (run_dir / "master-records" / "custody.json").unlink()
+    (run_dir / "master-records").rmdir()
+
+    local_only = build_packet(release_receipt_path=receipt_path, run_dir=run_dir, output_dir=tmp_path / "p1")
+    assert local_only["status"] == "ok"
+    assert local_only["sovereign_completion"] is False
+    assert local_only["failed_predicate"] == "ORGANIZATION_LEDGER_READBACK_PRESENT"
+
+    _write(run_dir / "organization-ledger" / "readback.json", _readback())
+    completed = build_packet(release_receipt_path=receipt_path, run_dir=run_dir, output_dir=tmp_path / "p2")
+    assert completed["sovereign_completion"] is True
+    assert "failure_code" not in completed
+    assert (tmp_path / "p2" / "run" / "organization-ledger" / "readback.json").is_file()
+    manifest = json.loads((tmp_path / "p2" / "FILE_MANIFEST.sha256.json").read_text(encoding="utf-8"))
+    assert manifest["sovereign_completion"] is True
