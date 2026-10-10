@@ -35,7 +35,7 @@
  "blocked": {
   "owning_existing_goal": "LLMA-DECLARED-PATH-CONFORMANCE-368",
   "reason": "The canonical sovereign runtime still executes against the local run store: stegverse/sovereign_validation_runtime.py imports services.manifest_receipt_custody (stegverse-master-records, governed-test extra) to record route events and the run's evidence package, and replay/reconstruct read it. Completion no longer depends on it (organization_ledger_completion / sovereign_completion, SDK-MR-A), but removing the import needs an Organization-owned run store; adding one is a new dependency and the SDK may not become the ledger. The POST_RETURN interlock return (stegverse.interlock-return.v1) binds governance_record_hash and its egress receipt to the local run record, so build_pending_interlock_return and the runner still require that record as binding input. POST_RETURN completion itself requires the organization-ledger readback (#453); rebinding the return to the organization receipt is an interlock-return contract change. production_release_set COMPONENTS role label is part of the hashed installed release-set identity that replay and reconstruction compare against each run's retained release set; renaming it would report drift for every historical run.",
-  "receiver_contract_reason": "Resolved: the receiving Interlock is repinned to StegVerse-Labs/.github dd7a334 (#3081), which accepts ORGANIZATION_LEDGER; the SDK emits it (SDK-MR-A).",
+  "receiver_contract_reason": "Resolved: the receiving Interlock is repinned to StegVerse-Labs/.github adf312b (#3082, after #3081), where both manifest_state_transition_intr_ingress.py and stegagents_governed_runtime_worker.py accept ORGANIZATION_LEDGER; the SDK emits it (SDK-MR-A).",
   "files": [
    "pyproject.toml",
    "stegverse/governance_fallback.py",
@@ -4925,151 +4925,151 @@
    "line": 165,
    "classification": "PROPER",
    "reason": "non-gating: states or checks that the local run store (Master Records custody) is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
-   "text": "# MASTER_RECORDS value from older pinned callers (SDK-MR-A, #452)."
+   "text": "# ORGANIZATION_LEDGER and still accept the previous MASTER_RECORDS value"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 167,
+   "line": 168,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"downstream_batch_receipt_recorder\": \"MASTER_RECORDS\","
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 183,
+   "line": 184,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"\"\"Report one closure's Master Records reconstruction as evidence, never as a gate.\"\"\""
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 200,
+   "line": 201,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "def _master_records_evidence("
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 225,
+   "line": 226,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"schema\": MASTER_RECORDS_EVIDENCE_SCHEMA,"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 233,
+   "line": 234,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"recorder\": \"MASTER_RECORDS\","
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 265,
+   "line": 266,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "# downstream Master Records reconstruction of it is evidence only."
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 316,
+   "line": 317,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "# not an independently checked organization record or Master Records"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 324,
+   "line": 325,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "The native consumer already appends to the organization ledger; Master Records"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 337,
+   "line": 338,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"external_master_records_independently_read_back\": False,"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 367,
+   "line": 368,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "# Downstream Master Records receipt digests are optional evidence; when a"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 369,
+   "line": 370,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "for key in (\"intr_admission_master_records_receipt_sha256\","
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 370,
+   "line": 371,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"runtime_binding_master_records_receipt_sha256\", \"diagnostic_master_records_receipt_sha256\"):"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 424,
+   "line": 425,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "# Producers that still list the downstream Master Records reconstruction are"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 428,
+   "line": 429,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "_WORKER_ATTACHMENT_REPAIR_EVIDENCE + [\"MATCHING_MASTER_RECORDS_RECONSTRUCTION\"],"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 552,
+   "line": 553,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "raise ValueError(\"GOVERNANCE_RESULT_MASTER_RECORDS_NOT_IN_GOVERNANCE_PATH\")"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 609,
+   "line": 610,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "checked[\"master_records_reconstruction_evidence\"] = _master_records_evidence("
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 637,
+   "line": 638,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "# Master Records replay and reconstruction are reported as evidence below;"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 650,
+   "line": 651,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "checked[\"master_records_reconstruction_evidence\"] = _master_records_evidence(result, graph, reconstruction)"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 687,
+   "line": 688,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"master_records_reconstruction_observed\": False,"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 769,
+   "line": 770,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"master_records_reconstruction_observed\": False,"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 834,
+   "line": 835,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"MASTER_RECORDS_EVIDENCE_SCHEMA\","
@@ -15929,7 +15929,7 @@
    "classification_before": "IMPROPER_CODE",
    "status": "REMEDIATED",
    "owning_existing_goal": "SDK-MR-A-VALIDATION-CUSTODY-001",
-   "remediation": "receiver repinned to StegVerse-Labs/.github dd7a334 (#3081), which accepts ORGANIZATION_LEDGER; the SDK now emits custody_replay_reconstruction_authority=ORGANIZATION_LEDGER"
+   "remediation": "receivers repinned to StegVerse-Labs/.github adf312b (#3082): intr_ingress and stegagents_governed_runtime_worker accept ORGANIZATION_LEDGER; the SDK now emits custody_replay_reconstruction_authority=ORGANIZATION_LEDGER"
   },
   {
    "path": "stegverse/test_procedure.py",
@@ -15947,7 +15947,7 @@
    "classification_before": "IMPROPER_CODE",
    "status": "REMEDIATED",
    "owning_existing_goal": "SDK-MR-A-VALIDATION-CUSTODY-001",
-   "remediation": "test now asserts custody_replay_reconstruction_authority=ORGANIZATION_LEDGER against the dd7a334 receiver"
+   "remediation": "test now asserts custody_replay_reconstruction_authority=ORGANIZATION_LEDGER against the adf312b receivers"
   },
   {
    "path": "scripts/run_evaluation_boundary_r3.py",

@@ -159,10 +159,11 @@ def derive_execution_request(manifest: Mapping[str, Any], organization_boundary:
         "claim_fence_authority": "WORKERCOORDINATOR",
         "transition_authority": "INTERLOCK_INTR",
         "transition_receipt_authority": "ORGANIZATION_LEDGER",
-        # The receiving Interlock (StegVerse-Labs/.github
-        # workers/manifest_state_transition_intr_ingress.py, pinned at dd7a334)
-        # accepts ORGANIZATION_LEDGER and still accepts the previous
-        # MASTER_RECORDS value from older pinned callers (SDK-MR-A, #452).
+        # The receivers (StegVerse-Labs/.github workers/
+        # manifest_state_transition_intr_ingress.py and
+        # stegagents_governed_runtime_worker.py, pinned at adf312b, #3082) accept
+        # ORGANIZATION_LEDGER and still accept the previous MASTER_RECORDS value
+        # from older pinned callers (SDK-MR-A, #452).
         "custody_replay_reconstruction_authority": "ORGANIZATION_LEDGER",
         "downstream_batch_receipt_recorder": "MASTER_RECORDS",
         "downstream_batch_receipt_recording_gates_transition": False,

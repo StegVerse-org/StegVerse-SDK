@@ -50,7 +50,7 @@ class MasterRecordsRoleAuditTests(unittest.TestCase):
                  and r["classification"].startswith("IMPROPER")],
                 row,
             )
-        # The receiver is repinned to StegVerse-Labs/.github dd7a334 (#3081), so the
+        # The receiver is repinned to StegVerse-Labs/.github adf312b (#3082), so the
         # legacy custody_replay_reconstruction_authority value is no longer emitted.
         receiver = [r for r in self.audit["rows"] if "custody_replay_reconstruction_authority" in r["text"]
                     and r["classification"] == "IMPROPER_CODE"]

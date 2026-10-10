@@ -82,7 +82,7 @@ class GenericResultAdmissionTests(unittest.TestCase):
         self.assertEqual(self.request["transition_receipt_authority"], "ORGANIZATION_LEDGER")
         self.assertEqual(self.request["downstream_batch_receipt_recorder"], "MASTER_RECORDS")
         self.assertIs(self.request["downstream_batch_receipt_recording_gates_transition"], False)
-        # The receiver pinned at dd7a334 accepts the organization-ledger value.
+        # The receiver pinned at adf312b accepts the organization-ledger value.
         self.assertEqual(self.request["custody_replay_reconstruction_authority"], "ORGANIZATION_LEDGER")
         evidence = validate_runtime_result(self.result, self.request)["master_records_reconstruction_evidence"]
         self.assertNotIn("authority", evidence)

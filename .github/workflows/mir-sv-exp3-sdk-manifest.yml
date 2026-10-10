@@ -61,7 +61,7 @@ jobs:
           assert historical['completion']['publisher']['required'] is True
           Path('/tmp/mir-sv-exp3.sdk-request.json').write_text(json.dumps(request,sort_keys=True,indent=2)+'\n')
           PY
-          curl -fsSL "https://github.com/StegVerse-Labs/.github/archive/dd7a3340ef826faaa767e4ed40ba0bdec8dc7fa8.tar.gz" -o /tmp/exp3-central.tgz
+          curl -fsSL "https://github.com/StegVerse-Labs/.github/archive/adf312bb4f9c2f071e8f65653fb80405e8b75218.tar.gz" -o /tmp/exp3-central.tgz
           tar -xzf /tmp/exp3-central.tgz -C /tmp/exp3-central --strip-components=1
           PYTHONPATH=/tmp/exp3-central:/tmp/source python - <<'PY'
           import copy,json
@@ -73,7 +73,7 @@ jobs:
           root=Path('/tmp/exp3-profile-evaluation')
           result=central.execute(root, request)
           assert result['disposition']=='DENY'
-          # dd7a334 routes the non-worker diagnostic to its admitted consumer, which
+          # adf312b routes the non-worker diagnostic to its admitted consumer, which
           # refuses without an Organization-ledger-read-back event-ephemeral binding.
           assert result['reason_code']=='AUTHENTIC_EVENT_EPHEMERAL_BINDING_LOCATOR_REQUIRED', result['reason_code']
           assert request['custody_replay_reconstruction_authority']=='ORGANIZATION_LEDGER'
