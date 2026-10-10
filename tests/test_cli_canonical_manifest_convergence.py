@@ -100,12 +100,12 @@ class ConvergenceTests(unittest.TestCase):
     def _ready_0b_args(self, manifest, name="m.json"):
         """A supplied 0B manifest requires fresh, invocation-bound readiness too."""
         from datetime import datetime, timedelta, timezone
-        from tests.test_manifest_readiness_gate import KEY, KEY_ID, _all_ready
+        from tests.test_manifest_readiness_gate import ATTEMPT, KEY, KEY_ID, _all_ready
 
         evidence = _all_ready(manifest, at=datetime.now(timezone.utc) - timedelta(seconds=5))
         return [
             "governance", "--select", "0B", "--manifest", self._write(name, manifest),
-            "--attempt-id", str(manifest.get("source_output_id")),
+            "--attempt-id", ATTEMPT,
             "--readiness-evidence", self._write(name + ".evidence", evidence),
             "--readiness-keys", self._write(name + ".keys", {KEY_ID: KEY}),
         ]
