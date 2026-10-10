@@ -150,7 +150,7 @@ real normalized-manifest.json
 real governance-request.json
 real governed-result.json
 non-empty route-receipts evidence
-non-empty exact-run evidence (local run store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
+non-empty exact-run evidence (SDK-internal local run record; non-authoritative)
 non-empty reconstruction evidence
 complete independent unmodified tuple verification PASS
 ```
@@ -195,8 +195,8 @@ requires submitted_manifest_hash to equal the retained normalized manifest hash
 requires governance_request_hash to equal the retained exact model-dumped request hash
 independently verifies the full unmodified binding tuple before claiming harness success
 retains governed-result.json and independent-binding-verification.json
-exports actual route receipt events from the run record in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
-exports the exact retained run evidence package (same local store; not Master Records custody)
+exports actual route receipt events from the SDK-internal local run record (non-authoritative)
+exports the exact retained run evidence package (same local run record; not Master Records custody)
 runs canonical reconstruction and retains its operation-custody evidence
 runs canonical replay by default and retains its operation-custody evidence
 optionally invokes the fail-closed response-packet builder
@@ -206,7 +206,7 @@ A real evidence-integrity defect was corrected here before execution: the first 
 
 The exact evaluator input is now frozen as a repository artifact rather than a command placeholder. The non-authorizing source workflow validates `evidence/oda3/R3_EXACT_EVALUATION_MANIFEST.json` through the public validator. This freezes the evaluator proposition without claiming the normalized runtime artifact, which still must be produced by the exact released SDK at execution time.
 
-The harness does not define a new evaluator, route, StegGate decision model, custody implementation, or credential path. It calls the already-canonical frozen runtime and the existing master-records package interfaces used as its local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody). Source-level harness tests use monkeypatched fixtures only to prove fail-closed sequencing; fixtures are prohibited as experiment runtime evidence.
+The harness does not define a new evaluator, route, StegGate decision model, custody implementation, or credential path. It calls the already-canonical frozen runtime and the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody) as its local run store. Source-level harness tests use monkeypatched fixtures only to prove fail-closed sequencing; fixtures are prohibited as experiment runtime evidence.
 
 Preferred post-release invocation:
 
@@ -268,7 +268,7 @@ Once the verified aggregate receipt exists, continue without a new planning phas
 4 invoke scripts/run_oda3_evaluation_boundary_r3.py via ordinary SDK ingress only
 5 harness retains exact normalized manifest + exact model-normalized governance request + governed result
 6 harness verifies retained manifest/request hashes against the runtime bindings and independently verifies the unmodified tuple
-7 harness exports route/run-record chain (local run store)
+7 harness exports route/run-record chain (SDK-internal local run record)
 8 harness retains reconstruction and requested replay
 9 harness invokes scripts/build_oda3_response_packet.py against real release/run evidence
 10 builder independently verifies unmodified tuple -> PASS

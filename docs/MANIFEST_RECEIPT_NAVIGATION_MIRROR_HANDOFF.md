@@ -105,7 +105,7 @@ Standalone executable entry remains:
 
 ```bash
 python -m stegverse.governance_ingress_cli 0B <manifest.json> \
-  --records-db ./stegverse-master-records-validation.db
+  --records-db ./my-run-record.db
 ```
 
 ## Option 000 — executable safe canonical demo
@@ -134,7 +134,7 @@ Executable entry:
 
 ```bash
 python -m stegverse.governance_ingress_cli 000 \
-  --records-db ./stegverse-master-records-validation.db
+  --records-db ./my-run-record.db
 ```
 
 This preserves the anti-false-completion invariant: embedding a dataset is not represented as processing it.
@@ -156,7 +156,7 @@ StegVerse-Labs/StegCore
   canonical StegGate evaluation and receipt semantics
 
 master-records/orchestration
-  downstream recording of released batch receipts; its package currently backs the local validation run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not custody)
+  downstream recording of released batch receipts; not custody, and not the local validation run store (that is the SDK-internal stegverse/local_run_record.py)
 
 StegVerse-org/LLM-adapter
   governed machine ingress/transport where applicable

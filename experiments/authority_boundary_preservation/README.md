@@ -20,12 +20,12 @@ The experiment is designed for the canonical sovereign public inspection path de
 ```text
 SDK entry
 -> Core-Lite manifested route carrier
--> checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> checkpoint receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> canonical StegCore manifested transaction
 -> canonical StegGate evaluation
--> exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> exact-run receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> return ingestion/CGE
--> return receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> return receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> SDK return
 ```
 

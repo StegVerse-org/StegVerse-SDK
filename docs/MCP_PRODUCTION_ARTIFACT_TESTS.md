@@ -1,6 +1,6 @@
 # MCP Production-Artifact Tests
 
-The MCP test lane exercises the same canonical StegVerse SDK, Core-Lite, StegCore/StegGate, and Master Records artifacts used by the existing governed test path (the Master Records package is the local run store: known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody). The test environment controls the MCP target and proposed operation; it does not substitute mock governance or a second custody system.
+The MCP test lane exercises the same canonical StegVerse SDK, Core-Lite and StegCore/StegGate artifacts used by the existing governed test path; its run is kept in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody). The test environment controls the MCP target and proposed operation; it does not substitute mock governance or a second custody system.
 
 ## Install
 
@@ -26,7 +26,7 @@ Running `stegverse-mcp-test` with no `--select` presents the same five selected-
 stegverse-mcp-test --select 000
 ```
 
-This prints the production-artifact route, authority boundary, local run-record requirements (master-records package store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368), and the point at which an MCP `tools/call` may occur.
+This prints the production-artifact route, authority boundary, local run-record requirements (SDK-internal `stegverse/local_run_record.py`; non-authoritative, caller-supplied location), and the point at which an MCP `tools/call` may occur.
 
 Canonical path:
 
@@ -36,14 +36,14 @@ SDK MCP test entry
 -> exact tool contract + exact proposed call canonicalized/hashed
 -> portable MCP test packet
 -> canonical SDK ingress / Core-Lite manifested route
--> MRR-* checkpoint record (local run store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
+-> MRR-* checkpoint record (SDK-internal local run record; non-authoritative)
 -> canonical StegCore transaction
 -> canonical StegGate + commit-coherence evaluation
 -> bounded MCP tools/call only at the canonical consequence boundary
 -> MCP result captured as execution observation
--> MR-* exact-run record (local run store; not Master Records custody)
+-> MR-* exact-run record (SDK-internal local run record; not Master Records custody)
 -> return ingestion/CGE
--> MRR-* return record (local run store; not Master Records custody)
+-> MRR-* return record (SDK-internal local run record; not Master Records custody)
 -> same SDK caller connection
 ```
 
@@ -126,7 +126,7 @@ The packet is converted into an ordinary canonical StegGate request. The actual 
 ```bash
 stegverse-mcp-test --select 1 \
   --manifest-receipt-id MR-<SHA256> \
-  --records-db ./stegverse-master-records-validation.db
+  --records-db ./my-run-record.db
 ```
 
 Replay is separately receipted ecosystem history and does not resend the original MCP `tools/call`.
@@ -136,10 +136,10 @@ Replay is separately receipted ecosystem history and does not resend the origina
 ```bash
 stegverse-mcp-test --select 2 \
   --manifest-receipt-id MR-<SHA256> \
-  --records-db ./stegverse-master-records-validation.db
+  --records-db ./my-run-record.db
 ```
 
-Reconstruction rebuilds the retained trajectory from the retained run evidence in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody). It does not resend the original MCP `tools/call`.
+Reconstruction rebuilds the retained trajectory from the retained run evidence in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody). It does not resend the original MCP `tools/call`.
 
 ## Test claims
 
@@ -154,7 +154,7 @@ argument mutation changes call hash
 caller credential material is rejected
 000 exposes the actual production-artifact route
 MCP call is handed to the canonical consequence boundary rather than pre-executed
-canonical governed integration records the run record in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
+canonical governed integration records the run in the SDK-internal local run record (non-authoritative)
 replay does not reexecute consequence
 reconstruction does not reexecute consequence
 ```
@@ -165,4 +165,4 @@ Run unit tests:
 python -m unittest tests.test_mcp_production_artifact -v
 ```
 
-With the governed-test dependencies installed, the same test module also executes the full canonical Core-Lite -> StegCore/StegGate integration path, including the master-records package's local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368).
+With the governed-test dependencies installed, the same test module also executes the full canonical Core-Lite -> StegCore/StegGate integration path, including the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative).

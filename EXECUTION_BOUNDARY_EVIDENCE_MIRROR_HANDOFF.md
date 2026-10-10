@@ -201,10 +201,10 @@ Actual consequential execution remains the canonical path described by `SDK_MIRR
 ```text
 SDK entry
 -> Core-Lite manifested route carrier
--> checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> checkpoint receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> StegCore manifested transaction
 -> StegGate + commit-coherence evaluation
--> exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> exact-run receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> return ingestion/CGE
 -> return custody
 -> SDK return

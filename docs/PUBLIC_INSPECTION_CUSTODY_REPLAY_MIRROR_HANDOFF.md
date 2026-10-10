@@ -14,7 +14,7 @@ release_state: NOT_RELEASED
 
 ## Goal
 
-Enforce the ecosystem invariant that every state transition required by SDK run, replay, and reconstruction is retained in the local run store before the corresponding artifact is returned (the store is currently the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody); Master Records is not a gate).
+Enforce the ecosystem invariant that every state transition required by SDK run, replay, and reconstruction is retained in the local run store before the corresponding artifact is returned (the store is the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody); Master Records is not a gate, and sovereign completion requires a verified organization-ledger readback, `stegverse/organization_ledger_evidence.py`).
 
 ## Governed-run ordering
 
@@ -25,7 +25,7 @@ public inspection request
 -> canonical run_manifested_transaction
 -> complete hash-chained transition trajectory
 -> canonical manifest_receipt_id
--> POST exact-run evidence package to the local run store (master-records package API; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
+-> write exact-run evidence package to the SDK-internal local run record (stegverse/local_run_record.py; non-authoritative)
 -> require custody_status: RECORDED
 -> return governed result
 ```
@@ -43,7 +43,7 @@ REQUESTED
 -> RETURNED
 ```
 
-Each transition is appended to the local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368) under a distinct replay `operation_id`, hash-linked in sequence, and assigned an operation-event receipt. The SDK fails closed if any transition cannot be recorded. Only after `RETURNED` is recorded may the replay artifact be returned to the caller.
+Each transition is appended to the SDK-internal local run record (non-authoritative; authority_effect NONE) under a distinct replay `operation_id`, hash-linked in sequence, and assigned an operation-event receipt. The SDK fails closed if any transition cannot be recorded. Only after `RETURNED` is recorded may the replay artifact be returned to the caller.
 
 ## Reconstruction operation custody
 
@@ -71,23 +71,23 @@ operation_transition_custody: required
 
 ## Cross-repository dependency
 
-The SDK operation-event client requires the matching `master-records/orchestration` operation-event API (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody):
+The sovereign lane no longer calls a `master-records/orchestration` operation-event API; operation events are written to the SDK-internal local run record (`stegverse/local_run_record.py`, `LocalRunRecordStore.record_operation_event`). The Master Records HTTP routes below are used only by the production-lane runtime (`stegverse/production_validation_runtime.py`) for downstream, non-gating recording and readback of released records; they are not authority or custody:
 
 ```text
 POST /api/master-records/manifest-receipts/{manifest_receipt_id}/operations
 GET  /api/master-records/manifest-receipts/{manifest_receipt_id}/operations/{operation_id}
 ```
 
-The master-records package API currently assigns operation event IDs, sequencing and hash linkage in the local run record (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368); the Organization keeps its ledger record and owns custody. The SDK refuses to return success until that local store confirms `RECORDED`.
+The SDK-internal local run record assigns operation event IDs, sequencing and hash linkage for the local lane (authority_effect NONE, completes_transition false); the Organization keeps its ledger record and owns custody. The SDK fails closed if the local row cannot be written, but a written local row is never a completion: sovereign completion comes only from a verified organization-ledger readback.
 
 ## Validation gate
 
 Before merge/release claim:
 
 ```text
-1. master-records package operation-transition implementation/tests PASS (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368).
-2. Canonical custody app exposes operation POST/GET routes.
-3. One governed TEST returns only after exact-run custody RECORDED.
+1. SDK-internal local run record operation-event implementation/tests PASS (tests/test_local_run_record.py).
+2. The local run record writes and reads operation events (`record_operation_event`, `reconstruct`) at the caller-supplied location.
+3. One governed TEST returns only after its exact-run evidence is written to the local run record; that local row is evidence, not completion.
 4. Replay records REQUESTED/SOURCE_RESOLVED/EVALUATED/RETURNED and then returns artifact.
 5. Reconstruction records REQUESTED/SOURCE_RESOLVED/ARTIFACT_DERIVED/RETURNED and then returns artifact.
 6. Original exact-run hash is unchanged after both operations.

@@ -16,7 +16,7 @@ release_state: NOT_RELEASED
 
 ## Goal
 
-Option `000` is the SDK-owned teaching lane. It must demonstrate the complete governance vocabulary without pretending that four mutually exclusive teaching examples are four decisions from one transaction, then optionally execute the entire SDK-owned dataset through the canonical sovereign StegGate path (its local validation lane currently stores runs in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)).
+Option `000` is the SDK-owned teaching lane. It must demonstrate the complete governance vocabulary without pretending that four mutually exclusive teaching examples are four decisions from one transaction, then optionally execute the entire SDK-owned dataset through the canonical sovereign StegGate path (its local validation lane stores runs in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)).
 
 ## Dataset
 
@@ -57,7 +57,7 @@ It does not mint authority. It does not create a second evaluator. `run_000_demo
 Executable entry:
 
 ```bash
-python -m stegverse.governance_ingress_cli 000 --records-db ./stegverse-master-records-validation.db
+python -m stegverse.governance_ingress_cli 000 --records-db ./my-run-record.db
 ```
 
 ## Anti-false-processing invariant

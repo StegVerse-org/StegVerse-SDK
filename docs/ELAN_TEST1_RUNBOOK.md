@@ -68,7 +68,7 @@ stegverse external-run \
 
 This path builds and validates `stegverse.ingress-manifest.v1`, binds governance to `stegverse.route.canonical-governed.v1`, executes the canonical local governed test, records custody, returns `manifest_receipt_id`, and performs replay plus reconstruction by default.
 
-The canonical governed runtime currently depends on pinned StegCore and Master Records repositories that are not anonymous-public Git dependencies (the Master Records package is the local validation lane's run store: known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody). That affects who can execute the private canonical runtime locally; it does not prevent an external tester from preparing the exact portable SDK submission. The SDK must not claim that `--prepare-only` is governance execution.
+The canonical governed runtime currently depends on the pinned governed-test components (StegCore and Core-Lite), which are not all anonymous-public Git dependencies. The local validation lane's run store is the SDK-internal local run record (`stegverse/local_run_record.py`; stdlib, non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody); the SDK no longer depends on the Master Records package. That affects who can execute the private canonical runtime locally; it does not prevent an external tester from preparing the exact portable SDK submission. The SDK must not claim that `--prepare-only` is governance execution.
 
 ## Real test substitution rule
 
