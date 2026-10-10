@@ -16,6 +16,7 @@ on:
       - 'tests/test_reference_bounded_consequence.py'
       - 'tests/test_self_characterization_lane.py'
       - 'tests/test_post_return_evidence.py'
+      - 'tests/test_organization_ledger_evidence.py'
       - 'tests/test_proof_release_gate.py'
       - 'tests/test_elyria_framework_adapter.py'
       - 'tests/test_organization_batch_manifest_task_binding.py'
@@ -74,6 +75,7 @@ jobs:
             tests/test_portable_governance_exchange.py \
             tests/test_reference_bounded_consequence.py \
             tests/test_post_return_evidence.py \
+            tests/test_organization_ledger_evidence.py \
             tests/test_proof_release_gate.py
           python -m unittest -v tests.test_organization_batch_manifest_task_binding
 

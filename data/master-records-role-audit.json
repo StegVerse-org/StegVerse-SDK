@@ -23,14 +23,14 @@
    "PROPER": 562
   },
   "after": {
-   "total": 1319,
+   "total": 1328,
    "HISTORICAL_EVIDENCE": 133,
-   "IMPROPER_CODE": 44,
+   "IMPROPER_CODE": 41,
    "NAMING_ONLY": 141,
-   "PROPER": 1001
+   "PROPER": 1013
   },
   "after_improper_unblocked": 0,
-  "after_improper_blocked": 44
+  "after_improper_blocked": 41
  },
  "blocked": {
   "owning_existing_goal": "LLMA-DECLARED-PATH-CONFORMANCE-368",
@@ -5661,6 +5661,41 @@
    "text": "# TV/TVC or Master Records execution even when every local check succeeds."
   },
   {
+   "path": "stegverse/organization_ledger_evidence.py",
+   "line": 10,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "Local Master Records custody (``ManifestReceiptCustody`` ``RECORDED``) remains"
+  },
+  {
+   "path": "stegverse/organization_ledger_evidence.py",
+   "line": 59,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "\"master_records_gating\": False,"
+  },
+  {
+   "path": "stegverse/organization_ledger_evidence.py",
+   "line": 129,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "if readback.get(\"master_records_awaited\") not in (None, False):"
+  },
+  {
+   "path": "stegverse/organization_ledger_evidence.py",
+   "line": 130,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "raise _Refused(\"MASTER_RECORDS_NOT_AWAITED\", \"a readback that awaits nothing from Master Records\", _REFETCH)"
+  },
+  {
+   "path": "stegverse/organization_ledger_evidence.py",
+   "line": 144,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "\"master_records_gating\": False,"
+  },
+  {
    "path": "stegverse/organization_record_names.py",
    "line": 1,
    "classification": "NAMING_ONLY",
@@ -5872,17 +5907,7 @@
   },
   {
    "path": "stegverse/post_return_evidence.py",
-   "line": 48,
-   "classification": "IMPROPER_CODE",
-   "reason": "nonconforming sovereign local run store dependency",
-   "text": "\"\"\"Bind an exact canonical sovereign run and Master Records record into return evidence.\"\"\"",
-   "status": "BLOCKED",
-   "blocked_reason": "Sovereign local validation lane: stegverse/sovereign_validation_runtime.py stores runs in the master-records/orchestration package's ManifestReceiptCustody (governed-test extra) and downstream post-return/release-proof/packet tooling requires that store's RECORDED status. Removing it needs an Organization-ledger store owned by the Organization (manifest-directed append under the organization ledger lock). No such package exists in this repository's dependency set; adding one is a new dependency (prohibited), and the SDK may not become the ledger itself (it builds/validates/submits manifests only).",
-   "owning_existing_goal": "LLMA-DECLARED-PATH-CONFORMANCE-368"
-  },
-  {
-   "path": "stegverse/post_return_evidence.py",
-   "line": 54,
+   "line": 60,
    "classification": "IMPROPER_CODE",
    "reason": "nonconforming sovereign local run store dependency",
    "text": "raise ValueError(\"canonical run is not recorded in Master Records\")",
@@ -5892,7 +5917,7 @@
   },
   {
    "path": "stegverse/post_return_evidence.py",
-   "line": 110,
+   "line": 116,
    "classification": "IMPROPER_CODE",
    "reason": "nonconforming sovereign local run store dependency",
    "text": "\"issuer\": \"StegVerse/MasterRecords\",",
@@ -5902,13 +5927,10 @@
   },
   {
    "path": "stegverse/post_return_evidence.py",
-   "line": 211,
-   "classification": "IMPROPER_CODE",
-   "reason": "nonconforming sovereign local run store dependency",
-   "text": "\"master_records\": {",
-   "status": "BLOCKED",
-   "blocked_reason": "Sovereign local validation lane: stegverse/sovereign_validation_runtime.py stores runs in the master-records/orchestration package's ManifestReceiptCustody (governed-test extra) and downstream post-return/release-proof/packet tooling requires that store's RECORDED status. Removing it needs an Organization-ledger store owned by the Organization (manifest-directed append under the organization ledger lock). No such package exists in this repository's dependency set; adding one is a new dependency (prohibited), and the SDK may not become the ledger itself (it builds/validates/submits manifests only).",
-   "owning_existing_goal": "LLMA-DECLARED-PATH-CONFORMANCE-368"
+   "line": 182,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "``status`` is FAIL_CLOSED with the six refusal fields. Local Master Records"
   },
   {
    "path": "stegverse/post_return_production_runner.py",
@@ -5942,20 +5964,10 @@
   },
   {
    "path": "stegverse/post_return_production_runner.py",
-   "line": 295,
+   "line": 299,
    "classification": "IMPROPER_CODE",
    "reason": "nonconforming sovereign local run store dependency",
    "text": "raise RuntimeError(\"canonical_master_records_organization_record_not_recorded\")",
-   "status": "BLOCKED",
-   "blocked_reason": "Sovereign local validation lane: stegverse/sovereign_validation_runtime.py stores runs in the master-records/orchestration package's ManifestReceiptCustody (governed-test extra) and downstream post-return/release-proof/packet tooling requires that store's RECORDED status. Removing it needs an Organization-ledger store owned by the Organization (manifest-directed append under the organization ledger lock). No such package exists in this repository's dependency set; adding one is a new dependency (prohibited), and the SDK may not become the ledger itself (it builds/validates/submits manifests only).",
-   "owning_existing_goal": "LLMA-DECLARED-PATH-CONFORMANCE-368"
-  },
-  {
-   "path": "stegverse/post_return_production_runner.py",
-   "line": 331,
-   "classification": "IMPROPER_CODE",
-   "reason": "nonconforming sovereign local run store dependency",
-   "text": "\"master_records_organization_record\": {",
    "status": "BLOCKED",
    "blocked_reason": "Sovereign local validation lane: stegverse/sovereign_validation_runtime.py stores runs in the master-records/orchestration package's ManifestReceiptCustody (governed-test extra) and downstream post-return/release-proof/packet tooling requires that store's RECORDED status. Removing it needs an Organization-ledger store owned by the Organization (manifest-directed append under the organization ledger lock). No such package exists in this repository's dependency set; adding one is a new dependency (prohibited), and the SDK may not become the ledger itself (it builds/validates/submits manifests only).",
    "owning_existing_goal": "LLMA-DECLARED-PATH-CONFORMANCE-368"
@@ -8349,6 +8361,48 @@
    "text": "assert (packet_dir / \"run\" / \"master-records\" / \"custody.json\").is_file()"
   },
   {
+   "path": "tests/test_organization_ledger_evidence.py",
+   "line": 65,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "\"master_records_awaited\": False,"
+  },
+  {
+   "path": "tests/test_organization_ledger_evidence.py",
+   "line": 77,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "assert result[\"master_records_gating\"] is False"
+  },
+  {
+   "path": "tests/test_organization_ledger_evidence.py",
+   "line": 92,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "assert result[\"master_records_gating\"] is False"
+  },
+  {
+   "path": "tests/test_organization_ledger_evidence.py",
+   "line": 100,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "def test_local_master_records_custody_is_not_a_readback():"
+  },
+  {
+   "path": "tests/test_organization_ledger_evidence.py",
+   "line": 101,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "custody = {\"schema\": \"stegverse.master-records.manifest-receipt-custody.v1\", \"custody_status\": \"RECORDED\"}"
+  },
+  {
+   "path": "tests/test_organization_ledger_evidence.py",
+   "line": 128,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "(lambda r: r.update(master_records_awaited=True), \"MASTER_RECORDS_NOT_AWAITED\"),"
+  },
+  {
    "path": "tests/test_organization_record_migration.py",
    "line": 1,
    "classification": "PROPER",
@@ -8499,7 +8553,7 @@
   },
   {
    "path": "tests/test_post_return_evidence.py",
-   "line": 120,
+   "line": 125,
    "classification": "IMPROPER_CODE",
    "reason": "nonconforming sovereign local run store dependency",
    "text": "def test_return_fails_closed_without_master_records_organization_record():",
@@ -8509,7 +8563,7 @@
   },
   {
    "path": "tests/test_post_return_evidence.py",
-   "line": 123,
+   "line": 128,
    "classification": "IMPROPER_CODE",
    "reason": "nonconforming sovereign local run store dependency",
    "text": "result[\"master_records_organization_record_status\"] = \"PENDING\"",
@@ -8519,7 +8573,7 @@
   },
   {
    "path": "tests/test_post_return_evidence.py",
-   "line": 131,
+   "line": 136,
    "classification": "IMPROPER_CODE",
    "reason": "nonconforming sovereign local run store dependency",
    "text": "result[\"master_records_custody_status\"] = result.pop(\"master_records_organization_record_status\")",
@@ -8529,7 +8583,7 @@
   },
   {
    "path": "tests/test_post_return_evidence.py",
-   "line": 133,
+   "line": 138,
    "classification": "IMPROPER_CODE",
    "reason": "nonconforming sovereign local run store dependency",
    "text": "result[\"master_records_custody_status\"] = \"PENDING\"",
@@ -15830,6 +15884,35 @@
    "path": "validation/SOVEREIGN_FROZEN_EVALUATOR_VALIDATION_2026-08-13.md",
    "line": 77,
    "classification": "HISTORICAL_EVIDENCE"
+  }
+ ],
+ "remediated": [
+  {
+   "path": "stegverse/post_return_evidence.py",
+   "line_before": 48,
+   "text_before": "\"\"\"Bind an exact canonical sovereign run and Master Records record into return evidence.\"\"\"",
+   "classification_before": "IMPROPER_CODE",
+   "status": "REMEDIATED",
+   "owning_existing_goal": "SDK-MR-A-VALIDATION-CUSTODY-001",
+   "remediation": "sovereign completion of the POST_RETURN lane now requires a verified organization-ledger readback (stegverse/organization_ledger_evidence.py); the local run record is emitted as local_run_record with role DOWNSTREAM_NON_GATING_EVIDENCE and completes_transition false"
+  },
+  {
+   "path": "stegverse/post_return_evidence.py",
+   "line_before": 211,
+   "text_before": "\"master_records\": {",
+   "classification_before": "IMPROPER_CODE",
+   "status": "REMEDIATED",
+   "owning_existing_goal": "SDK-MR-A-VALIDATION-CUSTODY-001",
+   "remediation": "sovereign completion of the POST_RETURN lane now requires a verified organization-ledger readback (stegverse/organization_ledger_evidence.py); the local run record is emitted as local_run_record with role DOWNSTREAM_NON_GATING_EVIDENCE and completes_transition false"
+  },
+  {
+   "path": "stegverse/post_return_production_runner.py",
+   "line_before": 331,
+   "text_before": "\"master_records_organization_record\": {",
+   "classification_before": "IMPROPER_CODE",
+   "status": "REMEDIATED",
+   "owning_existing_goal": "SDK-MR-A-VALIDATION-CUSTODY-001",
+   "remediation": "sovereign completion of the POST_RETURN lane now requires a verified organization-ledger readback (stegverse/organization_ledger_evidence.py); the local run record is emitted as local_run_record with role DOWNSTREAM_NON_GATING_EVIDENCE and completes_transition false"
   }
  ]
 }

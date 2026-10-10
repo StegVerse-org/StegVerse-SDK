@@ -186,6 +186,9 @@ def test_success_path_passes_standing_to_canonical_runtime_and_uses_direct_custo
     }
     post_proof = {
         "status": "PASS",
+        "local_evidence_status": "PASS",
+        "sovereign_completion": True,
+        "organization_ledger_completion": {"disposition": "ALLOW", "sovereign_completion": True},
         "interlock_return_state": "ACKNOWLEDGED",
         "portable_verification": {"status": "PASS", "stage": "POST_RETURN"},
         "exchange_verification": {"status": "PASS"},
@@ -218,6 +221,8 @@ def test_success_path_passes_standing_to_canonical_runtime_and_uses_direct_custo
         )
 
     assert result["status"] == "PASS"
+    assert result["sovereign_completion"] is True
+    assert result["local_run_record"]["completes_transition"] is False
     assert result["manifest_receipt_id"] == sovereign["manifest_receipt_id"]
     assert captured["standing_context"]["standing_required"] is True
     assert captured["standing_context"]["authority"]["execution_authorized"] is False

@@ -29,6 +29,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--proof-path", required=True)
     parser.add_argument("--consequence-key", default="post_return_production_proof")
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
+    parser.add_argument(
+        "--organization-ledger-readback",
+        default=None,
+        help="readback JSON from StegVerse-org/.github organization_ledger_readback.py --ingress-result; "
+        "required for sovereign completion",
+    )
+    parser.add_argument("--organization-receipt-sha256", default=None)
+    parser.add_argument("--canonical-manifest-sha256", default=None)
     args = parser.parse_args(argv)
 
     try:
@@ -50,6 +58,11 @@ def main(argv: list[str] | None = None) -> int:
             proof_path=Path(args.proof_path),
             consequence_key=args.consequence_key,
             host_identity=args.host_identity,
+            organization_ledger_readback_path=(
+                Path(args.organization_ledger_readback) if args.organization_ledger_readback else None
+            ),
+            organization_receipt_sha256=args.organization_receipt_sha256,
+            canonical_manifest_sha256=args.canonical_manifest_sha256,
         )
         result["installed_governed_test_dependency_alignment"] = dependency_alignment
     except Exception as exc:
@@ -67,8 +80,9 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
 
+    result["production_proof_complete"] = result.get("status") == "PASS"
     print(json.dumps(result, indent=2, sort_keys=True))
-    return 0
+    return 0 if result["production_proof_complete"] else 2
 
 
 if __name__ == "__main__":

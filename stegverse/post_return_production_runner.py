@@ -232,7 +232,11 @@ def run_post_return_production_proof(
     proof_path: str | Path,
     consequence_key: str = "post_return_production_proof",
     host_identity: str = "stegverse-sovereign-local",
+    organization_ledger_readback_path: str | Path | None = None,
+    organization_receipt_sha256: str | None = None,
+    canonical_manifest_sha256: str | None = None,
 ) -> dict[str, Any]:
+    """Run the POST_RETURN proof; ``status`` is PASS only with a verified organization-ledger readback."""
     release_receipt = _load_object(release_receipt_path)
     release_check = verify_coherent_release_receipt(release_receipt)
     if release_check.get("verified") is not True:
@@ -313,13 +317,30 @@ def run_post_return_production_proof(
         exchange_path=exchange_path,
         replay=lambda receipt_id: replay_sovereign(receipt_id, custody_db=custody_db),
         reconstruct=lambda receipt_id: reconstruct_sovereign(receipt_id, custody_db=custody_db),
+        organization_ledger_readback=(
+            _load_object(organization_ledger_readback_path)
+            if organization_ledger_readback_path is not None and Path(organization_ledger_readback_path).is_file()
+            else None
+        ),
+        organization_receipt_sha256=organization_receipt_sha256,
+        canonical_manifest_sha256=canonical_manifest_sha256,
     )
-    if proof.get("status") != "PASS":
-        raise RuntimeError("post_return_evidence_not_pass")
+    if proof.get("local_evidence_status") != "PASS":
+        raise RuntimeError("post_return_local_evidence_not_pass")
+    completion = proof.get("organization_ledger_completion") or {}
+    refusal = {
+        key: completion[key]
+        for key in ("failure_code", "failed_predicate", "required_evidence_or_repair",
+                    "retry_entrypoint", "owning_existing_goal", "next_attempt")
+        if key in completion
+    }
 
     result = {
         "schema": PROOF_RUNNER_SCHEMA,
-        "status": "PASS",
+        "status": "PASS" if proof.get("status") == "PASS" and completion.get("disposition") == "ALLOW" else "FAIL_CLOSED",
+        **refusal,
+        "sovereign_completion": completion.get("sovereign_completion") is True,
+        "organization_ledger_completion": completion,
         "release_set_id": release_set_id,
         "release_receipt_hash": release_check.get("receipt_hash"),
         "release_proof_capabilities": release_check["proof_capabilities"],
@@ -328,10 +349,12 @@ def run_post_return_production_proof(
         "manifest_receipt_id": rid,
         "transaction_id": sovereign_result.get("transaction_id"),
         "sovereign_result": sovereign_result,
-        "master_records_organization_record": {
+        "local_run_record": {
             "manifest_receipt_id": custody_record.get("manifest_receipt_id"),
             "master_record_sha256": custody_record.get("master_record_sha256"),
             "status": "RECORDED",
+            "role": "DOWNSTREAM_NON_GATING_EVIDENCE",
+            "completes_transition": False,
         },
         "post_return_proof": proof,
         "authority": {

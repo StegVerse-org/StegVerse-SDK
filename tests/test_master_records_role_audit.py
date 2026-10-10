@@ -41,6 +41,20 @@ class MasterRecordsRoleAuditTests(unittest.TestCase):
         self.assertEqual(self.audit["summary"]["after_improper_blocked"], len(improper))
         self.assertEqual(sorted({row["path"] for row in improper}), self.audit["blocked"]["files"])
 
+    def test_remediated_rows_are_recorded_and_receiver_rows_stay_blocked(self):
+        for row in self.audit.get("remediated", []):
+            self.assertEqual(row["status"], "REMEDIATED", row)
+            self.assertEqual(row["owning_existing_goal"], "SDK-MR-A-VALIDATION-CUSTODY-001", row)
+            self.assertFalse(
+                [r for r in self.audit["rows"] if r["path"] == row["path"] and r["text"] == row["text_before"]
+                 and r["classification"].startswith("IMPROPER")],
+                row,
+            )
+        receiver = [r for r in self.audit["rows"] if "custody_replay_reconstruction_authority" in r["text"]
+                    and r["classification"] == "IMPROPER_CODE"]
+        self.assertEqual(len(receiver), 2)
+        self.assertTrue(all(r["status"] == "BLOCKED" for r in receiver))
+
     def test_no_improper_doc_remains(self):
         self.assertFalse([row for row in self.audit["rows"] if row["classification"] == "IMPROPER_DOC"])
 
