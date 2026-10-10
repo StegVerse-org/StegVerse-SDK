@@ -187,6 +187,58 @@ def execute_manifest(manifest: Mapping[str, Any], *, canonical_source_fetcher=No
     )
 
 
+_READINESS_REFUSAL_SCHEMA = "stegverse.sdk.run-manifest-readiness-refusal.v1"
+_CANONICAL_ENTRYPOINT = "stegverse.manifest_execution.execute_manifest"
+
+
+def add_readiness_arguments(parser: argparse.ArgumentParser) -> None:
+    """The readiness-evidence flags every CLI dispatch entry accepts (same names as 0A/0B)."""
+    parser.add_argument("--attempt-id", help="readiness attempt id; default is the manifest source_output_id")
+    parser.add_argument("--readiness-evidence", help="JSON array of authenticated invocation-bound component readiness evidence")
+    parser.add_argument("--readiness-keys", help="JSON object key_id -> hex HMAC key trusted for readiness evidence")
+
+
+def qualify_manifest_for_dispatch(
+    manifest: Mapping[str, Any],
+    *,
+    attempt_id: str | None = None,
+    readiness_evidence=(),
+    evidence_verifier=None,
+) -> dict[str, Any]:
+    """SDK#368: the readiness qualification every dispatch entry runs before execute_manifest.
+
+    A schema-valid manifest is a draft until every required node of its
+    manifest-selected path is READY on supplied, authenticated, invocation-bound
+    evidence. This mirrors the 0A/0B console block in stegverse.cli exactly and
+    grants no authority; ``execute_manifest`` itself stays unchanged for library
+    callers that have already qualified.
+    """
+    from .manifest_builder import qualify_draft_manifest
+
+    return qualify_draft_manifest(
+        manifest,
+        attempt_id=attempt_id or str(manifest.get("source_output_id")),
+        readiness_evidence=readiness_evidence,
+        evidence_verifier=evidence_verifier,
+    )
+
+
+def readiness_refusal(qualified: Mapping[str, Any]) -> dict[str, Any]:
+    """The FAIL_CLOSED record for a draft that is NOT_READY (same shape as the 0A/0B console)."""
+    return {
+        "disposition": "FAIL_CLOSED",
+        "failed_predicate": "MANIFEST_READINESS_QUALIFIED",
+        "evidence": {
+            "qualification": qualified["state"],
+            "failing_nodes": qualified["qualification"]["failing_nodes"],
+            "workarounds": qualified["qualification"]["workarounds"],
+        },
+        "draft_preserved": True,
+        "readiness_qualification": qualified["qualification"],
+        "executable": False,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="stegverse run-manifest",
@@ -194,10 +246,33 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--manifest", required=True, help="canonical manifest JSON produced by Manifest Builder")
     parser.add_argument("--output", help="write result JSON; default stdout")
+    add_readiness_arguments(parser)
     args = parser.parse_args(argv)
     try:
+        from .manifest_builder import load_readiness_inputs
+        from .manifest_plan import require_ready_qualification
+
         manifest = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
-        result = execute_manifest(manifest)
+        digest = validate_ingress_manifest(manifest)["canonical_manifest_sha256"]
+        evidence, verifier = load_readiness_inputs(args.readiness_evidence, args.readiness_keys)
+        qualified = qualify_manifest_for_dispatch(
+            manifest, attempt_id=args.attempt_id, readiness_evidence=evidence, evidence_verifier=verifier
+        )
+        if not qualified["executable"]:
+            # Not runnable on this evidence: the draft is preserved, nothing is dispatched.
+            result = {
+                "schema": _READINESS_REFUSAL_SCHEMA,
+                "canonical_entrypoint": _CANONICAL_ENTRYPOINT,
+                "canonical_manifest_sha256": digest,
+                "dispatched": False,
+                "authority_effect": "NONE",
+                **readiness_refusal(qualified),
+            }
+            rc = 2
+        else:
+            require_ready_qualification(manifest, qualified["qualification"])
+            result = execute_manifest(manifest)
+            rc = 0
     except (OSError, json.JSONDecodeError, ValueError, ImportError, AttributeError) as exc:
         parser.error(str(exc))
     text = json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
@@ -205,7 +280,7 @@ def main(argv: list[str] | None = None) -> int:
         Path(args.output).write_text(text, encoding="utf-8")
     else:
         print(text, end="")
-    return 0
+    return rc
 
 
 if __name__ == "__main__":

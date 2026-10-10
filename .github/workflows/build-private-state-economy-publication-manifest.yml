@@ -53,27 +53,35 @@ jobs:
           assert request['destination_resolution_source']=='CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
           assert request['destination_resolution_environment_inputs']==[]
           PY
-      - name: Attempt exact manifest through public run-manifest
+      # SDK#368: with no invocation-bound readiness evidence, public run-manifest
+      # fails closed at MANIFEST_READINESS_QUALIFIED before any destination
+      # resolution; the exact draft is preserved and nothing is dispatched.
+      - name: Attempt exact manifest through public run-manifest without readiness evidence
         shell: bash
         run: |
           set -euo pipefail
+          rc=0
           PYTHONPATH=. python3 -m stegverse.manifest_execution \
             --manifest /tmp/economic-publication-manifest/manifest.json \
-            --output /tmp/economic-publication-manifest/first-disposition.json
+            --output /tmp/economic-publication-manifest/first-disposition.json || rc=$?
+          test "$rc" -eq 2
           python3 - <<'PY'
           import json
           from pathlib import Path
           root=Path('/tmp/economic-publication-manifest')
           result=json.loads((root/'first-disposition.json').read_text())
-          assert result['schema']=='stegverse.sdk.manifest-handoff-disposition/v1'
+          request=json.loads((root/'execution-request.json').read_text())
+          assert result['schema']=='stegverse.sdk.run-manifest-readiness-refusal.v1'
           assert result['disposition']=='FAIL_CLOSED'
-          assert result['evaluation_boundary']=='SDK_ORGANIZATION_DESTINATION_RESOLUTION'
-          assert result['destination_resolution_source']=='CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
-          assert result['receiver_availability_consulted'] is False
-          assert result['external_machine_required'] is False
-          assert result['consequence_committed'] is False
-          assert result['authentic_governance_disposition_observed'] is False
-          assert result['organization_receipt_observed'] is False
+          assert result['failed_predicate']=='MANIFEST_READINESS_QUALIFIED'
+          assert result['executable'] is False
+          assert result['draft_preserved'] is True
+          assert result['dispatched'] is False
+          assert result['evidence']['qualification']=='NOT_READY'
+          assert result['readiness_qualification']['runtime_allow_claimed'] is False
+          assert result['readiness_qualification']['execution_authorized'] is False
+          # The refusal is bound to the exact frozen manifest, not a rebuilt one.
+          assert result['canonical_manifest_sha256']==request['canonical_manifest_sha256']
           print(json.dumps(result, sort_keys=True))
           PY
       - name: Upload exact manifest and first handoff disposition

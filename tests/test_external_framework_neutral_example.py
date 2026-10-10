@@ -38,6 +38,33 @@ def test_governance_request_carries_every_required_field():
     assert missing == [], missing
 
 
+def _readiness_argv(tmp_path):
+    """Signed, invocation-bound readiness evidence for exactly the draft the CLI will build.
+
+    The SDK#368 readiness gate dispatches only a READY draft; an unseen framework
+    supplies that evidence the same way it supplies its identity.
+    """
+    from datetime import datetime, timedelta, timezone
+    from stegverse.external_framework_runner import prepare_external_framework_manifest
+    from tests.test_manifest_readiness_gate import ATTEMPT, KEY, KEY_ID, _all_ready
+
+    load = lambda path: json.loads(path.read_text(encoding="utf-8"))  # noqa: E731
+    draft = prepare_external_framework_manifest(
+        data=load(SOURCE), source_framework=UNSEEN_FRAMEWORK, source_output_id="acme-first-submission-001",
+        processor_request=load(REQUEST), evaluation_declaration=load(DECLARATION),
+        data_class="acme.submission-state.v1", return_depth="full-trace", created_at=CREATED_AT,
+    )
+    evidence = _all_ready(draft, at=datetime.now(timezone.utc) - timedelta(seconds=5))
+    (tmp_path / "evidence.json").write_text(json.dumps(evidence), encoding="utf-8")
+    (tmp_path / "keys.json").write_text(json.dumps({KEY_ID: KEY}), encoding="utf-8")
+    return ["--attempt-id", ATTEMPT,
+            "--readiness-evidence", str(tmp_path / "evidence.json"),
+            "--readiness-keys", str(tmp_path / "keys.json")]
+
+
+CREATED_AT = "2026-10-10T00:00:00Z"
+
+
 def test_an_unseen_framework_can_prepare_a_submission(tmp_path):
     """The whole point: self-serve, with identity supplied on the command line."""
     output = tmp_path / "submission.json"
@@ -51,7 +78,9 @@ def test_an_unseen_framework_can_prepare_a_submission(tmp_path):
             "--source-output-id", "acme-first-submission-001",
             "--data-class", "acme.submission-state.v1",
             "--return-depth", "full-trace",
+            "--created-at", CREATED_AT,
             "--output", str(output),
+            *_readiness_argv(tmp_path),
         ],
         capture_output=True, text=True, cwd=ROOT,
     )

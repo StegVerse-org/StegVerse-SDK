@@ -106,7 +106,11 @@ class ExternalFrameworkRunnerTests(unittest.TestCase):
             return_depth="full-trace",
             created_at="2026-09-08T20:00:00Z",
         )
-        self.assertEqual(result["status"], "SUBMISSION_READY")
+        # Without invocation-bound readiness evidence the draft is preserved but
+        # never described as runnable (SDK#368 readiness gate); no handoff exists.
+        self.assertEqual(result["status"], "SUBMISSION_NOT_READY")
+        self.assertEqual(result["failed_predicate"], "MANIFEST_READINESS_QUALIFIED")
+        self.assertIsNone(result["handoff"])
         self.assertFalse(result["execution_performed"])
         self.assertIsNone(result["manifest_receipt_id"])
         self.assertEqual(result["manifest"]["payload"], {"native": True})

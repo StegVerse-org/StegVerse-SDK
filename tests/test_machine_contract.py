@@ -4,14 +4,21 @@ import io
 from contextlib import redirect_stdout
 import pytest
 
+from datetime import datetime, timedelta, timezone
+
+from stegverse.capability_inventory import hmac_evidence_verifier
 from stegverse.machine_contract import sdk_machine_contract, SUBMISSION_TERMINAL_STEPS
 from stegverse.manifest_builder import GOVERNANCE_PROFILE_ROUTES, build_manifest
 from stegverse.manifest_contract import validate_ingress_manifest
-from stegverse.external_framework_runner import manifest_external_framework_submission
+from stegverse.external_framework_runner import (
+    manifest_external_framework_submission,
+    prepare_external_framework_manifest,
+)
 from stegverse.manifest_execution import execute_manifest
 from stegverse.evaluator_console import main
 from tests.test_manifest_builder import governance_request
 from tests.test_manifest_destination_binding import ORGANIZATION_BOUNDARY
+from tests.test_manifest_readiness_gate import ATTEMPT, KEY, KEY_ID, _all_ready
 
 
 def fixture_fetch(binding):
@@ -20,6 +27,13 @@ def fixture_fetch(binding):
     return {"text": json.dumps(ORGANIZATION_BOUNDARY),
             "repository": binding.repository, "path": binding.path,
             "ref": binding.ref, "sha": "source-fixture"}
+
+
+def readiness(**kwargs):
+    """Signed fixture readiness evidence for the framework draft (SDK#368 gate on this path)."""
+    draft = prepare_external_framework_manifest(**kwargs)
+    return dict(attempt_id=ATTEMPT, evidence_verifier=hmac_evidence_verifier({KEY_ID: KEY}),
+                readiness_evidence=_all_ready(draft, at=datetime.now(timezone.utc) - timedelta(seconds=5)))
 
 
 def test_discovery_preserves_both_routes_and_submission_boundary():
@@ -53,7 +67,7 @@ def test_both_sdk_preparation_paths_preserve_manifest_and_handoff_evidence(frame
     manifest = build_manifest(**kwargs)
     if framework:
         prepared = manifest_external_framework_submission(
-            **kwargs, canonical_source_fetcher=fixture_fetch)
+            **kwargs, **readiness(**kwargs), canonical_source_fetcher=fixture_fetch)
         manifest = prepared["manifest"]
         result = prepared["handoff"]
         assert prepared["execution_performed"] is False
@@ -70,7 +84,8 @@ def test_both_sdk_preparation_paths_preserve_manifest_and_handoff_evidence(frame
 def test_framework_does_not_fallback_when_canonical_source_is_unavailable():
     def unavailable(_):
         raise ValueError("source-fixture-unavailable")
+    kwargs = dict(data={}, source_framework="fixture", source_output_id="fixture",
+                  processor_request=governance_request(), created_at="2026-10-05T00:00:00Z")
     with pytest.raises(ValueError, match="source-fixture-unavailable"):
         manifest_external_framework_submission(
-            data={}, source_framework="fixture", source_output_id="fixture",
-            processor_request=governance_request(), canonical_source_fetcher=unavailable)
+            **kwargs, **readiness(**kwargs), canonical_source_fetcher=unavailable)

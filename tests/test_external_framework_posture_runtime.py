@@ -33,8 +33,11 @@ class ExternalFrameworkPostureRuntimeTests(unittest.TestCase):
                 "--source-framework","fixture","--source-output-id","out-1",
                 "--created-at","2026-09-10T19:00:00Z","--prepare-only","--output",str(out),
             ])
-            self.assertEqual(rc,0)
+            # No readiness evidence: the draft is retained and fails closed (SDK#368 gate).
+            self.assertEqual(rc,2)
             result=json.loads(out.read_text())
+            self.assertEqual(result["failed_predicate"],"MANIFEST_READINESS_QUALIFIED")
+            self.assertIsNone(result["handoff"])
             self.assertFalse(result["execution_performed"])
             self.assertFalse(result["posture_resolution_performed"])
             self.assertIn("security_posture_request",result["manifest"]["extensions"])
