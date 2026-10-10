@@ -129,6 +129,7 @@ def _manifest_route_id(manifest: Mapping[str, Any]) -> str:
 
 def readiness_invocation_binding(
     *,
+    manifest_sha256: str,
     attempt_id: str,
     route_id: str,
     processing_capability: str,
@@ -138,13 +139,21 @@ def readiness_invocation_binding(
 ) -> str:
     """Digest every evidence record must carry to be bound to this invocation.
 
-    Computable before the manifest is built (no created_at), so evidence can be
-    produced for the exact attempt the builder is about to qualify.
+    Build and validate the draft first. Payload identity alone does not bind
+    authorization, consequence, initiator, return path or workaround selection.
+    Evidence for a different draft must never qualify this invocation.
     """
     if not isinstance(attempt_id, str) or not attempt_id.strip():
         raise ValueError("READINESS_ATTEMPT_ID_REQUIRED")
+    if (
+        not isinstance(manifest_sha256, str)
+        or len(manifest_sha256) != 64
+        or any(c not in "0123456789abcdef" for c in manifest_sha256)
+    ):
+        raise ValueError("READINESS_CANONICAL_MANIFEST_DIGEST_REQUIRED")
     return _sha256({
-        "schema": "stegverse.readiness-invocation-binding/v1",
+        "schema": "stegverse.readiness-invocation-binding/v2",
+        "manifest_sha256": manifest_sha256,
         "attempt_id": attempt_id.strip(),
         "route_id": route_id,
         "processing_capability": processing_capability,
@@ -155,9 +164,12 @@ def readiness_invocation_binding(
 
 
 def _invocation_binding_for(manifest: Mapping[str, Any], route_id: str, attempt_id: str) -> str:
+    from .manifest_contract import validate_ingress_manifest
+
     processing = manifest.get("processing") or {}
     hashes = manifest.get("hashes") or {}
     return readiness_invocation_binding(
+        manifest_sha256=validate_ingress_manifest(manifest)["canonical_manifest_sha256"],
         attempt_id=attempt_id,
         route_id=route_id,
         processing_capability=str(processing.get("capability")),

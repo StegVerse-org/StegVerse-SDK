@@ -1098,6 +1098,16 @@ The SDK public wiki is a version-bound projection of canonical SDK source. Every
 
 ## SDK 1.5 source capability qualification and derived-plan lineage
 
+Readiness evidence is bound to the full canonical draft manifest digest as well
+as the attempt, capability and route (`readiness-invocation-binding/v2`). Build
+and validate the draft before requesting evidence. Changes to consequence,
+authorization context, initiator, return projection or explicit workaround
+selection require new authenticated evidence; payload identity alone is not
+sufficient. A newly selected workaround remains `NOT_READY` until its own
+manifest is qualified. For repeatable option 0A construction, preserve the draft
+timestamp with `--created-at`; alternatively submit that exact draft through
+0B. Readiness grants no TV/TVC, WorkerCoordinator or Interlock/InTr authority.
+
 SDK 1.5 source discovery derives its installed-capability matrix from `PUBLISHED_ROUTES`; it does not maintain a second hard-coded capability registry. Per-requirement qualification returns one of `SUPPORTED`, `MISSING_INPUT`, `UNSUPPORTED`, `PROBE_REQUIRED`, or `VERSION_INCOMPATIBLE` with an explicit failing predicate for every non-supported result. Qualification is non-authorizing: source installation is not runtime admission, route substitution is forbidden, and authentic runtime evidence remains a separate manifest-directed transition.
 
 `stegverse.manifest_plan.derive_execution_plan(...)` binds the original manifest SHA-256, the exact requirement-set SHA-256, per-requirement qualification results, and bounded exact-route adaptation into an immutable derived-plan digest. A changed manifest, changed requirements, or changed derived steps fails lineage verification. A derived plan never grants authority, executes work, or upgrades source evidence into an observed InTr/WorkerCoordinator/Master Records result.

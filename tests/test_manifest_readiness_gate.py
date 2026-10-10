@@ -91,6 +91,7 @@ def _draft(**overrides):
 
 def _binding(manifest, route_id=None, attempt=ATTEMPT):
     return readiness_invocation_binding(
+        manifest_sha256=validate_ingress_manifest(manifest)["canonical_manifest_sha256"],
         attempt_id=attempt,
         route_id=route_id or manifest["processing"]["route_id"],
         processing_capability=manifest["processing"]["capability"],
@@ -358,6 +359,27 @@ class NegativeControlTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "READINESS_QUALIFICATION_DIGEST_MISMATCH"):
             require_ready_qualification(manifest, forged)
 
+    def test_evidence_cannot_be_reused_for_changed_manifest_semantics(self):
+        manifest = _draft()
+        evidence = _all_ready(manifest)
+        self.assertEqual(_qualify(manifest, evidence)["qualification"], QUALIFIED_READY)
+        changes = {
+            "requested_consequence": "a different consequence",
+            "declared_intent": "a different intent",
+            "source_instance": "a different initiator instance",
+            "return_projection": {"depth": "result-only"},
+            "extensions": {**manifest["extensions"], "authority_context": {"claim_ref": "different-claim"}},
+        }
+        for field, value in changes.items():
+            with self.subTest(field=field):
+                changed = copy.deepcopy(manifest)
+                changed[field] = value
+                q = _qualify(changed, evidence)
+                self.assertEqual(q["qualification"], NOT_READY)
+                self.assertTrue(q["failing_nodes"])
+                self.assertEqual({n["failed_predicate"] for n in q["failing_nodes"]}, {"EVIDENCE_INVOCATION_BOUND"})
+                self.assertEqual(_qualify(changed, _all_ready(changed))["qualification"], QUALIFIED_READY)
+
     def test_explicit_user_approved_degraded_fallback(self):
         kwargs = _build_kwargs()
         manifest = build_manifest(**kwargs)
@@ -396,7 +418,16 @@ class NegativeControlTests(unittest.TestCase):
         bound = chosen["draft_manifest"]["extensions"][WORKAROUND_SELECTION_EXTENSION]
         self.assertEqual(bound["supersedes_manifest_sha256"], result["draft_manifest_sha256"])
         self.assertIs(bound["automatic"], False)
-        self.assertEqual(chosen["qualification"]["qualification"], QUALIFIED_READY)
+        # Evidence for the original draft's candidate route is not evidence for
+        # the newly selected manifest, which binds the explicit user decision.
+        self.assertEqual(chosen["qualification"]["qualification"], NOT_READY)
+        self.assertEqual({n["failed_predicate"] for n in chosen["qualification"]["failing_nodes"]},
+                         {"EVIDENCE_INVOCATION_BOUND"})
+        fresh = qualify_draft_manifest(
+            chosen["draft_manifest"], attempt_id=ATTEMPT,
+            readiness_evidence=_all_ready(chosen["draft_manifest"]), evidence_verifier=VERIFY, now=NOW,
+        )
+        self.assertEqual(fresh["qualification"]["qualification"], QUALIFIED_READY)
         self.assertEqual(chosen["qualification"]["manifest_sha256"], chosen["draft_manifest_sha256"])
         self.assertEqual(
             build_manifest(**_build_kwargs(execution_profile=LOCAL_CONFORMANCE))["processing"]["route_id"],
@@ -443,6 +474,7 @@ class Cli0AReadinessGateTests(unittest.TestCase):
             "--processor-request", self._write("request.json", kwargs["processor_request"]),
             "--source-framework", kwargs["source_framework"],
             "--source-output-id", kwargs["source_output_id"],
+            "--created-at", kwargs["created_at"],
             "--attempt-id", ATTEMPT,
         ]
 

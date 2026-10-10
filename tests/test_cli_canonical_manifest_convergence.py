@@ -92,6 +92,7 @@ class ConvergenceTests(unittest.TestCase):
         )
         evidence = _all_ready(draft, at=datetime.now(timezone.utc) - timedelta(seconds=5))
         return self._0a_args() + [
+            "--created-at", draft["created_at"],
             "--attempt-id", ATTEMPT,
             "--readiness-evidence", self._write("evidence.json", evidence),
             "--readiness-keys", self._write("keys.json", {KEY_ID: KEY}),

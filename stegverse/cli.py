@@ -183,6 +183,7 @@ def _build_0a_manifest(args: argparse.Namespace) -> dict[str, Any]:
         source_output_id=args.source_output_id or f"cli-0a-{digest[:16]}",
         processor_request=_load_json(args.processor_request, "processor request"),
         process=args.process,
+        created_at=getattr(args, "created_at", None),
     )
 
 
@@ -564,6 +565,7 @@ def build_parser() -> argparse.ArgumentParser:
     governance.add_argument("--process", default="governance", help="option 0A processing capability declared in the built manifest")
     governance.add_argument("--source-framework", default="stegverse-cli", help="option 0A source_framework recorded in the built manifest")
     governance.add_argument("--source-output-id", help="option 0A source_output_id; default derives from the data digest")
+    governance.add_argument("--created-at", help="option 0A draft creation timestamp; preserve it when qualifying the same draft")
     governance.add_argument("--attempt-id", help="option 0A readiness attempt id; default is the manifest source_output_id")
     governance.add_argument("--readiness-evidence", help="option 0A JSON array of authenticated invocation-bound component readiness evidence")
     governance.add_argument("--readiness-keys", help="option 0A JSON object key_id -> hex HMAC key trusted for readiness evidence")
