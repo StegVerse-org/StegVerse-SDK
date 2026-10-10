@@ -6,12 +6,12 @@
   "source_repo": "StegVerse-org/universal-transition-table-test-path",
   "destination_repo": "StegVerse-org/StegVerse-SDK",
   "runtime_execution_enabled": false,
-  "transport_manifest_hash": "e0b43aec3dae505b1bd1cb45fbab3e5759813f55c3e43b77dc08849d26751c08",
+  "transport_manifest_hash": "generated-by-tools-generate-artifact-transport-receipt",
   "artifact_hashes": {
-    "transition_test_package.json": "46363f423d56c7e6b46e2965a8bb896fea17f01f2e2a85e219788a5e105b36e1",
-    "expected_result.json": "6e7c450d0b2adf8a3653b14a09e717514d6bb6e650b61cc3661f8f8776c5c16b",
-    "replay_packet.json": "4e4aa64de0251ef83d565e0c1276c801e34545e91015817b4597772e1cae34cd",
-    "commitment_candidate.json": "3162dcb656ed129ed420777ec4b6e178a75d76a0be120ef32cb0e975a951019a"
+    "transition_test_package.json": "generated-by-tools-generate-artifact-transport-receipt",
+    "expected_result.json": "generated-by-tools-generate-artifact-transport-receipt",
+    "replay_packet.json": "generated-by-tools-generate-artifact-transport-receipt",
+    "commitment_candidate.json": "generated-by-tools-generate-artifact-transport-receipt"
   },
   "non_authorizing_boundary_preserved": true
 }
