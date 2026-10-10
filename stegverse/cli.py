@@ -221,37 +221,40 @@ def _submit_canonical_manifest(key: str, args: argparse.Namespace) -> tuple[int,
                 })
                 return 2, output
             output["manifest"] = manifest
-            # SDK#368: a schema-valid draft is not runnable until every required
-            # node of its manifest-selected path is READY on supplied evidence.
-            from .manifest_builder import load_readiness_inputs, qualify_draft_manifest
-            from .manifest_plan import require_ready_qualification
-
-            evidence, verifier = load_readiness_inputs(
-                getattr(args, "readiness_evidence", None), getattr(args, "readiness_keys", None)
-            )
-            qualified = qualify_draft_manifest(
-                manifest,
-                attempt_id=getattr(args, "attempt_id", None) or str(manifest.get("source_output_id")),
-                readiness_evidence=evidence,
-                evidence_verifier=verifier,
-            )
-            output["readiness_qualification"] = qualified["qualification"]
-            output["executable"] = qualified["executable"]
-            if not qualified["executable"]:
-                output.update({
-                    "disposition": "FAIL_CLOSED",
-                    "failed_predicate": "MANIFEST_READINESS_QUALIFIED",
-                    "evidence": {
-                        "qualification": qualified["state"],
-                        "failing_nodes": qualified["qualification"]["failing_nodes"],
-                        "workarounds": qualified["qualification"]["workarounds"],
-                    },
-                    "draft_preserved": True,
-                })
-                return 2, output
-            require_ready_qualification(manifest, qualified["qualification"])
         else:
             manifest = dict(_load_json(args.manifest, "ingress manifest"))
+            validate_ingress_manifest(manifest)
+        # Both 0A and 0B must qualify the same invocation-bound readiness.
+        # A supplied manifest is not exempt from readiness merely because it is valid.
+        # SDK#368: a schema-valid draft is not runnable until every required
+        # node of its manifest-selected path is READY on supplied evidence.
+        from .manifest_builder import load_readiness_inputs, qualify_draft_manifest
+        from .manifest_plan import require_ready_qualification
+
+        evidence, verifier = load_readiness_inputs(
+            getattr(args, "readiness_evidence", None), getattr(args, "readiness_keys", None)
+        )
+        qualified = qualify_draft_manifest(
+            manifest,
+            attempt_id=getattr(args, "attempt_id", None) or str(manifest.get("source_output_id")),
+            readiness_evidence=evidence,
+            evidence_verifier=verifier,
+        )
+        output["readiness_qualification"] = qualified["qualification"]
+        output["executable"] = qualified["executable"]
+        if not qualified["executable"]:
+            output.update({
+                "disposition": "FAIL_CLOSED",
+                "failed_predicate": "MANIFEST_READINESS_QUALIFIED",
+                "evidence": {
+                    "qualification": qualified["state"],
+                    "failing_nodes": qualified["qualification"]["failing_nodes"],
+                    "workarounds": qualified["qualification"]["workarounds"],
+                },
+                "draft_preserved": True,
+            })
+            return 2, output
+        require_ready_qualification(manifest, qualified["qualification"])
         output["canonical_manifest_sha256"] = validate_ingress_manifest(manifest)["canonical_manifest_sha256"]
         result = execute_manifest(manifest)
     except (OSError, json.JSONDecodeError, ValueError, ImportError, AttributeError) as exc:

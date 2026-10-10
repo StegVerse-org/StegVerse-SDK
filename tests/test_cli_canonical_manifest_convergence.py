@@ -97,9 +97,33 @@ class ConvergenceTests(unittest.TestCase):
             "--readiness-keys", self._write("keys.json", {KEY_ID: KEY}),
         ]
 
+    def _ready_0b_args(self, manifest, name="m.json"):
+        """A supplied 0B manifest requires fresh, invocation-bound readiness too."""
+        from datetime import datetime, timedelta, timezone
+        from tests.test_manifest_readiness_gate import ATTEMPT, KEY, KEY_ID, _all_ready
+
+        evidence = _all_ready(manifest, at=datetime.now(timezone.utc) - timedelta(seconds=5))
+        return [
+            "governance", "--select", "0B", "--manifest", self._write(name, manifest),
+            "--attempt-id", ATTEMPT,
+            "--readiness-evidence", self._write(name + ".evidence", evidence),
+            "--readiness-keys", self._write(name + ".keys", {KEY_ID: KEY}),
+        ]
+
+    def test_0b_without_readiness_refuses_before_organization_handoff(self):
+        manifest = governance_manifest()
+        rc, output, fetched = self._run([
+            "governance", "--select", "0B", "--manifest", self._write("no-ready.json", manifest)
+        ])
+        self.assertEqual(rc, 2)
+        self.assertEqual(output["disposition"], "FAIL_CLOSED")
+        self.assertEqual(output["failed_predicate"], "MANIFEST_READINESS_QUALIFIED")
+        self.assertIs(output["executable"], False)
+        fetched.assert_not_called()
+
     def test_0b_handoff_bound_to_same_manifest_digest_and_route(self):
         manifest = governance_manifest()
-        rc, output, fetched = self._run(["governance", "--select", "0B", "--manifest", self._write("m.json", manifest)])
+        rc, output, fetched = self._run(self._ready_0b_args(manifest))
         self.assertEqual(rc, 0)
         digest = validate_ingress_manifest(manifest)["canonical_manifest_sha256"]
         result = output["result"]
@@ -152,7 +176,7 @@ class ConvergenceTests(unittest.TestCase):
 
     def test_console_mode_cannot_select_a_different_runtime(self):
         _, built, _ = self._run(self._ready_0a_args())
-        _, supplied, _ = self._run(["governance", "--select", "0B", "--manifest", self._write("built.json", built["manifest"])])
+        _, supplied, _ = self._run(self._ready_0b_args(built["manifest"], "built.json"))
         self.assertEqual(built["runtime_binding"], supplied["runtime_binding"])
         self.assertEqual(built["route_id"], supplied["route_id"])
         self.assertEqual(built["canonical_manifest_sha256"], supplied["canonical_manifest_sha256"])
@@ -170,7 +194,7 @@ class ConvergenceTests(unittest.TestCase):
             execution_profile=manifest_builder.LOCAL_CONFORMANCE,
         )
         self.assertEqual(local["processing"]["route_id"], CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID)
-        rc, output, fetched = self._run(["governance", "--select", "0B", "--manifest", self._write("local.json", local)])
+        rc, output, fetched = self._run(self._ready_0b_args(local, "local.json"))
         self.assertEqual(rc, 2)
         self.assertEqual(output["disposition"], "FAIL_CLOSED")
         self.assertEqual(output["failed_predicate"], "CUSTOMER_LOCAL_HOST_BINDINGS_REQUIRED")
@@ -179,7 +203,7 @@ class ConvergenceTests(unittest.TestCase):
     def test_missing_organization_boundary_fails_closed(self):
         manifest = governance_manifest()
         rc, output, _ = self._run(
-            ["governance", "--select", "0B", "--manifest", self._write("m.json", manifest)],
+            self._ready_0b_args(manifest),
             boundary=GitHubRepositoryFetcherError("source unavailable"),
         )
         self.assertEqual(rc, 2)
@@ -193,7 +217,7 @@ class ConvergenceTests(unittest.TestCase):
         self.assertEqual(result["canonical_manifest_sha256"], validate_ingress_manifest(manifest)["canonical_manifest_sha256"])
 
     def test_handoff_performs_no_receiver_wait_or_probe(self):
-        _, output, _ = self._run(["governance", "--select", "0B", "--manifest", self._write("m.json", governance_manifest())])
+        _, output, _ = self._run(self._ready_0b_args(governance_manifest()))
         result = output["result"]
         for key in ("receiver_contacted", "receiver_availability_required", "awaits_external_machine",
                     "transport_performed_by_sdk", "intr_admission_observed", "consequence_committed"):
