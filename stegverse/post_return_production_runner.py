@@ -19,7 +19,6 @@ from .sovereign_validation_runtime import (
 )
 from .spe_steggate_bridge import stable_hash
 from .standing_execution_context import build_standing_execution_context
-from .organization_record_names import LEGACY_ORGANIZATION_RECORD_STATUS_FIELD, ORGANIZATION_RECORD_STATUS_FIELD, read_field
 
 PROOF_RUNNER_SCHEMA = "stegverse.sdk.post-return-production-runner-result.v1"
 
@@ -208,17 +207,20 @@ def verify_manifest_standing_proposition_binding(
     }
 
 
-def _custody_record(custody_db: str | Path, manifest_receipt_id: str) -> dict[str, Any]:
-    (_Carrier, _build, _route, Custody, _submit, _Registry, _Request, _eval, _Ledger, _run) = _components()
-    custody = Custody(custody_db)
-    record = custody.evidence_package(manifest_receipt_id)
+def _local_run_record(custody_db: str | Path, manifest_receipt_id: str) -> dict[str, Any] | None:
+    """The local run store's record for this run, as downstream evidence; None when absent or mismatched."""
+    try:
+        (_Carrier, _build, _route, Custody, _submit, _Registry, _Request, _eval, _Ledger, _run) = _components()
+        record = Custody(custody_db).evidence_package(manifest_receipt_id)
+    except Exception:
+        return None
     if not isinstance(record, Mapping):
-        raise RuntimeError("Master Records organization-record lookup did not return an object")
+        return None
     value = dict(record)
     if str(value.get("manifest_receipt_id") or "").strip().upper() != manifest_receipt_id.strip().upper():
-        raise RuntimeError("Master Records organization-record receipt identity mismatch")
+        return None
     if not isinstance(value.get("evidence_package"), Mapping):
-        raise RuntimeError("Master Records organization-record evidence package missing")
+        return None
     return value
 
 
@@ -294,15 +296,10 @@ def run_post_return_production_proof(
     execution_result = sovereign_result.get("execution_result")
     if not isinstance(execution_result, Mapping) or execution_result.get("state_transition_performed") is not True:
         raise RuntimeError("bounded_sovereign_state_transition_not_performed")
-    if read_field(
-        sovereign_result, ORGANIZATION_RECORD_STATUS_FIELD, LEGACY_ORGANIZATION_RECORD_STATUS_FIELD
-    ) != "RECORDED":
-        raise RuntimeError("canonical_master_records_organization_record_not_recorded")
-
     rid = str(sovereign_result.get("manifest_receipt_id") or "").strip()
     if not rid:
         raise RuntimeError("canonical_manifest_receipt_id_missing")
-    custody_record = _custody_record(custody_db, rid)
+    local_record = _local_run_record(custody_db, rid)
     successor_hash = str(execution_result.get("after_state_hash") or "").strip()
     if not successor_hash:
         raise RuntimeError("bounded_consequence_after_state_hash_missing")
@@ -312,7 +309,7 @@ def run_post_return_production_proof(
     proof = complete_post_return_evidence(
         pre_steggate_bundle=pre_bundle,
         sovereign_result=sovereign_result,
-        custody_record=custody_record,
+        custody_record=local_record,
         successor_state_id=successor_state_id,
         successor_state_hash=successor_hash,
         exchange_path=exchange_path,
@@ -322,7 +319,7 @@ def run_post_return_production_proof(
         organization_receipt_sha256=organization_receipt_sha256,
         canonical_manifest_sha256=canonical_manifest_sha256,
     )
-    if proof.get("local_evidence_status") != "PASS":
+    if proof.get("status") == "PASS" and proof.get("local_evidence_status") != "PASS":
         raise RuntimeError("post_return_local_evidence_not_pass")
     completion = proof.get("organization_ledger_completion") or {}
     refusal = refusal_fields(completion)
@@ -342,9 +339,9 @@ def run_post_return_production_proof(
         "transaction_id": sovereign_result.get("transaction_id"),
         "sovereign_result": sovereign_result,
         "local_run_record": {
-            "manifest_receipt_id": custody_record.get("manifest_receipt_id"),
-            "master_record_sha256": custody_record.get("master_record_sha256"),
-            "status": "RECORDED",
+            "status": "RECORDED" if local_record else "NOT_PROVIDED",
+            "manifest_receipt_id": (local_record or {}).get("manifest_receipt_id"),
+            "master_record_sha256": (local_record or {}).get("master_record_sha256"),
             "role": "DOWNSTREAM_NON_GATING_EVIDENCE",
             "completes_transition": False,
         },

@@ -11,12 +11,7 @@ from .portable_governance_exchange import create_exchange, verify_exchange
 from .portable_governance_verifier import verify_portable_governance_bundle
 from .reference_interlock_participant import acknowledge_interlock_return
 from .organization_ledger_evidence import refusal_fields, verify_organization_ledger_readback
-from .organization_record_names import (
-    LEGACY_ORGANIZATION_RECORD_STATUS_FIELD,
-    ORGANIZATION_RECORD_CLAIMED_FIELD,
-    ORGANIZATION_RECORD_STATUS_FIELD,
-    read_field,
-)
+from .organization_record_names import ORGANIZATION_RECORD_CLAIMED_FIELD
 
 RETURN_SCHEMA = "stegverse.interlock-return.v1"
 PROOF_SCHEMA = "stegverse.sdk.post-return-production-proof.v1"
@@ -41,23 +36,28 @@ def _prefixed(value: Any, field: str) -> str:
     return "sha256:" + digest
 
 
+ORGANIZATION_LEDGER_ISSUER = "StegVerse-org/OrganizationLedger"
+
+
 def build_pending_interlock_return(
     ingress: Mapping[str, Any],
     sovereign_result: Mapping[str, Any],
-    custody_record: Mapping[str, Any],
+    organization_completion: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Bind an exact canonical sovereign run and its local run record into pending return evidence.
+    """Bind an exact canonical sovereign run to its organization-ledger receipt as pending return evidence.
 
-    The local record is input evidence for the binding hashes only; it is not
-    completion. Sovereign completion is decided in complete_post_return_evidence
-    from the organization-ledger readback.
+    ``organization_completion`` is the ALLOW result of
+    ``verify_organization_ledger_readback`` for this run's manifest-directed
+    transition. Its organization receipt is the return's governance record and
+    egress receipt; the local run store is never an input here.
     """
     ingress_value = validate_interlock_transition(ingress)
     result = dict(sovereign_result)
-    custody = dict(custody_record)
+    completion = dict(organization_completion)
 
-    if read_field(result, ORGANIZATION_RECORD_STATUS_FIELD, LEGACY_ORGANIZATION_RECORD_STATUS_FIELD) != "RECORDED":
-        raise ValueError("canonical run is not recorded in Master Records")
+    if completion.get("disposition") != "ALLOW" or completion.get("sovereign_completion") is not True:
+        raise ValueError("organization ledger readback is not verified: "
+                         + str(completion.get("failed_predicate") or "ORGANIZATION_LEDGER_READBACK_PRESENT"))
     if result.get("chain_verified") is not True:
         raise ValueError("canonical StegCore receipt chain is not verified")
     if result.get("transaction_identity_continuous") is not True:
@@ -70,16 +70,9 @@ def build_pending_interlock_return(
     rid = str(result.get("manifest_receipt_id") or "").strip().upper()
     if not rid.startswith("MR-"):
         raise ValueError("canonical manifest_receipt_id is required")
-    if str(custody.get("manifest_receipt_id") or "").strip().upper() != rid:
-        raise ValueError("custody manifest receipt identity mismatch")
-    evidence = custody.get("evidence_package")
-    if not isinstance(evidence, Mapping):
-        raise ValueError("custody evidence_package is required")
-    if str(evidence.get("transaction_id") or "") != str(result.get("transaction_id") or ""):
-        raise ValueError("custody transaction identity mismatch")
 
-    master_record_hash = _prefixed(custody.get("master_record_sha256"), "master_record_sha256")
-    manifest_hash = _prefixed(evidence.get("manifest_hash"), "evidence_package.manifest_hash")
+    organization_receipt = _prefixed(completion.get("organization_receipt_sha256"), "organization_receipt_sha256")
+    manifest_hash = _prefixed(completion.get("canonical_manifest_sha256"), "canonical_manifest_sha256")
     route_chain_head = _prefixed(result.get("route_receipt_chain_head"), "route_receipt_chain_head")
     governed_state_hash = _hash({
         "transaction_id": result["transaction_id"],
@@ -90,7 +83,7 @@ def build_pending_interlock_return(
     })
     closure_hash = _hash({
         "ingress_interlock_hash": interlock_hash(ingress_value),
-        "master_record_sha256": master_record_hash,
+        "organization_receipt_sha256": organization_receipt,
         "route_receipt_chain_head": route_chain_head,
         "governed_state_hash": governed_state_hash,
         "result_binding_hash": result.get("result_binding_hash"),
@@ -105,16 +98,16 @@ def build_pending_interlock_return(
         "participant_id": ingress_value["connection"]["participant_id"],
         "binding": {
             "ingress_interlock_hash": interlock_hash(ingress_value),
-            "governance_record_hash": master_record_hash,
+            "governance_record_hash": organization_receipt,
             "material_causal_closure_hash": closure_hash,
         },
         "egress": {
             "manifest_hash": manifest_hash,
             "governed_state_hash": governed_state_hash,
             "receipts": [{
-                "receipt_id": rid,
-                "issuer": "StegVerse/MasterRecords",
-                "receipt_hash": master_record_hash,
+                "receipt_id": str(completion.get("organization_transition_id") or organization_receipt),
+                "issuer": ORGANIZATION_LEDGER_ISSUER,
+                "receipt_hash": organization_receipt,
             }],
         },
         "acknowledgement": {
@@ -138,6 +131,14 @@ def build_pending_interlock_return(
         },
     }
     return validate_interlock_return(record)
+
+
+def _local_run_record(custody_record: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Downstream, non-gating evidence from the local run store, when one was supplied."""
+    base = {"role": "DOWNSTREAM_NON_GATING_EVIDENCE", "completes_transition": False, "gates_transition": False}
+    if not isinstance(custody_record, Mapping):
+        return {"status": "NOT_PROVIDED", **base}
+    return {"status": "RECORDED", "master_record_sha256": custody_record.get("master_record_sha256"), **base}
 
 
 def build_post_return_bundle(
@@ -164,7 +165,7 @@ def complete_post_return_evidence(
     *,
     pre_steggate_bundle: Mapping[str, Any],
     sovereign_result: Mapping[str, Any],
-    custody_record: Mapping[str, Any],
+    custody_record: Mapping[str, Any] | None = None,
     successor_state_id: str,
     successor_state_hash: str,
     exchange_path: str | Path,
@@ -176,16 +177,41 @@ def complete_post_return_evidence(
 ) -> dict[str, Any]:
     """Finish return, exchange, independent verification, replay, and reconstruction after the canonical run.
 
-    ``status`` is PASS only when the organization-ledger readback verifies (the
-    transition is in the organization ledger and bound to its manifest). Without
-    it the local evidence is still returned, under ``local_evidence_status``, and
-    ``status`` is FAIL_CLOSED with the six refusal fields. Local Master Records
-    custody is downstream, non-gating evidence and never completes the lane.
+    The return is bound to the run's organization-ledger receipt, so nothing is
+    built until ``organization_ledger_readback`` verifies. Without it the result
+    is FAIL_CLOSED with the six refusal fields (retry: a manifest-directed
+    transition request). ``custody_record`` (the local run store's record) is
+    optional downstream evidence and never an input to the return.
     """
+    rid = str(sovereign_result["manifest_receipt_id"])
+    completion = verify_organization_ledger_readback(
+        organization_ledger_readback,
+        organization_receipt_sha256=organization_receipt_sha256,
+        canonical_manifest_sha256=canonical_manifest_sha256,
+    )
+    authority = {
+        "sdk_authority": "NONE",
+        "verification_authority": "NONE",
+        "exchange_authority": "NONE",
+        "copied_evidence_is_canonical_custody": False,
+    }
+    if completion["disposition"] != "ALLOW":
+        return {
+            "schema": PROOF_SCHEMA,
+            "status": "FAIL_CLOSED",
+            **refusal_fields(completion),
+            "local_evidence_status": "NOT_EVALUATED",
+            "sovereign_completion": False,
+            "organization_ledger_completion": completion,
+            "manifest_receipt_id": rid,
+            "transaction_id": sovereign_result.get("transaction_id"),
+            "local_run_record": _local_run_record(custody_record),
+            "authority": authority,
+        }
     pending = build_pending_interlock_return(
         pre_steggate_bundle["ingress_interlock"],
         sovereign_result,
-        custody_record,
+        completion,
     )
     acknowledgement = acknowledge_interlock_return(
         pending,
@@ -198,7 +224,6 @@ def complete_post_return_evidence(
 
     exchange = create_exchange(post_bundle, Path(exchange_path))
     exchange_verification = verify_exchange(Path(exchange_path))
-    rid = str(sovereign_result["manifest_receipt_id"])
     replay_result = dict(replay(rid))
     reconstruct_result = dict(reconstruct(rid))
 
@@ -217,16 +242,9 @@ def complete_post_return_evidence(
     if reconstruct_result.get("operation_transition_custody_status") != "RECORDED":
         raise ValueError("reconstruction operation transition is not in custody")
 
-    completion = verify_organization_ledger_readback(
-        organization_ledger_readback,
-        organization_receipt_sha256=organization_receipt_sha256,
-        canonical_manifest_sha256=canonical_manifest_sha256,
-    )
-    refusal = refusal_fields(completion)
     return {
         "schema": PROOF_SCHEMA,
-        "status": "PASS" if completion["disposition"] == "ALLOW" else "FAIL_CLOSED",
-        **refusal,
+        "status": "PASS",
         "local_evidence_status": "PASS",
         "sovereign_completion": completion["sovereign_completion"],
         "organization_ledger_completion": completion,
@@ -234,12 +252,7 @@ def complete_post_return_evidence(
         "transaction_id": sovereign_result["transaction_id"],
         "governance_state": sovereign_result.get("governance_state"),
         "bounded_consequence": dict(sovereign_result["execution_result"]),
-        "local_run_record": {
-            "status": "RECORDED",
-            "master_record_sha256": custody_record["master_record_sha256"],
-            "role": "DOWNSTREAM_NON_GATING_EVIDENCE",
-            "completes_transition": False,
-        },
+        "local_run_record": _local_run_record(custody_record),
         "interlock_return_state": acknowledged["acknowledgement"]["state"],
         "participant_successor_receipt": acknowledgement["participant_successor_receipt"],
         "portable_verification": independent_report,
@@ -247,16 +260,12 @@ def complete_post_return_evidence(
         "exchange_verification": exchange_verification,
         "replay": replay_result,
         "reconstruction": reconstruct_result,
-        "authority": {
-            "sdk_authority": "NONE",
-            "verification_authority": "NONE",
-            "exchange_authority": "NONE",
-            "copied_evidence_is_canonical_custody": False,
-        },
+        "authority": authority,
     }
 
 
 __all__ = [
+    "ORGANIZATION_LEDGER_ISSUER",
     "RETURN_SCHEMA",
     "PROOF_SCHEMA",
     "build_pending_interlock_return",

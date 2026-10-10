@@ -168,7 +168,6 @@ def test_success_path_passes_standing_to_canonical_runtime_and_uses_direct_custo
     sovereign = {
         "declared_execution_context_consumed_by_canonical_runtime": True,
         "governance_state": "ALLOW",
-        "master_records_organization_record_status": "RECORDED",
         "manifest_receipt_id": "MR-" + "A" * 64,
         "transaction_id": "tx-production-proof",
         "execution_result": {
@@ -207,7 +206,7 @@ def test_success_path_passes_standing_to_canonical_runtime_and_uses_direct_custo
         patch("stegverse.post_return_production_runner.load_public_inspection_request", return_value=manifest),
         patch("stegverse.post_return_production_runner.validate_public_inspection_request", return_value=manifest),
         patch("stegverse.post_return_production_runner.run_sovereign_validation", side_effect=sovereign_run),
-        patch("stegverse.post_return_production_runner._custody_record", return_value=custody) as custody_lookup,
+        patch("stegverse.post_return_production_runner._local_run_record", return_value=custody) as custody_lookup,
         patch("stegverse.post_return_production_runner.complete_post_return_evidence", return_value=post_proof) as complete,
     ):
         result = run_post_return_production_proof(
@@ -235,3 +234,83 @@ def test_success_path_passes_standing_to_canonical_runtime_and_uses_direct_custo
     retained = json.loads(proof_path.read_text(encoding="utf-8"))
     assert retained["post_return_proof"]["interlock_return_state"] == "ACKNOWLEDGED"
     assert retained["authority"]["copied_exchange_is_canonical_custody"] is False
+
+
+def test_without_organization_ledger_readback_the_runner_writes_fail_closed(tmp_path: Path):
+    import json
+
+    release = _release_receipt()
+    bundle = _bundle()
+    manifest = _manifest(bundle)
+    release_path = tmp_path / "release.json"
+    manifest_path = tmp_path / "manifest.json"
+    bundle_path = tmp_path / "pre.json"
+    proof_path = tmp_path / "proof.json"
+    release_path.write_text(json.dumps(release), encoding="utf-8")
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
+
+    sovereign = {
+        "declared_execution_context_consumed_by_canonical_runtime": True,
+        "governance_state": "ALLOW",
+        "manifest_receipt_id": "MR-" + "A" * 64,
+        "transaction_id": "tx-production-proof",
+        "execution_result": {
+            "schema": "stegverse.reference-bounded-consequence.v1",
+            "status": "STATE_TRANSITION_RECORDED",
+            "state_transition_performed": True,
+            "external_side_effect": False,
+            "after_state_hash": "sha256:" + "B" * 64,
+        },
+    }
+    custody = {
+        "manifest_receipt_id": sovereign["manifest_receipt_id"],
+        "master_record_sha256": "C" * 64,
+        "evidence_package": {"transaction_id": sovereign["transaction_id"]},
+    }
+    post_proof = {
+        "status": "FAIL_CLOSED",
+        "local_evidence_status": "NOT_EVALUATED",
+        "sovereign_completion": False,
+        "organization_ledger_completion": {
+            "disposition": "FAIL_CLOSED",
+            "sovereign_completion": False,
+            "failure_code": "SOVEREIGN_COMPLETION_REQUIRES_ORGANIZATION_LEDGER_READBACK",
+            "failed_predicate": "ORGANIZATION_LEDGER_READBACK_PRESENT",
+            "required_evidence_or_repair": "readback",
+            "retry_entrypoint": "StegVerse-org/.github:.stegverse/transition-requests/",
+            "owning_existing_goal": "SDK-MR-A-VALIDATION-CUSTODY-001",
+            "next_attempt": "submit a transition request",
+        },
+    }
+    captured = {}
+
+    def sovereign_run(request, **kwargs):
+        captured["standing_context"] = kwargs.get("declared_execution_context")
+        captured["consequence_executor"] = kwargs.get("consequence_executor")
+        captured["route_purpose"] = kwargs.get("route_purpose")
+        return copy.deepcopy(sovereign)
+
+    with (
+        patch("stegverse.post_return_production_runner.load_public_inspection_request", return_value=manifest),
+        patch("stegverse.post_return_production_runner.validate_public_inspection_request", return_value=manifest),
+        patch("stegverse.post_return_production_runner.run_sovereign_validation", side_effect=sovereign_run),
+        patch("stegverse.post_return_production_runner._local_run_record", return_value=custody) as custody_lookup,
+        patch("stegverse.post_return_production_runner.complete_post_return_evidence", return_value=post_proof) as complete,
+    ):
+        result = run_post_return_production_proof(
+            release_receipt_path=release_path,
+            manifest_path=manifest_path,
+            pre_steggate_bundle_path=bundle_path,
+            custody_db=tmp_path / "custody.db",
+            state_path=tmp_path / "state.json",
+            exchange_path=tmp_path / "exchange.zip",
+            proof_path=proof_path,
+        )
+
+    assert result["status"] == "FAIL_CLOSED"
+    assert result["sovereign_completion"] is False
+    assert result["failed_predicate"] == "ORGANIZATION_LEDGER_READBACK_PRESENT"
+    assert result["retry_entrypoint"] == "StegVerse-org/.github:.stegverse/transition-requests/"
+    assert result["local_run_record"]["completes_transition"] is False
+    assert json.loads(proof_path.read_text(encoding="utf-8"))["status"] == "FAIL_CLOSED"

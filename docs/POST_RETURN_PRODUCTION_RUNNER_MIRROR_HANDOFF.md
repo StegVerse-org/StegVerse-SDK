@@ -42,13 +42,13 @@ The runner performs, in order:
 8. build the non-authorizing standing execution context from the verified PRE_STEGGATE bundle;
 9. create the bounded local state consequence with a deterministic release-set/run idempotency key;
 10. call the existing canonical `run_sovereign_validation()` with that exact standing context and bounded consequence;
-11. require canonical runtime standing-context consumption, StegGate `ALLOW`, a real state transition, and a `RECORDED` run record in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody);
-12. resolve the exact retained custody object directly from `ManifestReceiptCustody.evidence_package(manifest_receipt_id)`;
-13. call the already-merged `complete_post_return_evidence()` path;
-14. require reciprocal participant ACK, POST_RETURN portable verification, governance exchange verification, replay custody without consequence reexecution, and reconstruction custody without consequence reexecution;
+11. require canonical runtime standing-context consumption, StegGate `ALLOW`, and a real state transition;
+12. read the run's local run-store record (`ManifestReceiptCustody.evidence_package`) when present, as downstream, non-gating evidence only;
+13. call the already-merged `complete_post_return_evidence()` path, which verifies the organization-ledger readback for this run's manifest-directed transition (`--organization-ledger-readback`) and binds the interlock return's `governance_record_hash` and egress receipt to that organization receipt; without a verified readback the result is a six-field `FAIL_CLOSED` whose retry entrypoint is `StegVerse-org/.github:.stegverse/transition-requests/` (SDK-MR-A, #452);
+14. require reciprocal participant ACK, POST_RETURN portable verification, governance exchange verification, replay without consequence reexecution, and reconstruction without consequence reexecution;
 15. retain one final `stegverse.sdk.post-return-production-runner-result.v1` proof object.
 
-No caller-supplied run-record packet is accepted as a substitute for direct local run-store lookup.
+No caller-supplied run-record packet is accepted, and the local run store never completes or gates the proof.
 
 ## Proposition anti-cross-pairing rule
 
@@ -60,13 +60,14 @@ This distinguishes semantic default resolution from mutation while still detecti
 
 ## Release coherence
 
-The runner requires all three capability IDs already defined by `proof_release_gate.py`:
+The runner requires the capability IDs defined by `proof_release_gate.py`:
 
 ```text
 SDK_POST_RETURN_EVIDENCE_V1
 STEGCORE_SPE_STANDING_BINDING_V1
-MASTER_RECORDS_OPERATION_CUSTODY_V1
 ```
+
+`MASTER_RECORDS_OPERATION_CUSTODY_V1` is reported as a downstream evidence capability and never gates the proof.
 
 The aggregate receipt must carry an explicit exact `commit_sha` for each release component and a verified feature-to-release containment record for each required capability. A valid R3 historical receipt without these later capabilities must fail closed for this runner.
 
