@@ -54,14 +54,12 @@ jobs:
               'components': [
                   {'repository': 'StegVerse-Labs/StegCore', 'commit_sha': '1'*40, 'source_parent_commit': 'ef38410505b0ef3e84148892b1d6e3cdef20f300'},
                   {'repository': 'Data-Continuation/core-lite', 'commit_sha': '2'*40, 'source_parent_commit': '72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8'},
-                  {'repository': 'master-records/orchestration', 'commit_sha': '3'*40, 'source_parent_commit': '03312236c115bc814024d700810391340648601f'},
               ]
           }
           pre_tvc = {
               'components': [
                   {'repository': 'StegVerse-Labs/StegCore', 'commit_sha': '4'*40, 'source_parent_commit': '124ea6b53ff79db8f514cacf1aab295f03cacf74'},
                   {'repository': 'Data-Continuation/core-lite', 'commit_sha': '2'*40, 'source_parent_commit': '72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8'},
-                  {'repository': 'master-records/orchestration', 'commit_sha': '5'*40, 'source_parent_commit': '3dae8832a167359612a15ccfde99a9f22b77fc8a'},
               ]
           }
           ok = verify_installed_governed_test_dependency_alignment(final_receipt)
@@ -69,7 +67,7 @@ jobs:
           mismatch = verify_installed_governed_test_dependency_alignment(pre_tvc)
           assert mismatch['verified'] is False, mismatch
           assert 'stegcore:commit_mismatch' in mismatch['reasons'], mismatch
-          assert 'stegverse-master-records:commit_mismatch' in mismatch['reasons'], mismatch
+          assert not [r for r in ok['reasons'] if r.startswith('unexpected_governed_test_git_pin')], ok
           print('INSTALLED_FINAL_TVC_RELEASE_DEPENDENCY_ALIGNMENT_PASS')
           PY
       - name: Compile canonical command and verifier

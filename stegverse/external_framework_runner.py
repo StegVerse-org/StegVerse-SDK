@@ -32,8 +32,9 @@ from .evaluator_manifest_builder import (
 )
 from .manifest_builder import RETURN_DEPTHS
 
-# Local organization-record database used by the sovereign validation path.
-DEFAULT_RECORDS_DB = "./stegverse-master-records-validation.db"
+# The local run record is written only where the caller supplies a location;
+# there is no host-derived default (stegverse.local_run_record).
+DEFAULT_RECORDS_DB: str | None = None
 # Deprecated name of DEFAULT_RECORDS_DB, kept for pinned callers.
 DEFAULT_CUSTODY_DB = DEFAULT_RECORDS_DB
 DEFAULT_HOST_IDENTITY = "stegverse-sovereign-local"
@@ -137,7 +138,7 @@ def run_external_framework(
     data_class: str | None = None,
     source_instance: str | None = None,
     created_at: str | None = None,
-    custody_db: str = DEFAULT_RECORDS_DB,
+    custody_db: str | None = DEFAULT_RECORDS_DB,
     host_identity: str = DEFAULT_HOST_IDENTITY,
     replay: bool = True,
     reconstruct: bool = True,

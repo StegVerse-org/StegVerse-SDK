@@ -12,7 +12,7 @@ from .proof_release_gate import verify_release_proof_capabilities
 from .public_inspection import load_public_inspection_request, validate_public_inspection_request
 from .reference_bounded_consequence import reference_state_executor
 from .sovereign_validation_runtime import (
-    _components,
+    local_run_store,
     reconstruct_sovereign,
     replay_sovereign,
     run_sovereign_validation,
@@ -210,8 +210,7 @@ def verify_manifest_standing_proposition_binding(
 def _local_run_record(custody_db: str | Path, manifest_receipt_id: str) -> dict[str, Any] | None:
     """The local run store's record for this run, as downstream evidence; None when absent or mismatched."""
     try:
-        (_Carrier, _build, _route, Custody, _submit, _Registry, _Request, _eval, _Ledger, _run) = _components()
-        record = Custody(custody_db).evidence_package(manifest_receipt_id)
+        record = local_run_store(custody_db).evidence_package(manifest_receipt_id)
     except Exception:
         return None
     if not isinstance(record, Mapping):

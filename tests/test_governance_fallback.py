@@ -27,7 +27,7 @@ class GovernanceFallbackTests(unittest.TestCase):
             lambda *args, **kwargs: None,
         )
         with patch("stegverse.governance_fallback._runtime", return_value=runtime):
-            result = execute_fallback("run", "request.json")
+            result = execute_fallback("run", "request.json", custody_db="run-record.db")
 
         self.assertIs(result, expected)
         self.assertEqual(result["governance_state"], "DENY")
@@ -42,7 +42,7 @@ class GovernanceFallbackTests(unittest.TestCase):
             lambda *args, **kwargs: None,
         )
         with patch("stegverse.governance_fallback._runtime", return_value=runtime):
-            result = execute_fallback("replay", "MR-ABCDEF0123456789")
+            result = execute_fallback("replay", "MR-ABCDEF0123456789", custody_db="run-record.db")
 
         self.assertIs(result, expected)
         self.assertFalse(result["consequence_reexecuted"])
@@ -55,7 +55,7 @@ class GovernanceFallbackTests(unittest.TestCase):
     def test_missing_canonical_components_are_distinct_from_governance_result(self):
         def fail_run(*args, **kwargs):
             raise FakeSovereignValidationError(
-                "Canonical StegCore, Core-Lite and Master Records packages are required; no parallel evaluator is provided."
+                "Canonical StegCore and Core-Lite packages are required; no parallel evaluator is provided."
             )
 
         runtime = (
@@ -67,10 +67,17 @@ class GovernanceFallbackTests(unittest.TestCase):
         )
         with patch("stegverse.governance_fallback._runtime", return_value=runtime):
             with self.assertRaises(GovernanceFallbackError) as ctx:
-                execute_fallback("run", "request.json")
+                execute_fallback("run", "request.json", custody_db="run-record.db")
 
         self.assertEqual(ctx.exception.code, "RUNTIME_COMPONENT_UNAVAILABLE")
         self.assertNotIn(ctx.exception.code, {"ALLOW", "DENY", "REVIEW", "FAIL_CLOSED"})
+
+    def test_missing_local_run_record_location_fails_before_runtime(self):
+        with patch("stegverse.governance_fallback._runtime") as runtime:
+            with self.assertRaises(GovernanceFallbackError) as ctx:
+                execute_fallback("run", "request.json")
+        runtime.assert_not_called()
+        self.assertEqual(ctx.exception.code, "INVALID_REQUEST")
 
 
 if __name__ == "__main__":

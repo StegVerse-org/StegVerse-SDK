@@ -28,7 +28,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("option", choices=("000", "0B", "0b"))
     parser.add_argument("target", nargs="?", help="stegverse.ingress-manifest.v1 JSON file for option 0B")
-    parser.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db")
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", default=None)
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
     args = parser.parse_args(argv)
     try:

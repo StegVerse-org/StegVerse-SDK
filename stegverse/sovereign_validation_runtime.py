@@ -21,6 +21,7 @@ from .organization_ledger_evidence import (
     load_readback,
     verify_organization_ledger_readback,
 )
+from .local_run_record import LocalRunRecordError, LocalRunRecordStore
 
 
 class SovereignValidationError(RuntimeError):
@@ -35,21 +36,32 @@ def _canonical_sha256(value: Any) -> str:
     return "sha256:" + hashlib.sha256(body).hexdigest()
 
 
+COMPONENTS_UNAVAILABLE = (
+    "Canonical StegCore and Core-Lite packages are required; no parallel evaluator is provided."
+)
+
+
 def _components():
     try:
         from core_lite.transaction_route import ManifestRouteCarrier, build_route_manifest, default_validation_route
-        from services.manifest_receipt_custody import ManifestReceiptCustody
-        from stegcore.manifest_receipt_provider import build_master_records_submission
         from stegcore.manifest_receipts import ManifestReceiptRegistry
         from stegcore.steggate import AdmissibilityRequest, evaluate_admissibility
         from stegcore.transaction_lifecycle import TransactionLedger, run_manifested_transaction
     except ImportError as exc:
-        raise SovereignValidationError(
-            "Canonical StegCore, Core-Lite and Master Records packages are required; no parallel evaluator is provided."
-        ) from exc
-    return (ManifestRouteCarrier, build_route_manifest, default_validation_route,
-            ManifestReceiptCustody, build_master_records_submission, ManifestReceiptRegistry,
+        raise SovereignValidationError(COMPONENTS_UNAVAILABLE) from exc
+    return (ManifestRouteCarrier, build_route_manifest, default_validation_route, ManifestReceiptRegistry,
             AdmissibilityRequest, evaluate_admissibility, TransactionLedger, run_manifested_transaction)
+
+
+def local_run_store(custody_db: str | Path | None) -> LocalRunRecordStore:
+    """Open the SDK-internal local run record at the caller-supplied location.
+
+    Downstream, non-gating evidence only; there is no default location.
+    """
+    try:
+        return LocalRunRecordStore(custody_db)  # type: ignore[arg-type]
+    except LocalRunRecordError as exc:
+        raise SovereignValidationError(str(exc)) from exc
 
 
 def _prov(
@@ -100,9 +112,9 @@ def run_sovereign_validation(
 ) -> dict[str, Any]:
     """Run the exact published route established by the submitted manifest.
 
-    The local run store (``ManifestReceiptCustody``) is downstream, non-gating
-    evidence of this run; its ``RECORDED`` status never completes the
-    transition. ``sovereign_completion`` is true only when
+    The local run store (``stegverse.local_run_record``, at the caller-supplied
+    ``custody_db`` location) is downstream, non-gating evidence of this run
+    (authority_effect NONE); it never completes the transition. ``sovereign_completion`` is true only when
     ``organization_ledger_readback`` verifies (the run's manifest-directed
     transition is in the organization ledger and bound to its manifest);
     otherwise ``organization_ledger_completion`` is a six-field FAIL_CLOSED
@@ -138,7 +150,7 @@ def run_sovereign_validation(
             raise SovereignValidationError("input.steggate_request is required when no derived governance request is supplied")
         raw_governance_request = input_block["steggate_request"]
         governance_request_source = "MANIFEST_INPUT"
-    (Carrier, build_route, default_route, Custody, build_submission, Registry,
+    (Carrier, build_route, default_route, Registry,
      Request, _evaluate, Ledger, run_tx) = _components()
     provenance, resolved_route = _prov(normalized, host_identity, raw_governance_request)
     if resolved_route["route_id"] != CANONICAL_PRODUCTION_ROUTE_ID:
@@ -148,7 +160,7 @@ def run_sovereign_validation(
     if resolved_route.get("state_graph_adapter_binding") != "stegverse.manifest_state_transition_adapters.derive_governance_state_graph":
         raise SovereignValidationError("canonical governance state-graph adapter binding is unavailable")
     selected_route = default_route()
-    custody = Custody(custody_db)
+    custody = local_run_store(custody_db)
     registry, ledger = Registry(), Ledger()
     request_model = Request.model_validate(raw_governance_request)
     input_data = input_block.get("input_data", {})
@@ -235,8 +247,9 @@ def run_sovereign_validation(
             "execution_provenance": provenance,
             "route_receipt_chain_head_at_exact_run_custody": active_manifest.get("receipt_chain_head"),
         }
-        submission = build_submission(record, evidence)
-        retained = custody.register(submission["evidence_package"])
+        evidence.setdefault("manifest_receipt_id", record.manifest_receipt_id)
+        evidence.setdefault("transaction_id", record.transaction_id)
+        retained = custody.register(evidence)
         state.update(result=result, record=record, retained=retained)
         observation = result.execution_observation or {}
         execution_result = observation.get("result") if isinstance(observation, Mapping) else None
@@ -308,7 +321,13 @@ def run_sovereign_validation(
         organization_receipt_sha256=organization_receipt_sha256,
         canonical_manifest_sha256=canonical_manifest_sha256,
     )
-    output["local_run_store"] = {"status": "RECORDED", **LOCAL_RUN_STORE_ROLE}
+    retained = state["retained"]
+    output["local_run_store"] = {
+        "status": retained["record_status"],
+        "record_sha256": retained["record_sha256"],
+        "authority_effect": retained["authority_effect"],
+        **LOCAL_RUN_STORE_ROLE,
+    }
     output["organization_ledger_completion"] = completion
     output["sovereign_completion"] = completion["sovereign_completion"]
     evaluation = observation.get("evaluation") if isinstance(observation, Mapping) else {}
@@ -326,8 +345,8 @@ def run_sovereign_validation(
 
 
 def replay_sovereign(manifest_receipt_id: str, *, custody_db: str | Path) -> dict[str, Any]:
-    (_Carrier, _build, _route, Custody, _submit, _Registry, Request, evaluate, _Ledger, _run) = _components()
-    custody = Custody(custody_db)
+    (_Carrier, _build, _route, _Registry, Request, evaluate, _Ledger, _run) = _components()
+    custody = local_run_store(custody_db)
     rid = manifest_receipt_id.strip().upper()
     package = custody.evidence_package(rid)["evidence_package"]
     request_body = ((package.get("manifest") or {}).get("metadata") or {}).get("governance_request")
@@ -356,8 +375,7 @@ def replay_sovereign(manifest_receipt_id: str, *, custody_db: str | Path) -> dic
 
 
 def reconstruct_sovereign(manifest_receipt_id: str, *, custody_db: str | Path) -> dict[str, Any]:
-    (_Carrier, _build, _route, Custody, _submit, _Registry, _Request, _eval, _Ledger, _run) = _components()
-    custody = Custody(custody_db)
+    custody = local_run_store(custody_db)
     rid = manifest_receipt_id.strip().upper()
     op_id = "OP-RECONSTRUCT-" + uuid.uuid4().hex.upper()
     receipts = []
@@ -380,7 +398,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Canonical StegVerse production validation without a third-party host")
     parser.add_argument("operation", choices=("run", "replay", "reconstruct"))
     parser.add_argument("target")
-    parser.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db")
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", required=True,
+                        help="caller-supplied location of the local run record (non-authoritative evidence)")
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
     parser.add_argument("--organization-ledger-readback", default=None,
                         help="readback JSON for this run's transition request; required for sovereign completion")

@@ -23,10 +23,10 @@ The canonical public-inspection runtime is sovereign/local and uses pinned canon
 
 ```bash
 python -m pip install -e ".[dev,governed-test]"
-python -m stegverse.public_inspection_runtime run inspection/examples/governed-test-request.json
+python -m stegverse.public_inspection_runtime run inspection/examples/governed-test-request.json --records-db ./my-run-record.db
 ```
 
-The default local run-store file (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records custody) is `./stegverse-master-records-validation.db`. A different file may be selected with `--records-db` (the older `--custody-db` spelling is still accepted).
+The local run record (`stegverse.local_run_record`: SDK-internal, stdlib, non-authoritative; not Master Records custody) is written only at the location given with `--records-db` (the older `--custody-db` spelling is still accepted). There is no default location.
 
 The test consequence is simulated and produces no external side effect. A successful run is returned only after the canonical route and exact-run evidence are recorded locally.
 
@@ -35,7 +35,7 @@ The sovereign path does not require a hosted evaluator and does not use a GitHub
 ## Replay — option 1
 
 ```bash
-python -m stegverse.public_inspection_runtime replay MR-<SHA256>
+python -m stegverse.public_inspection_runtime replay MR-<SHA256> --records-db ./my-run-record.db
 ```
 
 Replay preserves the original exact run and does not invoke its original consequence. Replay itself is new operation history:
@@ -49,7 +49,7 @@ The replay artifact is returned only after its operation history is recorded.
 ## Reconstruction — option 2
 
 ```bash
-python -m stegverse.public_inspection_runtime reconstruct MR-<SHA256>
+python -m stegverse.public_inspection_runtime reconstruct MR-<SHA256> --records-db ./my-run-record.db
 ```
 
 Reconstruction preserves the original exact run and does not re-execute its original consequence. Its operation history is:

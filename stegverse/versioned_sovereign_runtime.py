@@ -20,7 +20,6 @@ RELEASE_SET_METADATA_KEY = "production_release_set"
 _CANONICAL_RUN = canonical.run_sovereign_validation
 _CANONICAL_REPLAY = canonical.replay_sovereign
 _CANONICAL_RECONSTRUCT = canonical.reconstruct_sovereign
-_CANONICAL_COMPONENTS = canonical._components
 
 
 def _merged_consequence_metadata(
@@ -60,8 +59,7 @@ def run_sovereign_validation(
 
 
 def _historical_release_set(manifest_receipt_id: str, custody_db: str | Path) -> dict[str, Any] | None:
-    (_Carrier, _build, _route, Custody, _submit, _Registry, _Request, _eval, _Ledger, _run) = _CANONICAL_COMPONENTS()
-    custody = Custody(custody_db)
+    custody = canonical.local_run_store(custody_db)
     rid = manifest_receipt_id.strip().upper()
     package = custody.evidence_package(rid)["evidence_package"]
     metadata = ((package.get("manifest") or {}).get("metadata") or {})
@@ -98,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Canonical StegVerse production validation with immutable production release-set evidence")
     parser.add_argument("operation", choices=("run", "replay", "reconstruct"))
     parser.add_argument("target")
-    parser.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db")
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", required=True)
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
     args = parser.parse_args(argv)
     if args.operation == "run":

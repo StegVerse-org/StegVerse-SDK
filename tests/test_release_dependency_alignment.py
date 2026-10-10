@@ -3,18 +3,21 @@ from stegverse.release_dependency_alignment import verify_governed_test_dependen
 
 STEGCORE_TVC_SOURCE_PARENT = "ef38410505b0ef3e84148892b1d6e3cdef20f300"
 CORE_LITE_TVC_SOURCE_PARENT = "72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8"
-MASTER_RECORDS_TVC_SOURCE_PARENT = "03312236c115bc814024d700810391340648601f"
 PRE_TVC_STEGCORE_PROOF_SOURCE = "124ea6b53ff79db8f514cacf1aab295f03cacf74"
-PRE_TVC_MASTER_RECORDS_PROOF_SOURCE = "3dae8832a167359612a15ccfde99a9f22b77fc8a"
+# Formerly pinned run-store package; the SDK now keeps its own local run record
+# (stegverse.local_run_record), so this pin is no longer expected.
+REMOVED_RUN_STORE_PIN = (
+    'stegverse-master-records @ git+https://github.com/master-records/orchestration.git@'
+    '03312236c115bc814024d700810391340648601f ; extra == "governed-test"'
+)
 
 REQUIREMENTS = [
     f'stegcore @ git+https://github.com/StegVerse-Labs/StegCore.git@{STEGCORE_TVC_SOURCE_PARENT} ; extra == "governed-test"',
     f'stegverse-core-lite @ git+https://github.com/Data-Continuation/core-lite.git@{CORE_LITE_TVC_SOURCE_PARENT} ; extra == "governed-test"',
-    f'stegverse-master-records @ git+https://github.com/master-records/orchestration.git@{MASTER_RECORDS_TVC_SOURCE_PARENT} ; extra == "governed-test"',
 ]
 
 
-def _receipt(stegcore_commit=STEGCORE_TVC_SOURCE_PARENT, master_records_commit=MASTER_RECORDS_TVC_SOURCE_PARENT):
+def _receipt(stegcore_commit=STEGCORE_TVC_SOURCE_PARENT):
     return {
         "components": [
             {
@@ -26,11 +29,6 @@ def _receipt(stegcore_commit=STEGCORE_TVC_SOURCE_PARENT, master_records_commit=M
                 "repository": "Data-Continuation/core-lite",
                 "commit_sha": "2" * 40,
                 "source_parent_commit": CORE_LITE_TVC_SOURCE_PARENT,
-            },
-            {
-                "repository": "master-records/orchestration",
-                "commit_sha": "3" * 40,
-                "source_parent_commit": master_records_commit,
             },
         ]
     }
@@ -53,21 +51,27 @@ def test_pre_tvc_stegcore_proof_source_is_rejected_for_final_receipt():
     assert result["authority_effect"] == "NONE"
 
 
-def test_pre_tvc_master_records_proof_source_is_rejected_for_final_receipt():
-    result = verify_governed_test_dependency_alignment(
-        REQUIREMENTS,
-        _receipt(master_records_commit=PRE_TVC_MASTER_RECORDS_PROOF_SOURCE),
-    )
+def test_removed_run_store_pin_is_rejected_as_unexpected():
+    result = verify_governed_test_dependency_alignment([*REQUIREMENTS, REMOVED_RUN_STORE_PIN], _receipt())
     assert result["verified"] is False
-    assert "stegverse-master-records:commit_mismatch" in result["reasons"]
-    assert result["authority_effect"] == "NONE"
+    assert "unexpected_governed_test_git_pin:stegverse-master-records" in result["reasons"]
+
+
+def test_historical_receipt_listing_the_removed_component_still_aligns():
+    receipt = _receipt()
+    receipt["components"].append(
+        {"repository": "master-records/orchestration", "commit_sha": "3" * 40,
+         "source_parent_commit": "03312236c115bc814024d700810391340648601f"}
+    )
+    result = verify_governed_test_dependency_alignment(REQUIREMENTS, receipt)
+    assert result["verified"] is True
 
 
 def test_missing_release_component_fails_closed():
     receipt = _receipt()
     receipt["components"] = [
-        item for item in receipt["components"] if item["repository"] != "master-records/orchestration"
+        item for item in receipt["components"] if item["repository"] != "Data-Continuation/core-lite"
     ]
     result = verify_governed_test_dependency_alignment(REQUIREMENTS, receipt)
     assert result["verified"] is False
-    assert "stegverse-master-records:release_component_missing" in result["reasons"]
+    assert "stegverse-core-lite:release_component_missing" in result["reasons"]

@@ -61,7 +61,7 @@ def _runtime():
 def _classify(exc: Exception, sovereign_error_type: type[Exception]) -> GovernanceFallbackError:
     detail = str(exc).strip() or exc.__class__.__name__
     if isinstance(exc, sovereign_error_type):
-        if "canonical stegcore, core-lite and master records packages are required" in detail.lower():
+        if "canonical stegcore and core-lite packages are required" in detail.lower():
             return GovernanceFallbackError("RUNTIME_COMPONENT_UNAVAILABLE", detail)
         return GovernanceFallbackError("GOVERNANCE_RUNTIME_ERROR", detail)
     if isinstance(exc, (FileNotFoundError, json.JSONDecodeError, ValueError, KeyError, TypeError)):
@@ -73,14 +73,16 @@ def execute_fallback(
     operation: str,
     target: str,
     *,
-    custody_db: str | Path = "./stegverse-master-records-validation.db",
+    custody_db: str | Path | None = None,
     host_identity: str = "stegverse-sovereign-local",
 ) -> Mapping[str, Any]:
     """Execute the canonical local path and return its result unchanged.
 
     ``run`` expects the same public-inspection request accepted by
     ``stegverse.public_inspection_runtime``. ``replay`` and ``reconstruct``
-    expect a canonical ``manifest_receipt_id``. This function never converts a
+    expect a canonical ``manifest_receipt_id``. ``custody_db`` is the
+    caller-supplied location of the SDK's local run record (non-authoritative
+    evidence); there is no default location. This function never converts a
     genuine governance disposition into a fallback/error state.
     """
     op = str(operation).strip().lower()
@@ -89,6 +91,10 @@ def execute_fallback(
     target = str(target).strip()
     if not target:
         raise GovernanceFallbackError("INVALID_REQUEST", "target is required")
+    if custody_db is None or not str(custody_db).strip():
+        raise GovernanceFallbackError(
+            "INVALID_REQUEST", "a local run record location (--records-db) is required; there is no default"
+        )
 
     (SovereignValidationError, load_request, run, replay, reconstruct) = _runtime()
     try:
@@ -124,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("operation", choices=OPERATIONS)
     parser.add_argument("target", help="request JSON path for run, or manifest_receipt_id for replay/reconstruct")
-    parser.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db")
+    parser.add_argument("--records-db", "--custody-db", dest="custody_db", default=None)
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
     args = parser.parse_args(argv)
 

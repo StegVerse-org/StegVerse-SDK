@@ -36,8 +36,8 @@ Canonical route:
   -> same SDK caller connection receives permitted return projection
 
 Every canonical route transition is manifested/receipted. The local run store is
-the master-records package store, a known nonconforming dependency tracked by
-LLMA-DECLARED-PATH-CONFORMANCE-368; it is not Master Records authority or custody.
+the SDK-internal local run record (stegverse.local_run_record): non-authoritative
+evidence at a caller-supplied location; it is not Master Records authority or custody.
 The run record is independent of what transition details the caller elects
 to receive.
 

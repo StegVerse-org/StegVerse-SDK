@@ -79,7 +79,7 @@ A user with only the SDK source but without the referenced custody record cannot
 
 ### 6. Local custody is not automatically shared custody
 
-The public inspection runtime defaults to a local validation run store (`./stegverse-master-records-validation.db`, the master-records package local store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody). One user's local exact-run evidence is not automatically visible to another observer. Independent observation requires deliberate transfer/publication of the relevant evidence or a separately accessible canonical custody artifact.
+The public inspection runtime writes a local run record (`stegverse.local_run_record`, SDK-internal and non-authoritative; not Master Records authority or custody) at the location the caller passes with `--records-db`; there is no default location. One user's local exact-run evidence is not automatically visible to another observer. Independent observation requires deliberate transfer/publication of the relevant evidence or a separately accessible canonical custody artifact.
 
 ### 7. Some ecosystem capabilities are intentionally separate components
 
