@@ -23,18 +23,19 @@
    "PROPER": 562
   },
   "after": {
-   "total": 1317,
+   "total": 1319,
    "HISTORICAL_EVIDENCE": 133,
-   "IMPROPER_CODE": 42,
+   "IMPROPER_CODE": 44,
    "NAMING_ONLY": 141,
    "PROPER": 1001
   },
   "after_improper_unblocked": 0,
-  "after_improper_blocked": 42
+  "after_improper_blocked": 44
  },
  "blocked": {
   "owning_existing_goal": "LLMA-DECLARED-PATH-CONFORMANCE-368",
   "reason": "Sovereign local validation lane: stegverse/sovereign_validation_runtime.py stores runs in the master-records/orchestration package's ManifestReceiptCustody (governed-test extra) and downstream post-return/release-proof/packet tooling requires that store's RECORDED status. Removing it needs an Organization-ledger store owned by the Organization (manifest-directed append under the organization ledger lock). No such package exists in this repository's dependency set; adding one is a new dependency (prohibited), and the SDK may not become the ledger itself (it builds/validates/submits manifests only).",
+  "receiver_contract_reason": "Legacy wire field custody_replay_reconstruction_authority=MASTER_RECORDS is validated verbatim by the pinned receiving Interlock (StegVerse-Labs/.github workers/manifest_state_transition_intr_ingress.py at f4b234d, exercised by .github/workflows/mir-sv-exp3-sdk-manifest.yml); omitting it makes the receiver refuse every request. It is kept for wire compatibility only next to transition_receipt_authority=ORGANIZATION_LEDGER and confers nothing in the SDK. Removal requires changing that receiver, which is outside this repository.",
   "files": [
    "pyproject.toml",
    "scripts/build_evaluation_boundary_response_packet.py",
@@ -43,12 +44,14 @@
    "scripts/run_evaluation_boundary_r3.py",
    "scripts/run_oda3_evaluation_boundary_r3.py",
    "stegverse/governance_fallback.py",
+   "stegverse/manifest_state_transition_runtime.py",
    "stegverse/post_return_evidence.py",
    "stegverse/post_return_production_runner.py",
    "stegverse/production_release_set.py",
    "stegverse/proof_release_gate.py",
    "stegverse/sovereign_validation_runtime.py",
    "stegverse/test_procedure.py",
+   "tests/test_master_records_reconstruction_non_gating.py",
    "tests/test_mcp_production_artifact.py",
    "tests/test_post_return_evidence.py",
    "tests/test_post_return_production_runner.py",
@@ -4991,147 +4994,157 @@
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 154,
+   "line": 158,
+   "classification": "IMPROPER_CODE",
+   "reason": "legacy wire field required by the pinned external receiving Interlock",
+   "text": "\"custody_replay_reconstruction_authority\": \"MASTER_RECORDS\",",
+   "status": "BLOCKED",
+   "blocked_reason": "Legacy wire field custody_replay_reconstruction_authority=MASTER_RECORDS is validated verbatim by the pinned receiving Interlock (StegVerse-Labs/.github workers/manifest_state_transition_intr_ingress.py at f4b234d, exercised by .github/workflows/mir-sv-exp3-sdk-manifest.yml); omitting it makes the receiver refuse every request. It is kept for wire compatibility only next to transition_receipt_authority=ORGANIZATION_LEDGER and confers nothing in the SDK. Removal requires changing that receiver, which is outside this repository.",
+   "owning_existing_goal": "LLMA-DECLARED-PATH-CONFORMANCE-368"
+  },
+  {
+   "path": "stegverse/manifest_state_transition_runtime.py",
+   "line": 159,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"downstream_batch_receipt_recorder\": \"MASTER_RECORDS\","
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 170,
+   "line": 175,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"\"\"Report one closure's Master Records reconstruction as evidence, never as a gate.\"\"\""
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 187,
+   "line": 192,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "def _master_records_evidence("
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 212,
+   "line": 217,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"schema\": MASTER_RECORDS_EVIDENCE_SCHEMA,"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 220,
+   "line": 225,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"recorder\": \"MASTER_RECORDS\","
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 252,
+   "line": 257,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "# downstream Master Records reconstruction of it is evidence only."
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 303,
+   "line": 308,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "# not an independently checked organization record or Master Records"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 311,
+   "line": 316,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "The native consumer already appends to the organization ledger; Master Records"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 324,
+   "line": 329,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"external_master_records_independently_read_back\": False,"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 354,
+   "line": 359,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "# Downstream Master Records receipt digests are optional evidence; when a"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 356,
+   "line": 361,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "for key in (\"intr_admission_master_records_receipt_sha256\","
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 357,
+   "line": 362,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"runtime_binding_master_records_receipt_sha256\", \"diagnostic_master_records_receipt_sha256\"):"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 411,
+   "line": 416,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "# Producers that still list the downstream Master Records reconstruction are"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 415,
+   "line": 420,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "_WORKER_ATTACHMENT_REPAIR_EVIDENCE + [\"MATCHING_MASTER_RECORDS_RECONSTRUCTION\"],"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 539,
+   "line": 544,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "raise ValueError(\"GOVERNANCE_RESULT_MASTER_RECORDS_NOT_IN_GOVERNANCE_PATH\")"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 596,
+   "line": 601,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "checked[\"master_records_reconstruction_evidence\"] = _master_records_evidence("
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 624,
+   "line": 629,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "# Master Records replay and reconstruction are reported as evidence below;"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 637,
+   "line": 642,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "checked[\"master_records_reconstruction_evidence\"] = _master_records_evidence(result, graph, reconstruction)"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 674,
+   "line": 679,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"master_records_reconstruction_observed\": False,"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 756,
+   "line": 761,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"master_records_reconstruction_observed\": False,"
   },
   {
    "path": "stegverse/manifest_state_transition_runtime.py",
-   "line": 821,
+   "line": 826,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "\"MASTER_RECORDS_EVIDENCE_SCHEMA\","
@@ -8033,125 +8046,135 @@
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
    "line": 86,
-   "classification": "PROPER",
-   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
-   "text": "evidence = validate_runtime_result(self.result, self.request)[\"master_records_reconstruction_evidence\"]"
+   "classification": "IMPROPER_CODE",
+   "reason": "legacy wire field required by the pinned external receiving Interlock",
+   "text": "self.assertEqual(self.request[\"custody_replay_reconstruction_authority\"], \"MASTER_RECORDS\")",
+   "status": "BLOCKED",
+   "blocked_reason": "Legacy wire field custody_replay_reconstruction_authority=MASTER_RECORDS is validated verbatim by the pinned receiving Interlock (StegVerse-Labs/.github workers/manifest_state_transition_intr_ingress.py at f4b234d, exercised by .github/workflows/mir-sv-exp3-sdk-manifest.yml); omitting it makes the receiver refuse every request. It is kept for wire compatibility only next to transition_receipt_authority=ORGANIZATION_LEDGER and confers nothing in the SDK. Removal requires changing that receiver, which is outside this repository.",
+   "owning_existing_goal": "LLMA-DECLARED-PATH-CONFORMANCE-368"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 90,
+   "line": 87,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
-   "text": "def test_master_records_pass_is_reported(self):"
+   "text": "evidence = validate_runtime_result(self.result, self.request)[\"master_records_reconstruction_evidence\"]"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
    "line": 91,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "def test_master_records_pass_is_reported(self):"
+  },
+  {
+   "path": "tests/test_master_records_reconstruction_non_gating.py",
+   "line": 92,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "evidence = validate_runtime_result(self.result, self.request)[\"master_records_reconstruction_evidence\"]"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 95,
+   "line": 96,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "def test_master_records_fail_is_reported_and_does_not_gate(self):"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 103,
+   "line": 104,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "evidence = checked[\"master_records_reconstruction_evidence\"]"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 113,
+   "line": 114,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "validate_runtime_result(self.result, self.request)[\"master_records_reconstruction_evidence\"][\"declared_by_manifest\"],"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 118,
+   "line": 119,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "evidence = validate_runtime_result(self.result, declared)[\"master_records_reconstruction_evidence\"]"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 125,
+   "line": 126,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "self.assertIs(checked[\"master_records_reconstruction_evidence\"][\"declared_requirements_satisfied\"], False)"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 128,
+   "line": 129,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "forged = _strip_master_records(self.result)"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 129,
+   "line": 130,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "forged[\"master_records_reconstruction_evidence\"] = {\"evidence_status\": \"PASS\", \"gates_admission\": True}"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 130,
+   "line": 131,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "evidence = validate_runtime_result(forged, self.request)[\"master_records_reconstruction_evidence\"]"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 135,
+   "line": 136,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "base = _strip_master_records(self.result)"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 173,
+   "line": 174,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "def test_organization_records_result_admitted_without_master_records(self):"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 176,
+   "line": 177,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "evidence = checked[\"master_records_reconstruction_evidence\"]"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 180,
+   "line": 181,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "def test_master_records_fail_does_not_gate_governance_result(self):"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 186,
+   "line": 187,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "self.assertEqual(checked[\"master_records_reconstruction_evidence\"][\"evidence_status\"], \"FAIL\")"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 190,
+   "line": 191,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "\"GOVERNANCE_RESULT_ORGANIZATION_RECORDS_REQUIRED\": lambda r: r.update(records_authority=\"MASTER_RECORDS\"),"
   },
   {
    "path": "tests/test_master_records_reconstruction_non_gating.py",
-   "line": 191,
+   "line": 192,
    "classification": "PROPER",
    "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
    "text": "\"GOVERNANCE_RESULT_MASTER_RECORDS_NOT_IN_GOVERNANCE_PATH\": lambda r: r.update({ORGANIZATION_RECORD_OBSERVED_FIELD: True}),"
