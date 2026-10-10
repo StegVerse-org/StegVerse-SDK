@@ -2,7 +2,9 @@
 
 This module binds actual option 0/1/2 execution to SDK usage observation without
 making the observation path an authority path. Operation handlers remain the
-canonical StegCore/Master Records transport boundary; this adapter supplies no
+canonical StegCore transport boundary (the local lane's run store is the
+master-records package store, a known nonconforming dependency tracked by
+LLMA-DECLARED-PATH-CONFORMANCE-368); this adapter supplies no
 credential and grants no governance, custody, replay, or consequence authority.
 """
 from __future__ import annotations

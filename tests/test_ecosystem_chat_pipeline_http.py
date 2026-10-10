@@ -31,8 +31,8 @@ def test_pipeline_http_accepts_binding_aware_envelope():
     body = {
         "payload": payload(),
         "destination_config": {
-            "destination_name": "master-records/ecosystem-chat",
-            "destination_type": "master-records",
+            "destination_name": "organization-ledger/ecosystem-chat",
+            "destination_type": "organization-ledger",
         },
     }
     status, result = handle_ecosystem_chat_pipeline_http("POST", "/api/ecosystem-chat", json.dumps(body))

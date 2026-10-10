@@ -25,8 +25,8 @@ def test_bound_write_adapter_blocks_without_ready_destination():
 def test_bound_write_adapter_delegates_with_ready_destination():
     binding = build_destination_binding(
         {
-            "destination_name": "master-records/ecosystem-chat",
-            "destination_type": "master-records",
+            "destination_name": "organization-ledger/ecosystem-chat",
+            "destination_type": "organization-ledger",
         }
     ).to_dict()
     result = run_ecosystem_chat_pipeline(
@@ -36,7 +36,7 @@ def test_bound_write_adapter_delegates_with_ready_destination():
     )
 
     assert result["write_result"]["write_complete"] is True
-    assert result["write_result"]["write_id"].startswith("master-records/ecosystem-chat:ecw-local-")
+    assert result["write_result"]["write_id"].startswith("organization-ledger/ecosystem-chat:ecw-local-")
     assert result["write_result"]["adapter_name"] == "DESTINATION_BOUND_WRITE_ADAPTER"
     assert result["write_result"]["receipt_id"] == result["issuer_result"]["receipt_id"]
     assert result["write_result"]["errors"] == []

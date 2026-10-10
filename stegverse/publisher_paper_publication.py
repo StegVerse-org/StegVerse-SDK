@@ -168,8 +168,8 @@ def prepare_publisher_paper_manifest(
         requested_consequence=(
             "Request governed publication decision for this exact paper. "
             "No repository mutation before a separately observed original Interlock/InTr ALLOW. "
-            "Interlock/InTr admits the transition; Master Records keeps its reconstructable "
-            "same-transition organization record."
+            "Interlock/InTr admits the transition, which closes on its organization-ledger "
+            "receipt; Master Records may record the released batch receipt downstream (non-gating)."
         ),
         initiator_class="publisher_paper_publication_candidate",
         initiator_ref=TASK_ID,

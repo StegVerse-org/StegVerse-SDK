@@ -201,15 +201,21 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
             "LLM_PROFILE_INTERACTION",
             "EGRESS_ADMITTED",
             "ORGANIZATION_RECORDED",
-            "MASTER_RECORDS_RECONSTRUCTED",
         ],
+        # Master Records records the released batch receipt downstream after the
+        # organization-ledger closure; it is not a transition and never gates one.
+        "downstream_recording": {
+            "master_records": "OPTIONAL_DOWNSTREAM_NON_GATING",
+            "gates_transition": False,
+        },
         "branch_count": journey["branch_count"],
         "branches": [_resolved_branch(request, branch) for branch in journey["branches"]],
         "endpoint_receipt_journey": {
             "journey_id": journey["journey_id"],
             "branch_count": journey["branch_count"],
             "required_order": _required_receipt_order(journey),
-            "record_order": ["ORGANIZATION_RECORDS", "MASTER_RECORDS"],
+            "record_order": ["ORGANIZATION_RECORDS"],
+            "downstream_recorders": ["MASTER_RECORDS"],
         },
         "authority_effect": "NONE_GRAPH_DERIVATION_ONLY",
     }

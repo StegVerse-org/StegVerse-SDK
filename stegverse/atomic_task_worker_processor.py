@@ -169,17 +169,17 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "terminal_requirements": {
             "records_only": True,
             "continued_authority": False,
-            "master_records_state": "RECORDED",
-            "reconstruction_status": "PASS",
+            "organization_ledger_state": "RECORDED",
             "required_evidence_validation_status": "PASS",
-            "exact_receipt_reconstruction_digest_equality": True,
         },
+        # Master Records: downstream recorder of released batch receipts, never a requirement.
+        "downstream_recording": {"master_records": "OPTIONAL_DOWNSTREAM_NON_GATING", "gates_transition": False},
         "authority": {
             "claim_fence": "WORKERCOORDINATOR",
             "credential_warrant": "TV/TVC",
             "transition": "INTERLOCK_INTR",
             "execution": "STEGAGENTS_DOMAIN_COMPONENT",
-            "custody_replay_reconstruction": "MASTER_RECORDS",
+            "custody": "ORGANIZATION_LEDGER", "downstream_batch_receipt_recorder": "MASTER_RECORDS",
         },
         "adapter_executes_lifecycle": False,
         "authority_effect": "NONE_GRAPH_DERIVATION_ONLY",

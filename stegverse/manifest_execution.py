@@ -102,7 +102,7 @@ def _require_nonterminal_local_semantic_boundary(route: Mapping[str, Any], bindi
 
     Worker routes are declared against the existing StegAgents governed runtime.
     The local semantic processors remain useful as deterministic source/contract
-    fixtures, but they are not WorkerCoordinator/InTr/Master Records execution and
+    fixtures, but they are not WorkerCoordinator/InTr/organization-ledger execution and
     therefore cannot be the terminal implementation behind public run-manifest.
     """
     if (

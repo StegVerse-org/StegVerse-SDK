@@ -104,7 +104,7 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
 
         broken = copy.deepcopy(result)
         broken["transition_closures"][2]["predecessor_receipt_sha256"] = "0" * 64
-        with self.assertRaisesRegex(ValueError, "MASTER_RECORDS_IMMEDIATE_PREDECESSOR_MISMATCH"):
+        with self.assertRaisesRegex(ValueError, "ORGANIZATION_LEDGER_IMMEDIATE_PREDECESSOR_MISMATCH"):
             validate_runtime_result(broken, request)
 
     def test_source_profile_deny_cannot_be_laundered_into_authentic_intr_result(self):
@@ -187,7 +187,6 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
             "required_evidence_refs": [
                 "EXACT_REQUEST_BOUND_ORIGINAL_INTR_DISPOSITION",
                 "ORGANIZATION_LEDGER_RECEIPT_AND_PREDECESSOR",
-                "MATCHING_MASTER_RECORDS_RECONSTRUCTION",
             ],
             "repair_owner": "EXISTING_MANIFEST_WORKERCOORDINATOR_INTR_AND_CUSTODY_OWNERS",
             "retry_entrypoint": "EXISTING_SDK_MANIFEST_UNIVERSAL_INTR_INGRESS",
@@ -202,6 +201,17 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
         altered["authentic_intr_disposition_observed"] = True
         with self.assertRaisesRegex(ValueError, "CONTRACT_MISMATCH"):
             validate_runtime_result(altered, req)
+        # A producer that still lists the downstream Master Records
+        # reconstruction is read, but that evidence is never required.
+        legacy = copy.deepcopy(result)
+        legacy["required_evidence_refs"].append("MATCHING_MASTER_RECORDS_RECONSTRUCTION")
+        self.assertEqual(validate_runtime_result(legacy, req)["disposition"], "FAIL_CLOSED")
+        for refs in ([], ["EXACT_REQUEST_BOUND_ORIGINAL_INTR_DISPOSITION"],
+                     ["MATCHING_MASTER_RECORDS_RECONSTRUCTION"]):
+            missing = copy.deepcopy(result)
+            missing["required_evidence_refs"] = refs
+            with self.assertRaisesRegex(ValueError, "EVIDENCE_CONTRACT_MISMATCH"):
+                validate_runtime_result(missing, req)
 
     def test_source_profile_terminal_fail_closed_cannot_retry(self):
         from scripts.build_mir_sv_exp3_manifest import build_exp3_manifest
@@ -281,6 +291,20 @@ class UniversalManifestRuntimeTests(unittest.TestCase):
         bad=copy.deepcopy(progress)
         bad["far_side_transition_observed"]=True
         with self.assertRaisesRegex(ValueError,"CONTRACT_MISMATCH"):
+            validate_runtime_result(bad,req)
+        # Downstream Master Records receipt digests never gate progress.
+        without_mr=copy.deepcopy(progress)
+        for key in ("intr_admission_master_records_receipt_sha256",
+                    "runtime_binding_master_records_receipt_sha256","diagnostic_master_records_receipt_sha256"):
+            without_mr.pop(key)
+        self.assertEqual(validate_runtime_result(without_mr,req)["disposition"],"ALLOW")
+        bad=copy.deepcopy(progress)
+        bad["organization_receipt_sha256"]="x"
+        with self.assertRaisesRegex(ValueError,"RECEIPT_DIGEST_REQUIRED:organization_receipt_sha256"):
+            validate_runtime_result(bad,req)
+        bad=copy.deepcopy(progress)
+        bad["diagnostic_master_records_receipt_sha256"]="x"
+        with self.assertRaisesRegex(ValueError,"RECEIPT_DIGEST_MALFORMED"):
             validate_runtime_result(bad,req)
 
     def test_reconstruction_digest_mismatch_is_evidence_not_admission_gate(self):

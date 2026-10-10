@@ -1,4 +1,14 @@
-"""Production-lane evaluator validation through manifested Core-Lite routing, deployed StegCore, and Master Records."""
+"""Production-lane evaluator validation through manifested Core-Lite routing and deployed StegCore.
+
+Every route transition is appended through the caller-bound Organization ledger sink:
+runtime reality and custody stay with the Organization, and the transition closes on
+the organization-ledger receipt. Master Records only records the released exact-run
+batch receipt downstream, after closure. That recording is optional and non-gating:
+a missing configuration or a recording failure is reported in ``master_records_recording``
+(six-field non-ALLOW on failure) and never changes the run result
+(LLMA-DECLARED-PATH-CONFORMANCE-368). Replay and reconstruction read the released
+record back from Master Records, which is its downstream reconstruction role.
+"""
 from __future__ import annotations
 
 import argparse
@@ -6,7 +16,7 @@ import hashlib
 import json
 import os
 import uuid
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 import requests
 
@@ -23,6 +33,23 @@ from .organization_record_names import (
 
 class PublicInspectionRuntimeError(RuntimeError):
     pass
+
+
+OWNING_EXISTING_GOAL = "LLMA-DECLARED-PATH-CONFORMANCE-368"
+OrganizationLedgerSink = Callable[[str, Mapping[str, Any]], Mapping[str, Any]]
+
+
+def _non_allow(failure_code: str, failed_predicate: str, repair: str, retry: str, next_attempt: str, **extra: Any) -> dict[str, Any]:
+    body = {
+        "failure_code": failure_code,
+        "failed_predicate": failed_predicate,
+        "required_evidence_or_repair": repair,
+        "retry_entrypoint": retry,
+        "owning_existing_goal": OWNING_EXISTING_GOAL,
+        "next_attempt": next_attempt,
+    }
+    body.update(extra)
+    return body
 
 
 def _canonical_hash(value: Mapping[str, Any]) -> str:
@@ -76,12 +103,20 @@ def _source_execution_provenance(package: Mapping[str, Any]) -> dict[str, Any]:
     return dict(provenance)
 
 
-def _master_records_config(base_url: str | None = None, token: str | None = None) -> tuple[str, str]:
+def _optional_master_records_config(base_url: str | None = None, token: str | None = None) -> tuple[str, str] | None:
     url = (base_url or os.getenv("MASTER_RECORDS_URL") or "").rstrip("/")
     auth = token or os.getenv("MASTER_RECORDS_AUTH_TOKEN") or ""
     if not url or not auth:
-        raise PublicInspectionRuntimeError("A Master Records organization record is required. Configure MASTER_RECORDS_URL and MASTER_RECORDS_AUTH_TOKEN.")
+        return None
     return url, auth
+
+
+def _master_records_config(base_url: str | None = None, token: str | None = None) -> tuple[str, str]:
+    """Configuration for reading a released record back from Master Records (replay/reconstruction)."""
+    config = _optional_master_records_config(base_url, token)
+    if config is None:
+        raise PublicInspectionRuntimeError("Replay and reconstruction read the released record from Master Records. Configure MASTER_RECORDS_URL and MASTER_RECORDS_AUTH_TOKEN.")
+    return config
 
 
 def _stegcore_config(base_url: str | None = None) -> str:
@@ -100,18 +135,6 @@ def _headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
 
-def _preflight_master_records(base_url: str, token: str) -> None:
-    try:
-        exact = requests.get(f"{base_url}/api/master-records/manifest-receipts/{'MR-' + '0'*64}", headers=_headers(token), timeout=10)
-        route = requests.get(f"{base_url}/api/master-records/manifest-routes/{'MF-' + '0'*64}/events", headers=_headers(token), timeout=10)
-    except requests.RequestException as exc:
-        raise PublicInspectionRuntimeError(f"Master Records preflight failed: {exc}") from exc
-    if exact.status_code not in (200, 404):
-        raise PublicInspectionRuntimeError(f"Master Records exact-run organization-record route is unavailable: HTTP {exact.status_code}")
-    if route.status_code != 200:
-        raise PublicInspectionRuntimeError(f"Master Records manifested-route organization-record route is unavailable: HTTP {route.status_code}")
-
-
 def _preflight_stegcore(base_url: str) -> dict[str, Any]:
     try:
         response = requests.get(f"{base_url}/v1/runtime-identity", timeout=15)
@@ -128,6 +151,7 @@ def _preflight_stegcore(base_url: str) -> dict[str, Any]:
 
 
 def _retain_in_master_records(base_url: str, token: str, record: Any, evidence: Mapping[str, Any], build_submission: Any) -> dict[str, Any]:
+    """Submit the released exact-run batch receipt to Master Records (downstream recording)."""
     payload = build_submission(record, evidence)
     try:
         response = requests.post(f"{base_url}/api/master-records/manifest-receipts", headers=_headers(token), json=payload, timeout=30)
@@ -141,18 +165,30 @@ def _retain_in_master_records(base_url: str, token: str, record: Any, evidence: 
     return body
 
 
-def _record_route_event(base_url: str, token: str, route_manifest_id: str, event: Mapping[str, Any]) -> dict[str, Any]:
-    payload = {"schema": "stegverse.master-records.manifest-route-event-submission.v1", "event": dict(event), RECORD_REQUESTED_FIELD: True, "authority_requested": False}
+def _record_downstream(base_url: str, token: str, record: Any, evidence: Mapping[str, Any], build_submission: Any) -> dict[str, Any]:
+    """Record the released batch receipt in Master Records; never raise, never gate."""
+    base = {
+        "recorder_role": "DOWNSTREAM_RELEASED_BATCH_RECEIPT_RECORDING",
+        "gates_completion": False,
+        "authority_effect": "NONE_EVIDENCE_ONLY",
+    }
     try:
-        response = requests.post(f"{base_url}/api/master-records/manifest-routes/{route_manifest_id}/events", headers=_headers(token), json=payload, timeout=30)
-    except requests.RequestException as exc:
-        raise PublicInspectionRuntimeError(f"Master Records route organization record failed: {exc}") from exc
-    if response.status_code not in (200, 201):
-        raise PublicInspectionRuntimeError(f"Master Records route organization record failed: HTTP {response.status_code}: {response.text[:500]}")
-    body = response.json()
-    if _record_status(body) != "RECORDED":
-        raise PublicInspectionRuntimeError("Master Records did not record manifested-route transition")
-    return body
+        receipt = _retain_in_master_records(base_url, token, record, evidence, build_submission)
+    except (PublicInspectionRuntimeError, requests.RequestException, ValueError) as exc:
+        return {
+            **base,
+            "status": "NOT_RECORDED",
+            "disposition": "NON_ALLOW_RECORDING_ONLY",
+            **_non_allow(
+                "MASTER_RECORDS_RECORDING_NOT_COMPLETED",
+                "MASTER_RECORDS_RECORDED_RELEASED_EXACT_RUN_RECEIPT",
+                "Optional: re-submit the released exact-run receipt to Master Records. The run already closed on its organization-ledger receipt.",
+                "stegverse.production_validation_runtime._retain_in_master_records",
+                "OPTIONAL_DOWNSTREAM_RECORDING_RETRY_NON_BLOCKING",
+                failure_detail=str(exc),
+            ),
+        }
+    return {**base, "status": "RECORDED", "receipt": receipt}
 
 
 def _get_json(url: str, token: str) -> dict[str, Any]:
@@ -169,6 +205,33 @@ def _get_json(url: str, token: str) -> dict[str, Any]:
 
 
 def _record_operation_event(base_url: str, token: str, manifest_receipt_id: str, operation_id: str, operation: str, sequence: int, event_type: str, *, details: Mapping[str, Any] | None = None, artifact: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """Record one replay/reconstruction operation event in Master Records.
+
+    Downstream and non-gating: a failure is returned as a six-field non-ALLOW entry and
+    the operation continues.
+    """
+    try:
+        return _record_operation_event_strict(base_url, token, manifest_receipt_id, operation_id, operation, sequence, event_type, details=details, artifact=artifact)
+    except (PublicInspectionRuntimeError, requests.RequestException, ValueError) as exc:
+        return {
+            "status": "NOT_RECORDED",
+            "disposition": "NON_ALLOW_RECORDING_ONLY",
+            "gates_operation": False,
+            "operation_id": operation_id,
+            "sequence": sequence,
+            "event_type": event_type,
+            **_non_allow(
+                "MASTER_RECORDS_OPERATION_EVENT_NOT_RECORDED",
+                "MASTER_RECORDS_RECORDED_OPERATION_EVENT",
+                "Optional: re-submit the operation event to Master Records. The operation result stands without it.",
+                "stegverse.production_validation_runtime._record_operation_event",
+                "OPTIONAL_DOWNSTREAM_RECORDING_RETRY_NON_BLOCKING",
+                failure_detail=str(exc),
+            ),
+        }
+
+
+def _record_operation_event_strict(base_url: str, token: str, manifest_receipt_id: str, operation_id: str, operation: str, sequence: int, event_type: str, *, details: Mapping[str, Any] | None = None, artifact: Mapping[str, Any] | None = None) -> dict[str, Any]:
     event = {"operation_id": operation_id, "operation": operation, "sequence": sequence, "event_type": event_type, "details": dict(details or {}), "artifact_sha256": _canonical_hash(artifact) if artifact is not None else None, "authority_granted": False}
     payload = {"schema": "stegverse.master-records.manifest-operation-event-submission.v1", "event": event, RECORD_REQUESTED_FIELD: True, "authority_requested": False}
     try:
@@ -218,16 +281,43 @@ def _run_deployed_stegcore(base_url: str, active_manifest: Mapping[str, Any], ad
     return ManifestedTransactionResult.model_validate(body)
 
 
-def run_public_inspection_test(request: Mapping[str, Any], *, master_records_url: str | None = None, master_records_token: str | None = None, stegcore_url: str | None = None) -> dict[str, Any]:
+def organization_ledger_not_bound(request_id: Any) -> dict[str, Any]:
+    """Six-field non-ALLOW when no Organization ledger sink is bound for the route."""
+    return {
+        "schema": "stegverse.public-inspection-production-validation-refusal.v1",
+        "request_id": request_id,
+        "disposition": "FAIL_CLOSED",
+        **_non_allow(
+            "ORGANIZATION_LEDGER_SINK_NOT_BOUND",
+            "ROUTE_TRANSITIONS_APPEND_TO_ORGANIZATION_LEDGER",
+            "Bind organization_ledger_sink to the owning Organization's ledger append (manifest-directed, under the organization ledger lock). Master Records is not a substitute: it only records released batch receipts downstream.",
+            "stegverse.production_validation_runtime.run_public_inspection_test",
+            "RETRY_WITH_ORGANIZATION_LEDGER_SINK_BOUND",
+        ),
+        "consequence_committed": False,
+        "external_side_effect": False,
+        "authority_effect": "NONE",
+    }
+
+
+def run_public_inspection_test(request: Mapping[str, Any], *, organization_ledger_sink: OrganizationLedgerSink | None = None, master_records_url: str | None = None, master_records_token: str | None = None, stegcore_url: str | None = None) -> dict[str, Any]:
+    """Run one production-lane validation; route transitions append to the Organization ledger.
+
+    ``organization_ledger_sink(route_manifest_id, event)`` must return the Organization's
+    ledger receipt (``custody_status`` RECORDED plus the event's ``route_receipt_id`` and
+    ``event_hash``). Master Records configuration is optional: when present, the released
+    exact-run receipt is recorded there downstream after closure, without gating.
+    """
     normalized = validate_public_inspection_request(request)
     steggate_body, input_data = _runtime_input(normalized)
     provenance = _execution_provenance(normalized)
     if provenance.get("lane_class") != "PRODUCTION_VALIDATION":
         raise PublicInspectionRuntimeError("this runtime is the production-lane validation path; enclosed demo/test requests must remain on their declared demo/test surface")
+    if organization_ledger_sink is None:
+        return organization_ledger_not_bound(normalized["request_id"])
 
-    mr_url, token = _master_records_config(master_records_url, master_records_token)
+    master_records = _optional_master_records_config(master_records_url, master_records_token)
     core_url = _stegcore_config(stegcore_url)
-    _preflight_master_records(mr_url, token)
     core_identity = _preflight_stegcore(core_url)
 
     build_submission, ManifestReceiptRegistry, AdmissibilityRequest, _evaluate, ManifestedTransactionResult = _load_stegcore()
@@ -247,7 +337,7 @@ def run_public_inspection_test(request: Mapping[str, Any], *, master_records_url
     )
 
     def sink(event: dict[str, Any]) -> Mapping[str, Any]:
-        return _record_route_event(mr_url, token, route_manifest["route_manifest_id"], event)
+        return organization_ledger_sink(route_manifest["route_manifest_id"], event)
 
     def stegcore_handler(active_manifest: dict[str, Any], _payload: Any) -> dict[str, Any]:
         result = _run_deployed_stegcore(core_url, active_manifest, admissibility_request, input_data, normalized, provenance, ManifestedTransactionResult)
@@ -261,15 +351,14 @@ def run_public_inspection_test(request: Mapping[str, Any], *, master_records_url
             "stegcore_service_url": core_url,
             "stegcore_runtime_identity": core_identity.get("runtime_identity"),
         }
-        organization_record = _retain_in_master_records(mr_url, token, record, evidence, build_submission)
         evaluation = result.execution_observation.get("evaluation") or {}
-        state.update({"result": result, "record": record, "organization_record": organization_record, "evaluation": evaluation})
+        state.update({"result": result, "record": record, "evidence": evidence, "evaluation": evaluation})
         return {
             "governance_state": evaluation.get("disposition"),
             "manifest_receipt_id": record.manifest_receipt_id,
             "transaction_id": record.transaction_id,
             "stegcore_chain_verified": bool(result.chain_verified),
-            "exact_run_custody_status": _record_status(organization_record),
+            "exact_run_receipt_closure": "ORGANIZATION_LEDGER_ROUTE_EVENT",
             "external_side_effect": False,
             "service_execution_surface": core_url,
         }
@@ -282,7 +371,17 @@ def run_public_inspection_test(request: Mapping[str, Any], *, master_records_url
     except RouteCarrierError as exc:
         raise PublicInspectionRuntimeError(str(exc)) from exc
 
-    record, result, organization_record, evaluation = state["record"], state["result"], state["organization_record"], state["evaluation"]
+    record, result, evaluation = state["record"], state["result"], state["evaluation"]
+    # Released after closure: optional downstream Master Records recording.
+    if master_records is None:
+        recording = {
+            "status": "NOT_CONFIGURED",
+            "recorder_role": "DOWNSTREAM_RELEASED_BATCH_RECEIPT_RECORDING",
+            "gates_completion": False,
+            "authority_effect": "NONE_EVIDENCE_ONLY",
+        }
+    else:
+        recording = _record_downstream(master_records[0], master_records[1], record, state["evidence"], build_submission)
     return {
         "schema": "stegverse.public-inspection-production-validation-result.v2",
         "request_id": normalized["request_id"],
@@ -302,8 +401,14 @@ def run_public_inspection_test(request: Mapping[str, Any], *, master_records_url
         "chain_verified": bool(result.chain_verified),
         "consequence_executor_invoked": bool(result.execution_observation.get("executor_invoked")),
         "external_side_effect": False,
-        ORGANIZATION_RECORD_STATUS_FIELD: _record_status(organization_record),
-        ORGANIZATION_RECORD_RECEIPT_FIELD: organization_record,
+        "organization_ledger_closure": {
+            "status": "RECORDED",
+            "route_receipt_chain_head": route_result["receipt_chain_head"],
+            "closes_transition": True,
+        },
+        "master_records_recording": recording,
+        ORGANIZATION_RECORD_STATUS_FIELD: recording["status"],
+        ORGANIZATION_RECORD_RECEIPT_FIELD: recording.get("receipt"),
         "ecosystem_commit_status": "RECORDED",
         "locator_grants_authority": False,
         "github_grants_runtime_authority": False,
@@ -345,7 +450,8 @@ def replay_manifest_receipt(manifest_receipt_id: str, *, master_records_url: str
     receipts.append(_record_operation_event(base_url, token, rid, operation_id, "REPLAY", 2, "EVALUATED", artifact=artifact))
     receipts.append(_record_operation_event(base_url, token, rid, operation_id, "REPLAY", 3, "RETURNED", artifact=artifact, details={"return_target": "sdk_caller", "source_lane_class": provenance.get("lane_class")}))
     artifact["master_records_operation_receipts"] = receipts
-    artifact["operation_transition_custody_status"] = "RECORDED"
+    artifact["operation_events_recorded_downstream"] = all(r.get("status") != "NOT_RECORDED" for r in receipts)
+    artifact["operation_event_recording_gates_operation"] = False
     return artifact
 
 
@@ -370,12 +476,13 @@ def reconstruct_manifest_receipt(manifest_receipt_id: str, *, master_records_url
     receipts.append(_record_operation_event(base_url, token, rid, operation_id, "RECONSTRUCT", 2, "ARTIFACT_DERIVED", artifact=artifact))
     receipts.append(_record_operation_event(base_url, token, rid, operation_id, "RECONSTRUCT", 3, "RETURNED", artifact=artifact, details={"return_target": "sdk_caller", "source_lane_class": provenance.get("lane_class")}))
     artifact["master_records_operation_receipts"] = receipts
-    artifact["operation_transition_custody_status"] = "RECORDED"
+    artifact["operation_events_recorded_downstream"] = all(r.get("status") != "NOT_RECORDED" for r in receipts)
+    artifact["operation_event_recording_gates_operation"] = False
     return artifact
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run, replay, or reconstruct through manifested Core-Lite + deployed StegCore + Master Records")
+    parser = argparse.ArgumentParser(description="Run through manifested Core-Lite + deployed StegCore (Organization ledger sink required); replay or reconstruct from the released record in Master Records")
     parser.add_argument("operation", choices=("run", "replay", "reconstruct"))
     parser.add_argument("target")
     parser.add_argument("--master-records-url")
@@ -384,7 +491,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.operation == "run":
+            # The CLI binds no Organization ledger sink, so it returns the six-field refusal;
+            # deployments call run_public_inspection_test with their ledger append.
             result = run_public_inspection_test(load_public_inspection_request(args.target), master_records_url=args.master_records_url, master_records_token=args.master_records_token, stegcore_url=args.stegcore_url)
+            if result.get("failure_code"):
+                print(json.dumps(result, indent=2, sort_keys=True))
+                return 2
         elif args.operation == "replay":
             result = replay_manifest_receipt(args.target, master_records_url=args.master_records_url, master_records_token=args.master_records_token)
         else:

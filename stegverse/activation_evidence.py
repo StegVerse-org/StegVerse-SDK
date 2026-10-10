@@ -4,9 +4,11 @@ This module evaluates evidence. It does not deploy, activate transport, grant au
 or create a Master-Records organization record. A deployment may use the resulting
 packet as one input to a separately authorized activation decision.
 
-The organization-record check confirms that an organization record exists and is
-reconstructable. It is readiness evidence only: Interlock/InTr admits transitions, and
-Master Records keeps the organization record.
+Master Records records released organization batch receipts downstream. Its recording
+and reconstruction are never readiness predicates: when ``organization_record_verification``
+evidence (the Master Records recording check) is supplied it is reported in
+``master_records_recording`` and never adds a blocker. Interlock/InTr admits transitions;
+the Organization keeps its own ledger (LLMA-DECLARED-PATH-CONFORMANCE-368).
 
 Naming migration (MASTER-RECORDS-BULK-SEMANTIC-REMEDIATION-002): the packet writes only
 the new names. Readers also accept the ``LEGACY_*`` names below so already-deployed
@@ -44,7 +46,9 @@ LEGACY_ORGANIZATION_RECORD_NOT_VERIFIED = "MASTER_RECORDS_CUSTODY_NOT_VERIFIED"
 LEGACY_ORGANIZATION_RECORD_INSTALLATION_NOT_VERIFIED = "MASTER_RECORDS_INSTALLATION_NOT_VERIFIED"
 LEGACY_ORGANIZATION_RECORD_CLAIM_FIELD = "custody_claim_derived"
 
-# Every blocker code that means "no reconstructable organization record was shown".
+# Blocker codes earlier packets used for "no reconstructable Master Records record was
+# shown". They are still recognized when reading old packets; evaluation no longer emits
+# them because Master Records recording does not gate readiness.
 ORGANIZATION_RECORD_BLOCKER_CODES = frozenset(
     {
         ORGANIZATION_RECORD_NOT_VERIFIED,
@@ -58,12 +62,14 @@ _REQUIRED_EVIDENCE = (
     "site_validation",
     "canonical_collection",
     "provider_verification",
-    ORGANIZATION_RECORD_EVIDENCE_KEY,
 )
+# Optional, downstream and non-gating: the Master Records recording check.
+_OPTIONAL_EVIDENCE = (ORGANIZATION_RECORD_EVIDENCE_KEY,)
+OWNING_EXISTING_GOAL = "LLMA-DECLARED-PATH-CONFORMANCE-368"
 
 
 def is_organization_record_blocker(code: str) -> bool:
-    """True when a blocker code (new or legacy) reports a missing organization record."""
+    """True when a blocker code (new or legacy) in an older packet reports a missing record."""
     return code in ORGANIZATION_RECORD_BLOCKER_CODES
 
 
@@ -107,6 +113,47 @@ def _status(record: Mapping[str, Any]) -> str:
     return str(record.get("status", record.get("result", ""))).upper()
 
 
+def _master_records_recording(record: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Report downstream Master Records recording; it never gates readiness."""
+    body: dict[str, Any] = {
+        "recorder_role": "DOWNSTREAM_RELEASED_BATCH_RECEIPT_RECORDING",
+        "gates_readiness": False,
+        "authority_effect": "NONE_EVIDENCE_ONLY",
+    }
+    if record is None:
+        body["status"] = "NOT_SUPPLIED"
+        return body
+    recorded = _organization_record_exists(record)
+    reconstructable = str(record.get("reconstructability_status", "")).upper() == "PASS"
+    if recorded and reconstructable:
+        body["status"] = "RECORDED"
+        return body
+    failure_code = (
+        ORGANIZATION_RECORD_NOT_VERIFIED if not recorded else "RECONSTRUCTABILITY_NOT_PASS"
+    )
+    body.update(
+        {
+            "status": "NOT_RECORDED",
+            "disposition": "NON_ALLOW_RECORDING_ONLY",
+            "failure_code": failure_code,
+            "failed_predicate": (
+                "MASTER_RECORDS_RECORDED_RELEASED_BATCH_RECEIPT"
+                if not recorded
+                else "MASTER_RECORDS_RECONSTRUCTION_PASS"
+            ),
+            "required_evidence_or_repair": (
+                "Optional: re-submit the released organization batch receipt to Master "
+                "Records and supply its recording/reconstruction result. Readiness does not "
+                "wait for it."
+            ),
+            "retry_entrypoint": "stegverse.activation_evidence.evaluate_activation_evidence",
+            "owning_existing_goal": OWNING_EXISTING_GOAL,
+            "next_attempt": "OPTIONAL_DOWNSTREAM_RECORDING_RETRY_NON_BLOCKING",
+        }
+    )
+    return body
+
+
 def evaluate_activation_evidence(
     evidence: Mapping[str, Mapping[str, Any]],
     *,
@@ -129,6 +176,11 @@ def evaluate_activation_evidence(
         )
 
     normalized = {name: dict(evidence[name]) for name in _REQUIRED_EVIDENCE}
+    for name in _OPTIONAL_EVIDENCE:
+        if name in evidence:
+            if not isinstance(evidence[name], Mapping):
+                raise ActivationEvidenceError(f"{name} must be an object when supplied")
+            normalized[name] = dict(evidence[name])
     for name, record in normalized.items():
         _require_non_authorizing(name, record)
 
@@ -137,7 +189,6 @@ def evaluate_activation_evidence(
     site = normalized["site_validation"]
     collection = normalized["canonical_collection"]
     provider = normalized["provider_verification"]
-    organization_record = normalized[ORGANIZATION_RECORD_EVIDENCE_KEY]
 
     if _status(sdk) not in {"PASS", "SUCCESS", "COMPLETED"}:
         blockers.append("SDK_CURRENT_MAIN_VALIDATION_NOT_PASS")
@@ -159,11 +210,6 @@ def evaluate_activation_evidence(
     if provider.get("provider_output_is_authority") is not False:
         blockers.append("PROVIDER_AUTHORITY_BOUNDARY_NOT_VERIFIED")
 
-    # An organization record must exist and be reconstructable.
-    if not _organization_record_exists(organization_record):
-        blockers.append(ORGANIZATION_RECORD_NOT_VERIFIED)
-    if str(organization_record.get("reconstructability_status", "")).upper() != "PASS":
-        blockers.append("RECONSTRUCTABILITY_NOT_PASS")
 
     observed_entries = set(site.get("verified_entry_points", []) or [])
     missing_entries = sorted(set(required_entry_points) - observed_entries)
@@ -182,6 +228,9 @@ def evaluate_activation_evidence(
         "admissibility_determined": False,
         ORGANIZATION_RECORD_CLAIM_FIELD: False,
         "blockers": blockers,
+        "master_records_recording": _master_records_recording(
+            normalized.get(ORGANIZATION_RECORD_EVIDENCE_KEY)
+        ),
         "evidence_digests": {
             name: _digest(record) for name, record in normalized.items()
         },

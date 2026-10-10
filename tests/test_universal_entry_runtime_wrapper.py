@@ -128,3 +128,41 @@ def test_runtime_still_accepts_legacy_client_keyword():
         custody_client=MasterRecordsOrganizationRecordClient(submit, reconstruct),
     )
     assert result["continuation"]["organization_record_installed"] is True
+
+
+def test_master_records_recording_failure_never_gates_the_governed_return():
+    baseline = run_universal_entry(envelope(), registry(), build_default_handler_registry())
+
+    def unavailable(_submission):
+        raise OSError("Master Records receiver unavailable")
+
+    def never_called(_receipt_id):
+        raise AssertionError("reconstruction must not be requested without a receipt")
+
+    def failed_reconstruction(submission):
+        return _receipt(submission)
+
+    def reconstruct_pending(_receipt_id):
+        return {"schema": "stegverse.master_records_reconstruction.v0.1", "events": [],
+                "reconstructability_status": "PENDING", "authorizing": False}
+
+    for client in (
+        MasterRecordsOrganizationRecordClient(unavailable, never_called),
+        MasterRecordsOrganizationRecordClient(failed_reconstruction, reconstruct_pending),
+    ):
+        result = run_universal_entry(
+            envelope(), registry(), build_default_handler_registry(),
+            organization_record_client=client,
+        )
+        assert result["status"] == baseline["status"]
+        assert result["continuation_events"] == baseline["continuation_events"]
+        continuation = result["continuation"]
+        assert continuation["organization_record_installed"] is False
+        recording = continuation["master_records_recording"]
+        assert recording["gates_return"] is False
+        assert recording["status"] == "NOT_RECORDED"
+        for field in ("failure_code", "failed_predicate", "required_evidence_or_repair",
+                      "retry_entrypoint", "owning_existing_goal", "next_attempt"):
+            assert recording[field], field
+        assert recording["owning_existing_goal"] == "LLMA-DECLARED-PATH-CONFORMANCE-368"
+        assert "organization_record" not in result

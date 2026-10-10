@@ -3,13 +3,28 @@ from __future__ import annotations
 import unittest
 from unittest.mock import Mock, patch
 
-from stegverse.public_inspection_runtime import (
+from stegverse.production_validation_runtime import (
     PublicInspectionRuntimeError,
-    _preflight_master_records,
     _preflight_stegcore,
     _runtime_input,
     run_public_inspection_test,
 )
+
+SIX_FIELDS = (
+    "failure_code",
+    "failed_predicate",
+    "required_evidence_or_repair",
+    "retry_entrypoint",
+    "owning_existing_goal",
+    "next_attempt",
+)
+
+
+def ledger_sink(calls):
+    def sink(route_manifest_id, event):
+        calls.append((route_manifest_id, event))
+        return {"custody_status": "RECORDED", "event": {"route_receipt_id": "ORG-R-1", "event_hash": "eh"}}
+    return sink
 
 PROV = {
     "lane_class": "PRODUCTION_VALIDATION",
@@ -153,13 +168,18 @@ class Tests(unittest.TestCase):
         with self.assertRaises(PublicInspectionRuntimeError):
             _runtime_input(request)
 
-    @patch("stegverse.production_validation_runtime.requests.get")
-    def test_preflight_requires_master_records_route_surface(self, get):
-        get.side_effect = [Mock(status_code=404), Mock(status_code=200)]
-        _preflight_master_records("https://records.example", "auth")
-        get.side_effect = [Mock(status_code=404), Mock(status_code=404)]
-        with self.assertRaises(PublicInspectionRuntimeError):
-            _preflight_master_records("https://records.example", "auth")
+    def test_without_organization_ledger_sink_returns_six_field_refusal_not_master_records(self):
+        result = run_public_inspection_test(
+            self.request(),
+            master_records_url="https://records.example",
+            master_records_token="token",
+            stegcore_url="https://stegcore.example",
+        )
+        self.assertEqual(result["disposition"], "FAIL_CLOSED")
+        self.assertEqual(result["failure_code"], "ORGANIZATION_LEDGER_SINK_NOT_BOUND")
+        for field in SIX_FIELDS:
+            self.assertTrue(result[field], field)
+        self.assertFalse(result["consequence_committed"])
 
     @patch("stegverse.production_validation_runtime.requests.get")
     def test_preflight_requires_deployed_manifested_stegcore_surface(self, get):
@@ -173,15 +193,8 @@ class Tests(unittest.TestCase):
         identity = _preflight_stegcore("https://stegcore.example")
         self.assertEqual("/v1/manifested-validation", identity["manifested_validation_endpoint"])
 
-    @patch("stegverse.production_validation_runtime.requests.post")
-    @patch("stegverse.production_validation_runtime._record_route_event", return_value={"custody_status": "RECORDED", "event": {"route_receipt_id": "MRR-X", "event_hash": "eh"}})
-    @patch("stegverse.production_validation_runtime._retain_in_master_records", return_value={"record_status": "RECORDED"})
-    @patch("stegverse.production_validation_runtime._preflight_master_records")
-    @patch("stegverse.production_validation_runtime._preflight_stegcore", return_value={"runtime_identity": "stegverse:steggate:canonical:three-layer:v1", "manifested_validation_endpoint": "/v1/manifested-validation"})
-    @patch("stegverse.production_validation_runtime._load_route_carrier", return_value=(Carrier, RouteError, make_manifest, lambda: []))
-    @patch("stegverse.production_validation_runtime._load_stegcore", return_value=(build, Registry, Req, lambda req: Eval(), ManifestedModel))
-    def test_manifested_production_lane_calls_deployed_stegcore(self, _core, _carrier, _core_preflight, _mr_preflight, _retain, _route, post):
-        post.return_value = Mock(
+    def _stegcore_response(self):
+        return Mock(
             status_code=200,
             json=lambda: {
                 "transaction_id": "TX-ROUTE",
@@ -189,18 +202,65 @@ class Tests(unittest.TestCase):
                 "service_external_side_effect": False,
             },
         )
-        result = run_public_inspection_test(
-            self.request(),
-            master_records_url="https://records.example",
-            master_records_token="token",
-            stegcore_url="https://stegcore.example",
-        )
+
+    @patch("stegverse.production_validation_runtime.requests.post")
+    @patch("stegverse.production_validation_runtime._preflight_stegcore", return_value={"runtime_identity": "stegverse:steggate:canonical:three-layer:v1", "manifested_validation_endpoint": "/v1/manifested-validation"})
+    @patch("stegverse.production_validation_runtime._load_route_carrier", return_value=(Carrier, RouteError, make_manifest, lambda: []))
+    @patch("stegverse.production_validation_runtime._load_stegcore", return_value=(build, Registry, Req, lambda req: Eval(), ManifestedModel))
+    def test_route_closes_on_organization_ledger_without_master_records(self, _core, _carrier, _core_preflight, post):
+        post.return_value = self._stegcore_response()
+        calls = []
+        with patch.dict("os.environ", {}, clear=True):
+            result = run_public_inspection_test(
+                self.request(),
+                organization_ledger_sink=ledger_sink(calls),
+                stegcore_url="https://stegcore.example",
+            )
         self.assertEqual("PRODUCTION_LANE_VALIDATION_TEST", result["runtime_mode"])
         self.assertEqual("https://stegcore.example", result["stegcore_service_url"])
         self.assertTrue(result["transaction_identity_continuous"])
         self.assertEqual(10, result["route_transition_count"])
-        self.assertTrue(post.called)
+        self.assertEqual(calls[0][0], "MF-" + "B" * 64)
+        self.assertEqual(result["organization_ledger_closure"]["status"], "RECORDED")
+        self.assertEqual(result["master_records_recording"]["status"], "NOT_CONFIGURED")
+        self.assertIs(result["master_records_recording"]["gates_completion"], False)
+        # Only the deployed StegCore call: nothing was sent to Master Records.
+        self.assertEqual(1, post.call_count)
         self.assertTrue(post.call_args.args[0].endswith("/v1/manifested-validation"))
+
+    @patch("stegverse.production_validation_runtime.requests.post")
+    @patch("stegverse.production_validation_runtime._preflight_stegcore", return_value={"runtime_identity": "stegverse:steggate:canonical:three-layer:v1", "manifested_validation_endpoint": "/v1/manifested-validation"})
+    @patch("stegverse.production_validation_runtime._load_route_carrier", return_value=(Carrier, RouteError, make_manifest, lambda: []))
+    @patch("stegverse.production_validation_runtime._load_stegcore", return_value=(build, Registry, Req, lambda req: Eval(), ManifestedModel))
+    def test_master_records_recording_failure_does_not_gate_the_run(self, _core, _carrier, _core_preflight, post):
+        unavailable = Mock(status_code=503, text="receiver unavailable")
+        post.side_effect = [self._stegcore_response(), unavailable]
+        result = run_public_inspection_test(
+            self.request(),
+            organization_ledger_sink=ledger_sink([]),
+            master_records_url="https://records.example",
+            master_records_token="token",
+            stegcore_url="https://stegcore.example",
+        )
+        self.assertEqual("ALLOW", result["governance_state"])
+        self.assertEqual("RECORDED", result["ecosystem_commit_status"])
+        recording = result["master_records_recording"]
+        self.assertEqual(recording["status"], "NOT_RECORDED")
+        self.assertIs(recording["gates_completion"], False)
+        for field in SIX_FIELDS:
+            self.assertTrue(recording[field], field)
+        self.assertEqual(recording["owning_existing_goal"], "LLMA-DECLARED-PATH-CONFORMANCE-368")
+
+        post.side_effect = [self._stegcore_response(), Mock(status_code=201, json=lambda: {"record_status": "RECORDED"})]
+        recorded = run_public_inspection_test(
+            self.request(),
+            organization_ledger_sink=ledger_sink([]),
+            master_records_url="https://records.example",
+            master_records_token="token",
+            stegcore_url="https://stegcore.example",
+        )
+        self.assertEqual(recorded["master_records_recording"]["status"], "RECORDED")
+        self.assertEqual(recorded["master_records_organization_record_status"], "RECORDED")
 
     def test_demo_rejected_from_production_lane(self):
         request = self.request()
@@ -212,7 +272,7 @@ class Tests(unittest.TestCase):
             "external_consequence_enabled": False,
         }
         with self.assertRaises(PublicInspectionRuntimeError):
-            run_public_inspection_test(request, master_records_url="x", master_records_token="y", stegcore_url="z")
+            run_public_inspection_test(request, organization_ledger_sink=ledger_sink([]), stegcore_url="z")
 
 
 if __name__ == "__main__":

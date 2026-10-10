@@ -31,7 +31,8 @@ REQUIRED = (
     "EXPIRE",
     "DESTROY",
     "MIR transition reporting",
-    "Master Records organization records/reconstruction",
+    "organization-ledger transition receipts",
+    "Master Records recording is optional, downstream and non-gating",
     "one-current-device continuity evidence",
     "authority_effect: NONE",
 )

@@ -10,7 +10,7 @@ from stegverse import organization_record_names as names
 from stegverse.evaluator_contract import evaluator_contract_example, evaluator_contract_summary
 from stegverse.external_interlock_bootstrap import external_interlock_bootstrap_instructions
 from stegverse.governance_navigation import normalize_return_projection
-from stegverse.production_validation_runtime import _record_route_event, _record_status
+from stegverse.production_validation_runtime import _record_operation_event_strict, _record_status
 from stegverse.public_inspection import (
     PublicInspectionRequestError,
     SUPPORTED_EVALUATION_CAPABILITIES,
@@ -76,18 +76,20 @@ class OrganizationRecordMigrationTests(unittest.TestCase):
         self.assertIsNone(_record_status({}))
 
     @patch("stegverse.production_validation_runtime.requests.post")
-    def test_route_event_request_writes_only_record_requested(self, post):
+    def test_operation_event_request_writes_only_record_requested(self, post):
+        # Route events append to the Organization ledger; only downstream
+        # operation events go to Master Records.
         post.return_value = Mock(status_code=201, json=lambda: {"record_status": "RECORDED"})
-        _record_route_event("https://records.example", "token", "MF-1", {"sequence": 0})
+        _record_operation_event_strict("https://records.example", "token", "MR-1", "OP-1", "REPLAY", 0, "REQUESTED")
         payload = post.call_args.kwargs["json"]
         self.assertIs(payload["record_requested"], True)
         self.assertNotIn("custody_requested", payload)
         self.assertIs(payload["authority_requested"], False)
 
     @patch("stegverse.production_validation_runtime.requests.post")
-    def test_route_event_still_accepts_legacy_status_from_deployed_service(self, post):
+    def test_operation_event_still_accepts_legacy_status_from_deployed_service(self, post):
         post.return_value = Mock(status_code=201, json=lambda: {"custody_status": "RECORDED"})
-        body = _record_route_event("https://records.example", "token", "MF-1", {"sequence": 0})
+        body = _record_operation_event_strict("https://records.example", "token", "MR-1", "OP-1", "REPLAY", 0, "REQUESTED")
         self.assertEqual("RECORDED", body["custody_status"])
 
     def test_bootstrap_writes_only_new_requirement_name(self):

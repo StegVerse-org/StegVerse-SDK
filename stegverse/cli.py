@@ -326,7 +326,7 @@ def _governance_guide(args: argparse.Namespace) -> int:
         print("\nThis demonstration output is explanatory and non-authorizing. A new manifest must still be submitted through the normal governed path.")
     elif key == "00":
         print("Next: define permitted run preferences, including ALL, SELECTED, or NONE user-return transition projection.")
-        print("The Master Records organization record remains independent of the user-return projection.")
+        print("The organization-ledger record (and any downstream Master Records recording) is independent of caller return formatting.")
     elif key == "0":
         print("Next: choose 0A for raw/user data or 0B for a preformatted machine manifest.")
         print("Execute 0A: stegverse governance --select 0A --input <raw-data.json> --processor-request <request.json>")

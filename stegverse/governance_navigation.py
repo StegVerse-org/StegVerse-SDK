@@ -6,7 +6,8 @@ to governance; it is never an ALLOW decision.
 
 A manifest may request both (a) which transition evidence is projected back to
 the caller and (b) which explanatory labels are attached to the returned
-package. Neither return control changes the canonical Master Records organization record.
+package. Neither return control changes the Organization's ledger record of the transitions
+or the downstream Master Records recording of released batch receipts.
 """
 from __future__ import annotations
 
@@ -95,8 +96,8 @@ Explanation-label projection:
 - manifest_labels.mode = NONE     -> return no explanatory manifest labels.
 
 Neither NONE mode means StegVerse skipped, erased, or failed to retain underlying
-state transitions. The Master Records organization record is independent of both
-caller-facing return controls.
+state transitions. The Organization's ledger record is independent of both
+caller-facing return controls, and so is the downstream Master Records recording.
 
 The manifest_receipt_id is always the canonical locator for the exact immutable
 run and is not an authority token. It remains the handle for later replay or
@@ -152,10 +153,11 @@ Important boundary:
 - return_projection controls user-visible transition evidence;
 - manifest_labels controls user-visible explanatory labels;
 - neither controls whether ecosystem transitions occurred or were retained;
-- the Organization owns custody of its transitions; Master Records keeps the
-  canonical organization records and supports reconstruction from them;
-- a caller cannot use run parameters to suppress the canonical Master Records
-  organization record, erase a transition, grant authority, or rewrite historical state.
+- the Organization owns custody of its transitions in its organization ledger;
+  Master Records only records released batch receipts downstream (non-gating);
+- a caller cannot use run parameters to suppress the organization-ledger record or
+  the downstream Master Records recording, erase a transition, grant authority, or
+  rewrite historical state.
 
 The final manifest_receipt_id remains a locator for the exact immutable run and
 is not execution or admissibility authority.
@@ -184,9 +186,10 @@ What will happen:
 - the transaction enters canonical ingestion -> StegGate governance ->
   commit/consequence boundary -> return ingestion;
 - submission and manifest validity do not grant authority;
-- the Master Records organization record is independent of caller return formatting;
+- the organization-ledger record (and the downstream Master Records recording of
+  released batch receipts) is independent of caller return formatting;
 - the completed run returns the permitted user-facing result and final
-  manifest_receipt_id identifying the exact immutable master-record run.
+  manifest_receipt_id identifying the exact immutable run.
 """
 
 REPLAY_GUIDANCE = """REPLAY A PREVIOUSLY RUN SET

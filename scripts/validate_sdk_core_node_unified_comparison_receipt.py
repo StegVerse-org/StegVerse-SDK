@@ -52,8 +52,11 @@ def validate(receipt: dict) -> None:
         if not item["human_readable_summary"]:
             raise AssertionError(f"{item['path_id']} missing human summary")
 
-    if not receipt["witness_receipts"]:
-        raise AssertionError("receipt must include witness receipt references")
+    # Witness receipts are downstream Master Records recordings of released receipts.
+    # They are optional and never a condition of the comparison receipt
+    # (LLMA-DECLARED-PATH-CONFORMANCE-368); when present they must reference it.
+    if not isinstance(receipt["witness_receipts"], list):
+        raise AssertionError("witness_receipts must be an array")
     if not all(ref.startswith("master-records-") for ref in receipt["witness_receipts"]):
         raise AssertionError("witness receipts must reference master-records")
 

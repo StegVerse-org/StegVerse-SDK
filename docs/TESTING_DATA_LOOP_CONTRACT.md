@@ -28,7 +28,7 @@ A step may not hand off to the next step unless the current step has:
 1. a local step receipt;
 2. a dataset manifest hash;
 3. prior receipt references;
-4. `master-records.action_receipt_sent = true`.
+4. an organization-ledger transition receipt for the step (`organization_ledger_receipt_required`). Master Records may record the released batch receipt downstream; that recording is optional and never a handoff gate (`scripts/validate_formal_testing_route.py` rejects `master_records_required: true`).
 
 ## Executable Implementations
 

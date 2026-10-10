@@ -25,18 +25,20 @@ Canonical route:
   -> exact discovered tool contract + proposed arguments canonicalized and hashed
   -> portable MCP test packet constructed (authority effect: NONE)
   -> canonical SDK ingress / Core-Lite manifested route carrier
-  -> Master Records MRR-* checkpoint organization record
+  -> MRR-* checkpoint receipt in the local run store
   -> canonical StegCore manifested transaction
   -> canonical StegGate + commit-coherence evaluation
   -> only when the canonical transaction permits consequence: MCP tools/call
   -> MCP result captured as execution observation
-  -> Master Records MR-* exact-run organization record
+  -> MR-* exact-run receipt in the local run store
   -> canonical return ingestion/CGE
-  -> Master Records MRR-* return organization record
+  -> MRR-* return receipt in the local run store
   -> same SDK caller connection receives permitted return projection
 
-Every canonical route transition is manifested/receipted. The Master Records
-organization record is independent of what transition details the caller elects
+Every canonical route transition is manifested/receipted. The local run store is
+the master-records package store, a known nonconforming dependency tracked by
+LLMA-DECLARED-PATH-CONFORMANCE-368; it is not Master Records authority or custody.
+The run record is independent of what transition details the caller elects
 to receive.
 
 MCP source choices for option 0:
@@ -64,7 +66,7 @@ This selected mode follows the ordinary SDK option 00 semantics.
 The caller may request ALL, SELECTED, or NONE user-return transition projection
 and explanatory labels where supported by the canonical ingress profile.
 Those preferences control disclosure to the caller only. They do not suppress
-the Master Records organization record, erase route checkpoints, alter a governance decision, or
+the run record, erase route checkpoints, alter a governance decision, or
 grant MCP execution authority.
 """
 
@@ -96,8 +98,8 @@ operation trajectory. It does not resend the original MCP tools/call.
 MCP_RECONSTRUCT_GUIDANCE = """RECONSTRUCT A PRIOR MCP GOVERNED RUN
 
 Provide the MR-* manifest_receipt_id from option 0. The ordinary canonical
-reconstruction operation rebuilds the retained run trajectory from Master Records
-custody. It does not resend the original MCP tools/call.
+reconstruction operation rebuilds the retained run trajectory from the local run
+store. It does not resend the original MCP tools/call.
 """
 
 

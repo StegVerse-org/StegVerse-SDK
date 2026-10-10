@@ -142,8 +142,12 @@ def validate_testing_loop(loop: dict[str, Any]) -> None:
     require_string(loop.get("intake_receipt_id"), "intake_receipt_id")
     if "intake_receipt_hash" in loop:
         validate_sha(loop.get("intake_receipt_hash"), "intake_receipt_hash")
-    if loop.get("master_records_required") is not True:
-        fail("master_records_required must be true")
+    if loop.get("organization_ledger_receipt_required") is not True:
+        fail("organization_ledger_receipt_required must be true")
+    # Master Records records released batch receipts downstream; it is never a
+    # loop requirement (LLMA-DECLARED-PATH-CONFORMANCE-368).
+    if loop.get("master_records_required", False) is not False:
+        fail("master_records_required must be false when present: Master Records recording is downstream and non-gating")
     steps = loop.get("loop_steps")
     if not isinstance(steps, list):
         fail("loop_steps must be an array")
@@ -154,8 +158,10 @@ def validate_testing_loop(loop: dict[str, Any]) -> None:
         step = require_object(step_value, f"loop_steps[{index}]")
         require_string(step.get("actor"), f"loop_steps[{index}].actor")
         require_string(step.get("action"), f"loop_steps[{index}].action")
-        if step.get("master_records_receipt_required") is not True:
-            fail(f"loop_steps[{index}].master_records_receipt_required must be true")
+        if step.get("organization_ledger_receipt_required") is not True:
+            fail(f"loop_steps[{index}].organization_ledger_receipt_required must be true")
+        if step.get("master_records_receipt_required", False) is not False:
+            fail(f"loop_steps[{index}].master_records_receipt_required must be false when present")
 
 
 def validate_handoff(handoff: dict[str, Any]) -> None:
@@ -172,11 +178,12 @@ def validate_handoff(handoff: dict[str, Any]) -> None:
         fail("next_step must immediately follow current_step")
     validate_sha(handoff.get("dataset_manifest_hash"), "dataset_manifest_hash")
     prior_receipts = handoff.get("prior_receipts")
-    mr_receipts = handoff.get("master_records_receipts")
+    # Optional downstream Master Records receipts: validated when supplied, never required.
+    mr_receipts = handoff.get("master_records_receipts", [])
     if not isinstance(prior_receipts, list) or not prior_receipts:
         fail("prior_receipts must be a non-empty array")
-    if not isinstance(mr_receipts, list) or not mr_receipts:
-        fail("master_records_receipts must be a non-empty array")
+    if not isinstance(mr_receipts, list):
+        fail("master_records_receipts must be an array when present")
     required_steps = set(LOOP_STEPS[: LOOP_STEPS.index(current_step) + 1])
     prior_steps: set[str] = set()
     for index, value in enumerate(prior_receipts):
@@ -186,18 +193,14 @@ def validate_handoff(handoff: dict[str, Any]) -> None:
         if "receipt_hash" in receipt:
             validate_sha(receipt.get("receipt_hash"), f"prior_receipts[{index}].receipt_hash")
         prior_steps.add(step_id)
-    mr_steps: set[str] = set()
     for index, value in enumerate(mr_receipts):
         receipt = require_object(value, f"master_records_receipts[{index}]")
-        step_id = require_string(receipt.get("step_id"), f"master_records_receipts[{index}].step_id")
+        require_string(receipt.get("step_id"), f"master_records_receipts[{index}].step_id")
         require_string(receipt.get("master_records_receipt_id"), f"master_records_receipts[{index}].master_records_receipt_id")
         if "master_records_receipt_hash" in receipt:
             validate_sha(receipt.get("master_records_receipt_hash"), f"master_records_receipts[{index}].master_records_receipt_hash")
-        mr_steps.add(step_id)
     if not required_steps.issubset(prior_steps):
         fail("prior_receipts must include every completed step through current_step")
-    if not required_steps.issubset(mr_steps):
-        fail("master_records_receipts must include every completed step through current_step")
 
 
 def validate_status(status: dict[str, Any]) -> None:

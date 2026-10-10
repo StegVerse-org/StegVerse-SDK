@@ -78,7 +78,7 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "route_id": ROUTE_ID,
         "request": deepcopy(request),
         "ordered_transitions": [],
-        "ordered_transitions_source": "EXISTING_INTR_WORKERCOORDINATOR_ORGANIZATION_MASTER_RECORDS",
+        "ordered_transitions_source": "EXISTING_INTR_WORKERCOORDINATOR_ORGANIZATION_LEDGER",
         "requires_workercoordinator_claim_fence": True,
         "predecessor_closure_required": True,
         "adapter_executes_lifecycle": False,

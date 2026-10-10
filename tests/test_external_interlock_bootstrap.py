@@ -17,7 +17,10 @@ def test_bootstrap_uses_production_manifest_receipt_intr_without_minting_receipt
     assert b["transport"]=="InTr"
     assert b["required_request_properties"]["manifest_bound"] is True
     assert b["required_request_properties"]["receipt_bound"] is True
-    assert b["required_request_properties"]["master_records_required"] is True
+    assert b["required_request_properties"]["organization_ledger_receipt_required"] is True
+    # Master Records records released batch receipts downstream; never required.
+    assert b["required_request_properties"]["master_records_required"] is False
+    assert b["required_request_properties"]["master_records_recording"] == "OPTIONAL_DOWNSTREAM_NON_GATING"
     assert b["sdk_mints_intr_receipts"] is False
 
 def test_ae_is_known_available_from_provenance_but_not_connected_or_recommended():
