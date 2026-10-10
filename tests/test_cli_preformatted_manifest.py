@@ -35,6 +35,8 @@ class Tests(unittest.TestCase):
             path.write_text(json.dumps(manifest), encoding="utf-8")
             with patch("stegverse.manifest_execution.execute_manifest", return_value=HANDOFF) as run, \
                     patch("stegverse.governance_ingress_runtime.run_external_manifest") as local, \
+                    patch("stegverse.manifest_builder.qualify_draft_manifest", return_value=READY) as qualify, \
+                    patch("stegverse.manifest_plan.require_ready_qualification") as require, \
                     contextlib.redirect_stdout(io.StringIO()):
                 rc = main([
                     "governance",
@@ -46,6 +48,8 @@ class Tests(unittest.TestCase):
 
         self.assertEqual(0, rc)
         run.assert_called_once_with(manifest)
+        qualify.assert_called_once()
+        require.assert_called_once_with(manifest, READY["qualification"])
         local.assert_not_called()
 
     def test_primary_cli_keeps_0_as_neutral_submission_selector(self):
