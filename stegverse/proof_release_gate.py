@@ -6,6 +6,12 @@ PROOF_CAPABILITY_SCHEMA = "stegverse.release-proof-capability.v1"
 REQUIRED_POST_RETURN_CAPABILITIES = (
     "SDK_POST_RETURN_EVIDENCE_V1",
     "STEGCORE_SPE_STANDING_BINDING_V1",
+)
+# The proof run's replay/reconstruction operations are still recorded in the
+# local run store, so its capability is reported; it is downstream, non-gating
+# evidence and never decides the gate (completion is the organization-ledger
+# readback, SDK-MR-A).
+DOWNSTREAM_EVIDENCE_CAPABILITIES = (
     "MASTER_RECORDS_OPERATION_CUSTODY_V1",
 )
 
@@ -75,6 +81,8 @@ def verify_release_proof_capabilities(
             continue
         observed[capability_id] = dict(item)
 
+    downstream_reasons = [r for r in reasons if r.split(":", 1)[0] in DOWNSTREAM_EVIDENCE_CAPABILITIES]
+    reasons = [r for r in reasons if r not in downstream_reasons]
     missing = [capability for capability in required if capability not in observed]
     reasons.extend(f"missing:{capability}" for capability in missing)
     return {
@@ -82,12 +90,19 @@ def verify_release_proof_capabilities(
         "reason": "ok" if not reasons else "release_proof_capability_gate_failed",
         "reasons": reasons or ["ok"],
         "required": list(required),
-        "observed": sorted(observed),
+        "observed": sorted(c for c in observed if c not in DOWNSTREAM_EVIDENCE_CAPABILITIES),
+        "downstream_evidence": {
+            "capabilities": list(DOWNSTREAM_EVIDENCE_CAPABILITIES),
+            "observed": sorted(c for c in observed if c in DOWNSTREAM_EVIDENCE_CAPABILITIES),
+            "reasons": downstream_reasons,
+            "gates_release": False,
+        },
         "authority_effect": "NONE",
     }
 
 
 __all__ = [
+    "DOWNSTREAM_EVIDENCE_CAPABILITIES",
     "PROOF_CAPABILITY_SCHEMA",
     "REQUIRED_POST_RETURN_CAPABILITIES",
     "verify_release_proof_capabilities",

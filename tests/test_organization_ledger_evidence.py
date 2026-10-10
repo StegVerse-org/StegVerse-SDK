@@ -11,6 +11,7 @@ from stegverse.organization_ledger_evidence import (
     COMPLETION_SCHEMA,
     OWNING_EXISTING_GOAL,
     READBACK_SCHEMA,
+    TRANSITION_REQUEST_ENTRYPOINT,
     main,
     verify_organization_ledger_readback,
 )
@@ -94,7 +95,11 @@ def test_allow_for_admitted_receipt_in_chain_bound_to_manifest():
 
 
 def test_missing_readback_fails_closed_with_six_fields():
-    _assert_fail_closed(verify_organization_ledger_readback(None), "ORGANIZATION_LEDGER_READBACK_PRESENT")
+    result = verify_organization_ledger_readback(None)
+    _assert_fail_closed(result, "ORGANIZATION_LEDGER_READBACK_PRESENT")
+    # No transition exists yet: the repair is a manifest-directed transition request.
+    assert result["retry_entrypoint"] == TRANSITION_REQUEST_ENTRYPOINT
+    assert ".stegverse/transition-requests/" in result["retry_entrypoint"]
 
 
 def test_local_master_records_custody_is_not_a_readback():

@@ -10,7 +10,7 @@ from .interlock_transition import canonical_hash as interlock_hash, validate_int
 from .portable_governance_exchange import create_exchange, verify_exchange
 from .portable_governance_verifier import verify_portable_governance_bundle
 from .reference_interlock_participant import acknowledge_interlock_return
-from .organization_ledger_evidence import verify_organization_ledger_readback
+from .organization_ledger_evidence import refusal_fields, verify_organization_ledger_readback
 from .organization_record_names import (
     LEGACY_ORGANIZATION_RECORD_STATUS_FIELD,
     ORGANIZATION_RECORD_CLAIMED_FIELD,
@@ -222,12 +222,7 @@ def complete_post_return_evidence(
         organization_receipt_sha256=organization_receipt_sha256,
         canonical_manifest_sha256=canonical_manifest_sha256,
     )
-    refusal = {
-        key: completion[key]
-        for key in ("failure_code", "failed_predicate", "required_evidence_or_repair",
-                    "retry_entrypoint", "owning_existing_goal", "next_attempt")
-        if key in completion
-    }
+    refusal = refusal_fields(completion)
     return {
         "schema": PROOF_SCHEMA,
         "status": "PASS" if completion["disposition"] == "ALLOW" else "FAIL_CLOSED",

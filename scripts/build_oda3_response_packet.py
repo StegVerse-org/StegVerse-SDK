@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from stegverse.evaluation_boundary_verifier import canonical_sha256, verify_evaluation_boundary_result
+from stegverse.organization_ledger_evidence import load_readback, refusal_fields, verify_organization_ledger_readback
 
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE_SET_ID = "EVALUATION-BOUNDARY-2026-08-19-R3"
@@ -23,8 +24,10 @@ REQUIRED_RUN_FILES = {
     "governance-request.json": "run/governance-request.json",
     "governed-result.json": "run/governed-result.json",
 }
-REQUIRED_EVIDENCE_DIRS = ("route-receipts", "master-records", "reconstruction")
-OPTIONAL_EVIDENCE_DIRS = ("replay",)
+REQUIRED_EVIDENCE_DIRS = ("route-receipts", "reconstruction")
+# The local run store's export is downstream, non-gating evidence; sovereign
+# completion is read from organization-ledger/readback.json instead.
+OPTIONAL_EVIDENCE_DIRS = ("replay", "master-records", "organization-ledger")
 STATIC_PACKET_FILES = {
     ROOT / "docs" / "ODA3_PACKET_README_REPRODUCE.md": "README_REPRODUCE.md",
     ROOT / "docs" / "ODA3_LICENSE_ACCESS_NOTES.md": "LICENSE_ACCESS_NOTES.md",
@@ -200,6 +203,9 @@ def build_packet(*, release_receipt_path: Path, run_dir: Path, output_dir: Path)
     _write_json(output_dir / "verify" / "governance-request-tamper-fail.json", request_fail)
     _write_json(output_dir / "verify" / "result-tamper-fail.json", result_fail)
 
+    completion = verify_organization_ledger_readback(load_readback(run_dir / "organization-ledger" / "readback.json"))
+    _write_json(output_dir / "verify" / "organization-ledger-completion.json", completion)
+
     files = []
     for path in sorted(p for p in output_dir.rglob("*") if p.is_file()):
         if path.name == "FILE_MANIFEST.sha256.json":
@@ -215,6 +221,7 @@ def build_packet(*, release_receipt_path: Path, run_dir: Path, output_dir: Path)
         "files": files,
         "packet_complete_for_binding_review": True,
         "required_route_custody_evidence_present": True,
+        "sovereign_completion": completion["sovereign_completion"],
         "authority_granted": False,
     }
     _write_json(output_dir / "FILE_MANIFEST.sha256.json", file_manifest)
@@ -225,6 +232,9 @@ def build_packet(*, release_receipt_path: Path, run_dir: Path, output_dir: Path)
         "release_receipt_verified": True,
         "route_custody_evidence_present": True,
         "independent_verification_pass": True,
+        "sovereign_completion": completion["sovereign_completion"],
+        "organization_ledger_completion": completion,
+        **refusal_fields(completion),
         "tamper_failures": expected_failures,
         "output_dir": str(output_dir),
         "file_count": len(files) + 1,

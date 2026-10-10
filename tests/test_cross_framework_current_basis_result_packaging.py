@@ -9,6 +9,7 @@ from scripts.package_cross_framework_current_basis_results import (
     EXPECTED_MANIFEST_SHA256,
     package_results,
 )
+from tests.test_organization_ledger_evidence import _readback
 
 MANIFEST = Path("inspection/examples/cross-framework-current-basis-request.draft.json")
 
@@ -44,7 +45,10 @@ class CrossFrameworkResultPackagingTests(unittest.TestCase):
                 "s1_observed": True,
                 "transition_receipt_bound": True,
                 "transition_receipt_hash": receipt_hash,
-                "custody_recorded": True,
+                "sovereign_completion": True,
+                "organization_receipt_sha256": _readback()["head_receipt_sha256"],
+                "local_run_store_recorded": True,
+                "local_run_store_gates_completion": False,
                 "replay_recorded": True,
                 "reconstruction_recorded": True,
                 "external_side_effect": False,
@@ -66,6 +70,7 @@ class CrossFrameworkResultPackagingTests(unittest.TestCase):
                 "transition_id": "DELTA-S0-S1",
                 "receipt_hash": receipt_hash,
             },
+            "ORGANIZATION_LEDGER_READBACK.json": _readback(),
             "REPLAY.json": {"operation_transition_custody_status": "RECORDED"},
             "RECONSTRUCTION.json": {"operation_transition_custody_status": "RECORDED"},
         }
@@ -113,6 +118,26 @@ class CrossFrameworkResultPackagingTests(unittest.TestCase):
             self.assertTrue((output / "RESULT_PACKET_INDEX.json").is_file())
             self.assertTrue((output / "run-evidence/RUN_COMPLETE.json").is_file())
             self.assertTrue((output / "run-evidence/REPLAY_REFERENCE.txt").is_file())
+
+    def test_local_custody_without_organization_ledger_rejects_publication(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            result = base / "result"
+            values = self.make_result(result)
+            values["RUN_COMPLETE.json"]["sovereign_completion"] = False
+            (result / "RUN_COMPLETE.json").write_text(json.dumps(values["RUN_COMPLETE.json"]) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "sovereign_completion"):
+                package_results(result_dir=result, manifest_path=MANIFEST, output_dir=base / "packet")
+
+    def test_refused_organization_receipt_rejects_publication(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            result = base / "result"
+            self.make_result(result)
+            (result / "ORGANIZATION_LEDGER_READBACK.json").write_text(
+                json.dumps(_readback(refused=True)) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "INGRESS_RECEIPT_IS_NOT_A_REFUSAL"):
+                package_results(result_dir=result, manifest_path=MANIFEST, output_dir=base / "packet")
 
     def test_external_side_effect_rejects_publication(self):
         with tempfile.TemporaryDirectory() as td:

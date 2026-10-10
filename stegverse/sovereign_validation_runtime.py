@@ -16,6 +16,11 @@ from .route_resolution import (
     validate_runtime_provenance,
 )
 from .organization_record_names import ORGANIZATION_RECORD_STATUS_FIELD
+from .organization_ledger_evidence import (
+    LOCAL_RUN_STORE_ROLE,
+    load_readback,
+    verify_organization_ledger_readback,
+)
 
 
 class SovereignValidationError(RuntimeError):
@@ -89,8 +94,19 @@ def run_sovereign_validation(
     route_source: str = "StegVerse-SDK:sovereign-validation",
     route_purpose: str = "production-lane-evaluator-validation",
     pre_execution_observer: Callable[[Mapping[str, Any]], Any] | None = None,
+    organization_ledger_readback: Mapping[str, Any] | None = None,
+    organization_receipt_sha256: str | None = None,
+    canonical_manifest_sha256: str | None = None,
 ) -> dict[str, Any]:
     """Run the exact published route established by the submitted manifest.
+
+    The local run store (``ManifestReceiptCustody``) is downstream, non-gating
+    evidence of this run; its ``RECORDED`` status never completes the
+    transition. ``sovereign_completion`` is true only when
+    ``organization_ledger_readback`` verifies (the run's manifest-directed
+    transition is in the organization ledger and bound to its manifest);
+    otherwise ``organization_ledger_completion`` is a six-field FAIL_CLOSED
+    naming ``.stegverse/transition-requests/`` as the retry entrypoint.
 
     ``consequence_executor`` is an optional bounded operation supplied by an SDK
     integration test. It is invoked only by the canonical StegCore transaction
@@ -286,6 +302,15 @@ def run_sovereign_validation(
     # provenance is an SDK return projection over this already-observed result;
     # it does not alter the underlying governance/runtime evidence identity.
     output["result_binding_hash"] = _canonical_sha256(output)
+    # SDK return projection, outside the runtime result binding above.
+    completion = verify_organization_ledger_readback(
+        organization_ledger_readback,
+        organization_receipt_sha256=organization_receipt_sha256,
+        canonical_manifest_sha256=canonical_manifest_sha256,
+    )
+    output["local_run_store"] = {"status": "RECORDED", **LOCAL_RUN_STORE_ROLE}
+    output["organization_ledger_completion"] = completion
+    output["sovereign_completion"] = completion["sovereign_completion"]
     evaluation = observation.get("evaluation") if isinstance(observation, Mapping) else {}
     if not isinstance(evaluation, Mapping):
         evaluation = {}
@@ -357,9 +382,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("target")
     parser.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db")
     parser.add_argument("--host-identity", default="stegverse-sovereign-local")
+    parser.add_argument("--organization-ledger-readback", default=None,
+                        help="readback JSON for this run's transition request; required for sovereign completion")
+    parser.add_argument("--organization-receipt-sha256", default=None)
+    parser.add_argument("--canonical-manifest-sha256", default=None)
     args = parser.parse_args(argv)
     if args.operation == "run":
-        result = run_sovereign_validation(load_public_inspection_request(args.target), custody_db=args.custody_db, host_identity=args.host_identity)
+        result = run_sovereign_validation(
+            load_public_inspection_request(args.target), custody_db=args.custody_db, host_identity=args.host_identity,
+            organization_ledger_readback=load_readback(args.organization_ledger_readback),
+            organization_receipt_sha256=args.organization_receipt_sha256,
+            canonical_manifest_sha256=args.canonical_manifest_sha256,
+        )
     elif args.operation == "replay":
         result = replay_sovereign(args.target, custody_db=args.custody_db)
     else:

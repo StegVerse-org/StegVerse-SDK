@@ -8,6 +8,8 @@ import pytest
 
 from scripts import run_evaluation_boundary_r3 as harness
 from stegverse.evaluation_boundary_verifier import canonical_sha256
+from stegverse.organization_ledger_evidence import TRANSITION_REQUEST_ENTRYPOINT
+from tests.test_organization_ledger_evidence import MANIFEST, _readback
 
 
 def _write(path: Path, value) -> None:
@@ -139,15 +141,36 @@ def test_run_harness_retains_exact_tuple_custody_reconstruction_replay_and_packe
             return_value={"status": "ok", "independent_verification_pass": True},
         ),
     ):
-        result = harness.run_exact_r3(
+        local_only = harness.run_exact_r3(
             release_receipt_path=receipt_path,
             manifest_path=manifest_path,
             custody_db=tmp_path / "custody.db",
             run_dir=run_dir,
             packet_dir=packet_dir,
         )
+        # Local evidence alone (the run store's RECORDED) is not completion.
+        assert local_only["status"] == "FAIL_CLOSED"
+        assert local_only["local_evidence_status"] == "ok"
+        assert local_only["sovereign_completion"] is False
+        assert local_only["failed_predicate"] == "ORGANIZATION_LEDGER_READBACK_PRESENT"
+        assert local_only["retry_entrypoint"] == TRANSITION_REQUEST_ENTRYPOINT
+        assert local_only["local_run_store"]["completes_transition"] is False
+
+        readback_path = tmp_path / "readback.json"
+        readback_path.write_text(json.dumps(_readback()), encoding="utf-8")
+        result = harness.run_exact_r3(
+            release_receipt_path=receipt_path,
+            manifest_path=manifest_path,
+            custody_db=tmp_path / "custody.db",
+            run_dir=run_dir,
+            packet_dir=packet_dir,
+            organization_ledger_readback_path=readback_path,
+            canonical_manifest_sha256=MANIFEST,
+        )
 
     assert result["status"] == "ok"
+    assert result["sovereign_completion"] is True
+    assert (run_dir / "organization-ledger" / "readback.json").is_file()
     assert result["manifest_receipt_id"] == "MR-EVALUATION_BOUNDARY"
     assert result["independent_binding_verification_pass"] is True
     assert result["reconstruction_retained"] is True

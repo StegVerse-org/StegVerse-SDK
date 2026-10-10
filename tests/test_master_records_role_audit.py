@@ -41,7 +41,7 @@ class MasterRecordsRoleAuditTests(unittest.TestCase):
         self.assertEqual(self.audit["summary"]["after_improper_blocked"], len(improper))
         self.assertEqual(sorted({row["path"] for row in improper}), self.audit["blocked"]["files"])
 
-    def test_remediated_rows_are_recorded_and_receiver_rows_stay_blocked(self):
+    def test_remediated_rows_are_recorded_and_receiver_rows_are_remediated(self):
         for row in self.audit.get("remediated", []):
             self.assertEqual(row["status"], "REMEDIATED", row)
             self.assertEqual(row["owning_existing_goal"], "SDK-MR-A-VALIDATION-CUSTODY-001", row)
@@ -50,10 +50,14 @@ class MasterRecordsRoleAuditTests(unittest.TestCase):
                  and r["classification"].startswith("IMPROPER")],
                 row,
             )
+        # The receiver is repinned to StegVerse-Labs/.github dd7a334 (#3081), so the
+        # legacy custody_replay_reconstruction_authority value is no longer emitted.
         receiver = [r for r in self.audit["rows"] if "custody_replay_reconstruction_authority" in r["text"]
                     and r["classification"] == "IMPROPER_CODE"]
-        self.assertEqual(len(receiver), 2)
-        self.assertTrue(all(r["status"] == "BLOCKED" for r in receiver))
+        self.assertEqual(receiver, [])
+        remediated = [r for r in self.audit["remediated"]
+                      if "custody_replay_reconstruction_authority" in r["text_before"]]
+        self.assertEqual(len(remediated), 2)
 
     def test_no_improper_doc_remains(self):
         self.assertFalse([row for row in self.audit["rows"] if row["classification"] == "IMPROPER_DOC"])

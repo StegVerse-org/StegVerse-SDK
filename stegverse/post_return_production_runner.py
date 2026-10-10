@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .portable_governance_verifier import verify_portable_governance_bundle
+from .organization_ledger_evidence import load_readback, refusal_fields
 from .post_return_evidence import complete_post_return_evidence
 from .proof_release_gate import verify_release_proof_capabilities
 from .public_inspection import load_public_inspection_request, validate_public_inspection_request
@@ -317,23 +318,14 @@ def run_post_return_production_proof(
         exchange_path=exchange_path,
         replay=lambda receipt_id: replay_sovereign(receipt_id, custody_db=custody_db),
         reconstruct=lambda receipt_id: reconstruct_sovereign(receipt_id, custody_db=custody_db),
-        organization_ledger_readback=(
-            _load_object(organization_ledger_readback_path)
-            if organization_ledger_readback_path is not None and Path(organization_ledger_readback_path).is_file()
-            else None
-        ),
+        organization_ledger_readback=load_readback(organization_ledger_readback_path),
         organization_receipt_sha256=organization_receipt_sha256,
         canonical_manifest_sha256=canonical_manifest_sha256,
     )
     if proof.get("local_evidence_status") != "PASS":
         raise RuntimeError("post_return_local_evidence_not_pass")
     completion = proof.get("organization_ledger_completion") or {}
-    refusal = {
-        key: completion[key]
-        for key in ("failure_code", "failed_predicate", "required_evidence_or_repair",
-                    "retry_entrypoint", "owning_existing_goal", "next_attempt")
-        if key in completion
-    }
+    refusal = refusal_fields(completion)
 
     result = {
         "schema": PROOF_RUNNER_SCHEMA,
