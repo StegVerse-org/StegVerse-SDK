@@ -1,10 +1,17 @@
-"""CLI for the read-only ecosystem diagnostic SDK processor."""
+"""CLI for the read-only ecosystem diagnostic SDK processor.
+
+This entry calls the installed diagnostic processor directly rather than the
+route's published ``runtime_binding`` through the canonical manifest
+entrypoint, so its output is labelled as the local enclosed lane (SDK#368):
+non-canonical, non-authorizing, not selected by the manifest route.
+"""
 from __future__ import annotations
 
 import argparse
 import json
 from pathlib import Path
 
+from .cli import CANONICAL_MANIFEST_ENTRYPOINT, _local_enclosed_output
 from .ecosystem_diagnostic_runtime import execute_manifest
 
 
@@ -23,7 +30,9 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         parser.error(str(exc))
 
-    text = json.dumps(result, indent=2, sort_keys=True) + "\n"
+    output = _local_enclosed_output("ecosystem_diagnostic", result)
+    output["canonical_entrypoint"] = CANONICAL_MANIFEST_ENTRYPOINT
+    text = json.dumps(output, indent=2, sort_keys=True) + "\n"
     if args.output:
         Path(args.output).write_text(text, encoding="utf-8")
     else:
