@@ -35,7 +35,7 @@ participant terminal receipt
   -> participant successor receipt
 ```
 
-It cannot yet prove that the middle StegVerse return came from a live canonical StegGate consequence and Master Records organization record. That remains a downstream #61/#65 activation condition.
+It cannot yet prove that the middle StegVerse return came from a live canonical StegGate consequence and its organization-ledger transition receipt. That remains a downstream #61/#65 activation condition; a Master Records record of the released batch receipt is optional downstream evidence, not a condition.
 
 ## Next use
 Use this participant as the external/reference side of the first end-to-end public SDK proof. Once a real governed `POST_RETURN` bundle exists, the portable verifier should independently verify the complete path.

@@ -45,7 +45,7 @@ evaluator declares experiment
 -> SDK validates only published capability/evidence identifiers
 -> canonical route remains unchanged
 -> StegGate evaluates submitted governing inputs
--> Master Records retains exact-run evidence
+-> exact-run evidence retained (current local lane: master-records package local run store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> replay/reconstruction remain separately callable by receipt locator
 ```
 
@@ -325,4 +325,4 @@ ECOSYSTEM_CONNECTED  -> stegverse.route.canonical-governed.v1
 
 Use `stegverse manifest build --process governance --execution-profile LOCAL_CONFORMANCE ...` for the customer-local route, or `--execution-profile ECOSYSTEM_CONNECTED` for the canonical ecosystem route. The latter is the backward-compatible default. The selected canonical route is written into `processing.route_id`; route resolution revalidates it and never substitutes another route. `LOCAL_CONFORMANCE` emits no federated completion contract and still requires independently trusted customer host bindings for consequential local execution. `ECOSYSTEM_CONNECTED` does not fall back locally if organization/InTr admission is unavailable.
 
-Execution profile selects scope only and grants no authority. Dispositions remain `ALLOW`, `DENY`, or `FAIL_CLOSED`; locality is not a fourth disposition. Current production `run-manifest` source evidence reaches `SDK_MANIFEST_HANDOFF`. Authentic InTr admission/far-side execution requires request-bound receiving-operation evidence and the resulting organization transition receipt/readback, plus applicable Master Records organization record; SDK-local handoff assertions are not substitutes for that evidence.
+Execution profile selects scope only and grants no authority. Dispositions remain `ALLOW`, `DENY`, or `FAIL_CLOSED`; locality is not a fourth disposition. Current production `run-manifest` source evidence reaches `SDK_MANIFEST_HANDOFF`. Authentic InTr admission/far-side execution requires request-bound receiving-operation evidence and the resulting organization transition receipt/readback (a Master Records record of the released batch receipt is optional downstream evidence, not a requirement); SDK-local handoff assertions are not substitutes for that evidence.

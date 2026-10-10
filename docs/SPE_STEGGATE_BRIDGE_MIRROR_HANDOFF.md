@@ -121,4 +121,4 @@ A later StegCore bridge must consume this exact standing/interlock binding after
 
 This source slice is complete only after focused tests and the existing SDK package workflow validate the exact PR head and the PR is merged.
 
-Full #61 remains open until canonical StegCore actually consumes the exact verified standing binding, bounded consequence occurs only after canonical ALLOW, return ingestion preserves the evidence, Master Records reconstruction/replay passes, and portable independent verification succeeds.
+Full #61 remains open until canonical StegCore actually consumes the exact verified standing binding, bounded consequence occurs only after canonical ALLOW, return ingestion preserves the evidence in the organization-ledger transition receipt, and portable independent verification succeeds. Master Records reconstruction/replay is optional downstream evidence, not a closure condition.

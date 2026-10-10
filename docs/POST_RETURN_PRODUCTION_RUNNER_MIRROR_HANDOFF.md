@@ -5,7 +5,7 @@ Repository: `StegVerse-org/StegVerse-SDK`
 
 ## Purpose
 
-Close the source-level gap between the independently validated PRE_STEGGATE evidence path, the canonical sovereign runtime, Master Records organization record, and the already-merged reciprocal POST_RETURN/exchange/replay/reconstruction machinery.
+Close the source-level gap between the independently validated PRE_STEGGATE evidence path, the canonical sovereign runtime, its local run store (the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)), and the already-merged reciprocal POST_RETURN/exchange/replay/reconstruction machinery.
 
 This runner is successor-release-aware. It is intentionally separate from the historical `run_oda3_evaluation_boundary_r3.py` harness because R3 freezes SDK/StegCore coordinates that predate the full POST_RETURN and canonical SPE-standing implementations.
 
@@ -22,7 +22,7 @@ Required inputs:
 coherent successor aggregate-release receipt
 public inspection manifest
 verified PRE_STEGGATE portable governance bundle
-Master Records organization record DB path
+local run-store DB path (master-records package store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
 bounded sovereign state file path
 portable exchange output path
 retained proof output path
@@ -42,13 +42,13 @@ The runner performs, in order:
 8. build the non-authorizing standing execution context from the verified PRE_STEGGATE bundle;
 9. create the bounded local state consequence with a deterministic release-set/run idempotency key;
 10. call the existing canonical `run_sovereign_validation()` with that exact standing context and bounded consequence;
-11. require canonical runtime standing-context consumption, StegGate `ALLOW`, a real state transition, and `RECORDED` Master Records organization record;
+11. require canonical runtime standing-context consumption, StegGate `ALLOW`, a real state transition, and a `RECORDED` run record in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody);
 12. resolve the exact retained custody object directly from `ManifestReceiptCustody.evidence_package(manifest_receipt_id)`;
 13. call the already-merged `complete_post_return_evidence()` path;
 14. require reciprocal participant ACK, POST_RETURN portable verification, governance exchange verification, replay custody without consequence reexecution, and reconstruction custody without consequence reexecution;
 15. retain one final `stegverse.sdk.post-return-production-runner-result.v1` proof object.
 
-No caller-supplied Master Records packet is accepted as a substitute for direct organization-record lookup.
+No caller-supplied run-record packet is accepted as a substitute for direct local run-store lookup.
 
 ## Proposition anti-cross-pairing rule
 
@@ -78,7 +78,7 @@ SDK credential authority: NONE
 release verification authority: NONE
 standing decision authority: canonical StegCore only
 consequence authority: canonical StegGate + commit coherence only
-Master Records organization record authority: Master Records only
+Master Records: downstream recorder of released batch receipts, not an authority (local run store: known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
 portable verification authority: NONE
 exchange authority: NONE
 copied exchange == canonical custody: FALSE
@@ -114,7 +114,7 @@ successor TV/TVC aggregate receipt proves all required capability containment
 real PRE_STEGGATE evidence from the public/reference participant exists
 runner executes against canonical sovereign dependencies
 real bounded transition occurs
-The Master Records exact organization record is retained
+The exact run record is retained in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records custody)
 participant return is ACKNOWLEDGED
 POST_RETURN portable verification PASS
 exchange verification PASS

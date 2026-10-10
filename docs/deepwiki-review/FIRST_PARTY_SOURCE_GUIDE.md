@@ -22,7 +22,7 @@ The [Universal Transition Table test fixture](https://github.com/StegVerse-org/S
 
 ## Ecosystem Chat implementation scope
 
-The [local Ecosystem Chat pipeline](https://github.com/StegVerse-org/StegVerse-SDK/blob/9cf1d69c770ea92048a0883adf6ff0dfa09797db/stegverse/ecosystem_chat_pipeline.py#L23-L36) constructs a persistence plan, binds a configured destination and passes the plan to a supplied write adapter. These source calls do not independently authenticate a production destination or prove that the downstream write, governance and Master Records transitions actually occurred.
+The [local Ecosystem Chat pipeline](https://github.com/StegVerse-org/StegVerse-SDK/blob/9cf1d69c770ea92048a0883adf6ff0dfa09797db/stegverse/ecosystem_chat_pipeline.py#L23-L36) constructs a persistence plan, binds a configured destination and passes the plan to a supplied write adapter. These source calls do not independently authenticate a production destination or prove that the downstream write and governance transitions actually occurred or that Master Records recorded a released batch receipt.
 
 ## Evidence boundaries and provenance
 
@@ -30,7 +30,7 @@ The [checked-in downstream status record](https://github.com/StegVerse-org/StegV
 
 The retained [public DeepWiki capture](https://github.com/StegVerse-org/StegVerse-SDK/actions/runs/36175208212/artifacts/10882475515) comprises 38 generated sections and **659 originally empty citation targets**. Reconstructed paths and line anchors remain review candidates. In particular, the generated Overview governance diagram's README lines 29–30 describe Publisher and egress, not the diagram's asserted governance-intake wiring. We do not adopt that diagram here. The original exact captured content stays unmodified (SHA-256 `a729d9b0f487f785b0e8f92006f303e8520e3593b6eb6c4c5de43273daa72087`).
 
-This draft deliberately excludes broader generated assertions, runtime-completion claims and external-generated-text republication. Approval of code/documentation reuse rights, any SDK wiki publication and any governed Master Records transition are separate decisions with their own evidence.
+This draft deliberately excludes broader generated assertions, runtime-completion claims and external-generated-text republication. Approval of code/documentation reuse rights, any SDK wiki publication and any downstream Master Records recording are separate decisions with their own evidence.
 
 ## Source-verified replacement for broader generated claims
 
@@ -38,4 +38,4 @@ This draft deliberately excludes broader generated assertions, runtime-completio
 
 ## Manifest and route semantic successor review — 2026-09-25
 
-[First-party exact-source manifest reference](FIRST_PARTY_MANIFEST_30_SOURCE_REFERENCE.md) independently documents 13 source-verified atomic implementation predicates and 17 narrower or unresolved assertions from 30 original, previously unsupported non-priority DeepWiki source candidates. The source-only successor [artifact 10895814581](https://github.com/StegVerse-org/StegVerse-SDK/actions/runs/36212692404/artifacts/10895814581) binds each original citation index, claim-context/source excerpt hash and prior non-ALLOW record to an exact current-code witness. These narrow facts do **not** approve entire generated paragraphs or the generated DeepWiki site; no original capture or quarantined review copy is imported into public Pages. Reuse-rights, additional open-source releases and genuine InTr execution remain separately gated by Interlock/InTr; the Master Records organization record is kept separately.
+[First-party exact-source manifest reference](FIRST_PARTY_MANIFEST_30_SOURCE_REFERENCE.md) independently documents 13 source-verified atomic implementation predicates and 17 narrower or unresolved assertions from 30 original, previously unsupported non-priority DeepWiki source candidates. The source-only successor [artifact 10895814581](https://github.com/StegVerse-org/StegVerse-SDK/actions/runs/36212692404/artifacts/10895814581) binds each original citation index, claim-context/source excerpt hash and prior non-ALLOW record to an exact current-code witness. These narrow facts do **not** approve entire generated paragraphs or the generated DeepWiki site; no original capture or quarantined review copy is imported into public Pages. Reuse-rights, additional open-source releases and genuine InTr execution remain separately gated by Interlock/InTr; the Organization keeps its ledger record and Master Records records the released batch receipt downstream (non-gating).

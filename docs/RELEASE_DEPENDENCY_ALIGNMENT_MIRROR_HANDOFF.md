@@ -57,7 +57,7 @@ The check grants no standing, admissibility, release authority, execution author
 
 The current SDK `1.2.0.dev0` development metadata still points `governed-test` at the historical executable coordinates used by the earlier frozen release set. That is valid historical/development metadata but must not be frozen as the successor POST_RETURN release until StegCore #146 is admitted/merged and the SDK governed-test StegCore pin is updated to the exact successor executable coordinate.
 
-Core-Lite and Master Records do not need gratuitous successor source changes solely for this proof if their existing immutable releases already contain the required runtime/custody behavior and remain the exact executable coordinates used by the successor set.
+Core-Lite and Master Records do not need gratuitous successor source changes solely for this proof if their existing immutable releases already contain the behavior the pinned governed-test path uses (for Master Records, the package local run store: known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody) and remain the exact executable coordinates used by the successor set.
 
 ## Validation requirement
 

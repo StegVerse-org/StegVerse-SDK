@@ -12,7 +12,7 @@ The frozen v0.4 experiment is an internally resident StegVerse test. It is not a
 frozen test definition
 -> canonical SDK execution
 -> canonical StegCore / StegGate evaluation
--> Master Records organization record created as part of the governed SDK run
+-> organization-ledger transition receipt of the governed SDK run; (downstream, non-gating) Master Records records the released batch receipt
 -> S1 observation
 -> post-observation S0->S1 transition receipt
 -> replay
@@ -23,7 +23,7 @@ frozen test definition
 -> optional third-party mirrors
 ```
 
-The Master Records organization record is a normal property of the governed SDK execution. It is not an additional external-ingress attestation prerequisite for this internally resident test.
+The organization-ledger transition receipt is a normal property of the governed SDK execution; Master Records recording is optional, downstream and non-gating. It is not an additional external-ingress attestation prerequisite for this internally resident test.
 
 The test must therefore not be blocked on a separate external evaluator ingress, external rendezvous, resident observer loop, or external-ingress-specific provenance cycle merely to execute.
 
@@ -35,16 +35,16 @@ An evaluator-initiated demo/test that originates outside StegVerse has an additi
 external evaluator
 -> external ingress / Interlock / InTr
 -> admitted StegVerse governed execution
--> ordinary Master Records organization record of the governed run
+-> ordinary organization-ledger transition receipt of the governed run; (downstream, non-gating) Master Records records the released batch receipt
 -> governed egress / Interlock / InTr
 -> evaluator-visible evidence
 ```
 
-The added requirement is evidence that the externally supplied request genuinely crossed the governed ingress/egress boundary and was handled by StegVerse. It does not create a second Master Records organization record requirement for internally resident tests.
+The added requirement is evidence that the externally supplied request genuinely crossed the governed ingress/egress boundary and was handled by StegVerse. It does not create any Master Records recording requirement for internally resident tests.
 
 ## Replay / reconstruction artifact contract
 
-The final retained test artifacts must expose the exact Master Records navigation value needed for replay and reconstruction in a device-neutral copy/paste form.
+The final retained test artifacts must expose the exact navigation value (manifest receipt locator) needed for replay and reconstruction in a device-neutral copy/paste form.
 
 The v0.4 execution harness therefore emits:
 
@@ -79,7 +79,7 @@ The result packager must reject publication if the copyable reference artifact i
 
 ```text
 internal test execution != external ingress demo
-Master Records organization record of canonical SDK run: REQUIRED
+organization-ledger transition receipt of canonical SDK run: REQUIRED (Master Records recording: optional, downstream, non-gating)
 external-ingress boundary observation for internally resident test: NOT REQUIRED
 GitHub Actions runtime authority: NONE
 StegVerse-native retention / evaluator availability: REQUIRED
@@ -88,7 +88,7 @@ GitHub Actions publication role: OPTIONAL_MIRROR_ONLY
 TV/TVC credential authority: UNCHANGED
 ```
 
-This correction does not weaken Master Records organization records, replay, reconstruction, frozen-input identity, counterpart isolation, or post-observation receipt timing. It removes only the incorrectly elevated external-ingress-specific prerequisite from internally resident test execution.
+This correction does not weaken organization-ledger records, replay, reconstruction, frozen-input identity, counterpart isolation, or post-observation receipt timing. It removes only the incorrectly elevated external-ingress-specific prerequisite from internally resident test execution.
 
 
 ## Third-party independence correction — 2026-08-30
@@ -99,7 +99,7 @@ The required completion path is:
 
 ```text
 canonical internal StegVerse execution
--> Master Records durable organization record
+-> organization-ledger durable record and organization-ledger transition receipt; (downstream, non-gating) Master Records records the released batch receipt
 -> S1 observation
 -> post-observation S0->S1 transition receipt
 -> replay

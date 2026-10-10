@@ -47,12 +47,12 @@ No person-specific evaluator route is canonical.
 ## Governing invariants
 
 ```text
-every successful governed SDK transition is retained through the canonical Master Records organization record
+every successful governed SDK transition closes on the organization-ledger transition receipt; Master Records records the released batch receipt downstream (non-gating)
 manifest establishes intended route
 recorded checkpoint receipt clears the next manifest leg
-successful governed SDK run without a Master Records organization record: PROHIBITED
+governed SDK run success gated on a Master Records record: NOT CANONICAL (the local lane's current master-records store check is a known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
 successful replay/reconstruction return without operation-transition custody: PROHIBITED
-caller projection may suppress the Master Records organization record: FALSE
+caller projection may suppress the organization-ledger record or any downstream Master Records batch receipt: FALSE
 manifest_receipt_id grants authority: FALSE
 third_party_host_required: FALSE
 GitHub grants runtime authority: FALSE
@@ -92,12 +92,12 @@ python -m stegverse.governance_ingress_cli 0B <manifest.json>
 ```text
 SDK entry
 -> Core-Lite manifested route carrier
--> Master Records MRR-* checkpoint organization record
+-> MRR-* checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> canonical StegCore manifested transaction
 -> canonical StegGate + commit-coherence evaluation
--> Master Records MR-* exact-run organization record
+-> MR-* exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> return ingestion/CGE
--> Master Records MRR-* return organization record
+-> MRR-* return receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> SDK return
 ```
 
@@ -159,9 +159,9 @@ process GH_TOKEN present: false
 production_activation_role: NONE
 ```
 
-The exact participant-neutral fixture still requires sovereign MR/MRR/MRO execution/custody before that extension is complete. This work remains a repository-native SDK/Master Records workstream; it is not an archive dependency of the superseding current-session v7 inventory unless a new user goal explicitly reopens it.
+The exact participant-neutral fixture still requires an exact sovereign run closing on the organization-ledger transition receipt before that extension is complete (MR/MRR/MRO batch-receipt recording is optional downstream evidence, not custody or a gate). This work remains a repository-native SDK workstream; it is not an archive dependency of the superseding current-session v7 inventory unless a new user goal explicitly reopens it.
 
-Do not conflate this extension with the original frozen T0/T1-A/T1-B evaluator run. The canonical Master Records organization record handoff separately records retained sovereign exact-run, manifested-route, replay, and reconstruction evidence for the frozen run.
+Do not conflate this extension with the original frozen T0/T1-A/T1-B evaluator run. The Master Records downstream batch-receipt handoff separately records retained sovereign exact-run, manifested-route, replay, and reconstruction evidence for the frozen run.
 
 ## Local model/runtime convergence
 
@@ -446,7 +446,7 @@ stegverse-sdk 1.1.0 wheel/sdist + Trusted Publisher provenance
 verified TVC aggregate release receipt
 \`\`\`
 
-Once the aggregate receipt exists, the SDK lane proceeds with the already-pinned neutral harness, exact evaluator manifest retention, canonical route execution, Master Records organization record, reconstruction, independent verification, and tamper-negative evidence. Moving current main or substituting another runtime does not satisfy that proof.
+Once the aggregate receipt exists, the SDK lane proceeds with the already-pinned neutral harness, exact evaluator manifest retention, canonical route execution, organization-ledger transition receipt (any Master Records batch receipt is optional downstream evidence), reconstruction, independent verification, and tamper-negative evidence. Moving current main or substituting another runtime does not satisfy that proof.
 
 ## Production manifold governance SDK demo/test — 2026-08-27
 
@@ -510,7 +510,7 @@ External evaluator feedback corrected the original draft so material policy-basi
 
 Human review is provided through the non-authorizing Site evaluator-review front end. Site PR #576 implemented/validated/merged the generic UI; Site PR #590 validated/merged the exact v0.2 public projection as `dd7e6d5685abea6c87429e90e36b1069bd9c9b9d`. Public-route observation remains pending. Site never becomes test, approval, freeze, execution, credential, custody, replay, or reconstruction authority.
 
-Next boundary: observe the public Site v0.2 projection; external evaluator reviews the exact v0.2 manifest blob/hash above (current PR head may contain non-manifest handoff changes); any content change invalidates approval for freeze purposes; only matching exact-revision/hash approvals may proceed to canonical freeze, followed by independent execution and ordinary TV/TVC boundaries and Master Records organization records/reconstruction.
+Next boundary: observe the public Site v0.2 projection; external evaluator reviews the exact v0.2 manifest blob/hash above (current PR head may contain non-manifest handoff changes); any content change invalidates approval for freeze purposes; only matching exact-revision/hash approvals may proceed to canonical freeze, followed by independent execution and ordinary TV/TVC boundaries; Master Records may then record the released batch receipt downstream for reconstruction (non-gating).
 
 
 ### Manifest-content continuity note — PR #94 head advance
@@ -560,7 +560,7 @@ AdmittedCode -> admission/evidence projection
 StegCore -> canonical governance transaction implementation
 Interlock/InTr -> transition authority; NOT_OBSERVED unless authentic transition evidence exists
 StegAgents/runtime -> bounded worker execution; NOT_OBSERVED unless authentic worker evidence exists
-Master Records -> organization records/reconstruction evidence
+Master Records -> downstream recorder of released organization batch receipts (reconstruction evidence; not an authority)
 LLM-adapter/other source product -> declared upstream provenance when supplied by the ingress manifest; SDK does not infer its internals
 ```
 
@@ -614,7 +614,7 @@ Canonical owner: `StegVerse-Labs/.github:data/canonical-task-records/SDK-MICRO-N
 
 ## Stage-1 org-level receipt snapshot reconciliation — 2026-09-24
 
-Canonical ownership stays `SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001` / COSV `71000000111111`, with independently checked-out `SDK-TT-RICHARD-SEAM-AUTHENTIC-RUNTIME-001` owning live task-worker lifecycle. The SDK source-only `stegverse/stage1_org_receipt_review.py` checks exact supplied canonical and existing organization receipt digest/predecessor lineage for the Richard transition sequence, identifies the first *structurally evidenced* FAILED/FAIL_CLOSED event if present, and reports the first unresolved transition for incomplete copies. GitHub sources alone contained no authenticated resident org-level transition, claim/fence, current TV/TVC/InTr or Master Records replay result for this task. Therefore no real failed transition has been established or repaired; no new runtime or device prerequisite is introduced. Stage-1 capability claims and any complete synthetic receipt chain remain non-authorizing, non-authentic fixtures. First live action: consume the already existing resident org ledger and canonical Master Records receipts for the exact task, correlate same invocation claim/fence, distinguish absence of readable evidence from authentic failure, and route any first retained failure to its canonical owner.
+Canonical ownership stays `SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001` / COSV `71000000111111`, with independently checked-out `SDK-TT-RICHARD-SEAM-AUTHENTIC-RUNTIME-001` owning live task-worker lifecycle. The SDK source-only `stegverse/stage1_org_receipt_review.py` checks exact supplied canonical and existing organization receipt digest/predecessor lineage for the Richard transition sequence, identifies the first *structurally evidenced* FAILED/FAIL_CLOSED event if present, and reports the first unresolved transition for incomplete copies. GitHub sources alone contained no authenticated resident org-level transition, claim/fence, current TV/TVC/InTr or Master Records replay result for this task. Therefore no real failed transition has been established or repaired; no new runtime or device prerequisite is introduced. Stage-1 capability claims and any complete synthetic receipt chain remain non-authorizing, non-authentic fixtures. First live action: consume the already existing resident org ledger for the exact task (downstream Master Records batch receipts may be consulted where available; non-gating), correlate same invocation claim/fence, distinguish absence of readable evidence from authentic failure, and route any first retained failure to its canonical owner.
 
 
 **Global predecessor continuity correction — 2026-09-24:** The organization ledger is shared across the organization. `stage1_org_receipt_review.py` now requires the exact contiguous source+org window, verifies intervening unrelated canonical and repository receipts, counts them without advancing Richard's stage index, and explicitly flags any task-filtered sequence that skips global predecessor events. A missing intermediate record is an evidence gap, not an authenticated failed transition. Added three inert regression tests. No authority or authentic observations.
@@ -623,7 +623,7 @@ Canonical ownership stays `SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001` / COSV 
 
 The bounded `stegverse/worker_participation_history.py` reviewer accepts an exact manifest hash and existing receipt-shaped transition copies for multiple manifested workers. It reconstructs per-worker predecessor and state continuity across ASSIGNED, EVALUATING, WORKING, REFUSED, COMPLETED, CLOSING, RETIRED and EXPIRED. Independent observation descriptors bind operations to a transition position; a single refusal or DENY receipt **never** establishes behavior. Refusal completes worker participation when governed closure is evidenced, not its unperformed assigned partition. The parent task independently decides whether remaining work is admissibly reassignable. A reported attempted out-of-scope operation and a reported external effect remain distinct and unverified by the local reviewer. Missing predecessors, incomplete closure, unbound observations and absent external measurement retain explicit limitations.
 
-Focused inert tests cover normal refusal/retirement, reported post-refusal denied operation, reported external effect, predecessor gap, state discontinuity, unbound operation observation and worker-absent records-only reconstruction. Existing Manifest Builder source CI exercises the tests. The pure reviewer never runs worker code, opens a network connection, grants an operation, authenticates an observer, verifies sovereign Master Records, or changes WorkerCoordinator/InTr authority. Actual independent containment, authentic organization/Master Records organization record and human–AI review remain separate evidence-dependent transitions. Canonical goal: `SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001`; adjacent boundary owner: `SDK-UNTRUSTED-DEPENDENCY-EXECUTION-BOUNDARY-001`. No new scheduler, ledger, authority plane or device requirement.
+Focused inert tests cover normal refusal/retirement, reported post-refusal denied operation, reported external effect, predecessor gap, state discontinuity, unbound operation observation and worker-absent records-only reconstruction. Existing Manifest Builder source CI exercises the tests. The pure reviewer never runs worker code, opens a network connection, grants an operation, authenticates an observer, verifies sovereign Master Records, or changes WorkerCoordinator/InTr authority. Actual independent containment, the authentic organization-ledger record (with any downstream Master Records batch receipt) and human–AI review remain separate evidence-dependent transitions. Canonical goal: `SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001`; adjacent boundary owner: `SDK-UNTRUSTED-DEPENDENCY-EXECUTION-BOUNDARY-001`. No new scheduler, ledger, authority plane or device requirement.
 
 ## Worker-cost evidence qualification candidate — 2026-09-26
 

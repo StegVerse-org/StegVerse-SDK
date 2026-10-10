@@ -73,7 +73,7 @@ external evaluator manifest
 -> governing-state binding
 -> Core-Lite manifested carrier
 -> StegCore / canonical StegGate
--> Master Records exact-run organization record
+-> organization-ledger transition receipt; (downstream, non-gating) Master Records records the released batch receipt
 -> governed return through SDK
 ```
 
@@ -91,7 +91,7 @@ governance_request_hash
 result_binding_hash
 route receipts
 manifest receipt
-Master Records organization record evidence
+organization-ledger transition receipt evidence (plus any downstream Master Records batch-receipt record)
 reconstruction
 replay when requested
 independent unmodified tuple PASS

@@ -121,7 +121,7 @@ No GitHub Actions workflow run is observable for the current v0.4 branch head, a
 4. Open the agreed execution window.
 5. Execute both architectures independently against the same exact frozen identity.
 6. Observe S1 independently and only then mint/bind each S0->S1 transition receipt.
-7. Preserve Master Records organization records and reconstruction evidence and compare semantic results.
+7. Preserve organization-ledger records and reconstruction evidence (Master Records recording is optional, downstream and non-gating) and compare semantic results.
 
 ## Downstream propagation
 
@@ -209,7 +209,7 @@ tests/test_cross_framework_current_basis_execution.py
 
 The harness consumes only the exact frozen v0.4 manifest bytes, verifies SHA-256 `07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f`, calls canonical merged `stegcore.current_basis` for native derivation/evaluation, then passes the derived canonical request into the existing sovereign validation runtime. It does not place architecture-native currentness fields into the frozen common manifest and does not consume counterpart results before completion.
 
-After the canonical run returns the Master Records organization record, the harness records S1 observation, then creates the S0->S1 post-observation evidence receipt, then invokes canonical replay and reconstruction. Only if all gates are observed does it write `RUN_COMPLETE.json` with the flags required by the external result packager.
+After the canonical run returns its run record (currently held in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)), the harness records S1 observation, then creates the S0->S1 post-observation evidence receipt, then invokes canonical replay and reconstruction. Only if all gates are observed does it write `RUN_COMPLETE.json` with the flags required by the external result packager.
 
 Expected result directory:
 `evidence/evaluator/cross-framework-current-basis-v0.4-result/`
@@ -250,7 +250,7 @@ Historical resident/runtime plumbing may remain useful for genuine external-ingr
 
 Current connected-tool reachability check on 2026-08-30 found no retained result directory on `main` and no connected execution surface that both runs the pinned SDK/StegCore/Core-Lite/Master Records stack and durably retains the resulting Master Records organization record. GitHub Actions is source validation/distribution only; an ephemeral chat/container execution whose custody disappears is not an acceptable substitute.
 
-The remaining experiment transition is therefore actual canonical internal SDK execution with a Master Records organization record, followed by S1 observation, post-observation transition receipt, replay, reconstruction, `RUN_COMPLETE.json`, host-neutral packaging, and StegVerse-native durable evaluator availability. Third-party publication is outside the completion gate.
+The remaining experiment transition is therefore actual canonical internal SDK execution closing on its organization-ledger transition receipt (Master Records recording is optional, downstream and non-gating), followed by S1 observation, post-observation transition receipt, replay, reconstruction, `RUN_COMPLETE.json`, host-neutral packaging, and StegVerse-native durable evaluator availability. Third-party publication is outside the completion gate.
 
 ## Result publication hardening — 2026-08-30
 
@@ -307,7 +307,7 @@ The remaining #106 completion evidence is exactly:
 authentic independent StegVerse execution
 -> S1 observed
 -> post-observation S0->S1 receipt bound
--> Master Records organization record
+-> organization-ledger transition receipt; (downstream, non-gating) Master Records records the released batch receipt
 -> replay custody
 -> reconstruction custody
 -> RUN_COMPLETE.json

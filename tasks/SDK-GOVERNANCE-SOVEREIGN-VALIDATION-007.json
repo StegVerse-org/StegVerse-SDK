@@ -32,7 +32,7 @@
     "verify credential environment contains no GitHub/provider/wallet release credential requirement",
     "execute focused deterministic tests locally/sovereign before any hosted validation",
     "execute option 000 through stegverse.governance_ingress_runtime.run_000_demo",
-    "verify exact dataset SHA-256 binding, manifest_receipt_id, receipt chain, chain_verified=true, Master Records organization record recorded, external_side_effect=false and third_party_host_required=false",
+    "verify exact dataset SHA-256 binding, manifest_receipt_id, receipt chain, chain_verified=true, organization-ledger transition receipt present (any master_records_organization_record_status reported by the lane's master-records package store is a known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368, and not a gate), external_side_effect=false and third_party_host_required=false",
     "replay and reconstruct the exact 000 manifest_receipt_id without consequence re-execution",
     "execute one valid option 0B manifest through run_external_manifest",
     "verify source framework/profile/output ID/canonical manifest hash survive in exact-run governance request context and custody evidence",
@@ -50,7 +50,7 @@
     "task-state receipt"
   ],
   "complete_condition": "All focused tests pass and both 000 and 0B produce canonical exact-run/replay/reconstruction evidence with credential_requirement NONE and no prohibited credential use.",
-  "blocked_condition": "Canonical StegCore/Core-Lite/Master Records packages or local organization-record runtime are not materialized in the sovereign execution environment.",
+  "blocked_condition": "Canonical StegCore/Core-Lite packages or the local organization-ledger runtime are not materialized in the sovereign execution environment (the lane's current import of the master-records package store is a known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368, not a Master Records gate).",
   "blocked_release_condition": "Required canonical packages and local custody runtime become locally materialized without fetching or using prohibited credentials.",
   "retry_condition": "Transient local runtime/custody failure occurs after dependencies are present.",
   "review_required_condition": "Canonical source changes any governed request, receipt, custody, or ingress semantics before the task completes.",

@@ -19,14 +19,14 @@ Preparation stops before governed execution and returns no `manifest_receipt_id`
 
 ## Run the sovereign governed TEST
 
-The canonical public-inspection runtime is sovereign/local and uses pinned canonical Core-Lite, StegCore/StegGate, and Master Records implementations.
+The canonical public-inspection runtime is sovereign/local and uses pinned canonical Core-Lite, StegCore/StegGate implementations; runs are stored in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody).
 
 ```bash
 python -m pip install -e ".[dev,governed-test]"
 python -m stegverse.public_inspection_runtime run inspection/examples/governed-test-request.json
 ```
 
-The default local organization-record file is `./stegverse-master-records-validation.db`. A different file may be selected with `--records-db` (the older `--custody-db` spelling is still accepted).
+The default local run-store file (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records custody) is `./stegverse-master-records-validation.db`. A different file may be selected with `--records-db` (the older `--custody-db` spelling is still accepted).
 
 The test consequence is simulated and produces no external side effect. A successful run is returned only after the canonical route and exact-run evidence are recorded locally.
 

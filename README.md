@@ -68,7 +68,7 @@ external framework
 -> caller-facing processing capability
 -> declared installed runtime route
 -> processor-specific evaluation
--> canonical Master Records organization record
+-> organization-ledger transition receipt (Master Records records the released batch receipt downstream, non-gating)
 -> caller-selected artifact projection
 -> returned artifact + manifest_receipt_id
 ```
@@ -101,7 +101,7 @@ Caller-facing artifact depth is controlled with `return_projection` while canoni
 | Governance + selected transition result | `SELECTED` governance plus requested transition/result classes |
 | Full user-disclosable state-transition artifact | `ALL` |
 
-`NONE` is a minimal/locator return, not the governance-artifact-only mode. It does not suppress the Master Records organization record or erase transitions.
+`NONE` is a minimal/locator return, not the governance-artifact-only mode. It does not suppress the organization-ledger record or any downstream Master Records batch receipt, or erase transitions.
 
 Machine-readable ingress schema, processor-generic validator, full semantics, and an external-framework example:
 
@@ -221,7 +221,7 @@ The resulting file is submission-ready for the existing 0B route:
 stegverse governance --select 0B --manifest elan-boundary-manifest.json
 ```
 
-Builder construction and validation are not governance decisions and grant no authority. Source semantic custody remains external, while canonical Master Records organization record remains independent of the caller-facing return depth.
+Builder construction and validation are not governance decisions and grant no authority. Source semantic custody remains external, while the Organization's ledger record (and any downstream Master Records batch receipt) remains independent of the caller-facing return depth.
 
 ## 90-second start
 
@@ -296,7 +296,7 @@ python -m stegverse.governance_ingress_cli 0B my-manifest.json
 
 ## Run the canonical governed TEST locally
 
-The public inspection runtime is sovereign/local by default. It uses the canonical pinned Core-Lite, StegCore/StegGate, and Master Records implementations and does **not** require Render, Vercel, GitHub Actions, or another hosted runtime.
+The public inspection runtime is sovereign/local by default. It uses the canonical pinned Core-Lite and StegCore/StegGate implementations, plus the master-records package as its local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody), and does **not** require Render, Vercel, GitHub Actions, or another hosted runtime.
 
 Install the pinned governed-test dependencies:
 
@@ -311,7 +311,7 @@ python -m stegverse.public_inspection_runtime run \
   inspection/examples/governed-test-request.json
 ```
 
-The default local custody file is:
+The default local run-store file (master-records package local store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody) is:
 
 ```text
 ./stegverse-master-records-validation.db
@@ -325,7 +325,7 @@ python -m stegverse.public_inspection_runtime run \
   --custody-db ./my-validation-custody.db
 ```
 
-A successful run returns a canonical governance state, one continuous transaction identity, manifested-route receipts, a `manifest_receipt_id`, verified StegCore receipt-chain status, and `master_records_organization_record_status: RECORDED`.
+A successful run returns a canonical governance state, one continuous transaction identity, manifested-route receipts, a `manifest_receipt_id`, verified StegCore receipt-chain status, and `master_records_organization_record_status: RECORDED`. That status reflects the local lane's master-records package store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368); it is not a Master Records gate, and the transition closes on the organization-ledger transition receipt.
 
 The governed TEST uses a deliberately simulated consequence executor:
 
@@ -551,7 +551,7 @@ replay/reconstruction consequence reexecution: FALSE
 third_party_host_required: FALSE
 ```
 
-The corresponding portable organization-record snapshot is retained by `master-records/orchestration` at `validation/evaluator-frozen-sovereign-custody-2026-08-13.zlib.b64`.
+A portable snapshot file of that retained run evidence is stored in the `master-records/orchestration` repository at `validation/evaluator-frozen-sovereign-custody-2026-08-13.zlib.b64` (file location only; not Master Records custody of the Organization record).
 
 ## Replay — option 1
 
@@ -672,7 +672,7 @@ stegverse-self-characterization viewer-reconstruct \
   --viewer-node-id node:<stable-viewer-id>
 ```
 
-Canonical replay/reconstruction remain unchanged. The SDK appends a non-authorizing `VIEWER_BOUND` operation event to the same Master Records organization record, producing deterministic `VR-<SHA256>` and `VC-<SHA256>` correlation identities tied to the canonical run locator, viewer node ID, operation, and lane version. The source run is not mutated and viewer identity is not a governance decision input.
+Canonical replay/reconstruction remain unchanged. The SDK appends a non-authorizing `VIEWER_BOUND` operation event to the same retained run record (currently held in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)), producing deterministic `VR-<SHA256>` and `VC-<SHA256>` correlation identities tied to the canonical run locator, viewer node ID, operation, and lane version. The source run is not mutated and viewer identity is not a governance decision input.
 
 Full contract: `docs/SELF_CHARACTERIZATION_TRAJECTORY_LANE.md`.
 
@@ -824,7 +824,7 @@ This demonstrates construction, invocation ordering, retirement, and records-onl
 
 Governed SDK results expose a generic `product_processing` provenance envelope so an outside evaluator can distinguish which product processed which portion of a composed transaction. `admittedcode_processing` is the typed AdmittedCode projection of that envelope.
 
-The contract does not infer processing from branding or route labels. AdmittedCode admission, StegCore governance implementation, Core-Lite route carriage, Master Records organization record, Interlock/InTr transition authority, StegAgents/runtime execution, LLM-adapter upstream processing, and future product boundaries remain separately attributable. Missing authentic Interlock/InTr or worker evidence is returned as `NOT_OBSERVED`, not promoted from route or generic execution evidence.
+The contract does not infer processing from branding or route labels. AdmittedCode admission, StegCore governance implementation, Core-Lite route carriage, Master Records downstream batch-receipt recording, Interlock/InTr transition authority, StegAgents/runtime execution, LLM-adapter upstream processing, and future product boundaries remain separately attributable. Missing authentic Interlock/InTr or worker evidence is returned as `NOT_OBSERVED`, not promoted from route or generic execution evidence.
 
 The existing runtime `result_binding_hash` remains bound to the underlying canonical runtime result. `sdk_return_binding_hash` binds the enriched SDK return including product provenance. See `docs/PRODUCT_PROCESSING_PROVENANCE.md`.
 
@@ -933,7 +933,7 @@ source-native manifested data
 -> caller-selected processing capability
 -> declared installed runtime route
 -> processor-specific evaluation
--> canonical Master Records organization record
+-> organization-ledger transition receipt (Master Records records the released batch receipt downstream, non-gating)
 -> caller-selected return projection
 -> returned artifact + manifest_receipt_id
 -> replay / reconstruction where applicable
@@ -1020,7 +1020,7 @@ The existing generic manifest-state-transition runtime now recognizes the canoni
 
 ### Experiment 3 typed nonterminal diagnostic and terminal fail-closed return
 
-The installed generic SDK client distinguishes three separately bound results from its existing InTr profile: repairable **source/profile DENY** (never an authentic InTr verdict), **terminal source-local FAIL_CLOSED** for an already-attempted ephemeral diagnostic with no automatic retry, and **nonterminal processing ALLOW** only after the central existing-owner consumer supplies exact authenticated admission, EVENT_EPHEMERAL lease binding and organization-first Master Records organization record. The ALLOW validator checks frozen original SHA-256, source task/COSV, exact inline diagnostic result JSON bytes, runtime and all reported receipt hashes, and explicitly requires Publisher and far-side still unexecuted. This is not final communication ALLOW, Publisher transport, independent ledger readback or external evaluator delivery. GitHub tests of this contract are source-only with synthetic receipt strings; no native runtime credentials or fabricated sovereign evidence are added.
+The installed generic SDK client distinguishes three separately bound results from its existing InTr profile: repairable **source/profile DENY** (never an authentic InTr verdict), **terminal source-local FAIL_CLOSED** for an already-attempted ephemeral diagnostic with no automatic retry, and **nonterminal processing ALLOW** only after the central existing-owner consumer supplies exact authenticated admission, EVENT_EPHEMERAL lease binding and the organization-ledger transition receipt (any Master Records batch receipt is recorded afterwards, downstream and non-gating). The ALLOW validator checks frozen original SHA-256, source task/COSV, exact inline diagnostic result JSON bytes, runtime and all reported receipt hashes, and explicitly requires Publisher and far-side still unexecuted. This is not final communication ALLOW, Publisher transport, independent ledger readback or external evaluator delivery. GitHub tests of this contract are source-only with synthetic receipt strings; no native runtime credentials or fabricated sovereign evidence are added.
 
 ## DeepWiki documentation review — source-only adjunct (September 25, 2026)
 
@@ -1094,7 +1094,7 @@ Native source validation: `tests/test_customer_local_governance.py` exercises ac
 
 The bounded `stegverse/worker_participation_history.py` reviewer accepts an exact manifest hash and existing receipt-shaped transition copies for multiple manifested workers. It reconstructs per-worker predecessor and state continuity across ASSIGNED, EVALUATING, WORKING, REFUSED, COMPLETED, CLOSING, RETIRED and EXPIRED. Independent observation descriptors bind operations to a transition position; a single refusal or DENY receipt **never** establishes behavior. Refusal completes worker participation when governed closure is evidenced, not its unperformed assigned partition. The parent task independently decides whether remaining work is admissibly reassignable. A reported attempted out-of-scope operation and a reported external effect remain distinct and unverified by the local reviewer. Missing predecessors, incomplete closure, unbound observations and absent external measurement retain explicit limitations.
 
-Focused inert tests cover normal refusal/retirement, reported post-refusal denied operation, reported external effect, predecessor gap, state discontinuity, unbound operation observation and worker-absent records-only reconstruction. Existing Manifest Builder source CI exercises the tests. The pure reviewer never runs worker code, opens a network connection, grants an operation, authenticates an observer, verifies sovereign Master Records, or changes WorkerCoordinator/InTr authority. Actual independent containment, authentic organization/Master Records organization record and human–AI review remain separate evidence-dependent transitions. Canonical goal: `SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001`; adjacent boundary owner: `SDK-UNTRUSTED-DEPENDENCY-EXECUTION-BOUNDARY-001`. No new scheduler, ledger, authority plane or device requirement.
+Focused inert tests cover normal refusal/retirement, reported post-refusal denied operation, reported external effect, predecessor gap, state discontinuity, unbound operation observation and worker-absent records-only reconstruction. Existing Manifest Builder source CI exercises the tests. The pure reviewer never runs worker code, opens a network connection, grants an operation, authenticates an observer, verifies sovereign Master Records, or changes WorkerCoordinator/InTr authority. Actual independent containment, the authentic organization-ledger record (with any downstream Master Records batch receipt) and human–AI review remain separate evidence-dependent transitions. Canonical goal: `SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001`; adjacent boundary owner: `SDK-UNTRUSTED-DEPENDENCY-EXECUTION-BOUNDARY-001`. No new scheduler, ledger, authority plane or device requirement.
 
 **Customer-local execution disposition correction:** a canonical StegGate admissibility `ALLOW` may still encounter a current-state/coherence denial or a failed durable precommit callback. The SDK customer-local result now preserves the original `canonical_admissibility_disposition` and reports the **effective local execution `disposition`** as `DENY`/`FAIL_CLOSED` (rather than a misleading final `ALLOW`) whenever execution was refused. This is source-local product projection, **not** an independently authenticated Interlock/InTr verdict. Existing remote canonical SDK routing and original StegCore policy remain unchanged.
 
@@ -1142,7 +1142,7 @@ The generic Manifest Builder accepts `--process stegbrowser` for the published
 `stegverse run-manifest` dispatcher as other manifested SDK processors; the
 manifest selects the profile request and journey, not a test-specific executor.
 Authentic execution remains subject to the existing Universal InTr,
-WorkerCoordinator, Organization Records, and Master Records transition path.
+WorkerCoordinator and Organization Records transition path (Master Records only records released batch receipts downstream, non-gating).
 
 
 ### Manifest-time capability status
@@ -1152,7 +1152,7 @@ Every requested processing capability is resolved as ONLINE, OFFLINE, or UNKNOWN
 
 ### Generic worker state-graph execution boundary
 
-Purpose-bound worker manifests now follow the same universal execution split as other governed capabilities: the processor adapter derives the state graph only (`adapter_executes_lifecycle=false`); the SDK does not execute the lifecycle locally. The resulting request is submitted to the existing Universal InTr path, where WorkerCoordinator/InTr remain the governing authorities and the downstream organization records are kept in Master Records for reconstruction. Local worker functions remain semantic fixtures and do not satisfy governed `run-manifest` completion.
+Purpose-bound worker manifests now follow the same universal execution split as other governed capabilities: the processor adapter derives the state graph only (`adapter_executes_lifecycle=false`); the SDK does not execute the lifecycle locally. The resulting request is submitted to the existing Universal InTr path, where WorkerCoordinator/InTr remain the governing authorities the Organization keeps its ledger record, and Master Records records the released batch receipt downstream for reconstruction. Local worker functions remain semantic fixtures and do not satisfy governed `run-manifest` completion.
 
 
 ### Organization-owned manifest ingress resolution
@@ -1176,7 +1176,7 @@ ECOSYSTEM_CONNECTED  -> stegverse.route.canonical-governed.v1
 
 Use `stegverse manifest build --process governance --execution-profile LOCAL_CONFORMANCE ...` for the customer-local route, or `--execution-profile ECOSYSTEM_CONNECTED` for the canonical ecosystem route. The latter is the backward-compatible default. The selected canonical route is written into `processing.route_id`; route resolution revalidates it and never substitutes another route. `LOCAL_CONFORMANCE` emits no federated completion contract and still requires independently trusted customer host bindings for consequential local execution. `ECOSYSTEM_CONNECTED` does not fall back locally if organization/InTr admission is unavailable.
 
-Execution profile selects scope only and grants no authority. Dispositions remain `ALLOW`, `DENY`, or `FAIL_CLOSED`; locality is not a fourth disposition. Current production `run-manifest` source evidence reaches `SDK_MANIFEST_HANDOFF`. Authentic InTr admission/far-side execution requires request-bound receiving-operation evidence and the resulting organization transition receipt/readback, plus applicable Master Records organization record; SDK-local handoff assertions are not substitutes for that evidence.
+Execution profile selects scope only and grants no authority. Dispositions remain `ALLOW`, `DENY`, or `FAIL_CLOSED`; locality is not a fourth disposition. Current production `run-manifest` source evidence reaches `SDK_MANIFEST_HANDOFF`. Authentic InTr admission/far-side execution requires request-bound receiving-operation evidence and the resulting organization transition receipt/readback, which closes the transition (any Master Records batch receipt is optional downstream evidence, not a requirement); SDK-local handoff assertions are not substitutes for that evidence.
 
 
 ### Test 5/6 machine submission reconciliation

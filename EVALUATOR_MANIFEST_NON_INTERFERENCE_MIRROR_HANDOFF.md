@@ -94,7 +94,7 @@ governance_request_hash
 result_binding_hash
 ```
 
-The first two are also included in exact-run transaction metadata before the Master Records organization record. The evaluator declaration is retained in metadata for later comparison between the pre-execution proposition and post-execution claims, but it is not provided to the StegGate decision model.
+The first two are also included in exact-run transaction metadata before the run record is retained (the Organization keeps its ledger record; any Master Records batch receipt is recorded downstream). The evaluator declaration is retained in metadata for later comparison between the pre-execution proposition and post-execution claims, but it is not provided to the StegGate decision model.
 
 ## Related repository assessment
 
@@ -102,7 +102,7 @@ The first two are also included in exact-run transaction metadata before the Mas
 
 The existing StegCore evaluator-reference handoff explicitly prohibits demo-specific and parallel evaluators and preserves participant-neutral evaluation. This SDK change strengthens that boundary at manifest submission rather than creating another evaluator.
 
-Master Records already keeps exact-run evidence-package metadata as an organization record through the canonical path used by the SDK; no new authority or separate storage route is introduced here.
+The local validation lane currently retains exact-run evidence-package metadata in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody); no new authority or separate storage route is introduced here.
 
 ## Prior validation
 
@@ -126,7 +126,7 @@ runtime authority granted by workflow: FALSE
 protected credentials required: FALSE
 ```
 
-This is source/schema validation, not runtime-activation proof. The implementation deliberately uses the already-canonical sovereign SDK -> Core-Lite -> StegCore/StegGate -> Master Records route governed by existing handoffs.
+This is source/schema validation, not runtime-activation proof. The implementation deliberately uses the already-canonical sovereign SDK -> Core-Lite -> StegCore/StegGate route governed by existing handoffs (Master Records only records released organization batch receipts downstream, non-gating).
 
 ## ODA3 bounded evaluation-boundary follow-on — 2026-08-18
 
@@ -252,7 +252,7 @@ external evaluator
 -> StegVerse SDK manifested submission / normalization / binding
 -> Core-Lite manifested route carrier
 -> StegCore / canonical StegGate
--> Master Records organization record
+-> organization-ledger transition receipt (Master Records records the released batch receipt downstream, non-gating)
 -> governed result returned through the manifested route
 ```
 
@@ -291,7 +291,7 @@ Remaining activation/evidence milestones:
 6. TV/TVC-governed release tags published for all four exact candidates
 7. tag resolutions verified and SDK release catalog reports all_components_release_tag_bound=true
 8. exact governed boundary run executed from evaluator -> SDK through canonical manifested route
-9. representative route receipts + manifest receipt + Master Records organization record retained
+9. representative route receipts + manifest receipt + organization-ledger transition receipt retained (any Master Records batch receipt is optional downstream evidence, not a milestone gate)
 10. replay/reconstruction evidence retained where requested
 11. independent unmodified verification PASS retained
 12. manifest/governance-result tamper verification FAIL evidence retained
@@ -326,8 +326,8 @@ VERIFY during exact run that canonical runtime identity remains the pinned contr
 Destination `master-records/orchestration`:
 
 ```text
-NO NEW CUSTODY ROUTE CURRENTLY REQUIRED.
-VERIFY exact-run custody and reconstruction evidence for the ODA3 packet.
+NO NEW ROUTE CURRENTLY REQUIRED (downstream recorder of released organization batch receipts; not custody or a gate).
+OPTIONAL, NON-GATING: record the released batch receipt downstream to support reconstruction of the ODA3 packet.
 ```
 
 The later authority-state experiment additionally requires a separately identified autonomous actor/model version, consequential action, and exact enforcement point where StegVerse may permit, refuse, or defer that action. That actor must not be inferred from the governance SDK.

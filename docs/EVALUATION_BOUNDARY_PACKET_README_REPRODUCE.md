@@ -40,7 +40,7 @@ external evaluator
 -> StegVerse SDK
 -> Core-Lite
 -> StegCore / canonical StegGate
--> Master Records
+-> (downstream, non-gating) Master Records records the released batch receipt
 -> governed return through SDK route
 ```
 
@@ -59,7 +59,7 @@ governance_request_hash
 result_binding_hash
 route receipts
 manifest receipt
-Master Records exact-run organization record evidence
+organization-ledger transition receipt evidence (plus any downstream Master Records batch-receipt record)
 reconstruction evidence
 replay evidence when requested
 runtime/source release identity evidence

@@ -157,7 +157,7 @@ Collision boundaries:
 StegHealth -> physiological signal/hardware semantics
 StegNeuro -> neural READ/WRITE interface semantics
 StegCore -> admissibility/consequence authority
-Master Records -> reconstruction/evidence qualification
+Master Records -> downstream recording of released organization batch receipts / reconstruction evidence (not a gate)
 StegVerse-SDK -> shared device compatibility/intake substrate only
 ```
 
@@ -297,7 +297,7 @@ External evaluator feedback corrected the original draft so material policy-basi
 
 Human review is provided through the non-authorizing Site evaluator-review front end. Site PR #576 implemented/validated/merged the generic UI; Site PR #590 validated/merged the exact v0.2 public projection as `dd7e6d5685abea6c87429e90e36b1069bd9c9b9d`. Public-route observation remains pending. Site never becomes test, approval, freeze, execution, credential, custody, replay, or reconstruction authority.
 
-Next boundary: observe the public Site v0.2 projection; external evaluator reviews the exact v0.2 manifest blob/hash above (current PR head may contain non-manifest handoff changes); any content change invalidates approval for freeze purposes; only matching exact-revision/hash approvals may proceed to canonical freeze, followed by independent execution and ordinary TV/TVC boundaries and Master Records organization records/reconstruction.
+Next boundary: observe the public Site v0.2 projection; external evaluator reviews the exact v0.2 manifest blob/hash above (current PR head may contain non-manifest handoff changes); any content change invalidates approval for freeze purposes; only matching exact-revision/hash approvals may proceed to canonical freeze, followed by independent execution and ordinary TV/TVC boundaries; Master Records may then record the released batch receipt downstream for reconstruction (non-gating).
 
 
 ### Manifest-content continuity note — PR #94 head advance

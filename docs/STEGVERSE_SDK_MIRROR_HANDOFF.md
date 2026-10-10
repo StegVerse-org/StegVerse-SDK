@@ -176,8 +176,8 @@ StegVerse-Labs/Site
      transition usage, cross-entry sessions, benchmark comparisons,
      and visibility/authority state independently
 
-master-records/orchestration
-  -> accept custody handoffs
+master-records/orchestration (downstream, non-gating recorder; custody stays with each Organization)
+  -> record released organization batch receipts
   -> independently re-verify hashes
   -> deduplicate measurements and packages
   -> retain review manifests, acknowledgement receipts, transition receipts,

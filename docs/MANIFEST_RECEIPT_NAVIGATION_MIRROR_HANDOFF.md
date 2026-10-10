@@ -30,7 +30,7 @@ Provide one public SDK governance vocabulary:
 2   -> exact-run reconstruction by manifest_receipt_id
 ```
 
-Every executable path remains non-authorizing at the SDK boundary. Canonical governance is StegCore/StegGate and Master Records keeps the canonical exact-run organization record.
+Every executable path remains non-authorizing at the SDK boundary. Canonical governance is StegCore/StegGate; the Organization keeps its ledger record and Master Records records the released batch receipt downstream (non-gating).
 
 ## Installed execution surfaces
 
@@ -144,7 +144,7 @@ This preserves the anti-false-completion invariant: embedding a dataset is not r
 ```text
 return_projection -> user-disclosable transition receipt projection
 manifest_labels   -> user-facing explanatory labels
-Master Records    -> canonical organization record independent of both
+Master Records    -> downstream recorder of released batch receipts, independent of both
 ```
 
 Neither projection control grants authority or suppresses canonical custody.
@@ -156,7 +156,7 @@ StegVerse-Labs/StegCore
   canonical StegGate evaluation and receipt semantics
 
 master-records/orchestration
-  exact-run custody and reconstruction
+  downstream recording of released batch receipts; its package currently backs the local validation run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not custody)
 
 StegVerse-org/LLM-adapter
   governed machine ingress/transport where applicable

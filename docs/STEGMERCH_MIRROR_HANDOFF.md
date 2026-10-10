@@ -165,7 +165,7 @@ This handoff does not authorize public use of Fit4Mom trademarks.
 5. Tax, returns, refunds, chargebacks, and customer-service ownership are undefined.
 6. Revenue split and franchise compensation agreements are undefined.
 7. A dedicated StegMerch repository does not yet exist or has not been identified.
-8. Master-Records organization records and reconstruction integration is not specified.
+8. Optional downstream Master-Records recording of released batch receipts and reconstruction (non-gating) is not specified.
 9. Site presentation and checkout integration are not authorized.
 
 ## Destination candidates
@@ -174,7 +174,7 @@ This handoff does not authorize public use of Fit4Mom trademarks.
 Temporary incubation: StegVerse-org/StegVerse-SDK
 Preferred implementation destination: new dedicated StegMerch repository after approval
 Potential public presentation: StegVerse-Labs/Site only after Site handoff permits the integration
-Potential organization record: master-records ecosystem destination selected by orchestration
+Potential downstream batch-receipt recording (non-gating; the organization record stays in the Organization ledger): master-records ecosystem destination selected by orchestration
 Potential publication synchronization after release readiness:
   - StegVerse-Labs/Site
   - GCAT-BCAT-Engine/Publisher

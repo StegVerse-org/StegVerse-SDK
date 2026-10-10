@@ -20,7 +20,7 @@ manifest / receipt protocol
   -> StegGate / AdmittedCode present-tense admissibility
   -> bounded consequence only after required ALLOW/coherence
   -> reciprocal return
-  -> Master Records manifold-aware preservation
+  -> (downstream, non-gating) Master Records records the released batch receipt
   -> replay / reconstruction / portable verification
 ```
 
@@ -137,7 +137,7 @@ issue #65: OPEN
 - SDK #64 remains provider interoperability/conformance owner.
 - Standing-Proof-Engine remains standing owner.
 - StegCore remains canonical StegGate/AdmittedCode owner.
-- Master Records remains limited to organization records and reconstruction where separately admitted.
+- Master Records remains limited to downstream, non-gating recording of released organization batch receipts for reconstruction.
 - TV/TVC remains credential and successor-release authority.
 - StegCore PR #141 remains a separate active transaction/capability-context lane; do not reinterpret it as this protocol's completion.
 - GitHub-hosted validation is not release/runtime authority.
@@ -149,7 +149,7 @@ Issue #65 remains open until all of the following are evidenced:
 
 1. exact successor aggregate is immutably released through real TV/TVC authority;
 2. genuine SDK POST_RETURN production runner executes on released coordinates;
-3. bounded consequence is retained in the canonical Master Records organization record;
+3. bounded consequence is retained in the organization ledger and closes on its organization-ledger transition receipt (Master Records recording is optional, downstream and non-gating);
 4. reciprocal participant ACK is retained;
 5. portable verification PASS;
 6. replay PASS without consequence re-execution;

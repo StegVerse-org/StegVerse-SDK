@@ -10,12 +10,12 @@ The canonical governed evaluator path is evaluator-neutral. A tester declares th
 Evaluator / test harness
 → StegVerse SDK manifest ingress (0B / stegverse.ingress-manifest.v1)
 → Core-Lite manifested route carrier
-→ Master Records checkpoint organization record
+→ checkpoint record (local run store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
 → StegCore manifested transaction
 → canonical StegGate + commit-coherence evaluation
-→ Master Records exact-run organization record
+→ exact-run record (local run store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
 → return ingestion/CGE
-→ Master Records return organization record
+→ return record (local run store; not Master Records custody)
 → SDK return
 → Evaluator
 ```
@@ -56,13 +56,13 @@ This is a specialized execution capability behind the generalized testing surfac
 
 A generalized evaluator manifest may request the sandbox capability only when that capability is published and representable in the SDK contract. The manifest may not synthesize or bypass the capability merely because a particular experiment wants it.
 
-## Master Records receipt rule
+## Route receipt rule
 
-Every governed route leg that crosses an ingestion, execution, consequence, replay, reconstruction, or return boundary must retain the receipts required by that published route. The generalized SDK route uses canonical MRR/MR/MRO custody according to the current runtime contract. The sandbox/batch route additionally requires action receipts at its own ingestion and return checkpoints.
+Every governed route leg that crosses an ingestion, execution, consequence, replay, reconstruction, or return boundary must retain the receipts required by that published route. The generalized SDK route uses MRR/MR/MRO records in the local run store according to the current runtime contract (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; custody stays with the Organization). The sandbox/batch route additionally requires action receipts at its own ingestion and return checkpoints.
 
 For the sandbox/batch route, required receipt emitters are:
 
-| Step | Ingestion point | Required Master Records action receipt |
+| Step | Ingestion point | Required route action receipt |
 |------|-----------------|----------------------------------------|
 | 1 | `StegVerse-org/StegVerse-SDK` or LLM Adapter | user/evaluator intake receipt |
 | 2 | `StegVerse-org ingestion` | org intake route receipt |
@@ -93,7 +93,7 @@ Public demo, formal runner, standing-proof, GLM/boundary studies, ODA3, and futu
 The SDK is the generalized testing surface.
 Evaluators provide experiment definitions as data/configuration.
 The published runtime provides execution semantics.
-Master Records keeps the required organization records for reconstruction.
+The Organization keeps its ledger record; Master Records records the released batch receipt downstream (non-gating).
 Specialized capabilities may be selected when published.
 No evaluator gets a custom SDK lane merely by naming a test.
 ```

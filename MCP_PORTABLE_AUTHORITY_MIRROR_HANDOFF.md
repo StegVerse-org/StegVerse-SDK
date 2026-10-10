@@ -33,18 +33,18 @@ SDK MCP test entry
 -> exact selected tool contract + proposed call canonicalized/hashed
 -> portable MCP test packet (non-authorizing evidence)
 -> Core-Lite manifested route carrier / ingestion-CGE
--> Master Records route checkpoint organization record
+-> route checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> canonical StegCore manifested transaction
 -> canonical StegGate + commit-coherence evaluation
 -> bounded MCP tools/call only after canonical ALLOW + coherence ALLOW
 -> MCP result captured into canonical execution observation
--> Master Records exact-run organization record
+-> exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> return ingestion/CGE
--> Master Records return organization record
+-> return receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
 -> SDK caller return
 ```
 
-Every manifested transition is receipted. The Master Records organization record is independent of caller projection.
+Every manifested transition is receipted. The organization-ledger record (and any downstream Master Records batch receipt) is independent of caller projection.
 
 ## Selected mode
 
@@ -77,7 +77,7 @@ portable packet grants authority: FALSE
 manifest_receipt_id grants authority: FALSE
 caller request external_consequence_enabled: FALSE
 bounded consequence executor installed outside caller authority payload: TRUE
-successful governed run without a Master Records organization record: PROHIBITED
+governed run success gated on a Master Records record: NOT CANONICAL (closure is the organization-ledger transition receipt; the lane's current master-records local-store check is a known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
 non-TV/TVC secret/token use: PROHIBITED
 GitHub runtime authority: NONE
 external MCP credential authority: TV/TVC_ONLY

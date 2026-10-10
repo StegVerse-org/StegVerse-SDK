@@ -33,7 +33,7 @@ source-native manifested data
 -> caller-selected processing capability
 -> declared installed runtime route
 -> processor-specific evaluation
--> canonical Master Records organization record
+-> organization-ledger transition receipt (Master Records may record the released batch receipt downstream (optional, non-gating))
 -> caller-selected return projection
 -> returned artifact + manifest_receipt_id
 -> replay / reconstruction where applicable
@@ -54,7 +54,7 @@ The workflow validates pull requests and deploys only from `main`.
 
 ## Authority boundary
 
-The public wiki grants no governance, execution, transition, credential, custody, evidence, processor-selection, release, or publication-transition authority. Interlock/InTr, Master Records, Publisher, and TV/TVC retain their existing authority boundaries.
+The public wiki grants no governance, execution, transition, credential, custody, evidence, processor-selection, release, or publication-transition authority. Interlock/InTr, Publisher, and TV/TVC retain their existing authority boundaries; Master Records remains a downstream recorder, not an authority.
 
 ## Completion gates
 

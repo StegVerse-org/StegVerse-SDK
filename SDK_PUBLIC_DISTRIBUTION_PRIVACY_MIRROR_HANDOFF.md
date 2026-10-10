@@ -65,7 +65,7 @@ materializes exact public SDK source with no GitHub credential
 -> verify stegverse-master-records==0.2.0
 -> execute ELAN Test 1 through stegverse external-run
 -> require manifest_receipt_id
--> require a Master Records organization record RECORDED
+-> report master_records_organization_record_status (local-lane master-records package store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not a canonical gate)
 -> require replay
 -> require reconstruction
 ```

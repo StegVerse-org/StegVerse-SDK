@@ -87,11 +87,11 @@ This exchange does not:
 - install or replace the Master Records organization record;
 - make a copied receipt canonical merely because its hashes verify.
 
-Full `POST_RETURN` production proof remains pending real canonical StegGate decision/consequence/return evidence, Master Records preservation, replay/reconstruction, and reciprocal participant acknowledgement.
+Full `POST_RETURN` production proof remains pending real canonical StegGate decision/consequence/return evidence, organization-ledger transition receipt (Master Records recording is optional, downstream and non-gating), replay/reconstruction, and reciprocal participant acknowledgement.
 
 ## Next executable work
 
-1. Produce a real canonical POST_RETURN bundle from the public reference interlock participant through StegGate/consequence/return and Master Records organization record.
+1. Produce a real canonical POST_RETURN bundle from the public reference interlock participant through StegGate/consequence/return closing on the organization-ledger transition receipt.
 2. Package that exact bundle with `stegverse-governance-exchange create`.
 3. Independently verify the archive and reproduce the POST_RETURN report.
 4. Retain replay/reconstruction evidence while preserving the distinction between copied verification evidence and canonical custody.

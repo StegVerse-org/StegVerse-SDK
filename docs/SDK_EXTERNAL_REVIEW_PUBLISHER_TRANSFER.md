@@ -20,7 +20,7 @@ An explicit `--no-publisher` keeps a review-intent manifest non-publishing. A re
 
 ## Exact original evidence via existing transfer, not a new transport
 
-`stegverse.review_publisher_transfer.prepare_review_transfer(...)` prepares **exact canonical** `stegverse.publisher.artifact-transfer/v1` bytes for the *existing* sovereign Universal InTr destination `GCAT-BCAT-Engine/Publisher`. It consumes a pre-existing source-owner-authorized `stegverse.publisher.evidence-report-package/v1` export. It does not create that authorization or substitute for a Master Records organization record; it does not fabricate source custody.
+`stegverse.review_publisher_transfer.prepare_review_transfer(...)` prepares **exact canonical** `stegverse.publisher.artifact-transfer/v1` bytes for the *existing* sovereign Universal InTr destination `GCAT-BCAT-Engine/Publisher`. It consumes a pre-existing source-owner-authorized `stegverse.publisher.evidence-report-package/v1` export. It does not create that authorization or substitute for an organization-ledger transition receipt; it does not fabricate source custody.
 
 The source export must contain a complete list of original evidence entries under `evidence/`. The exact supplied `evaluator_assets` entries must cover the entire declared list; each original image/PDF retains its exact bytes, SHA-256, media type and attribution. Missing/mutated originals, invalid paths, duplicate identifiers, source digest mismatch, disabled source authorization or publication/release/exec authority expansion fail closed. The prepared packet is explicitly `PREPARED_NOT_TRANSPORTED`.
 
@@ -32,7 +32,7 @@ The existing Publisher `publisher/intr_artifact_transfer.py` (generic reviewer s
 
 The order for an *authentic* run remains:
 
-1. Admit the manifest through the existing Universal InTr ingress and execute its declared installed processor. Retain the real org-ledger and required Master Records evidence under existing owners.
+1. Admit the manifest through the existing Universal InTr ingress and execute its declared installed processor. Retain the real org-ledger evidence under existing owners; Master Records may record the released batch receipt downstream (optional, non-gating).
 2. Supply the **already-authorized** exact source export and originals through the existing SDK review transfer, with an actual transport-bound request/receipt rather than a synthetic local invocation.
 3. Publisher produces and returns exact artifacts through the existing InTr connector. Retain actual Publisher destination operation and return receipts and verify original exact-byte readback.
 4. SDK assembles the exact returned bytes to the unchanged original manifest and initiator. Complete the declared final StegVerse-side transition, InTr egress and far-side transition only if separately observed.

@@ -83,7 +83,7 @@ SDK can override protected boundary: false
 StegCore canonical evaluator unchanged: true
 ```
 
-Actual consequence execution remains behind the existing StegCore governed commit/execution boundary and normal Master Records organization record requirements.
+Actual consequence execution remains behind the existing StegCore governed commit/execution boundary and closes on the organization-ledger transition receipt; Master Records recording is optional, downstream and non-gating.
 
 ## Validation requirements
 

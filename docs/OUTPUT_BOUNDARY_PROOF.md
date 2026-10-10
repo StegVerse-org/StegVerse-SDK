@@ -60,13 +60,13 @@ The result binds:
 
 The local proof re-evaluates the exact preserved tester packet through the existing SDK admissibility evaluator and compares the stable decision projection. Timestamps are not used as the replay equality condition.
 
-This local proof is distinct from canonical Master Records replay by `manifest_receipt_id`. Canonical replay remains available through the sovereign governance path.
+This local proof is distinct from canonical replay by `manifest_receipt_id` (whose run store is currently the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)). Canonical replay remains available through the sovereign governance path.
 
 ## Reconstruction meaning
 
 The proof independently rebuilds the LLM tester packet from the candidate evidence and checks the stable object identity, provider/model identity, prompt/output hashes, and decision projection.
 
-This semantic reconstruction is intentionally distinguished from canonical sovereign state reconstruction through the Master Records organization record.
+This semantic reconstruction is intentionally distinguished from canonical sovereign state reconstruction through the sovereign validation lane's run record.
 
 ## Authority boundary
 

@@ -20,7 +20,7 @@ Selected components/canonical owners:
 3. Existing TV/TVC provider content-integrity runtime plus steggfin non-exportable provider operation.
 4. `RTC-ROUNDTRIP-003` for provider request/response correlation.
 5. `RTC-SDK-RETURN-006` for provider-result normalization into Shared Docs freeze intake.
-6. `RTC-EVIDENCE-CUSTODY-004` for Master Records organization records and reconstruction.
+6. `RTC-EVIDENCE-CUSTODY-004` for optional downstream Master Records recording of released batch receipts and reconstruction (non-gating; custody stays with the Organization ledger).
 7. `RTC-INTERLOCK-INTR-TRANSPORT-008` only when an observed edit requires a successor-revision transition.
 
 Not selected: Publisher projection, StegVerse final egress, far-side final transition, terminal cleanup/entropy recovery.
@@ -35,7 +35,7 @@ The already-merged `.github` consumer `control/resident-execution-request.d/cons
 - StegOS device: interchangeable transport/execution node only.
 - TV/TVC: credential/session/provider-operation authority.
 - Interlock/InTr: governed transition/admission authority.
-- Master Records: organization records/reconstruction.
+- Master Records: downstream recorder of released organization batch receipts / reconstruction (non-gating, not custody).
 - HeartBeat: timing/freshness/liveness/correlation/observability only.
 - GitHub: source/evidence coordination only.
 
@@ -80,7 +80,7 @@ The SDK binds authentic provider observations to exact Shared Docs `document_id 
 
 ## Runtime/evidence state
 
-Source construction is complete through the canonical WorkerCoordinator addressability path. Authentic runtime evidence is still required for: resident execution; WorkerCoordinator claim/fence; TV/TVC provider credential/session use; provider content-integrity execution; exact provider version/content SHA for the selected invocation; SDK binding of that authentic result; Master Records organization records/reconstruction; and any conditional Interlock/InTr successor-revision transition.
+Source construction is complete through the canonical WorkerCoordinator addressability path. Authentic runtime evidence is still required for: resident execution; WorkerCoordinator claim/fence; TV/TVC provider credential/session use; provider content-integrity execution; exact provider version/content SHA for the selected invocation; SDK binding of that authentic result; the organization-ledger transition receipt; and any conditional Interlock/InTr successor-revision transition. Master Records recording/reconstruction of the released batch receipt is optional downstream evidence, not a requirement.
 
 No source merge, CI pass, workflow run, or registry record substitutes for those runtime observations.
 
@@ -115,4 +115,4 @@ Session continuation rule: resume from the canonical WorkerCoordinator path abov
 
 ## Current next action
 
-Use the canonical WorkerCoordinator path now merged in `.github` to claim/fence and execute one exact read-only provider observation on an eligible sovereign resident. Retain authentic document/version/`google-drive.downloaded-bytes.v1`/SHA-256 evidence, normalize it through the existing SDK seam, and record the required evidence as a Master Records organization record. Use Interlock/InTr only if the observed provider state requires a successor-revision transition. No second user-operated device is permitted.
+Use the canonical WorkerCoordinator path now merged in `.github` to claim/fence and execute one exact read-only provider observation on an eligible sovereign resident. Retain authentic document/version/`google-drive.downloaded-bytes.v1`/SHA-256 evidence, normalize it through the existing SDK seam, and record the required evidence in the Organization ledger; Master Records may record the released batch receipt downstream (optional, non-gating). Use Interlock/InTr only if the observed provider state requires a successor-revision transition. No second user-operated device is permitted.
