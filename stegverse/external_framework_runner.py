@@ -88,27 +88,36 @@ def prepare_external_framework_manifest(
     )
 
 
-def manifest_external_framework_submission(*, canonical_source_fetcher=None, **kwargs: Any) -> dict[str, Any]:
+def manifest_external_framework_submission(
+    *,
+    canonical_source_fetcher=None,
+    attempt_id: str | None = None,
+    readiness_evidence=(),
+    evidence_verifier=None,
+    **kwargs: Any,
+) -> dict[str, Any]:
     """Manifest the submission and hand it to Interlock/InTr. The SDK's whole job.
 
     Reuse public run-manifest destination resolution from the canonical source
     reader. Completion egress never chooses the outbound destination. No receiver
     liveness check or transport is performed; the far side stays unobserved.
+
+    SDK#368: the built manifest is a draft until it qualifies READY on supplied,
+    authenticated, invocation-bound readiness evidence (the same gate as the
+    0A/0B console). Without that, the draft is preserved and returned with a
+    FAIL_CLOSED / MANIFEST_READINESS_QUALIFIED record; no handoff is produced.
     """
-    from .manifest_execution import execute_manifest
+    from .manifest_execution import execute_manifest, qualify_manifest_for_dispatch, readiness_refusal
+    from .manifest_plan import require_ready_qualification
 
     manifest = prepare_external_framework_manifest(**kwargs)
-    handoff = execute_manifest(manifest, canonical_source_fetcher=canonical_source_fetcher)
-    return {
+    result: dict[str, Any] = {
         "schema": "stegverse.sdk.external-framework-submission.v1",
-        "status": "SUBMISSION_READY",
         "source_framework": manifest["source_framework"],
         "source_output_id": manifest["source_output_id"],
         "processing": deepcopy(manifest["processing"]),
         "return_projection": deepcopy(manifest["return_projection"]),
         "manifest": manifest,
-        "handoff": handoff,
-        "manifest_declared_destination": handoff.get("destination"),
         "execution_performed": False,
         "manifest_receipt_id": None,
         "posture_resolution_performed": False,
@@ -116,8 +125,30 @@ def manifest_external_framework_submission(*, canonical_source_fetcher=None, **k
         "intr_admission_observed": False,
         "far_side_transition_observed": False,
         "organization_receipt_observed": False,
-        "evidence_class": "SDK_LOCAL_MANIFEST_HANDOFF",
     }
+    qualified = qualify_manifest_for_dispatch(
+        manifest, attempt_id=attempt_id, readiness_evidence=readiness_evidence, evidence_verifier=evidence_verifier
+    )
+    if not qualified["executable"]:
+        result.update(readiness_refusal(qualified))
+        result.update({
+            "status": "SUBMISSION_NOT_READY",
+            "handoff": None,
+            "manifest_declared_destination": None,
+            "evidence_class": "SDK_LOCAL_MANIFEST_DRAFT_NOT_READY",
+        })
+        return result
+    require_ready_qualification(manifest, qualified["qualification"])
+    handoff = execute_manifest(manifest, canonical_source_fetcher=canonical_source_fetcher)
+    result.update({
+        "status": "SUBMISSION_READY",
+        "readiness_qualification": qualified["qualification"],
+        "executable": True,
+        "handoff": handoff,
+        "manifest_declared_destination": handoff.get("destination"),
+        "evidence_class": "SDK_LOCAL_MANIFEST_HANDOFF",
+    })
+    return result
 
 
 # The former name. "prepare" read as a partial step; the function was always the
@@ -275,6 +306,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-replay", action="store_true")
     parser.add_argument("--no-reconstruct", action="store_true")
     parser.add_argument("--output", help="write artifact JSON; default stdout")
+    # SDK#368 readiness gate inputs for the manifesting (handoff) lane.
+    from .manifest_execution import add_readiness_arguments
+    add_readiness_arguments(parser)
 
     args = parser.parse_args(argv)
     try:
@@ -301,9 +335,15 @@ def main(argv: list[str] | None = None) -> int:
                 posture_observed_at=args.posture_observed_at,
             )
         else:
-            result = manifest_external_framework_submission(**common)
+            from .manifest_builder import load_readiness_inputs
+
+            evidence, verifier = load_readiness_inputs(args.readiness_evidence, args.readiness_keys)
+            result = manifest_external_framework_submission(
+                **common, attempt_id=args.attempt_id, readiness_evidence=evidence, evidence_verifier=verifier
+            )
         _write_json(result, args.output)
-        return 0
+        # A draft that did not qualify READY fails closed; nothing was handed off.
+        return 2 if result.get("disposition") == "FAIL_CLOSED" else 0
     except (ValueError, RuntimeError) as exc:
         parser.error(str(exc))
     return 2

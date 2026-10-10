@@ -50,6 +50,7 @@ jobs:
               'test3_semantics':'same installed atomic-task-worker processor; distinct manifested identity and preregistered proposition; intended invariance/person-neutrality test',
               'task4_overlap_semantics':'overlap of measured local invocation intervals after both group barriers with an explicit 10ms observation dwell; serialized invocation control must falsify overlap; this does not claim CPU-parallel instruction execution',
               'worker_route_surface':'SDK_LOCAL_SEMANTIC_DEMONSTRATION',
+              'readiness_evidence':'SIGNED_FIXTURE_INVOCATION_BOUND_NOT_LIVE_OBSERVATION',
               'historical_preregistration_anchor':'StegVerse-Labs/.github@0127082e415fb220c709962ab7d0645e06105a4c',
               'historical_preregistration_sha256':'37363e0d3d8880956b0e97a90c54a140e6bebfac0aa9be73a5fb90ab2effa5d7',
               'historical_run_35547155843_attempt1_disposition':'SUCCESS'
@@ -135,9 +136,30 @@ jobs:
             --process purpose_bound_worker --return-depth full-trace \
             --created-at 2026-09-20T21:48:00Z --output /tmp/task4.manifest.json
 
+      # SDK#368: run-manifest dispatches only a READY draft. The evidence below is
+      # signed fixture evidence bound to each manifest's invocation (the repo's own
+      # stdlib-HMAC test helper); it is not a live readiness observation.
+      - name: Bind signed fixture readiness evidence to each manifest
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timedelta, timezone
+          from tests.test_manifest_readiness_gate import ATTEMPT, KEY, KEY_ID, _all_ready
+          observed = datetime.now(timezone.utc) - timedelta(seconds=5)
+          for name in ('test1', 'test2', 'test3', 'task4'):
+              manifest = json.load(open(f'/tmp/{name}.manifest.json', encoding='utf-8'))
+              evidence = _all_ready(manifest, at=observed)
+              json.dump(evidence, open(f'/tmp/{name}.readiness-evidence.json', 'w'), indent=2, sort_keys=True)
+          json.dump({KEY_ID: KEY}, open('/tmp/readiness-keys.json', 'w'))
+          open('/tmp/readiness-attempt.txt', 'w').write(ATTEMPT)
+          print('FIXTURE_READINESS_EVIDENCE_SIGNED_NOT_LIVE_OBSERVATION')
+          PY
+
       - name: Execute Test 1 from manifest only
         run: |
-          stegverse run-manifest --manifest /tmp/test1.manifest.json --output /tmp/test1.result.json
+          stegverse run-manifest --manifest /tmp/test1.manifest.json --output /tmp/test1.result.json \
+            --attempt-id "$(cat /tmp/readiness-attempt.txt)" \
+            --readiness-evidence /tmp/test1.readiness-evidence.json --readiness-keys /tmp/readiness-keys.json
           python - <<'PY'
           import json
           r=json.load(open('/tmp/test1.result.json'))
@@ -155,7 +177,9 @@ jobs:
 
       - name: Execute Test 2 from manifest only
         run: |
-          stegverse run-manifest --manifest /tmp/test2.manifest.json --output /tmp/test2.result.json
+          stegverse run-manifest --manifest /tmp/test2.manifest.json --output /tmp/test2.result.json \
+            --attempt-id "$(cat /tmp/readiness-attempt.txt)" \
+            --readiness-evidence /tmp/test2.readiness-evidence.json --readiness-keys /tmp/readiness-keys.json
           python - <<'PY'
           import json
           r=json.load(open('/tmp/test2.result.json'))
@@ -173,7 +197,9 @@ jobs:
 
       - name: Execute Test 3 from manifest only
         run: |
-          stegverse run-manifest --manifest /tmp/test3.manifest.json --output /tmp/test3.result.json
+          stegverse run-manifest --manifest /tmp/test3.manifest.json --output /tmp/test3.result.json \
+            --attempt-id "$(cat /tmp/readiness-attempt.txt)" \
+            --readiness-evidence /tmp/test3.readiness-evidence.json --readiness-keys /tmp/readiness-keys.json
           python - <<'PY'
           import json
           r=json.load(open('/tmp/test3.result.json'))
@@ -191,7 +217,9 @@ jobs:
 
       - name: Execute Task 4 from manifest only
         run: |
-          stegverse run-manifest --manifest /tmp/task4.manifest.json --output /tmp/task4.result.json
+          stegverse run-manifest --manifest /tmp/task4.manifest.json --output /tmp/task4.result.json \
+            --attempt-id "$(cat /tmp/readiness-attempt.txt)" \
+            --readiness-evidence /tmp/task4.readiness-evidence.json --readiness-keys /tmp/readiness-keys.json
           python - <<'PY'
           import json
           r=json.load(open('/tmp/task4.result.json'))
@@ -229,6 +257,8 @@ jobs:
           diff -u /tmp/sdk-source-index.txt /tmp/sdk-source-index.after.txt
           sha256sum /tmp/test1.manifest.json /tmp/test2.manifest.json /tmp/test3.manifest.json /tmp/task4.manifest.json \
             /tmp/test1.result.json /tmp/test2.result.json /tmp/test3.result.json /tmp/task4.result.json \
+            /tmp/test1.readiness-evidence.json /tmp/test2.readiness-evidence.json \
+            /tmp/test3.readiness-evidence.json /tmp/task4.readiness-evidence.json \
             /tmp/sdk-source-index.txt /tmp/experiment-metadata.json /tmp/sdk-task4-group.processor-request.json \
             /tmp/pip-freeze.txt /tmp/experiment-stage-results.log \
             | tee /tmp/experiment-sha256.txt
@@ -253,4 +283,8 @@ jobs:
             /tmp/test2.result.json
             /tmp/test3.result.json
             /tmp/task4.result.json
+            /tmp/test1.readiness-evidence.json
+            /tmp/test2.readiness-evidence.json
+            /tmp/test3.readiness-evidence.json
+            /tmp/task4.readiness-evidence.json
             /tmp/experiment-sha256.txt

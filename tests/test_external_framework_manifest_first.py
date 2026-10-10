@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -20,13 +21,16 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from stegverse.capability_inventory import hmac_evidence_verifier  # noqa: E402
 from stegverse.external_framework_runner import (  # noqa: E402
     main,
     manifest_external_framework_submission,
+    prepare_external_framework_manifest,
     prepare_external_framework_submission,
     run_external_framework,
 )
 from tests.test_manifest_builder import governance_request  # noqa: E402
+from tests.test_manifest_readiness_gate import ATTEMPT, KEY, KEY_ID, _all_ready  # noqa: E402
 
 COMMON = dict(
     data={"relational_state": "ambiguous"},
@@ -43,9 +47,36 @@ def canonical_boundary_fixture():
                  return_value=ORGANIZATION_BOUNDARY)
 
 
+def readiness_evidence() -> list:
+    """Signed, invocation-bound fixture evidence for the draft COMMON builds (SDK#368 gate)."""
+    draft = prepare_external_framework_manifest(**COMMON)
+    return _all_ready(draft, at=datetime.now(timezone.utc) - timedelta(seconds=5))
+
+
+READINESS = dict(attempt_id=ATTEMPT, evidence_verifier=hmac_evidence_verifier({KEY_ID: KEY}))
+
+
+def without_qualification(result: dict) -> dict:
+    """Each qualification carries its own evaluated_at; compare everything else."""
+    return {k: v for k, v in result.items() if k != "readiness_qualification"}
+
+
 def manifested() -> dict:
     with canonical_boundary_fixture():
-        return manifest_external_framework_submission(**COMMON)
+        return manifest_external_framework_submission(**COMMON, **READINESS, readiness_evidence=readiness_evidence())
+
+
+def test_manifesting_without_readiness_evidence_fails_closed_and_preserves_the_draft():
+    """A schema-valid manifest is never described as runnable without invocation-bound evidence."""
+    with canonical_boundary_fixture() as boundary:
+        result = manifest_external_framework_submission(**COMMON)
+    boundary.assert_not_called()
+    assert result["disposition"] == "FAIL_CLOSED"
+    assert result["failed_predicate"] == "MANIFEST_READINESS_QUALIFIED"
+    assert result["status"] == "SUBMISSION_NOT_READY"
+    assert result["handoff"] is None
+    assert result["draft_preserved"] is True
+    assert result["manifest"]["source_output_id"] == COMMON["source_output_id"]
 
 
 def test_manifesting_uses_existing_canonical_organization_resolution():
@@ -82,7 +113,8 @@ def test_the_former_name_still_resolves_to_the_same_function():
     """Existing callers of prepare_external_framework_submission keep working."""
     assert prepare_external_framework_submission is manifest_external_framework_submission
     with canonical_boundary_fixture():
-        assert prepare_external_framework_submission(**COMMON) == manifested()
+        legacy = prepare_external_framework_submission(**COMMON, **READINESS, readiness_evidence=readiness_evidence())
+    assert without_qualification(legacy) == without_qualification(manifested())
 
 
 def enclosed_run(**overrides) -> dict:
@@ -145,9 +177,34 @@ def cli(tmp_path: Path, *flags: str) -> dict:
     ]
     (tmp_path / "data.json").write_text(json.dumps(COMMON["data"]), encoding="utf-8")
     (tmp_path / "request.json").write_text(json.dumps(governance_request()), encoding="utf-8")
+    if "--execute-enclosed" not in flags:
+        # The manifesting lane dispatches only a READY draft (SDK#368 readiness gate).
+        (tmp_path / "evidence.json").write_text(json.dumps(readiness_evidence()), encoding="utf-8")
+        (tmp_path / "keys.json").write_text(json.dumps({KEY_ID: KEY}), encoding="utf-8")
+        argv += ["--attempt-id", ATTEMPT,
+                 "--readiness-evidence", str(tmp_path / "evidence.json"),
+                 "--readiness-keys", str(tmp_path / "keys.json")]
     with canonical_boundary_fixture():
         assert main(argv) == 0
     return json.loads(output.read_text(encoding="utf-8"))
+
+
+def test_the_cli_default_without_evidence_fails_closed(tmp_path):
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    output = tmp_path / "out.json"
+    (tmp_path / "data.json").write_text(json.dumps(COMMON["data"]), encoding="utf-8")
+    (tmp_path / "request.json").write_text(json.dumps(governance_request()), encoding="utf-8")
+    with canonical_boundary_fixture() as boundary:
+        rc = main([
+            "--input", str(tmp_path / "data.json"), "--governance-request", str(tmp_path / "request.json"),
+            "--source-framework", "probe_framework", "--source-output-id", "probe-output-1",
+            "--created-at", "2026-10-02T00:00:00Z", "--output", str(output),
+        ])
+    assert rc == 2
+    boundary.assert_not_called()
+    result = json.loads(output.read_text(encoding="utf-8"))
+    assert result["failed_predicate"] == "MANIFEST_READINESS_QUALIFIED"
+    assert result["handoff"] is None
 
 
 def test_the_cli_default_is_manifesting_with_no_flag_at_all(tmp_path):
@@ -162,7 +219,7 @@ def test_prepare_only_still_produces_exactly_the_default(tmp_path):
     """The flag now selects what already happens; pipelines passing it keep working."""
     default = cli(tmp_path / "a")
     legacy = cli(tmp_path / "b", "--prepare-only")
-    assert default == legacy
+    assert without_qualification(default) == without_qualification(legacy)
 
 
 def test_executing_locally_requires_an_explicit_flag(tmp_path):

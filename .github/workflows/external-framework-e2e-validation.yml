@@ -40,6 +40,37 @@ jobs:
           cd /tmp/source
           python -m pip install -e ".[dev]"
 
+      # SDK#368: external-run hands off only a READY draft. This is signed fixture
+      # evidence bound to exactly the draft the CLI builds below (same inputs and
+      # created_at), produced with the repo's own stdlib-HMAC test helper; it is
+      # not a live readiness observation.
+      - name: Bind signed fixture readiness evidence to the ELAN draft
+        run: |
+          set -eu
+          cd /tmp/source
+          python - <<'PY'
+          import json
+          from datetime import datetime, timedelta, timezone
+          from stegverse.external_framework_runner import prepare_external_framework_manifest
+          from tests.test_manifest_readiness_gate import ATTEMPT, KEY, KEY_ID, _all_ready
+          load = lambda path: json.load(open(path, encoding='utf-8'))
+          draft = prepare_external_framework_manifest(
+              data=load('inspection/examples/elan-relational-state-test1.json'),
+              source_framework='ELAN',
+              source_output_id='elan-emotional-ambiguity-silence-test-001',
+              processor_request=load('inspection/examples/elan-governance-request.example.json'),
+              evaluation_declaration=load('inspection/examples/elan-evaluation-declaration-test1.json'),
+              data_class='elan.relational-state.v1',
+              return_depth='full-trace',
+              created_at='2026-10-10T00:00:00Z',
+          )
+          evidence = _all_ready(draft, at=datetime.now(timezone.utc) - timedelta(seconds=5))
+          json.dump(evidence, open('/tmp/elan-readiness-evidence.json', 'w'), indent=2, sort_keys=True)
+          json.dump({KEY_ID: KEY}, open('/tmp/readiness-keys.json', 'w'))
+          open('/tmp/readiness-attempt.txt', 'w').write(ATTEMPT)
+          print('FIXTURE_READINESS_EVIDENCE_SIGNED_NOT_LIVE_OBSERVATION')
+          PY
+
       - name: Manifest ELAN submission without private runtime dependencies
         run: |
           set -eu
@@ -52,6 +83,10 @@ jobs:
             --source-output-id elan-emotional-ambiguity-silence-test-001 \
             --data-class elan.relational-state.v1 \
             --return-depth full-trace \
+            --created-at 2026-10-10T00:00:00Z \
+            --attempt-id "$(cat /tmp/readiness-attempt.txt)" \
+            --readiness-evidence /tmp/elan-readiness-evidence.json \
+            --readiness-keys /tmp/readiness-keys.json \
             --output /tmp/elan-sdk-submission.json
 
       - name: Verify portable submission and preregistration isolation
@@ -78,6 +113,11 @@ jobs:
           # Current canonical source resolves the existing organization boundary.
           # This remains SDK-local handoff evidence and does not prove receiver observation.
           assert result['evidence_class'] == 'SDK_LOCAL_MANIFEST_HANDOFF'
+          # SDK#368: the handoff exists only because the draft qualified READY on
+          # supplied invocation-bound evidence; readiness never claims runtime ALLOW.
+          assert result['executable'] is True
+          assert result['readiness_qualification']['qualification'] == 'READY'
+          assert result['readiness_qualification']['runtime_allow_claimed'] is False
           handoff = result['handoff']
           assert handoff['state'] == 'MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF'
           assert handoff['disposition'] == 'ALLOW'
