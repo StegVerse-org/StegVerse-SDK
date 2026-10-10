@@ -8,6 +8,7 @@ LLM_ADAPTER, Publisher, or caller-authored completion metadata to routing author
 import os
 import json
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from stegverse.manifest_execution import _canonical_organization_boundary
@@ -61,23 +62,18 @@ class CompletionEgressIsNotDestinationTest(unittest.TestCase):
         self.assertIsNone(manifest_declared_destination(canonical))
 
 
-ORGANIZATION_BOUNDARY = {
-    "schema": "stegverse.organization-interlock-intr-boundary/v1",
-    "organization": "StegVerse-Labs", "owner_repository": "StegVerse-Labs/.github",
-    "ingress": {"capability_endpoint_bindings": [{
-        "profile_id": "sdk-manifest-ingress", "profile_name": "SDK:ManifestIngress", "operation": "SUBMIT_MANIFEST",
-        "receiving_operation": {"method": "POST", "path": "/intr/materialization", "owner_repository": "StegVerse-Labs/.github", "source": "workers/universal_intr_profiled_ingress.py", "delegate": "workers/manifest_state_transition_intr_ingress.py::admit"},
-        "binding_role": "ORGANIZATION_RECEIVING_OPERATION_RESOLUTION", "authority_effect": "NONE_BINDING_ONLY",
-        "grants_routing_authority": False, "grants_admission_authority": False, "grants_execution_authority": False, "environment_selected_ingress": False,
-    }]},
-}
+# Exact content of StegVerse-Labs/.github:org-runtime/interlock-intr.json at the
+# pinned canonical ref (aa2f89ac877e6a84bedb81a8b4efb30f4910d5f4).
+BOUNDARY_FIXTURE = Path(__file__).parent / "fixtures" / "stegverse-labs-interlock-intr-boundary.aa2f89ac.json"
+ORGANIZATION_BOUNDARY = json.loads(BOUNDARY_FIXTURE.read_text(encoding="utf-8"))
+PINNED_BOUNDARY_REF = "aa2f89ac877e6a84bedb81a8b4efb30f4910d5f4"
 
 
 class CanonicalOrganizationDestinationTest(unittest.TestCase):
     def test_consumes_organization_owned_binding_without_environment_or_authority(self):
         resolved = canonical_organization_destination(ORGANIZATION_BOUNDARY)
         self.assertEqual(resolved["owner_repository"], "StegVerse-Labs/.github")
-        self.assertEqual(resolved["receiving_operation"]["path"], "/intr/materialization")
+        self.assertEqual(resolved["receiving_operation"]["operation_id"], "ORGANIZATION_SDK_MANIFEST_INGRESS")
         self.assertEqual(resolved["environment_inputs"], [])
         self.assertEqual(resolved["authority_effect"], "NONE_BINDING_ONLY")
         self.assertFalse(resolved["grants_routing_authority"])
@@ -87,7 +83,7 @@ class CanonicalOrganizationDestinationTest(unittest.TestCase):
     def test_completion_metadata_cannot_override_organization_binding(self):
         canonical = {"completion": {"egress": {"final_stegverse_transition_surface": "LLM_ADAPTER", "destination_profile": "GCAT-BCAT-Engine/Publisher"}}}
         self.assertIsNone(manifest_declared_destination(canonical))
-        self.assertEqual(canonical_organization_destination(ORGANIZATION_BOUNDARY)["receiving_operation"]["path"], "/intr/materialization")
+        self.assertEqual(canonical_organization_destination(ORGANIZATION_BOUNDARY)["receiving_operation"]["operation_id"], "ORGANIZATION_SDK_MANIFEST_INGRESS")
 
 
 
@@ -108,7 +104,7 @@ class PublicRunManifestCanonicalSourceTest(unittest.TestCase):
         self.assertEqual(calls, [(
             "StegVerse-Labs/.github",
             "org-runtime/interlock-intr.json",
-            "75d68c83e28178af053b8af097de4c8ca7e5017e",
+            PINNED_BOUNDARY_REF,
         )])
 
     def test_caller_cannot_select_repository_path_ref_or_endpoint(self):
@@ -116,9 +112,47 @@ class PublicRunManifestCanonicalSourceTest(unittest.TestCase):
         signature = inspect.signature(_canonical_organization_boundary)
         self.assertEqual(set(signature.parameters), {"fetcher"})
         self.assertEqual(
-            canonical_organization_destination(ORGANIZATION_BOUNDARY)["receiving_operation"]["path"],
-            "/intr/materialization",
+            canonical_organization_destination(ORGANIZATION_BOUNDARY)["receiving_operation"]["operation_id"],
+            "ORGANIZATION_SDK_MANIFEST_INGRESS",
         )
+
+
+class PinnedCanonicalBoundaryRegressionTest(unittest.TestCase):
+    """The pinned ref resolves SDK manifest ingress to the organization-owned operation."""
+
+    def test_sdk_pins_the_current_organization_boundary_ref(self):
+        from stegverse import manifest_execution
+        self.assertEqual(manifest_execution._CANONICAL_ORGANIZATION_BOUNDARY_REF, PINNED_BOUNDARY_REF)
+
+    def test_pinned_boundary_resolves_organization_sdk_manifest_ingress(self):
+        def fetch(binding):
+            self.assertEqual(binding.ref, PINNED_BOUNDARY_REF)
+            return {"text": BOUNDARY_FIXTURE.read_text(encoding="utf-8"), "repository": binding.repository,
+                    "path": binding.path, "ref": binding.ref, "sha": "fixture-blob"}
+        resolved = canonical_organization_destination(_canonical_organization_boundary(fetcher=fetch))
+        self.assertEqual(resolved["profile_id"], "sdk-manifest-ingress")
+        self.assertEqual(resolved["operation"], "SUBMIT_MANIFEST")
+        self.assertEqual(resolved["owner_repository"], "StegVerse-Labs/.github")
+        operation = resolved["receiving_operation"]
+        self.assertEqual(operation["operation_id"], "ORGANIZATION_SDK_MANIFEST_INGRESS")
+        self.assertEqual(operation["owner_repository"], "StegVerse-Labs/.github")
+        self.assertEqual(operation["operation"], "resident-runtime/organization_manifest_ingress.py")
+        self.assertEqual(operation["address_resolution"], "org-boundary/runtime/capability_ingress.py::receive")
+        self.assertEqual(operation["admission"], "resident-runtime/sdk_manifest_crossing.py::cross")
+        self.assertEqual(operation["emits"], "stegverse.organization-transition-receipt/v1")
+        self.assertEqual(operation["transport"], "INTERLOCK_INTR")
+        self.assertNotIn("path", operation)
+        self.assertNotIn("method", operation)
+        self.assertEqual(resolved["environment_inputs"], [])
+        self.assertEqual(resolved["authority_effect"], "NONE_BINDING_ONLY")
+
+    def test_pinned_boundary_binding_is_non_authorizing(self):
+        bindings = [b for b in ORGANIZATION_BOUNDARY["ingress"]["capability_endpoint_bindings"]
+                    if b.get("profile_id") == "sdk-manifest-ingress" and b.get("operation") == "SUBMIT_MANIFEST"]
+        self.assertEqual(len(bindings), 1)
+        for flag in ("grants_routing_authority", "grants_admission_authority",
+                     "grants_execution_authority", "environment_selected_ingress"):
+            self.assertIs(bindings[0][flag], False, flag)
 
 
 class HandoffTest(unittest.TestCase):
@@ -126,7 +160,7 @@ class HandoffTest(unittest.TestCase):
         result = build_intr_handoff({**REQUEST, "manifest_declared_destination": canonical_organization_destination(ORGANIZATION_BOUNDARY)})
         self.assertEqual(result["disposition"], "ALLOW")
         self.assertEqual(result["destination"]["owner_repository"], "StegVerse-Labs/.github")
-        self.assertEqual(result["destination"]["receiving_operation"]["path"], "/intr/materialization")
+        self.assertEqual(result["destination"]["receiving_operation"]["operation_id"], "ORGANIZATION_SDK_MANIFEST_INGRESS")
         self.assertFalse(result["transport_performed_by_sdk"])
         self.assertFalse(result["receiver_contacted"])
         self.assertFalse(result["intr_admission_observed"])
