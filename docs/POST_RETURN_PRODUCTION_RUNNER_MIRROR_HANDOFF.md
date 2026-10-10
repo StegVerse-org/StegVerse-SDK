@@ -5,7 +5,7 @@ Repository: `StegVerse-org/StegVerse-SDK`
 
 ## Purpose
 
-Close the source-level gap between the independently validated PRE_STEGGATE evidence path, the canonical sovereign runtime, its local run store (the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)), and the already-merged reciprocal POST_RETURN/exchange/replay/reconstruction machinery.
+Close the source-level gap between the independently validated PRE_STEGGATE evidence path, the canonical sovereign runtime, its local run store (the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)), and the already-merged reciprocal POST_RETURN/exchange/replay/reconstruction machinery.
 
 This runner is successor-release-aware. It is intentionally separate from the historical `run_oda3_evaluation_boundary_r3.py` harness because R3 freezes SDK/StegCore coordinates that predate the full POST_RETURN and canonical SPE-standing implementations.
 
@@ -22,7 +22,7 @@ Required inputs:
 coherent successor aggregate-release receipt
 public inspection manifest
 verified PRE_STEGGATE portable governance bundle
-local run-store DB path (master-records package store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
+local run-record location (caller-supplied; SDK-internal `stegverse/local_run_record.py`, no default)
 bounded sovereign state file path
 portable exchange output path
 retained proof output path
@@ -43,7 +43,7 @@ The runner performs, in order:
 9. create the bounded local state consequence with a deterministic release-set/run idempotency key;
 10. call the existing canonical `run_sovereign_validation()` with that exact standing context and bounded consequence;
 11. require canonical runtime standing-context consumption, StegGate `ALLOW`, and a real state transition;
-12. read the run's local run-store record (`ManifestReceiptCustody.evidence_package`) when present, as downstream, non-gating evidence only;
+12. read the run's local run-store record (`LocalRunRecordStore.evidence_package`) when present, as downstream, non-gating evidence only;
 13. call the already-merged `complete_post_return_evidence()` path, which verifies the organization-ledger readback for this run's manifest-directed transition (`--organization-ledger-readback`) and binds the interlock return's `governance_record_hash` and egress receipt to that organization receipt; without a verified readback the result is a six-field `FAIL_CLOSED` whose retry entrypoint is `StegVerse-org/.github:.stegverse/transition-requests/` (SDK-MR-A, #452);
 14. require reciprocal participant ACK, POST_RETURN portable verification, governance exchange verification, replay without consequence reexecution, and reconstruction without consequence reexecution;
 15. retain one final `stegverse.sdk.post-return-production-runner-result.v1` proof object.
@@ -79,7 +79,7 @@ SDK credential authority: NONE
 release verification authority: NONE
 standing decision authority: canonical StegCore only
 consequence authority: canonical StegGate + commit coherence only
-Master Records: downstream recorder of released batch receipts, not an authority (local run store: known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
+Master Records: downstream recorder of released batch receipts, not an authority (the local run record is SDK-internal, `stegverse/local_run_record.py`, and non-authoritative)
 portable verification authority: NONE
 exchange authority: NONE
 copied exchange == canonical custody: FALSE
@@ -115,7 +115,7 @@ successor TV/TVC aggregate receipt proves all required capability containment
 real PRE_STEGGATE evidence from the public/reference participant exists
 runner executes against canonical sovereign dependencies
 real bounded transition occurs
-The exact run record is retained in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records custody)
+The exact run record is retained in the SDK-internal local run record (`stegverse/local_run_record.py`; authority_effect NONE, completes_transition false; not Master Records custody)
 participant return is ACKNOWLEDGED
 POST_RETURN portable verification PASS
 exchange verification PASS

@@ -33,14 +33,14 @@ SDK MCP test entry
 -> exact selected tool contract + proposed call canonicalized/hashed
 -> portable MCP test packet (non-authorizing evidence)
 -> Core-Lite manifested route carrier / ingestion-CGE
--> route checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> route checkpoint receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> canonical StegCore manifested transaction
 -> canonical StegGate + commit-coherence evaluation
 -> bounded MCP tools/call only after canonical ALLOW + coherence ALLOW
 -> MCP result captured into canonical execution observation
--> exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> exact-run receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> return ingestion/CGE
--> return receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> return receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> SDK caller return
 ```
 
@@ -77,7 +77,7 @@ portable packet grants authority: FALSE
 manifest_receipt_id grants authority: FALSE
 caller request external_consequence_enabled: FALSE
 bounded consequence executor installed outside caller authority payload: TRUE
-governed run success gated on a Master Records record: NOT CANONICAL (closure is the organization-ledger transition receipt; the lane's current master-records local-store check is a known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
+governed run success gated on a Master Records record: NOT CANONICAL (closure is the organization-ledger transition receipt; the lane's local run record, `stegverse/local_run_record.py`, is SDK-internal, non-authoritative and never completes the transition)
 non-TV/TVC secret/token use: PROHIBITED
 GitHub runtime authority: NONE
 external MCP credential authority: TV/TVC_ONLY

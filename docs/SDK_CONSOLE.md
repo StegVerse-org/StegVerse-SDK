@@ -45,7 +45,7 @@ evaluator declares experiment
 -> SDK validates only published capability/evidence identifiers
 -> canonical route remains unchanged
 -> StegGate evaluates submitted governing inputs
--> exact-run evidence retained (current local lane: master-records package local run store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> exact-run evidence retained (local lane: SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody))
 -> replay/reconstruction remain separately callable by receipt locator
 ```
 

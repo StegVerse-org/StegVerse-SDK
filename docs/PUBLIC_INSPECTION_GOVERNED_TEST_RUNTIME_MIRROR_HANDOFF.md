@@ -23,7 +23,7 @@ successful governed TEST result without custody_status RECORDED -> prohibited
 local-only registry/ledger retention -> insufficient as canonical ecosystem custody
 ```
 
-The current runtime still checks that the master-records package organization-record routes are reachable, and stores the complete exact-run evidence package in that package's local run store before reporting success (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody).
+The current sovereign runtime no longer checks Master Records routes; it stores the complete exact-run evidence package in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody) at the caller-supplied location before reporting, and reports sovereign completion only on a verified organization-ledger readback (`stegverse/organization_ledger_evidence.py`).
 
 Replay and reconstruction are also now actual SDK operations rather than guidance-only claims:
 

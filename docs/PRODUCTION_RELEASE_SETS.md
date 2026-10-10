@@ -18,7 +18,6 @@ The catalog covers:
 StegVerse-org/StegVerse-SDK
 StegVerse-Labs/StegCore
 Data-Continuation/core-lite
-master-records/orchestration
 ```
 
 Each public release entry includes its tag, publication time, release URL, and release-body changelog.
@@ -37,6 +36,8 @@ release tag when provable
 release/changelog URL when tag-bound
 release binding status
 ```
+
+New sets use schema `stegverse.production-release-set.v2`. Its run-evidence component has the role `downstream_run_evidence` and is the SDK's own local run record (`stegverse/local_run_record.py`; non-authoritative, authority_effect NONE, completes_transition false). Schema `v1` is frozen: its roles, including the former `exact_run_custody` entry for `stegverse-master-records`, stay only so a recorded v1 set verifies exactly as recorded. Master Records is not a release-set component of new runs; sovereign completion comes only from a verified organization-ledger readback (`stegverse/organization_ledger_evidence.py`).
 
 A commit pin is not represented as a release. Until a component is installed from a durable release tag, it is reported as `COMMIT_OR_PACKAGE_ONLY`.
 

@@ -102,7 +102,7 @@ The first two are also included in exact-run transaction metadata before the run
 
 The existing StegCore evaluator-reference handoff explicitly prohibits demo-specific and parallel evaluators and preserves participant-neutral evaluation. This SDK change strengthens that boundary at manifest submission rather than creating another evaluator.
 
-The local validation lane currently retains exact-run evidence-package metadata in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody); no new authority or separate storage route is introduced here.
+The local validation lane currently retains exact-run evidence-package metadata in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody); no new authority or separate storage route is introduced here.
 
 ## Prior validation
 

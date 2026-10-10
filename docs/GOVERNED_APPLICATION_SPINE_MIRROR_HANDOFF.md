@@ -81,7 +81,7 @@ The runner is source-real and successor-release-aware. It requires:
 - PRE_STEGGATE portable governance bundle;
 - canonical StegCore standing/admissibility path;
 - real bounded state transition;
-- direct run-record lookup (currently in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody));
+- direct run-record lookup (in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody));
 - reciprocal ACK;
 - portable/exchange verification;
 - replay and reconstruction without consequence re-execution.

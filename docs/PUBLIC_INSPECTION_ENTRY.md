@@ -19,7 +19,7 @@ Preparation stops before governed execution and returns no `manifest_receipt_id`
 
 ## Run the sovereign governed TEST
 
-The canonical public-inspection runtime is sovereign/local and uses pinned canonical Core-Lite, StegCore/StegGate implementations; runs are stored in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody).
+The canonical public-inspection runtime is sovereign/local and uses pinned canonical Core-Lite, StegCore/StegGate implementations; runs are stored in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody).
 
 ```bash
 python -m pip install -e ".[dev,governed-test]"

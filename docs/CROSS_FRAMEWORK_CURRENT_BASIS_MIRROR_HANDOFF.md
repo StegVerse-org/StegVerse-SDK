@@ -209,7 +209,7 @@ tests/test_cross_framework_current_basis_execution.py
 
 The harness consumes only the exact frozen v0.4 manifest bytes, verifies SHA-256 `07a08496c21b31f70f6f45ef731aa5f6b2522a6fc8f67f2d0a4c2b6fceda7a3f`, calls canonical merged `stegcore.current_basis` for native derivation/evaluation, then passes the derived canonical request into the existing sovereign validation runtime. It does not place architecture-native currentness fields into the frozen common manifest and does not consume counterpart results before completion.
 
-After the canonical run returns its run record (currently held in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)), the harness records S1 observation, then creates the S0->S1 post-observation evidence receipt, then invokes canonical replay and reconstruction. Only if all gates are observed does it write `RUN_COMPLETE.json` with the flags required by the external result packager.
+After the canonical run returns its run record (held in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)), the harness records S1 observation, then creates the S0->S1 post-observation evidence receipt, then invokes canonical replay and reconstruction. Only if all gates are observed does it write `RUN_COMPLETE.json` with the flags required by the external result packager.
 
 Expected result directory:
 `evidence/evaluator/cross-framework-current-basis-v0.4-result/`

@@ -23,10 +23,10 @@
    "PROPER": 562
   },
   "after": {
-   "total": 1284,
-   "HISTORICAL_EVIDENCE": 137,
-   "NAMING_ONLY": 124,
-   "PROPER": 1023
+   "total": 1283,
+   "HISTORICAL_EVIDENCE": 138,
+   "NAMING_ONLY": 119,
+   "PROPER": 1026
   },
   "after_improper_unblocked": 0,
   "after_improper_blocked": 0
@@ -49,22 +49,15 @@
    "path": ".github/PULL_REQUEST_TEMPLATE/public-inspection-request.md",
    "line": 15,
    "classification": "PROPER",
-   "reason": "rewritten to the canonical role (organization-ledger closure; Master Records downstream, non-gating)",
-   "text": "To actually run a governed TEST, use the trusted SDK checkout. The current local lane keeps its run in a local store file (`--records-db`) provided by the master-records package (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANC"
-  },
-  {
-   "path": ".github/PULL_REQUEST_TEMPLATE/public-inspection-request.md",
-   "line": 19,
-   "classification": "PROPER",
-   "reason": "rewritten to the canonical role (organization-ledger closure; Master Records downstream, non-gating)",
-   "text": "python -m stegverse.public_inspection_runtime run inspection/requests/<request-id>.json --records-db ./stegverse-master-records-validation.db"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "To actually run a governed TEST, use the trusted SDK checkout. The local lane writes its run to the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Ma"
   },
   {
    "path": ".github/PULL_REQUEST_TEMPLATE/public-inspection-request.md",
    "line": 22,
    "classification": "PROPER",
-   "reason": "rewritten to the canonical role (organization-ledger closure; Master Records downstream, non-gating)",
-   "text": "The transition closes on its organization-ledger transition receipt. The current runtime also reports the following identifiers (the Master Records status field is a legacy name for the local run-store status and is not a posting condition)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "The transition closes on its organization-ledger transition receipt. The current runtime also reports the following identifiers (the Master Records status field is a legacy name for the local run-record status and is not a posting condition"
   },
   {
    "path": ".github/PULL_REQUEST_TEMPLATE/public-inspection-request.md",
@@ -72,20 +65,6 @@
    "classification": "NAMING_ONLY",
    "reason": "wire status field emitted by runtime; preceding gating sentence rewritten to non-gating",
    "text": "master_records_organization_record_status: RECORDED"
-  },
-  {
-   "path": ".github/PULL_REQUEST_TEMPLATE/public-inspection-request.md",
-   "line": 32,
-   "classification": "PROPER",
-   "reason": "rewritten to the canonical role (organization-ledger closure; Master Records downstream, non-gating)",
-   "text": "python -m stegverse.public_inspection_runtime replay MR-<SHA256> --records-db ./stegverse-master-records-validation.db"
-  },
-  {
-   "path": ".github/PULL_REQUEST_TEMPLATE/public-inspection-request.md",
-   "line": 33,
-   "classification": "PROPER",
-   "reason": "rewritten to the canonical role (organization-ledger closure; Master Records downstream, non-gating)",
-   "text": "python -m stegverse.public_inspection_runtime reconstruct MR-<SHA256> --records-db ./stegverse-master-records-validation.db"
   },
   {
    "path": ".github/workflows/authority-boundary-source-validation.yml",
@@ -175,8 +154,8 @@
    "path": "EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md",
    "line": 105,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "The local validation lane currently retains exact-run evidence-package metadata in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody); no ne"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "The local validation lane currently retains exact-run evidence-package metadata in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records "
   },
   {
    "path": "EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md",
@@ -252,15 +231,15 @@
    "path": "EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md",
    "line": 204,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> checkpoint receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md",
    "line": 207,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> exact-run receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md",
@@ -357,22 +336,22 @@
    "path": "MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md",
    "line": 36,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> route checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> route checkpoint receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md",
    "line": 41,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> exact-run receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md",
    "line": 43,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> return receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> return receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md",
@@ -385,8 +364,8 @@
    "path": "MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md",
    "line": 80,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "governed run success gated on a Master Records record: NOT CANONICAL (closure is the organization-ledger transition receipt; the lane's current master-records local-store check is a known nonconforming dependency, LLMA-DECLARED-PATH-CONFORM"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "governed run success gated on a Master Records record: NOT CANONICAL (closure is the organization-ledger transition receipt; the lane's local run record, `stegverse/local_run_record.py`, is SDK-internal, non-authoritative and never complete"
   },
   {
    "path": "MCP_PORTABLE_AUTHORITY_MIRROR_HANDOFF.md",
@@ -777,8 +756,8 @@
    "path": "SDK_MIRROR_HANDOFF.md",
    "line": 53,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "governed SDK run success gated on a Master Records record: NOT CANONICAL (the local lane's current master-records store check is a known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "governed SDK run success gated on a Master Records record: NOT CANONICAL (the local lane's run record, `stegverse/local_run_record.py`, is SDK-internal, non-authoritative and never completes the transition; sovereign completion requires a v"
   },
   {
    "path": "SDK_MIRROR_HANDOFF.md",
@@ -791,22 +770,22 @@
    "path": "SDK_MIRROR_HANDOFF.md",
    "line": 95,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> MRR-* checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> MRR-* checkpoint receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "SDK_MIRROR_HANDOFF.md",
    "line": 98,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> MR-* exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> MR-* exact-run receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "SDK_MIRROR_HANDOFF.md",
    "line": 100,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> MRR-* return receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> MRR-* return receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "SDK_MIRROR_HANDOFF.md",
@@ -987,8 +966,8 @@
    "path": "SDK_PUBLIC_DISTRIBUTION_PRIVACY_MIRROR_HANDOFF.md",
    "line": 68,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> report master_records_organization_record_status (local-lane master-records package store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not a canonical gate)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> report master_records_organization_record_status (legacy field name for the local run-record status; the local run record is now SDK-internal, `stegverse/local_run_record.py`, and the stegverse-master-records package is no longer a gover"
   },
   {
    "path": "SDK_PUBLIC_DISTRIBUTION_PRIVACY_MIRROR_HANDOFF.md",
@@ -1120,15 +1099,15 @@
    "path": "SELF_CHARACTERIZATION_TRAJECTORY_SDK_MIRROR_HANDOFF.md",
    "line": 77,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "Canonical replay/reconstruction implementation remains unchanged. The lane uses `stegverse/viewer_bound_operations.py` to invoke the canonical operation and then append a sequence-4 `VIEWER_BOUND` event to the same retained run record (curr"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "Canonical replay/reconstruction implementation remains unchanged. The lane uses `stegverse/viewer_bound_operations.py` to invoke the canonical operation and then append a sequence-4 `VIEWER_BOUND` event to the same retained run record (held"
   },
   {
    "path": "SOVEREIGN_VALIDATION_NOTE.md",
    "line": 1,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "Third-party hosting is optional. Canonical production-validation must have a sovereign local execution path using the same merged StegCore and Core-Lite implementations (the local lane's current use of the master-records package as its run "
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "Third-party hosting is optional. Canonical production-validation must have a sovereign local execution path using the same merged StegCore and Core-Lite implementations (the local lane keeps its run in the SDK-internal local run record (`st"
   },
   {
    "path": "STEGVERSE_SDK_MIRROR_HANDOFF.md",
@@ -1199,13 +1178,6 @@
    "classification": "PROPER",
    "reason": "rewritten: MR named as part of canonical execution path -> downstream/non-gating or nonconformance stated",
    "text": "Option `000` is the SDK-owned teaching lane. It must demonstrate the complete governance vocabulary without pretending that four mutually exclusive teaching examples are four decisions from one transaction, then optionally execute the entir"
-  },
-  {
-   "path": "docs/000_GOVERNANCE_OUTCOME_DEMO_MIRROR_HANDOFF.md",
-   "line": 60,
-   "classification": "NAMING_ONLY",
-   "reason": "CLI flag/default DB filename of blocked local validation lane",
-   "text": "python -m stegverse.governance_ingress_cli 000 --records-db ./stegverse-master-records-validation.db"
   },
   {
    "path": "docs/000_GOVERNANCE_OUTCOME_DEMO_MIRROR_HANDOFF.md",
@@ -1323,8 +1295,8 @@
    "path": "docs/CROSS_FRAMEWORK_CURRENT_BASIS_MIRROR_HANDOFF.md",
    "line": 212,
    "classification": "PROPER",
-   "reason": "rewritten: harness sequencing waits on MR record (blocked local lane) -> downstream/non-gating or nonconformance stated",
-   "text": "After the canonical run returns its run record (currently held in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)), the harness records S"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "After the canonical run returns its run record (held in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)), the"
   },
   {
    "path": "docs/CROSS_FRAMEWORK_CURRENT_BASIS_MIRROR_HANDOFF.md",
@@ -1414,8 +1386,8 @@
    "path": "docs/ELAN_TEST1_RUNBOOK.md",
    "line": 71,
    "classification": "PROPER",
-   "reason": "rewritten: runtime dependency on MR repo stated without nonconformance -> downstream/non-gating or nonconformance stated",
-   "text": "The canonical governed runtime currently depends on pinned StegCore and Master Records repositories that are not anonymous-public Git dependencies (the Master Records package is the local validation lane's run store: known nonconforming dep"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "The canonical governed runtime currently depends on the pinned governed-test components (StegCore and Core-Lite), which are not all anonymous-public Git dependencies. The local validation lane's run store is the SDK-internal local run recor"
   },
   {
    "path": "docs/ENTRY_POINT_ROLES.md",
@@ -1524,17 +1496,10 @@
   },
   {
    "path": "docs/EXECUTION_BOUNDARY_PRODUCTION_TEST.md",
-   "line": 139,
-   "classification": "PROPER",
-   "reason": "rewritten: MR as holder of checkpoint organization record -> downstream/non-gating or nonconformance stated",
-   "text": "MRR checkpoint record (local run store: master-records package, known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)"
-  },
-  {
-   "path": "docs/EXECUTION_BOUNDARY_PRODUCTION_TEST.md",
    "line": 140,
    "classification": "PROPER",
-   "reason": "rewritten: MR as holder of exact-run organization record -> downstream/non-gating or nonconformance stated",
-   "text": "MR exact-run record (same local run store; not Master Records custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "MR exact-run record (same local run record; not Master Records custody)"
   },
   {
    "path": "docs/EXTERNAL_COLLAB_AUTHENTIC_RUNTIME_PROOF_CONTRACT.md",
@@ -1554,8 +1519,8 @@
    "path": "docs/FORMAL_TESTING_ROUTE.md",
    "line": 18,
    "classification": "PROPER",
-   "reason": "rewritten: MR return record as gating step in route -> downstream/non-gating or nonconformance stated",
-   "text": "→ return record (local run store; not Master Records custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "→ return record (SDK-internal local run record; not Master Records custody)"
   },
   {
    "path": "docs/FORMAL_TESTING_ROUTE.md",
@@ -1596,8 +1561,8 @@
    "path": "docs/GOVERNED_APPLICATION_SPINE_MIRROR_HANDOFF.md",
    "line": 84,
    "classification": "PROPER",
-   "reason": "rewritten: MR record lookup as required proof -> downstream/non-gating or nonconformance stated",
-   "text": "- direct run-record lookup (currently in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody));"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "- direct run-record lookup (in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody));"
   },
   {
    "path": "docs/GOVERNED_APPLICATION_SPINE_MIRROR_HANDOFF.md",
@@ -1692,20 +1657,6 @@
   },
   {
    "path": "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
-   "line": 108,
-   "classification": "NAMING_ONLY",
-   "reason": "CLI default DB filename of blocked local validation lane",
-   "text": "--records-db ./stegverse-master-records-validation.db"
-  },
-  {
-   "path": "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
-   "line": 137,
-   "classification": "NAMING_ONLY",
-   "reason": "CLI default DB filename of blocked local validation lane",
-   "text": "--records-db ./stegverse-master-records-validation.db"
-  },
-  {
-   "path": "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
    "line": 147,
    "classification": "PROPER",
    "reason": "rewritten: MR as canonical organization record -> downstream/non-gating or nonconformance stated",
@@ -1722,64 +1673,29 @@
    "path": "docs/MCP_PRODUCTION_ARTIFACT_TESTS.md",
    "line": 3,
    "classification": "PROPER",
-   "reason": "rewritten: MR artifacts as part of governed path without nonconformance note -> downstream/non-gating or nonconformance stated",
-   "text": "The MCP test lane exercises the same canonical StegVerse SDK, Core-Lite, StegCore/StegGate, and Master Records artifacts used by the existing governed test path (the Master Records package is the local run store: known nonconforming depende"
-  },
-  {
-   "path": "docs/MCP_PRODUCTION_ARTIFACT_TESTS.md",
-   "line": 29,
-   "classification": "PROPER",
-   "reason": "rewritten: MR organization record requirements -> downstream/non-gating or nonconformance stated",
-   "text": "This prints the production-artifact route, authority boundary, local run-record requirements (master-records package store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368), and the point at which an MCP `tools/call` may "
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "The MCP test lane exercises the same canonical StegVerse SDK, Core-Lite and StegCore/StegGate artifacts used by the existing governed test path; its run is kept in the SDK-internal local run record (`stegverse/local_run_record.py`; non-auth"
   },
   {
    "path": "docs/MCP_PRODUCTION_ARTIFACT_TESTS.md",
    "line": 44,
    "classification": "PROPER",
-   "reason": "rewritten: MR exact-run record as route step -> downstream/non-gating or nonconformance stated",
-   "text": "-> MR-* exact-run record (local run store; not Master Records custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> MR-* exact-run record (SDK-internal local run record; not Master Records custody)"
   },
   {
    "path": "docs/MCP_PRODUCTION_ARTIFACT_TESTS.md",
    "line": 46,
    "classification": "PROPER",
-   "reason": "rewritten: MR return record as route step -> downstream/non-gating or nonconformance stated",
-   "text": "-> MRR-* return record (local run store; not Master Records custody)"
-  },
-  {
-   "path": "docs/MCP_PRODUCTION_ARTIFACT_TESTS.md",
-   "line": 129,
-   "classification": "NAMING_ONLY",
-   "reason": "CLI default DB filename of blocked local validation lane",
-   "text": "--records-db ./stegverse-master-records-validation.db"
-  },
-  {
-   "path": "docs/MCP_PRODUCTION_ARTIFACT_TESTS.md",
-   "line": 139,
-   "classification": "NAMING_ONLY",
-   "reason": "CLI default DB filename of blocked local validation lane",
-   "text": "--records-db ./stegverse-master-records-validation.db"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> MRR-* return record (SDK-internal local run record; not Master Records custody)"
   },
   {
    "path": "docs/MCP_PRODUCTION_ARTIFACT_TESTS.md",
    "line": 142,
    "classification": "PROPER",
-   "reason": "rewritten: reconstruction from MR evidence (blocked lane) without nonconformance note -> downstream/non-gating or nonconformance stated",
-   "text": "Reconstruction rebuilds the retained trajectory from the retained run evidence in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody). It doe"
-  },
-  {
-   "path": "docs/MCP_PRODUCTION_ARTIFACT_TESTS.md",
-   "line": 157,
-   "classification": "PROPER",
-   "reason": "rewritten: MR records organization record as test claim -> downstream/non-gating or nonconformance stated",
-   "text": "canonical governed integration records the run record in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)"
-  },
-  {
-   "path": "docs/MCP_PRODUCTION_ARTIFACT_TESTS.md",
-   "line": 168,
-   "classification": "PROPER",
-   "reason": "rewritten: MR as part of canonical integration path -> downstream/non-gating or nonconformance stated",
-   "text": "With the governed-test dependencies installed, the same test module also executes the full canonical Core-Lite -> StegCore/StegGate integration path, including the master-records package's local run store (known nonconforming dependency, LL"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "Reconstruction rebuilds the retained trajectory from the retained run evidence in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records a"
   },
   {
    "path": "docs/MINIMAL_PORTABLE_GOVERNANCE_ECOSYSTEM_MIRROR_HANDOFF.md",
@@ -2000,24 +1916,17 @@
   },
   {
    "path": "docs/ODA3_RESPONSE_PACKET_MIRROR_HANDOFF.md",
-   "line": 198,
-   "classification": "PROPER",
-   "reason": "rewritten: MR record as source of route receipts -> downstream/non-gating or nonconformance stated",
-   "text": "exports actual route receipt events from the run record in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)"
-  },
-  {
-   "path": "docs/ODA3_RESPONSE_PACKET_MIRROR_HANDOFF.md",
    "line": 199,
    "classification": "PROPER",
-   "reason": "rewritten: MR evidence package (blocked lane) -> downstream/non-gating or nonconformance stated",
-   "text": "exports the exact retained run evidence package (same local store; not Master Records custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "exports the exact retained run evidence package (same local run record; not Master Records custody)"
   },
   {
    "path": "docs/ODA3_RESPONSE_PACKET_MIRROR_HANDOFF.md",
    "line": 209,
    "classification": "PROPER",
-   "reason": "rewritten: MR interfaces as canonical runtime -> downstream/non-gating or nonconformance stated",
-   "text": "The harness does not define a new evaluator, route, StegGate decision model, custody implementation, or credential path. It calls the already-canonical frozen runtime and the existing master-records package interfaces used as its local run "
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "The harness does not define a new evaluator, route, StegGate decision model, custody implementation, or credential path. It calls the already-canonical frozen runtime and the SDK-internal local run record (`stegverse/local_run_record.py`; n"
   },
   {
    "path": "docs/OPTIONAL_TRANSPARENCY_SURFACES.md",
@@ -2030,8 +1939,8 @@
    "path": "docs/OUTPUT_BOUNDARY_PROOF.md",
    "line": 63,
    "classification": "PROPER",
-   "reason": "rewritten: canonical replay attributed to MR -> downstream/non-gating or nonconformance stated",
-   "text": "This local proof is distinct from canonical replay by `manifest_receipt_id` (whose run store is currently the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records autho"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "This local proof is distinct from canonical replay by `manifest_receipt_id` (whose run store is the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Ma"
   },
   {
    "path": "docs/PORTABLE_GOVERNANCE_EVIDENCE_EXCHANGE_MIRROR_HANDOFF.md",
@@ -2100,15 +2009,8 @@
    "path": "docs/POST_RETURN_PRODUCTION_RUNNER_MIRROR_HANDOFF.md",
    "line": 8,
    "classification": "PROPER",
-   "reason": "non-gating: states or checks that the local run store (Master Records custody) is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
-   "text": "Close the source-level gap between the independently validated PRE_STEGGATE evidence path, the canonical sovereign runtime, its local run store (the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)), and the already-merged reciprocal POST_RETURN/exchange/replay/reconstruction machinery."
-  },
-  {
-   "path": "docs/POST_RETURN_PRODUCTION_RUNNER_MIRROR_HANDOFF.md",
-   "line": 25,
-   "classification": "PROPER",
-   "reason": "rewritten: MR organization record DB (blocked lane) -> downstream/non-gating or nonconformance stated",
-   "text": "local run-store DB path (master-records package store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "Close the source-level gap between the independently validated PRE_STEGGATE evidence path, the canonical sovereign runtime, its local run store (the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authorit"
   },
   {
    "path": "docs/POST_RETURN_PRODUCTION_RUNNER_MIRROR_HANDOFF.md",
@@ -2121,8 +2023,8 @@
    "path": "docs/POST_RETURN_PRODUCTION_RUNNER_MIRROR_HANDOFF.md",
    "line": 82,
    "classification": "PROPER",
-   "reason": "rewritten: MR listed as authority -> downstream/non-gating or nonconformance stated",
-   "text": "Master Records: downstream recorder of released batch receipts, not an authority (local run store: known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "Master Records: downstream recorder of released batch receipts, not an authority (the local run record is SDK-internal, `stegverse/local_run_record.py`, and non-authoritative)"
   },
   {
    "path": "docs/POST_RETURN_PRODUCTION_RUNNER_MIRROR_HANDOFF.md",
@@ -2135,8 +2037,8 @@
    "path": "docs/POST_RETURN_PRODUCTION_RUNNER_MIRROR_HANDOFF.md",
    "line": 118,
    "classification": "PROPER",
-   "reason": "rewritten: MR exact organization record as completion item (blocked lane) -> downstream/non-gating or nonconformance stated",
-   "text": "The exact run record is retained in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "The exact run record is retained in the SDK-internal local run record (`stegverse/local_run_record.py`; authority_effect NONE, completes_transition false; not Master Records custody)"
   },
   {
    "path": "docs/POST_RETURN_PRODUCTION_RUNNER_MIRROR_HANDOFF.md",
@@ -2175,10 +2077,10 @@
   },
   {
    "path": "docs/PRODUCTION_RELEASE_SETS.md",
-   "line": 21,
+   "line": 40,
    "classification": "PROPER",
-   "reason": "repository name in release set",
-   "text": "master-records/orchestration"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "New sets use schema `stegverse.production-release-set.v2`. Its run-evidence component has the role `downstream_run_evidence` and is the SDK's own local run record (`stegverse/local_run_record.py`; non-authoritative, authority_effect NONE, c"
   },
   {
    "path": "docs/PRODUCT_PROCESSING_PROVENANCE.md",
@@ -2205,8 +2107,8 @@
    "path": "docs/PUBLIC_CREDENTIAL_BOUNDARY.md",
    "line": 9,
    "classification": "PROPER",
-   "reason": "rewritten: MR implementation in canonical runtime without nonconformance note -> downstream/non-gating or nonconformance stated",
-   "text": "The canonical `stegverse.public_inspection_runtime` path is sovereign/local and uses pinned canonical Core-Lite, StegCore/StegGate implementations, with a local validation run store in the master-records package's local store (known nonconf"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "The canonical `stegverse.public_inspection_runtime` path is sovereign/local and uses pinned canonical Core-Lite, StegCore/StegGate implementations, with its local validation run kept in the SDK-internal local run record (`stegverse/local_ru"
   },
   {
    "path": "docs/PUBLIC_CREDENTIAL_BOUNDARY.md",
@@ -2226,22 +2128,15 @@
    "path": "docs/PUBLIC_INSPECTION_CUSTODY_REPLAY_MIRROR_HANDOFF.md",
    "line": 17,
    "classification": "PROPER",
-   "reason": "rewritten: return gated on retention in MR -> downstream/non-gating or nonconformance stated",
-   "text": "Enforce the ecosystem invariant that every state transition required by SDK run, replay, and reconstruction is retained in the local run store before the corresponding artifact is returned (the store is currently the master-records package'"
-  },
-  {
-   "path": "docs/PUBLIC_INSPECTION_CUSTODY_REPLAY_MIRROR_HANDOFF.md",
-   "line": 28,
-   "classification": "PROPER",
-   "reason": "rewritten: POST to MR endpoint awaited before return -> downstream/non-gating or nonconformance stated",
-   "text": "-> POST exact-run evidence package to the local run store (master-records package API; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "Enforce the ecosystem invariant that every state transition required by SDK run, replay, and reconstruction is retained in the local run store before the corresponding artifact is returned (the store is the SDK-internal local run record (`s"
   },
   {
    "path": "docs/PUBLIC_INSPECTION_CUSTODY_REPLAY_MIRROR_HANDOFF.md",
    "line": 74,
    "classification": "PROPER",
-   "reason": "rewritten: SDK requires MR API (blocked lane) without nonconformance note -> downstream/non-gating or nonconformance stated",
-   "text": "The SDK operation-event client requires the matching `master-records/orchestration` operation-event API (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody):"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "The sovereign lane no longer calls a `master-records/orchestration` operation-event API; operation events are written to the SDK-internal local run record (`stegverse/local_run_record.py`, `LocalRunRecordStore.record_operation_event`). The "
   },
   {
    "path": "docs/PUBLIC_INSPECTION_CUSTODY_REPLAY_MIRROR_HANDOFF.md",
@@ -2258,25 +2153,11 @@
    "text": "GET  /api/master-records/manifest-receipts/{manifest_receipt_id}/operations/{operation_id}"
   },
   {
-   "path": "docs/PUBLIC_INSPECTION_CUSTODY_REPLAY_MIRROR_HANDOFF.md",
-   "line": 81,
-   "classification": "PROPER",
-   "reason": "rewritten: MR assigns organization record; SDK waits on it -> downstream/non-gating or nonconformance stated",
-   "text": "The master-records package API currently assigns operation event IDs, sequencing and hash linkage in the local run record (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368); the Organization keeps its ledger record and own"
-  },
-  {
-   "path": "docs/PUBLIC_INSPECTION_CUSTODY_REPLAY_MIRROR_HANDOFF.md",
-   "line": 88,
-   "classification": "PROPER",
-   "reason": "rewritten: MR implementation as merge gate -> downstream/non-gating or nonconformance stated",
-   "text": "1. master-records package operation-transition implementation/tests PASS (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)."
-  },
-  {
    "path": "docs/PUBLIC_INSPECTION_ENTRY.md",
    "line": 22,
    "classification": "PROPER",
-   "reason": "rewritten: MR implementation in canonical runtime without nonconformance note -> downstream/non-gating or nonconformance stated",
-   "text": "The canonical public-inspection runtime is sovereign/local and uses pinned canonical Core-Lite, StegCore/StegGate implementations; runs are stored in the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PA"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "The canonical public-inspection runtime is sovereign/local and uses pinned canonical Core-Lite, StegCore/StegGate implementations; runs are stored in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: aut"
   },
   {
    "path": "docs/PUBLIC_INSPECTION_ENTRY.md",
@@ -2310,8 +2191,8 @@
    "path": "docs/PUBLIC_INSPECTION_GOVERNED_BINDING_MIRROR_HANDOFF.md",
    "line": 65,
    "classification": "PROPER",
-   "reason": "rewritten: states current nonconforming local-lane fact without endorsing MR authority/custody (LLMA-DECLARED-PATH-CONFORMANCE-368)",
-   "text": "-> exact-run evidence in the master-records/orchestration package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> exact-run evidence in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "docs/PUBLIC_INSPECTION_GOVERNED_TEST_RUNTIME_MIRROR_HANDOFF.md",
@@ -2331,8 +2212,8 @@
    "path": "docs/PUBLIC_INSPECTION_GOVERNED_TEST_RUNTIME_MIRROR_HANDOFF.md",
    "line": 26,
    "classification": "PROPER",
-   "reason": "rewritten: states current nonconforming local-lane fact without endorsing MR authority/custody (LLMA-DECLARED-PATH-CONFORMANCE-368)",
-   "text": "The current runtime still checks that the master-records package organization-record routes are reachable, and stores the complete exact-run evidence package in that package's local run store before reporting success (known nonconforming de"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "The current sovereign runtime no longer checks Master Records routes; it stores the complete exact-run evidence package in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, complet"
   },
   {
    "path": "docs/README_RUNTIME_PROOF_POINTER.md",
@@ -2373,8 +2254,8 @@
    "path": "docs/RELEASE_DEPENDENCY_ALIGNMENT_MIRROR_HANDOFF.md",
    "line": 60,
    "classification": "PROPER",
-   "reason": "rewritten: states current nonconforming local-lane fact without endorsing MR authority/custody (LLMA-DECLARED-PATH-CONFORMANCE-368)",
-   "text": "Core-Lite and Master Records do not need gratuitous successor source changes solely for this proof if their existing immutable releases already contain the behavior the pinned governed-test path uses (for Master Records, the package local r"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "Core-Lite does not need gratuitous successor source changes solely for this proof if its existing immutable release already contains the behavior the pinned governed-test path uses and remains the exact executable coordinate used by the suc"
   },
   {
    "path": "docs/REPRODUCIBLE_RELEASE_CANDIDATE.md",
@@ -2422,8 +2303,8 @@
    "path": "docs/SDK_CONSOLE.md",
    "line": 48,
    "classification": "PROPER",
-   "reason": "rewritten: states current nonconforming local-lane fact without endorsing MR authority/custody (LLMA-DECLARED-PATH-CONFORMANCE-368)",
-   "text": "-> exact-run evidence retained (current local lane: master-records package local run store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> exact-run evidence retained (local lane: SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody))"
   },
   {
    "path": "docs/SDK_CONSOLE.md",
@@ -2478,15 +2359,15 @@
    "path": "docs/SDK_GOVERNANCE_SOVEREIGN_FALLBACK_MIRROR_HANDOFF.md",
    "line": 79,
    "classification": "PROPER",
-   "reason": "rewritten: states current nonconforming local-lane fact without endorsing MR authority/custody (LLMA-DECLARED-PATH-CONFORMANCE-368)",
-   "text": "option 0A -> existing public-inspection request -> GovernedOperations -> sovereign_validation_runtime -> Core-Lite -> StegCore/StegGate -> master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANC"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "option 0A -> existing public-inspection request -> GovernedOperations -> sovereign_validation_runtime -> Core-Lite -> StegCore/StegGate -> SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect N"
   },
   {
    "path": "docs/SDK_GOVERNANCE_SOVEREIGN_FALLBACK_MIRROR_HANDOFF.md",
    "line": 184,
    "classification": "PROPER",
-   "reason": "rewritten: states current nonconforming local-lane fact without endorsing MR authority/custody (LLMA-DECLARED-PATH-CONFORMANCE-368)",
-   "text": "persistent state: master-records package local run store selected by sovereign runtime (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "persistent state: the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody) at the caller-supplied --records-db locatio"
   },
   {
    "path": "docs/SDK_OUTPUT_BOUNDARY_PROOF_MIRROR_HANDOFF.md",
@@ -3514,22 +3395,22 @@
    "path": "experiments/authority_boundary_preservation/README.md",
    "line": 23,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> checkpoint receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "experiments/authority_boundary_preservation/README.md",
    "line": 26,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> exact-run receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "experiments/authority_boundary_preservation/README.md",
    "line": 28,
    "classification": "PROPER",
-   "reason": "rewritten: MR stated as downstream non-gating recorder / known nonconforming local-store dependency (LLMA-DECLARED-PATH-CONFORMANCE-368) stated without endorsing role",
-   "text": "-> return receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)"
+   "reason": "states the local run record is SDK-internal and non-authoritative; Master Records is not custody, gate or authority",
+   "text": "-> return receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)"
   },
   {
    "path": "fixtures/adapter_system_boundary_sdk_packet.v0.1.json",
@@ -6801,6 +6682,13 @@
    "text": "\"repository\": \"master-records/orchestration\","
   },
   {
+   "path": "tests/fixtures/stegverse-labs-interlock-intr-boundary.aa2f89ac.json",
+   "line": 200,
+   "classification": "HISTORICAL_EVIDENCE",
+   "reason": "immutable record/frozen input of a past event (hash-pinned or dated); non-operative, never edited",
+   "text": "\"master_records_in_path\": false,"
+  },
+  {
    "path": "tests/organization_ledger_fixture.py",
    "line": 46,
    "classification": "PROPER",
@@ -7331,6 +7219,111 @@
    "classification": "PROPER",
    "reason": "test asserting the master-records package is no longer imported or pinned",
    "text": "self.assertNotIn(\"stegverse-master-records\", (ROOT / \"pyproject.toml\").read_text(encoding=\"utf-8\"))"
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 15,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "(d) Master Records reconstruction never gates admission;"
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 110,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "# Master Records replay/reconstruction libraries; admission must never call them."
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 111,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "MASTER_RECORDS_LIBRARIES = ("
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 122,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "\"STEGVERSE_MASTER_RECORDS_TOKEN\": \"decoy-mr-token-7f1c\","
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 571,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "class MasterRecordsNonGatingTests(_GateCase):"
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 572,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "\"\"\"(d) Master Records reconstruction never gates admission.\"\"\""
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 574,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "def test_readiness_dag_has_no_master_records_node(self):"
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 577,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "self.assertNotIn(\"MASTER_RECORDS\", json.dumps(node).upper(), (route_id, node[\"role\"]))"
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 581,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "def test_admission_never_consults_master_records(self):"
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 582,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "with _forbid(*MASTER_RECORDS_LIBRARIES):"
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 592,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "self.assertIs(output[\"result\"].get(\"master_records_reconstruction_observed\", False), False)"
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 597,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "continue  # covered by tests/test_master_records_reconstruction_non_gating.py"
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 611,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "# A refusal must name a non-Master-Records predicate."
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 612,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "self.assertNotRegex(str(exc).upper(), \"MASTER_RECORDS|RECONSTRUCT|REPLAY\")"
+  },
+  {
+   "path": "tests/test_manifest_identity_routing_regression_gate.py",
+   "line": 614,
+   "classification": "PROPER",
+   "reason": "test asserts non-gating downstream behaviour, wire-name compatibility or a non-claim",
+   "text": "evidence = checked[\"master_records_reconstruction_evidence\"]"
   },
   {
    "path": "tests/test_master_records_custody.py",

@@ -10,12 +10,12 @@ The canonical governed evaluator path is evaluator-neutral. A tester declares th
 Evaluator / test harness
 → StegVerse SDK manifest ingress (0B / stegverse.ingress-manifest.v1)
 → Core-Lite manifested route carrier
-→ checkpoint record (local run store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
+→ checkpoint record (SDK-internal local run record; non-authoritative)
 → StegCore manifested transaction
 → canonical StegGate + commit-coherence evaluation
-→ exact-run record (local run store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
+→ exact-run record (SDK-internal local run record; non-authoritative)
 → return ingestion/CGE
-→ return record (local run store; not Master Records custody)
+→ return record (SDK-internal local run record; not Master Records custody)
 → SDK return
 → Evaluator
 ```
@@ -58,7 +58,7 @@ A generalized evaluator manifest may request the sandbox capability only when th
 
 ## Route receipt rule
 
-Every governed route leg that crosses an ingestion, execution, consequence, replay, reconstruction, or return boundary must retain the receipts required by that published route. The generalized SDK route uses MRR/MR/MRO records in the local run store according to the current runtime contract (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; custody stays with the Organization). The sandbox/batch route additionally requires action receipts at its own ingestion and return checkpoints.
+Every governed route leg that crosses an ingestion, execution, consequence, replay, reconstruction, or return boundary must retain the receipts required by that published route. The generalized SDK route uses MRR/MR/MRO records in the SDK-internal local run record (`stegverse/local_run_record.py`; authority_effect NONE, completes_transition false) according to the current runtime contract (custody stays with the Organization; sovereign completion requires a verified organization-ledger readback). The sandbox/batch route additionally requires action receipts at its own ingestion and return checkpoints.
 
 For the sandbox/batch route, required receipt emitters are:
 

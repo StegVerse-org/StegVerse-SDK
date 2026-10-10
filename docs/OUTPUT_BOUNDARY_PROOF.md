@@ -60,7 +60,7 @@ The result binds:
 
 The local proof re-evaluates the exact preserved tester packet through the existing SDK admissibility evaluator and compares the stable decision projection. Timestamps are not used as the replay equality condition.
 
-This local proof is distinct from canonical replay by `manifest_receipt_id` (whose run store is currently the master-records package's local store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)). Canonical replay remains available through the sovereign governance path.
+This local proof is distinct from canonical replay by `manifest_receipt_id` (whose run store is the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)). Canonical replay remains available through the sovereign governance path.
 
 ## Reconstruction meaning
 

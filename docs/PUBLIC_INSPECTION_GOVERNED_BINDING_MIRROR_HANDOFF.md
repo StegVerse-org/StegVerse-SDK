@@ -62,7 +62,7 @@ This handoff does **not** claim the prepared request has traversed canonical gov
 StegVerse-SDK prepared option 0A request
 -> admitted ordinary ingress / LLM-adapter where applicable
 -> StegCore canonical governance
--> exact-run evidence in the master-records/orchestration package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> exact-run evidence in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> caller projection
 -> actual manifest_receipt_id
 -> replay/reconstruction verification

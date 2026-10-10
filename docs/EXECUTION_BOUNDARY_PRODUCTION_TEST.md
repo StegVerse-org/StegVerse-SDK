@@ -136,8 +136,8 @@ material transition evidence and state hashes
 fresh boundary admissibility result + local receipt hash
 execution-boundary SDK result + local receipt hash
 canonical manifest / receipt identifiers
-MRR checkpoint record (local run store: master-records package, known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
-MR exact-run record (same local run store; not Master Records custody)
+MRR checkpoint record (local run record: SDK-internal `stegverse/local_run_record.py`, non-authoritative)
+MR exact-run record (same local run record; not Master Records custody)
 return MRR custody
 replay result
 reconstruction result

@@ -50,7 +50,7 @@ No person-specific evaluator route is canonical.
 every successful governed SDK transition closes on the organization-ledger transition receipt; Master Records records the released batch receipt downstream (non-gating)
 manifest establishes intended route
 recorded checkpoint receipt clears the next manifest leg
-governed SDK run success gated on a Master Records record: NOT CANONICAL (the local lane's current master-records store check is a known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368)
+governed SDK run success gated on a Master Records record: NOT CANONICAL (the local lane's run record, `stegverse/local_run_record.py`, is SDK-internal, non-authoritative and never completes the transition; sovereign completion requires a verified organization-ledger readback, `stegverse/organization_ledger_evidence.py`)
 successful replay/reconstruction return without operation-transition custody: PROHIBITED
 caller projection may suppress the organization-ledger record or any downstream Master Records batch receipt: FALSE
 manifest_receipt_id grants authority: FALSE
@@ -92,12 +92,12 @@ python -m stegverse.governance_ingress_cli 0B <manifest.json>
 ```text
 SDK entry
 -> Core-Lite manifested route carrier
--> MRR-* checkpoint receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> MRR-* checkpoint receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> canonical StegCore manifested transaction
 -> canonical StegGate + commit-coherence evaluation
--> MR-* exact-run receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> MR-* exact-run receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> return ingestion/CGE
--> MRR-* return receipt in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)
+-> MRR-* return receipt in the SDK-internal local run record (`stegverse/local_run_record.py`; non-authoritative: authority_effect NONE, completes_transition false; not Master Records authority or custody)
 -> SDK return
 ```
 
