@@ -9,24 +9,48 @@
     "current_step",
     "next_step",
     "dataset_manifest_hash",
-    "prior_receipts",
-    "master_records_receipts"
+    "prior_receipts"
   ],
   "properties": {
-    "schema_version": {"type": "string", "const": "1.0.0"},
-    "loop_id": {"type": "string", "minLength": 1},
-    "current_step": {"type": "string", "minLength": 1},
-    "next_step": {"type": "string", "minLength": 1},
-    "dataset_manifest_hash": {"type": "string"},
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "loop_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "current_step": {
+      "type": "string",
+      "minLength": 1
+    },
+    "next_step": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dataset_manifest_hash": {
+      "type": "string"
+    },
     "prior_receipts": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["step_id", "receipt_id"],
+        "required": [
+          "step_id",
+          "receipt_id"
+        ],
         "properties": {
-          "step_id": {"type": "string", "minLength": 1},
-          "receipt_id": {"type": "string", "minLength": 1},
-          "receipt_hash": {"type": "string"}
+          "step_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "receipt_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "receipt_hash": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -35,14 +59,26 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["step_id", "master_records_receipt_id"],
+        "required": [
+          "step_id",
+          "master_records_receipt_id"
+        ],
         "properties": {
-          "step_id": {"type": "string", "minLength": 1},
-          "master_records_receipt_id": {"type": "string", "minLength": 1},
-          "master_records_receipt_hash": {"type": "string"}
+          "step_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "master_records_receipt_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "master_records_receipt_hash": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
-      }
+      },
+      "$comment": "Optional downstream Master Records receipts; never required for handoff."
     }
   },
   "additionalProperties": false

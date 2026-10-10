@@ -1,7 +1,7 @@
 """Read-only Stage-1 reconciliation of supplied existing organization transition receipts.
 
-The authoritative organization ledger and Master Records must be queried by their
-existing resident owner. This function has no network, local ledger, credential,
+The authoritative organization ledger must be queried by its existing resident
+owner; Master Records only records released batch receipts downstream. This function has no network, local ledger, credential,
 execution, or custody access and NEVER authenticates caller-supplied snapshots.
 """
 from __future__ import annotations

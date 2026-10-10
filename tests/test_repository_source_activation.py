@@ -161,7 +161,9 @@ def test_activation_evidence_preserves_blockers():
     packet = evaluate_activation_evidence(evidence)
     assert packet["ready_for_separate_activation_decision"] is False
     assert "LIVE_PROVIDER_RESULT_NOT_VERIFIED" in packet["blockers"]
-    assert "RECONSTRUCTABILITY_NOT_PASS" in packet["blockers"]
+    # Master Records reconstruction is downstream recording, never a blocker.
+    assert "RECONSTRUCTABILITY_NOT_PASS" not in packet["blockers"]
+    assert packet["master_records_recording"]["failure_code"] == "RECONSTRUCTABILITY_NOT_PASS"
     assert any(value.startswith("ENTRY_POINT_PARITY_NOT_VERIFIED:") for value in packet["blockers"])
 
 
@@ -193,19 +195,51 @@ def test_activation_packet_writes_only_organization_record_names():
     assert "custody_verification" not in packet["evidence_digests"]
 
 
-def test_organization_record_must_exist_and_be_reconstructable():
+SIX_FIELDS = (
+    "failure_code",
+    "failed_predicate",
+    "required_evidence_or_repair",
+    "retry_entrypoint",
+    "owning_existing_goal",
+    "next_attempt",
+)
+
+
+def test_master_records_recording_never_gates_readiness():
     evidence = complete_evidence()
     evidence["organization_record_verification"]["organization_record_installed"] = False
     packet = evaluate_activation_evidence(evidence)
-    assert packet["ready_for_separate_activation_decision"] is False
-    assert ORGANIZATION_RECORD_NOT_VERIFIED in packet["blockers"]
+    assert packet["ready_for_separate_activation_decision"] is True
+    assert packet["blockers"] == []
+    recording = packet["master_records_recording"]
+    assert recording["gates_readiness"] is False
+    assert recording["status"] == "NOT_RECORDED"
+    assert recording["failure_code"] == ORGANIZATION_RECORD_NOT_VERIFIED
     assert ORGANIZATION_RECORD_NOT_VERIFIED == "MASTER_RECORDS_ORGANIZATION_RECORD_NOT_VERIFIED"
     assert LEGACY_ORGANIZATION_RECORD_NOT_VERIFIED not in packet["blockers"]
+    assert all(recording.get(field) for field in SIX_FIELDS)
+    assert recording["owning_existing_goal"] == "LLMA-DECLARED-PATH-CONFORMANCE-368"
+    assert validate_activation_evidence(packet) == packet
 
     evidence = complete_evidence()
     evidence["organization_record_verification"]["reconstructability_status"] = "PENDING"
     packet = evaluate_activation_evidence(evidence)
-    assert packet["blockers"] == ["RECONSTRUCTABILITY_NOT_PASS"]
+    assert packet["blockers"] == []
+    assert packet["ready_for_separate_activation_decision"] is True
+    assert packet["master_records_recording"]["failure_code"] == "RECONSTRUCTABILITY_NOT_PASS"
+
+
+def test_readiness_does_not_require_master_records_evidence():
+    evidence = complete_evidence()
+    del evidence["organization_record_verification"]
+    packet = evaluate_activation_evidence(evidence)
+    assert packet["ready_for_separate_activation_decision"] is True
+    assert packet["master_records_recording"]["status"] == "NOT_SUPPLIED"
+    assert "organization_record_verification" not in packet["evidence_digests"]
+
+    recorded = evaluate_activation_evidence(complete_evidence())
+    assert recorded["master_records_recording"]["status"] == "RECORDED"
+    assert "failure_code" not in recorded["master_records_recording"]
 
 
 def test_legacy_evidence_names_are_still_read():
@@ -217,7 +251,8 @@ def test_legacy_evidence_names_are_still_read():
         evidence = legacy_evidence()
         evidence["custody_verification"][field] = False
         packet = evaluate_activation_evidence(evidence)
-        assert packet["blockers"] == [ORGANIZATION_RECORD_NOT_VERIFIED]
+        assert packet["blockers"] == []
+        assert packet["master_records_recording"]["failure_code"] == ORGANIZATION_RECORD_NOT_VERIFIED
 
 
 def test_legacy_and_new_evidence_keys_together_are_rejected():

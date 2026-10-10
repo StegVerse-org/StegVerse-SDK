@@ -2,8 +2,10 @@
 
 Never issues execution authority, performs runtime I/O, mutates custody, or
 converts caller-supplied objects into independently verified observations.
-Actual WorkerCoordinator, TV/TVC, InTr and Master Records readback must be
-obtained through their existing authorized production surfaces.
+Actual WorkerCoordinator, TV/TVC, InTr and organization-ledger readback must be
+obtained through their existing authorized production surfaces. A Master Records
+claim is optional downstream evidence: it is shape-checked and reported in
+``downstream_master_records`` and is never a missing predicate.
 """
 from __future__ import annotations
 
@@ -159,11 +161,14 @@ def reconcile_component011_snapshots(
         if not structural["organization_shape"]:
             findings.append("ORGANIZATION_SOURCE_TRANSITION_EXACT_LINK_MISSING")
 
-    if master_records is None:
-        findings.append("CANONICAL_MASTER_RECORDS_READBACK_MISSING")
-    else:
+    downstream = {
+        "recorder_role": "DOWNSTREAM_RELEASED_BATCH_RECEIPT_RECORDING",
+        "gates_reconciliation": False,
+        "status": "NOT_SUPPLIED",
+    }
+    if master_records is not None:
         org_hash = organization.get("receipt_sha256") if organization else None
-        structural["master_records_claim_shape"] = (
+        consistent = (
             master_records.get("state") == "RECORDED"
             and master_records.get("reconstruction_status") == "PASS"
             and master_records.get("required_evidence_validation_status") == "PASS"
@@ -172,8 +177,9 @@ def reconcile_component011_snapshots(
             and org_hash is not None
             and master_records.get("organization_receipt_sha256") == org_hash
         )
-        if not structural["master_records_claim_shape"]:
-            findings.append("MASTER_RECORDS_ORGANIZATION_RECORD_OR_ORG_BINDING_MISSING")
+        downstream["status"] = "CLAIM_SHAPE_CONSISTENT" if consistent else "CLAIM_SHAPE_INCONSISTENT"
+        if not consistent:
+            downstream["finding"] = "MASTER_RECORDS_CLAIM_NOT_BOUND_TO_ORGANIZATION_RECEIPT"
 
     findings.append("AUTHENTIC_AUTHORITY_AND_CUSTODY_INDEPENDENT_READBACK_REQUIRED")
     return {
@@ -186,6 +192,7 @@ def reconcile_component011_snapshots(
         "authentic_runtime_proven": False,
         "organization_custody_proven": False,
         "master_records_reconstructed": False,
+        "downstream_master_records": downstream,
         "authority_effect": "NONE",
     }
 

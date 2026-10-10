@@ -121,7 +121,8 @@ PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
         "runtime_installed": True,
     },
     # Existing SHWP task only: this route derives a request graph; native InTr,
-    # WorkerCoordinator and Master Records remain the sole consequential path.
+    # WorkerCoordinator and the Organization ledger remain the sole consequential
+    # path; Master Records only records released batch receipts downstream.
     SHWP_SOVEREIGN_INFERENCE_ROUTE_ID: {
         "route_id": SHWP_SOVEREIGN_INFERENCE_ROUTE_ID,
         "processor_capability": "sovereign_inference",

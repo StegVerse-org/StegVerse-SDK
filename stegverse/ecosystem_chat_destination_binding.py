@@ -49,7 +49,15 @@ def build_destination_binding(config: dict[str, Any] | None = None) -> Destinati
 
     if not isinstance(destination_name, str) or not destination_name.strip():
         errors.append("destination_name is required")
-    if destination_type not in {"master-records", "local-test"}:
+    if destination_type == "master-records":
+        # Production writes append to the Organization ledger. Master Records only
+        # records released organization batch receipts downstream and is never a
+        # write destination (LLMA-DECLARED-PATH-CONFORMANCE-368).
+        errors.append(
+            "destination_type master-records is not a write destination: writes append to "
+            "the organization ledger; Master Records records released batch receipts downstream"
+        )
+    elif destination_type not in {"organization-ledger", "local-test"}:
         errors.append("destination_type is not allowed")
 
     if errors:

@@ -71,8 +71,8 @@ def test_pipeline_accepts_destination_config():
     result = run_ecosystem_chat_pipeline(
         payload(),
         destination_config={
-            "destination_name": "master-records/ecosystem-chat",
-            "destination_type": "master-records",
+            "destination_name": "organization-ledger/ecosystem-chat",
+            "destination_type": "organization-ledger",
         },
     )
 

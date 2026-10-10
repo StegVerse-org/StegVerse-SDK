@@ -172,7 +172,7 @@ def build_governed_request(packet: Mapping[str, Any]) -> dict[str, Any]:
         "return_projection": "ALL",
         "manifest_labels": True,
         "authority_claim": False,
-        "notes": "MCP production-artifact test using canonical Core-Lite/StegCore/StegGate/Master Records path.",
+        "notes": "MCP production-artifact test using canonical Core-Lite/StegCore/StegGate path; Master Records is not an authority on this path.",
     }
 
 

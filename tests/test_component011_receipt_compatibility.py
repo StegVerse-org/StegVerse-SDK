@@ -77,7 +77,10 @@ def test_no_receipts_retains_all_missing_predicates():
     assert r["schema"] == SCHEMA
     assert "AUTHENTIC_REQUEST_CONSUMPTION_RECEIPT_MISSING" in r["missing_or_unproven"]
     assert "AUTHENTIC_ORGANIZATION_LEDGER_RECEIPT_MISSING" in r["missing_or_unproven"]
-    assert "CANONICAL_MASTER_RECORDS_READBACK_MISSING" in r["missing_or_unproven"]
+    # Master Records is downstream evidence, never a missing predicate.
+    assert not any("MASTER_RECORDS" in item for item in r["missing_or_unproven"])
+    assert r["downstream_master_records"]["status"] == "NOT_SUPPLIED"
+    assert r["downstream_master_records"]["gates_reconciliation"] is False
     assert not r["authentic_runtime_proven"]
 
 
@@ -113,11 +116,15 @@ def test_mismatched_source_and_org_linkage_detected():
     assert "ORGANIZATION_SOURCE_TRANSITION_EXACT_LINK_MISSING" in reasons
 
 
-def test_master_records_claims_must_match_org_receipt_and_exact_digest():
+def test_master_records_claims_are_checked_against_org_receipt_without_gating():
+    assert inspect(*sample())["downstream_master_records"]["status"] == "CLAIM_SHAPE_CONSISTENT"
     x = list(sample())
     x[4]["reconstructed_receipt_sha256"] = "mismatch"
     x[4]["organization_receipt_sha256"] = "wrong"
-    assert "MASTER_RECORDS_ORGANIZATION_RECORD_OR_ORG_BINDING_MISSING" in inspect(*x)["missing_or_unproven"]
+    r = inspect(*x)
+    assert r["downstream_master_records"]["status"] == "CLAIM_SHAPE_INCONSISTENT"
+    assert r["downstream_master_records"]["finding"] == "MASTER_RECORDS_CLAIM_NOT_BOUND_TO_ORGANIZATION_RECEIPT"
+    assert r["missing_or_unproven"] == inspect(*sample())["missing_or_unproven"]
 
 
 def test_incorrect_consumption_does_not_become_runtime_execution():

@@ -112,7 +112,7 @@ SDK_SURFACES: Dict[str, Dict[str, Any]] = {
         "module": "stegverse.self_characterization_lane.validate_lane_profile",
         "documentation": "docs/SELF_CHARACTERIZATION_TRAJECTORY_LANE.md",
         "authority_effect": "NONE",
-        "result_semantics": "Validates the frozen S0 lane envelope and scoring contract. Viewer-bound replay/reconstruction uses stegverse-self-characterization and canonical Master Records operations.",
+        "result_semantics": "Validates the frozen S0 lane envelope and scoring contract. Viewer-bound replay/reconstruction uses stegverse-self-characterization replay/reconstruction operations.",
         "repository_examples": [
             "inspection/examples/self-characterization-s0.example.json",
         ],

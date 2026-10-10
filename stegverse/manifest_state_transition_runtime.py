@@ -41,8 +41,9 @@ DESTINATION_RESOLUTION_SOURCE = "CANONICAL_CONNECTOR_CAPABILITY_OVERLAY"
 RECEIVER_UNAVAILABLE_DISPOSITION = "DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION"
 
 # What an authentic Organization/Interlock transition closure must carry to be
-# admitted. Master Records reconstruction is not part of admission: it is
-# organization-records evidence only and never gates a result (owner directive,
+# admitted: the transition closes on the organization-ledger transition receipt.
+# Master Records only records released organization batch receipts downstream;
+# its reconstruction is evidence only and never gates a result (owner directive,
 # StegVerse-SDK#368 issuecomment-6089922594: "Master Records reconstruction is
 # evidence-only and non-gating").
 _REQUIRED_CLOSURE = {
@@ -50,6 +51,10 @@ _REQUIRED_CLOSURE = {
     "required_evidence_validation_status": "PASS",
 }
 MASTER_RECORDS_EVIDENCE_SCHEMA = "stegverse.sdk.master-records-reconstruction-evidence/v1"
+_WORKER_ATTACHMENT_REPAIR_EVIDENCE = [
+    "EXACT_REQUEST_BOUND_ORIGINAL_INTR_DISPOSITION",
+    "ORGANIZATION_LEDGER_RECEIPT_AND_PREDECESSOR",
+]
 
 
 
@@ -145,7 +150,14 @@ def derive_execution_request(manifest: Mapping[str, Any], organization_boundary:
         "credential_authority": "TV/TVC",
         "claim_fence_authority": "WORKERCOORDINATOR",
         "transition_authority": "INTERLOCK_INTR",
+        "transition_receipt_authority": "ORGANIZATION_LEDGER",
+        # Legacy wire field still required verbatim by the pinned receiving
+        # Interlock (StegVerse-Labs/.github manifest_state_transition_intr_ingress);
+        # it confers nothing here. Removal is tracked under
+        # LLMA-DECLARED-PATH-CONFORMANCE-368 and needs that receiver changed first.
         "custody_replay_reconstruction_authority": "MASTER_RECORDS",
+        "downstream_batch_receipt_recorder": "MASTER_RECORDS",
+        "downstream_batch_receipt_recording_gates_transition": False,
         "manifest_declared_destination": destination,
         "destination_resolution_source": DESTINATION_RESOLUTION_SOURCE,
         # Nothing outside the manifest may name a destination.
@@ -210,7 +222,8 @@ def _master_records_evidence(
         "closures": closures,
         "evidence_status": overall,
         "gates_admission": False,
-        "authority": "MASTER_RECORDS",
+        "recorder": "MASTER_RECORDS",
+        "recorder_role": "DOWNSTREAM_RELEASED_BATCH_RECEIPT_RECORDING",
         "authority_effect": "NONE_EVIDENCE_ONLY",
     }
 
@@ -226,26 +239,26 @@ def _validate_transition_closures(result: Mapping[str, Any], graph: Mapping[str,
         if not isinstance(ordered, list) or not ordered or not all(isinstance(x, str) and x for x in ordered):
             raise ValueError("RUNTIME_CANONICAL_ORDERED_TRANSITIONS_REQUIRED")
     if not isinstance(closures, list) or len(closures) != len(ordered):
-        raise ValueError("MASTER_RECORDS_ORGANIZATION_RECORD_COUNT_MISMATCH")
+        raise ValueError("ORGANIZATION_LEDGER_CLOSURE_COUNT_MISMATCH")
     previous_receipt = None
     evidence = []
     for index, (expected_transition, raw) in enumerate(zip(ordered, closures)):
         if not isinstance(raw, Mapping):
-            raise ValueError(f"MASTER_RECORDS_ORGANIZATION_RECORD_OBJECT_REQUIRED:{index}")
+            raise ValueError(f"ORGANIZATION_LEDGER_CLOSURE_OBJECT_REQUIRED:{index}")
         closure = dict(raw)
         if closure.get("transition_id") != expected_transition:
-            raise ValueError(f"MASTER_RECORDS_TRANSITION_ORDER_MISMATCH:{index}")
+            raise ValueError(f"ORGANIZATION_LEDGER_TRANSITION_ORDER_MISMATCH:{index}")
         for key, expected in _REQUIRED_CLOSURE.items():
             if closure.get(key) != expected:
-                raise ValueError(f"MASTER_RECORDS_ORGANIZATION_RECORD_REQUIRED:{expected_transition}:{key}")
+                raise ValueError(f"ORGANIZATION_LEDGER_CLOSURE_REQUIRED:{expected_transition}:{key}")
         receipt = closure.get("receipt_sha256")
         if not isinstance(receipt, str) or not receipt:
-            # The Organization transition receipt itself is required; only its
-            # Master Records reconstruction is evidence.
-            raise ValueError(f"MASTER_RECORDS_RECEIPT_RECONSTRUCTION_MISMATCH:{expected_transition}")
+            # The organization-ledger transition receipt itself is required; a
+            # downstream Master Records reconstruction of it is evidence only.
+            raise ValueError(f"ORGANIZATION_LEDGER_TRANSITION_RECEIPT_REQUIRED:{expected_transition}")
         if index:
             if closure.get("predecessor_receipt_sha256") != previous_receipt:
-                raise ValueError(f"MASTER_RECORDS_IMMEDIATE_PREDECESSOR_MISMATCH:{expected_transition}")
+                raise ValueError(f"ORGANIZATION_LEDGER_IMMEDIATE_PREDECESSOR_MISMATCH:{expected_transition}")
         previous_receipt = receipt
         evidence.append(_closure_reconstruction_evidence(closure))
     return evidence
@@ -300,8 +313,9 @@ def _validate_profile_source_deny(result: Mapping[str, Any], request: Mapping[st
 def _validate_nonterminal_diagnostic_progress(result: Mapping[str, Any], request: Mapping[str, Any]) -> dict[str, Any]:
     """Only validate lineage, not independently attest the resident receipts.
 
-    The native consumer already performs actual organization-first Master Records
-    custody. This SDK projection cannot convert its response to terminal egress.
+    The native consumer already appends to the organization ledger; Master Records
+    may record the released batch receipt downstream and never gates progress.
+    This SDK projection cannot convert its response to terminal egress.
     """
     expected = {
         "schema": "stegverse.sdk.manifest-state-transition-progress/v1",
@@ -335,12 +349,19 @@ def _validate_nonterminal_diagnostic_progress(result: Mapping[str, Any], request
         raise ValueError("SDK_DIAGNOSTIC_PROGRESS_ORIGINAL_PUBLISHER_REQUIRED")
     if result.get("source_manifest_file_sha256") != "e1b05a082ce19d3d254e3cde1dced03019174a94287724959672c9e65510c8f3":
         raise ValueError("SDK_DIAGNOSTIC_PROGRESS_FROZEN_FILE_MISMATCH")
-    for key in ("diagnostic_result_sha256", "intr_admission_master_records_receipt_sha256",
-                "runtime_binding_master_records_receipt_sha256", "diagnostic_master_records_receipt_sha256",
-                "organization_receipt_sha256", "organization_previous_receipt_sha256"):
-        value = result.get(key)
-        if not isinstance(value, str) or len(value) != 64 or any(ch not in "0123456789abcdef" for ch in value):
+    def _is_digest(value: Any) -> bool:
+        return isinstance(value, str) and len(value) == 64 and all(ch in "0123456789abcdef" for ch in value)
+
+    # Progress closes on the organization-ledger receipts.
+    for key in ("diagnostic_result_sha256", "organization_receipt_sha256", "organization_previous_receipt_sha256"):
+        if not _is_digest(result.get(key)):
             raise ValueError(f"SDK_DIAGNOSTIC_PROGRESS_RECEIPT_DIGEST_REQUIRED:{key}")
+    # Downstream Master Records receipt digests are optional evidence; when a
+    # producer supplies one it must still be well formed.
+    for key in ("intr_admission_master_records_receipt_sha256",
+                "runtime_binding_master_records_receipt_sha256", "diagnostic_master_records_receipt_sha256"):
+        if key in result and not _is_digest(result.get(key)):
+            raise ValueError(f"SDK_DIAGNOSTIC_PROGRESS_RECEIPT_DIGEST_MALFORMED:{key}")
     for key in ("node_id", "interlock_id", "lease_id", "runtime_id", "diagnostic_result_ref"):
         if not isinstance(result.get(key), str) or not result[key]:
             raise ValueError(f"SDK_DIAGNOSTIC_PROGRESS_RUNTIME_BINDING_REQUIRED:{key}")
@@ -391,11 +412,13 @@ def _validate_worker_result_attachment_fail_closed(
         if result.get(key) != request.get(key):
             raise ValueError(f"WORKER_ATTACHMENT_FAIL_CLOSED_BINDING_MISMATCH:{key}")
     evidence = result.get("required_evidence_refs")
-    if not isinstance(evidence, list) or evidence != [
-        "EXACT_REQUEST_BOUND_ORIGINAL_INTR_DISPOSITION",
-        "ORGANIZATION_LEDGER_RECEIPT_AND_PREDECESSOR",
-        "MATCHING_MASTER_RECORDS_RECONSTRUCTION",
-    ]:
+    # Repair evidence is the InTr disposition and the organization-ledger receipt.
+    # Producers that still list the downstream Master Records reconstruction are
+    # read unchanged, but it is never required (LLMA-DECLARED-PATH-CONFORMANCE-368).
+    if not isinstance(evidence, list) or evidence not in (
+        _WORKER_ATTACHMENT_REPAIR_EVIDENCE,
+        _WORKER_ATTACHMENT_REPAIR_EVIDENCE + ["MATCHING_MASTER_RECORDS_RECONSTRUCTION"],
+    ):
         raise ValueError("WORKER_ATTACHMENT_FAIL_CLOSED_EVIDENCE_CONTRACT_MISMATCH")
     if not isinstance(result.get("repair_owner"), str) or not result["repair_owner"]:
         raise ValueError("WORKER_ATTACHMENT_FAIL_CLOSED_REPAIR_OWNER_REQUIRED")
@@ -477,7 +500,7 @@ def _validate_shwp_parent_profile_result(result: Mapping[str, Any], request: Map
         if result.get("consumer_disposition") != "ALLOW":
             raise ValueError("SHWP_NONTERMINAL_PARENT_CONSUMPTION_UNVERIFIED")
         # Even a verified original parent return is not original organization
-        # HEAD/readback or independent predecessor-linked Master Records proof.
+        # ledger HEAD/readback.
         if result.get("runtime_execution_attempted") is not True:
             raise ValueError("SHWP_NONTERMINAL_EXECUTION_ATTEMPT_REQUIRED")
     else:

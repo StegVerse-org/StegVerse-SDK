@@ -39,7 +39,7 @@ class GovernanceNavigationTests(unittest.TestCase):
             self.assertIn("manifest_profile", text)
             self.assertIn("return_projection", text)
             self.assertIn("manifest_labels", text)
-            self.assertIn("Master Records organization record is independent", text)
+            self.assertIn("ledger record is independent of", text)
 
     def test_manifest_shape_labels_transition_and_receipt_classes(self):
         text = manifest_shape_guidance()

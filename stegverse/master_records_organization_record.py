@@ -1,14 +1,16 @@
-"""Organization-record requests and reconstruction verification for universal-entry events.
+"""Downstream Master Records recording and reconstruction verification for universal-entry events.
 
 Local continuation-event creation does not create an organization record. This module
-sends a validated chain to an external Master-Records service so it is kept as an
-organization record, requires an identity-matched organization-record receipt, and
-independently verifies the reconstructed event chain returned by the service before a
-caller may describe the chain as recorded.
+sends a released, validated chain to an external Master-Records service for downstream
+recording, requires an identity-matched recording receipt, and independently verifies
+the reconstructed event chain returned by the service before a caller may describe the
+chain as recorded there.
 
-The Organization owns custody of its runtime history; Master Records keeps the
-organization record and supports reconstruction from it. Interlock/InTr admits
-transitions. Nothing in this module admits, gates or authorizes anything.
+The Organization owns custody of its runtime history in its own ledger; Master Records
+only records released organization batch receipts for cross-organization
+reconstruction. Interlock/InTr admits transitions. Nothing in this module admits, gates
+or authorizes anything, and callers must treat its failures as non-gating
+(LLMA-DECLARED-PATH-CONFORMANCE-368).
 
 Naming migration (MASTER-RECORDS-BULK-SEMANTIC-REMEDIATION-002): writers emit only the
 new organization-record names. Readers also accept the ``LEGACY_*`` names below so

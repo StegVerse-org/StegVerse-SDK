@@ -78,6 +78,16 @@ class GenericResultAdmissionTests(unittest.TestCase):
         self.assertIs(evidence["gates_admission"], False)
         self.assertEqual(evidence["authority_effect"], "NONE_EVIDENCE_ONLY")
 
+    def test_request_closes_on_organization_ledger_not_master_records(self):
+        self.assertEqual(self.request["transition_receipt_authority"], "ORGANIZATION_LEDGER")
+        self.assertEqual(self.request["downstream_batch_receipt_recorder"], "MASTER_RECORDS")
+        self.assertIs(self.request["downstream_batch_receipt_recording_gates_transition"], False)
+        # Legacy wire field kept only for the pinned receiving Interlock.
+        self.assertEqual(self.request["custody_replay_reconstruction_authority"], "MASTER_RECORDS")
+        evidence = validate_runtime_result(self.result, self.request)["master_records_reconstruction_evidence"]
+        self.assertNotIn("authority", evidence)
+        self.assertEqual(evidence["recorder_role"], "DOWNSTREAM_RELEASED_BATCH_RECEIPT_RECORDING")
+
     def test_master_records_pass_is_reported(self):
         evidence = validate_runtime_result(self.result, self.request)["master_records_reconstruction_evidence"]
         self.assertEqual(evidence["evidence_status"], "PASS")
@@ -131,17 +141,17 @@ class GenericResultAdmissionTests(unittest.TestCase):
             mutate(broken)
             cases.append((pattern, broken))
 
-        case("MASTER_RECORDS_ORGANIZATION_RECORD_REQUIRED:.*:state",
+        case("ORGANIZATION_LEDGER_CLOSURE_REQUIRED:.*:state",
              lambda r: r["transition_closures"][0].update(state="PENDING"))
-        case("MASTER_RECORDS_ORGANIZATION_RECORD_REQUIRED:.*:required_evidence_validation_status",
+        case("ORGANIZATION_LEDGER_CLOSURE_REQUIRED:.*:required_evidence_validation_status",
              lambda r: r["transition_closures"][1].update(required_evidence_validation_status="FAIL"))
-        case("MASTER_RECORDS_RECEIPT_RECONSTRUCTION_MISMATCH",
+        case("ORGANIZATION_LEDGER_TRANSITION_RECEIPT_REQUIRED",
              lambda r: r["transition_closures"][0].pop("receipt_sha256"))
-        case("MASTER_RECORDS_IMMEDIATE_PREDECESSOR_MISMATCH",
+        case("ORGANIZATION_LEDGER_IMMEDIATE_PREDECESSOR_MISMATCH",
              lambda r: r["transition_closures"][2].update(predecessor_receipt_sha256="0" * 64))
-        case("MASTER_RECORDS_TRANSITION_ORDER_MISMATCH",
+        case("ORGANIZATION_LEDGER_TRANSITION_ORDER_MISMATCH",
              lambda r: r["transition_closures"][0].update(transition_id="OTHER"))
-        case("MASTER_RECORDS_ORGANIZATION_RECORD_COUNT_MISMATCH",
+        case("ORGANIZATION_LEDGER_CLOSURE_COUNT_MISMATCH",
              lambda r: r["transition_closures"].pop())
         case("UNIVERSAL_INTR_RESULT_BINDING_MISMATCH:canonical_manifest_sha256",
              lambda r: r.update(canonical_manifest_sha256="0" * 64))
@@ -183,9 +193,9 @@ class GovernanceResultAdmissionTests(unittest.TestCase):
             "GOVERNANCE_RESULT_BINDING_MISMATCH:request_sha256": lambda r: r.update(request_sha256="0" * 64),
             "GOVERNANCE_RESULT_EXTERNAL_MUTATION_ESCALATION": lambda r: r.update(publisher_executed=True),
             "GOVERNANCE_RESULT_STATE_MISMATCH": lambda r: r.update(state="COMPLETE"),
-            "MASTER_RECORDS_IMMEDIATE_PREDECESSOR_MISMATCH":
+            "ORGANIZATION_LEDGER_IMMEDIATE_PREDECESSOR_MISMATCH":
                 lambda r: r["transition_closures"][1].update(predecessor_receipt_sha256="0" * 64),
-            "MASTER_RECORDS_RECEIPT_RECONSTRUCTION_MISMATCH": lambda r: r["transition_closures"][1].pop("receipt_sha256"),
+            "ORGANIZATION_LEDGER_TRANSITION_RECEIPT_REQUIRED": lambda r: r["transition_closures"][1].pop("receipt_sha256"),
             "ORGANIZATION_BATCH_NONALLOW_MUST_NOT_EXECUTE_ACTION": lambda r: r.update(manifest_directed_action={}),
         }
         for pattern, mutate in cases.items():

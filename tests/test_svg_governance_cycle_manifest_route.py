@@ -24,7 +24,6 @@ def processor_request():
         "expected_evidence": [
             "ORIGINAL_INTR_DISPOSITION",
             "ORGANIZATION_LEDGER_RECEIPT_AND_PREDECESSOR",
-            "MATCHING_MASTER_RECORDS_RECONSTRUCTION",
         ],
         "authority_effect": "NONE_MANIFEST_REQUEST_ONLY",
     }

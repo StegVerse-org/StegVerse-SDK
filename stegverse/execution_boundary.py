@@ -5,7 +5,8 @@ n=1 falsification surface. Historical authorization is recorded separately from
 continuing admissibility at the point of consequence. The helper is
 side-effect-free and non-authorizing: callers may use the resulting disposition
 as SDK evidence, while actual execution authority remains with the canonical
-StegCore/StegGate/Master Records path.
+StegCore/StegGate and Interlock/InTr path (Master Records is a downstream recorder,
+not an authority).
 """
 
 from __future__ import annotations

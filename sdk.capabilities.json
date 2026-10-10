@@ -109,5 +109,5 @@
       "tests/test_integration_config.py"
     ]
   },
-  "activation_definition": "The SDK may report implementation readiness only after current-main validation is observed. Live capability claims additionally require authorized repository and Master-Records credential resolvers, observed immutable GitHub reads, deployed provider and organization-record endpoints, Site transport, identity-matched receipts, and reconstructability evidence. No installed SDK contract or HTTP transport grants execution, delegation, publication, admissibility, custody, standing, deployment, activation, consciousness, personhood, or welfare status."
+  "activation_definition": "The SDK may report implementation readiness only after current-main validation is observed. Live capability claims additionally require authorized repository credential resolvers, observed immutable GitHub reads, deployed provider endpoints, Site transport, and identity-matched organization-ledger receipts. Master Records recording and reconstructability of released batch receipts are optional downstream evidence and never a condition of a capability claim. No installed SDK contract or HTTP transport grants execution, delegation, publication, admissibility, custody, standing, deployment, activation, consciousness, personhood, or welfare status."
 }

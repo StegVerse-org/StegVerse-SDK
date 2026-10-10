@@ -77,10 +77,11 @@ a{{text-underline-offset:3px}} .muted{{opacity:.75}} .boundary{{border-left:4px 
 -&gt; caller-selected processing capability
 -&gt; declared installed runtime route
 -&gt; processor-specific evaluation
--&gt; canonical Master Records organization record
+-&gt; organization-ledger transition receipt (the Organization keeps custody)
 -&gt; caller-selected return projection
 -&gt; returned artifact + manifest_receipt_id
--&gt; replay / reconstruction where applicable</pre>
+-&gt; replay / reconstruction where applicable
+(downstream, non-gating: Master Records records the released batch receipt)</pre>
 
 <h2>Developer paths</h2>
 <div class="grid">
@@ -100,7 +101,7 @@ a{{text-underline-offset:3px}} .muted{{opacity:.75}} .boundary{{border-left:4px 
 </div>
 
 <h2>Authority boundaries</h2>
-<p>The SDK validates/manifests intake and returns evidence. Interlock/InTr owns governed ingress/egress transition seams where required. The Organization owns custody of its runtime history; Master Records keeps the canonical organization records and supports reconstruction from them, and grants no transition authority. Publisher may materialize an approved presentation/publication projection but does not become governance authority. TV/TVC remains credential authority where credentials are required. This wiki grants none of those authorities.</p>
+<p>The SDK validates/manifests intake and returns evidence. Interlock/InTr owns governed ingress/egress transition seams where required. The Organization owns custody of its runtime history in its organization ledger, and each transition closes on the organization-ledger receipt. Master Records records released organization batch receipts downstream for cross-organization reconstruction; it is not custody, not a gate and grants no transition authority, and nothing waits on it. Publisher may materialize an approved presentation/publication projection but does not become governance authority. TV/TVC remains credential authority where credentials are required. This wiki grants none of those authorities.</p>
 
 <h2>Machine-readable provenance</h2>
 <p><a href="wiki-source-manifest.json">Wiki source manifest</a> records the exact published source revision and SHA-256 digest for each copied canonical source file.</p>

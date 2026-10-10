@@ -1,4 +1,4 @@
-"""Concrete server-side HTTP transport for Master-Records organization records and reconstruction.
+"""Concrete server-side HTTP transport for downstream Master-Records recording and reconstruction.
 
 Credentials are resolved at call time through an injected resolver and are never stored
 in returned evidence. This module performs transport only; it does not itself validate
