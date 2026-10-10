@@ -4,6 +4,15 @@ A release set is evidence, not authority. The immutable run snapshot records the
 installed components that actually participated. A separate public catalog may
 be refreshed later so replay/reconstruction can distinguish historical runtime
 state from the ecosystem's current released state.
+
+Schema versions (replay-safe migration, SDK-MR-A-VALIDATION-CUSTODY-001):
+
+- ``v1`` is frozen. Its component roles are part of every recorded v1
+  ``release_set_hash``, so the v1 table below is never edited; it exists only so
+  a retained v1 set still verifies exactly as recorded.
+- ``v2`` is produced for new runs. The run-evidence component carries the
+  canonical role ``downstream_run_evidence`` and is the SDK's own local run
+  record (``stegverse.local_run_record``), which participates in the run.
 """
 from __future__ import annotations
 
@@ -18,16 +27,29 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-SCHEMA = "stegverse.production-release-set.v1"
+SCHEMA_V1 = "stegverse.production-release-set.v1"
+SCHEMA_V2 = "stegverse.production-release-set.v2"
+SCHEMA = SCHEMA_V2
 CATALOG_SCHEMA = "stegverse.production-release-catalog.v1"
 _HEX_SHA = re.compile(r"^[0-9a-fA-F]{7,64}$")
 
-COMPONENTS = (
+# Frozen: recorded v1 hashes cover these exact role labels. Verification only.
+COMPONENTS_V1 = (
     {"role": "sdk_entry", "distribution": "stegverse-sdk", "repository": "StegVerse-org/StegVerse-SDK"},
     {"role": "governance_runtime", "distribution": "stegcore", "repository": "StegVerse-Labs/StegCore"},
     {"role": "manifest_route_carrier", "distribution": "stegverse-core-lite", "repository": "Data-Continuation/core-lite"},
     {"role": "exact_run_custody", "distribution": "stegverse-master-records", "repository": "master-records/orchestration"},
 )
+
+COMPONENTS_V2 = (
+    {"role": "sdk_entry", "distribution": "stegverse-sdk", "repository": "StegVerse-org/StegVerse-SDK"},
+    {"role": "governance_runtime", "distribution": "stegcore", "repository": "StegVerse-Labs/StegCore"},
+    {"role": "manifest_route_carrier", "distribution": "stegverse-core-lite", "repository": "Data-Continuation/core-lite"},
+    {"role": "downstream_run_evidence", "distribution": "stegverse-sdk", "repository": "StegVerse-org/StegVerse-SDK"},
+)
+
+COMPONENTS_BY_SCHEMA = {SCHEMA_V1: COMPONENTS_V1, SCHEMA_V2: COMPONENTS_V2}
+COMPONENTS = COMPONENTS_V2
 
 
 def _canonical_hash(value: Any) -> str:
@@ -115,16 +137,63 @@ def installed_release_set() -> dict[str, Any]:
     return payload
 
 
+def verify_release_set(recorded: Any) -> dict[str, Any]:
+    """Verify a retained release set exactly as recorded, under its own schema version.
+
+    The hash is recomputed over the recorded body (everything but
+    ``release_set_hash``); nothing is relabelled or migrated first, so a v1 set
+    verifies with its original ``exact_run_custody`` role and a v2 set with
+    ``downstream_run_evidence``. Verification is evidence; it grants nothing.
+    """
+    base = {"authority_effect": "NONE", "historical_record_mutated": False}
+    if not isinstance(recorded, dict):
+        return {**base, "verified": False, "schema": None, "reason": "release_set_missing"}
+    schema = recorded.get("schema")
+    expected_components = COMPONENTS_BY_SCHEMA.get(schema)
+    if expected_components is None:
+        return {**base, "verified": False, "schema": schema, "reason": "unknown_release_set_schema"}
+    body = {key: value for key, value in recorded.items() if key != "release_set_hash"}
+    recomputed = _canonical_hash(body)
+    roles = [
+        {"role": row.get("role"), "distribution": row.get("distribution"), "repository": row.get("repository")}
+        for row in recorded.get("components") or [] if isinstance(row, dict)
+    ]
+    if roles != [dict(spec) for spec in expected_components]:
+        reason = "component_roles_do_not_match_schema"
+    elif recomputed != recorded.get("release_set_hash"):
+        reason = "release_set_hash_mismatch"
+    else:
+        reason = "ok"
+    return {
+        **base,
+        "verified": reason == "ok",
+        "schema": schema,
+        "recorded_release_set_hash": recorded.get("release_set_hash"),
+        "recomputed_release_set_hash": recomputed,
+        "reason": reason,
+    }
+
+
 def _fetch_json(url: str, timeout: int) -> Any:
     req = Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "stegverse-sdk-production-release-catalog"})
     with urlopen(req, timeout=timeout) as response:  # nosec B310 - fixed public GitHub API roots
         return json.loads(response.read().decode("utf-8"))
 
 
+def _distinct_repositories(specs: tuple[dict[str, str], ...]) -> list[dict[str, str]]:
+    seen: set[str] = set()
+    rows = []
+    for spec in specs:
+        if spec["repository"] not in seen:
+            seen.add(spec["repository"])
+            rows.append(spec)
+    return rows
+
+
 def public_release_catalog(*, timeout: int = 15) -> dict[str, Any]:
     """Return current public releases and release changelogs for every production component."""
     rows: list[dict[str, Any]] = []
-    for spec in COMPONENTS:
+    for spec in _distinct_repositories(COMPONENTS):
         repo = spec["repository"]
         api = f"https://api.github.com/repos/{repo}/releases?per_page=100"
         try:
@@ -175,11 +244,16 @@ def public_release_catalog(*, timeout: int = 15) -> dict[str, Any]:
 
 def compare_release_sets(original: dict[str, Any] | None, current: dict[str, Any]) -> dict[str, Any]:
     original_hash = original.get("release_set_hash") if isinstance(original, dict) else None
+    original_schema = original.get("schema") if isinstance(original, dict) else None
     return {
         "original_release_set_hash": original_hash,
         "current_release_set_hash": current.get("release_set_hash"),
         "same_installed_release_set": bool(original_hash) and original_hash == current.get("release_set_hash"),
         "release_set_changed_since_original_run": bool(original_hash) and original_hash != current.get("release_set_hash"),
+        "original_release_set_schema": original_schema,
+        "current_release_set_schema": current.get("schema"),
+        "release_set_schema_changed": original_schema is not None and original_schema != current.get("schema"),
+        "original_release_set_verification": verify_release_set(original) if original is not None else None,
         "historical_record_mutated": False,
         "authority_effect": "NONE",
     }

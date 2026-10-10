@@ -34,7 +34,7 @@ def main(argv: list[str] | None = None) -> int:
         op = sub.add_parser(name, help=f"run canonical {name.split('-')[1]} with viewer-bound correlation")
         op.add_argument("--manifest-receipt-id", required=True)
         op.add_argument("--viewer-node-id", required=True)
-        op.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db")
+        op.add_argument("--records-db", "--custody-db", dest="custody_db", default=None)
 
     args = parser.parse_args(argv)
     if args.command == "prepare":

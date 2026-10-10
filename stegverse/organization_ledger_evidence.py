@@ -7,9 +7,9 @@ fresh fetch of ``refs/stegverse/organization-ledger`` (schema
 ``stegverse.organization-ledger-readback/v1``). This module checks that document;
 it does not open, write or vendor a ledger, and it creates no receipt.
 
-Local Master Records custody (``ManifestReceiptCustody`` ``RECORDED``) remains
-downstream, non-gating evidence: nothing here reads it and it cannot stand in for
-the readback.
+The SDK's local run record (``stegverse.local_run_record``) remains downstream,
+non-gating evidence: nothing here reads it and it cannot stand in for the
+readback.
 
 Every non-ALLOW carries the six fields of a refusal. Stdlib only.
 """

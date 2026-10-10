@@ -158,23 +158,19 @@ python -m pip install -e ".[dev,governed-test]"
 Run:
 
 ```bash
-python -m stegverse.public_inspection_runtime run inspection/examples/governed-test-request.json
+python -m stegverse.public_inspection_runtime run inspection/examples/governed-test-request.json --records-db ./my-run-record.db
 ```
 
-The default runtime is local and uses canonical pinned Core-Lite, StegCore/StegGate, and Master Records implementations. Its consequence is simulated and produces no external side effect. The test records the governance and route evidence locally before reporting success.
+The default runtime is local and uses canonical pinned Core-Lite and StegCore/StegGate implementations. Its consequence is simulated and produces no external side effect. The test records the governance and route evidence in the SDK-internal local run record (non-authoritative; not Master Records custody) before reporting success.
 
-Default local custody file:
-
-```text
-./stegverse-master-records-validation.db
-```
+The local run record is written only at the location passed with `--records-db`; there is no default location.
 
 The sovereign evaluator path does not require a hosted evaluator or a GitHub token as runtime authority.
 
 ## Replay
 
 ```bash
-python -m stegverse.public_inspection_runtime replay MR-<SHA256>
+python -m stegverse.public_inspection_runtime replay MR-<SHA256> --records-db ./my-run-record.db
 ```
 
 Replay preserves the original run and does not invoke the original consequence. Its own operation history is recorded before return.
@@ -182,7 +178,7 @@ Replay preserves the original run and does not invoke the original consequence. 
 ## Reconstruction
 
 ```bash
-python -m stegverse.public_inspection_runtime reconstruct MR-<SHA256>
+python -m stegverse.public_inspection_runtime reconstruct MR-<SHA256> --records-db ./my-run-record.db
 ```
 
 Reconstruction preserves the original run and does not re-execute the original consequence. Its own operation history is recorded before return.

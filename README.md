@@ -277,7 +277,7 @@ stegverse governance --select 0A --input my-test.json
 or directly through the canonical runtime:
 
 ```bash
-python -m stegverse.public_inspection_runtime run my-test.json
+python -m stegverse.public_inspection_runtime run my-test.json --records-db ./my-run-record.db
 ```
 
 A caller that already has a preformatted `stegverse.ingress-manifest.v1` can submit that manifest through the same primary governance console:
@@ -296,7 +296,7 @@ python -m stegverse.governance_ingress_cli 0B my-manifest.json
 
 ## Run the canonical governed TEST locally
 
-The public inspection runtime is sovereign/local by default. It uses the canonical pinned Core-Lite and StegCore/StegGate implementations, plus the master-records package as its local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody), and does **not** require Render, Vercel, GitHub Actions, or another hosted runtime.
+The public inspection runtime is sovereign/local by default. It uses the canonical pinned Core-Lite and StegCore/StegGate implementations, plus the SDK-internal local run record (`stegverse.local_run_record`; non-authoritative, not Master Records authority or custody), and does **not** require Render, Vercel, GitHub Actions, or another hosted runtime.
 
 Install the pinned governed-test dependencies:
 
@@ -308,24 +308,13 @@ Then run a governed test request:
 
 ```bash
 python -m stegverse.public_inspection_runtime run \
-  inspection/examples/governed-test-request.json
-```
-
-The default local run-store file (master-records package local store; known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody) is:
-
-```text
-./stegverse-master-records-validation.db
-```
-
-You may choose another local path explicitly:
-
-```bash
-python -m stegverse.public_inspection_runtime run \
   inspection/examples/governed-test-request.json \
-  --custody-db ./my-validation-custody.db
+  --records-db ./my-run-record.db
 ```
 
-A successful run returns a canonical governance state, one continuous transaction identity, manifested-route receipts, a `manifest_receipt_id`, verified StegCore receipt-chain status, and `master_records_organization_record_status: RECORDED`. That status reflects the local lane's master-records package store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368); it is not a Master Records gate, and the transition closes on the organization-ledger transition receipt.
+The local run record is written only at the location you pass with `--records-db` (the older `--custody-db` spelling is still accepted); there is no default location.
+
+A successful run returns a canonical governance state, one continuous transaction identity, manifested-route receipts, a `manifest_receipt_id`, verified StegCore receipt-chain status, and `master_records_organization_record_status: RECORDED`. That status reflects the local lane's SDK-internal run record; it is not a Master Records gate, and the transition closes on the organization-ledger transition receipt.
 
 The governed TEST uses a deliberately simulated consequence executor:
 
@@ -559,7 +548,7 @@ Replay uses the exact-run locator and does not overwrite the original run or re-
 
 ```bash
 python -m stegverse.public_inspection_runtime replay \
-  MR-<SHA256>
+  MR-<SHA256> --records-db ./my-run-record.db
 ```
 
 Replay itself is new ecosystem history and records this operation trajectory before returning its artifact:
@@ -572,7 +561,7 @@ REQUESTED -> SOURCE_RESOLVED -> EVALUATED -> RETURNED
 
 ```bash
 python -m stegverse.public_inspection_runtime reconstruct \
-  MR-<SHA256>
+  MR-<SHA256> --records-db ./my-run-record.db
 ```
 
 Reconstruction does not re-execute the original consequence. Its own operation trajectory is recorded before the artifact is returned:
@@ -672,7 +661,7 @@ stegverse-self-characterization viewer-reconstruct \
   --viewer-node-id node:<stable-viewer-id>
 ```
 
-Canonical replay/reconstruction remain unchanged. The SDK appends a non-authorizing `VIEWER_BOUND` operation event to the same retained run record (currently held in the master-records package local run store (known nonconforming dependency, LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody)), producing deterministic `VR-<SHA256>` and `VC-<SHA256>` correlation identities tied to the canonical run locator, viewer node ID, operation, and lane version. The source run is not mutated and viewer identity is not a governance decision input.
+Canonical replay/reconstruction remain unchanged. The SDK appends a non-authorizing `VIEWER_BOUND` operation event to the same retained run record (the SDK-internal `stegverse.local_run_record`; not Master Records authority or custody), producing deterministic `VR-<SHA256>` and `VC-<SHA256>` correlation identities tied to the canonical run locator, viewer node ID, operation, and lane version. The source run is not mutated and viewer identity is not a governance decision input.
 
 Full contract: `docs/SELF_CHARACTERIZATION_TRAJECTORY_LANE.md`.
 

@@ -262,7 +262,8 @@ def main() -> int:
     parser.add_argument(
         "--custody-db",
         type=Path,
-        default=Path("./stegverse-master-records-validation.db"),
+        required=True,
+        help="caller-supplied location of the local run record (non-authoritative evidence)",
     )
     parser.add_argument(
         "--output-dir",

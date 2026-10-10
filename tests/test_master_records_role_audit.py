@@ -59,6 +59,19 @@ class MasterRecordsRoleAuditTests(unittest.TestCase):
                       if "custody_replay_reconstruction_authority" in r["text_before"]]
         self.assertEqual(len(remediated), 2)
 
+    def test_final_six_rows_are_remediated_and_nothing_is_blocked(self):
+        # LOCAL_RUN_STORE_IMPORT (5) and RELEASE_SET_ROLE_LABEL (1), SDK-MR-A-VALIDATION-CUSTODY-001.
+        self.assertFalse([row for row in self.audit["rows"] if row.get("status") == "BLOCKED"])
+        self.assertEqual(self.audit["summary"]["after_improper_blocked"], 0)
+        self.assertEqual(self.audit["blocked"]["files"], [])
+        final = {(row["path"], row["line_before"]) for row in self.audit["remediated"]}
+        for key in (("pyproject.toml", 45), ("stegverse/governance_fallback.py", 64),
+                    ("stegverse/sovereign_validation_runtime.py", 42), ("stegverse/sovereign_validation_runtime.py", 48),
+                    ("stegverse/sovereign_validation_runtime.py", 51), ("stegverse/production_release_set.py", 29)):
+            self.assertIn(key, final)
+        frozen = [row for row in self.audit["rows"] if row["path"] == "stegverse/production_release_set.py"]
+        self.assertEqual([row["classification"] for row in frozen], ["HISTORICAL_EVIDENCE"])
+
     def test_no_improper_doc_remains(self):
         self.assertFalse([row for row in self.audit["rows"] if row["classification"] == "IMPROPER_DOC"])
 

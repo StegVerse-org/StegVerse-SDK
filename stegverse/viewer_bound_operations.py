@@ -1,9 +1,8 @@
 """Viewer-bound replay/reconstruction adapter for the self-characterization lane.
 
 Canonical replay/reconstruction remain unchanged. This adapter appends a separate
-non-authorizing viewer-binding event to the same local run record (the local lane's
-master-records package store, a known nonconforming dependency tracked by
-LLMA-DECLARED-PATH-CONFORMANCE-368; not Master Records authority or custody) so each
+non-authorizing viewer-binding event to the same local run record (the SDK-internal
+``stegverse.local_run_record``; non-authoritative, not Master Records authority or custody) so each
 viewer's access can be correlated and reconstructed without mutating the source run.
 """
 from __future__ import annotations
@@ -11,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from .self_characterization_lane import derive_viewer_operation_id
-from .sovereign_validation_runtime import _components, reconstruct_sovereign, replay_sovereign
+from .sovereign_validation_runtime import local_run_store, reconstruct_sovereign, replay_sovereign
 
 
 class ViewerBoundOperationError(RuntimeError):
@@ -32,8 +31,7 @@ def _record_viewer_binding(
         viewer_node_id=viewer_node_id,
         operation=operation,
     )
-    (_Carrier, _build, _route, Custody, _submit, _Registry, _Request, _eval, _Ledger, _run) = _components()
-    custody = Custody(custody_db)
+    custody = local_run_store(custody_db)
     event = custody.record_operation_event({
         "source_manifest_receipt_id": binding["manifest_receipt_id"],
         "operation_id": canonical_operation_id,

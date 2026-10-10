@@ -101,7 +101,8 @@ jobs:
           assert example['authority_claim'] is False
           assert procedure['historical_run_release_set_is_retained'] is True
           assert procedure['replay_compares_original_and_current_release_sets'] is True
-          assert release_set['schema'] == 'stegverse.production-release-set.v1'
+          assert release_set['schema'] == 'stegverse.production-release-set.v2'
+          assert [c['role'] for c in release_set['components']][-1] == 'downstream_run_evidence'
           assert all_payload['summary']['submission'] == 'stegverse governance --select 0 --input <request.json>'
           assert graph_summary['contract'] == 'stegverse.governance-reference-graph.v1'
           assert graph_summary['authority_effect'] == 'NONE_REPRESENTATION_ONLY'

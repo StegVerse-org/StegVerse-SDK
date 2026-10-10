@@ -11,6 +11,7 @@ from stegverse.evaluation_boundary_verifier import canonical_sha256, verify_eval
 from stegverse.public_inspection import load_public_inspection_request, validate_public_inspection_request
 from stegverse.sovereign_validation_runtime import (
     _components,
+    local_run_store,
     reconstruct_sovereign,
     replay_sovereign,
     run_sovereign_validation,
@@ -46,13 +47,12 @@ def _canonical_governance_request(raw: Mapping[str, Any]) -> dict[str, Any]:
     actual governance-request binding because defaults/null fields are resolved by
     the model. This helper intentionally uses the same canonical model boundary.
     """
-    (_Carrier, _build, _route, _Custody, _submit, _Registry, Request, _eval, _Ledger, _run) = _components()
+    (_Carrier, _build, _route, _Registry, Request, _eval, _Ledger, _run) = _components()
     return Request.model_validate(raw).model_dump(mode="json", exclude_none=False)
 
 
 def _export_custody(*, custody_db: Path, governed_result: dict[str, Any], run_dir: Path) -> str:
-    (_Carrier, _build, _route, Custody, _submit, _Registry, _Request, _eval, _Ledger, _run) = _components()
-    custody = Custody(custody_db)
+    custody = local_run_store(custody_db)
 
     route_manifest_id = str(governed_result.get("route_manifest_id") or "")
     manifest_receipt_id = str(governed_result.get("manifest_receipt_id") or "")

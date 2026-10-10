@@ -571,7 +571,7 @@ def build_parser() -> argparse.ArgumentParser:
     governance.add_argument("--manifest-receipt-id", help="MR-* locator for option 1 replay or option 2 reconstruction against the local enclosed custody store (non-canonical)")
     governance.add_argument("--fallback-operation", choices=("run", "replay", "reconstruct"), help="local enclosed degraded-mode path (SDK_LOCAL_ENCLOSED_VALIDATION, non-canonical, non-authorizing)")
     governance.add_argument("--fallback-target", help="request JSON path for fallback run, or manifest_receipt_id for replay/reconstruct")
-    governance.add_argument("--records-db", "--custody-db", dest="custody_db", default="./stegverse-master-records-validation.db", help="local enclosed custody store used only by options 1/2 and --fallback-operation (non-canonical)")
+    governance.add_argument("--records-db", "--custody-db", dest="custody_db", default=None, help="caller-supplied location of the local run record (non-authoritative evidence) used only by options 1/2 and --fallback-operation; no default")
     governance.add_argument("--host-identity", default="stegverse-sovereign-local", help="local sovereign execution host identity")
     help_parser = sub.add_parser("help-surface", help="show help for a named SDK surface")
     help_parser.add_argument("surface")

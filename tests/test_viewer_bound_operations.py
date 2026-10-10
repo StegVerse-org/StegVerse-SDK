@@ -15,17 +15,17 @@ class _FakeCustody:
         return {"event_receipt_id": "OP-EVENT-RECEIPT-001"}
 
 
-def _fake_components():
-    return (None, None, None, _FakeCustody, None, None, None, None, None, None)
+def _fake_store(path):
+    return _FakeCustody(path)
 
 
 class ViewerBoundOperationTests(unittest.TestCase):
     def setUp(self):
         _FakeCustody.events = []
 
-    @patch("stegverse.viewer_bound_operations._components", side_effect=_fake_components)
+    @patch("stegverse.viewer_bound_operations.local_run_store", side_effect=_fake_store)
     @patch("stegverse.viewer_bound_operations.replay_sovereign")
-    def test_replay_appends_viewer_binding_event(self, replay, _components):
+    def test_replay_appends_viewer_binding_event(self, replay, _store):
         replay.return_value = {
             "manifest_receipt_id": "MR-" + "A" * 64,
             "operation_id": "OP-REPLAY-ABC",
@@ -49,9 +49,9 @@ class ViewerBoundOperationTests(unittest.TestCase):
         self.assertEqual("node:viewer:001", event["details"]["viewer_binding"]["viewer_node_id"])
         self.assertFalse(event["details"]["source_run_mutated"])
 
-    @patch("stegverse.viewer_bound_operations._components", side_effect=_fake_components)
+    @patch("stegverse.viewer_bound_operations.local_run_store", side_effect=_fake_store)
     @patch("stegverse.viewer_bound_operations.reconstruct_sovereign")
-    def test_reconstruction_appends_viewer_binding_event(self, reconstruct, _components):
+    def test_reconstruction_appends_viewer_binding_event(self, reconstruct, _store):
         reconstruct.return_value = {
             "manifest_receipt_id": "MR-" + "B" * 64,
             "operation_id": "OP-RECONSTRUCT-ABC",

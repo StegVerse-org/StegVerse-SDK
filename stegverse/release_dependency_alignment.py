@@ -8,7 +8,6 @@ DEPENDENCY_ALIGNMENT_SCHEMA = "stegverse.sdk.release-dependency-alignment.v1"
 EXPECTED_GOVERNED_DEPENDENCIES = {
     "stegcore": "StegVerse-Labs/StegCore",
     "stegverse-core-lite": "Data-Continuation/core-lite",
-    "stegverse-master-records": "master-records/orchestration",
 }
 _GIT_PIN = re.compile(
     r"^\s*([A-Za-z0-9_.-]+)\s*@\s*git\+https://github\.com/([^/@\s]+/[^/@\s]+)\.git@([0-9a-fA-F]{40})(?:\s*;.*)?$"
