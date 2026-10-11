@@ -17,6 +17,7 @@ def handle_ecosystem_chat_pipeline_http(
     *,
     executor: Any = None,
     joint_relation: Any = None,
+    evidence_verifier: Any = None,
 ) -> tuple[int, dict[str, Any]]:
     """Return an HTTP-style status and either an operation result or the pipeline result.
 
@@ -26,7 +27,9 @@ def handle_ecosystem_chat_pipeline_http(
     so this surface gains an operation without changing what it already served.
 
     `executor` lets a caller supply the StegBrowser owner directly; over HTTP it
-    is absent and the installed owner package is used.
+    is absent and the installed owner package is used. `evidence_verifier` is the
+    host's readiness trust root (SDK#368); over HTTP it is absent, so an ask
+    fails closed before any branch runs unless the host binds one.
     """
     if method.upper() != "POST":
         return 405, _error_result("method must be POST")
@@ -44,6 +47,7 @@ def handle_ecosystem_chat_pipeline_http(
         try:
             return handle_chat_entry(
                 request_body, executor=executor, joint_relation=joint_relation,
+                evidence_verifier=evidence_verifier,
             )
         except ValueError as error:
             return 400, _error_result(str(error))

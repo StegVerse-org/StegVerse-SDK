@@ -149,6 +149,18 @@ def validate_chat_entry(payload: Mapping[str, Any] | None) -> dict[str, Any]:
             "journey": dict(journey),
             "strategy": strategy,
         }
+        # SDK#368: the asker may carry the readiness evidence the fan needs to
+        # qualify; the trust root that authenticates it is the surface host's,
+        # never the request's. Without both, the ask fails closed before any
+        # branch runs. created_at pins the draft the evidence is bound to.
+        for field in ("attempt_id", "created_at"):
+            if payload.get(field) is not None:
+                entry["ask_request"][field] = _text(payload.get(field), field)
+        evidence = payload.get("readiness_evidence")
+        if evidence is not None:
+            if not isinstance(evidence, list) or not all(isinstance(e, Mapping) for e in evidence):
+                raise ValueError("readiness_evidence must be a list of evidence records")
+            entry["ask_request"]["readiness_evidence"] = [dict(e) for e in evidence]
         entry["asker_directive"] = {
             "asker": "stegverse.ecosystem_chat_ask.ask_governed_question",
             "manifest_constructed_by_chat": False,

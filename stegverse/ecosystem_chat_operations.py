@@ -78,12 +78,18 @@ def handle_chat_entry(
     *,
     executor: Optional[BranchExecutor] = None,
     joint_relation: Mapping[str, Any] | None = None,
+    evidence_verifier: Any = None,
 ) -> tuple[int, Dict[str, Any]]:
     """Validate an entry request and perform it when this surface serves it.
 
     Returns an HTTP-style status with the operation result. 200 for an answered
-    question, 422 for one that could not be answered, and 501 for an operation
-    the contract declares but this surface does not yet serve.
+    question, 422 for one that could not be answered (including an ask whose
+    manifest did not qualify READY, SDK#368: nothing was dispatched), and 501
+    for an operation the contract declares but this surface does not yet serve.
+
+    `evidence_verifier` is the surface host's readiness trust root; a request
+    never supplies it. Over bare HTTP it is absent, so request-carried evidence
+    cannot authenticate and the ask fails closed before any branch runs.
     """
     entry = validate_chat_entry(payload)
     operation = entry["operation"]
@@ -98,6 +104,10 @@ def handle_chat_entry(
         executor=executor,
         strategy=request["strategy"],
         joint_relation=joint_relation,
+        created_at=request.get("created_at"),
+        attempt_id=request.get("attempt_id"),
+        readiness_evidence=request.get("readiness_evidence") or (),
+        evidence_verifier=evidence_verifier,
     )
     result = {
         "schema": "stegverse.ecosystem-chat-operation-result/v1",
@@ -113,6 +123,13 @@ def handle_chat_entry(
         "device_identity_gate": "NONE_PROHIBITED",
         "authority_effect": "NONE",
     }
+    if answer["disposition"] == "FAIL_CLOSED":
+        result.update({
+            "failed_predicate": answer["failed_predicate"],
+            "executable": False,
+            "draft_preserved": True,
+            "dispatched": False,
+        })
     return (200 if answer["governed_claim"] else 422), result
 
 
