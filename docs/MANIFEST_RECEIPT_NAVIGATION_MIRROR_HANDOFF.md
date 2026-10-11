@@ -101,11 +101,10 @@ Before execution:
 
 Accepted profile defaults/canonical forms may be normalized. Invalid, incomplete, conflicting, or unsupported manifests fail closed. Structural validity never means `ALLOW` and never grants execution authority.
 
-Standalone executable entry remains:
+Canonical executable entry (the standalone module entry `python -m stegverse.governance_ingress_cli 0B` is refused, `NON_CONVERGENT_0B_MODULE_ENTRY`; SDK #368):
 
 ```bash
-python -m stegverse.governance_ingress_cli 0B <manifest.json> \
-  --records-db ./my-run-record.db
+stegverse governance --select 0B --manifest <manifest.json>
 ```
 
 ## Option 000 — executable safe canonical demo

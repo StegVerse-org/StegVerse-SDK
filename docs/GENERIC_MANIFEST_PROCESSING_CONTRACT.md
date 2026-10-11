@@ -176,11 +176,7 @@ Neither architecture absorbs or redefines the other's private semantics.
 stegverse governance --select 0B --manifest external-manifest.json
 ```
 
-Equivalent module entry:
-
-```bash
-python -m stegverse.governance_ingress_cli 0B external-manifest.json
-```
+There is no equivalent module entry: `python -m stegverse.governance_ingress_cli` serves option `000` only and refuses `0B` (`NON_CONVERGENT_0B_MODULE_ENTRY`; SDK #368). Use the canonical command above.
 
 Machine-readable schema:
 
