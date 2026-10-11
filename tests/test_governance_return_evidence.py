@@ -152,7 +152,7 @@ def test_malformed_return_collection_fails_closed_with_six_fields():
 def test_malformed_receipt_entry_does_not_crash_verification():
     sender = _readback(_sha("genesis"), _sha("ingress"))
     sender["chain"].append({"receipt_sha256": {"unhashable": "object"}})
-    _refused(_verify(sender=sender), "CLOSURE_RECEIPT_IS_IN_THE_SENDER_LEDGER")
+    _refused(_verify(sender=sender), "SENDER_LEDGER_CHAIN_INTEGRITY")
 
 
 def test_unhashable_replayed_closure_refuses_instead_of_raising():
