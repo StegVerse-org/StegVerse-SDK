@@ -168,8 +168,9 @@ class MissingReadinessManifestIdentityTests(unittest.TestCase):
         from stegverse.manifest_plan import _invocation_binding_for
         manifest = _draft()
         manifest["source_output_id"] = None
-        with self.assertRaisesRegex(ValueError, "READINESS_INVOCATION_SOURCE_OUTPUT_ID_REQUIRED"):
-            _invocation_binding_for(manifest, manifest["processing"]["route_id"], ATTEMPT)
+        with patch("stegverse.manifest_contract.validate_ingress_manifest", return_value={"canonical_manifest_sha256": "a" * 64}):
+            with self.assertRaisesRegex(ValueError, "READINESS_INVOCATION_SOURCE_OUTPUT_ID_REQUIRED"):
+                _invocation_binding_for(manifest, manifest["processing"]["route_id"], ATTEMPT)
 
 
 class CallerRouteInjectionRegressionTests(unittest.TestCase):
