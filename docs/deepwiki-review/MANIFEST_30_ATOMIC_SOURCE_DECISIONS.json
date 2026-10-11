@@ -13,9 +13,10 @@
         "index": 74,
         "witness_path": "schemas/stegverse.ingress-manifest.v1.schema.json",
         "previous_exact_source_predicate": "\"manifest_profile\": {\"const\": \"stegverse.ingress-manifest.v1\"}",
-        "exact_source_predicate": "\"manifest_profile\": {\n      \"const\": \"stegverse.ingress-manifest.v1\"\n    }",
+        "exact_source_predicate": "\"const\": \"stegverse.ingress-manifest.v1\"",
         "moved_by": "eb5eebd Clarify manifest completion return semantics (2026-10-01) pretty-printed the schema; the same const on three lines is the canonical successor",
-        "narrow_fact_unchanged": true
+        "narrow_fact_unchanged": true,
+        "note": "the schema now pretty-prints the manifest_profile constraint over three lines; the single-line witness of the same narrow fact is the const line"
       },
       {
         "index": 117,
@@ -51,7 +52,7 @@
     {
       "index": 74,
       "witness_path": "schemas/stegverse.ingress-manifest.v1.schema.json",
-      "exact_source_predicate": "\"manifest_profile\": {\n      \"const\": \"stegverse.ingress-manifest.v1\"\n    }",
+      "exact_source_predicate": "\"const\": \"stegverse.ingress-manifest.v1\"",
       "source_review_disposition": "FULL_ATOMIC_SOURCE_CLAIM_VERIFIED",
       "narrow_fact": "Published JSON schema identifies the v1 ingress profile.",
       "unsupported_extension": "This does not establish deployed runtime or original admission.",
