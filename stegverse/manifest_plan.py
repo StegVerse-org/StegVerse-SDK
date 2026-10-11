@@ -369,7 +369,11 @@ def enumerate_workarounds(
     routes = PUBLISHED_ROUTES if published_routes is None else published_routes
     primary_id = _manifest_route_id(manifest)
     declared = list(DECLARED_ALTERNATIVE_ROUTES.get(primary_id, ()))
-    declared += [route for route in alternative_routes if route not in declared and route != primary_id]
+    # Caller hints may narrow published alternatives, never expand sovereign routes.
+    # A caller-supplied route is not a manifest/publisher declaration.
+    if alternative_routes:
+        requested = set(alternative_routes)
+        declared = [route for route in declared if route in requested]
     candidates = [
         _alternative_candidate(manifest, primary_id, alt_id, routes=routes, qualify=qualify)
         for alt_id in declared
