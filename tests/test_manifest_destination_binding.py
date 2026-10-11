@@ -227,6 +227,12 @@ class ReturnLegTest(unittest.TestCase):
         ):
             out = admit_runtime_result({}, request, denial)
         self.assertEqual(out["state"], "REMANIFESTED_AFTER_CORRECTABLE_BINDING_DENY")
+        # The repaired request carries its destination, so the new handoff is
+        # ALLOW and this result is that handoff's outcome, not a summary over it.
+        self.assertEqual(out["handoff"]["disposition"], "ALLOW")
+        self.assertEqual(out["disposition"], "ALLOW")
+        self.assertIsNone(out["failed_predicate"])
+        self.assertEqual(out["failed_transitions"], [])
         self.assertEqual(out["corrected_from_request_sha256"], REQUEST["request_sha256"])
         # The repair produces a fresh handoff carrying the new request's identity.
         self.assertEqual(out["handoff"]["request_sha256"], "e" * 64)

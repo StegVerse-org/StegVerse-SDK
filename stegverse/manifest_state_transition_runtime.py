@@ -815,15 +815,29 @@ def admit_runtime_result(
         if str(exc) == "manifest_binding_repair_produced_unchanged_request":
             return checked  # Retain precise DENY; never replay identical request.
         raise
+    # The re-manifested handoff is its own attempted transition and records its
+    # own disposition. This result says what that handoff produced rather than
+    # summarising it as ALLOW: a handoff that failed closed was not re-manifested.
+    handoff = build_intr_handoff(repaired)
+    allowed = handoff.get("disposition") == "ALLOW"
+    failed = [] if allowed else [{
+        "transition": "intr_handoff",
+        "disposition": handoff.get("disposition"),
+        "failed_predicate": handoff.get("failed_predicate"),
+        "retry_entrypoint": handoff.get("retry_entrypoint"),
+    }]
     return {
         "schema": HANDOFF_SCHEMA,
-        "state": "REMANIFESTED_AFTER_CORRECTABLE_BINDING_DENY",
-        "disposition": "ALLOW",
+        "state": "REMANIFESTED_AFTER_CORRECTABLE_BINDING_DENY" if allowed else "FAIL_CLOSED",
+        "disposition": "ALLOW" if allowed else "FAIL_CLOSED",
+        "failed_predicate": None if allowed else "REMANIFESTED_HANDOFF_NOT_ALLOWED",
+        "failed_transitions": failed,
+        "retry_entrypoint": None if allowed else failed[0]["retry_entrypoint"],
         "evaluation_boundary": "SDK_MANIFEST_HANDOFF",
         "terminal": False,
         "corrected_from_request_sha256": request.get("request_sha256"),
         "corrected_from_disposition": dict(checked),
-        "handoff": build_intr_handoff(repaired),
+        "handoff": handoff,
         "repaired_request": dict(repaired),
         "authority_effect": "NONE_MANIFEST_HANDOFF_ONLY",
     }
