@@ -98,10 +98,12 @@ def _check(return_readback: Any, sender_readback: Any, deciding_readback: Any, r
                        "a return for packet " + request_packet_id + ("; returns seen for " + ", ".join(others) if others
                                                                        else "; none returned yet (no answer is not a decision)"),
                        _RETURN, RETURN_ENTRYPOINT)
-    closures = {r.get("closure_organization_receipt_sha256") for r in returns}
-    if len(returns) != 1 or len(closures) != 1:
+    # Do not hash untrusted receipt values: malformed lists or objects must
+    # produce the six-field refusal rather than escaping as TypeError.
+    closures = [r.get("closure_organization_receipt_sha256") for r in returns]
+    if len(returns) != 1 or any(value != closures[0] for value in closures):
         raise _Refused("GOVERNANCE_RETURN_RECORDED_ONCE",
-                       "exactly one closure for the packet; " + str(len(closures)) + " distinct closures were recorded",
+                       "exactly one closure for the packet; " + str(len(returns)) + " return records were observed",
                        "repair the replayed closure on the return path; a replay must return the closure already recorded")
     returned = returns[0]
     if returned.get("disposition") != "ALLOW" or returned.get("decision_returned") is not True:
