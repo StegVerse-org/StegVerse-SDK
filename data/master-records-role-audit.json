@@ -23,10 +23,10 @@
    "PROPER": 562
   },
   "after": {
-   "total": 1283,
+   "total": 1286,
    "HISTORICAL_EVIDENCE": 138,
    "NAMING_ONLY": 119,
-   "PROPER": 1026
+   "PROPER": 1029
   },
   "after_improper_unblocked": 0,
   "after_improper_blocked": 0
@@ -4617,6 +4617,20 @@
    "text": "\"master_records_transition_custody_independent_of_return_projection\": True,"
   },
   {
+   "path": "stegverse/governance_return_evidence.py",
+   "line": 62,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "\"master_records_gating\": False,"
+  },
+  {
+   "path": "stegverse/governance_return_evidence.py",
+   "line": 139,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "\"master_records_gating\": False,"
+  },
+  {
    "path": "stegverse/local_governance_experiment.py",
    "line": 19,
    "classification": "HISTORICAL_EVIDENCE",
@@ -7093,6 +7107,13 @@
    "classification": "NAMING_ONLY",
    "reason": "asserts wire-name compatibility; no gating",
    "text": "self.assertTrue(result[\"master_records_transition_custody_independent_of_return_projection\"])"
+  },
+  {
+   "path": "tests/test_governance_return_evidence.py",
+   "line": 69,
+   "classification": "PROPER",
+   "reason": "non-gating: states or checks that local Master Records custody is downstream evidence that never completes or gates the transition; completion requires organization-ledger readback (SDK-MR-A)",
+   "text": "assert result[\"master_records_gating\"] is False"
   },
   {
    "path": "tests/test_governed_llm.py",
