@@ -14,7 +14,8 @@
         "tests/test_universal_transition_table_intake.py::test_universal_transition_table_repo_fixture_verifier_passes"
       ]
     },
-    "tests/test_external_interlock_bootstrap.py left the baseline because it was repaired, not excluded: literal backslash-n characters stood where newlines belonged, so the module raised SyntaxError at collection and none of its five cases had ever run. They guard the frozen external-organization interlock contract. The gate asks for the baseline to be tightened when a known failure is fixed; this is that tightening."
+    "tests/test_external_interlock_bootstrap.py left the baseline because it was repaired, not excluded: literal backslash-n characters stood where newlines belonged, so the module raised SyntaxError at collection and none of its five cases had ever run. They guard the frozen external-organization interlock contract. The gate asks for the baseline to be tightened when a known failure is fixed; this is that tightening.",
+    "The two tests/test_governance_public_execution.py option-0 guidance tests left the baseline because they were reconciled, not excluded: they asserted the pre-SDK#368 guidance strings ('Execute current canonical 0A request', '0B execution remains fail-closed') that PR #445 replaced when 0A and 0B converged on stegverse.manifest_execution.execute_manifest. They now assert the current canonical 0A/0B guidance commands and additionally assert that no execute_manifest dispatch occurs. Same tightening rule as above."
   ],
   "excluded": [],
   "generated_by_runner": "/tmp/civenv/bin/pytest tests -q --tb=no -p no:cacheprovider --continue-on-collection-errors",
@@ -26,8 +27,6 @@
     "tests/test_evaluator_atomic_task_worker_manifest.py::EvaluatorAtomicTaskWorkerManifestTests::test_test_three_reuses_same_evaluator_processor_and_path",
     "tests/test_evaluator_atomic_task_worker_manifest.py::EvaluatorAtomicTaskWorkerManifestTests::test_test_two_uses_manifest_builder_and_generic_run_manifest_path",
     "tests/test_github_fallback_boundary.py::GitHubFallbackBoundaryTests::test_canonical_workflows_satisfy_boundary",
-    "tests/test_governance_public_execution.py::test_option_0_without_input_remains_guidance_not_false_execution",
-    "tests/test_governance_public_execution.py::test_option_0b_is_not_invented_by_the_cli",
     "tests/test_mir_destination_profile_propagation.py::test_destination_profile_survives_manifest_validation_and_sdk_return_binding",
     "tests/test_public_inspection_runtime.py",
     "tests/test_site_sdk_processing_handoff.py::Tests::test_executes_manifest_selected_sdk_processor_and_preserves_downstream_boundary",

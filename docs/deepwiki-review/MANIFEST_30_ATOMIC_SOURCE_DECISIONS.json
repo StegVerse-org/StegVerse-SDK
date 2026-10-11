@@ -5,6 +5,37 @@
   "input_capture_sha256": "a729d9b0f487f785b0e8f92006f303e8520e3593b6eb6c4c5de43273daa72087",
   "baseline_classification": "DENY:CLAIM_NOT_ENTAILED_BY_AVAILABLE_SOURCE_SPAN",
   "documentation_rights": "NO_GENERATED_PROSE_REUSE_GRANT",
+  "predicate_reconciliations": {
+    "rule": "A predicate whose exact text a merged change replaced is moved to the current canonical text of the same witness; the record, its index, disposition, narrow fact and unsupported extension are unchanged and no record is removed. Links in the companion reference stay frozen at their pinned revision.",
+    "authority_effect": "NONE",
+    "entries": [
+      {
+        "index": 74,
+        "witness_path": "schemas/stegverse.ingress-manifest.v1.schema.json",
+        "previous_exact_source_predicate": "\"manifest_profile\": {\"const\": \"stegverse.ingress-manifest.v1\"}",
+        "exact_source_predicate": "\"const\": \"stegverse.ingress-manifest.v1\"",
+        "moved_by": "eb5eebd Clarify manifest completion return semantics (2026-10-01) pretty-printed the schema; the same const on three lines is the canonical successor",
+        "narrow_fact_unchanged": true,
+        "note": "the schema now pretty-prints the manifest_profile constraint over three lines; the single-line witness of the same narrow fact is the const line"
+      },
+      {
+        "index": 117,
+        "witness_path": "stegverse/manifest_contract.py",
+        "previous_exact_source_predicate": "normalized_egress[\"destination_profile\"] = destination_profile.strip()",
+        "exact_source_predicate": "normalized[\"egress\"][\"destination_profile\"] = destination_profile.strip()",
+        "moved_by": "PR #422 (bbfc947 Bind Publisher invocation to explicit delivery destination) builds the normalized completion dict first and assigns the stripped destination profile into normalized[\"egress\"]; the validated stripped value is still preserved in normalized egress",
+        "narrow_fact_unchanged": true
+      },
+      {
+        "index": 119,
+        "witness_path": "stegverse/manifest_contract.py",
+        "previous_exact_source_predicate": "normalized_egress[\"destination_profile\"] = destination_profile.strip()",
+        "exact_source_predicate": "normalized[\"egress\"][\"destination_profile\"] = destination_profile.strip()",
+        "moved_by": "PR #422 (bbfc947 Bind Publisher invocation to explicit delivery destination) builds the normalized completion dict first and assigns the stripped destination profile into normalized[\"egress\"]; the validated stripped value is still preserved in normalized egress",
+        "narrow_fact_unchanged": true
+      }
+    ]
+  },
   "records": [
     {
       "index": 18,
@@ -21,7 +52,7 @@
     {
       "index": 74,
       "witness_path": "schemas/stegverse.ingress-manifest.v1.schema.json",
-      "exact_source_predicate": "\"manifest_profile\": {\"const\": \"stegverse.ingress-manifest.v1\"}",
+      "exact_source_predicate": "\"const\": \"stegverse.ingress-manifest.v1\"",
       "source_review_disposition": "FULL_ATOMIC_SOURCE_CLAIM_VERIFIED",
       "narrow_fact": "Published JSON schema identifies the v1 ingress profile.",
       "unsupported_extension": "This does not establish deployed runtime or original admission.",
@@ -297,7 +328,7 @@
     {
       "index": 117,
       "witness_path": "stegverse/manifest_contract.py",
-      "exact_source_predicate": "normalized_egress[\"destination_profile\"] = destination_profile.strip()",
+      "exact_source_predicate": "normalized[\"egress\"][\"destination_profile\"] = destination_profile.strip()",
       "source_review_disposition": "NARROW_CONTRACT_VERIFIED_BROADER_DENIED",
       "narrow_fact": "Source preserves a validated stripped destination profile in normalized egress.",
       "unsupported_extension": "End-to-end Publisher/LLM Adapter propagation remains a separate owner-specific assertion.",
@@ -321,7 +352,7 @@
     {
       "index": 119,
       "witness_path": "stegverse/manifest_contract.py",
-      "exact_source_predicate": "normalized_egress[\"destination_profile\"] = destination_profile.strip()",
+      "exact_source_predicate": "normalized[\"egress\"][\"destination_profile\"] = destination_profile.strip()",
       "source_review_disposition": "NARROW_CONTRACT_VERIFIED_BROADER_DENIED",
       "narrow_fact": "The validator passes through the normalized destination intent.",
       "unsupported_extension": "No authentic credentialed admission or completion is shown.",
