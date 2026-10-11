@@ -139,6 +139,21 @@ def _state(qualification, role):
     return next(n for n in qualification["nodes"] if n["role"] == role)
 
 
+class CallerRouteInjectionRegressionTests(unittest.TestCase):
+    def test_caller_hint_cannot_expand_published_alternatives(self):
+        manifest = _draft()
+        primary = manifest["extensions"]["stegverse_route"]["route_id"]
+        injected = "caller-selected-unpublished-sovereign-route"
+        result = enumerate_workarounds(
+            manifest,
+            qualify=lambda route_id: {"qualification": QUALIFIED_READY},
+            alternative_routes=[injected],
+        )
+        self.assertNotIn(injected, result["declared_alternative_routes"])
+        self.assertNotIn(injected, [c["route_id"] for c in result["candidates"]])
+        self.assertFalse(result["automatic_selection_permitted"])
+
+
 class ReadinessDagTests(unittest.TestCase):
     def test_dag_is_manifest_selected_and_covers_contract_roles(self):
         manifest = _draft()
