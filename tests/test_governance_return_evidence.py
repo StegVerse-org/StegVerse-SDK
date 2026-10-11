@@ -164,3 +164,23 @@ def test_unhashable_replayed_closure_refuses_instead_of_raising():
 def test_unhashable_single_closure_refuses_with_six_fields():
     result = _verify([_return(closure_organization_receipt_sha256={"invalid": True})])
     _refused(result, "CLOSURE_RECEIPT_IS_IN_THE_SENDER_LEDGER")
+
+
+def test_sender_readback_chain_metadata_and_links_fail_closed():
+    for mutation in ("length", "head", "predecessor", "duplicate"):
+        sender = _readback(_sha("genesis"), _sha("ingress"), CLOSURE)
+        if mutation == "length":
+            sender["chain_length"] += 1
+        elif mutation == "head":
+            sender["head_receipt_sha256"] = _sha("unrelated")
+        elif mutation == "predecessor":
+            sender["chain"][2]["previous_receipt_sha256"] = _sha("unrelated")
+        else:
+            sender["chain"][1]["receipt_sha256"] = sender["chain"][0]["receipt_sha256"]
+        _refused(_verify(sender=sender), "SENDER_LEDGER_CHAIN_INTEGRITY")
+
+
+def test_deciding_organization_readback_chain_integrity_fails_closed():
+    deciding = _readback(_sha("labs-genesis"), DECIDED)
+    deciding["chain"][1]["previous_receipt_sha256"] = _sha("stale")
+    _refused(_verify(deciding=deciding), "DECIDING_ORGANIZATION_LEDGER_CHAIN_INTEGRITY")
