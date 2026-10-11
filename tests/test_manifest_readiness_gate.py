@@ -249,6 +249,24 @@ class NegativeControlTests(unittest.TestCase):
         newer = _evidence(manifest, node, at=NOW - timedelta(seconds=10), sign=False)
         self.assertEqual(_state(_qualify(manifest, [older, newer]), "route")["state"], UNVERIFIED)
 
+    def test_missing_custody_and_return_evidence_never_qualifies_ready(self):
+        manifest = _draft()
+        for missing_role in ("custody", "return"):
+            with self.subTest(missing_role=missing_role):
+                qualification = _qualify(manifest, _all_ready(manifest, skip={missing_role}))
+                self.assertEqual(qualification["qualification"], NOT_READY)
+                self.assertEqual(qualification["disposition"], "FAIL_CLOSED")
+                self.assertIs(qualification["executable"], False)
+                self.assertIs(qualification["execution_authorized"], False)
+                self.assertEqual(
+                    [node["role"] for node in qualification["failing_nodes"]],
+                    [missing_role],
+                )
+                self.assertEqual(
+                    qualification["failing_nodes"][0]["failed_predicate"],
+                    "AUTHENTICATED_INVOCATION_BOUND_EVIDENCE_PRESENT",
+                )
+
     def test_missing_authorization_evidence_fails_closed(self):
         manifest = _draft()
         q = _qualify(manifest, _all_ready(manifest, skip={"authorization"}))
