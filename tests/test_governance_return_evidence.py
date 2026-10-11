@@ -153,3 +153,14 @@ def test_malformed_receipt_entry_does_not_crash_verification():
     sender = _readback(_sha("genesis"), _sha("ingress"))
     sender["chain"].append({"receipt_sha256": {"unhashable": "object"}})
     _refused(_verify(sender=sender), "CLOSURE_RECEIPT_IS_IN_THE_SENDER_LEDGER")
+
+
+def test_unhashable_replayed_closure_refuses_instead_of_raising():
+    for malformed in ({"receipt": "object"}, ["not", "a", "digest"]):
+        result = _verify([_return(), _return(closure_organization_receipt_sha256=malformed)])
+        _refused(result, "GOVERNANCE_RETURN_RECORDED_ONCE")
+
+
+def test_unhashable_single_closure_refuses_with_six_fields():
+    result = _verify([_return(closure_organization_receipt_sha256={"invalid": True})])
+    _refused(result, "CLOSURE_RECEIPT_IS_IN_THE_SENDER_LEDGER")
