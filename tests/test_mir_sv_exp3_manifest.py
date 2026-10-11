@@ -146,5 +146,54 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "MANIFEST_BINDING_DENY_CONTRACT_MISMATCH"):
             validate_runtime_result(altered, current)
 
+    def test_a_repair_whose_new_handoff_fails_closed_is_not_reported_as_allowed(self):
+        # The rejected request was resolved through the organization boundary.
+        # The builder re-derives the repair from the frozen manifest alone, so
+        # its handoff names no destination and fails closed. The re-manifest
+        # result must carry that, not summarise the repair as ALLOW.
+        boundary = json.loads((Path(__file__).parent / "fixtures" /
+                               "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
+        frozen = deepcopy(self.m)
+        historical = derive_execution_request(frozen, boundary)
+        self.assertIsNotNone(historical["manifest_declared_destination"])
+        historical.pop("wire_manifest_sha256")
+        historical.pop("canonical_manifest_projection")
+        historical["canonical_manifest_sha256"] = canonical_sha256(frozen)
+        historical.pop("request_sha256")
+        historical["request_sha256"] = canonical_sha256(historical)
+        denial = {
+            "schema": "stegverse.sdk.manifest-profile-disposition/v1",
+            "state": "DENY", "disposition": "DENY", "terminal": False,
+            "automatic_retry_permitted": False,
+            "retry_condition": "CORRECT_ENVELOPE_IN_EXISTING_MANIFEST_BUILDER_THEN_NEW_GOVERNED_ATTEMPT",
+            "evaluation_boundary": "SDK_MANIFEST_PROFILE", "transport_validated": True,
+            "authentic_intr_admission_observed": False,
+            "organization_master_records_organization_record_observed": False,
+            "transition_id": "SDK_MANIFEST_BINDING",
+            "repair_owner": "StegVerse-org/StegVerse-SDK:stegverse/manifest_builder.py",
+            "authority_effect": "NONE_MANIFEST_PROFILE_DENY_ONLY",
+            "reason_code": "canonical_manifest_sha256_binding_mismatch",
+            "failed_predicate": "canonical_manifest_sha256_binding_mismatch",
+            "original_request_sha256": canonical_sha256(historical),
+            "claimed_request_sha256": historical["request_sha256"],
+            "original_wire_manifest_sha256": canonical_sha256(frozen),
+            "graph_id": historical["graph_id"],
+            "processing_capability": "ecosystem_diagnostic",
+            "source_disposition_ref": "mock-evaluating-profile-path-not-sovereign-custody",
+        }
+        out = admit_runtime_result(frozen, historical, denial)
+        self.assertEqual(out["handoff"]["disposition"], "FAIL_CLOSED")
+        self.assertEqual(out["disposition"], "FAIL_CLOSED")
+        self.assertEqual(out["state"], "FAIL_CLOSED")
+        self.assertEqual(out["failed_predicate"], "REMANIFESTED_HANDOFF_NOT_ALLOWED")
+        self.assertEqual(out["failed_transitions"], [{
+            "transition": "intr_handoff",
+            "disposition": "FAIL_CLOSED",
+            "failed_predicate": "REGISTERED_CAPABILITY_RESOLVES_TO_CANONICAL_ORGANIZATION_GITHUB_INGRESS_ENDPOINT",
+            "retry_entrypoint": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        }])
+        self.assertEqual(out["retry_entrypoint"], "stegverse.manifest_state_transition_runtime.execute_manifest")
+        self.assertEqual(out["corrected_from_disposition"]["disposition"], "DENY")
+
 
 if __name__=="__main__": unittest.main()
