@@ -330,11 +330,13 @@ def _alternative_candidate(
     *,
     routes: Mapping[str, Mapping[str, Any]],
     qualify: Callable[[str], dict[str, Any]],
+    declared: bool = True,
 ) -> dict[str, Any]:
     primary = routes[primary_id]
     alt = routes.get(alt_id)
     base = {"route_id": alt_id, "requires_explicit_user_selection": True,
-            "new_manifest_digest_required": True, "automatic_substitution_permitted": False}
+            "new_manifest_digest_required": True, "automatic_substitution_permitted": False,
+            "declared_by_publisher": declared}
     if not isinstance(alt, Mapping) or alt.get("processor_capability") != primary.get("processor_capability"):
         return {**base, "candidate_state": "INADMISSIBLE",
                 "failed_predicate": "ALTERNATE_ROUTE_PUBLISHED_FOR_SAME_CAPABILITY"}
@@ -352,6 +354,12 @@ def _alternative_candidate(
         for key in ("authorization", "custody", "containment", "return")
         if want[key] != have[key]
     )
+    if not declared:
+        # A caller hint is not a publisher declaration: it may be classified, never
+        # qualified or preferred. Routes are selected by the admitted manifest and
+        # the publisher's declared alternatives, not by the caller.
+        return {**base, "candidate_state": "INADMISSIBLE",
+                "failed_predicate": "ALTERNATE_ROUTE_DECLARED_BY_PUBLISHER"}
     qualified = qualify(alt_id)
     verified = qualified["qualification"] == QUALIFIED_READY
     return {
@@ -381,14 +389,15 @@ def enumerate_workarounds(
     routes = PUBLISHED_ROUTES if published_routes is None else published_routes
     primary_id = _manifest_route_id(manifest)
     declared = list(DECLARED_ALTERNATIVE_ROUTES.get(primary_id, ()))
-    # Caller hints may narrow published alternatives, never expand sovereign routes.
-    # A caller-supplied route is not a manifest/publisher declaration.
-    if alternative_routes:
-        requested = set(alternative_routes)
-        declared = [route for route in declared if route in requested]
+    # Caller hints never expand the publisher's declared alternatives; they are
+    # classified against the published routes but cannot be qualified or preferred.
+    requested = [route for route in dict.fromkeys(alternative_routes) if route not in declared and route != primary_id]
     candidates = [
         _alternative_candidate(manifest, primary_id, alt_id, routes=routes, qualify=qualify)
         for alt_id in declared
+    ] + [
+        _alternative_candidate(manifest, primary_id, alt_id, routes=routes, qualify=qualify, declared=False)
+        for alt_id in requested
     ]
     verified = sorted(
         (c for c in candidates if c["candidate_state"] == "VERIFIED_REQUIRES_USER_SELECTION"),
@@ -397,6 +406,7 @@ def enumerate_workarounds(
     out = {
         "state": VERIFIED_WORKAROUND_AVAILABLE if verified else NO_VERIFIED_WORKAROUND,
         "declared_alternative_routes": declared,
+        "caller_requested_routes": requested,
         "candidates": candidates,
         "preferred_verified_route_id": verified[0]["route_id"] if verified else None,
         "automatic_selection_permitted": False,
