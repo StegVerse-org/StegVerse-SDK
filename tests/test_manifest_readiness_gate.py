@@ -602,5 +602,29 @@ class Cli0AReadinessGateTests(unittest.TestCase):
         self.assertEqual(predicates, {"EVIDENCE_AUTHENTICATED"})
 
 
+class NotificationRecordIntegrityTests(unittest.TestCase):
+    def test_record_edited_after_it_was_built_is_not_delivered(self):
+        manifest = _draft()
+        offline = _evidence(manifest, _node(manifest, "custody"), state=NON_OPERATIONAL, kind=ATTEMPTED_TRANSITION)
+        (record,) = _qualify(manifest, [offline])["incident_notifications"]
+        routes = {**PUBLISHED_ROUTES, "fixture.notify": {"route_id": "fixture.notify",
+                                                         "processor_capability": "incident_notification"}}
+        declared = copy.deepcopy(manifest)
+        declared["extensions"][INCIDENT_NOTIFICATION_ROUTE_EXTENSION] = "fixture.notify"
+        delivered = []
+
+        def echo(r, _route):
+            delivered.append(r)
+            return {"idempotency_key": r["idempotency_key"], "record_sha256": r["record_sha256"], "ack_ref": "ack-1"}
+
+        edited = deliver_incident_notification({**record, "failed_predicate": "OTHER_PREDICATE"},
+                                               manifest=declared, published_routes=routes, deliver=echo)
+        self.assertEqual((edited["disposition"], edited["failed_predicate"]),
+                         ("FAIL_CLOSED", "NOTIFICATION_RECORD_DIGEST_MISMATCH"))
+        self.assertEqual(delivered, [])
+        built = deliver_incident_notification(record, manifest=declared, published_routes=routes, deliver=echo)
+        self.assertEqual(built["disposition"], "ALLOW")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -312,6 +312,10 @@ def deliver_incident_notification(
         "delivered_by_sdk": False,
         "authority_effect": "NONE_DELIVERY_TRANSITION_REPORT",
     }
+    # The record is caller-supplied: it must still be the record that was built.
+    if record.get("record_sha256") != _sha256({k: v for k, v in record.items() if k != "record_sha256"}):
+        return {**out, "disposition": "FAIL_CLOSED", "failed_predicate": "NOTIFICATION_RECORD_DIGEST_MISMATCH",
+                "evidence": {"record_sha256": record.get("record_sha256")}}
     extensions = manifest.get("extensions")
     route_id = extensions.get(INCIDENT_NOTIFICATION_ROUTE_EXTENSION) if isinstance(extensions, Mapping) else None
     route = routes.get(route_id) if isinstance(route_id, str) else None
