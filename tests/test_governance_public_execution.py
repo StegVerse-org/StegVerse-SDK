@@ -69,15 +69,32 @@ def test_option_2_executes_reconstruction_by_manifest_receipt_id(capsys):
 
 
 def test_option_0_without_input_remains_guidance_not_false_execution(capsys):
+    # SDK#368 PR #445: option 0 without an operand prints the canonical 0A
+    # entry (raw data plus a Manifest Builder processor request) and executes
+    # nothing, on either the canonical entrypoint or the local enclosed lane.
     operations = Mock()
-    with patch("stegverse.cli._local_enclosed_operations", return_value=operations):
+    with patch("stegverse.cli._local_enclosed_operations", return_value=operations), patch(
+        "stegverse.manifest_execution.execute_manifest"
+    ) as execute:
         rc = main(["governance", "--select", "0"])
     assert rc == 0
-    assert "Execute current canonical 0A request" in capsys.readouterr().out
+    output = capsys.readouterr().out
+    assert "Next: choose 0A for raw/user data or 0B for a preformatted machine manifest." in output
+    assert (
+        "Execute 0A: stegverse governance --select 0A --input <raw-data.json> --processor-request <request.json>"
+        in output
+    )
     operations.submit.assert_not_called()
+    execute.assert_not_called()
 
 
 def test_option_0b_is_not_invented_by_the_cli(capsys):
-    rc = main(["governance", "--select", "0"])
+    # SDK#368 PR #445: 0B is reachable only through the converged entrypoint
+    # with a caller-supplied manifest. Guidance names that command; the CLI
+    # neither converts option 0 into a 0B run nor dispatches anything here.
+    with patch("stegverse.manifest_execution.execute_manifest") as execute:
+        rc = main(["governance", "--select", "0"])
     assert rc == 0
-    assert "0B execution remains fail-closed" in capsys.readouterr().out
+    output = capsys.readouterr().out
+    assert "Execute 0B: stegverse governance --select 0B --manifest <stegverse.ingress-manifest.v1.json>" in output
+    execute.assert_not_called()
