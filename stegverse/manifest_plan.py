@@ -186,10 +186,10 @@ def _invocation_binding_for(manifest: Mapping[str, Any], route_id: str, attempt_
         manifest_sha256=validate_ingress_manifest(manifest)["canonical_manifest_sha256"],
         attempt_id=attempt_id,
         route_id=route_id,
-        processing_capability=str(processing.get("capability")),
-        payload_sha256=str(hashes.get("payload_sha256")),
-        source_framework=str(manifest.get("source_framework")),
-        source_output_id=str(manifest.get("source_output_id")),
+        processing_capability=processing.get("capability"),
+        payload_sha256=hashes.get("payload_sha256"),
+        source_framework=manifest.get("source_framework"),
+        source_output_id=manifest.get("source_output_id"),
     )
 
 
