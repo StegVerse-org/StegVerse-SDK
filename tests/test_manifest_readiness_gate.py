@@ -140,6 +140,29 @@ def _state(qualification, role):
     return next(n for n in qualification["nodes"] if n["role"] == role)
 
 
+class ReadinessInvocationIdentityTests(unittest.TestCase):
+    def test_required_identity_fields_fail_closed_before_digest(self):
+        manifest = _draft()
+        canonical = validate_ingress_manifest(manifest)
+        kwargs = {
+            "manifest_sha256": canonical["canonical_manifest_sha256"],
+            "attempt_id": ATTEMPT,
+            "route_id": manifest["processing"]["route_id"],
+            "processing_capability": manifest["processing"]["capability"],
+            "payload_sha256": manifest["hashes"]["payload_sha256"],
+            "source_framework": manifest["source_framework"],
+            "source_output_id": manifest["source_output_id"],
+        }
+        for field in ("route_id", "processing_capability", "source_framework", "source_output_id"):
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, "READINESS_INVOCATION_" + field.upper() + "_REQUIRED"):
+                    readiness_invocation_binding(**{**kwargs, field: "  "})
+        for malformed in ("", "0" * 63, "Z" * 64, None):
+            with self.subTest(payload_sha256=malformed):
+                with self.assertRaisesRegex(ValueError, "READINESS_PAYLOAD_DIGEST_REQUIRED"):
+                    readiness_invocation_binding(**{**kwargs, "payload_sha256": malformed})
+
+
 class CallerRouteInjectionRegressionTests(unittest.TestCase):
     def test_caller_hint_cannot_expand_published_alternatives(self):
         manifest = _draft()

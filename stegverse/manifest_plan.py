@@ -151,6 +151,20 @@ def readiness_invocation_binding(
         or any(c not in "0123456789abcdef" for c in manifest_sha256)
     ):
         raise ValueError("READINESS_CANONICAL_MANIFEST_DIGEST_REQUIRED")
+    for field_name, field_value in (
+        ("route_id", route_id),
+        ("processing_capability", processing_capability),
+        ("source_framework", source_framework),
+        ("source_output_id", source_output_id),
+    ):
+        if not isinstance(field_value, str) or not field_value.strip():
+            raise ValueError(f"READINESS_INVOCATION_{field_name.upper()}_REQUIRED")
+    if (
+        not isinstance(payload_sha256, str)
+        or len(payload_sha256) != 64
+        or any(c not in "0123456789abcdef" for c in payload_sha256)
+    ):
+        raise ValueError("READINESS_PAYLOAD_DIGEST_REQUIRED")
     return _sha256({
         "schema": "stegverse.readiness-invocation-binding/v2",
         "manifest_sha256": manifest_sha256,
