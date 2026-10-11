@@ -79,13 +79,7 @@ Primary executable 0B entry after PR #48:
 stegverse governance --select 0B --manifest <stegverse.ingress-manifest.v1.json>
 ```
 
-The existing standalone executable entry remains:
-
-```bash
-stegverse governance --select 0B --manifest <manifest.json>
-
-> Current SDK #368 boundary: the historical `python -m stegverse.governance_ingress_cli 0B` module entry is deliberately refused (`NON_CONVERGENT_0B_MODULE_ENTRY`). Use the primary manifest-selected governance command above; readiness qualification and authentic invocation-bound evidence are still required. The older standalone command is retained in Git history only.
-```
+There is no second executable entry. The historical standalone module entry (`python -m stegverse.governance_ingress_cli 0B`) is deliberately refused (`NON_CONVERGENT_0B_MODULE_ENTRY`; SDK #368) and is retained in Git history only. Use the primary manifest-selected governance command above; readiness qualification and authentic invocation-bound evidence are still required.
 
 0B reuses the existing evaluator-neutral manifest validator and canonical sovereign runtime binding. It does not create a second evaluator, route implementation, governance engine, credential authority, or custody path. A supplied manifest is validated/canonicalized when representable; invalid, incomplete, conflicting, or unsupported input fails closed.
 
