@@ -30,6 +30,7 @@ from stegverse.capability_inventory import (
     sign_readiness_evidence,
 )
 from stegverse.cli import main
+from stegverse.route_resolution import DECLARED_ALTERNATIVE_ROUTES
 from stegverse.manifest_builder import (
     LOCAL_CONFORMANCE,
     WORKAROUND_SELECTION_EXTENSION,
@@ -137,6 +138,50 @@ def _qualify(manifest, evidence=(), **kwargs):
 
 def _state(qualification, role):
     return next(n for n in qualification["nodes"] if n["role"] == role)
+
+
+class CallerRouteInjectionRegressionTests(unittest.TestCase):
+    def test_caller_hint_cannot_expand_published_alternatives(self):
+        manifest = _draft()
+        injected = "caller-selected-unpublished-sovereign-route"
+        result = enumerate_workarounds(
+            manifest,
+            qualify=lambda route_id: {"qualification": QUALIFIED_READY},
+            alternative_routes=[injected],
+        )
+        self.assertNotIn(injected, result["declared_alternative_routes"])
+        self.assertEqual(result["caller_requested_routes"], [injected])
+        (candidate,) = [c for c in result["candidates"] if c["route_id"] == injected]
+        self.assertEqual(candidate["candidate_state"], "INADMISSIBLE")
+        self.assertFalse(candidate["declared_by_publisher"])
+        self.assertNotEqual(result["preferred_verified_route_id"], injected)
+        self.assertFalse(result["automatic_selection_permitted"])
+
+    def test_published_equivalent_route_hinted_by_caller_is_never_verified_or_preferred(self):
+        # The real hole: a caller names a published route with identical semantics
+        # that the publisher never declared as an alternative. It must be classified
+        # as undeclared, never qualified, never preferred.
+        manifest = _draft()
+        primary_id = manifest["extensions"]["stegverse_route"]["route_id"]
+        twin_id = "fixture.undeclared-twin"
+        routes = {**PUBLISHED_ROUTES, twin_id: dict(PUBLISHED_ROUTES[primary_id], route_id=twin_id)}
+        called = []
+
+        def qualify(route_id):
+            called.append(route_id)
+            return {"qualification": QUALIFIED_READY}
+
+        result = enumerate_workarounds(
+            manifest, qualify=qualify, alternative_routes=[twin_id], published_routes=routes,
+        )
+        twin = {c["route_id"]: c for c in result["candidates"]}[twin_id]
+        self.assertEqual(twin["candidate_state"], "INADMISSIBLE")
+        self.assertEqual(twin["failed_predicate"], "ALTERNATE_ROUTE_DECLARED_BY_PUBLISHER")
+        self.assertNotIn(twin_id, called)
+        self.assertNotIn(twin_id, result["declared_alternative_routes"])
+        self.assertNotEqual(result["preferred_verified_route_id"], twin_id)
+        # Declared alternatives are unaffected by the caller hint.
+        self.assertEqual(result["declared_alternative_routes"], list(DECLARED_ALTERNATIVE_ROUTES.get(primary_id, ())))
 
 
 class ReadinessDagTests(unittest.TestCase):
