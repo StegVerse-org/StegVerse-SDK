@@ -77,17 +77,22 @@ def _chain(readback: Any, what: str) -> set[str]:
     chain = readback.get("chain")
     if not isinstance(chain, list) or not chain:
         raise _Refused(what + "_LEDGER_READBACK_ALLOWED", "a non-empty verified chain", _REFETCH)
-    return {e.get("receipt_sha256") for e in chain if isinstance(e, Mapping)}
+    return {receipt for e in chain if isinstance(e, Mapping)
+            for receipt in [e.get("receipt_sha256")] if isinstance(receipt, str)}
 
 
 def _check(return_readback: Any, sender_readback: Any, deciding_readback: Any, request_packet_id: str) -> dict[str, Any]:
     if not isinstance(return_readback, Mapping) or return_readback.get("schema") != RETURN_READBACK_SCHEMA:
         raise _Refused("GOVERNANCE_RETURN_READBACK_PRESENT", "a return readback (" + RETURN_READBACK_SCHEMA + ")",
                        _RETURN, RETURN_ENTRYPOINT)
-    returns = [r for r in (return_readback.get("returns") or [])
+    rows = return_readback.get("returns")
+    if not isinstance(rows, list):
+        raise _Refused("GOVERNANCE_RETURN_READBACK_PRESENT",
+                       "a returns array in the authenticated return readback", _RETURN, RETURN_ENTRYPOINT)
+    returns = [r for r in rows
                if isinstance(r, Mapping) and r.get("governance_request_packet_id") == request_packet_id]
     if not returns:
-        others = sorted({str(r.get("governance_request_packet_id")) for r in (return_readback.get("returns") or [])
+        others = sorted({str(r.get("governance_request_packet_id")) for r in rows
                          if isinstance(r, Mapping)})
         raise _Refused("GOVERNANCE_DECISION_RETURNED_FOR_THE_EMITTED_PACKET",
                        "a return for packet " + request_packet_id + ("; returns seen for " + ", ".join(others) if others
