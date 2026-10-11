@@ -77,8 +77,22 @@ def _chain(readback: Any, what: str) -> set[str]:
     chain = readback.get("chain")
     if not isinstance(chain, list) or not chain:
         raise _Refused(what + "_LEDGER_READBACK_ALLOWED", "a non-empty verified chain", _REFETCH)
-    return {receipt for e in chain if isinstance(e, Mapping)
-            for receipt in [e.get("receipt_sha256")] if isinstance(receipt, str)}
+    if readback.get("chain_length") != len(chain):
+        raise _Refused(what + "_LEDGER_CHAIN_INTEGRITY", "matching chain_length", _REFETCH)
+    previous = None
+    receipts = set()
+    for entry in chain:
+        if not isinstance(entry, Mapping):
+            raise _Refused(what + "_LEDGER_CHAIN_INTEGRITY", "object chain entries", _REFETCH)
+        receipt = _digest(entry.get("receipt_sha256"))
+        if receipt is None or entry.get("previous_receipt_sha256") != previous or receipt in receipts:
+            raise _Refused(what + "_LEDGER_CHAIN_INTEGRITY",
+                           "unique valid receipts and contiguous predecessor bindings", _REFETCH)
+        receipts.add(receipt)
+        previous = receipt
+    if readback.get("head_receipt_sha256") != previous:
+        raise _Refused(what + "_LEDGER_CHAIN_INTEGRITY", "head equals final receipt", _REFETCH)
+    return receipts
 
 
 def _check(return_readback: Any, sender_readback: Any, deciding_readback: Any, request_packet_id: str) -> dict[str, Any]:
