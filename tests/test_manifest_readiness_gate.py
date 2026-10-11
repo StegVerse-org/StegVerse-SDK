@@ -163,6 +163,16 @@ class ReadinessInvocationIdentityTests(unittest.TestCase):
                     readiness_invocation_binding(**{**kwargs, "payload_sha256": malformed})
 
 
+class MissingReadinessManifestIdentityTests(unittest.TestCase):
+    def test_missing_source_identity_is_not_stringified_into_valid_binding(self):
+        from stegverse.manifest_plan import _invocation_binding_for
+        manifest = _draft()
+        manifest["source_output_id"] = None
+        with patch("stegverse.manifest_contract.validate_ingress_manifest", return_value={"canonical_manifest_sha256": "a" * 64}):
+            with self.assertRaisesRegex(ValueError, "READINESS_INVOCATION_SOURCE_OUTPUT_ID_REQUIRED"):
+                _invocation_binding_for(manifest, manifest["processing"]["route_id"], ATTEMPT)
+
+
 class CallerRouteInjectionRegressionTests(unittest.TestCase):
     def test_caller_hint_cannot_expand_published_alternatives(self):
         manifest = _draft()
