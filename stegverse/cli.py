@@ -469,9 +469,19 @@ def _ask_question(args: argparse.Namespace) -> int:
     relation = None
     if args.joint_relation:
         relation = json.loads(Path(args.joint_relation).read_text(encoding="utf-8"))
+    # SDK#368: the ask manifest must qualify READY on supplied, authenticated,
+    # invocation-bound evidence before any branch runs (same flags as 0A/0B).
+    from .manifest_builder import load_readiness_inputs
+
+    evidence, verifier = load_readiness_inputs(
+        getattr(args, "readiness_evidence", None), getattr(args, "readiness_keys", None)
+    )
     try:
         answer = ask_governed_question(
             args.question, journey, strategy=args.strategy, joint_relation=relation,
+            created_at=getattr(args, "created_at", None),
+            attempt_id=getattr(args, "attempt_id", None),
+            readiness_evidence=evidence, evidence_verifier=verifier,
         )
     except GovernedLlmFanError as error:
         # The node's StegBrowser capability is what performs the branches. When
@@ -489,6 +499,9 @@ def _ask_question(args: argparse.Namespace) -> int:
         "answer": answer,
         "summary": answer_summary(answer),
     }, indent=2, sort_keys=True, default=list))
+    if answer["disposition"] == "FAIL_CLOSED":
+        # Not runnable on this evidence: the draft is preserved, nothing was dispatched.
+        return 2
     return 0 if answer["governed_claim"] else 1
 
 
@@ -545,6 +558,10 @@ def build_parser() -> argparse.ArgumentParser:
                     help="JSON file holding a validated joint-relation record")
     ask.add_argument("--plan-only", action="store_true",
                     help="plan and verify the journey without running the fan")
+    ask.add_argument("--created-at", help="ask draft creation timestamp; preserve it when qualifying the same draft")
+    # SDK#368 readiness gate inputs for the fan (same names as 0A/0B and run-manifest).
+    from .manifest_execution import add_readiness_arguments
+    add_readiness_arguments(ask)
     compose = sub.add_parser(
         "compose-response",
         help="compose N worker LLM answers into one governed composite response",

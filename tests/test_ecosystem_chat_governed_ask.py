@@ -15,16 +15,20 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Mapping
 
 import pytest
 
+from stegverse.capability_inventory import hmac_evidence_verifier
 from stegverse.ecosystem_chat_ask import (
     ANSWER_SCHEMA,
     ANSWER_VERIFICATION_FIELDS,
     DISPOSITION_ANSWERED,
     DISPOSITION_FAN_INCOMPLETE,
+    DISPOSITION_NOT_READY,
+    READINESS_FAILED_PREDICATE,
     EcosystemChatAskError,
     answer_summary,
     ask_governed_question,
@@ -50,9 +54,34 @@ from stegverse.governed_llm_fan import (
     run_governed_llm_fan,
 )
 from stegverse.stegbrowser_processor import JOURNEY_SCHEMA_V2, derive_state_graph
+from tests.test_manifest_readiness_gate import ATTEMPT, KEY, KEY_ID, _all_ready
 
 QUESTION = "What does StegVerse govern at the execution boundary?"
 ANSWER = "It governs decision verification at the execution boundary."
+
+#: SDK#368: an ask is a draft until it qualifies READY on authenticated,
+#: invocation-bound evidence. created_at is pinned so the fixture evidence binds
+#: to the same canonical digest the ask builds; the verifier is the host's trust
+#: root, which a request never supplies.
+CREATED_AT = "2026-10-02T00:00:00Z"
+VERIFIER = hmac_evidence_verifier({KEY_ID: KEY})
+
+
+def readiness(journey_value: Mapping[str, Any] | None = None, question: str = QUESTION) -> Dict[str, Any]:
+    """Keyword arguments that qualify this exact ask READY on fixture evidence."""
+    manifest = build_ask_manifest(question, journey_value or journey(), created_at=CREATED_AT)
+    return {
+        "created_at": CREATED_AT,
+        "attempt_id": ATTEMPT,
+        "readiness_evidence": _all_ready(manifest, at=datetime.now(timezone.utc) - timedelta(seconds=5)),
+        "evidence_verifier": VERIFIER,
+    }
+
+
+def entry_readiness(journey_value: Mapping[str, Any] | None = None) -> Dict[str, Any]:
+    """The request-carried part of readiness for a Chat entry body (the verifier is the host's)."""
+    ready = readiness(journey_value)
+    return {k: ready[k] for k in ("created_at", "attempt_id", "readiness_evidence")}
 
 #: Checkout locations, used only when the owner is not installed. StegBrowser
 #: carries no packaging metadata, so a checkout is currently the only way to
@@ -174,7 +203,37 @@ VALID_RELATION = {
 def _ask(**kwargs):
     kwargs.setdefault("executor", browser_executor())
     kwargs.setdefault("joint_relation", VALID_RELATION)
+    for key, value in readiness().items():
+        kwargs.setdefault(key, value)
     return ask_governed_question(QUESTION, journey(), **kwargs)
+
+
+# --- nothing runs until the ask qualifies READY (SDK#368) --------------------
+
+
+def _no_branch(request: Mapping[str, Any], lease: Mapping[str, Any]) -> Dict[str, Any]:
+    raise AssertionError("no branch may be leased or executed")
+
+
+def test_an_ask_without_readiness_evidence_executes_no_branch() -> None:
+    """Runs without the owner: the gate refuses before any executor is reached."""
+    answer = ask_governed_question(QUESTION, journey(), executor=_no_branch, created_at=CREATED_AT)
+    assert answer["disposition"] == DISPOSITION_NOT_READY
+    assert answer["failed_predicate"] == READINESS_FAILED_PREDICATE
+    assert answer["fan_attempted"] is False
+    assert answer["dispatched"] is False
+    assert answer["draft_preserved"] is True
+    assert answer["governed_claim"] is False
+    assert answer["answer"] is None
+    assert answer_summary(answer)["disposition"] == DISPOSITION_NOT_READY
+
+
+def test_request_carried_evidence_without_the_host_trust_root_executes_no_branch() -> None:
+    ready = readiness()
+    ready.pop("evidence_verifier")
+    answer = ask_governed_question(QUESTION, journey(), executor=_no_branch, **ready)
+    assert answer["disposition"] == DISPOSITION_NOT_READY
+    assert {n["failed_predicate"] for n in answer["evidence"]["failing_nodes"]} == {"EVIDENCE_AUTHENTICATED"}
 
 
 # --- the worker is not in the path -------------------------------------------
@@ -525,7 +584,8 @@ def test_a_different_question_plans_different_commitments() -> None:
 def test_a_planned_journey_answers_the_question_end_to_end() -> None:
     planned = plan_ask_journey(QUESTION, ROUTES, fan_journey_id="ask-plan")
     answer = ask_governed_question(
-        QUESTION, planned, executor=browser_executor(), joint_relation=VALID_RELATION)
+        QUESTION, planned, executor=browser_executor(), joint_relation=VALID_RELATION,
+        **readiness(planned))
     assert answer["disposition"] == DISPOSITION_ANSWERED
     assert answer["answer"] == ANSWER
     assert answer["observed_endpoint_receipts"] == RECEIPTS_PER_BRANCH * 3
@@ -567,8 +627,9 @@ def test_no_operation_result_is_gated_on_a_device() -> None:
     from stegverse.ecosystem_chat_operations import handle_chat_entry
 
     _, served = handle_chat_entry(
-        {"schema": SCHEMA, "operation": ASK, "question": QUESTION, "journey": journey()},
-        executor=browser_executor(), joint_relation=VALID_RELATION)
+        {"schema": SCHEMA, "operation": ASK, "question": QUESTION, "journey": journey(),
+         **entry_readiness()},
+        executor=browser_executor(), joint_relation=VALID_RELATION, evidence_verifier=VERIFIER)
     _, unserved = handle_chat_entry(
         {"schema": SCHEMA, "operation": RECONSTRUCT,
          "manifest_receipt_id": "MR-A1B2C3D4E5F60718"})
@@ -591,10 +652,12 @@ def test_a_question_posted_to_the_chat_endpoint_returns_a_governed_answer() -> N
     body = _json.dumps({
         "schema": SCHEMA, "operation": ASK,
         "question": QUESTION, "journey": journey(),
+        **entry_readiness(),
     })
     status, result = handle_ecosystem_chat_pipeline_http(
         "POST", ECOSYSTEM_CHAT_PATH, body,
         executor=browser_executor(), joint_relation=VALID_RELATION,
+        evidence_verifier=VERIFIER,
     )
     assert status == 200
     assert result["served"] is True
@@ -643,11 +706,13 @@ def test_a_disagreeing_fan_answers_the_surface_with_422_not_a_fabricated_answer(
     body = _json.dumps({
         "schema": SCHEMA, "operation": ASK,
         "question": QUESTION, "journey": journey(),
+        **entry_readiness(),
     })
     status, result = handle_ecosystem_chat_pipeline_http(
         "POST", ECOSYSTEM_CHAT_PATH, body,
         executor=browser_executor({"b2": "Something entirely different."}),
         joint_relation=VALID_RELATION,
+        evidence_verifier=VERIFIER,
     )
     assert status == 422
     assert result["summary"]["answer"] is None

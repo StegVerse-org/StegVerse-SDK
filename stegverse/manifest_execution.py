@@ -187,7 +187,9 @@ def execute_manifest(manifest: Mapping[str, Any], *, canonical_source_fetcher=No
     )
 
 
-_READINESS_REFUSAL_SCHEMA = "stegverse.sdk.run-manifest-readiness-refusal.v1"
+#: The one refusal record every gated dispatch entry emits when a draft is NOT_READY.
+READINESS_REFUSAL_SCHEMA = "stegverse.sdk.run-manifest-readiness-refusal.v1"
+_READINESS_REFUSAL_SCHEMA = READINESS_REFUSAL_SCHEMA
 _CANONICAL_ENTRYPOINT = "stegverse.manifest_execution.execute_manifest"
 
 

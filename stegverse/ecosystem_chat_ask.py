@@ -55,6 +55,13 @@ RETURN_MANIFEST_SCHEMA = "stegverse.ecosystem-chat-ask-return/v1"
 DISPOSITION_ANSWERED = "GOVERNED_ANSWER"
 DISPOSITION_FAN_INCOMPLETE = "FAN_INCOMPLETE"
 DISPOSITION_NOT_COMPOSED = "NOT_COMPOSED"
+#: SDK#368: the ask manifest did not qualify READY on supplied, authenticated,
+#: invocation-bound evidence. The same disposition and predicate every other
+#: gated dispatch entry (0A/0B, run-manifest, external-run) emits; no branch ran.
+DISPOSITION_NOT_READY = "FAIL_CLOSED"
+READINESS_FAILED_PREDICATE = "MANIFEST_READINESS_QUALIFIED"
+#: The dispatcher the gate stands in front of on this path.
+FAN_ENTRYPOINT = "stegverse.governed_llm_fan.run_governed_llm_fan"
 
 #: What the asker compares to check the answer without a console.
 ANSWER_VERIFICATION_FIELDS: tuple[str, ...] = (
@@ -247,12 +254,17 @@ def build_ask_manifest(
     data_class: str = "stegverse.ecosystem-chat-question.v1",
     default_response_marker: str = "ECOSYSTEM_CHAT_ANSWER",
     default_provider: str = "credential-free",
+    created_at: str | None = None,
 ) -> Dict[str, Any]:
     """Build the ingress manifest whose fan answers one question.
 
     Chat interfaces with the builder; it does not build. This calls the same
     manifest builder a console entry calls, so both entry points hand the same
     manifest to the same processor.
+
+    ``created_at`` is part of the manifest's canonical digest. Readiness evidence
+    is invocation-bound to that digest, so a caller qualifying a draft it built
+    earlier preserves the draft's own ``created_at`` (as the 0A console does).
     """
     asked = _text(question, "question")
     if not isinstance(journey, Mapping) or journey.get("schema") != JOURNEY_SCHEMA_V2:
@@ -279,7 +291,55 @@ def build_ask_manifest(
         process="stegbrowser",
         return_depth="full-trace",
         publisher_required=False,
+        created_at=created_at,
     )
+
+
+def _readiness_refusal_answer(
+    question: str,
+    journey: Mapping[str, Any],
+    manifest: Mapping[str, Any],
+    qualified: Mapping[str, Any],
+    *,
+    strategy: str,
+) -> Dict[str, Any]:
+    """The answer returned when the ask manifest is NOT_READY: nothing was dispatched.
+
+    Same shape the other gated entries emit (FAIL_CLOSED, MANIFEST_READINESS_QUALIFIED,
+    draft preserved, no authority), carried in the answer schema so a chat surface
+    reads it where it reads every other disposition.
+    """
+    from .manifest_contract import validate_ingress_manifest
+    from .manifest_execution import READINESS_REFUSAL_SCHEMA, readiness_refusal
+
+    branches = journey.get("branches") or []
+    return {
+        "schema": ANSWER_SCHEMA,
+        "question": _text(question, "question"),
+        "fan_journey_id": str(journey.get("journey_id")),
+        "branch_count": len(branches),
+        "branches": [],
+        "required_endpoint_receipts": 0,
+        "observed_endpoint_receipts": 0,
+        "fan_complete": False,
+        "fan_attempted": False,
+        "fan_sha256": None,
+        "strategy": strategy,
+        "worker_in_path": False,
+        "chat_builds_manifest": False,
+        "chat_selects_answer": False,
+        "readiness_refusal_schema": READINESS_REFUSAL_SCHEMA,
+        "canonical_entrypoint": FAN_ENTRYPOINT,
+        "canonical_manifest_sha256": validate_ingress_manifest(manifest)["canonical_manifest_sha256"],
+        "dispatched": False,
+        "governed_claim": False,
+        "answer": None,
+        "composite": None,
+        "replay": None,
+        "failure": None,
+        "authority_effect": "NONE",
+        **readiness_refusal(qualified),
+    }
 
 
 def ask_governed_question(
@@ -291,6 +351,10 @@ def ask_governed_question(
     joint_relation: Mapping[str, Any] | None = None,
     composition_id: Optional[str] = None,
     requester: str = "SDK:EcosystemChat",
+    created_at: str | None = None,
+    attempt_id: str | None = None,
+    readiness_evidence=(),
+    evidence_verifier=None,
 ) -> Dict[str, Any]:
     """Fan a question to N LLMs, compose one governed answer, and replay it.
 
@@ -298,11 +362,25 @@ def ask_governed_question(
     reconstruction result, so the asker verifies rather than trusts. A fan that
     did not complete never composes: an answer built from some of the workers
     would misrepresent how it was reached.
+
+    SDK#368: the ask manifest is a draft until it qualifies READY on supplied,
+    authenticated, invocation-bound readiness evidence, the same gate every other
+    dispatch entry runs. Without that, no branch is leased or executed and the
+    answer carries the FAIL_CLOSED / MANIFEST_READINESS_QUALIFIED record.
     """
+    from .manifest_execution import qualify_manifest_for_dispatch
+    from .manifest_plan import require_ready_qualification
+
     if strategy not in STRATEGIES:
         raise EcosystemChatAskError(f"unsupported strategy: {strategy}")
 
-    manifest = build_ask_manifest(question, journey)
+    manifest = build_ask_manifest(question, journey, created_at=created_at)
+    qualified = qualify_manifest_for_dispatch(
+        manifest, attempt_id=attempt_id, readiness_evidence=readiness_evidence, evidence_verifier=evidence_verifier
+    )
+    if not qualified["executable"]:
+        return _readiness_refusal_answer(question, journey, manifest, qualified, strategy=strategy)
+    require_ready_qualification(manifest, qualified["qualification"])
     fan = run_governed_llm_fan(manifest, executor=executor, requester=requester)
 
     answer: Dict[str, Any] = {
@@ -314,8 +392,11 @@ def ask_governed_question(
         "required_endpoint_receipts": fan["required_endpoint_receipts"],
         "observed_endpoint_receipts": fan["observed_endpoint_receipts"],
         "fan_complete": fan["complete"],
+        "fan_attempted": True,
         "fan_sha256": fan["fan_sha256"],
         "strategy": strategy,
+        "readiness_qualification": qualified["qualification"],
+        "executable": True,
         "worker_in_path": False,
         "chat_builds_manifest": False,
         "chat_selects_answer": False,
@@ -435,7 +516,8 @@ def answer_summary(answer: Mapping[str, Any]) -> Dict[str, Any]:
 
 __all__ = [
     "ANSWER_SCHEMA", "ANSWER_VERIFICATION_FIELDS", "DISPOSITION_ANSWERED",
-    "DISPOSITION_FAN_INCOMPLETE", "DISPOSITION_NOT_COMPOSED",
+    "DISPOSITION_FAN_INCOMPLETE", "DISPOSITION_NOT_COMPOSED", "DISPOSITION_NOT_READY",
+    "FAN_ENTRYPOINT", "READINESS_FAILED_PREDICATE",
     "EcosystemChatAskError", "JOURNEY_PLANNING", "JOURNEY_PLANNING_BASIS",
     "OUTBOUND_MANIFEST_SCHEMA", "RETURN_MANIFEST_SCHEMA", "answer_summary",
     "ask_governed_question", "build_ask_manifest", "plan_ask_journey",
