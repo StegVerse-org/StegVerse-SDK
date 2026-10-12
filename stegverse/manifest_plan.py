@@ -506,6 +506,8 @@ def require_ready_qualification(manifest: Mapping[str, Any], qualification: Mapp
 
     if not isinstance(qualification, Mapping):
         raise ValueError("READINESS_QUALIFICATION_REQUIRED")
+    if not isinstance(manifest, Mapping):
+        raise ValueError("ADMITTED_MANIFEST_REQUIRED")
     digest = validate_ingress_manifest(manifest)["canonical_manifest_sha256"]
     if qualification.get("manifest_sha256") != digest:
         raise ValueError("READINESS_QUALIFICATION_MANIFEST_DIGEST_MISMATCH")
