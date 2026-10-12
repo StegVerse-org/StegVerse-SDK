@@ -1,5 +1,16 @@
 name: SVG governance-cycle manifest route
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'stegverse/route_resolution.py'
+      - 'stegverse/svg_governance_cycle_processor.py'
+      - 'stegverse/manifest_builder.py'
+      - 'stegverse/manifest_state_transition_runtime.py'
+      - 'tests/test_svg_governance_cycle_manifest_route.py'
+      - 'tests/test_universal_manifest_state_transition_runtime.py'
+      - 'README.md'
+      - '.github/workflows/svg-governance-cycle-manifest-route.yml'
   pull_request:
     paths:
       - 'stegverse/route_resolution.py'
