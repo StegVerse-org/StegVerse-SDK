@@ -334,6 +334,7 @@ def deliver_incident_notification(
     if (
         not isinstance(ack, Mapping)
         or ack.get("idempotency_key") != record.get("idempotency_key")
+        or ("record_sha256" in ack and ack.get("record_sha256") != record.get("record_sha256"))
         or not isinstance(ack.get("ack_ref"), str) or not ack.get("ack_ref")
     ):
         return {**out, "disposition": "FAIL_CLOSED", "failed_predicate": "NOTIFICATION_ACK_BOUND_TO_RECORD",

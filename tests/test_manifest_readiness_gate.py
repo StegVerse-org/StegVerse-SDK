@@ -405,6 +405,8 @@ class NegativeControlTests(unittest.TestCase):
         self.assertIn("intake unavailable", failed["evidence"])
         unbound = deliver(manifest=declared, deliver=lambda r, _: {"idempotency_key": "other", "ack_ref": "a"})
         self.assertEqual(unbound["failed_predicate"], "NOTIFICATION_ACK_BOUND_TO_RECORD")
+        bad = deliver(manifest=declared, deliver=lambda r, _: {"idempotency_key": r["idempotency_key"], "record_sha256": "bad", "ack_ref": "ack-1"})
+        self.assertEqual(bad["failed_predicate"], "NOTIFICATION_ACK_BOUND_TO_RECORD")
         acked = deliver(manifest=declared, deliver=lambda r, _: {"idempotency_key": r["idempotency_key"], "ack_ref": "ack-1"})
         self.assertEqual(acked["disposition"], "ALLOW")
         self.assertIs(acked["delivered_by_sdk"], False)
