@@ -601,5 +601,14 @@ class MissingReadinessQualificationRefusalTests(unittest.TestCase):
                     require_ready_qualification({}, qualification)
 
 
+
+class MissingAdmittedManifestRefusalTests(unittest.TestCase):
+    def test_nonmapping_manifest_is_typed_fail_closed(self):
+        for manifest in (None, [], "raw request", 42, False):
+            with self.subTest(manifest=manifest):
+                with self.assertRaisesRegex(ValueError, "ADMITTED_MANIFEST_REQUIRED"):
+                    require_ready_qualification(manifest, {})
+
+
 if __name__ == "__main__":
     unittest.main()
