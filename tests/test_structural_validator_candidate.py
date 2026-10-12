@@ -50,6 +50,19 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         self.assertEqual(result["errors"][0]["path"], "/a~1b~0c")
         self.assertEqual(result["errors"][0]["code"], "REQUIRED")
 
+    def test_unvisited_schema_branches_fail_closed(self):
+        cases = [
+            ({}, {"properties": {"absent": {"$ref": "https://invalid.example/schema"}}}),
+            ({}, {"properties": {"absent": {"type": "imaginary"}}}),
+            ({}, {"items": {"unknownKeyword": True}}),
+            ({}, {"required": ["x", "x"]}),
+            ({}, {"enum": []}),
+            ({}, {"properties": {"absent": {"minLength": -1}}}),
+        ]
+        for instance, schema in cases:
+            with self.subTest(schema=schema):
+                self.check_case(instance, schema, False)
+
     def test_rejects_wrong_digest(self):
         result = validate("x", {"type": "string"}, "0" * 64)
         self.assertEqual(result["errors"][0]["code"], "SCHEMA_DIGEST_MISMATCH")
