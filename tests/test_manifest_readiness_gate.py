@@ -628,5 +628,20 @@ class NotificationRecordIntegrityTests(unittest.TestCase):
         self.assertEqual(built["disposition"], "ALLOW")
 
 
+
+class NonMappingDispatchInputRefusalTests(unittest.TestCase):
+    def test_nonmapping_manifest_is_typed_fail_closed(self):
+        for manifest in (None, [], "raw request", 42, False):
+            with self.subTest(manifest=manifest):
+                with self.assertRaisesRegex(ValueError, "ADMITTED_MANIFEST_REQUIRED"):
+                    require_ready_qualification(manifest, {})
+
+    def test_nonmapping_qualification_is_typed_fail_closed(self):
+        for qualification in (None, [], "READY", 1, False):
+            with self.subTest(qualification=qualification):
+                with self.assertRaisesRegex(ValueError, "READINESS_QUALIFICATION_REQUIRED"):
+                    require_ready_qualification(_draft(), qualification)
+
+
 if __name__ == "__main__":
     unittest.main()
