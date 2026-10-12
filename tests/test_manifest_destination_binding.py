@@ -224,49 +224,25 @@ def _governed_re_manifest(request, checked, manifest):
 class ReturnLegTest(unittest.TestCase):
     """A correctable binding DENY re-manifests; it never re-transports."""
 
-    def test_correctable_deny_produces_a_new_handoff_not_a_second_send(self):
+    def test_caller_supplied_remanifest_does_not_authorize_second_handoff(self):
         from stegverse.manifest_state_transition_runtime import admit_runtime_result
-
-        request = {**REQUEST, "manifest_declared_destination": DESTINATION}
-        repaired = {**request, "request_sha256": "e" * 64}
-        denial = {"disposition": "DENY", "evaluation_boundary": "SDK_MANIFEST_PROFILE"}
-        with patch(
-            "stegverse.manifest_state_transition_runtime.validate_runtime_result",
-            return_value=denial,
-        ), patch(
-            "stegverse.manifest_builder.correct_manifest_binding_deny",
-            return_value=repaired,
-        ):
-            out = admit_runtime_result({}, request, denial,
-                                       governed_remediation=_governed_re_manifest(request, denial, {}))
-        self.assertEqual(out["state"], "REMANIFESTED_AFTER_CORRECTABLE_BINDING_DENY")
-        # The repaired request carries its destination, so the new handoff is
-        # ALLOW and this result is that handoff's outcome, not a summary over it.
-        self.assertEqual(out["handoff"]["disposition"], "ALLOW")
-        self.assertEqual(out["disposition"], "ALLOW")
-        self.assertIsNone(out["failed_predicate"])
-        self.assertEqual(out["failed_transitions"], [])
-        self.assertEqual(out["corrected_from_request_sha256"], REQUEST["request_sha256"])
-        # The repair produces a fresh handoff carrying the new request's identity.
-        self.assertEqual(out["handoff"]["request_sha256"], "e" * 64)
-        self.assertFalse(out["handoff"]["receiver_contacted"])
-        self.assertFalse(out["handoff"]["intr_admission_observed"])
-
-    def test_an_unchanged_request_retains_the_exact_deny(self):
-        from stegverse.manifest_state_transition_runtime import admit_runtime_result
-
         request = {**REQUEST, "manifest_declared_destination": DESTINATION}
         denial = {"disposition": "DENY", "evaluation_boundary": "SDK_MANIFEST_PROFILE"}
-        with patch(
-            "stegverse.manifest_state_transition_runtime.validate_runtime_result",
-            return_value=denial,
-        ), patch(
-            "stegverse.manifest_builder.correct_manifest_binding_deny",
-            side_effect=ValueError("manifest_binding_repair_produced_unchanged_request"),
-        ):
+        with patch("stegverse.manifest_state_transition_runtime.validate_runtime_result",
+                   return_value=denial), patch(
+                       "stegverse.manifest_builder.correct_manifest_binding_deny",
+                       side_effect=AssertionError("unauthorized repair invoked")):
             out = admit_runtime_result({}, request, denial,
                                        governed_remediation=_governed_re_manifest(request, denial, {}))
         self.assertEqual(out, denial)
+
+    def test_unchanged_request_retains_exact_deny(self):
+        from stegverse.manifest_state_transition_runtime import admit_runtime_result
+        request = {**REQUEST, "manifest_declared_destination": DESTINATION}
+        denial = {"disposition": "DENY", "evaluation_boundary": "SDK_MANIFEST_PROFILE"}
+        with patch("stegverse.manifest_state_transition_runtime.validate_runtime_result",
+                   return_value=denial):
+            self.assertEqual(admit_runtime_result({}, request, denial), denial)
 
     def test_a_non_deny_result_passes_through_validation_unchanged(self):
         from stegverse.manifest_state_transition_runtime import admit_runtime_result
