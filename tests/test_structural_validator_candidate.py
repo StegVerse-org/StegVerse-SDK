@@ -322,7 +322,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
                     disagreements.append((instance, schema))
         self.assertEqual(disagreements, [])
-        self.assertEqual(CONTRACT["contract_version"], "1.1")
+        self.assertIn(CONTRACT["contract_version"], ("1.1", "1.2"))
 
     def test_contract_1_1_diagnostics_and_malformed_bounds(self):
         codes = lambda instance, schema: [e["code"] for e in self.check_case(instance, schema, False)["errors"]]
@@ -336,12 +336,39 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
             with self.subTest(schema=schema):
                 result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
                 self.assertEqual([e["code"] for e in result["errors"]], [code])
-        # Identity and reference keywords stay outside the contract (separate owner decision).
-        for key in ("$schema", "$id", "pattern", "format"):
+        # pattern and format stay outside the contract (T13 undecided).
+        for key in ("pattern", "format"):
             with self.subTest(key=key):
                 schema = {key: "x"}
                 result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
                 self.assertEqual([e["code"] for e in result["errors"]], ["UNSUPPORTED_KEYWORD:" + key])
+
+    def test_contract_1_2_root_identity_metadata(self):
+        # T12: $schema (exactly the 2020-12 URI) and $id (string) are root-only identity
+        # metadata with no effect on validity; anything else fails closed.
+        uri = "https://json-schema.org/draft/2020-12/schema"
+        codes = lambda schema: [e["code"] for e in check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())["errors"]]
+        self.assertEqual(codes({"$schema": uri, "$id": "urn:stegverse:x", "type": "object"}), [])
+        self.assertEqual(codes({"$schema": "http://json-schema.org/draft-07/schema#"}), ["UNSUPPORTED_DIALECT_URI"])
+        self.assertEqual(codes({"$schema": "x"}), ["UNSUPPORTED_DIALECT_URI"])
+        self.assertEqual(codes({"$id": 1}), ["INVALID_IDENTITY:$id"])
+        self.assertEqual(codes({"properties": {"a": {"$schema": uri}}}), ["UNSUPPORTED_KEYWORD:$schema"])
+        self.assertEqual(codes({"items": {"$id": "x"}}), ["UNSUPPORTED_KEYWORD:$id"])
+        self.assertEqual(codes({"$schema": uri, "$ref": "#/$defs/a", "$defs": {"a": {}}}),
+                         ["UNSUPPORTED_KEYWORD:$defs", "UNSUPPORTED_KEYWORD:$ref"])
+        self.assertEqual(CONTRACT["contract_version"], "1.2")
+        self.assertEqual(CONTRACT["root_identity_keywords"]["$schema"], uri)
+        Draft202012Validator = reference_validator(self)
+        values, schemas = self._generated_corpus()
+        disagreements = []
+        for base in schemas:
+            schema = {"$schema": uri, "$id": "https://example.invalid/s", **base}
+            digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+            self.assertTrue(check_schema(schema, digest)["valid"], schema)
+            for instance in values:
+                if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
+                    disagreements.append((instance, schema))
+        self.assertEqual(disagreements, [])
 
 if __name__ == "__main__":
     unittest.main()

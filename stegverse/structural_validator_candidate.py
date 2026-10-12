@@ -9,6 +9,11 @@ SUPPORTED = {"type", "required", "properties", "additionalProperties", "items", 
              "minItems", "maxItems", "uniqueItems"}
 # Annotation-only keywords: accepted and ignored, as in 2020-12 they never affect validity.
 ANNOTATIONS = {"title", "description", "$comment", "examples"}
+# Root-only identity metadata (T12): no effect on validity. $schema must name exactly the
+# dialect the ecosystem uses (all StegVerse-Labs/.github schemas declare it); anything else
+# fails closed. Below the root both stay unsupported, since $ref/$defs resolution is not.
+REFERENCE_DIALECT_URI = "https://json-schema.org/draft/2020-12/schema"
+ROOT_IDENTITY = {"$schema", "$id"}
 TYPES = {"null": lambda v: v is None, "boolean": lambda v: type(v) is bool,
          "integer": lambda v: type(v) is int, "number": lambda v: type(v) in (int, float),
          "string": lambda v: isinstance(v, str), "array": lambda v: isinstance(v, list),
@@ -19,9 +24,10 @@ TYPES = {"null": lambda v: v is None, "boolean": lambda v: type(v) is bool,
 # accepts, never the reverse.
 CONTRACT = {
     "dialect": DIALECT,
-    "contract_version": "1.1",
+    "contract_version": "1.2",
     "supported_keywords": sorted(SUPPORTED),
     "annotation_keywords": sorted(ANNOTATIONS),
+    "root_identity_keywords": {"$schema": REFERENCE_DIALECT_URI, "$id": "string"},
     "max_schema_depth": MAX_SCHEMA_DEPTH,
     "max_instance_depth": MAX_INSTANCE_DEPTH,
     "instance_values": "JSON only: null, bool, int, finite float, str, list, dict with str keys",
@@ -29,7 +35,8 @@ CONTRACT = {
     "divergences_fail_closed": [
         "integer-valued floats such as 1.0 are not type integer",
         "boolean subschemas (true/false) are unsupported",
-        "$ref, $defs, $id, $schema and every keyword outside supported_keywords are rejected",
+        "$ref, $defs and every keyword outside supported_keywords are rejected; $schema and $id only at the root",
+        "$schema other than the 2020-12 URI is rejected",
         "external registries and dialects other than this one are rejected",
         "schemas nested deeper than max_schema_depth or not JSON-encodable are rejected",
         "instances that are not JSON values (NaN, Infinity, sets, tuples, bytes, non-string keys) are rejected",
@@ -97,8 +104,13 @@ def _preflight(spec, path, error, depth=0):
     if depth > MAX_SCHEMA_DEPTH or not isinstance(spec, dict):
         error(path, "INVALID_SCHEMA_OR_DEPTH")
         return
-    for key in sorted(spec.keys() - SUPPORTED - ANNOTATIONS):
+    allowed = SUPPORTED | ANNOTATIONS | (ROOT_IDENTITY if depth == 0 else set())
+    for key in sorted(spec.keys() - allowed):
         error(path, "UNSUPPORTED_KEYWORD:" + key)
+    if depth == 0 and "$schema" in spec and spec["$schema"] != REFERENCE_DIALECT_URI:
+        error(path, "UNSUPPORTED_DIALECT_URI")
+    if depth == 0 and "$id" in spec and not isinstance(spec["$id"], str):
+        error(path, "INVALID_IDENTITY:$id")
     types = spec.get("type")
     if types is not None:
         choices = types if isinstance(types, list) else [types]
@@ -173,7 +185,7 @@ def validate(instance, schema, schema_digest, dialect=DIALECT, registry=None):
         if depth > MAX_SCHEMA_DEPTH or not isinstance(spec, dict):
             error(path, "INVALID_SCHEMA_OR_DEPTH")
             return
-        for key in sorted(spec.keys() - SUPPORTED - ANNOTATIONS):
+        for key in sorted(spec.keys() - SUPPORTED - ANNOTATIONS - (ROOT_IDENTITY if depth == 0 else set())):
             error(path, "UNSUPPORTED_KEYWORD:" + key)
         types = spec.get("type")
         if types is not None:
