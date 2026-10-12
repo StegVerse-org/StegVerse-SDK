@@ -209,6 +209,18 @@ class UndeclaredDestinationTest(unittest.TestCase):
         self.assertIn("Do not substitute", repair)
 
 
+def _governed_re_manifest(request, checked, manifest):
+    from stegverse.route_resolution import canonical_sha256
+    return {
+        "schema": "stegverse.governed-deny-remediation-return/v1",
+        "disposition": "ALLOW", "decision": "RE_MANIFEST",
+        "original_request_sha256": request.get("request_sha256"),
+        "source_disposition_ref": checked.get("source_disposition_ref"),
+        "original_wire_manifest_sha256": canonical_sha256(dict(manifest)),
+        "authority_effect": "GOVERNED_REMEDIATION_RETURN_ONLY",
+    }
+
+
 class ReturnLegTest(unittest.TestCase):
     """A correctable binding DENY re-manifests; it never re-transports."""
 
@@ -225,7 +237,8 @@ class ReturnLegTest(unittest.TestCase):
             "stegverse.manifest_builder.correct_manifest_binding_deny",
             return_value=repaired,
         ):
-            out = admit_runtime_result({}, request, denial)
+            out = admit_runtime_result({}, request, denial,
+                                       governed_remediation=_governed_re_manifest(request, denial, {}))
         self.assertEqual(out["state"], "REMANIFESTED_AFTER_CORRECTABLE_BINDING_DENY")
         # The repaired request carries its destination, so the new handoff is
         # ALLOW and this result is that handoff's outcome, not a summary over it.
@@ -251,7 +264,8 @@ class ReturnLegTest(unittest.TestCase):
             "stegverse.manifest_builder.correct_manifest_binding_deny",
             side_effect=ValueError("manifest_binding_repair_produced_unchanged_request"),
         ):
-            out = admit_runtime_result({}, request, denial)
+            out = admit_runtime_result({}, request, denial,
+                                       governed_remediation=_governed_re_manifest(request, denial, {}))
         self.assertEqual(out, denial)
 
     def test_a_non_deny_result_passes_through_validation_unchanged(self):
