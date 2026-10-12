@@ -841,7 +841,7 @@ def admit_runtime_result(
             or governed_remediation.get("decision") != "RE_MANIFEST"
             or governed_remediation.get("original_request_sha256") != request.get("request_sha256")
             or governed_remediation.get("source_disposition_ref") != checked.get("source_disposition_ref")
-            or governed_remediation.get("original_wire_manifest_sha256") != request.get("wire_manifest_sha256")
+            or governed_remediation.get("original_wire_manifest_sha256") != canonical_sha256(dict(manifest))
             or governed_remediation.get("authority_effect") != "GOVERNED_REMEDIATION_RETURN_ONLY"):
         return checked
     # Even a structurally matched instruction cannot attest external custody.
