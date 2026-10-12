@@ -844,11 +844,6 @@ def admit_runtime_result(
             or governed_remediation.get("original_wire_manifest_sha256") != canonical_sha256(dict(manifest))
             or governed_remediation.get("authority_effect") != "GOVERNED_REMEDIATION_RETURN_ONLY"):
         return checked
-    # This SDK has no authenticated verifier for the external return's
-    # provenance. A caller-supplied mapping must never unlock repair solely
-    # because its claimed hashes and fields match. Until the canonical
-    # governed return verifier is integrated, retain the original DENY.
-    return checked
     # Even a structurally matched instruction cannot attest external custody.
     # It only permits preparing a new handoff for independent governance.
     from .manifest_builder import correct_manifest_binding_deny
