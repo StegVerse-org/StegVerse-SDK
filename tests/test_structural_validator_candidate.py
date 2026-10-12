@@ -52,6 +52,9 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
             ([1, 2], {"type": "array", "items": {"type": "integer"}}),
             ([1, "x"], {"type": "array", "items": {"type": "integer"}}),
             (False, {"type": "integer"}),
+            (True, {"enum": [1]}),
+            (1, {"const": True}),
+            ({"a/b": 1}, {"type": "object", "additionalProperties": False}),
             ("a", {"type": "string", "minLength": 2}),
         ]
         for instance, schema in cases:
