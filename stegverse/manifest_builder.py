@@ -118,7 +118,7 @@ _CORRECTABLE_MANIFEST_BINDING_DENIALS = frozenset({
 def correct_manifest_binding_deny(
     original_manifest: Mapping[str, Any],
     rejected_request: Mapping[str, Any],
-    denial: Mapping[str, Any],
+    denial: Mapping[str, Any], organization_boundary: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Correct the outgoing envelope, never the frozen original manifest.
 
@@ -126,7 +126,7 @@ def correct_manifest_binding_deny(
     must be submitted as a separate governed attempt to receive its own verdict.
     No retry is permitted for FAIL_CLOSED or for an unchanged envelope.
     """
-    from .manifest_state_transition_runtime import derive_execution_request
+    from .manifest_state_transition_runtime import derive_repair_request
 
     if denial.get("state") != "DENY" or denial.get("terminal") is not False:
         raise ValueError("terminal_or_non_deny_disposition_cannot_be_repaired")
@@ -148,7 +148,7 @@ def correct_manifest_binding_deny(
     rejected_hash = canonical_sha256(dict(rejected_request))
     if denial.get("original_request_sha256") != rejected_hash:
         raise ValueError("denial_original_request_sha256_mismatch")
-    repaired = derive_execution_request(wire)
+    repaired = derive_repair_request(wire, rejected_request, organization_boundary)
     if repaired["request_sha256"] == rejected_request.get("request_sha256"):
         raise ValueError("manifest_binding_repair_produced_unchanged_request")
     if repaired["wire_manifest_sha256"] != original_wire_hash:
