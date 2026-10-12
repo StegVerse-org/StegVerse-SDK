@@ -2,7 +2,7 @@
 import hashlib
 import json
 import unittest
-from stegverse.structural_validator_candidate import validate, canonical_bytes
+from stegverse.structural_validator_candidate import CONTRACT, SUPPORTED, canonical_bytes, check_schema, validate
 
 class StructuralValidatorCandidateTests(unittest.TestCase):
     def check_case(self, instance, schema, expected):
@@ -131,6 +131,66 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                     with self.subTest(instance=instance, schema=schema):
                         self.assertTrue(Draft202012Validator(schema).is_valid(instance))
 
+
+    def test_schema_nesting_beyond_encoder_stack_fails_closed(self):
+        schema = {}
+        for _ in range(200000):
+            schema = {"items": schema}
+        for result in (validate([], schema, "0" * 64), check_schema(schema, "0" * 64)):
+            self.assertEqual(result["errors"], [{"path": "", "code": "INVALID_SCHEMA_ENCODING"}])
+            self.assertFalse(result["valid"])
+
+    def test_schema_validity_is_checked_independently_of_any_instance(self):
+        good = {"type": "object", "required": ["a"], "properties": {"a": {"type": "string", "maxLength": 3}}}
+        bad = [
+            ({"type": "imaginary"}, "UNSUPPORTED_TYPE"),
+            ({"properties": {"a": {"$ref": "#/x"}}}, "UNSUPPORTED_KEYWORD:$ref"),
+            ({"required": "a"}, "INVALID_REQUIRED"),
+            ({"enum": []}, "INVALID_ENUM"),
+            ({"maxLength": -1}, "INVALID_BOUND:maxLength"),
+            ({"minimum": True}, "INVALID_BOUND:minimum"),
+            ({"additionalProperties": {}}, "UNSUPPORTED_ADDITIONAL_PROPERTIES"),
+            ({"items": True}, "INVALID_SCHEMA_OR_DEPTH"),
+            ({"properties": []}, "INVALID_PROPERTIES"),
+        ]
+        result = check_schema(good, hashlib.sha256(canonical_bytes(good)).hexdigest())
+        self.assertEqual((result["valid"], result["errors"], result["authority_effect"]), (True, [], "NONE"))
+        for schema, code in bad:
+            with self.subTest(schema=schema):
+                result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
+                self.assertFalse(result["valid"])
+                self.assertIn(code, [e["code"] for e in result["errors"]])
+                self.assertEqual(result, check_schema(schema, result["schema_digest"]))
+
+    def test_contract_matches_implementation_and_declares_no_authority(self):
+        self.assertEqual(CONTRACT["supported_keywords"], sorted(SUPPORTED))
+        self.assertEqual(CONTRACT["authority_effect"], "NONE")
+        # Documented divergences are fail-closed: rejected here, accepted by the reference.
+        for instance, schema in ((1.0, {"type": "integer"}), (True, {"items": False})):
+            with self.subTest(schema=schema):
+                self.assertFalse(validate(instance, schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())["valid"])
+
+    def test_schema_differential_never_admits_what_reference_metaschema_rejects(self):
+        try:
+            from jsonschema import Draft202012Validator
+            from jsonschema.exceptions import SchemaError
+        except ImportError:
+            self.skipTest("Pinned reference validator not installed; differential verification unavailable")
+        candidates = [
+            {"type": "string"}, {"type": ["string", "null"]}, {"type": []}, {"type": "imaginary"},
+            {"required": ["a", "a"]}, {"required": "a"}, {"required": [1]}, {"enum": []}, {"enum": 1},
+            {"minLength": -1}, {"minLength": 1.5}, {"maxLength": "2"}, {"minimum": "1"}, {"maximum": None},
+            {"properties": {"a": {"type": 1}}}, {"properties": []}, {"items": {"type": "integer"}},
+            {"items": {"minLength": -2}}, {"additionalProperties": False}, {"additionalProperties": 0},
+            {"const": None}, {"type": "object", "properties": {"a": {"enum": [[], {}]}}, "required": ["a"]},
+        ]
+        for schema in candidates:
+            if check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())["valid"]:
+                with self.subTest(schema=schema):
+                    try:
+                        Draft202012Validator.check_schema(schema)
+                    except SchemaError as exc:
+                        self.fail(f"candidate admitted a schema the reference metaschema rejects: {exc.message}")
 
 if __name__ == "__main__":
     unittest.main()
