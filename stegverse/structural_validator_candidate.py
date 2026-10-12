@@ -94,5 +94,44 @@ def validate(instance, schema, schema_digest, dialect="stegverse-bounded-v1", re
                 error(path, "INVALID_BOUND:" + key)
             elif type(value) in (int, float) and ((key == "minimum" and value < bound) or (key == "maximum" and value > bound)):
                 error(path, key.upper())
+    # Preflight every reachable schema, even if the instance does not visit that branch.
+    # Unsupported schema features must not be silently accepted for absent properties.
+    def preflight(spec, path, depth=0):
+        if depth > 32 or not isinstance(spec, dict):
+            error(path, "INVALID_SCHEMA_OR_DEPTH")
+            return
+        for key in sorted(spec.keys() - SUPPORTED):
+            error(path, "UNSUPPORTED_KEYWORD:" + key)
+        types = spec.get("type")
+        if types is not None:
+            choices = types if isinstance(types, list) else [types]
+            if not choices or any(not isinstance(t, str) or t not in TYPES for t in choices):
+                error(path, "UNSUPPORTED_TYPE")
+        if "required" in spec and (not isinstance(spec["required"], list) or
+            any(not isinstance(k, str) for k in spec["required"]) or
+            len(spec["required"]) != len(set(k for k in spec["required"] if isinstance(k, str)))):
+            error(path, "INVALID_REQUIRED")
+        if "enum" in spec and (not isinstance(spec["enum"], list) or not spec["enum"]):
+            error(path, "INVALID_ENUM")
+        if "additionalProperties" in spec and type(spec["additionalProperties"]) is not bool:
+            error(path, "UNSUPPORTED_ADDITIONAL_PROPERTIES")
+        for key in ("minLength", "maxLength"):
+            if key in spec and (type(spec[key]) is not int or spec[key] < 0):
+                error(path, "INVALID_BOUND:" + key)
+        for key in ("minimum", "maximum"):
+            if key in spec and type(spec[key]) not in (int, float):
+                error(path, "INVALID_BOUND:" + key)
+        props = spec.get("properties", {})
+        if not isinstance(props, dict) or any(not isinstance(k, str) for k in props):
+            error(path, "INVALID_PROPERTIES")
+        else:
+            for k in sorted(props):
+                preflight(props[k], path + ["properties", k], depth + 1)
+        if "items" in spec:
+            preflight(spec["items"], path + ["items"], depth + 1)
+
+    preflight(schema, [])
+    if errors:
+        return {"valid": False, "errors": errors, "schema_digest": actual, "dialect": dialect, "authority_effect": "NONE"}
     visit(instance, schema, [])
     return {"valid": not errors, "errors": errors, "schema_digest": actual, "dialect": dialect, "authority_effect": "NONE"}
