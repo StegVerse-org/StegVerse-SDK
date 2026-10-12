@@ -1,7 +1,18 @@
+import json
+
 from stegverse.manifest_builder import build_manifest
 from stegverse.manifest_execution import execute_manifest
 from stegverse.manifest_state_transition_runtime import derive_execution_request
 from stegverse.route_resolution import STEGBROWSER_ROUTE_ID
+from tests.test_manifest_destination_binding import ORGANIZATION_BOUNDARY, PINNED_BOUNDARY_REF
+
+
+def pinned_boundary_fetch(binding):
+    """Serve the pinned organization boundary fixture; these tests must not depend on the live GitHub API."""
+    assert (binding.repository, binding.path, binding.ref) == (
+        "StegVerse-Labs/.github", "org-runtime/interlock-intr.json", PINNED_BOUNDARY_REF)
+    return {"text": json.dumps(ORGANIZATION_BOUNDARY), "repository": binding.repository,
+            "path": binding.path, "ref": binding.ref, "sha": "pinned-fixture"}
 
 
 def _request(worker):
@@ -62,7 +73,7 @@ def test_test5_two_workers_use_same_generic_run_manifest_route():
 def test_test5_run_manifest_consumes_canonical_organization_endpoint_mapping(monkeypatch):
     monkeypatch.delenv("STEGVERSE_UNIVERSAL_INTR_INGRESS_URL", raising=False)
     monkeypatch.delenv("STEGVERSE_TVC_RELAY_AUTHORIZATION_ID", raising=False)
-    result = execute_manifest(_manifest("A"))
+    result = execute_manifest(_manifest("A"), canonical_source_fetcher=pinned_boundary_fetch)
     assert result["disposition"] == "ALLOW"
     assert result["state"] == "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF"
     assert result["processing_capability"] == "stegbrowser"
