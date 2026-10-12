@@ -31,6 +31,25 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
             with self.subTest(instance=instance, schema=schema):
                 self.check_case(instance, schema, expected)
 
+    def test_fail_closed_unsupported_nested_schema_and_depth(self):
+        schema = {"type": "object", "properties": {"child": {"$ref": "#/$defs/child"}}}
+        result = self.check_case({"child": "value"}, schema, False)
+        self.assertIn("UNSUPPORTED_KEYWORD:$ref", [e["code"] for e in result["errors"]])
+        nested = {"type": "array", "items": {"type": "integer"}}
+        for _ in range(34):
+            nested = {"type": "array", "items": nested}
+        instance = 1
+        for _ in range(35):
+            instance = [instance]
+        result = self.check_case(instance, nested, False)
+        self.assertIn("INVALID_SCHEMA_OR_DEPTH", [e["code"] for e in result["errors"]])
+
+    def test_pointer_escape_and_required_diagnostics(self):
+        schema = {"type": "object", "required": ["a/b~c"]}
+        result = self.check_case({}, schema, False)
+        self.assertEqual(result["errors"][0]["path"], "/a~1b~0c")
+        self.assertEqual(result["errors"][0]["code"], "REQUIRED")
+
     def test_rejects_wrong_digest(self):
         result = validate("x", {"type": "string"}, "0" * 64)
         self.assertEqual(result["errors"][0]["code"], "SCHEMA_DIGEST_MISMATCH")
