@@ -20,10 +20,9 @@ def fixture():
 
 
 class RemediationReturnTests(unittest.TestCase):
-    def test_structural_lineage_only(self):
-        result = validate_remediation_return(*fixture())
-        self.assertFalse(result["independent_attestation_performed_by_sdk"])
-        self.assertEqual(result["receipt_chain_length"], 2)
+    def test_self_asserted_readback_is_insufficient(self):
+        with self.assertRaisesRegex(ValueError, "INDEPENDENT_ORGANIZATION_LEDGER_READBACK_REQUIRED"):
+            validate_remediation_return(*fixture())
 
     def test_reject_broken_receipt_predecessor(self):
         p, q, r, e = fixture()
