@@ -1,5 +1,22 @@
 name: MIR SV Exp3 SDK Manifest Evidence (Non-Authorizing)
+# The frozen original root breaks when the builder stack changes, not only when
+# the experiment's own files do; and a guard that never runs on main cannot
+# report a merge that broke it (Labs/.github canonical record for
+# MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003, 2026-09-30).
 on:
+  push:
+    branches: [main]
+    paths:
+      - inspection/examples/mir-sv-exp3/**
+      - scripts/build_mir_sv_exp3_manifest.py
+      - tests/test_mir_sv_exp3_manifest.py
+      - tests/test_universal_manifest_state_transition_runtime.py
+      - stegverse/manifest_state_transition_runtime.py
+      - stegverse/manifest_builder.py
+      - stegverse/manifest_contract.py
+      - stegverse/route_resolution.py
+      - docs/MIR_SV_EXP3_MANIFEST.md
+      - .github/workflows/mir-sv-exp3-sdk-manifest.yml
   pull_request:
     branches: [main]
     paths:
@@ -8,6 +25,9 @@ on:
       - tests/test_mir_sv_exp3_manifest.py
       - tests/test_universal_manifest_state_transition_runtime.py
       - stegverse/manifest_state_transition_runtime.py
+      - stegverse/manifest_builder.py
+      - stegverse/manifest_contract.py
+      - stegverse/route_resolution.py
       - docs/MIR_SV_EXP3_MANIFEST.md
       - .github/workflows/mir-sv-exp3-sdk-manifest.yml
   workflow_dispatch:

@@ -62,9 +62,9 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         self.assertEqual(self.m,original)
         self.assertNotIn("canonical_manifest_sha256",self.m)
         self.assertEqual(request["canonical_manifest"],original)
-        self.assertEqual(request["wire_manifest_sha256"],
+        self.assertEqual(canonical_sha256(request["canonical_manifest"]),
                          "ad9b8b8aab2beeea04bff2aac34fd2e7bfa5915133bcaef9209c16de7d9bea68")
-        self.assertEqual(request["wire_manifest_sha256"],canonical_sha256(original))
+        self.assertEqual(canonical_sha256(request["canonical_manifest"]),canonical_sha256(original))
         self.assertEqual(request["canonical_manifest_sha256"],
                          canonical_sha256(request["canonical_manifest_projection"]))
         self.assertEqual(request["state_graph"]["canonical_task_id"],None)
@@ -146,7 +146,7 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "MANIFEST_BINDING_DENY_CONTRACT_MISMATCH"):
             validate_runtime_result(altered, current)
 
-    def test_a_repair_whose_new_handoff_fails_closed_is_not_reported_as_allowed(self):
+    def test_a_boundary_resolved_deny_is_retained_without_a_new_handoff(self):
         # The rejected request was resolved through the organization boundary.
         # The builder re-derives the repair from the frozen manifest alone, so
         # its handoff names no destination and fails closed. The re-manifest
@@ -181,19 +181,91 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
             "processing_capability": "ecosystem_diagnostic",
             "source_disposition_ref": "mock-evaluating-profile-path-not-sovereign-custody",
         }
-        out = admit_runtime_result(frozen, historical, denial)
-        self.assertEqual(out["handoff"]["disposition"], "FAIL_CLOSED")
-        self.assertEqual(out["disposition"], "FAIL_CLOSED")
-        self.assertEqual(out["state"], "FAIL_CLOSED")
-        self.assertEqual(out["failed_predicate"], "REMANIFESTED_HANDOFF_NOT_ALLOWED")
-        self.assertEqual(out["failed_transitions"], [{
-            "transition": "intr_handoff",
-            "disposition": "FAIL_CLOSED",
-            "failed_predicate": "REGISTERED_CAPABILITY_RESOLVES_TO_CANONICAL_ORGANIZATION_GITHUB_INGRESS_ENDPOINT",
-            "retry_entrypoint": "stegverse.manifest_state_transition_runtime.execute_manifest",
-        }])
-        self.assertEqual(out["retry_entrypoint"], "stegverse.manifest_state_transition_runtime.execute_manifest")
-        self.assertEqual(out["corrected_from_disposition"]["disposition"], "DENY")
+        out = admit_runtime_result(frozen, historical, denial, governed_remediation={
+            "schema": "stegverse.governed-deny-remediation-return/v1",
+            "disposition": "ALLOW", "decision": "RE_MANIFEST",
+            "original_request_sha256": historical["request_sha256"],
+            "source_disposition_ref": denial["source_disposition_ref"],
+            "original_wire_manifest_sha256": canonical_sha256(frozen),
+            "authority_effect": "GOVERNED_REMEDIATION_RETURN_ONLY",
+        })
+        # A caller-supplied return does not unlock the repair (69fe678): the
+        # boundary-resolved DENY is retained exactly, with no new handoff.
+        self.assertEqual(out["disposition"], "DENY")
+        self.assertEqual(out["evaluation_boundary"], "SDK_MANIFEST_PROFILE")
+        self.assertEqual(out["reason_code"], "canonical_manifest_sha256_binding_mismatch")
+        self.assertNotIn("handoff", out)
+        self.assertNotIn("repaired_request", out)
+
+    def _boundary_resolved_hash_deny(self, frozen, boundary, destination=None):
+        historical = derive_execution_request(frozen, boundary)
+        if destination is not None:
+            historical["manifest_declared_destination"] = destination
+        historical.pop("wire_manifest_sha256")
+        historical.pop("canonical_manifest_projection")
+        historical["canonical_manifest_sha256"] = canonical_sha256(frozen)
+        historical.pop("request_sha256")
+        historical["request_sha256"] = canonical_sha256(historical)
+        denial = {
+            "schema": "stegverse.sdk.manifest-profile-disposition/v1",
+            "state": "DENY", "disposition": "DENY", "terminal": False,
+            "automatic_retry_permitted": False,
+            "retry_condition": "CORRECT_ENVELOPE_IN_EXISTING_MANIFEST_BUILDER_THEN_NEW_GOVERNED_ATTEMPT",
+            "evaluation_boundary": "SDK_MANIFEST_PROFILE", "transport_validated": True,
+            "authentic_intr_admission_observed": False,
+            "organization_master_records_organization_record_observed": False,
+            "transition_id": "SDK_MANIFEST_BINDING",
+            "repair_owner": "StegVerse-org/StegVerse-SDK:stegverse/manifest_builder.py",
+            "authority_effect": "NONE_MANIFEST_PROFILE_DENY_ONLY",
+            "reason_code": "canonical_manifest_sha256_binding_mismatch",
+            "failed_predicate": "canonical_manifest_sha256_binding_mismatch",
+            "original_request_sha256": canonical_sha256(historical),
+            "claimed_request_sha256": historical["request_sha256"],
+            "original_wire_manifest_sha256": canonical_sha256(frozen),
+            "graph_id": historical["graph_id"],
+            "processing_capability": "ecosystem_diagnostic",
+            "source_disposition_ref": "mock-evaluating-profile-path-not-sovereign-custody",
+        }
+        return historical, denial
+
+    def _governed_remediation(self, request, denial):
+        return {
+            "schema": "stegverse.governed-deny-remediation-return/v1",
+            "disposition": "ALLOW", "decision": "RE_MANIFEST",
+            "original_request_sha256": request["request_sha256"],
+            "source_disposition_ref": denial["source_disposition_ref"],
+            "original_wire_manifest_sha256": canonical_sha256(request["canonical_manifest"]),
+            "authority_effect": "GOVERNED_REMEDIATION_RETURN_ONLY",
+        }
+
+    def test_profile_deny_without_governed_return_is_preserved(self):
+        boundary = json.loads((Path(__file__).parent / "fixtures" /
+            "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
+        original, denial = self._boundary_resolved_hash_deny(deepcopy(self.m), boundary)
+        self.assertEqual(admit_runtime_result(self.m, original, denial, boundary), denial)
+        wrong = self._governed_remediation(original, denial)
+        wrong["original_request_sha256"] = "wrong-request"
+        self.assertEqual(admit_runtime_result(self.m, original, denial, boundary, wrong), denial)
+
+    def test_matching_caller_return_cannot_authorize_repair(self):
+        boundary = json.loads((Path(__file__).parent / "fixtures" /
+            "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
+        frozen = deepcopy(self.m)
+        historical, denial = self._boundary_resolved_hash_deny(frozen, boundary)
+        claimed = self._governed_remediation(historical, denial)
+        self.assertEqual(admit_runtime_result(frozen, historical, denial, boundary, claimed), denial)
+        self.assertEqual(frozen, self.m)
+
+    def test_destination_substitution_does_not_unlock_repair(self):
+        boundary = json.loads((Path(__file__).parent / "fixtures" /
+            "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
+        frozen = deepcopy(self.m)
+        historical, denial = self._boundary_resolved_hash_deny(
+            frozen, boundary, destination={"endpoint": "elsewhere"})
+        with self.assertRaisesRegex(ValueError, "manifest_binding_repair_changed_destination"):
+            correct_manifest_binding_deny(frozen, historical, denial, boundary)
+        self.assertEqual(admit_runtime_result(
+            frozen, historical, denial, boundary, self._governed_remediation(historical, denial)), denial)
 
 
 if __name__=="__main__": unittest.main()
