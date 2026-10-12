@@ -62,9 +62,9 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         self.assertEqual(self.m,original)
         self.assertNotIn("canonical_manifest_sha256",self.m)
         self.assertEqual(request["canonical_manifest"],original)
-        self.assertEqual(request["wire_manifest_sha256"],
+        self.assertEqual(canonical_sha256(request["canonical_manifest"]),
                          "ad9b8b8aab2beeea04bff2aac34fd2e7bfa5915133bcaef9209c16de7d9bea68")
-        self.assertEqual(request["wire_manifest_sha256"],canonical_sha256(original))
+        self.assertEqual(canonical_sha256(request["canonical_manifest"]),canonical_sha256(original))
         self.assertEqual(request["canonical_manifest_sha256"],
                          canonical_sha256(request["canonical_manifest_projection"]))
         self.assertEqual(request["state_graph"]["canonical_task_id"],None)
@@ -186,7 +186,7 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
             "disposition": "ALLOW", "decision": "RE_MANIFEST",
             "original_request_sha256": historical["request_sha256"],
             "source_disposition_ref": denial["source_disposition_ref"],
-            "original_wire_manifest_sha256": historical["wire_manifest_sha256"],
+            "original_wire_manifest_sha256": canonical_sha256(frozen),
             "authority_effect": "GOVERNED_REMEDIATION_RETURN_ONLY",
         })
         self.assertEqual(out["handoff"]["disposition"], "FAIL_CLOSED")
@@ -239,7 +239,7 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
             "disposition": "ALLOW", "decision": "RE_MANIFEST",
             "original_request_sha256": request["request_sha256"],
             "source_disposition_ref": denial["source_disposition_ref"],
-            "original_wire_manifest_sha256": request["wire_manifest_sha256"],
+            "original_wire_manifest_sha256": canonical_sha256(request["canonical_manifest"]),
             "authority_effect": "GOVERNED_REMEDIATION_RETURN_ONLY",
         }
 
