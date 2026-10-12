@@ -831,62 +831,12 @@ def admit_runtime_result(
     if not (checked.get("disposition") == "DENY"
             and checked.get("evaluation_boundary") == "SDK_MANIFEST_PROFILE"):
         return checked
-    # A profile DENY is diagnostic evidence, not an authorization to retry.
-    # An SDK caller may submit a separately governed remediation instruction,
-    # but the original DENY remains the default until that interface exists.
-    if not isinstance(governed_remediation, Mapping):
-        return checked
-    if (governed_remediation.get("schema") != "stegverse.governed-deny-remediation-return/v1"
-            or governed_remediation.get("disposition") != "ALLOW"
-            or governed_remediation.get("decision") != "RE_MANIFEST"
-            or governed_remediation.get("original_request_sha256") != request.get("request_sha256")
-            or governed_remediation.get("source_disposition_ref") != checked.get("source_disposition_ref")
-            or governed_remediation.get("original_wire_manifest_sha256") != canonical_sha256(dict(manifest))
-            or governed_remediation.get("authority_effect") != "GOVERNED_REMEDIATION_RETURN_ONLY"):
-        return checked
-    # Structural fields supplied by a caller cannot authenticate a governance
-    # decision, a Healer classification or an organization ledger readback.
-    # The canonical fork and authenticated return verifier are not connected
-    # to this SDK entrypoint. Never let this mapping unlock a replacement
-    # handoff: preserve the original DENY until verified authority exists.
+    # A caller-supplied governance mapping is not an authenticated return.
+    # The existing organization/Healer fork and SDK remediation-return evidence
+    # validator are not connected to this entrypoint. Until they are, preserve
+    # the source DENY without a repair, retry, new handoff, or authority claim.
+    # Even a matching ALLOW-shaped instruction is insufficient.
     return checked
-    from .manifest_builder import correct_manifest_binding_deny
-    try:
-        repaired = correct_manifest_binding_deny(manifest, request, checked, organization_boundary)
-    except ValueError as exc:
-        if str(exc) == "manifest_binding_repair_produced_unchanged_request":
-            return checked  # Retain precise DENY; never replay identical request.
-        raise
-    # The SDK may prepare a corrected handoff, but this local operation is not
-    # a StegHealer mapping, a governed .github authorization, or InTr admission.
-    # Preserve the source DENY in corrected_from_disposition for the separately
-    # governed return path; never represent this as a completed retry.
-    # The re-manifested handoff is its own attempted transition and records its
-    # own disposition. This result says what that handoff produced rather than
-    # summarising it as ALLOW: a handoff that failed closed was not re-manifested.
-    handoff = build_intr_handoff(repaired)
-    allowed = handoff.get("disposition") == "ALLOW"
-    failed = [] if allowed else [{
-        "transition": "intr_handoff",
-        "disposition": handoff.get("disposition"),
-        "failed_predicate": handoff.get("failed_predicate"),
-        "retry_entrypoint": handoff.get("retry_entrypoint"),
-    }]
-    return {
-        "schema": HANDOFF_SCHEMA,
-        "state": "REMANIFESTED_AFTER_CORRECTABLE_BINDING_DENY" if allowed else "FAIL_CLOSED",
-        "disposition": "ALLOW" if allowed else "FAIL_CLOSED",
-        "failed_predicate": None if allowed else "REMANIFESTED_HANDOFF_NOT_ALLOWED",
-        "failed_transitions": failed,
-        "retry_entrypoint": None if allowed else failed[0]["retry_entrypoint"],
-        "evaluation_boundary": "SDK_MANIFEST_HANDOFF",
-        "terminal": False,
-        "corrected_from_request_sha256": request.get("request_sha256"),
-        "corrected_from_disposition": dict(checked),
-        "handoff": handoff,
-        "repaired_request": dict(repaired),
-        "authority_effect": "NONE_MANIFEST_HANDOFF_ONLY",
-    }
 
 
 __all__ = [
