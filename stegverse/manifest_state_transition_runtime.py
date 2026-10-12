@@ -816,6 +816,7 @@ def admit_runtime_result(
     request: Mapping[str, Any],
     result: Mapping[str, Any],
     organization_boundary: Mapping[str, Any] | None = None,
+    governed_remediation: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Validate a result the receiving Interlock runtime has returned.
 
@@ -830,6 +831,21 @@ def admit_runtime_result(
     if not (checked.get("disposition") == "DENY"
             and checked.get("evaluation_boundary") == "SDK_MANIFEST_PROFILE"):
         return checked
+    # A profile DENY is diagnostic evidence, not an authorization to retry.
+    # An SDK caller may submit a separately governed remediation instruction,
+    # but the original DENY remains the default until that interface exists.
+    if not isinstance(governed_remediation, Mapping):
+        return checked
+    if (governed_remediation.get("schema") != "stegverse.governed-deny-remediation-return/v1"
+            or governed_remediation.get("disposition") != "ALLOW"
+            or governed_remediation.get("decision") != "RE_MANIFEST"
+            or governed_remediation.get("original_request_sha256") != request.get("request_sha256")
+            or governed_remediation.get("source_disposition_ref") != checked.get("source_disposition_ref")
+            or governed_remediation.get("original_wire_manifest_sha256") != request.get("wire_manifest_sha256")
+            or governed_remediation.get("authority_effect") != "GOVERNED_REMEDIATION_RETURN_ONLY"):
+        return checked
+    # Even a structurally matched instruction cannot attest external custody.
+    # It only permits preparing a new handoff for independent governance.
     from .manifest_builder import correct_manifest_binding_deny
     try:
         repaired = correct_manifest_binding_deny(manifest, request, checked, organization_boundary)
