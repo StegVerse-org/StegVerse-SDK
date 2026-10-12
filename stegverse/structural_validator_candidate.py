@@ -11,6 +11,18 @@ TYPES = {"null": lambda v: v is None, "boolean": lambda v: type(v) is bool,
 def canonical_bytes(value):
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()
 
+def json_equal(a, b):
+    """JSON value equality: booleans are never numbers, 1 equals 1.0, containers compare deeply."""
+    if isinstance(a, bool) or isinstance(b, bool):
+        return type(a) is type(b) and a == b
+    if type(a) in (int, float) and type(b) in (int, float):
+        return a == b
+    if isinstance(a, list) and isinstance(b, list):
+        return len(a) == len(b) and all(json_equal(x, y) for x, y in zip(a, b))
+    if isinstance(a, dict) and isinstance(b, dict):
+        return a.keys() == b.keys() and all(json_equal(a[k], b[k]) for k in a)
+    return type(a) is type(b) and a == b
+
 def pointer(parts):
     return "".join("/" + str(p).replace("~", "~0").replace("/", "~1") for p in parts)
 
@@ -42,12 +54,12 @@ def validate(instance, schema, schema_digest, dialect="stegverse-bounded-v1", re
             if not any(TYPES[t](value) for t in choices):
                 error(path, "TYPE")
                 return
-        if "const" in spec and value != spec["const"]:
+        if "const" in spec and not json_equal(value, spec["const"]):
             error(path, "CONST")
         if "enum" in spec:
             if not isinstance(spec["enum"], list):
                 error(path, "INVALID_ENUM")
-            elif value not in spec["enum"]:
+            elif not any(json_equal(value, member) for member in spec["enum"]):
                 error(path, "ENUM")
         if isinstance(value, dict):
             props = spec.get("properties", {})

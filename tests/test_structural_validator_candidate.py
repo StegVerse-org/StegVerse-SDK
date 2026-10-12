@@ -57,6 +57,45 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         for instance, schema in cases:
             expected = Draft202012Validator(schema).is_valid(instance)
             self.check_case(instance, schema, expected)
+    def test_const_and_enum_never_equate_booleans_with_numbers(self):
+        # Python equates True with 1 and False with 0; JSON Schema does not.
+        cases = [
+            (1, {"const": True}), (0, {"const": False}), (True, {"const": 1}), (False, {"const": 0}),
+            (True, {"const": 1.0}), ([True], {"const": [1]}), ({"a": True}, {"const": {"a": 1}}),
+            (False, {"enum": [0]}), (1, {"enum": [True]}), (True, {"enum": [1, "a"]}),
+            ([True], {"items": {"const": 1}}), ({"a": True}, {"properties": {"a": {"const": 1}}}),
+        ]
+        for instance, schema in cases:
+            with self.subTest(instance=instance, schema=schema):
+                self.assertEqual(self.check_case(instance, schema, False)["errors"][0]["code"],
+                                 "ENUM" if "enum" in schema else "CONST")
+
+    def test_const_and_enum_keep_json_numeric_equality(self):
+        for instance, schema in ((1.0, {"const": 1}), (1, {"enum": [1.0]}), (True, {"const": True}),
+                                 ([1, {"a": None}], {"const": [1, {"a": None}]})):
+            with self.subTest(instance=instance, schema=schema):
+                self.check_case(instance, schema, True)
+
+    def test_generated_differential_never_accepts_what_reference_rejects(self):
+        try:
+            from jsonschema import Draft202012Validator
+        except ImportError:
+            self.skipTest("Pinned reference validator not installed; differential verification unavailable")
+        values = [None, True, False, 0, 1, 2, 1.0, 1.5, -1, "", "a", "ab", [], [1], [True], ["x"],
+                  {}, {"a": 1}, {"a": True}, {"a": "x"}, {"b": 1}]
+        schemas = [{"type": t} for t in ("null", "boolean", "integer", "number", "string", "array", "object")]
+        schemas += [{"const": c} for c in (True, False, 1, 0, 1.0, "a", None, [1], {"a": 1})]
+        schemas += [{"enum": e} for e in ([0], [1], [True], [False], [1, "a"], [[1]], [{"a": 1}], [None])]
+        schemas += [{"minimum": 1}, {"maximum": 1}, {"minLength": 1}, {"maxLength": 1},
+                    {"type": "object", "required": ["a"]}, {"items": {"const": 1}},
+                    {"type": "object", "properties": {"a": {"type": "integer"}}, "additionalProperties": False}]
+        for schema in schemas:
+            digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+            for instance in values:
+                if validate(instance, schema, digest)["valid"]:
+                    with self.subTest(instance=instance, schema=schema):
+                        self.assertTrue(Draft202012Validator(schema).is_valid(instance))
+
 
 if __name__ == "__main__":
     unittest.main()
