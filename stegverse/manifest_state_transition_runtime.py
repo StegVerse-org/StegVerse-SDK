@@ -844,8 +844,12 @@ def admit_runtime_result(
             or governed_remediation.get("original_wire_manifest_sha256") != canonical_sha256(dict(manifest))
             or governed_remediation.get("authority_effect") != "GOVERNED_REMEDIATION_RETURN_ONLY"):
         return checked
-    # Even a structurally matched instruction cannot attest external custody.
-    # It only permits preparing a new handoff for independent governance.
+    # Structural fields supplied by a caller cannot authenticate a governance
+    # decision, a Healer classification or an organization ledger readback.
+    # The canonical fork and authenticated return verifier are not connected
+    # to this SDK entrypoint. Never let this mapping unlock a replacement
+    # handoff: preserve the original DENY until verified authority exists.
+    return checked
     from .manifest_builder import correct_manifest_binding_deny
     try:
         repaired = correct_manifest_binding_deny(manifest, request, checked, organization_boundary)
