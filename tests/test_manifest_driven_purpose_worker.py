@@ -9,6 +9,15 @@ from stegverse.manifest_contract import validate_ingress_manifest
 from stegverse.manifest_execution import execute_manifest
 from stegverse.purpose_bound_worker_processor import REQUEST_SCHEMA, derive_state_graph, execute_manifest as execute_processor_manifest
 from stegverse.route_resolution import PURPOSE_BOUND_WORKER_ROUTE_ID, PUBLISHED_ROUTES
+from tests.test_manifest_destination_binding import ORGANIZATION_BOUNDARY, PINNED_BOUNDARY_REF
+
+
+def pinned_boundary_fetch(binding):
+    """Serve the pinned organization boundary fixture; these tests must not depend on the live GitHub API."""
+    assert (binding.repository, binding.path, binding.ref) == (
+        "StegVerse-Labs/.github", "org-runtime/interlock-intr.json", PINNED_BOUNDARY_REF)
+    return {"text": json.dumps(ORGANIZATION_BOUNDARY), "repository": binding.repository,
+            "path": binding.path, "ref": binding.ref, "sha": "pinned-fixture"}
 
 
 def request():
@@ -71,7 +80,7 @@ class ManifestDrivenPurposeWorkerTests(unittest.TestCase):
         graph = derive_state_graph(manifest)
         self.assertEqual(graph["canonical_task_id"], "SDK-TT-PURPOSE-BOUND-WORKER-RUNTIME-PROOF-001")
         self.assertFalse(graph["adapter_executes_lifecycle"])
-        result = execute_manifest(manifest)
+        result = execute_manifest(manifest, canonical_source_fetcher=pinned_boundary_fetch)
         # Processing remains manifest-selected; organization routing is consumed
         # from the fixed canonical .github source binding. This proves only the
         # SDK handoff boundary, not Interlock admission or governed execution.
