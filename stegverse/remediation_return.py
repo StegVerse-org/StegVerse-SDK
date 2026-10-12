@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from .organization_ledger_evidence import verify_organization_ledger_readback
+
 SCHEMA = "stegverse.sdk.remediation-return-validation/v1"
 
 
@@ -44,8 +46,16 @@ def validate_remediation_return(proposal: Mapping[str, Any], request: Mapping[st
         if index and receipt.get("predecessor_receipt_sha256") != previous:
             raise ValueError("AUTHORITATIVE_RECEIPT_PREDECESSOR_MISMATCH")
         previous = receipt["receipt_sha256"]
-    if result.get("independent_organization_ledger_readback_verified") is not True:
-        raise ValueError("INDEPENDENT_ORGANIZATION_LEDGER_READBACK_REQUIRED")
+    readback = result.get("organization_ledger_readback")
+    verified = verify_organization_ledger_readback(
+        readback,
+        organization_receipt_sha256=result.get("organization_receipt_sha256"),
+        canonical_manifest_sha256=request["canonical_manifest_sha256"],
+    )
+    if verified["disposition"] != "ALLOW":
+        raise ValueError("INDEPENDENT_ORGANIZATION_LEDGER_READBACK_REQUIRED:" + verified["failed_predicate"])
+    if result.get("organization_receipt_sha256") != verified["organization_receipt_sha256"]:
+        raise ValueError("REMEDIATION_ORGANIZATION_RECEIPT_MISMATCH")
     if result.get("originating_evaluator_return_acknowledged") is not True:
         raise ValueError("ORIGINATING_EVALUATOR_ACKNOWLEDGEMENT_REQUIRED")
     return {"schema": SCHEMA, "disposition": result["disposition"],
@@ -54,4 +64,5 @@ def validate_remediation_return(proposal: Mapping[str, Any], request: Mapping[st
             "terminal_receipt_sha256": previous,
             "evidence_validated_structurally": True,
             "independent_attestation_performed_by_sdk": False,
+            "readback_document_structurally_verified": True,
             "authority_effect": "NONE_VALIDATION_ONLY"}
