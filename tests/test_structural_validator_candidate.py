@@ -189,6 +189,8 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
             {"properties": {"a": {"type": 1}}}, {"properties": []}, {"items": {"type": "integer"}},
             {"items": {"minLength": -2}}, {"additionalProperties": False}, {"additionalProperties": 0},
             {"const": None}, {"type": "object", "properties": {"a": {"enum": [[], {}]}}, "required": ["a"]},
+            {"minItems": -1}, {"maxItems": 1.5}, {"uniqueItems": 1}, {"minItems": 2, "uniqueItems": True},
+            {"title": 1}, {"description": ["d"]}, {"$comment": None}, {"examples": "x"}, {"description": "d", "minItems": 0},
         ]
         for schema in candidates:
             if check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())["valid"]:
@@ -299,6 +301,47 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                         self.assertEqual([e["code"] for e in candidate["errors"]], ["TYPE"])
         self.assertGreater(observed, 0)
         self.assertIn("integer-valued floats such as 1.0 are not type integer", CONTRACT["divergences_fail_closed"])
+
+    def test_contract_1_1_array_keywords_and_annotations_agree_with_reference(self):
+        # Contract 1.1 (owner decision T8/T9): minItems, maxItems, uniqueItems and no-op annotations.
+        Draft202012Validator = reference_validator(self)
+        values = [[], [1], [1, 1], [1, 1.0], [True, 1], [False, 0], [1, 2, 3], [[1], [1.0]],
+                  [{"a": 1}, {"a": 1.0}], [{"a": 1}, {"b": 1}], [None, None], ["a", "a"], ["a", "b"],
+                  [[1, 2], [2, 1]], [{"a": True}, {"a": 1}], "x", {}, 3]
+        schemas = [{"uniqueItems": True}, {"uniqueItems": False}, {"minItems": 2}, {"maxItems": 1},
+                   {"minItems": 0, "maxItems": 0}, {"minItems": 1, "maxItems": 2, "uniqueItems": True},
+                   {"type": "array", "uniqueItems": True, "items": {"type": "integer"}},
+                   {"title": "t", "description": "d", "$comment": "c", "examples": [1], "minItems": 1},
+                   {"properties": {"a": {"uniqueItems": True, "description": "x"}}, "title": "outer"},
+                   {"items": {"type": "array", "maxItems": 1}}]
+        disagreements = []
+        for schema in schemas:
+            digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+            self.assertTrue(check_schema(schema, digest)["valid"], schema)
+            for instance in values:
+                if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
+                    disagreements.append((instance, schema))
+        self.assertEqual(disagreements, [])
+        self.assertEqual(CONTRACT["contract_version"], "1.1")
+
+    def test_contract_1_1_diagnostics_and_malformed_bounds(self):
+        codes = lambda instance, schema: [e["code"] for e in self.check_case(instance, schema, False)["errors"]]
+        self.assertEqual(codes([1, 1.0], {"uniqueItems": True}), ["UNIQUE_ITEMS"])
+        self.assertEqual(codes([], {"minItems": 1}), ["MINITEMS"])
+        self.assertEqual(codes([1, 2], {"maxItems": 1}), ["MAXITEMS"])
+        self.check_case([True, 1], {"uniqueItems": True}, True)  # booleans are never numbers
+        for schema, code in (({"minItems": -1}, "INVALID_BOUND:minItems"), ({"maxItems": 1.5}, "INVALID_BOUND:maxItems"),
+                             ({"minItems": True}, "INVALID_BOUND:minItems"), ({"uniqueItems": 1}, "INVALID_BOUND:uniqueItems"),
+                             ({"title": 1}, "INVALID_ANNOTATION:title"), ({"examples": "x"}, "INVALID_ANNOTATION:examples")):
+            with self.subTest(schema=schema):
+                result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
+                self.assertEqual([e["code"] for e in result["errors"]], [code])
+        # Identity and reference keywords stay outside the contract (separate owner decision).
+        for key in ("$schema", "$id", "pattern", "format"):
+            with self.subTest(key=key):
+                schema = {key: "x"}
+                result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
+                self.assertEqual([e["code"] for e in result["errors"]], ["UNSUPPORTED_KEYWORD:" + key])
 
 if __name__ == "__main__":
     unittest.main()

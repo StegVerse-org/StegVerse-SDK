@@ -5,7 +5,10 @@ import json
 DIALECT = "stegverse-bounded-v1"
 MAX_SCHEMA_DEPTH = 32
 MAX_INSTANCE_DEPTH = 256
-SUPPORTED = {"type", "required", "properties", "additionalProperties", "items", "enum", "const", "minLength", "maxLength", "minimum", "maximum"}
+SUPPORTED = {"type", "required", "properties", "additionalProperties", "items", "enum", "const", "minLength", "maxLength", "minimum", "maximum",
+             "minItems", "maxItems", "uniqueItems"}
+# Annotation-only keywords: accepted and ignored, as in 2020-12 they never affect validity.
+ANNOTATIONS = {"title", "description", "$comment", "examples"}
 TYPES = {"null": lambda v: v is None, "boolean": lambda v: type(v) is bool,
          "integer": lambda v: type(v) is int, "number": lambda v: type(v) in (int, float),
          "string": lambda v: isinstance(v, str), "array": lambda v: isinstance(v, list),
@@ -16,7 +19,9 @@ TYPES = {"null": lambda v: v is None, "boolean": lambda v: type(v) is bool,
 # accepts, never the reverse.
 CONTRACT = {
     "dialect": DIALECT,
+    "contract_version": "1.1",
     "supported_keywords": sorted(SUPPORTED),
+    "annotation_keywords": sorted(ANNOTATIONS),
     "max_schema_depth": MAX_SCHEMA_DEPTH,
     "max_instance_depth": MAX_INSTANCE_DEPTH,
     "instance_values": "JSON only: null, bool, int, finite float, str, list, dict with str keys",
@@ -47,6 +52,18 @@ def json_equal(a, b):
     if isinstance(a, dict) and isinstance(b, dict):
         return a.keys() == b.keys() and all(json_equal(a[k], b[k]) for k in a)
     return type(a) is type(b) and a == b
+
+def _equality_key(value):
+    """Hashable key under JSON equality (1 == 1.0, True != 1); instance depth is already bounded."""
+    if isinstance(value, bool):
+        return ("bool", value)
+    if type(value) in (int, float):
+        return ("num", int(value) if float(value).is_integer() else value)
+    if isinstance(value, list):
+        return ("arr", tuple(_equality_key(v) for v in value))
+    if isinstance(value, dict):
+        return ("obj", tuple(sorted((k, _equality_key(v)) for k, v in value.items())))
+    return (type(value).__name__, value)
 
 def pointer(parts):
     return "".join("/" + str(p).replace("~", "~0").replace("/", "~1") for p in parts)
@@ -80,7 +97,7 @@ def _preflight(spec, path, error, depth=0):
     if depth > MAX_SCHEMA_DEPTH or not isinstance(spec, dict):
         error(path, "INVALID_SCHEMA_OR_DEPTH")
         return
-    for key in sorted(spec.keys() - SUPPORTED):
+    for key in sorted(spec.keys() - SUPPORTED - ANNOTATIONS):
         error(path, "UNSUPPORTED_KEYWORD:" + key)
     types = spec.get("type")
     if types is not None:
@@ -101,6 +118,16 @@ def _preflight(spec, path, error, depth=0):
     for key in ("minimum", "maximum"):
         if key in spec and type(spec[key]) not in (int, float):
             error(path, "INVALID_BOUND:" + key)
+    for key in ("minItems", "maxItems"):
+        if key in spec and (type(spec[key]) is not int or spec[key] < 0):
+            error(path, "INVALID_BOUND:" + key)
+    if "uniqueItems" in spec and type(spec["uniqueItems"]) is not bool:
+        error(path, "INVALID_BOUND:uniqueItems")
+    for key in ("title", "description", "$comment"):
+        if key in spec and not isinstance(spec[key], str):
+            error(path, "INVALID_ANNOTATION:" + key)
+    if "examples" in spec and not isinstance(spec["examples"], list):
+        error(path, "INVALID_ANNOTATION:examples")
     props = spec.get("properties", {})
     if not isinstance(props, dict) or any(not isinstance(k, str) for k in props):
         error(path, "INVALID_PROPERTIES")
@@ -146,7 +173,7 @@ def validate(instance, schema, schema_digest, dialect=DIALECT, registry=None):
         if depth > MAX_SCHEMA_DEPTH or not isinstance(spec, dict):
             error(path, "INVALID_SCHEMA_OR_DEPTH")
             return
-        for key in sorted(spec.keys() - SUPPORTED):
+        for key in sorted(spec.keys() - SUPPORTED - ANNOTATIONS):
             error(path, "UNSUPPORTED_KEYWORD:" + key)
         types = spec.get("type")
         if types is not None:
@@ -184,6 +211,19 @@ def validate(instance, schema, schema_digest, dialect=DIALECT, registry=None):
         if isinstance(value, list) and "items" in spec:
             for i, item in enumerate(value):
                 visit(item, spec["items"], path + [i], depth + 1)
+        if isinstance(value, list):
+            if "minItems" in spec and len(value) < spec["minItems"]:
+                error(path, "MINITEMS")
+            if "maxItems" in spec and len(value) > spec["maxItems"]:
+                error(path, "MAXITEMS")
+            if spec.get("uniqueItems") is True:
+                seen = set()
+                for item in value:
+                    key = _equality_key(item)
+                    if key in seen:
+                        error(path, "UNIQUE_ITEMS")
+                        break
+                    seen.add(key)
         for key, kind in (("minLength", str), ("maxLength", str), ("minimum", (int, float)), ("maximum", (int, float))):
             if key not in spec:
                 continue
