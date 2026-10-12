@@ -78,9 +78,13 @@ jobs:
       - name: Manifest identity and routing regression gate
         run: python -m pytest tests/test_manifest_identity_routing_regression_gate.py -q -p no:cacheprovider
 
+      # The reference validator comes from the existing [dev] extra installed above;
+      # requiring it turns a missing reference into a failure instead of a skip.
       - name: Structural validator candidate deterministic and differential tests
+        env:
+          STEGVERSE_REQUIRE_REFERENCE_VALIDATOR: "1"
         run: |
-          python -m pip install 'jsonschema==4.26.0'
+          python -c "import jsonschema; print('REFERENCE_VALIDATOR jsonschema', jsonschema.__version__)"
           python -m pytest tests/test_structural_validator_candidate.py -q -rs -p no:cacheprovider
 
       - name: No change may add a test failure the baseline does not hold

@@ -1,8 +1,23 @@
 """Deterministic structural validator differential and negative tests."""
 import hashlib
 import json
+import os
 import unittest
 from stegverse.structural_validator_candidate import CONTRACT, SUPPORTED, canonical_bytes, check_schema, validate
+
+# CI sets this so the differential gate cannot pass by skipping its reference.
+REQUIRE_REFERENCE = os.environ.get("STEGVERSE_REQUIRE_REFERENCE_VALIDATOR") == "1"
+
+
+def reference_validator(test):
+    """Return Draft202012Validator from the existing [dev] extra, or skip (fail when required)."""
+    try:
+        from jsonschema import Draft202012Validator
+    except ImportError:
+        if REQUIRE_REFERENCE:
+            test.fail("reference validator required (STEGVERSE_REQUIRE_REFERENCE_VALIDATOR=1) but jsonschema is not installed")
+        test.skipTest("Reference validator not installed; differential verification unavailable")
+    return Draft202012Validator
 
 class StructuralValidatorCandidateTests(unittest.TestCase):
     def check_case(self, instance, schema, expected):
@@ -74,10 +89,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         self.assertFalse(validate("x", schema, digest, registry={})["valid"])
 
     def test_differential_against_jsonschema_when_available(self):
-        try:
-            from jsonschema import Draft202012Validator
-        except ImportError:
-            self.skipTest("Pinned reference validator not installed; differential verification unavailable")
+        Draft202012Validator = reference_validator(self)
         cases = [
             ({"a": "ok"}, {"type": "object", "required": ["a"], "properties": {"a": {"type": "string"}}}),
             ({}, {"type": "object", "required": ["a"]}),
@@ -112,10 +124,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 self.check_case(instance, schema, True)
 
     def test_generated_differential_never_accepts_what_reference_rejects(self):
-        try:
-            from jsonschema import Draft202012Validator
-        except ImportError:
-            self.skipTest("Pinned reference validator not installed; differential verification unavailable")
+        Draft202012Validator = reference_validator(self)
         values = [None, True, False, 0, 1, 2, 1.0, 1.5, -1, "", "a", "ab", [], [1], [True], ["x"],
                   {}, {"a": 1}, {"a": True}, {"a": "x"}, {"b": 1}]
         schemas = [{"type": t} for t in ("null", "boolean", "integer", "number", "string", "array", "object")]
@@ -171,11 +180,8 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 self.assertFalse(validate(instance, schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())["valid"])
 
     def test_schema_differential_never_admits_what_reference_metaschema_rejects(self):
-        try:
-            from jsonschema import Draft202012Validator
-            from jsonschema.exceptions import SchemaError
-        except ImportError:
-            self.skipTest("Pinned reference validator not installed; differential verification unavailable")
+        Draft202012Validator = reference_validator(self)
+        from jsonschema.exceptions import SchemaError
         candidates = [
             {"type": "string"}, {"type": ["string", "null"]}, {"type": []}, {"type": "imaginary"},
             {"required": ["a", "a"]}, {"required": "a"}, {"required": [1]}, {"enum": []}, {"enum": 1},
