@@ -243,5 +243,62 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                     importers.append(str(source.relative_to(package.parent)))
         self.assertEqual(importers, [])
 
+    @staticmethod
+    def _generated_corpus():
+        values = [None, True, False, 0, 1, -1, 2, 1.5, "", "a", "ab", "abc", [], [1], [1, 2], ["a"], [True],
+                  {}, {"a": 1}, {"a": "x"}, {"b": 1}, {"a": 1, "b": 2}, {"a": [1]}]
+        leaf = [{"type": t} for t in ("null", "boolean", "integer", "number", "string", "array", "object")]
+        leaf += [{"type": ["string", "null"]}, {"type": ["integer", "string"]}]
+        leaf += [{"const": c} for c in (None, True, 0, 1, "a", [1], {"a": 1})]
+        leaf += [{"enum": e} for e in ([1, "a"], [None, False], [[1], {}])]
+        leaf += [{"minimum": 0}, {"maximum": 1}, {"minimum": 1.5}, {"minLength": 1}, {"maxLength": 2},
+                 {"minLength": 2, "maxLength": 2}, {"type": "integer", "minimum": 0, "maximum": 1}, {}]
+        schemas = list(leaf)
+        for sub in leaf[:12]:
+            schemas += [{"items": sub}, {"type": "array", "items": sub}, {"properties": {"a": sub}},
+                        {"properties": {"a": sub}, "required": ["a"]},
+                        {"properties": {"a": sub}, "additionalProperties": False},
+                        {"required": ["a", "b"], "additionalProperties": True}]
+        schemas.append({"properties": {"a": {"items": {"type": "integer", "minimum": 1}}},
+                        "required": ["a"], "additionalProperties": False})
+        return values, schemas
+
+    def test_generated_corpus_agrees_with_reference_in_both_directions(self):
+        # Stronger than "never accepts more": on the supported subset, outside the
+        # documented divergences, the candidate's verdict equals the reference's.
+        Draft202012Validator = reference_validator(self)
+        values, schemas = self._generated_corpus()
+        self.assertEqual((len(values), len(schemas)), (23, 100))
+        disagreements = []
+        for schema in schemas:
+            digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+            self.assertTrue(check_schema(schema, digest)["valid"], schema)
+            for instance in values:
+                if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
+                    disagreements.append((instance, schema))
+        self.assertEqual(disagreements, [])
+
+    def test_only_documented_divergence_appears_for_integer_valued_floats(self):
+        # 1.0 is an integer in 2020-12 but not here (CONTRACT divergence). Every
+        # disagreement must be that one, and always in the fail-closed direction.
+        Draft202012Validator = reference_validator(self)
+        values = [1.0, 0.0, -0.0, 2.0, [1.0], {"a": 1.0}]
+        schemas = [{"type": "integer"}, {"type": "number"}, {"const": 1}, {"enum": [0]}, {"minimum": 1},
+                   {"items": {"type": "integer"}}, {"properties": {"a": {"type": "integer"}}},
+                   {"type": ["integer", "string"]}]
+        observed = 0
+        for schema in schemas:
+            digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+            for instance in values:
+                candidate = validate(instance, schema, digest)
+                if candidate["valid"] != Draft202012Validator(schema).is_valid(instance):
+                    observed += 1
+                    with self.subTest(instance=instance, schema=schema):
+                        self.assertFalse(candidate["valid"])
+                        self.assertIn("integer", json.dumps(schema))
+                        self.assertEqual([e["code"] for e in candidate["errors"]], ["TYPE"])
+        self.assertGreater(observed, 0)
+        self.assertIn("integer-valued floats such as 1.0 are not type integer", CONTRACT["divergences_fail_closed"])
+
 if __name__ == "__main__":
     unittest.main()
