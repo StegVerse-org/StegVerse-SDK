@@ -226,6 +226,25 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         }
         return historical, denial
 
+    def _governed_remediation(self, request, denial):
+        return {
+            "schema": "stegverse.governed-deny-remediation-return/v1",
+            "disposition": "ALLOW", "decision": "RE_MANIFEST",
+            "original_request_sha256": request["request_sha256"],
+            "source_disposition_ref": denial["source_disposition_ref"],
+            "original_wire_manifest_sha256": request["wire_manifest_sha256"],
+            "authority_effect": "GOVERNED_REMEDIATION_RETURN_ONLY",
+        }
+
+    def test_profile_deny_without_governed_return_is_preserved(self):
+        boundary = json.loads((Path(__file__).parent / "fixtures" /
+            "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
+        original, denial = self._boundary_resolved_hash_deny(deepcopy(self.m), boundary)
+        self.assertEqual(admit_runtime_result(self.m, original, denial, boundary), denial)
+        wrong = self._governed_remediation(original, denial)
+        wrong["original_request_sha256"] = "wrong-request"
+        self.assertEqual(admit_runtime_result(self.m, original, denial, boundary, wrong), denial)
+
     def test_a_repair_derived_through_the_rejected_requests_boundary_keeps_its_destination(self):
         # Given the boundary the rejected request was resolved through, the
         # repair resolves the same organization ingress, so the re-manifested
@@ -234,7 +253,7 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
                                "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
         frozen = deepcopy(self.m)
         historical, denial = self._boundary_resolved_hash_deny(frozen, boundary)
-        out = admit_runtime_result(frozen, historical, denial, boundary)
+        out = admit_runtime_result(frozen, historical, denial, boundary, self._governed_remediation(historical, denial))
         self.assertEqual(out["disposition"], "ALLOW")
         self.assertEqual(out["state"], "REMANIFESTED_AFTER_CORRECTABLE_BINDING_DENY")
         self.assertIsNone(out["failed_predicate"])
@@ -256,7 +275,7 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "manifest_binding_repair_changed_destination"):
             correct_manifest_binding_deny(frozen, historical, denial, boundary)
         with self.assertRaisesRegex(ValueError, "manifest_binding_repair_changed_destination"):
-            admit_runtime_result(frozen, historical, denial, boundary)
+            admit_runtime_result(frozen, historical, denial, boundary, self._governed_remediation(historical, denial))
 
 
 if __name__=="__main__": unittest.main()
