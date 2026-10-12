@@ -820,22 +820,27 @@ def admit_runtime_result(
 ) -> dict[str, Any]:
     """Validate a result the receiving Interlock runtime has returned.
 
-    The receiving runtime owns transport and admission before this is called. A
-    correctable manifest-binding DENY is repaired and re-manifested once, which
-    produces a new handoff with its own distinct hash - never a replay of the
-    identical request, and never a second transport attempt from here.
-    ``organization_boundary`` is the one ``request`` was resolved through; the
-    repair is derived through it so the new handoff keeps that destination.
+    The receiving runtime owns transport and admission before this is called.
+    A correctable DENY is not a terminal remediation outcome: the established
+    architecture forks its evidence to StegHealer for failure mapping, returns
+    the mapped remediation through the canonical organization .github governance
+    route, then directs the SDK to RESUBMIT or RE_MANIFEST under a fresh governed
+    attempt. The main packet continues independently of that remediation fork.
+    ``organization_boundary`` binds the original destination; neither Healer
+    nor a caller may replace it. This entrypoint does not yet receive an
+    authenticated organization-governed return, so it must not impersonate the
+    fork, mint receipts, or execute an unapproved handoff.
     """
     checked = validate_runtime_result(result, request)
     if not (checked.get("disposition") == "DENY"
             and checked.get("evaluation_boundary") == "SDK_MANIFEST_PROFILE"):
         return checked
-    # A caller-supplied governance mapping is not an authenticated return.
-    # The existing organization/Healer fork and SDK remediation-return evidence
-    # validator are not connected to this entrypoint. Until they are, preserve
-    # the source DENY without a repair, retry, new handoff, or authority claim.
-    # Even a matching ALLOW-shaped instruction is insufficient.
+    # INCOMPLETE IMPLEMENTATION, NOT THE INTENDED REMEDIATION LIFECYCLE:
+    # Source DENY must be routed to StegHealer for failure mapping, then back
+    # through canonical .github governance to the SDK for RESUBMIT/RE_MANIFEST.
+    # This entrypoint cannot authenticate that return today. Do not mistake
+    # its temporary fail-closed behavior for a final architectural decision.
+    # Caller-supplied ALLOW strings are not substitutes for governance receipts.
     return checked
 
 
