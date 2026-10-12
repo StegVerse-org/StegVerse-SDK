@@ -592,5 +592,14 @@ class Cli0AReadinessGateTests(unittest.TestCase):
         self.assertEqual(predicates, {"EVIDENCE_AUTHENTICATED"})
 
 
+
+class MissingReadinessQualificationRefusalTests(unittest.TestCase):
+    def test_absent_or_non_mapping_qualification_is_typed_fail_closed(self):
+        for qualification in (None, [], "READY", 1, False):
+            with self.subTest(qualification=qualification):
+                with self.assertRaisesRegex(ValueError, "READINESS_QUALIFICATION_REQUIRED"):
+                    require_ready_qualification({}, qualification)
+
+
 if __name__ == "__main__":
     unittest.main()
