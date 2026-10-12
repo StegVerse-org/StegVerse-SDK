@@ -252,37 +252,25 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         wrong["original_request_sha256"] = "wrong-request"
         self.assertEqual(admit_runtime_result(self.m, original, denial, boundary, wrong), denial)
 
-    def test_a_repair_derived_through_the_rejected_requests_boundary_keeps_its_destination(self):
-        # Given the boundary the rejected request was resolved through, the
-        # repair resolves the same organization ingress, so the re-manifested
-        # handoff is ALLOW. It is a handoff only: nothing is contacted or admitted.
+    def test_matching_caller_return_cannot_authorize_repair(self):
         boundary = json.loads((Path(__file__).parent / "fixtures" /
-                               "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
+            "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
         frozen = deepcopy(self.m)
         historical, denial = self._boundary_resolved_hash_deny(frozen, boundary)
-        out = admit_runtime_result(frozen, historical, denial, boundary, self._governed_remediation(historical, denial))
-        self.assertEqual(out["disposition"], "ALLOW")
-        self.assertEqual(out["state"], "REMANIFESTED_AFTER_CORRECTABLE_BINDING_DENY")
-        self.assertIsNone(out["failed_predicate"])
-        self.assertEqual(out["repaired_request"], derive_execution_request(frozen, boundary))
-        self.assertEqual(out["repaired_request"]["manifest_declared_destination"],
-                         historical["manifest_declared_destination"])
-        self.assertNotEqual(out["repaired_request"]["request_sha256"], historical["request_sha256"])
-        self.assertEqual(out["repaired_request"]["wire_manifest_sha256"], canonical_sha256(self.m))
-        self.assertFalse(out["handoff"]["receiver_contacted"])
-        self.assertFalse(out["handoff"]["intr_admission_observed"])
+        claimed = self._governed_remediation(historical, denial)
+        self.assertEqual(admit_runtime_result(frozen, historical, denial, boundary, claimed), denial)
         self.assertEqual(frozen, self.m)
 
-    def test_a_repair_never_selects_a_destination_the_rejected_request_did_not_name(self):
+    def test_destination_substitution_does_not_unlock_repair(self):
         boundary = json.loads((Path(__file__).parent / "fixtures" /
-                               "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
+            "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
         frozen = deepcopy(self.m)
         historical, denial = self._boundary_resolved_hash_deny(
             frozen, boundary, destination={"endpoint": "elsewhere"})
         with self.assertRaisesRegex(ValueError, "manifest_binding_repair_changed_destination"):
             correct_manifest_binding_deny(frozen, historical, denial, boundary)
-        with self.assertRaisesRegex(ValueError, "manifest_binding_repair_changed_destination"):
-            admit_runtime_result(frozen, historical, denial, boundary, self._governed_remediation(historical, denial))
+        self.assertEqual(admit_runtime_result(
+            frozen, historical, denial, boundary, self._governed_remediation(historical, denial)), denial)
 
 
 if __name__=="__main__": unittest.main()
