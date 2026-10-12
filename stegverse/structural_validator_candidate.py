@@ -4,6 +4,7 @@ import json
 
 DIALECT = "stegverse-bounded-v1"
 MAX_SCHEMA_DEPTH = 32
+MAX_INSTANCE_DEPTH = 256
 SUPPORTED = {"type", "required", "properties", "additionalProperties", "items", "enum", "const", "minLength", "maxLength", "minimum", "maximum"}
 TYPES = {"null": lambda v: v is None, "boolean": lambda v: type(v) is bool,
          "integer": lambda v: type(v) is int, "number": lambda v: type(v) in (int, float),
@@ -17,6 +18,8 @@ CONTRACT = {
     "dialect": DIALECT,
     "supported_keywords": sorted(SUPPORTED),
     "max_schema_depth": MAX_SCHEMA_DEPTH,
+    "max_instance_depth": MAX_INSTANCE_DEPTH,
+    "instance_values": "JSON only: null, bool, int, finite float, str, list, dict with str keys",
     "reference": "JSON Schema 2020-12 (jsonschema Draft202012Validator) as differential oracle only",
     "divergences_fail_closed": [
         "integer-valued floats such as 1.0 are not type integer",
@@ -24,6 +27,8 @@ CONTRACT = {
         "$ref, $defs, $id, $schema and every keyword outside supported_keywords are rejected",
         "external registries and dialects other than this one are rejected",
         "schemas nested deeper than max_schema_depth or not JSON-encodable are rejected",
+        "instances that are not JSON values (NaN, Infinity, sets, tuples, bytes, non-string keys) are rejected",
+        "instances nested deeper than max_instance_depth are rejected",
     ],
     "authority_effect": "NONE",
 }
@@ -45,6 +50,30 @@ def json_equal(a, b):
 
 def pointer(parts):
     return "".join("/" + str(p).replace("~", "~0").replace("/", "~1") for p in parts)
+
+def _instance_finding(instance):
+    """First non-JSON value or depth violation in the instance, found iteratively (no recursion)."""
+    stack = [(instance, [], 0)]
+    while stack:
+        value, path, depth = stack.pop()
+        if depth > MAX_INSTANCE_DEPTH:
+            return {"path": pointer(path), "code": "INSTANCE_DEPTH_EXCEEDED"}
+        if value is None or isinstance(value, (bool, str)) or type(value) is int:
+            continue
+        if type(value) is float:
+            if value != value or value in (float("inf"), float("-inf")):
+                return {"path": pointer(path), "code": "INVALID_INSTANCE_ENCODING"}
+            continue
+        if type(value) is list:
+            stack.extend((item, path + [i], depth + 1) for i, item in reversed(list(enumerate(value))))
+            continue
+        if type(value) is dict:
+            if any(type(k) is not str for k in value):
+                return {"path": pointer(path), "code": "INVALID_INSTANCE_ENCODING"}
+            stack.extend((value[k], path + [k], depth + 1) for k in sorted(value, reverse=True))
+            continue
+        return {"path": pointer(path), "code": "INVALID_INSTANCE_ENCODING"}
+    return None
 
 def _preflight(spec, path, error, depth=0):
     """Check every reachable subschema, including branches the instance never visits."""
@@ -107,6 +136,9 @@ def validate(instance, schema, schema_digest, dialect=DIALECT, registry=None):
     if admitted["errors"]:
         return admitted
     actual = admitted["schema_digest"]
+    finding = _instance_finding(instance)
+    if finding is not None:
+        return {"valid": False, "errors": [finding], "schema_digest": actual, "dialect": dialect, "authority_effect": "NONE"}
     errors = []
     def error(path, code):
         errors.append({"path": pointer(path), "code": code})

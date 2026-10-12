@@ -3,7 +3,7 @@ import hashlib
 import json
 import os
 import unittest
-from stegverse.structural_validator_candidate import CONTRACT, SUPPORTED, canonical_bytes, check_schema, validate
+from stegverse.structural_validator_candidate import CONTRACT, MAX_INSTANCE_DEPTH, SUPPORTED, canonical_bytes, check_schema, validate
 
 # CI sets this so the differential gate cannot pass by skipping its reference.
 REQUIRE_REFERENCE = os.environ.get("STEGVERSE_REQUIRE_REFERENCE_VALIDATOR") == "1"
@@ -197,6 +197,51 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                         Draft202012Validator.check_schema(schema)
                     except SchemaError as exc:
                         self.fail(f"candidate admitted a schema the reference metaschema rejects: {exc.message}")
+
+    def test_non_json_instances_fail_closed_with_pointer(self):
+        number = {"type": "object", "properties": {"a": {"type": "number", "minimum": 0}}}
+        cases = [
+            (float("nan"), {"type": "number", "minimum": 0}, ""),
+            (json.loads('{"a": NaN}'), number, "/a"),  # json.loads accepts NaN by default
+            (json.loads('{"a": Infinity}'), number, "/a"),
+            ({1: "x", "a": "y"}, {"type": "object"}, ""),  # mixed key types used to raise TypeError
+            ({1: "x"}, {}, ""),
+            ({1}, {}, ""),
+            ((1, 2), {}, ""),
+            (b"x", {}, ""),
+            ({"ok": [1, {"deep": object()}]}, {}, "/ok/1/deep"),
+        ]
+        for instance, schema, path in cases:
+            with self.subTest(instance=repr(instance)):
+                result = self.check_case(instance, schema, False)
+                self.assertEqual(result["errors"], [{"path": path, "code": "INVALID_INSTANCE_ENCODING"}])
+
+    def test_instance_depth_is_bounded_without_recursion(self):
+        within, beyond = 0, 0
+        for _ in range(MAX_INSTANCE_DEPTH):
+            within = [within]
+        for _ in range(200000):
+            beyond = [beyond]
+        self.check_case(within, {}, True)
+        result = self.check_case(beyond, {}, False)
+        self.assertEqual([e["code"] for e in result["errors"]], ["INSTANCE_DEPTH_EXCEEDED"])
+        self.assertEqual(CONTRACT["max_instance_depth"], MAX_INSTANCE_DEPTH)
+
+    def test_rollback_is_isolated_no_production_module_imports_candidate(self):
+        # Compatibility/rollback evidence: reverting the candidate cannot break any SDK caller.
+        import ast
+        from pathlib import Path
+        package = Path(__file__).resolve().parents[1] / "stegverse"
+        importers = []
+        for source in sorted(package.rglob("*.py")):
+            if source.name == "structural_validator_candidate.py":
+                continue
+            for node in ast.walk(ast.parse(source.read_text(encoding="utf-8"))):
+                names = ([a.name for a in node.names] if isinstance(node, ast.Import) else
+                         [node.module or ""] + [a.name for a in node.names] if isinstance(node, ast.ImportFrom) else [])
+                if any("structural_validator_candidate" in n for n in names):
+                    importers.append(str(source.relative_to(package.parent)))
+        self.assertEqual(importers, [])
 
 if __name__ == "__main__":
     unittest.main()
