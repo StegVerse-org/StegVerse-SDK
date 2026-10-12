@@ -504,6 +504,8 @@ def require_ready_qualification(manifest: Mapping[str, Any], qualification: Mapp
     """Refuse dispatch unless this exact manifest carries a READY qualification."""
     from .manifest_contract import validate_ingress_manifest
 
+    if not isinstance(qualification, Mapping):
+        raise ValueError("READINESS_QUALIFICATION_REQUIRED")
     digest = validate_ingress_manifest(manifest)["canonical_manifest_sha256"]
     if qualification.get("manifest_sha256") != digest:
         raise ValueError("READINESS_QUALIFICATION_MANIFEST_DIGEST_MISMATCH")
