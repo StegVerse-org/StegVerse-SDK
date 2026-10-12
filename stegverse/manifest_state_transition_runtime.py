@@ -837,7 +837,11 @@ def admit_runtime_result(
         if str(exc) == "manifest_binding_repair_produced_unchanged_request":
             return checked  # Retain precise DENY; never replay identical request.
         raise
-    # The SDK may prepare a corrected handoff, but this local operation is not\n    # a StegHealer mapping, a governed .github authorization, or InTr admission.\n    # Preserve the source DENY in corrected_from_disposition for the separately\n    # governed return path; never represent this as a completed retry.\n    # The re-manifested handoff is its own attempted transition and records its
+    # The SDK may prepare a corrected handoff, but this local operation is not
+    # a StegHealer mapping, a governed .github authorization, or InTr admission.
+    # Preserve the source DENY in corrected_from_disposition for the separately
+    # governed return path; never represent this as a completed retry.
+    # The re-manifested handoff is its own attempted transition and records its
     # own disposition. This result says what that handoff produced rather than
     # summarising it as ALLOW: a handoff that failed closed was not re-manifested.
     handoff = build_intr_handoff(repaired)
