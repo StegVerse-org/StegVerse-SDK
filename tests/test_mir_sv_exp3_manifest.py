@@ -181,7 +181,14 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
             "processing_capability": "ecosystem_diagnostic",
             "source_disposition_ref": "mock-evaluating-profile-path-not-sovereign-custody",
         }
-        out = admit_runtime_result(frozen, historical, denial)
+        out = admit_runtime_result(frozen, historical, denial, governed_remediation={
+            "schema": "stegverse.governed-deny-remediation-return/v1",
+            "disposition": "ALLOW", "decision": "RE_MANIFEST",
+            "original_request_sha256": historical["request_sha256"],
+            "source_disposition_ref": denial["source_disposition_ref"],
+            "original_wire_manifest_sha256": historical["wire_manifest_sha256"],
+            "authority_effect": "GOVERNED_REMEDIATION_RETURN_ONLY",
+        })
         self.assertEqual(out["handoff"]["disposition"], "FAIL_CLOSED")
         self.assertEqual(out["disposition"], "FAIL_CLOSED")
         self.assertEqual(out["state"], "FAIL_CLOSED")
