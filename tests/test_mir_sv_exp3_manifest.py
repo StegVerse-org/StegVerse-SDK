@@ -146,7 +146,7 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "MANIFEST_BINDING_DENY_CONTRACT_MISMATCH"):
             validate_runtime_result(altered, current)
 
-    def test_a_repair_whose_new_handoff_fails_closed_is_not_reported_as_allowed(self):
+    def test_a_boundary_resolved_deny_is_retained_without_a_new_handoff(self):
         # The rejected request was resolved through the organization boundary.
         # The builder re-derives the repair from the frozen manifest alone, so
         # its handoff names no destination and fails closed. The re-manifest
@@ -189,18 +189,13 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
             "original_wire_manifest_sha256": canonical_sha256(frozen),
             "authority_effect": "GOVERNED_REMEDIATION_RETURN_ONLY",
         })
-        self.assertEqual(out["handoff"]["disposition"], "FAIL_CLOSED")
-        self.assertEqual(out["disposition"], "FAIL_CLOSED")
-        self.assertEqual(out["state"], "FAIL_CLOSED")
-        self.assertEqual(out["failed_predicate"], "REMANIFESTED_HANDOFF_NOT_ALLOWED")
-        self.assertEqual(out["failed_transitions"], [{
-            "transition": "intr_handoff",
-            "disposition": "FAIL_CLOSED",
-            "failed_predicate": "REGISTERED_CAPABILITY_RESOLVES_TO_CANONICAL_ORGANIZATION_GITHUB_INGRESS_ENDPOINT",
-            "retry_entrypoint": "stegverse.manifest_state_transition_runtime.execute_manifest",
-        }])
-        self.assertEqual(out["retry_entrypoint"], "stegverse.manifest_state_transition_runtime.execute_manifest")
-        self.assertEqual(out["corrected_from_disposition"]["disposition"], "DENY")
+        # A caller-supplied return does not unlock the repair (69fe678): the
+        # boundary-resolved DENY is retained exactly, with no new handoff.
+        self.assertEqual(out["disposition"], "DENY")
+        self.assertEqual(out["evaluation_boundary"], "SDK_MANIFEST_PROFILE")
+        self.assertEqual(out["reason_code"], "canonical_manifest_sha256_binding_mismatch")
+        self.assertNotIn("handoff", out)
+        self.assertNotIn("repaired_request", out)
 
     def _boundary_resolved_hash_deny(self, frozen, boundary, destination=None):
         historical = derive_execution_request(frozen, boundary)
