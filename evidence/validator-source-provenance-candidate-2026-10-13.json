@@ -7,15 +7,15 @@
   "artifacts": [
     {
       "path": "stegverse/structural_validator_candidate.py",
-      "git_blob_sha1": "eff5613fabee4a1b15a62bcd7b99c288803397ab"
+      "git_blob_sha1": "2622031c0317afc7a41b1f95e6570d5e8bf62d5c"
     },
     {
       "path": "tests/test_structural_validator_candidate.py",
-      "git_blob_sha1": "539ee8364be3d89891515bc84f17e793a1a587c4"
+      "git_blob_sha1": "8d57b2ffc159fd45a37fa4d91c90cdee69224df7"
     },
     {
       "path": "scripts/verify_universal_entry_envelope.py",
-      "git_blob_sha1": "69c37b9be26dac29b040713ec0dba774aa54fb83"
+      "git_blob_sha1": "0f274f585a430225c99ec1e299c14df24392f4d7"
     },
     {
       "path": "schemas/universal-entry-envelope.schema.v0.1.json",
@@ -32,12 +32,17 @@
   "failed_predicate": "AUTHENTICATED_TV_TVC_PROVENANCE_NOT_ESTABLISHED",
   "source_main_commit_role": "HISTORICAL_SOURCE_BASELINE_NOT_CURRENT_HEAD",
   "latest_source_identity_reconciliation": {
-    "basis": "GitHub main per-path blob readback 2026-10-13",
+    "basis": "Working-tree blob recomputation for SDK#484 contract 1.6 (allOf, if/then/else, local $ref/$defs) and SDK#516 (verifier on SDK-native validator)",
     "scope": "FOUR_LISTED_ARTIFACTS_ONLY",
     "source_main_head": "NOT_BOUND_IN_THIS_EVIDENCE",
-    "result": "FOUR_LISTED_BLOBS_MATCH_OBSERVED_MAIN",
+    "result": "LISTED_BLOBS_REBOUND_TO_CHANGED_SOURCE",
+    "rebound_paths": [
+      "stegverse/structural_validator_candidate.py",
+      "tests/test_structural_validator_candidate.py",
+      "scripts/verify_universal_entry_envelope.py"
+    ],
     "authority_effect": "NONE",
     "authenticated_tv_tvc_proof": "NOT_OBSERVED",
-    "note": "Verifier script blob changed since historical baseline; corrected identity only, not a new TV/TVC attestation."
+    "note": "Source identity rebinding only, as in SDK#515; not a new TV/TVC attestation. T5 must authenticate the final main head."
   }
 }

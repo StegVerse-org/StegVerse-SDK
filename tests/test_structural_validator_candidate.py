@@ -57,7 +57,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
     def test_fail_closed_unsupported_nested_schema_and_depth(self):
         schema = {"type": "object", "properties": {"child": {"$ref": "#/$defs/child"}}}
         result = self.check_case({"child": "value"}, schema, False)
-        self.assertIn("UNSUPPORTED_KEYWORD:$ref", [e["code"] for e in result["errors"]])
+        self.assertIn("UNSUPPORTED_REF", [e["code"] for e in result["errors"]])
         nested = {"type": "array", "items": {"type": "integer"}}
         for _ in range(34):
             nested = {"type": "array", "items": nested}
@@ -161,7 +161,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         good = {"type": "object", "required": ["a"], "properties": {"a": {"type": "string", "maxLength": 3}}}
         bad = [
             ({"type": "imaginary"}, "UNSUPPORTED_TYPE"),
-            ({"properties": {"a": {"$ref": "#/x"}}}, "UNSUPPORTED_KEYWORD:$ref"),
+            ({"properties": {"a": {"$ref": "#/x"}}}, "UNSUPPORTED_REF"),
             ({"required": "a"}, "INVALID_REQUIRED"),
             ({"enum": []}, "INVALID_ENUM"),
             ({"maxLength": -1}, "INVALID_BOUND:maxLength"),
@@ -330,7 +330,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
                     disagreements.append((instance, schema))
         self.assertEqual(disagreements, [])
-        self.assertIn(CONTRACT["contract_version"], ("1.1", "1.2", "1.3", "1.4", "1.5"))
+        self.assertIn(CONTRACT["contract_version"], ("1.1", "1.2", "1.3", "1.4", "1.5", "1.6"))
 
     def test_contract_1_1_diagnostics_and_malformed_bounds(self):
         codes = lambda instance, schema: [e["code"] for e in self.check_case(instance, schema, False)["errors"]]
@@ -362,9 +362,10 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         self.assertEqual(codes({"$id": 1}), ["INVALID_IDENTITY:$id"])
         self.assertEqual(codes({"properties": {"a": {"$schema": uri}}}), ["UNSUPPORTED_KEYWORD:$schema"])
         self.assertEqual(codes({"items": {"$id": "x"}}), ["UNSUPPORTED_KEYWORD:$id"])
-        self.assertEqual(codes({"$schema": uri, "$ref": "#/$defs/a", "$defs": {"a": {}}}),
-                         ["UNSUPPORTED_KEYWORD:$defs", "UNSUPPORTED_KEYWORD:$ref"])
-        self.assertIn(CONTRACT["contract_version"], ("1.2", "1.3", "1.4", "1.5"))
+        # Contract 1.6 admits root $defs with a local $ref; nested $defs stay unsupported.
+        self.assertEqual(codes({"$schema": uri, "$ref": "#/$defs/a", "$defs": {"a": {}}}), [])
+        self.assertEqual(codes({"properties": {"a": {"$defs": {}}}}), ["UNSUPPORTED_KEYWORD:$defs"])
+        self.assertIn(CONTRACT["contract_version"], ("1.2", "1.3", "1.4", "1.5", "1.6"))
         self.assertEqual(CONTRACT["root_identity_keywords"]["$schema"], uri)
         Draft202012Validator = reference_validator(self)
         values, schemas = self._generated_corpus()
@@ -435,7 +436,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         self.assertEqual([e["code"] for e in self.check_case(long_value, {"pattern": "^a+$"}, False)["errors"]],
                          ["PATTERN_INPUT_TOO_LONG"])
         self.check_case(5, {"pattern": "^a$"}, True)  # pattern applies to strings only
-        self.assertIn(CONTRACT["contract_version"], ("1.3", "1.4", "1.5"))
+        self.assertIn(CONTRACT["contract_version"], ("1.3", "1.4", "1.5", "1.6"))
 
     def test_contract_1_4_format_date_agrees_with_reference_format_checker(self):
         Draft202012Validator = reference_validator(self)
@@ -469,8 +470,84 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 schema = {"format": fmt}
                 result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
                 self.assertEqual([e["code"] for e in result["errors"]], ["UNSUPPORTED_FORMAT"])
-        self.assertIn(CONTRACT["contract_version"], ("1.4", "1.5"))
+        self.assertIn(CONTRACT["contract_version"], ("1.4", "1.5", "1.6"))
         self.assertEqual(CONTRACT["format"]["asserted"], ["date", "date-time"])
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Contract16CompositionTests(unittest.TestCase):
+    """Contract 1.6: allOf, if/then/else, root $defs + local $ref, exclusive bounds."""
+
+    @staticmethod
+    def codes(schema):
+        return [e["code"] for e in check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())["errors"]]
+
+    @staticmethod
+    def _composition_corpus():
+        values = [None, True, 0, 1, 2, 5, -1, 1.5, "", "a", "ab", "abc", [], [1], {}, {"a": 1}, {"a": "x"},
+                  {"kind": "x", "a": 1}, {"kind": "x"}, {"kind": "y", "b": "s"}, {"kind": "y"}, {"a": 1, "b": "s"}]
+        defs = {"str": {"type": "string"}, "short": {"type": "string", "maxLength": 2},
+                "pos": {"type": "integer", "exclusiveMinimum": 0}, "chain": {"$ref": "#/$defs/short", "minLength": 1}}
+        leaves = [{"type": "string"}, {"type": "integer"}, {"minimum": 1}, {"maxLength": 2}, {"const": 1},
+                  {"exclusiveMinimum": 1}, {"exclusiveMaximum": 2}, {"exclusiveMinimum": 0, "exclusiveMaximum": 5}]
+        refs = [{"$ref": "#/$defs/" + name} for name in sorted(defs)]
+        schemas = []
+        for a in leaves + refs:
+            schemas.append({"allOf": [a]})
+            for b in leaves[:4] + refs[:2]:
+                schemas.append({"allOf": [a, b]})
+            schemas.append({"if": a, "then": {"type": "string"}})
+            schemas.append({"if": a, "else": {"type": "integer"}})
+            schemas.append({"if": a, "then": {"minLength": 2}, "else": {"maximum": 1}})
+        schemas += [dict(r, maxLength=1) for r in refs]  # $ref with sibling keywords applies both
+        schemas.append({"type": "object", "required": ["kind"],
+                        "if": {"properties": {"kind": {"const": "x"}}},
+                        "then": {"required": ["a"], "properties": {"a": {"$ref": "#/$defs/pos"}}},
+                        "else": {"required": ["b"], "properties": {"b": {"$ref": "#/$defs/str"}}}})
+        return values, [dict(s, **{"$defs": defs}) for s in schemas]
+
+    def test_composition_corpus_agrees_with_reference_in_both_directions(self):
+        Draft202012Validator = reference_validator(self)
+        values, schemas = self._composition_corpus()
+        self.assertGreaterEqual(len(schemas), 100)
+        disagreements = []
+        for schema in schemas:
+            digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+            self.assertEqual(check_schema(schema, digest)["errors"], [], schema)
+            for instance in values:
+                if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
+                    disagreements.append((instance, schema))
+        self.assertEqual(disagreements, [])
+
+    def test_references_fail_closed_outside_local_acyclic_defs(self):
+        defs = {"a": {"type": "string"}}
+        for ref in ("#/$defs/missing", "#/definitions/a", "other.json", "https://example.org/s", "#a",
+                    "#/$defs/a/b", "#/$defs/a~1b", "#/$defs/%61", "#", 1):
+            with self.subTest(ref=ref):
+                self.assertEqual(self.codes({"$defs": defs, "$ref": ref}), ["UNSUPPORTED_REF"])
+        self.assertEqual(self.codes({"$defs": {"a": {"$ref": "#/$defs/b"}, "b": {"allOf": [{"$ref": "#/$defs/a"}]}}}),
+                         ["REF_CYCLE"])
+        self.assertEqual(self.codes({"$defs": {"a": {"properties": {"x": {"$ref": "#/$defs/a"}}}}}), ["REF_CYCLE"])
+        self.assertEqual(self.codes({"$defs": []}), ["INVALID_DEFINITIONS"])
+        self.assertEqual(self.codes({"$defs": {"a": {"type": "imaginary"}}}), ["UNSUPPORTED_TYPE"])
+        self.assertEqual(self.codes({"allOf": []}), ["INVALID_ALLOF"])
+        self.assertEqual(self.codes({"allOf": {}}), ["INVALID_ALLOF"])
+        self.assertEqual(self.codes({"if": True}), ["INVALID_SCHEMA_OR_DEPTH"])
+        self.assertEqual(self.codes({"then": {"$ref": "#/x"}}), ["UNSUPPORTED_REF"])
+        self.assertEqual(self.codes({"exclusiveMinimum": "1"}), ["INVALID_BOUND:exclusiveMinimum"])
+
+    def test_exponential_reference_fan_out_hits_the_evaluation_budget(self):
+        depth = 24
+        defs = {"d%d" % i: {"allOf": [{"$ref": "#/$defs/d%d" % (i + 1)}, {"$ref": "#/$defs/d%d" % (i + 1)}]}
+                for i in range(depth)}
+        defs["d%d" % depth] = {"type": "string"}
+        schema = {"$defs": defs, "$ref": "#/$defs/d0"}
+        digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+        self.assertEqual(check_schema(schema, digest)["errors"], [])
+        result = validate("x", schema, digest)
+        self.assertFalse(result["valid"])
+        self.assertIn("EVALUATION_BUDGET_EXCEEDED", {e["code"] for e in result["errors"]})
+        self.assertEqual(CONTRACT["composition"]["max_evaluation_steps"], 200_000)
+        self.assertEqual(CONTRACT["contract_version"], "1.6")

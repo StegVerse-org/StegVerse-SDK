@@ -29,7 +29,11 @@ def test_t6_universal_entry_schema_requires_reference_validator():
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["properties"]["request"]["properties"]["content"] == {}
     assert CONTRACT["authority_effect"] == "NONE"
-    assert "$ref" not in CONTRACT["supported_keywords"]
+    # Contract 1.6 admits only local "#/$defs/<name>" references; remote, relative and
+    # anchor references (arbitrary 2020-12 reference semantics) stay unsupported.
+    assert CONTRACT["composition"]["references"].startswith("$ref to #/$defs/<name> only")
+    remote = {"properties": {"content": {"$ref": "https://example.org/content.json"}}}
+    assert [e["code"] for e in check_schema(remote, hashlib.sha256(canonical_bytes(remote)).hexdigest())["errors"]] == ["UNSUPPORTED_REF"]
 
 
 def test_t5_source_identity_matches_recorded_git_blobs():
