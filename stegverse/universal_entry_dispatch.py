@@ -64,7 +64,16 @@ def _validate_handler_result(lane: str, result: Mapping[str, Any]) -> Dict[str, 
         raise UniversalDispatchError(f"handler for {lane} attempted custody escalation")
     if normalized["admissibility_determined"] is not False:
         raise UniversalDispatchError(f"handler for {lane} attempted admissibility escalation")
-    # Lane handlers are non-authorizing transport/processors. Their optional\n    # metadata cannot assert an admitted state transition or runtime reality.\n    if normalized.get("disposition") in {"ALLOW", "DENY"}:\n        raise UniversalDispatchError(f"handler for {lane} asserted transition disposition")\n    if normalized.get("runtime_observed") is True:\n        raise UniversalDispatchError(f"handler for {lane} asserted runtime observation")\n    return normalized\n\n\ndef build_dispatch_receipt(
+    # Lane handlers are non-authorizing transport/processors. Their optional
+    # metadata cannot assert an admitted state transition or runtime reality.
+    if normalized.get("disposition") in {"ALLOW", "DENY"}:
+        raise UniversalDispatchError(f"handler for {lane} asserted transition disposition")
+    if normalized.get("runtime_observed") is True:
+        raise UniversalDispatchError(f"handler for {lane} asserted runtime observation")
+    return normalized
+
+
+def build_dispatch_receipt(
     envelope: Mapping[str, Any],
     decision: RouteDecision,
     lane_results: Sequence[Mapping[str, Any]],
