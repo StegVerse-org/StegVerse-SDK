@@ -19,15 +19,16 @@ EXACT_LINES = (
     # Pins below keep their literal and move to the literal's current line
     # when a merged change moves it; the guide links stay frozen at PIN.
     # L211 previously; drifted across route/profile publications to 267, then
-    # SDK#368 PR #446 (267->269) and PR #447 (269->285).
-    ("stegverse/manifest_builder.py", 285, "def build_manifest"),
+    # SDK#368 PR #446 (267->269), PR #447 (269->285) and the T6/validator
+    # merges #512-#519 (285->288).
+    ("stegverse/manifest_builder.py", 288, "def build_manifest"),
     # L166 previously; 31778d5 (completion egress clarification, 166->169)
     # and PR #422 (Publisher delivery destination binding, 169->183).
     ("stegverse/manifest_contract.py", 183, "def validate_ingress_manifest"),
     # L180 previously; route publications to 237 (SHWP, SVG, PR #384, I-12a),
     # SDK#368 PR #447 (237->281) and 12be165 (Master Records non-gating
-    # recorder, 281->282).
-    ("stegverse/route_resolution.py", 282, "def route_from_manifest"),
+    # recorder, 281->282) and the T6/validator merges #512-#519 (282->300).
+    ("stegverse/route_resolution.py", 300, "def route_from_manifest"),
     ("stegverse/purpose_bound_worker_processor.py", 63, "partition reconstruction mismatch"),
     ("stegverse/atomic_task_worker_processor.py", 23, "TEST2_SCENARIO"),
     ("stegverse/atomic_task_worker_processor.py", 24, "TEST3_SCENARIO"),

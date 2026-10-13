@@ -25,9 +25,9 @@ EXACT = {
     # L211 at PIN. Moved by later route/profile publications, most recently
     # SDK#368 PR #446 (readiness qualification helpers, 267->269) and PR #447
     # (Ecosystem Chat / VA-scoped chat / HIL intake routes, 269->285).
-    ("stegverse/manifest_builder.py", 285): "def build_manifest(",
+    ("stegverse/manifest_builder.py", 288): "def build_manifest(",  # 285->288 with #512-#519
     ("stegverse/purpose_bound_worker_processor.py", 63): "partition reconstruction mismatch",
-    ("stegverse/universal_entry_dispatch.py", 48): '"completed", "degraded", "unavailable", "failed_closed"',
+    ("stegverse/universal_entry_dispatch.py", 49): '"completed", "degraded", "unavailable", "failed_closed"',  # 48->49 with #512-#519
     ("stegverse/security_posture_request.py", 9): '"SECURE", "HIGH", "HIGHEST"',
     ("stegverse/security_posture_request.py", 40): 'NONE_REQUEST_INPUT_ONLY',
     ("stegverse/stage1_org_receipt_review.py", 5): "NEVER authenticates caller-supplied snapshots",
