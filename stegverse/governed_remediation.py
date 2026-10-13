@@ -22,6 +22,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Mapping
 
+from .governance_return_evidence import verify_governance_decision_return
 from .manifest_state_transition_runtime import (
     build_intr_handoff,
     derive_execution_request,
@@ -111,6 +112,8 @@ def perform_governed_remediation(
     governance_manifest: Mapping[str, Any],
     governance_result: Mapping[str, Any],
     organization_boundary: Mapping[str, Any] | None = None,
+    *,
+    decision_return_evidence: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Act on a returned governance decision for a mapped remediation.
 
@@ -118,6 +121,12 @@ def perform_governed_remediation(
     as ``governance_decision_return`` hands it back. Anything but an ALLOW for
     the exact candidate leaves the original non-ALLOW standing: the return is
     reported, and no new attempt is prepared.
+
+    A result shaped as an ALLOW does not authorize the new attempt by itself.
+    ``decision_return_evidence`` carries the ledger readbacks of that return
+    (``return_readback``, ``sender_readback``, ``deciding_readback`` and
+    ``request_packet_id``); only when ``verify_governance_decision_return``
+    accepts them, and they record the same ALLOW, is the attempt prepared.
     """
     checked_original = validate_runtime_result(non_allow, original_request)
     if checked_original.get("disposition") not in ("DENY", "FAIL_CLOSED"):
@@ -158,6 +167,31 @@ def perform_governed_remediation(
         return {**base, "state": "REMEDIATION_NOT_AUTHORIZED", "disposition": decision.get("disposition"),
                 "failed_predicate": decision.get("failed_predicate") or "REMEDIATION_NOT_AUTHORIZED",
                 "handoff": None, "remediated_request": None}
+
+    evidence = decision_return_evidence if isinstance(decision_return_evidence, Mapping) else {}
+    acceptance = verify_governance_decision_return(
+        evidence.get("return_readback"),
+        sender_readback=evidence.get("sender_readback"),
+        deciding_readback=evidence.get("deciding_readback"),
+        request_packet_id=str(evidence.get("request_packet_id") or ""),
+    )
+    if acceptance.get("disposition") == "ALLOW" and acceptance.get("governance_disposition") != "ALLOW":
+        acceptance = {**acceptance, "disposition": "FAIL_CLOSED",
+                      "failure_code": "END_TO_END_REQUIRES_A_VERIFIED_GOVERNANCE_DECISION_RETURN",
+                      "failed_predicate": "READ_BACK_GOVERNANCE_DECISION_IS_ALLOW",
+                      "required_evidence_or_repair": "a read-back governance decision of ALLOW; observed "
+                                                     + str(acceptance.get("governance_disposition")),
+                      "retry_entrypoint": "stegverse/governed_remediation.py::perform_governed_remediation",
+                      "next_attempt": "act on the decision the ledger records, not on the result handed in"}
+    if acceptance.get("disposition") != "ALLOW":
+        # A caller-supplied ALLOW without authenticated ledger readback grants
+        # nothing; the original non-ALLOW stands.
+        return {**base, "state": "REMEDIATION_NOT_AUTHORIZED", "disposition": "FAIL_CLOSED",
+                **{k: acceptance.get(k) for k in ("failure_code", "failed_predicate",
+                                                  "required_evidence_or_repair", "retry_entrypoint",
+                                                  "owning_existing_goal", "next_attempt")},
+                "handoff": None, "remediated_request": None}
+    base["decision_return_acceptance"] = acceptance
 
     if action == "RESUBMIT":
         # The manifest was valid; the failure was at the denying site. The same

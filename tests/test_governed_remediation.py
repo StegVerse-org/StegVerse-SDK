@@ -12,6 +12,8 @@ from stegverse.manifest_builder import build_manifest
 from stegverse.manifest_state_transition_runtime import RESULT_SCHEMA, derive_execution_request
 from stegverse.route_resolution import canonical_sha256
 from tests.test_organization_batch_manifest_task_binding import canonical_request, governance_request
+from tests.test_governance_return_evidence import CLOSURE, DECIDED, PACKET, _readback, _return, _sha
+from stegverse.governance_return_evidence import RETURN_READBACK_SCHEMA
 
 REMEDIATION_TASK = "STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001"
 BOUNDARY = json.loads((Path(__file__).parent / "fixtures" /
@@ -100,6 +102,20 @@ def _governance_result(request, disposition):
     }
 
 
+def _evidence(**overrides):
+    """Ledger readbacks of a returned governance ALLOW, as verify_governance_decision_return reads them."""
+    evidence = {"return_readback": {"schema": RETURN_READBACK_SCHEMA, "returns": [_return()]},
+                "sender_readback": _readback(_sha("genesis"), _sha("ingress"), CLOSURE),
+                "deciding_readback": _readback(_sha("labs-genesis"), DECIDED),
+                "request_packet_id": PACKET}
+    evidence.update(overrides)
+    return evidence
+
+
+SIX_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair",
+              "retry_entrypoint", "owning_existing_goal", "next_attempt")
+
+
 class GovernedResubmitTests(unittest.TestCase):
     def setUp(self):
         self.manifest = build_exp3_manifest()
@@ -113,7 +129,7 @@ class GovernedResubmitTests(unittest.TestCase):
     def _run(self, result, **overrides):
         args = dict(original_manifest=self.manifest, original_request=self.request, non_allow=self.deny,
                     governance_manifest=self.gov_manifest, governance_result=result,
-                    organization_boundary=BOUNDARY)
+                    organization_boundary=BOUNDARY, decision_return_evidence=_evidence())
         args.update(overrides)
         return perform_governed_remediation(**args)
 
@@ -180,6 +196,45 @@ class GovernedResubmitTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "RESUBMIT_IS_NOT_THE_ORIGINAL_SUBMISSION:manifest_declared_destination"):
             self._run(result, original_request=original, non_allow=deny, governance_manifest=manifest)
 
+    def _assert_not_authorized(self, out, predicate):
+        self.assertEqual(out["state"], "REMEDIATION_NOT_AUTHORIZED")
+        self.assertEqual(out["disposition"], "FAIL_CLOSED")
+        self.assertEqual(out["failed_predicate"], predicate)
+        for field in SIX_FIELDS:
+            self.assertTrue(out[field], field)
+        self.assertIsNone(out["handoff"])
+        self.assertIsNone(out["remediated_request"])
+
+    def test_caller_supplied_allow_without_ledger_readback_grants_nothing(self):
+        allow = _governance_result(self.gov_request, "ALLOW")
+        for evidence in (None, {}):
+            out = self._run(allow, decision_return_evidence=evidence)
+            self._assert_not_authorized(out, "GOVERNANCE_RETURN_READBACK_PRESENT")
+
+    def test_deciding_receipt_absent_from_its_ledger_grants_nothing(self):
+        evidence = _evidence(deciding_readback=_readback(_sha("labs-genesis")))
+        out = self._run(_governance_result(self.gov_request, "ALLOW"), decision_return_evidence=evidence)
+        self._assert_not_authorized(out, "DECIDING_ORGANIZATION_RECEIPT_READ_BACK")
+
+    def test_returned_deny_contradicting_an_allow_result_grants_nothing(self):
+        evidence = _evidence(return_readback={"schema": RETURN_READBACK_SCHEMA,
+                                              "returns": [_return(governance_disposition="DENY")]})
+        out = self._run(_governance_result(self.gov_request, "ALLOW"), decision_return_evidence=evidence)
+        self._assert_not_authorized(out, "READ_BACK_GOVERNANCE_DECISION_IS_ALLOW")
+
+    def test_replayed_return_grants_nothing(self):
+        evidence = _evidence(return_readback={"schema": RETURN_READBACK_SCHEMA, "returns": [_return(), _return()]})
+        out = self._run(_governance_result(self.gov_request, "ALLOW"), decision_return_evidence=evidence)
+        self.assertEqual(out["state"], "REMEDIATION_NOT_AUTHORIZED")
+        self.assertIsNone(out["handoff"])
+
+    def test_verified_return_is_carried_on_the_attempt(self):
+        out = self._run(_governance_result(self.gov_request, "ALLOW"))
+        acceptance = out["decision_return_acceptance"]
+        self.assertEqual(acceptance["disposition"], "ALLOW")
+        self.assertEqual(acceptance["deciding_organization_receipt_sha256"], DECIDED)
+        self.assertEqual(acceptance["authority_effect"], "NONE_VERIFICATION_ONLY")
+
     def test_an_allow_is_not_a_remediation_input(self):
         allowed = copy.deepcopy(self.deny)
         allowed["disposition"] = "ALLOW"
@@ -202,7 +257,8 @@ class GovernedTerminalReentryTests(unittest.TestCase):
                                               _governance_result(gov_request, "DENY"), BOUNDARY)
         self.assertIsNone(denied["handoff"])
         allowed = perform_governed_remediation(manifest, request, failed, gov_manifest,
-                                               _governance_result(gov_request, "ALLOW"), BOUNDARY)
+                                               _governance_result(gov_request, "ALLOW"), BOUNDARY,
+                                               decision_return_evidence=_evidence())
         self.assertEqual(allowed["action"], "RESUBMIT")
         self.assertEqual(allowed["disposition"], "ALLOW")
         self.assertEqual(allowed["original_disposition"]["disposition"], "FAIL_CLOSED")
@@ -217,7 +273,8 @@ class GovernedReManifestTests(unittest.TestCase):
         gov_manifest = _governance_manifest(remediation_candidate(classification, historical, denial))
         gov_request = derive_execution_request(gov_manifest, BOUNDARY)
         out = perform_governed_remediation(manifest, historical, denial, gov_manifest,
-                                           _governance_result(gov_request, "ALLOW"), BOUNDARY)
+                                           _governance_result(gov_request, "ALLOW"), BOUNDARY,
+                                               decision_return_evidence=_evidence())
         self.assertEqual(out["action"], "RE_MANIFEST")
         self.assertEqual(out["disposition"], "ALLOW")
         repaired = out["remediated_request"]
