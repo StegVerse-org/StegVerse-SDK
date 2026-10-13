@@ -88,24 +88,14 @@ class CanonicalOrganizationDestinationTest(unittest.TestCase):
 
 
 class PublicRunManifestCanonicalSourceTest(unittest.TestCase):
-    def test_existing_source_reader_binds_fixed_organization_contract(self):
+    def test_installed_source_ignores_legacy_fetcher(self):
         calls = []
         def fetch(binding):
-            calls.append((binding.repository, binding.path, binding.ref))
-            return {
-                "text": json.dumps(ORGANIZATION_BOUNDARY),
-                "repository": binding.repository,
-                "path": binding.path,
-                "ref": binding.ref,
-                "sha": "fixture-blob",
-            }
+            calls.append(binding)
+            raise AssertionError("network source must not be consulted")
         boundary = _canonical_organization_boundary(fetcher=fetch)
         self.assertEqual(boundary, ORGANIZATION_BOUNDARY)
-        self.assertEqual(calls, [(
-            "StegVerse-Labs/.github",
-            "org-runtime/interlock-intr.json",
-            PINNED_BOUNDARY_REF,
-        )])
+        self.assertEqual(calls, [])
 
     def test_caller_cannot_select_repository_path_ref_or_endpoint(self):
         import inspect
