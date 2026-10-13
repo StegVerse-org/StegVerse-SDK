@@ -62,11 +62,15 @@ def main() -> int:
     parser.add_argument("--schema", type=Path, default=DEFAULT_SCHEMA)
     args = parser.parse_args()
 
-    schema = load_json(args.schema)
-    packet = load_json(args.packet)
-    jsonschema.Draft202012Validator.check_schema(schema)
-    validator = jsonschema.Draft202012Validator(schema)
-    schema_errors = sorted(validator.iter_errors(packet), key=lambda err: (list(map(str, err.absolute_path)), err.message))
+    try:
+        schema = load_json(args.schema)
+        packet = load_json(args.packet)
+        jsonschema.Draft202012Validator.check_schema(schema)
+        validator = jsonschema.Draft202012Validator(schema)
+        schema_errors = sorted(validator.iter_errors(packet), key=lambda err: (list(map(str, err.absolute_path)), err.message))
+    except (OSError, ValueError, TypeError, jsonschema.exceptions.SchemaError, RecursionError) as exc:
+        print(f"FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID {type(exc).__name__}")
+        return 1
     if schema_errors:
         for error in schema_errors:
             location = "/".join(map(str, error.absolute_path)) or "$"
