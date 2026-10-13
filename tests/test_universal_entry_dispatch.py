@@ -187,7 +187,7 @@ def test_dispatch_receipt_is_deterministic():
 
 
 def test_handler_cannot_invent_allow_or_runtime_observation():
-    for forbidden in ({"disposition": "ALLOW"}, {"disposition": "DENY"}, {"runtime_observed": True}):
+    for forbidden in ({"disposition": "ALLOW"}, {"disposition": "DENY"}, {"disposition": "allow"}, {"disposition": "FAIL_CLOSED"}, {"runtime_observed": True}, {"runtime_observed": "false"}, {"runtime_observed": False}):
         def handler(_envelope, _context):
             return {"status": "completed", **forbidden}
         result = dispatch_universal_entry(
