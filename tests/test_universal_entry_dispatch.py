@@ -184,3 +184,18 @@ def test_dispatch_receipt_is_deterministic():
     second = dispatch_universal_entry(envelope("Hello"), REGISTRY, handlers)
     assert first["dispatch_receipt"] == second["dispatch_receipt"]
     assert first["dispatch_receipt"]["authorizing"] is False
+
+
+def test_handler_cannot_invent_allow_or_runtime_observation():
+    for forbidden in ({"disposition": "ALLOW"}, {"disposition": "DENY"}, {"runtime_observed": True}):
+        def handler(_envelope, _context):
+            return {"status": "completed", **forbidden}
+        result = dispatch_universal_entry(
+            envelope("Good morning!"), REGISTRY, {"conversation": handler}
+        )
+        assert result["status"] == "failed_closed"
+        lane = result["lane_results"][0]
+        assert lane["status"] == "failed_closed"
+        assert lane["reason"] == "HANDLER_FAILURE:UniversalDispatchError"
+        assert lane["authorizing"] is False
+        assert lane["execution_authority_granted"] is False
