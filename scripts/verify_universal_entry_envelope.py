@@ -87,10 +87,17 @@ def main() -> int:
             print(f"FAIL_CLOSED: INVARIANT_INVALID {error}")
         return 1
 
+    try:
+        entry_point = packet["origin"]["entry_point"]
+        selected_lanes = ",".join(packet["routing"]["selected_lanes"])
+        receipt_required = str(packet["receipt"]["required"]).lower()
+    except (KeyError, TypeError, ValueError, RecursionError) as exc:
+        print(f"FAIL_CLOSED: OUTPUT_EVIDENCE_INVALID {type(exc).__name__}")
+        return 1
     print(f"PASS: {args.packet}")
-    print(f"entry_point={packet['origin']['entry_point']}")
-    print(f"selected_lanes={','.join(packet['routing']['selected_lanes'])}")
-    print(f"receipt_required={str(packet['receipt']['required']).lower()}")
+    print(f"entry_point={entry_point}")
+    print(f"selected_lanes={selected_lanes}")
+    print(f"receipt_required={receipt_required}")
     return 0
 
 

@@ -108,3 +108,19 @@ def test_permissive_schema_invalid_invariant_type_fails_closed(tmp_path, monkeyp
     ])
     assert main() == 1
     assert "FAIL_CLOSED: INVARIANT_INPUT_INVALID TypeError" in capsys.readouterr().out
+
+
+def test_permissive_schema_missing_output_origin_fails_closed(tmp_path, monkeypatch, capsys):
+    packet = json.loads(Path("examples/universal_entry/site_chat_good_morning.json").read_text(encoding="utf-8"))
+    packet.pop("origin")
+    candidate = tmp_path / "missing-origin.json"
+    candidate.write_text(json.dumps(packet), encoding="utf-8")
+    schema = tmp_path / "permissive-schema.json"
+    schema.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr("sys.argv", [
+        "verify_universal_entry_envelope", str(candidate), "--schema", str(schema)
+    ])
+    assert main() == 1
+    output = capsys.readouterr().out
+    assert "FAIL_CLOSED: OUTPUT_EVIDENCE_INVALID KeyError" in output
+    assert "PASS:" not in output
