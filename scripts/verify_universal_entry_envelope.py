@@ -3,18 +3,28 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib.util
 import json
 from pathlib import Path
 from typing import Any
 
-try:
-    import jsonschema
-except ImportError as exc:  # pragma: no cover
-    raise SystemExit("jsonschema is required: python -m pip install jsonschema") from exc
-
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SCHEMA = ROOT / "schemas" / "universal-entry-envelope.schema.v0.1.json"
 DEFAULT_PACKET = ROOT / "examples" / "universal_entry" / "site_chat_good_morning.json"
+
+
+def _load_structural_validator():
+    # SDK-native, stdlib-only validator, loaded by file so this check runs without
+    # installing the package or any third-party dependency (no jsonschema).
+    path = ROOT / "stegverse" / "structural_validator_candidate.py"
+    spec = importlib.util.spec_from_file_location("_stegverse_structural_validator", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+structural = _load_structural_validator()
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -65,16 +75,20 @@ def main() -> int:
     try:
         schema = load_json(args.schema)
         packet = load_json(args.packet)
-        jsonschema.Draft202012Validator.check_schema(schema)
-        validator = jsonschema.Draft202012Validator(schema)
-        schema_errors = sorted(validator.iter_errors(packet), key=lambda err: (list(map(str, err.absolute_path)), err.message))
-    except (OSError, ValueError, TypeError, jsonschema.exceptions.SchemaError, RecursionError) as exc:
+        digest = hashlib.sha256(structural.canonical_bytes(schema)).hexdigest()
+    except (OSError, ValueError, TypeError, RecursionError) as exc:
         print(f"FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID {type(exc).__name__}")
         return 1
-    if schema_errors:
-        for error in schema_errors:
-            location = "/".join(map(str, error.absolute_path)) or "$"
-            print(f"FAIL_CLOSED: SCHEMA_INVALID {location}: {error.message}")
+    admitted = structural.check_schema(schema, digest)
+    if not admitted["valid"]:
+        codes = ",".join(sorted({e["code"] for e in admitted["errors"]}))
+        print(f"FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID SchemaError {codes}")
+        return 1
+    result = structural.validate(packet, schema, digest)
+    if not result["valid"]:
+        for error in sorted(result["errors"], key=lambda e: (e["path"], e["code"])):
+            location = error["path"].lstrip("/") or "$"
+            print(f"FAIL_CLOSED: SCHEMA_INVALID {location}: {error['code']}")
         return 1
 
     try:
