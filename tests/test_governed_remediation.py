@@ -284,5 +284,58 @@ class GovernedReManifestTests(unittest.TestCase):
         self.assertEqual(manifest, build_exp3_manifest())
 
 
+
+class RemediationGovernanceManifestTests(unittest.TestCase):
+    """The classification is decided on the existing governance route; nothing it cannot evidence is claimed."""
+
+    def setUp(self):
+        from stegverse.governed_remediation import remediation_governance_manifest
+        self.build = remediation_governance_manifest
+        self.manifest = build_exp3_manifest()
+        self.request = derive_execution_request(self.manifest, BOUNDARY)
+        self.deny = _source_profile_deny(self.request)
+        self.classification = _classification(self.request, self.deny, "RESUBMIT")
+        self.preflight = {"schema": "stegverse.organization.remediation-return-preflight/v1",
+                          "state": "AWAIT_AUTHENTIC_ORGANIZATION_GOVERNANCE", "disposition": "FAIL_CLOSED",
+                          "proposed_action": "RESUBMIT", "original_request_sha256": self.request["request_sha256"],
+                          "authority_effect": "NONE_PREFLIGHT_ONLY", "execution_authority_granted": False}
+
+    def _manifest(self, **overrides):
+        args = dict(preflight=self.preflight, evidence_refs=["sha256:" + "c" * 64], organization_boundary=BOUNDARY)
+        args.update(overrides)
+        return self.build(self.classification, self.request, self.deny, **args)
+
+    def test_the_remediation_is_decided_on_the_existing_governance_route(self):
+        governance = derive_execution_request(self._manifest(), BOUNDARY)
+        self.assertEqual(governance["processing_capability"], "governance")
+        self.assertEqual(governance["route_id"], "stegverse.route.canonical-governed.v1")
+
+    def test_no_authority_is_claimed_that_the_evidence_does_not_carry(self):
+        request = self._manifest()["extensions"]["stegverse_governance_request"]
+        self.assertEqual(request["candidate"], remediation_candidate(self.classification, self.request, self.deny))
+        self.assertFalse(request["execution"]["actor_authority_current"])
+        self.assertFalse(request["execution"]["delegation_current"])
+        self.assertFalse(request["permission_present"])
+        self.assertTrue(request["approval"]["required"])
+        self.assertIn("authenticated_current_grant", request["signal"]["missing_inputs"])
+
+    def test_one_classification_is_one_governance_request(self):
+        self.assertEqual(self._manifest(), self._manifest())
+
+    def test_a_preflight_for_another_action_or_request_is_refused(self):
+        for override in ({"proposed_action": "RE_MANIFEST"}, {"original_request_sha256": "f" * 64},
+                         {"execution_authority_granted": True}, {"schema": "other"}):
+            with self.assertRaisesRegex(ValueError, "REMEDIATION_PREFLIGHT_NOT_BOUND_TO_THIS_CANDIDATE"):
+                self._manifest(preflight={**self.preflight, **override})
+
+    def test_lineage_evidence_is_required(self):
+        with self.assertRaisesRegex(ValueError, "REMEDIATION_LINEAGE_EVIDENCE_REQUIRED"):
+            self._manifest(evidence_refs=[])
+
+    def test_a_preapproved_classification_never_reaches_governance(self):
+        forged = dict(self.classification, execution_authority_granted=True)
+        with self.assertRaisesRegex(ValueError, "REMEDIATION_CLASSIFICATION_AUTHORITY_ESCALATION"):
+            self.build(forged, self.request, self.deny, preflight=self.preflight,
+                       evidence_refs=["sha256:" + "c" * 64], organization_boundary=BOUNDARY)
 if __name__ == "__main__":
     unittest.main()
