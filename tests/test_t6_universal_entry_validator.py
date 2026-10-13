@@ -31,3 +31,18 @@ def test_schema_failure_reports_non_allow_not_traceback(tmp_path, monkeypatch, c
     monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(candidate)])
     assert main() == 1
     assert "FAIL_CLOSED: SCHEMA_INVALID routing:" in capsys.readouterr().out
+
+
+def test_missing_packet_fails_closed(tmp_path, monkeypatch, capsys):
+    missing = tmp_path / "absent.json"
+    monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(missing)])
+    assert main() == 1
+    assert "FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID FileNotFoundError" in capsys.readouterr().out
+
+
+def test_malformed_json_fails_closed(tmp_path, monkeypatch, capsys):
+    malformed = tmp_path / "malformed.json"
+    malformed.write_text("{bad-json", encoding="utf-8")
+    monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(malformed)])
+    assert main() == 1
+    assert "FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID JSONDecodeError" in capsys.readouterr().out
