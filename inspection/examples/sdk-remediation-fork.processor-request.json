@@ -70,5 +70,19 @@
     },
     "follows_remaining_manifested_path": false,
     "route_sha256": "0fd58371815991e5a6b2144831c69ff9a58d064c8d6e1688215b4d90d4f20663"
+  },
+  "original_request": {
+    "request_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "wire_manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "canonical_manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "processing_capability": "ecosystem_diagnostic",
+    "route_id": "stegverse.route.ecosystem-diagnostic.v1",
+    "manifest_declared_destination": {
+      "organization": "StegVerse-org",
+      "receiving_operation": {
+        "addressed_service": "stegverse-org.sdk-manifest-ingress"
+      }
+    },
+    "graph_id": "example-graph"
   }
 }

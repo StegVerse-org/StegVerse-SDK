@@ -176,6 +176,18 @@ class RemediationRouteTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "REMEDIATION_ROUTE_"):
                 _assert_intr_on_every_crossing(bad)
 
+    def test_the_lane_carries_the_whole_original_request_and_it_must_be_the_bound_one(self):
+        request = fork_request(self.request, self.deny)
+        self.assertEqual(request["original_request"], self.request)
+        swapped = copy.deepcopy(request)
+        swapped["original_request"]["request_sha256"] = "f" * 64
+        with self.assertRaisesRegex(ValueError, "REMEDIATION_FORK_ORIGINAL_REQUEST_MISMATCH:request_sha256"):
+            validate_remediation_fork_request(swapped)
+        moved = copy.deepcopy(request)
+        moved["original_request"]["manifest_declared_destination"] = {"organization": "Elsewhere"}
+        with self.assertRaisesRegex(ValueError, "REMEDIATION_FORK_ORIGINAL_REQUEST_MISMATCH:manifest_declared_destination"):
+            validate_remediation_fork_request(moved)
+
     def test_a_redirected_route_is_refused(self):
         request = fork_request(self.request, self.deny)
         redirected = copy.deepcopy(request)
