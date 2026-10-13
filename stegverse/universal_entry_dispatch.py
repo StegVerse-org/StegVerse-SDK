@@ -9,6 +9,7 @@ response envelope with a deterministic dispatch receipt.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Mapping, MutableMapping, Protocol, Sequence
 
@@ -191,7 +192,7 @@ def dispatch_universal_entry(
             }
         else:
             try:
-                result = _validate_handler_result(lane, handler(envelope, dict(context)))
+                result = _validate_handler_result(lane, handler(deepcopy(envelope), deepcopy(dict(context))))
             except Exception as exc:  # fail-closed boundary
                 result = {
                     "lane": lane,
