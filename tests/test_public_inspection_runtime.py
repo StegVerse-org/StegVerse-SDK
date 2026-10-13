@@ -58,6 +58,24 @@ class ManifestedModel:
         return Result()
 
 
+class Ledger:
+    pass
+
+
+STEGCORE_CALLS = []
+
+
+def run_manifested_transaction(request, executor, **kwargs):
+    STEGCORE_CALLS.append((request, kwargs))
+    consequence = executor()
+    assert consequence["external_side_effect"] is False
+    assert kwargs["transaction_id"] == "TX-ROUTE"
+    return Result()
+
+
+IN_PROCESS_STEGCORE = (run_manifested_transaction, Ledger)
+
+
 class Record:
     manifest_receipt_id = "MR-" + "A" * 64
     transaction_id = "TX-ROUTE"
@@ -180,23 +198,14 @@ class Tests(unittest.TestCase):
             self.assertTrue(result[field], field)
         self.assertFalse(result["consequence_committed"])
 
-    def _stegcore_response(self):
-        return Mock(
-            status_code=200,
-            json=lambda: {
-                "transaction_id": "TX-ROUTE",
-                "service_runtime_identity": "stegverse:steggate:canonical:three-layer:v1",
-                "service_external_side_effect": False,
-            },
-        )
-
+    @patch("stegverse.production_validation_runtime._load_stegcore_transaction_runtime", return_value=IN_PROCESS_STEGCORE)
     @patch("stegverse.production_validation_runtime.requests.get")
     @patch("stegverse.production_validation_runtime.requests.post")
     @patch("stegverse.production_validation_runtime._load_route_carrier", return_value=(Carrier, RouteError, make_manifest, lambda: []))
     @patch("stegverse.production_validation_runtime._load_stegcore", return_value=(build, Registry, Req, lambda req: Eval(), ManifestedModel))
-    def test_route_closes_on_organization_ledger_without_master_records(self, _core, _carrier, post, get):
-        post.return_value = self._stegcore_response()
+    def test_route_closes_on_organization_ledger_without_master_records(self, _core, _carrier, post, get, _runtime):
         calls = []
+        STEGCORE_CALLS.clear()
         with patch.dict("os.environ", {}, clear=True):
             result = run_public_inspection_test(
                 self.request(),
@@ -204,10 +213,16 @@ class Tests(unittest.TestCase):
                 stegcore_url="https://stegcore.example",
             )
         self.assertEqual("PRODUCTION_LANE_VALIDATION_TEST", result["runtime_mode"])
-        self.assertEqual("https://stegcore.example", result["stegcore_service_url"])
-        # No liveness probe gates the transition; the identity comes from the
-        # verified manifested-validation result itself.
+        # StegCore runs in process: the URL is never contacted and nothing is awaited.
+        self.assertEqual(
+            "IN_PROCESS:stegcore.transaction_lifecycle.run_manifested_transaction",
+            result["stegcore_execution_surface"],
+        )
+        self.assertIs(result["external_machine_awaited"], False)
+        self.assertNotIn("stegcore_service_url", result)
         get.assert_not_called()
+        self.assertEqual(1, len(STEGCORE_CALLS))
+        self.assertEqual(STEGCORE_CALLS[0][1]["metadata"]["route_manifest_id"], "MF-" + "B" * 64)
         self.assertEqual("stegverse:steggate:canonical:three-layer:v1", result["stegcore_runtime_identity"])
         self.assertTrue(result["transaction_identity_continuous"])
         self.assertEqual(10, result["route_transition_count"])
@@ -215,16 +230,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(result["organization_ledger_closure"]["status"], "RECORDED")
         self.assertEqual(result["master_records_recording"]["status"], "NOT_CONFIGURED")
         self.assertIs(result["master_records_recording"]["gates_completion"], False)
-        # Only the deployed StegCore call: nothing was sent to Master Records.
-        self.assertEqual(1, post.call_count)
-        self.assertTrue(post.call_args.args[0].endswith("/v1/manifested-validation"))
+        # No HTTP at all: no StegCore service and nothing sent to Master Records.
+        post.assert_not_called()
 
+    @patch("stegverse.production_validation_runtime._load_stegcore_transaction_runtime", return_value=IN_PROCESS_STEGCORE)
     @patch("stegverse.production_validation_runtime.requests.post")
     @patch("stegverse.production_validation_runtime._load_route_carrier", return_value=(Carrier, RouteError, make_manifest, lambda: []))
     @patch("stegverse.production_validation_runtime._load_stegcore", return_value=(build, Registry, Req, lambda req: Eval(), ManifestedModel))
-    def test_master_records_recording_failure_does_not_gate_the_run(self, _core, _carrier, post):
+    def test_master_records_recording_failure_does_not_gate_the_run(self, _core, _carrier, post, _runtime):
         unavailable = Mock(status_code=503, text="receiver unavailable")
-        post.side_effect = [self._stegcore_response(), unavailable]
+        post.side_effect = [unavailable]
         result = run_public_inspection_test(
             self.request(),
             organization_ledger_sink=ledger_sink([]),
@@ -241,7 +256,7 @@ class Tests(unittest.TestCase):
             self.assertTrue(recording[field], field)
         self.assertEqual(recording["owning_existing_goal"], "LLMA-DECLARED-PATH-CONFORMANCE-368")
 
-        post.side_effect = [self._stegcore_response(), Mock(status_code=201, json=lambda: {"record_status": "RECORDED"})]
+        post.side_effect = [Mock(status_code=201, json=lambda: {"record_status": "RECORDED"})]
         recorded = run_public_inspection_test(
             self.request(),
             organization_ledger_sink=ledger_sink([]),

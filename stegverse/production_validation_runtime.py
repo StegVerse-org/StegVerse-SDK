@@ -1,4 +1,4 @@
-"""Production-lane evaluator validation through manifested Core-Lite routing and deployed StegCore.
+"""Production-lane evaluator validation through manifested Core-Lite routing and canonical StegCore.
 
 Every route transition is appended through the caller-bound Organization ledger sink:
 runtime reality and custody stay with the Organization, and the transition closes on
@@ -119,13 +119,6 @@ def _master_records_config(base_url: str | None = None, token: str | None = None
     return config
 
 
-def _stegcore_config(base_url: str | None = None) -> str:
-    url = (base_url or os.getenv("STEGCORE_URL") or "").rstrip("/")
-    if not url:
-        raise PublicInspectionRuntimeError("STEGCORE_URL is required for production validation; no hosted-provider default is permitted")
-    return url
-
-
 def _record_status(body: Mapping[str, Any]) -> Any:
     """Record status from a Master Records response; pre-migration services use the legacy name."""
     return read_field(body, RECORD_STATUS_FIELD, LEGACY_RECORD_STATUS_FIELD)
@@ -231,20 +224,50 @@ def _record_operation_event_strict(base_url: str, token: str, manifest_receipt_i
     return body
 
 
-# The identity the deployed StegCore must report on its manifested-validation
-# result. It is checked on that result; no separate liveness probe gates the run
-# (destination_liveness_is_transition_predicate=false).
+# The canonical StegGate runtime identity of the manifested-validation result.
 STEGCORE_RUNTIME_IDENTITY = "stegverse:steggate:canonical:three-layer:v1"
+#: Where the canonical manifested validation runs: in this process, through the
+#: StegCore package the governed-test dependency already installs. No deployed
+#: service is called and no machine is awaited (Task Registry global invariants:
+#: external_machine_awaiting_allowed=false,
+#: destination_liveness_is_transition_predicate=false).
+STEGCORE_EXECUTION_SURFACE = "IN_PROCESS:stegcore.transaction_lifecycle.run_manifested_transaction"
 
 
-def _run_deployed_stegcore(base_url: str, active_manifest: Mapping[str, Any], admissibility_request: Any, input_data: Any, normalized: Mapping[str, Any], provenance: Mapping[str, Any], ManifestedTransactionResult: Any) -> Any:
-    payload = {
-        "transaction_id": active_manifest["transaction_id"],
-        "request": admissibility_request.model_dump(mode="json", exclude_none=False),
-        "input_data": input_data,
-        "source": "stegverse-sdk:production-validation",
-        "subject": f"public-inspection:{normalized['request_id']}",
-        "metadata": {
+def _load_stegcore_transaction_runtime():
+    try:
+        from stegcore.transaction_lifecycle import TransactionLedger, run_manifested_transaction
+    except ImportError as exc:
+        raise PublicInspectionRuntimeError("StegCore schemas are required. Install the current governed-test dependency.") from exc
+    return run_manifested_transaction, TransactionLedger
+
+
+def _run_stegcore_in_process(active_manifest: Mapping[str, Any], admissibility_request: Any, input_data: Any, normalized: Mapping[str, Any], provenance: Mapping[str, Any]) -> Any:
+    """The canonical manifested validation, run where the manifest is carried.
+
+    This is the same call StegCore's ``/v1/manifested-validation`` service makes
+    (``run_manifested_transaction`` with a simulated, side-effect-free
+    consequence), without a network hop to a deployed service.
+    """
+    run_manifested_transaction, TransactionLedger = _load_stegcore_transaction_runtime()
+    transaction_id = active_manifest["transaction_id"]
+
+    def simulated_executor() -> dict[str, Any]:
+        return {
+            "status": "SIMULATED_PRODUCTION_VALIDATION_CONSEQUENCE",
+            "external_side_effect": False,
+            "transaction_id": transaction_id,
+        }
+
+    result = run_manifested_transaction(
+        admissibility_request,
+        simulated_executor,
+        input_data=input_data,
+        source="stegverse-sdk:production-validation",
+        subject=f"public-inspection:{normalized['request_id']}",
+        ledger=TransactionLedger(),
+        transaction_id=transaction_id,
+        metadata={
             "public_inspection_request_id": normalized["request_id"],
             "case_profile": normalized["case_profile"],
             "test_mode": True,
@@ -253,23 +276,13 @@ def _run_deployed_stegcore(base_url: str, active_manifest: Mapping[str, Any], ad
             "route_manifest_id": active_manifest["route_manifest_id"],
             "route_receipt_chain_head_at_stegcore_entry": active_manifest.get("receipt_chain_head"),
             "governance_request": admissibility_request.model_dump(mode="json", exclude_none=False),
+            "service_execution_surface": STEGCORE_EXECUTION_SURFACE,
+            "production_route_validation": True,
         },
-        "external_side_effects_enabled": False,
-    }
-    try:
-        response = requests.post(f"{base_url}/v1/manifested-validation", json=payload, timeout=45)
-    except requests.RequestException as exc:
-        raise PublicInspectionRuntimeError(f"deployed StegCore manifested validation failed: {exc}") from exc
-    if response.status_code != 200:
-        raise PublicInspectionRuntimeError(f"deployed StegCore manifested validation failed: HTTP {response.status_code}: {response.text[:500]}")
-    body = response.json()
-    if body.get("transaction_id") != active_manifest["transaction_id"]:
-        raise PublicInspectionRuntimeError("deployed StegCore changed the manifested transaction identity")
-    if body.get("service_runtime_identity") != STEGCORE_RUNTIME_IDENTITY:
-        raise PublicInspectionRuntimeError("deployed StegCore response runtime identity mismatch")
-    if body.get("service_external_side_effect") is not False:
-        raise PublicInspectionRuntimeError("deployed StegCore validation consequence boundary invalid")
-    return ManifestedTransactionResult.model_validate(body)
+    )
+    if result.transaction_id != transaction_id:
+        raise PublicInspectionRuntimeError("StegCore changed the manifested transaction identity")
+    return result
 
 
 def organization_ledger_not_bound(request_id: Any) -> dict[str, Any]:
@@ -294,6 +307,9 @@ def organization_ledger_not_bound(request_id: Any) -> dict[str, Any]:
 def run_public_inspection_test(request: Mapping[str, Any], *, organization_ledger_sink: OrganizationLedgerSink | None = None, master_records_url: str | None = None, master_records_token: str | None = None, stegcore_url: str | None = None) -> dict[str, Any]:
     """Run one production-lane validation; route transitions append to the Organization ledger.
 
+    The canonical StegCore manifested validation runs in process; ``stegcore_url``
+    is accepted for compatibility and never contacted.
+
     ``organization_ledger_sink(route_manifest_id, event)`` must return the Organization's
     ledger receipt (``custody_status`` RECORDED plus the event's ``route_receipt_id`` and
     ``event_hash``). Master Records configuration is optional: when present, the released
@@ -308,9 +324,8 @@ def run_public_inspection_test(request: Mapping[str, Any], *, organization_ledge
         return organization_ledger_not_bound(normalized["request_id"])
 
     master_records = _optional_master_records_config(master_records_url, master_records_token)
-    core_url = _stegcore_config(stegcore_url)
 
-    build_submission, ManifestReceiptRegistry, AdmissibilityRequest, _evaluate, ManifestedTransactionResult = _load_stegcore()
+    build_submission, ManifestReceiptRegistry, AdmissibilityRequest, _evaluate, _ManifestedTransactionResult = _load_stegcore()
     ManifestRouteCarrier, RouteCarrierError, build_route_manifest, default_validation_route = _load_route_carrier()
     try:
         admissibility_request = AdmissibilityRequest.model_validate(steggate_body)
@@ -330,7 +345,7 @@ def run_public_inspection_test(request: Mapping[str, Any], *, organization_ledge
         return organization_ledger_sink(route_manifest["route_manifest_id"], event)
 
     def stegcore_handler(active_manifest: dict[str, Any], _payload: Any) -> dict[str, Any]:
-        result = _run_deployed_stegcore(core_url, active_manifest, admissibility_request, input_data, normalized, provenance, ManifestedTransactionResult)
+        result = _run_stegcore_in_process(active_manifest, admissibility_request, input_data, normalized, provenance)
         record = registry.register(result)
         evidence = registry.evidence_package(record.manifest_receipt_id)
         evidence["ecosystem_route_link"] = {
@@ -338,7 +353,7 @@ def run_public_inspection_test(request: Mapping[str, Any], *, organization_ledge
             "transaction_id": active_manifest["transaction_id"],
             "execution_provenance": dict(provenance),
             "route_receipt_chain_head_at_exact_run_custody": active_manifest.get("receipt_chain_head"),
-            "stegcore_service_url": core_url,
+            "stegcore_execution_surface": STEGCORE_EXECUTION_SURFACE,
             "stegcore_runtime_identity": STEGCORE_RUNTIME_IDENTITY,
         }
         evaluation = result.execution_observation.get("evaluation") or {}
@@ -350,7 +365,7 @@ def run_public_inspection_test(request: Mapping[str, Any], *, organization_ledge
             "stegcore_chain_verified": bool(result.chain_verified),
             "exact_run_receipt_closure": "ORGANIZATION_LEDGER_ROUTE_EVENT",
             "external_side_effect": False,
-            "service_execution_surface": core_url,
+            "service_execution_surface": STEGCORE_EXECUTION_SURFACE,
         }
 
     try:
@@ -378,8 +393,9 @@ def run_public_inspection_test(request: Mapping[str, Any], *, organization_ledge
         "case_profile": normalized["case_profile"],
         "runtime_mode": "PRODUCTION_LANE_VALIDATION_TEST",
         "execution_provenance": provenance,
-        "stegcore_service_url": core_url,
+        "stegcore_execution_surface": STEGCORE_EXECUTION_SURFACE,
         "stegcore_runtime_identity": STEGCORE_RUNTIME_IDENTITY,
+        "external_machine_awaited": False,
         "route_manifest_id": route_result["route_manifest_id"],
         "route_transition_count": route_result["route_transition_count"],
         "route_receipt_chain_head": route_result["receipt_chain_head"],
@@ -472,12 +488,12 @@ def reconstruct_manifest_receipt(manifest_receipt_id: str, *, master_records_url
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run through manifested Core-Lite + deployed StegCore (Organization ledger sink required); replay or reconstruct from the released record in Master Records")
+    parser = argparse.ArgumentParser(description="Run through manifested Core-Lite + in-process canonical StegCore (Organization ledger sink required); replay or reconstruct from the released record in Master Records")
     parser.add_argument("operation", choices=("run", "replay", "reconstruct"))
     parser.add_argument("target")
     parser.add_argument("--master-records-url")
     parser.add_argument("--master-records-token")
-    parser.add_argument("--stegcore-url")
+    parser.add_argument("--stegcore-url", help="accepted for compatibility; StegCore runs in process and no service is contacted")
     args = parser.parse_args(argv)
     try:
         if args.operation == "run":
