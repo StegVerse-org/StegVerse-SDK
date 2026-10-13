@@ -322,7 +322,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
                     disagreements.append((instance, schema))
         self.assertEqual(disagreements, [])
-        self.assertIn(CONTRACT["contract_version"], ("1.1", "1.2", "1.3", "1.4"))
+        self.assertIn(CONTRACT["contract_version"], ("1.1", "1.2", "1.3", "1.4", "1.5"))
 
     def test_contract_1_1_diagnostics_and_malformed_bounds(self):
         codes = lambda instance, schema: [e["code"] for e in self.check_case(instance, schema, False)["errors"]]
@@ -356,7 +356,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         self.assertEqual(codes({"items": {"$id": "x"}}), ["UNSUPPORTED_KEYWORD:$id"])
         self.assertEqual(codes({"$schema": uri, "$ref": "#/$defs/a", "$defs": {"a": {}}}),
                          ["UNSUPPORTED_KEYWORD:$defs", "UNSUPPORTED_KEYWORD:$ref"])
-        self.assertIn(CONTRACT["contract_version"], ("1.2", "1.3", "1.4"))
+        self.assertIn(CONTRACT["contract_version"], ("1.2", "1.3", "1.4", "1.5"))
         self.assertEqual(CONTRACT["root_identity_keywords"]["$schema"], uri)
         Draft202012Validator = reference_validator(self)
         values, schemas = self._generated_corpus()
@@ -404,6 +404,18 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 self.assertEqual(codes({"pattern": pattern}), ["INVALID_PATTERN"])
         self.assertEqual(codes({"pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z0-9_]+)+$"}), ["UNSUPPORTED_PATTERN"])
 
+    def test_contract_1_5_pattern_excludes_dialect_dependent_class_and_escape_syntax(self):
+        # \- outside a class is a SyntaxError in ECMA-262 unicode mode; doubled -, &, |, ~ inside
+        # a class are set operations in ECMA-262 v mode and a FutureWarning in Python re.
+        codes = lambda schema: [e["code"] for e in check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())["errors"]]
+        for pattern in ("^a\\-b$", "[a--b]", "[a&&b]", "[a||b]", "[a~~b]"):
+            with self.subTest(pattern=pattern):
+                self.assertEqual(codes({"pattern": pattern}), ["UNSUPPORTED_PATTERN"])
+        for pattern in ("^ai:[a-z0-9\\-\\.]+$", "^svcr_[A-Za-z0-9_\\-]+$", "^[a-]$", "^a|b$", "^a\\/b$"):
+            with self.subTest(pattern=pattern):
+                self.assertEqual(codes({"pattern": pattern}), [])
+        self.assertIn("\\- outside a class", CONTRACT["pattern_subset"]["excluded"])
+
     def test_contract_1_3_pattern_diagnostics_and_ecma_end_anchor(self):
         schema = {"type": "string", "pattern": "^ab$"}
         self.assertEqual([e["code"] for e in self.check_case("abc", schema, False)["errors"]], ["PATTERN"])
@@ -415,7 +427,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         self.assertEqual([e["code"] for e in self.check_case(long_value, {"pattern": "^a+$"}, False)["errors"]],
                          ["PATTERN_INPUT_TOO_LONG"])
         self.check_case(5, {"pattern": "^a$"}, True)  # pattern applies to strings only
-        self.assertIn(CONTRACT["contract_version"], ("1.3", "1.4"))
+        self.assertIn(CONTRACT["contract_version"], ("1.3", "1.4", "1.5"))
 
     def test_contract_1_4_format_date_agrees_with_reference_format_checker(self):
         Draft202012Validator = reference_validator(self)
@@ -449,7 +461,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 schema = {"format": fmt}
                 result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
                 self.assertEqual([e["code"] for e in result["errors"]], ["UNSUPPORTED_FORMAT"])
-        self.assertEqual(CONTRACT["contract_version"], "1.4")
+        self.assertIn(CONTRACT["contract_version"], ("1.4", "1.5"))
         self.assertEqual(CONTRACT["format"]["asserted"], ["date", "date-time"])
 
 if __name__ == "__main__":
