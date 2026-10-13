@@ -105,6 +105,87 @@ def remediation_candidate(
     }
 
 
+PREFLIGHT_SCHEMA = "stegverse.organization.remediation-return-preflight/v1"
+REMEDIATION_TASK = "STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001"
+REMEDIATION_GOVERNANCE_REQUEST_SCHEMA = "stegverse.remediation-governance-request/v1"
+
+
+def remediation_governance_manifest(
+    classification: Mapping[str, Any],
+    original_request: Mapping[str, Any],
+    non_allow: Mapping[str, Any],
+    *,
+    preflight: Mapping[str, Any],
+    evidence_refs: list[str],
+    organization_boundary: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """The governance manifest that asks the deciding organization to rule on a mapped remediation.
+
+    Built by the existing Manifest Builder (process ``governance``) for the existing
+    governance route; no second authorization mechanism. It carries only what is
+    evidenced: the remediation candidate bound to the retained non-ALLOW, the
+    organization's non-authorizing preflight, and the receipt references the
+    lineage rests on. No authority is asserted that the evidence does not carry:
+    actor authority, delegation and permission are not claimed, and an
+    authenticated grant and approval are declared as missing inputs. StegCore
+    decides on what is present, and the SDK acts only on a read-back ALLOW
+    (``perform_governed_remediation``).
+    """
+    from .manifest_builder import build_manifest
+
+    candidate = remediation_candidate(classification, original_request, non_allow)
+    if (preflight.get("schema") != PREFLIGHT_SCHEMA
+            or preflight.get("proposed_action") != candidate["action"]
+            or preflight.get("original_request_sha256") != original_request.get("request_sha256")
+            or preflight.get("authority_effect") != "NONE_PREFLIGHT_ONLY"
+            or preflight.get("execution_authority_granted") is not False):
+        raise ValueError("REMEDIATION_PREFLIGHT_NOT_BOUND_TO_THIS_CANDIDATE")
+    refs = [ref for ref in evidence_refs if isinstance(ref, str) and ref]
+    if not refs:
+        raise ValueError("REMEDIATION_LINEAGE_EVIDENCE_REQUIRED")
+    payload = {
+        "schema": REMEDIATION_GOVERNANCE_REQUEST_SCHEMA,
+        "request_id": "REMEDIATION-" + canonical_sha256(candidate)[:24],
+        "task_id": REMEDIATION_TASK,
+        "original_request_sha256": original_request["request_sha256"],
+        "original_non_allow_sha256": candidate["parameters"]["original_non_allow_sha256"],
+        "healer_classification_sha256": candidate["parameters"]["healer_classification_sha256"],
+        "preflight_sha256": canonical_sha256(dict(preflight)),
+        "evidence_refs": refs,
+        "request_granted_authority": False,
+        "authority_effect": "NONE_REQUEST_ONLY",
+    }
+    payload_hash = canonical_sha256(payload)
+    request = {
+        "candidate": candidate,
+        "judgment": {"refusal_available": True, "operator_recoverability": "available",
+                     "workload_state": "supported", "time_pressure": "normal",
+                     "isolation_state": "supported", "evidence_refs": refs},
+        "signal": {"admitted_signal_refs": refs, "excluded_signal_refs": [], "transformations": [],
+                   "missing_inputs": ["authenticated_current_grant", "approval"],
+                   "uncertainty_state": "bounded",
+                   "reference_state_hash": payload_hash, "expected_reference_state_hash": payload_hash,
+                   "reconstruction_available": True, "transformation_provenance_complete": True},
+        "execution": {"actor_authority_current": False, "policy_current": True, "delegation_current": False,
+                      "evidence_current": True, "affected_entity_conditions_represented": True,
+                      "recoverability_profile": "recoverable", "validity_window_open": True,
+                      "policy_ref": "canonical-task-registry:" + REMEDIATION_TASK,
+                      "delegation_ref": None, "evidence_refs": refs},
+        "capability": {"allowed": True},
+        "continuity": {"required": True},
+        "approval": {"required": True},
+        "permission_present": False,
+    }
+    return build_manifest(
+        data=payload, source_framework="StegVerse-Labs/StegVerse-Healer",
+        source_output_id=payload["request_id"], processor_request=request, process="governance",
+        return_depth="result+evidence",
+        created_at=(original_request.get("canonical_manifest") or {}).get("created_at"),
+        declared_intent="Decide the mapped remediation of a retained non-ALLOW.",
+        requested_consequence="On a read-back ALLOW only, the SDK performs the mapped RESUBMIT or RE-MANIFEST as a new governed attempt.",
+        publisher_required=False, initiator_class="canonical_task", initiator_ref=REMEDIATION_TASK)
+
+
 def perform_governed_remediation(
     original_manifest: Mapping[str, Any],
     original_request: Mapping[str, Any],
@@ -220,4 +301,4 @@ def perform_governed_remediation(
     }
 
 
-__all__ = ["perform_governed_remediation", "remediation_candidate", "SCHEMA"]
+__all__ = ["perform_governed_remediation", "remediation_candidate", "remediation_governance_manifest", "SCHEMA"]
