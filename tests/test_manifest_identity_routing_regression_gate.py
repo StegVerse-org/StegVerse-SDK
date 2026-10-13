@@ -81,6 +81,7 @@ _EXAMPLE_REQUESTS = {
     "ecosystem_chat": "sdk-ecosystem-chat.processor-request.json",
     "va_scoped_chat": "sdk-va-scoped-chat.processor-request.json",
     "hil_intake": "sdk-hil-intake.processor-request.json",
+    "remediation": "sdk-remediation-fork.processor-request.json",
     "organization_role_conformance": "sdk-organization-role-conformance.processor-request.json",
     "svg_governance_cycle": "sdk-svg-governance-cycle.processor-request.json",
     "purpose_bound_worker": "sdk-test1-purpose-worker.processor-request.json",

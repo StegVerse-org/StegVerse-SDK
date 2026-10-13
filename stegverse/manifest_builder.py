@@ -53,6 +53,7 @@ from .route_resolution import (
     ECOSYSTEM_CHAT_ROUTE_ID,
     VA_SCOPED_CHAT_ROUTE_ID,
     HIL_INTAKE_ROUTE_ID,
+    GOVERNED_REMEDIATION_ROUTE_ID,
     PUBLISHED_ROUTES,
 )
 
@@ -77,6 +78,8 @@ PROCESSOR_ROUTES = {
     "ecosystem_chat": ECOSYSTEM_CHAT_ROUTE_ID,
     "va_scoped_chat": VA_SCOPED_CHAT_ROUTE_ID,
     "hil_intake": HIL_INTAKE_ROUTE_ID,
+    # The remediation fork of a non-ALLOW (stegverse.remediation_fork).
+    "remediation": GOVERNED_REMEDIATION_ROUTE_ID,
 }
 
 GOVERNANCE_REQUEST_FIELDS = (
@@ -399,6 +402,9 @@ def build_manifest(
         extensions[VA_SCOPED_CHAT_REQUEST_EXTENSION] = validate_va_scoped_chat_request(processor_request)
     elif normalized_process == "hil_intake":
         extensions[HIL_INTAKE_REQUEST_EXTENSION] = validate_hil_intake_request(processor_request)
+    elif normalized_process == "remediation":
+        from .remediation_fork import REQUEST_EXTENSION as REMEDIATION_REQUEST_EXTENSION, validate_remediation_fork_request
+        extensions[REMEDIATION_REQUEST_EXTENSION] = validate_remediation_fork_request(processor_request)
     else:
         raise ValueError(f"processing capability {normalized_process!r} has no builder binding")
 

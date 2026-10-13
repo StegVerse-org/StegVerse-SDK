@@ -29,6 +29,9 @@ ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID = "stegverse.route.organization-role-conf
 ECOSYSTEM_CHAT_ROUTE_ID = "stegverse.route.ecosystem-chat.v1"
 VA_SCOPED_CHAT_ROUTE_ID = "stegverse.route.va-scoped-chat.v1"
 HIL_INTAKE_ROUTE_ID = "stegverse.route.hil-intake.v1"
+# The remediation fork every non-ALLOW carries (NODE_INGRESS_SETTLED_SPECIFICATION §8;
+# owner STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001).
+GOVERNED_REMEDIATION_ROUTE_ID = "stegverse.route.governed-remediation.v1"
 
 _ROUTE_FIELDS = (
     "route_id",
@@ -41,6 +44,21 @@ _ROUTE_FIELDS = (
 _ROUTE_MATCH_FIELDS = tuple(field for field in _ROUTE_FIELDS if field != "route_id")
 
 PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
+    # The remediation lane of a non-ALLOW. The receiving organization resolves the
+    # declared capability to StegHealer through its own capability bindings;
+    # StegHealer classifies, non-authorizing. Nothing here classifies or decides.
+    GOVERNED_REMEDIATION_ROUTE_ID: {
+        "route_id": GOVERNED_REMEDIATION_ROUTE_ID,
+        "processor_capability": "remediation",
+        "lane_class": "MANIFEST_BOUND_REMEDIATION_FORK",
+        "routing_surface": "EXISTING_UNIVERSAL_INTR",
+        "containment": "RECEIVING_ORGANIZATION_NON_AUTHORIZING_CLASSIFICATION",
+        "sandbox_required": False,
+        "external_consequence_enabled": False,
+        "state_graph_adapter_binding": "stegverse.remediation_fork.derive_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "runtime_installed": True,
+    },
     # Collaborative ingress on the existing universal InTr path. VA-scoped chat
     # is the Ecosystem Chat path with a manifest-declared scope policy; an
     # out-of-scope request is refused before handoff. Nothing here answers,

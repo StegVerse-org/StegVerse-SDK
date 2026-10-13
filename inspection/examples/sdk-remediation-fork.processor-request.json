@@ -1,0 +1,27 @@
+{
+  "schema": "stegverse.remediation-fork-request/v1",
+  "original_request_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "original_wire_manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "original_canonical_manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "original_processing_capability": "ecosystem_diagnostic",
+  "original_route_id": "stegverse.route.ecosystem-diagnostic.v1",
+  "original_destination": {
+    "organization": "StegVerse-org",
+    "repository": "StegVerse-org/.github"
+  },
+  "non_allow": {
+    "schema": "stegverse.sdk.manifest-profile-disposition/v1",
+    "state": "DENY",
+    "disposition": "DENY",
+    "terminal": false,
+    "evaluation_boundary": "SDK_MANIFEST_PROFILE_SOURCE_ONLY",
+    "request_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "failure_code": "EXAMPLE_DENY",
+    "failed_predicate": "EXAMPLE_PREDICATE",
+    "required_evidence_or_repair": "example",
+    "retry_entrypoint": "example",
+    "owning_existing_goal": "EXAMPLE-GOAL-001",
+    "next_attempt": "example"
+  },
+  "non_allow_sha256": "8f3e77d9d2c49c7cc8317850353d5b3e383d194302c825fb07a607a369af099c"
+}
