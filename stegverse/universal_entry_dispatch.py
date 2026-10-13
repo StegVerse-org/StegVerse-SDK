@@ -50,7 +50,7 @@ def _validate_handler_result(lane: str, result: Mapping[str, Any]) -> Dict[str, 
         raise UniversalDispatchError(
             f"handler for {lane} returned invalid status: {status or '<missing>'}"
         )
-    normalized = dict(result)
+    normalized = deepcopy(dict(result))
     normalized["lane"] = lane
     normalized["status"] = status
     normalized.setdefault("authorizing", False)
