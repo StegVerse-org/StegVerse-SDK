@@ -7,7 +7,9 @@
   "original_route_id": "stegverse.route.ecosystem-diagnostic.v1",
   "original_destination": {
     "organization": "StegVerse-org",
-    "repository": "StegVerse-org/.github"
+    "receiving_operation": {
+      "addressed_service": "stegverse-org.sdk-manifest-ingress"
+    }
   },
   "non_allow": {
     "schema": "stegverse.sdk.manifest-profile-disposition/v1",
@@ -23,5 +25,50 @@
     "owning_existing_goal": "EXAMPLE-GOAL-001",
     "next_attempt": "example"
   },
-  "non_allow_sha256": "8f3e77d9d2c49c7cc8317850353d5b3e383d194302c825fb07a607a369af099c"
+  "non_allow_sha256": "8f3e77d9d2c49c7cc8317850353d5b3e383d194302c825fb07a607a369af099c",
+  "remediation_route": {
+    "schema": "stegverse.remediation-route/v1",
+    "recognized_at": {
+      "node": "SDK",
+      "organization": null,
+      "evaluation_boundary": "SDK_MANIFEST_PROFILE_SOURCE_ONLY"
+    },
+    "manifested_path": {
+      "route_id": "stegverse.route.ecosystem-diagnostic.v1",
+      "processing_capability": "ecosystem_diagnostic",
+      "destination_organization": "StegVerse-org",
+      "destination_service": "stegverse-org.sdk-manifest-ingress"
+    },
+    "entry_organization": "StegVerse-org",
+    "direct_route_to_steghealer": [
+      {
+        "from": "SDK",
+        "to": "StegVerse-org",
+        "crossing": "INTERLOCK_INTR_INGRESS"
+      },
+      {
+        "from": "StegVerse-org",
+        "to": "StegVerse-Labs",
+        "crossing": "INTERLOCK_INTR_EGRESS"
+      },
+      {
+        "from": "StegVerse-org",
+        "to": "StegVerse-Labs",
+        "crossing": "INTERLOCK_INTR_INGRESS"
+      },
+      {
+        "from": "StegVerse-Labs",
+        "to": "stegverse-labs.remediation",
+        "crossing": "INTERNAL_ENDPOINT"
+      }
+    ],
+    "steghealer": {
+      "organization": "StegVerse-Labs",
+      "service_id": "stegverse-labs.remediation",
+      "repository": "StegVerse-Labs/StegVerse-Healer",
+      "classifier": "app/manifest_remediation_intake.py::classify_sdk_deny"
+    },
+    "follows_remaining_manifested_path": false,
+    "route_sha256": "0fd58371815991e5a6b2144831c69ff9a58d064c8d6e1688215b4d90d4f20663"
+  }
 }
