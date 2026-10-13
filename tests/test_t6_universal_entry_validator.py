@@ -124,3 +124,68 @@ def test_permissive_schema_missing_output_origin_fails_closed(tmp_path, monkeypa
     output = capsys.readouterr().out
     assert "FAIL_CLOSED: OUTPUT_EVIDENCE_INVALID KeyError" in output
     assert "PASS:" not in output
+
+
+def _envelope_mutations(good):
+    import copy
+
+    def paths(value, prefix=()):
+        yield prefix
+        if isinstance(value, dict):
+            for key in value:
+                yield from paths(value[key], prefix + (key,))
+        elif isinstance(value, list):
+            for index, item in enumerate(value):
+                yield from paths(item, prefix + (index,))
+
+    def replaced(path, new, delete=False):
+        root = copy.deepcopy(good)
+        target = root
+        for key in path[:-1]:
+            target = target[key]
+        if delete:
+            del target[path[-1]]
+        else:
+            target[path[-1]] = new
+        return root
+
+    values = [None, True, 0, 1, 1.5, -1, "", "x" * 600, [], ["x", "x"], {}, {"extra": 1}]
+    cases = [good]
+    for path in list(paths(good))[1:]:
+        cases.append(replaced(path, None, delete=True))
+        cases.extend(replaced(path, value) for value in values)
+    return cases
+
+
+def test_sdk_validator_agrees_with_reference_on_envelope_mutations():
+    # The script no longer needs jsonschema; the reference is only the differential oracle.
+    import hashlib
+    import os
+
+    import pytest
+
+    try:
+        from jsonschema import Draft202012Validator
+    except ImportError:
+        if os.environ.get("STEGVERSE_REQUIRE_REFERENCE_VALIDATOR") == "1":
+            pytest.fail("reference validator required but jsonschema is not installed")
+        pytest.skip("reference validator not installed")
+    from scripts.verify_universal_entry_envelope import DEFAULT_SCHEMA, structural
+
+    schema = json.loads(DEFAULT_SCHEMA.read_text(encoding="utf-8"))
+    digest = hashlib.sha256(structural.canonical_bytes(schema)).hexdigest()
+    reference = Draft202012Validator(schema)
+    good = json.loads(Path("examples/universal_entry/site_chat_good_morning.json").read_text(encoding="utf-8"))
+    disagreements = [case for case in _envelope_mutations(good)
+                     if structural.validate(case, schema, digest)["valid"] != reference.is_valid(case)]
+    assert disagreements == []
+
+
+def test_verifier_imports_only_the_standard_library():
+    import ast
+    import sys
+
+    tree = ast.parse(Path("scripts/verify_universal_entry_envelope.py").read_text(encoding="utf-8"))
+    imported = {alias.name.split(".")[0] for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names}
+    imported |= {node.module.split(".")[0] for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) and node.module}
+    assert imported <= set(sys.stdlib_module_names) | {"__future__"}
