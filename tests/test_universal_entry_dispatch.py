@@ -199,3 +199,16 @@ def test_handler_cannot_invent_allow_or_runtime_observation():
         assert lane["reason"] == "HANDLER_FAILURE:UniversalDispatchError"
         assert lane["authorizing"] is False
         assert lane["execution_authority_granted"] is False
+
+
+def test_handler_receives_isolated_envelope_copy():
+    packet = envelope("Good morning!")
+
+    def handler(received, context):
+        received["request"]["message"] = "changed"
+        context["universal_entry_envelope"]["request"]["message"] = "changed"
+        return {"status": "completed", "output": "done"}
+
+    result = dispatch_universal_entry(packet, REGISTRY, {"conversation": handler})
+    assert packet["request"]["message"] == "Good morning!"
+    assert result["lane_results"][0]["status"] == "completed"
