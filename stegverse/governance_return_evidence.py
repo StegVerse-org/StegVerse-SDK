@@ -33,7 +33,7 @@ ACCEPTANCE_SCHEMA = "stegverse.sdk.governance-return-acceptance/v1"
 FAILURE_CODE = "END_TO_END_REQUIRES_A_VERIFIED_GOVERNANCE_DECISION_RETURN"
 RETRY_ENTRYPOINT = "stegverse/governance_return_evidence.py::verify_governance_decision_return"
 RETURN_ENTRYPOINT = ("StegVerse-org/.github:.github/workflows/organization-governance-return.yml "
-                     "(workflow_dispatch: mesh_root, peer_mesh)")
+                     "(push: .stegverse/governance-return-requests/*.json)")
 CLOSED = "ORGANIZATION_EGRESS_CLOSED"
 DECISIONS = ("ALLOW", "DENY")
 
@@ -64,7 +64,8 @@ def _fail_closed(exc: _Refused) -> dict[str, Any]:
     }
 
 
-_RETURN = "dispatch the return workflow with the deciding organization's published mesh and retain its readback"
+_RETURN = ("commit a governance return request declaring the deciding organization's published mesh "
+           "and retain the run's readback")
 _REFETCH = "fetch the ledger again and rerun organization_ledger_readback.py on a fresh fetch"
 
 
