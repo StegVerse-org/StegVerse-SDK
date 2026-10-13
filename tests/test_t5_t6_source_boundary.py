@@ -38,15 +38,10 @@ def test_t6_universal_entry_schema_requires_reference_validator():
 
 def test_t5_source_identity_matches_recorded_git_blobs():
     record = json.loads((ROOT / "evidence/validator-source-provenance-candidate-2026-10-13.json").read_text())
-    # Only check source artifacts unchanged since the recorded main commit.
-    # The entry verifier and its tests may advance independently.
-    immutable = {
-        "stegverse/structural_validator_candidate.py",
-        "schemas/universal-entry-envelope.schema.v0.1.json",
-    }
+    # Every artifact in the current source-identity candidate must be bound to
+    # its actual Git blob. A changed artifact requires explicit provenance
+    # rebinding; checking only blob string shape is insufficient.
     for artifact in record["artifacts"]:
-        if artifact["path"] not in immutable:
-            continue
         raw = (ROOT / artifact["path"]).read_bytes()
         git_blob = b"blob " + str(len(raw)).encode("ascii") + b"\0" + raw
         assert hashlib.sha1(git_blob).hexdigest() == artifact["git_blob_sha1"]
