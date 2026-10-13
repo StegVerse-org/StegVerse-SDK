@@ -46,3 +46,20 @@ def test_malformed_json_fails_closed(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(malformed)])
     assert main() == 1
     assert "FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID JSONDecodeError" in capsys.readouterr().out
+
+
+def test_missing_schema_fails_closed(tmp_path, monkeypatch, capsys):
+    packet = Path("examples/universal_entry/site_chat_good_morning.json")
+    missing_schema = tmp_path / "absent-schema.json"
+    monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(packet), "--schema", str(missing_schema)])
+    assert main() == 1
+    assert "FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID FileNotFoundError" in capsys.readouterr().out
+
+
+def test_invalid_schema_fails_closed(tmp_path, monkeypatch, capsys):
+    packet = Path("examples/universal_entry/site_chat_good_morning.json")
+    invalid_schema = tmp_path / "invalid-schema.json"
+    invalid_schema.write_text('{"type": "not-a-json-schema-type"}', encoding="utf-8")
+    monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(packet), "--schema", str(invalid_schema)])
+    assert main() == 1
+    assert "FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID SchemaError" in capsys.readouterr().out
