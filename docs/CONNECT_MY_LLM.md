@@ -56,7 +56,9 @@ stegverse-connect-llm \
   --model llama3.2
 ```
 
-The command probes health, readiness, capabilities, and the adapter activation proof. A `CONNECTED` result is returned only when the adapter reports:
+With `--adapter-url`, the declared adapter is the destination and its existence is sufficient: the command records a `CONNECTED` descriptor whether or not the adapter answers right now (`destination_liveness_is_transition_predicate=false`). It still observes health, readiness, capabilities and the activation proof, and reports them as non-gating evidence under `adapter_probe` (`NOT_OBSERVED` when unreachable). An adapter observed returning `authority_attached = true` is refused.
+
+Without `--adapter-url`, local discovery has no declared destination and selects one by what answers, so it returns `CONNECTED` only for an adapter reporting:
 
 ```text
 health.status = OK
