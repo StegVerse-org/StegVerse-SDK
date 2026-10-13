@@ -2,7 +2,7 @@
 
 Goal reference: StegVerse-org/StegVerse-SDK#484, T2.
 Canonical Goal Task ID / COSV: unresolved; reconcile with StegVerse-Labs/.github Registry and existing successor owners before governed runtime migration.
-Status: SOURCE_CANDIDATE / RUNTIME_NOT_OBSERVED / CI_NOT_YET_VALIDATED.
+Status: SOURCE_CI_VALIDATED / RUNTIME_NOT_AUTHENTICALLY_OBSERVED / INTEGRATION_BLOCKED_BY_ANCESTRY_AND_AUTHORITY.
 
 ## Repair
 - Replaces the live GitHub boundary read in `stegverse/manifest_execution.py` with an SDK-installed immutable JSON snapshot.
