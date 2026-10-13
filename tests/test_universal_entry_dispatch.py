@@ -229,3 +229,18 @@ def test_nested_prior_lane_evidence_is_isolated_from_later_handlers():
          "conversation": completed("summary")},
     )
     assert result["lane_results"][0]["evidence"][0]["label"] == "original"
+
+
+def test_handler_owned_evidence_mutation_cannot_change_retained_receipt():
+    evidence = {"label": "original"}
+
+    def handler(_packet, _context):
+        return {"status": "completed", "evidence": evidence}
+
+    result = dispatch_universal_entry(
+        envelope("Good morning!"), REGISTRY, {"conversation": handler}
+    )
+    receipt = result["dispatch_receipt"]["receipt_id"]
+    evidence["label"] = "changed"
+    assert result["lane_results"][0]["evidence"]["label"] == "original"
+    assert result["dispatch_receipt"]["receipt_id"] == receipt
