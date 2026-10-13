@@ -1,0 +1,71 @@
+name: StegVerse Governance Gate
+
+# Reusable workflow any GitHub repository can call (free tier):
+#
+#   jobs:
+#     stegverse-governance:
+#       uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@main
+#
+# It verifies portable governance evidence bundles and classifies JSON Schemas
+# against the SDK structural validator contract. Standard library only: no
+# package installation, no credentials, no repository mutation. The report is
+# evidence only and grants no execution, admissibility, standing or custody.
+
+on:
+  workflow_call:
+    inputs:
+      sdk_ref:
+        description: StegVerse-SDK ref that supplies the gate
+        type: string
+        default: main
+      bundle_glob:
+        description: Glob for portable governance bundles, relative to the caller repository
+        type: string
+        default: .stegverse/governance/**/*.json
+      check_schemas:
+        description: Classify JSON Schema files against the SDK validator contract
+        type: boolean
+        default: true
+    outputs:
+      disposition:
+        description: PASS or FAIL_CLOSED
+        value: ${{ jobs.gate.outputs.disposition }}
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      disposition: ${{ steps.run.outputs.disposition }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: caller
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: StegVerse-org/StegVerse-SDK
+          ref: ${{ inputs.sdk_ref }}
+          path: .stegverse-sdk
+          persist-credentials: false
+          sparse-checkout: stegverse
+      - id: run
+        env:
+          BUNDLE_GLOB: ${{ inputs.bundle_glob }}
+          CHECK_SCHEMAS: ${{ inputs.check_schemas }}
+        run: |
+          set +e
+          flags=(--bundle-glob "$BUNDLE_GLOB" --output stegverse-governance-report.json --summary "$GITHUB_STEP_SUMMARY")
+          if [ "$CHECK_SCHEMAS" != "true" ]; then flags+=(--no-schemas); fi
+          python3 -I .stegverse-sdk/stegverse/governance_gate.py caller "${flags[@]}"
+          status=$?
+          python3 -c 'import json; print("disposition=" + json.load(open("stegverse-governance-report.json"))["disposition"])' >> "$GITHUB_OUTPUT"
+          exit $status
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stegverse-governance-report
+          path: stegverse-governance-report.json
+          if-no-files-found: ignore
