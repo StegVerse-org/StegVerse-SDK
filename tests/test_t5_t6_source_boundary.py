@@ -1,5 +1,6 @@
 """T5/T6 non-authorizing source evidence and schema migration boundary checks."""
 import json
+import hashlib
 from pathlib import Path
 
 from stegverse.structural_validator_candidate import (
@@ -29,3 +30,19 @@ def test_t6_universal_entry_schema_requires_reference_validator():
     assert schema["properties"]["request"]["properties"]["content"] == {}
     assert CONTRACT["authority_effect"] == "NONE"
     assert "$ref" not in CONTRACT["supported_keywords"]
+
+
+def test_t5_source_identity_matches_recorded_git_blobs():
+    record = json.loads((ROOT / "evidence/validator-source-provenance-candidate-2026-10-13.json").read_text())
+    # Only check source artifacts unchanged since the recorded main commit.
+    # The entry verifier and its tests may advance independently.
+    immutable = {
+        "stegverse/structural_validator_candidate.py",
+        "schemas/universal-entry-envelope.schema.v0.1.json",
+    }
+    for artifact in record["artifacts"]:
+        if artifact["path"] not in immutable:
+            continue
+        raw = (ROOT / artifact["path"]).read_bytes()
+        git_blob = b"blob " + str(len(raw)).encode("ascii") + b"\0" + raw
+        assert hashlib.sha1(git_blob).hexdigest() == artifact["git_blob_sha1"]
