@@ -40,10 +40,11 @@ NON_ALLOW = ("DENY", "FAIL_CLOSED")
 
 ROUTE_SCHEMA = "stegverse.remediation-route/v1"
 # StegHealer's one location: the StegVerse-Labs organization, service
-# stegverse-labs.healer, served from StegVerse-Labs/StegVerse-Healer.
+# stegverse-labs.remediation (the address form organization_slug + "." +
+# capability every organization answers at), served by StegVerse-Labs/StegVerse-Healer.
 STEGHEALER = {
     "organization": "StegVerse-Labs",
-    "service_id": "stegverse-labs.healer",
+    "service_id": "stegverse-labs.remediation",
     "repository": "StegVerse-Labs/StegVerse-Healer",
     "classifier": "app/manifest_remediation_intake.py::classify_sdk_deny",
 }

@@ -58,17 +58,17 @@
       },
       {
         "from": "StegVerse-Labs",
-        "to": "stegverse-labs.healer",
+        "to": "stegverse-labs.remediation",
         "crossing": "INTERNAL_ENDPOINT"
       }
     ],
     "steghealer": {
       "organization": "StegVerse-Labs",
-      "service_id": "stegverse-labs.healer",
+      "service_id": "stegverse-labs.remediation",
       "repository": "StegVerse-Labs/StegVerse-Healer",
       "classifier": "app/manifest_remediation_intake.py::classify_sdk_deny"
     },
     "follows_remaining_manifested_path": false,
-    "route_sha256": "8f0a84cea6050a7bba13f8c5f9497c2eace73c1437008e9de3bd4526614305b3"
+    "route_sha256": "0fd58371815991e5a6b2144831c69ff9a58d064c8d6e1688215b4d90d4f20663"
   }
 }
