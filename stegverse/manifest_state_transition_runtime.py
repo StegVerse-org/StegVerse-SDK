@@ -821,27 +821,32 @@ def admit_runtime_result(
     """Validate a result the receiving Interlock runtime has returned.
 
     The receiving runtime owns transport and admission before this is called.
-    A correctable DENY is not a terminal remediation outcome: the established
-    architecture forks its evidence to StegHealer for failure mapping, returns
-    the mapped remediation through the canonical organization .github governance
-    route, then directs the SDK to RESUBMIT or RE_MANIFEST under a fresh governed
-    attempt. The main packet continues independently of that remediation fork.
-    ``organization_boundary`` binds the original destination; neither Healer
-    nor a caller may replace it. This entrypoint does not yet receive an
-    authenticated organization-governed return, so it must not impersonate the
-    fork, mint receipts, or execute an unapproved handoff.
+    Every non-ALLOW carries its remediation fork (NODE_INGRESS_SETTLED_SPECIFICATION
+    §8): the Manifest Builder builds a remediation manifest bound to this exact
+    request and result, and it travels the path it declares, to StegHealer, for a
+    non-authorizing RESUBMIT or RE_MANIFEST classification. The fork rides under
+    ``remediation_fork``; every field of the validated result is returned
+    unchanged, so the original disposition and its lineage stand and the main
+    packet continues independently. The SDK acts on a classification only
+    through ``stegverse.governed_remediation.perform_governed_remediation``,
+    on an authenticated, read-back governance decision. Nothing here retries,
+    classifies, decides or records a receipt. ``organization_boundary`` binds the
+    destination of both lanes; ``governed_remediation`` is accepted for
+    compatibility and grants nothing.
     """
     checked = validate_runtime_result(result, request)
-    if not (checked.get("disposition") == "DENY"
-            and checked.get("evaluation_boundary") == "SDK_MANIFEST_PROFILE"):
+    if checked.get("disposition") not in ("DENY", "FAIL_CLOSED"):
         return checked
-    # INCOMPLETE IMPLEMENTATION, NOT THE INTENDED REMEDIATION LIFECYCLE:
-    # Source DENY must be routed to StegHealer for failure mapping, then back
-    # through canonical .github governance to the SDK for RESUBMIT/RE_MANIFEST.
-    # This entrypoint cannot authenticate that return today. Do not mistake
-    # its temporary fail-closed behavior for a final architectural decision.
-    # Caller-supplied ALLOW strings are not substitutes for governance receipts.
-    return checked
+    from .remediation_fork import build_remediation_fork, fork_refusal
+    try:
+        fork = build_remediation_fork(request, checked, organization_boundary)
+    except ValueError as exc:
+        # The non-ALLOW stands either way; a fork that cannot be built is itself
+        # a six-field refusal, never a silent drop.
+        fork = fork_refusal(str(exc))
+    if fork is None:
+        return checked
+    return {**checked, "remediation_fork": fork}
 
 
 __all__ = [

@@ -58,6 +58,8 @@ COLLAB_INGRESS_ROUTE_IDS = {
     "stegverse.route.va-scoped-chat.v1",
     "stegverse.route.hil-intake.v1",
 }
+#: Published later for the remediation fork of a non-ALLOW (NODE_INGRESS §8; SDK#493).
+REMEDIATION_FORK_ROUTE_IDS = {"stegverse.route.governed-remediation.v1"}
 
 
 def conformance_route():
@@ -192,7 +194,8 @@ class OrganizationRoleConformanceRouteTests(unittest.TestCase):
     # (e) compatibility guard
     def test_every_pre_existing_route_resolves_unchanged(self):
         self.assertEqual(
-            set(PRE_EXISTING_ROUTE_HASHES) | {ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID} | COLLAB_INGRESS_ROUTE_IDS,
+            set(PRE_EXISTING_ROUTE_HASHES) | {ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID} | COLLAB_INGRESS_ROUTE_IDS
+            | REMEDIATION_FORK_ROUTE_IDS,
             set(PUBLISHED_ROUTES),
         )
         before = {route_id: PUBLISHED_ROUTES[route_id] for route_id in PRE_EXISTING_ROUTE_HASHES}

@@ -234,7 +234,9 @@ class ReturnLegTest(unittest.TestCase):
                        side_effect=AssertionError("unauthorized repair invoked")):
             out = admit_runtime_result({}, request, denial,
                                        governed_remediation=_governed_re_manifest(request, denial, {}))
-        self.assertEqual(out, denial)
+        # The DENY stands field for field; the remediation fork rides beside it.
+        self.assertEqual({k: v for k, v in out.items() if k != "remediation_fork"}, denial)
+        self.assertIn("remediation_fork", out)
 
     def test_unchanged_request_retains_exact_deny(self):
         from stegverse.manifest_state_transition_runtime import admit_runtime_result
@@ -242,7 +244,9 @@ class ReturnLegTest(unittest.TestCase):
         denial = {"disposition": "DENY", "evaluation_boundary": "SDK_MANIFEST_PROFILE"}
         with patch("stegverse.manifest_state_transition_runtime.validate_runtime_result",
                    return_value=denial):
-            self.assertEqual(admit_runtime_result({}, request, denial), denial)
+            out = admit_runtime_result({}, request, denial)
+        self.assertEqual({k: v for k, v in out.items() if k != "remediation_fork"}, denial)
+        self.assertTrue(out["remediation_fork"]["original_disposition_unchanged"])
 
     def test_a_non_deny_result_passes_through_validation_unchanged(self):
         from stegverse.manifest_state_transition_runtime import admit_runtime_result

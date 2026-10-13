@@ -107,6 +107,10 @@ EVALUATOR_EXAMPLES: dict[str, dict[str, str]] = {
         "source": SHARED_SOURCE,
         "processor_request": "sdk-hil-intake.processor-request.json",
     },
+    "remediation": {
+        "source": SHARED_SOURCE,
+        "processor_request": "sdk-remediation-fork.processor-request.json",
+    },
 }
 
 #: Published routes the Manifest Builder cannot select even though their

@@ -10,6 +10,11 @@ from stegverse.manifest_builder import correct_manifest_binding_deny
 from stegverse.route_resolution import canonical_sha256
 from stegverse.ecosystem_diagnostic_runtime import execute_manifest as execute_local_diagnostic
 
+def _original(admitted):
+    """The admitted non-ALLOW without the remediation fork it carries: unchanged, field for field."""
+    return {k: v for k, v in admitted.items() if k != "remediation_fork"}
+
+
 class MIRSVExp3ManifestTests(unittest.TestCase):
     def setUp(self):
         self.m=build_exp3_manifest()
@@ -242,10 +247,10 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         boundary = json.loads((Path(__file__).parent / "fixtures" /
             "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
         original, denial = self._boundary_resolved_hash_deny(deepcopy(self.m), boundary)
-        self.assertEqual(admit_runtime_result(self.m, original, denial, boundary), denial)
+        self.assertEqual(_original(admit_runtime_result(self.m, original, denial, boundary)), denial)
         wrong = self._governed_remediation(original, denial)
         wrong["original_request_sha256"] = "wrong-request"
-        self.assertEqual(admit_runtime_result(self.m, original, denial, boundary, wrong), denial)
+        self.assertEqual(_original(admit_runtime_result(self.m, original, denial, boundary, wrong)), denial)
 
     def test_matching_caller_return_cannot_authorize_repair(self):
         boundary = json.loads((Path(__file__).parent / "fixtures" /
@@ -253,7 +258,7 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
         frozen = deepcopy(self.m)
         historical, denial = self._boundary_resolved_hash_deny(frozen, boundary)
         claimed = self._governed_remediation(historical, denial)
-        self.assertEqual(admit_runtime_result(frozen, historical, denial, boundary, claimed), denial)
+        self.assertEqual(_original(admit_runtime_result(frozen, historical, denial, boundary, claimed)), denial)
         self.assertEqual(frozen, self.m)
 
     def test_destination_substitution_does_not_unlock_repair(self):
@@ -264,8 +269,8 @@ class MIRSVExp3ManifestTests(unittest.TestCase):
             frozen, boundary, destination={"endpoint": "elsewhere"})
         with self.assertRaisesRegex(ValueError, "manifest_binding_repair_changed_destination"):
             correct_manifest_binding_deny(frozen, historical, denial, boundary)
-        self.assertEqual(admit_runtime_result(
-            frozen, historical, denial, boundary, self._governed_remediation(historical, denial)), denial)
+        self.assertEqual(_original(admit_runtime_result(
+            frozen, historical, denial, boundary, self._governed_remediation(historical, denial))), denial)
 
 
 if __name__=="__main__": unittest.main()
