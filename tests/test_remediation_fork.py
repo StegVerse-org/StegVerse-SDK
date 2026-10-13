@@ -14,8 +14,8 @@ import unittest
 from scripts.build_mir_sv_exp3_manifest import build_exp3_manifest
 from stegverse.manifest_state_transition_runtime import admit_runtime_result, derive_execution_request
 from stegverse.remediation_fork import (
-    REMEDIATION_CAPABILITY, REQUEST_EXTENSION, build_remediation_fork, fork_request,
-    validate_remediation_fork_request,
+    REMEDIATION_CAPABILITY, REQUEST_EXTENSION, STEGHEALER, build_remediation_fork, fork_request,
+    remediation_route, validate_remediation_fork_request,
 )
 from stegverse.route_resolution import GOVERNED_REMEDIATION_ROUTE_ID, canonical_sha256
 from tests.test_governed_remediation import BOUNDARY, _source_profile_deny
@@ -124,6 +124,75 @@ class RemediationForkTests(unittest.TestCase):
         for field in SIX_FIELDS:
             self.assertTrue(refusal[field], field)
         self.assertIsNone(refusal["handoff"])
+
+class RemediationRouteTests(unittest.TestCase):
+    """The route: where remediation was recognized, the manifested path, the direct leg to StegHealer."""
+
+    def setUp(self):
+        self.manifest = build_exp3_manifest()
+        self.request = derive_execution_request(self.manifest, BOUNDARY)
+        self.deny = _source_profile_deny(self.request)
+        self.destination = self.request["manifest_declared_destination"]
+
+    def _route(self, non_allow, destination=None):
+        return remediation_route(non_allow, original_route_id=self.request["route_id"],
+                                 original_processing_capability=self.request["processing_capability"],
+                                 original_destination=destination or self.destination)
+
+    def test_recognized_in_the_sdk_enters_at_the_manifested_destination_then_goes_direct(self):
+        route = self._route(self.deny)
+        self.assertEqual(route["recognized_at"]["node"], "SDK")
+        self.assertEqual(route["manifested_path"]["route_id"], self.request["route_id"])
+        self.assertEqual(route["entry_organization"], self.destination["organization"])
+        self.assertEqual(route["direct_route_to_steghealer"][-1]["to"], STEGHEALER["service_id"])
+        self.assertEqual(route["direct_route_to_steghealer"][0],
+                         {"from": "SDK", "to": self.destination["organization"], "crossing": "INTERLOCK_INTR_INGRESS"})
+        self.assertFalse(route["follows_remaining_manifested_path"])
+
+    def test_recognized_by_an_organization_enters_there(self):
+        other = dict(self.deny, evaluation_boundary="ORGANIZATION_INGRESS", organization="StegVerse-org")
+        route = self._route(other)
+        self.assertEqual(route["recognized_at"], {"node": "ORGANIZATION", "organization": "StegVerse-org",
+                                                  "evaluation_boundary": "ORGANIZATION_INGRESS"})
+        self.assertEqual(route["entry_organization"], "StegVerse-org")
+        self.assertEqual([h["crossing"] for h in route["direct_route_to_steghealer"]],
+                         ["INTERLOCK_INTR_EGRESS", "INTERLOCK_INTR_INGRESS", "INTERNAL_ENDPOINT"])
+
+    def test_recognized_inside_steghealers_organization_is_one_internal_leg(self):
+        labs = dict(self.deny, evaluation_boundary="ORGANIZATION_INGRESS", organization=STEGHEALER["organization"])
+        route = self._route(labs)
+        self.assertEqual(route["direct_route_to_steghealer"],
+                         [{"from": STEGHEALER["organization"], "to": STEGHEALER["service_id"],
+                           "crossing": "INTERNAL_ENDPOINT"}])
+
+    def test_no_organization_crossing_bypasses_intr(self):
+        from stegverse.remediation_fork import _assert_intr_on_every_crossing
+        crossings = [h["crossing"] for h in self._route(self.deny)["direct_route_to_steghealer"]]
+        if self.destination["organization"] != STEGHEALER["organization"]:
+            self.assertIn("INTERLOCK_INTR_EGRESS", crossings)
+        for bad in ([{"from": "A", "to": "B", "crossing": "DIRECT"}],
+                    [{"from": "A", "to": "B", "crossing": "INTERLOCK_INTR_EGRESS"}],
+                    [{"from": "A", "to": "B", "crossing": "INTERLOCK_INTR_INGRESS"}]):
+            with self.assertRaisesRegex(ValueError, "REMEDIATION_ROUTE_"):
+                _assert_intr_on_every_crossing(bad)
+
+    def test_a_redirected_route_is_refused(self):
+        request = fork_request(self.request, self.deny)
+        redirected = copy.deepcopy(request)
+        redirected["remediation_route"]["direct_route_to_steghealer"][-1]["to"] = "somewhere-else"
+        with self.assertRaisesRegex(ValueError, "REMEDIATION_ROUTE_IS_NOT_THE_CALCULATED_ROUTE"):
+            validate_remediation_fork_request(redirected)
+        missing = {k: v for k, v in request.items() if k != "remediation_route"}
+        with self.assertRaisesRegex(ValueError, "REMEDIATION_ROUTE_IS_NOT_THE_CALCULATED_ROUTE"):
+            validate_remediation_fork_request(missing)
+
+    def test_the_handoff_is_at_the_calculated_entry_or_not_at_all(self):
+        elsewhere = dict(self.deny, evaluation_boundary="ORGANIZATION_INGRESS", organization="SomeOtherOrg")
+        with self.assertRaisesRegex(ValueError, "REMEDIATION_HANDOFF_IS_NOT_AT_THE_CALCULATED_ENTRY"):
+            build_remediation_fork(self.request, elsewhere, BOUNDARY)
+        fork = build_remediation_fork(self.request, self.deny, BOUNDARY)
+        self.assertEqual(fork["remediation_route"]["entry_organization"], self.destination["organization"])
+
 
 if __name__ == "__main__":
     unittest.main()

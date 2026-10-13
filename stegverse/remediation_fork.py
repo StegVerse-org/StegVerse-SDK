@@ -2,10 +2,13 @@
 
 Remediation is a manifest carried on the packet. When a result is not ALLOW,
 the Manifest Builder builds a remediation manifest bound to that exact
-non-ALLOW, and it travels its own path: the route and processing capability
-it declares (``stegverse.route.governed-remediation.v1`` / ``remediation``),
-resolved like every other capability by the receiving organization's
-capability bindings, to StegHealer. The original packet keeps its
+non-ALLOW (lane ``stegverse.route.governed-remediation.v1`` / ``remediation``),
+and it carries its own route, calculated from three things only: where the
+need for remediation was recognized, the packet's current manifested path, and
+the direct route from that point to StegHealer (``remediation_route``). The
+lane enters at the nearest governed boundary on the manifested path and goes
+directly to StegHealer from there; it never follows the rest of the original
+path. The route is re-derived on every validation, so no caller can redirect it. The original packet keeps its
 disposition and lineage unchanged and continues independently. Two lanes,
 one fork, each with its own receipts.
 
@@ -35,11 +38,89 @@ REQUEST_SCHEMA = "stegverse.remediation-fork-request/v1"
 FORK_SCHEMA = "stegverse.sdk.remediation-fork/v1"
 NON_ALLOW = ("DENY", "FAIL_CLOSED")
 
+ROUTE_SCHEMA = "stegverse.remediation-route/v1"
+# StegHealer's one location: the StegVerse-Labs organization, service
+# stegverse-labs.healer, served from StegVerse-Labs/StegVerse-Healer.
+STEGHEALER = {
+    "organization": "StegVerse-Labs",
+    "service_id": "stegverse-labs.healer",
+    "repository": "StegVerse-Labs/StegVerse-Healer",
+    "classifier": "app/manifest_remediation_intake.py::classify_sdk_deny",
+}
+
 _DIGESTS = ("original_request_sha256", "original_wire_manifest_sha256", "original_canonical_manifest_sha256")
 _FIELDS = frozenset({
     "schema", *_DIGESTS, "original_processing_capability", "original_route_id",
-    "original_destination", "non_allow", "non_allow_sha256",
+    "original_destination", "non_allow", "non_allow_sha256", "remediation_route",
 })
+
+
+def recognition_location(non_allow: Mapping[str, Any], original_destination: Mapping[str, Any]) -> dict[str, Any]:
+    """Where the need for remediation was recognized: the SDK, or the organization that returned the result."""
+    boundary = non_allow.get("evaluation_boundary")
+    if isinstance(boundary, str) and boundary.startswith("SDK_"):
+        return {"node": "SDK", "organization": None, "evaluation_boundary": boundary}
+    organization = non_allow.get("organization") or original_destination.get("organization")
+    if not isinstance(organization, str) or not organization:
+        raise ValueError("REMEDIATION_RECOGNITION_LOCATION_NOT_DETERMINABLE")
+    return {"node": "ORGANIZATION", "organization": organization,
+            "evaluation_boundary": boundary if isinstance(boundary, str) else None}
+
+
+def _assert_intr_on_every_crossing(hops: list[Mapping[str, Any]]) -> None:
+    """No hop crosses an organization boundary without InTr egress and ingress."""
+    egress = {(h["from"], h["to"]) for h in hops if h["crossing"] == "INTERLOCK_INTR_EGRESS"}
+    ingress = {(h["from"], h["to"]) for h in hops if h["crossing"] == "INTERLOCK_INTR_INGRESS"}
+    for hop in hops:
+        if hop["crossing"] not in ("INTERLOCK_INTR_EGRESS", "INTERLOCK_INTR_INGRESS", "INTERNAL_ENDPOINT"):
+            raise ValueError("REMEDIATION_ROUTE_CROSSING_IS_NOT_INTERLOCK_INTR")
+        if hop["crossing"] == "INTERLOCK_INTR_EGRESS" and (hop["from"], hop["to"]) not in ingress:
+            raise ValueError("REMEDIATION_ROUTE_EGRESS_WITHOUT_INTR_INGRESS")
+        if (hop["crossing"] == "INTERLOCK_INTR_INGRESS" and hop["from"] != "SDK"
+                and (hop["from"], hop["to"]) not in egress):
+            raise ValueError("REMEDIATION_ROUTE_INGRESS_WITHOUT_INTR_EGRESS")
+
+
+def remediation_route(non_allow: Mapping[str, Any], *, original_route_id: str,
+                      original_processing_capability: str, original_destination: Mapping[str, Any]) -> dict[str, Any]:
+    """The remediation lane's route: recognition point, current manifested path, direct leg to StegHealer.
+
+    The SDK transports nothing, so a need recognized in the SDK enters at the first
+    governed boundary of the manifested path (its declared destination organization);
+    a need recognized by an organization enters at that organization. From there the
+    lane goes directly to StegHealer.
+    """
+    recognized = recognition_location(non_allow, original_destination)
+    destination_organization = original_destination.get("organization")
+    if not isinstance(destination_organization, str) or not destination_organization:
+        raise ValueError("REMEDIATION_MANIFESTED_PATH_HAS_NO_DESTINATION_ORGANIZATION")
+    entry = destination_organization if recognized["node"] == "SDK" else recognized["organization"]
+    # Direct is the shortest path, never a bypass: every organization boundary on
+    # it is crossed by InTr, egress at the sender and ingress at the receiver.
+    hops = []
+    if recognized["node"] == "SDK":
+        hops.append({"from": "SDK", "to": entry, "crossing": "INTERLOCK_INTR_INGRESS"})
+    if entry != STEGHEALER["organization"]:
+        hops.append({"from": entry, "to": STEGHEALER["organization"], "crossing": "INTERLOCK_INTR_EGRESS"})
+        hops.append({"from": entry, "to": STEGHEALER["organization"], "crossing": "INTERLOCK_INTR_INGRESS"})
+    hops.append({"from": STEGHEALER["organization"], "to": STEGHEALER["service_id"], "crossing": "INTERNAL_ENDPOINT"})
+    _assert_intr_on_every_crossing(hops)
+    route = {
+        "schema": ROUTE_SCHEMA,
+        "recognized_at": recognized,
+        "manifested_path": {
+            "route_id": original_route_id,
+            "processing_capability": original_processing_capability,
+            "destination_organization": destination_organization,
+            "destination_service": (original_destination.get("receiving_operation") or {}).get("addressed_service"),
+        },
+        "entry_organization": entry,
+        "direct_route_to_steghealer": hops,
+        "steghealer": dict(STEGHEALER),
+        "follows_remaining_manifested_path": False,
+    }
+    route["route_sha256"] = canonical_sha256(route)
+    return route
 
 
 def _text(value: Any, field: str) -> str:
@@ -70,6 +151,11 @@ def validate_remediation_fork_request(value: Any) -> dict[str, Any]:
         raise ValueError("REMEDIATION_FORK_NON_ALLOW_IS_FOR_ANOTHER_REQUEST")
     if not isinstance(value.get("original_destination"), Mapping):
         raise ValueError("original_destination is required")
+    expected = remediation_route(non_allow, original_route_id=value["original_route_id"],
+                                 original_processing_capability=value["original_processing_capability"],
+                                 original_destination=value["original_destination"])
+    if value.get("remediation_route") != expected:
+        raise ValueError("REMEDIATION_ROUTE_IS_NOT_THE_CALCULATED_ROUTE")
     return deepcopy(dict(value))
 
 
@@ -92,7 +178,8 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "request": request,
         "ordered_transitions": [],
         "ordered_transitions_source": "RECEIVING_ORGANIZATION_MANIFEST_INGRESS",
-        "classification_authority": "StegVerse-Labs/StegVerse-Healer",
+        "remediation_route": request["remediation_route"],
+        "classification_authority": STEGHEALER["repository"],
         "classification_receipt_class": "REMEDIATION_CLASSIFIED",
         "classification_grants_authority": False,
         "requires_workercoordinator_claim_fence": False,
@@ -104,7 +191,14 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
 
 def fork_request(original_request: Mapping[str, Any], non_allow: Mapping[str, Any]) -> dict[str, Any]:
     """The remediation request bound to one original request and one of its non-ALLOW results."""
+    destination = original_request.get("manifest_declared_destination")
+    if not isinstance(destination, Mapping):
+        raise ValueError("original_destination is required")
     return validate_remediation_fork_request({
+        "remediation_route": remediation_route(
+            non_allow, original_route_id=str(original_request.get("route_id") or ""),
+            original_processing_capability=str(original_request.get("processing_capability") or ""),
+            original_destination=destination),
         "schema": REQUEST_SCHEMA,
         "original_request_sha256": original_request.get("request_sha256"),
         "original_wire_manifest_sha256": original_request.get("wire_manifest_sha256"),
@@ -142,7 +236,7 @@ def build_remediation_fork(
 ) -> dict[str, Any] | None:
     """Build the remediation manifest a non-ALLOW carries, and its hand-off; None when no fork applies.
 
-    The Manifest Builder builds it; its route is the one it declares. The hand-off
+    The Manifest Builder builds it; its route is calculated (``remediation_route``). The hand-off
     is a hand-off only: the receiving runtime transports it, and nothing here
     contacts a receiver or records a receipt.
     """
@@ -171,6 +265,10 @@ def build_remediation_fork(
         publisher_required=False,
     )
     remediation_request = derive_execution_request(manifest, organization_boundary)
+    entry = request["remediation_route"]["entry_organization"]
+    if (remediation_request.get("manifest_declared_destination") or {}).get("organization") != entry:
+        # The lane is handed to the boundary its calculated route enters at, or not at all.
+        raise ValueError("REMEDIATION_HANDOFF_IS_NOT_AT_THE_CALCULATED_ENTRY:" + str(entry))
     return {
         "schema": FORK_SCHEMA,
         "original_request_sha256": request["original_request_sha256"],
@@ -178,6 +276,7 @@ def build_remediation_fork(
         "remediation_manifest": manifest,
         "remediation_request_sha256": remediation_request["request_sha256"],
         "route_id": remediation_request["route_id"],
+        "remediation_route": request["remediation_route"],
         "handoff": build_intr_handoff(remediation_request),
         "original_disposition_unchanged": True,
         "authority_effect": "NONE_MANIFEST_HANDOFF_ONLY",
@@ -185,7 +284,7 @@ def build_remediation_fork(
 
 
 __all__ = [
-    "FORK_SCHEMA", "OWNER_TASK_ID", "REMEDIATION_CAPABILITY", "REQUEST_EXTENSION", "REQUEST_SCHEMA",
+    "FORK_SCHEMA", "OWNER_TASK_ID", "ROUTE_SCHEMA", "STEGHEALER", "recognition_location", "remediation_route", "REMEDIATION_CAPABILITY", "REQUEST_EXTENSION", "REQUEST_SCHEMA",
     "build_remediation_fork", "derive_state_graph", "fork_refusal", "fork_request",
     "validate_remediation_fork_request",
 ]
