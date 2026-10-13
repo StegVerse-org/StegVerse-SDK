@@ -65,12 +65,18 @@ def main() -> int:
     schema = load_json(args.schema)
     packet = load_json(args.packet)
     jsonschema.Draft202012Validator.check_schema(schema)
-    jsonschema.validate(packet, schema)
+    validator = jsonschema.Draft202012Validator(schema)
+    schema_errors = sorted(validator.iter_errors(packet), key=lambda err: (list(map(str, err.absolute_path)), err.message))
+    if schema_errors:
+        for error in schema_errors:
+            location = "/".join(map(str, error.absolute_path)) or "$"
+            print(f"FAIL_CLOSED: SCHEMA_INVALID {location}: {error.message}")
+        return 1
 
     errors = validate_invariants(packet)
     if errors:
         for error in errors:
-            print(f"FAIL: {error}")
+            print(f"FAIL_CLOSED: INVARIANT_INVALID {error}")
         return 1
 
     print(f"PASS: {args.packet}")
