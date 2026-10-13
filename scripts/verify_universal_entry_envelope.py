@@ -77,7 +77,11 @@ def main() -> int:
             print(f"FAIL_CLOSED: SCHEMA_INVALID {location}: {error.message}")
         return 1
 
-    errors = validate_invariants(packet)
+    try:
+        errors = validate_invariants(packet)
+    except (KeyError, TypeError, ValueError, RecursionError) as exc:
+        print(f"FAIL_CLOSED: INVARIANT_INPUT_INVALID {type(exc).__name__}")
+        return 1
     if errors:
         for error in errors:
             print(f"FAIL_CLOSED: INVARIANT_INVALID {error}")
