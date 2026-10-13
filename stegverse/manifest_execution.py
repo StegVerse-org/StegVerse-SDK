@@ -10,8 +10,7 @@ from typing import Any, Mapping
 
 from .manifest_contract import validate_ingress_manifest
 from .route_resolution import route_from_manifest
-from .repository_source_reader import AllowlistedRepositorySourceReader, RepositorySourceReaderError
-from .github_repository_fetcher import GitHubRepositoryFetcher, GitHubRepositoryFetcherError
+from importlib import resources
 
 
 _GOVERNED_WORKER_ROUTING_SURFACE = "STEGAGENTS_GOVERNED_RUNTIME"
@@ -117,32 +116,21 @@ def _require_nonterminal_local_semantic_boundary(route: Mapping[str, Any], bindi
 
 
 def _canonical_organization_boundary(*, fetcher=None) -> dict[str, Any]:
-    """Read the canonical organization boundary through the existing read-only source seam."""
-    reader = AllowlistedRepositorySourceReader.from_bindings(
-        [{
-            "source_id": _CANONICAL_ORGANIZATION_BOUNDARY_SOURCE_ID,
-            "repository": _CANONICAL_ORGANIZATION_BOUNDARY_REPOSITORY,
-            "path": _CANONICAL_ORGANIZATION_BOUNDARY_PATH,
-            "ref": _CANONICAL_ORGANIZATION_BOUNDARY_REF,
-        }],
-        fetcher=fetcher or GitHubRepositoryFetcher(),
-    )
-    # The SDK fixes source identity; callers cannot supply repository/path/ref or endpoint.
-    from .canonical_source_collector import CanonicalSourceSpec
-    spec = CanonicalSourceSpec.from_mapping({
-        "source_id": _CANONICAL_ORGANIZATION_BOUNDARY_SOURCE_ID,
-        "repository": _CANONICAL_ORGANIZATION_BOUNDARY_REPOSITORY,
-        "path": _CANONICAL_ORGANIZATION_BOUNDARY_PATH,
-        "record_type": "ORGANIZATION_INTERLOCK_INTR_BOUNDARY",
-        "title": "StegVerse-Labs organization Interlock/InTr boundary",
-        "observed_at": "2026-10-07T19:24:08Z",
-        "canonical": True,
-        "authoritative": True,
-    })
-    retrieved = reader(spec)
+    """Load the immutable SDK-installed organization boundary without network access.
+
+    The legacy fetcher argument is retained for call compatibility, but cannot
+    override the pinned source or introduce runtime network dependence.
+    """
     try:
-        boundary = json.loads(str(retrieved["text"]))
-    except (KeyError, json.JSONDecodeError) as exc:
+        raw = resources.files("stegverse").joinpath("pinned_sources", "interlock-intr.json").read_bytes()
+    except (OSError, FileNotFoundError) as exc:
+        raise ValueError("CANONICAL_ORGANIZATION_BOUNDARY_INSTALLED_SOURCE_REQUIRED") from exc
+    git_blob = b"blob " + str(len(raw)).encode("ascii") + b"\\0" + raw
+    if hashlib.sha1(git_blob).hexdigest() != "a1f61d82a38a817a1dd2749505d8802dd09a22f8":
+        raise ValueError("CANONICAL_ORGANIZATION_BOUNDARY_PIN_MISMATCH")
+    try:
+        boundary = json.loads(raw)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError("CANONICAL_ORGANIZATION_BOUNDARY_JSON_REQUIRED") from exc
     if not isinstance(boundary, Mapping):
         raise ValueError("CANONICAL_ORGANIZATION_BOUNDARY_OBJECT_REQUIRED")
@@ -167,7 +155,7 @@ def execute_manifest(manifest: Mapping[str, Any], *, canonical_source_fetcher=No
     if binding == "stegverse.manifest_state_transition_runtime.execute_manifest":
         try:
             boundary = _canonical_organization_boundary(fetcher=canonical_source_fetcher)
-        except (GitHubRepositoryFetcherError, RepositorySourceReaderError, OSError) as exc:
+        except (ValueError, OSError) as exc:
             # No boundary means no resolvable organization ingress endpoint. The
             # runtime turns that into its FAIL_CLOSED destination disposition;
             # nothing is substituted and no receiver is consulted.
