@@ -654,13 +654,14 @@ class NoEnvironmentCredentialTests(_GateCase):
         self._assert_unused(environ, outputs)
 
     def test_boundary_read_without_fixture_reads_no_environment_credential(self):
-        # The pinned boundary read at dispatch is the one network-capable step;
-        # with network denied it must fail closed without consulting a token.
+        # The installed pinned boundary is resolved offline, without a token
+        # or network call; network denial must not prevent manifest handoff.
         manifest = build_route_manifest(GOVERNED_ROUTES[0])
         with _decoy_environ() as environ, _NetworkDenied().active():
             result = manifest_execution.execute_manifest(manifest)
-        self.assertEqual(result["disposition"], "FAIL_CLOSED")
-        self.assertEqual(result["failure_code"], "CANONICAL_ORGANIZATION_INGRESS_ENDPOINT_NOT_RESOLVED")
+        self.assertEqual(result["disposition"], "ALLOW")
+        self.assertFalse(result["receiver_contacted"])
+        self.assertFalse(result["organization_receipt_observed"])
         self._assert_unused(environ, [result])
 
 
