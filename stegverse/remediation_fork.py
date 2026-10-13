@@ -52,7 +52,7 @@ STEGHEALER = {
 _DIGESTS = ("original_request_sha256", "original_wire_manifest_sha256", "original_canonical_manifest_sha256")
 _FIELDS = frozenset({
     "schema", *_DIGESTS, "original_processing_capability", "original_route_id",
-    "original_destination", "non_allow", "non_allow_sha256", "remediation_route",
+    "original_destination", "non_allow", "non_allow_sha256", "remediation_route", "original_request",
 })
 
 
@@ -152,6 +152,19 @@ def validate_remediation_fork_request(value: Any) -> dict[str, Any]:
         raise ValueError("REMEDIATION_FORK_NON_ALLOW_IS_FOR_ANOTHER_REQUEST")
     if not isinstance(value.get("original_destination"), Mapping):
         raise ValueError("original_destination is required")
+    # StegHealer binds the whole original request document, not only its digests,
+    # so the lane carries it; every identity it repeats must be the bound one.
+    original = value.get("original_request")
+    if not isinstance(original, Mapping):
+        raise ValueError("original_request is required")
+    for field, key in (("original_request_sha256", "request_sha256"),
+                       ("original_wire_manifest_sha256", "wire_manifest_sha256"),
+                       ("original_canonical_manifest_sha256", "canonical_manifest_sha256"),
+                       ("original_processing_capability", "processing_capability"),
+                       ("original_route_id", "route_id"),
+                       ("original_destination", "manifest_declared_destination")):
+        if original.get(key) != value[field]:
+            raise ValueError("REMEDIATION_FORK_ORIGINAL_REQUEST_MISMATCH:" + key)
     expected = remediation_route(non_allow, original_route_id=value["original_route_id"],
                                  original_processing_capability=value["original_processing_capability"],
                                  original_destination=value["original_destination"])
@@ -209,6 +222,7 @@ def fork_request(original_request: Mapping[str, Any], non_allow: Mapping[str, An
         "original_destination": original_request.get("manifest_declared_destination"),
         "non_allow": dict(non_allow),
         "non_allow_sha256": canonical_sha256(dict(non_allow)),
+        "original_request": dict(original_request),
     })
 
 
