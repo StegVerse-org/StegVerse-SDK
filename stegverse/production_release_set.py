@@ -51,6 +51,12 @@ COMPONENTS_V2 = (
 COMPONENTS_BY_SCHEMA = {SCHEMA_V1: COMPONENTS_V1, SCHEMA_V2: COMPONENTS_V2}
 COMPONENTS = COMPONENTS_V2
 
+# Public index names for a component whose source distribution name is taken
+# on PyPI. StegCore builds as ``stegcore`` from source but is published as
+# ``stegverse-stegcore`` (StegCore docs/STEGVERSE_STEGCORE_PYPI_DISTRIBUTION.md).
+# The role table keeps the source name, so recorded sets still verify.
+PUBLIC_DISTRIBUTION_ALIASES = {"stegcore": ("stegverse-stegcore",)}
+
 
 def _canonical_hash(value: Any) -> str:
     body = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
@@ -85,9 +91,16 @@ def _installed_component(spec: dict[str, str]) -> dict[str, Any]:
         "release_index_url": f"https://github.com/{repo}/releases",
         "authority_effect": "NONE",
     }
-    try:
-        dist = metadata.distribution(name)
-    except metadata.PackageNotFoundError:
+    dist = None
+    for candidate in (name, *PUBLIC_DISTRIBUTION_ALIASES.get(name, ())):
+        try:
+            dist = metadata.distribution(candidate)
+        except metadata.PackageNotFoundError:
+            continue
+        if candidate != name:
+            row["installed_distribution"] = candidate
+        break
+    if dist is None:
         row.update({
             "installed": False,
             "version": None,
