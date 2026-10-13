@@ -28,6 +28,14 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         self.assertEqual(actual["authority_effect"], "NONE")
         return actual
 
+    def test_unique_items_arbitrary_precision_integers(self):
+        # JSON integers have arbitrary precision; no float conversion or overflow.
+        huge = 10 ** 400
+        self.check_case([huge, huge + 1], {"type": "array", "uniqueItems": True}, True)
+        result = self.check_case([huge, huge], {"type": "array", "uniqueItems": True}, False)
+        self.assertIn("UNIQUE_ITEMS", [error["code"] for error in result["errors"]])
+        self.check_case([1, 1.0], {"type": "array", "uniqueItems": True}, False)
+
     def test_corpus(self):
         cases = [
             ({"a": "ok"}, {"type": "object", "required": ["a"], "properties": {"a": {"type": "string"}}}, True),

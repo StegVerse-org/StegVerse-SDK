@@ -81,8 +81,11 @@ def _equality_key(value):
     """Hashable key under JSON equality (1 == 1.0, True != 1); instance depth is already bounded."""
     if isinstance(value, bool):
         return ("bool", value)
-    if type(value) in (int, float):
-        return ("num", int(value) if float(value).is_integer() else value)
+    if type(value) is int:
+        # Converting an arbitrary-precision JSON integer to float can overflow.
+        return ("num", value)
+    if type(value) is float:
+        return ("num", int(value) if value.is_integer() else value)
     if isinstance(value, list):
         return ("arr", tuple(_equality_key(v) for v in value))
     if isinstance(value, dict):
