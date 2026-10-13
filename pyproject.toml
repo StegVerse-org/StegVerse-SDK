@@ -71,3 +71,4 @@ include = ["stegverse*"]
 
 [tool.setuptools.package-data]
 "stegverse.demo_data" = ["*.json"]
+"stegverse" = ["pinned_sources/*.json"]
