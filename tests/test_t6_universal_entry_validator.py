@@ -63,3 +63,20 @@ def test_invalid_schema_fails_closed(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(packet), "--schema", str(invalid_schema)])
     assert main() == 1
     assert "FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID SchemaError" in capsys.readouterr().out
+
+
+def test_non_object_packet_fails_closed(tmp_path, monkeypatch, capsys):
+    candidate = tmp_path / "array-packet.json"
+    candidate.write_text("[]", encoding="utf-8")
+    monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(candidate)])
+    assert main() == 1
+    assert "FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID ValueError" in capsys.readouterr().out
+
+
+def test_non_object_schema_fails_closed(tmp_path, monkeypatch, capsys):
+    packet = Path("examples/universal_entry/site_chat_good_morning.json")
+    schema = tmp_path / "array-schema.json"
+    schema.write_text("[]", encoding="utf-8")
+    monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(packet), "--schema", str(schema)])
+    assert main() == 1
+    assert "FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID ValueError" in capsys.readouterr().out
