@@ -15,3 +15,8 @@ Status: SOURCE_CANDIDATE / RUNTIME_NOT_OBSERVED / CI_NOT_YET_VALIDATED.
 
 ## Validation and disposition
 Run the exact-head SDK tests including `tests/test_pinned_organization_boundary.py`, manifest-state-transition integration and existing fetcher-fixture tests; repair failures on this same branch before merge. Check installed wheel/sdist contents. Do not claim CI or runtime validation until actually observed. Organization-ledger runtime reality and non-gating Master Records remain distinct.
+
+## Exact-head validation progress
+- Head `66bdc2028d14d9e83c17553ee60e0cded4bec644`: 29 of 30 GitHub Actions workflows succeeded; test-suite ratchet was still running when observed.
+- Manifest Builder Source Validation now succeeds after correcting the obsolete injected-source-failure expectation.
+- No merge authorized until the ratchet completes and all required checks are green; source checks do not establish authentic runtime/Organization ledger receipts.
