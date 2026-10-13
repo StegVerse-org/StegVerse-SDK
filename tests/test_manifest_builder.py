@@ -113,6 +113,41 @@ class ManifestBuilderTests(unittest.TestCase):
         self.assertEqual(manifest["hashes"]["candidate_sha256"], canonical_sha256(request["candidate"]))
         validate_ingress_manifest(manifest)
 
+    def test_governance_disposition_inputs_never_mutate_packet_or_route(self):
+        """Changing operation-local governance evidence cannot rewrite the packet."""
+        payload = {
+            "native": {"events": [{"kind": "packet", "data": [1, 2, 3]}]},
+            "route_hint": "source-owned-not-a-governance-verdict",
+        }
+        original_payload = deepcopy(payload)
+        allowed_inputs = governance_request()
+        denied_inputs = deepcopy(allowed_inputs)
+        denied_inputs["signal"]["missing_inputs"] = ["authenticated_current_grant"]
+        denied_inputs["execution"]["delegation_current"] = False
+        denied_inputs["approval"]["required"] = True
+        original_denied_inputs = deepcopy(denied_inputs)
+
+        baseline = self._build(data=payload, processor_request=allowed_inputs)
+        constrained = self._build(data=payload, processor_request=denied_inputs)
+
+        self.assertEqual(payload, original_payload)
+        self.assertEqual(denied_inputs, original_denied_inputs)
+        for manifest in (baseline, constrained):
+            self.assertEqual(manifest["payload"], original_payload)
+            self.assertEqual(manifest["hashes"]["payload_sha256"], canonical_sha256(original_payload))
+            self.assertEqual(manifest["processing"], baseline["processing"])
+            self.assertEqual(manifest["extensions"]["stegverse_route"], baseline["extensions"]["stegverse_route"])
+            self.assertFalse(manifest["extensions"]["manifest_builder"]["builder_grants_authority"])
+            validate_ingress_manifest(manifest)
+        self.assertEqual(
+            constrained["extensions"]["stegverse_governance_request"],
+            original_denied_inputs,
+        )
+        self.assertNotEqual(
+            baseline["extensions"]["stegverse_governance_request"],
+            constrained["extensions"]["stegverse_governance_request"],
+        )
+
     def test_new_builder_manifest_declares_complete_southbound_lifecycle(self):
         manifest = self._build(
             initiator_class="external_framework",
