@@ -125,7 +125,7 @@ def _canonical_organization_boundary(*, fetcher=None) -> dict[str, Any]:
         raw = resources.files("stegverse").joinpath("pinned_sources", "interlock-intr.json").read_bytes()
     except (OSError, FileNotFoundError) as exc:
         raise ValueError("CANONICAL_ORGANIZATION_BOUNDARY_INSTALLED_SOURCE_REQUIRED") from exc
-    git_blob = b"blob " + str(len(raw)).encode("ascii") + b"\\0" + raw
+    git_blob = b"blob " + str(len(raw)).encode("ascii") + bytes([0]) + raw
     if hashlib.sha1(git_blob).hexdigest() != "a1f61d82a38a817a1dd2749505d8802dd09a22f8":
         raise ValueError("CANONICAL_ORGANIZATION_BOUNDARY_PIN_MISMATCH")
     try:
