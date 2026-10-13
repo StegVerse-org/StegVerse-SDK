@@ -20,8 +20,6 @@ def test_installed_boundary_is_pinned_and_never_fetches():
 
 def test_tampered_installed_boundary_fails_closed(monkeypatch):
     import pytest
-    from pathlib import Path
-
     class FakePackage:
         def joinpath(self, *parts):
             class FakeResource:
