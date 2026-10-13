@@ -12,8 +12,10 @@ SOURCE_LINK = re.compile(
     r"([^\s)]+?)#L(\d+)(?:-L(\d+))?"
 )
 EXACT_LINES = (
-    ("pyproject.toml", 29, "requests>=2.28.0"),
-    # pyproject.toml line 30 "pyyaml>=6.0" removed 2026-10-13: never imported.
+    # pyproject.toml line 29 now records the removal of requests (2026-10-13:
+    # replaced by the standard library); line 30 "pyyaml>=6.0" removed the same
+    # day: never imported. The SDK has no third-party runtime dependency.
+    ("pyproject.toml", 29, "# requests removed 2026-10-13"),
     # Pins below keep their literal and move to the literal's current line
     # when a merged change moves it; the guide links stay frozen at PIN.
     # L211 previously; drifted across route/profile publications to 267, then

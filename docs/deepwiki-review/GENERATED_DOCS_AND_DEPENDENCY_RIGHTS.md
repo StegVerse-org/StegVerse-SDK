@@ -47,3 +47,7 @@ These results clear only the **upstream current root-license identification step
 - `UNKNOWN:FULL_CONTRIBUTOR_TITLE_AND_PUBLICATION_AUTHORITY`: source audit, contributor rights and any relevant legal sign-off remain separate from GitHub CI and the historical already-published SDK wiki.
 
 No duplicate runtime, ledger, publication authority, device or task owner is introduced.
+
+## Dependency status update (2026-10-13)
+
+None of the three requirements in the table above remains a direct SDK runtime dependency: `pyyaml` and `python-dotenv` were never imported and were removed, and `requests` was replaced by the standard library (`stegverse/_stdlib_http.py`). The SDK package declares no third-party runtime dependency; the table is retained as the record of the earlier review.

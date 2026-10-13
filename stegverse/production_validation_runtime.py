@@ -18,8 +18,8 @@ import os
 import uuid
 from typing import Any, Callable, Mapping
 
-import requests
 
+from . import _stdlib_http as _http
 from .public_inspection import PublicInspectionRequestError, load_public_inspection_request, validate_public_inspection_request
 from .organization_record_names import (
     LEGACY_RECORD_STATUS_FIELD,
@@ -132,8 +132,8 @@ def _retain_in_master_records(base_url: str, token: str, record: Any, evidence: 
     """Submit the released exact-run batch receipt to Master Records (downstream recording)."""
     payload = build_submission(record, evidence)
     try:
-        response = requests.post(f"{base_url}/api/master-records/manifest-receipts", headers=_headers(token), json=payload, timeout=30)
-    except requests.RequestException as exc:
+        response = _http.post(f"{base_url}/api/master-records/manifest-receipts", headers=_headers(token), json=payload, timeout=30)
+    except _http.HttpTransportError as exc:
         raise PublicInspectionRuntimeError(f"Master Records organization record failed: {exc}") from exc
     if response.status_code not in (200, 201):
         raise PublicInspectionRuntimeError(f"Master Records organization record failed: HTTP {response.status_code}: {response.text[:500]}")
@@ -152,7 +152,7 @@ def _record_downstream(base_url: str, token: str, record: Any, evidence: Mapping
     }
     try:
         receipt = _retain_in_master_records(base_url, token, record, evidence, build_submission)
-    except (PublicInspectionRuntimeError, requests.RequestException, ValueError) as exc:
+    except (PublicInspectionRuntimeError, _http.HttpTransportError, ValueError) as exc:
         return {
             **base,
             "status": "NOT_RECORDED",
@@ -171,8 +171,8 @@ def _record_downstream(base_url: str, token: str, record: Any, evidence: Mapping
 
 def _get_json(url: str, token: str) -> dict[str, Any]:
     try:
-        response = requests.get(url, headers=_headers(token), timeout=30)
-    except requests.RequestException as exc:
+        response = _http.get(url, headers=_headers(token), timeout=30)
+    except _http.HttpTransportError as exc:
         raise PublicInspectionRuntimeError(f"Master Records lookup failed: {exc}") from exc
     if response.status_code != 200:
         raise PublicInspectionRuntimeError(f"Master Records lookup failed: HTTP {response.status_code}: {response.text[:500]}")
@@ -190,7 +190,7 @@ def _record_operation_event(base_url: str, token: str, manifest_receipt_id: str,
     """
     try:
         return _record_operation_event_strict(base_url, token, manifest_receipt_id, operation_id, operation, sequence, event_type, details=details, artifact=artifact)
-    except (PublicInspectionRuntimeError, requests.RequestException, ValueError) as exc:
+    except (PublicInspectionRuntimeError, _http.HttpTransportError, ValueError) as exc:
         return {
             "status": "NOT_RECORDED",
             "disposition": "NON_ALLOW_RECORDING_ONLY",
@@ -213,8 +213,8 @@ def _record_operation_event_strict(base_url: str, token: str, manifest_receipt_i
     event = {"operation_id": operation_id, "operation": operation, "sequence": sequence, "event_type": event_type, "details": dict(details or {}), "artifact_sha256": _canonical_hash(artifact) if artifact is not None else None, "authority_granted": False}
     payload = {"schema": "stegverse.master-records.manifest-operation-event-submission.v1", "event": event, RECORD_REQUESTED_FIELD: True, "authority_requested": False}
     try:
-        response = requests.post(f"{base_url}/api/master-records/manifest-receipts/{manifest_receipt_id}/operations", headers=_headers(token), json=payload, timeout=30)
-    except requests.RequestException as exc:
+        response = _http.post(f"{base_url}/api/master-records/manifest-receipts/{manifest_receipt_id}/operations", headers=_headers(token), json=payload, timeout=30)
+    except _http.HttpTransportError as exc:
         raise PublicInspectionRuntimeError(f"Master Records operation organization record failed: {exc}") from exc
     if response.status_code not in (200, 201):
         raise PublicInspectionRuntimeError(f"Master Records operation organization record failed: HTTP {response.status_code}: {response.text[:500]}")

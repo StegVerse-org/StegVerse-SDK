@@ -41,7 +41,7 @@ EXACT = {
     ("stegverse/ecosystem_chat_pipeline.py", 27): "build_persistence_plan",
     ("stegverse/atomic_task_worker_processor.py", 185): "NONE_GRAPH_DERIVATION_ONLY",
     ("stegverse/publisher_return_binding.py", 3): "does not invoke Publisher",
-    ("pyproject.toml", 29): "requests>=2.28.0",
+    ("pyproject.toml", 29): "# requests removed 2026-10-13",
     ("scripts/build_sdk_public_wiki.py", 15): "SOURCES = [",
     ("evidence/system-boundary-downstream-status.v0.1.json", 7): '"production_binding_enabled": false',
 }

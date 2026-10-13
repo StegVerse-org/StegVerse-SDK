@@ -199,8 +199,8 @@ class Tests(unittest.TestCase):
         self.assertFalse(result["consequence_committed"])
 
     @patch("stegverse.production_validation_runtime._load_stegcore_transaction_runtime", return_value=IN_PROCESS_STEGCORE)
-    @patch("stegverse.production_validation_runtime.requests.get")
-    @patch("stegverse.production_validation_runtime.requests.post")
+    @patch("stegverse.production_validation_runtime._http.get")
+    @patch("stegverse.production_validation_runtime._http.post")
     @patch("stegverse.production_validation_runtime._load_route_carrier", return_value=(Carrier, RouteError, make_manifest, lambda: []))
     @patch("stegverse.production_validation_runtime._load_stegcore", return_value=(build, Registry, Req, lambda req: Eval(), ManifestedModel))
     def test_route_closes_on_organization_ledger_without_master_records(self, _core, _carrier, post, get, _runtime):
@@ -234,7 +234,7 @@ class Tests(unittest.TestCase):
         post.assert_not_called()
 
     @patch("stegverse.production_validation_runtime._load_stegcore_transaction_runtime", return_value=IN_PROCESS_STEGCORE)
-    @patch("stegverse.production_validation_runtime.requests.post")
+    @patch("stegverse.production_validation_runtime._http.post")
     @patch("stegverse.production_validation_runtime._load_route_carrier", return_value=(Carrier, RouteError, make_manifest, lambda: []))
     @patch("stegverse.production_validation_runtime._load_stegcore", return_value=(build, Registry, Req, lambda req: Eval(), ManifestedModel))
     def test_master_records_recording_failure_does_not_gate_the_run(self, _core, _carrier, post, _runtime):
