@@ -1,4 +1,5 @@
 """Bounded, offline structural validation candidate; NEVER governance authorization."""
+import calendar
 import hashlib
 import json
 import re
@@ -12,7 +13,10 @@ MAX_PATTERN_LENGTH = 256
 MAX_PATTERN_INPUT_LENGTH = 4096
 MAX_UNBOUNDED_QUANTIFIERS = 1
 SUPPORTED = {"type", "required", "properties", "additionalProperties", "items", "enum", "const", "minLength", "maxLength", "minimum", "maximum",
-             "minItems", "maxItems", "uniqueItems", "pattern"}
+             "minItems", "maxItems", "uniqueItems", "pattern", "format"}
+# format (T13b) is asserted, not annotated, so the SDK validator can replace jsonschema
+# FormatChecker uses without the optional rfc3339-validator dependency. Stdlib only.
+SUPPORTED_FORMATS = ("date", "date-time")
 # Annotation-only keywords: accepted and ignored, as in 2020-12 they never affect validity.
 ANNOTATIONS = {"title", "description", "$comment", "examples"}
 # Root-only identity metadata (T12): no effect on validity. $schema must name exactly the
@@ -30,7 +34,9 @@ TYPES = {"null": lambda v: v is None, "boolean": lambda v: type(v) is bool,
 # accepts, never the reverse.
 CONTRACT = {
     "dialect": DIALECT,
-    "contract_version": "1.3",
+    "contract_version": "1.4",
+    "format": {"asserted": list(SUPPORTED_FORMATS), "standard": "RFC 3339 (date, date-time); calendar-checked; leap second 60 rejected",
+               "other_values": "rejected (UNSUPPORTED_FORMAT)"},
     "pattern_subset": {"dialect": "intersection of Python re (ASCII) and ECMA-262", "max_length": MAX_PATTERN_LENGTH,
                        "max_input_length": MAX_PATTERN_INPUT_LENGTH, "max_unbounded_quantifiers": MAX_UNBOUNDED_QUANTIFIERS,
                        "quantifiable": "single atoms; groups only with ?", "excluded": ". \\s \\b backreferences lookaround flags {"},
@@ -51,6 +57,7 @@ CONTRACT = {
         "instances that are not JSON values (NaN, Infinity, sets, tuples, bytes, non-string keys) are rejected",
         "instances nested deeper than max_instance_depth are rejected",
         "pattern outside pattern_subset is rejected; strings longer than max_input_length fail a pattern",
+        "format is asserted for date and date-time (2020-12 default is annotation); other formats are rejected; second=60 is rejected",
     ],
     "authority_effect": "NONE",
 }
@@ -213,6 +220,28 @@ def _ecma_end_anchor(pattern):
 def _pattern_matches(pattern, value):
     return re.search(_ecma_end_anchor(pattern), value, re.ASCII) is not None
 
+_DATE = re.compile(r"(\d{4})-(\d{2})-(\d{2})\Z", re.ASCII)
+_DATE_TIME = re.compile(
+    r"(\d{4})-(\d{2})-(\d{2})[Tt](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:[Zz]|([+-])(\d{2}):(\d{2}))\Z", re.ASCII)
+
+def _valid_date(year, month, day):
+    return 1 <= month <= 12 and 1 <= day <= calendar.monthrange(year, month)[1]
+
+def _format_ok(fmt, value):
+    """RFC 3339 full-date / date-time, calendar-checked, stdlib only."""
+    if fmt == "date":
+        m = _DATE.match(value)
+        return bool(m) and _valid_date(*map(int, m.groups()))
+    m = _DATE_TIME.match(value)
+    if not m:
+        return False
+    year, month, day, hour, minute, second = map(int, m.groups()[:6])
+    if not _valid_date(year, month, day) or hour > 23 or minute > 59 or second > 59:
+        return False
+    if m.group(7):
+        return int(m.group(8)) <= 23 and int(m.group(9)) <= 59
+    return True
+
 def _preflight(spec, path, error, depth=0):
     """Check every reachable subschema, including branches the instance never visits."""
     if depth > MAX_SCHEMA_DEPTH or not isinstance(spec, dict):
@@ -249,6 +278,8 @@ def _preflight(spec, path, error, depth=0):
             error(path, "INVALID_BOUND:" + key)
     if "uniqueItems" in spec and type(spec["uniqueItems"]) is not bool:
         error(path, "INVALID_BOUND:uniqueItems")
+    if "format" in spec and spec["format"] not in SUPPORTED_FORMATS:
+        error(path, "UNSUPPORTED_FORMAT")
     if "pattern" in spec:
         reason = _pattern_subset_error(spec["pattern"])
         if reason:
@@ -354,6 +385,8 @@ def validate(instance, schema, schema_digest, dialect=DIALECT, registry=None):
                         error(path, "UNIQUE_ITEMS")
                         break
                     seen.add(key)
+        if isinstance(value, str) and spec.get("format") in SUPPORTED_FORMATS and not _format_ok(spec["format"], value):
+            error(path, "FORMAT")
         if isinstance(value, str) and "pattern" in spec:
             if len(value) > MAX_PATTERN_INPUT_LENGTH:
                 error(path, "PATTERN_INPUT_TOO_LONG")
