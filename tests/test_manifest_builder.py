@@ -188,6 +188,18 @@ class ManifestBuilderTests(unittest.TestCase):
                 )
                 self.assertEqual(manifest["return_projection"], expected)
 
+    def test_governance_entry_defect_is_preserved_not_promoted_to_global_veto(self):
+        """A governance operation's missing inputs are not global path authority."""
+        request = governance_request()
+        request["signal"]["missing_inputs"] = ["authenticated_current_grant"]
+        request["execution"]["delegation_current"] = False
+        request["approval"] = {"required": True}
+        original = deepcopy(request)
+        manifest = self._build(processor_request=request)
+        self.assertEqual(request, original)
+        self.assertEqual(manifest["extensions"]["stegverse_governance_request"], original)
+        self.assertFalse(manifest["extensions"]["manifest_builder"]["builder_grants_authority"])
+
     def test_missing_governance_evidence_fails_closed(self):
         request = governance_request()
         request.pop("signal")
