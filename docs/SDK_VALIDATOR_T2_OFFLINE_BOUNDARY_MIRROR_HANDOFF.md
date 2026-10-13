@@ -20,3 +20,6 @@ Run the exact-head SDK tests including `tests/test_pinned_organization_boundary.
 - Head `66bdc2028d14d9e83c17553ee60e0cded4bec644`: 29 of 30 GitHub Actions workflows succeeded; test-suite ratchet was still running when observed.
 - Manifest Builder Source Validation now succeeds after correcting the obsolete injected-source-failure expectation.
 - No merge authorized until the ratchet completes and all required checks are green; source checks do not establish authentic runtime/Organization ledger receipts.
+
+## Exact-head CI closeout — 2026-10-13
+At T2 PR #505 head `4544ba4922d2d9a40fb2292a0ef6552d6a23cd70`, 30 of 30 GitHub Actions workflows completed successfully, including Test suite ratchet. The two obsolete live-fetch expectations were replaced with installed-boundary offline assertions without modifying the ratchet baseline. This closes the *source CI* blocker only. This is a draft, unmerged, non-authorizing source candidate. Issue #484 expressly permits non-authorizing source merge without T1 but requires canonical Goal Task ID/COSV registration before governed migrations. Do not conflate CI with Organization ledger readback, T5 authenticated TV/TVC provenance, owner approval, or runtime ALLOW.
