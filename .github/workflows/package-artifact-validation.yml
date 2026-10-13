@@ -129,9 +129,10 @@ jobs:
           assert metadata['Version'] == expected_version, (metadata['Version'], expected_version)
           assert metadata['Requires-Python'] == expected_python, (metadata['Requires-Python'], expected_python)
           requires = metadata.get_all('Requires-Dist') or []
-          required_fragments = ('requests>=2.28.0',)
-          # Never imported; removed 2026-10-13. Dependencies are reduced, never added back.
-          removed_fragments = ('pyyaml', 'python-dotenv')
+          required_fragments = ()
+          # Removed 2026-10-13: pyyaml and python-dotenv were never imported; requests is
+          # replaced by the standard library. Dependencies are reduced, never added back.
+          removed_fragments = ('pyyaml', 'python-dotenv', 'requests')
           compact = [r.replace(' ', '') for r in requires]
           for expected in required_fragments:
               if not any(expected in r for r in compact):

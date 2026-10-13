@@ -25,9 +25,9 @@ EXACT = {
     # L211 at PIN. Moved by later route/profile publications, most recently
     # SDK#368 PR #446 (readiness qualification helpers, 267->269) and PR #447
     # (Ecosystem Chat / VA-scoped chat / HIL intake routes, 269->285).
-    ("stegverse/manifest_builder.py", 285): "def build_manifest(",
+    ("stegverse/manifest_builder.py", 288): "def build_manifest(",  # 285->288 with #512-#519
     ("stegverse/purpose_bound_worker_processor.py", 63): "partition reconstruction mismatch",
-    ("stegverse/universal_entry_dispatch.py", 48): '"completed", "degraded", "unavailable", "failed_closed"',
+    ("stegverse/universal_entry_dispatch.py", 49): '"completed", "degraded", "unavailable", "failed_closed"',  # 48->49 with #512-#519
     ("stegverse/security_posture_request.py", 9): '"SECURE", "HIGH", "HIGHEST"',
     ("stegverse/security_posture_request.py", 40): 'NONE_REQUEST_INPUT_ONLY',
     ("stegverse/stage1_org_receipt_review.py", 5): "NEVER authenticates caller-supplied snapshots",
@@ -41,7 +41,7 @@ EXACT = {
     ("stegverse/ecosystem_chat_pipeline.py", 27): "build_persistence_plan",
     ("stegverse/atomic_task_worker_processor.py", 185): "NONE_GRAPH_DERIVATION_ONLY",
     ("stegverse/publisher_return_binding.py", 3): "does not invoke Publisher",
-    ("pyproject.toml", 29): "requests>=2.28.0",
+    ("pyproject.toml", 29): "# requests removed 2026-10-13",
     ("scripts/build_sdk_public_wiki.py", 15): "SOURCES = [",
     ("evidence/system-boundary-downstream-status.v0.1.json", 7): '"production_binding_enabled": false',
 }

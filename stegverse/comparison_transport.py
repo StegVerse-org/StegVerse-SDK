@@ -11,7 +11,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping, Optional
 
-import requests
+from . import _stdlib_http as _http
+
 
 from .llm_route_comparison import (
     ComparisonRequest,
@@ -100,15 +101,16 @@ def submit_comparison(
         raise ComparisonTransportError("endpoint must use http:// or https://")
 
     try:
-        response = requests.post(
+        response = _http.post(
             endpoint,
             json=build_transport_envelope(request),
             headers=dict(headers or {}),
             timeout=timeout_seconds,
         )
-        response.raise_for_status()
+        if response.status_code >= 400:
+            raise _http.HttpTransportError(f"HTTP {response.status_code}")
         payload = response.json()
-    except requests.RequestException as exc:
+    except _http.HttpTransportError as exc:
         raise ComparisonTransportError(f"comparison transport failed: {exc}") from exc
     except ValueError as exc:
         raise ComparisonTransportError("comparison endpoint returned invalid JSON") from exc

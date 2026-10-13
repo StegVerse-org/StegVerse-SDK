@@ -26,7 +26,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "requests>=2.28.0",
+    # requests removed 2026-10-13: JSON-over-HTTP uses the standard library (stegverse/_stdlib_http.py).
 ]
 
 [project.optional-dependencies]

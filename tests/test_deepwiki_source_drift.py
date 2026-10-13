@@ -15,18 +15,21 @@ class ThreeSourceDriftTests(unittest.TestCase):
                 # L126 / L149 / L211 at PIN. Drifted across route, capability
                 # and execution-profile publications (PR #384, #385, #422,
                 # #426, I-12a), then SDK#368 PR #446 (170->172, 199->201,
-                # 267->269) and PR #447 (172->188, 201->217, 269->285).
-                188: "def _route_declaration(",
-                217: "def _validate_governance_request(",
-                285: "def build_manifest(",
+                # 267->269), PR #447 (172->188, 201->217, 269->285) and the
+                # T6/validator merges #512-#519 (188->191, 217->220, 285->288).
+                191: "def _route_declaration(",
+                220: "def _validate_governance_request(",
+                288: "def build_manifest(",
             },
             "tests/test_mir_sv_exp3_manifest.py": {
                 # L43 / L47 / L51 at PIN; 4534b5a (destination taken from the
                 # manifest instead of an ingress argument) removed one line
-                # above the test, 43->42, 47->46, 51->50.
-                42: "def test_diagnostic_does_not_upgrade_unobserved_runtime",
-                46: 'NOT_OBSERVED',
-                50: 'NONE_DIAGNOSTIC_ONLY',
+                # above the test, 43->42, 47->46, 51->50; #489 and #502 (Exp3
+                # guards on main, remediation fork) added five lines above it,
+                # 42->47, 46->51, 50->55.
+                47: "def test_diagnostic_does_not_upgrade_unobserved_runtime",
+                51: 'NOT_OBSERVED',
+                55: 'NONE_DIAGNOSTIC_ONLY',
             },
         }
         doc=DOC.read_text(encoding="utf-8")

@@ -12,7 +12,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Mapping, Optional
 
-import requests
+from . import _stdlib_http as _http
+
 
 from .comparison_transport import ComparisonTransportError, build_transport_envelope
 from .llm_route_comparison import (
@@ -70,15 +71,16 @@ def _execute_target(target: ExecutorTarget, envelope: Mapping[str, Any]) -> Mapp
 
     assert target.endpoint is not None
     try:
-        response = requests.post(
+        response = _http.post(
             target.endpoint,
             json=envelope,
             headers=dict(target.headers or {}),
             timeout=target.timeout_seconds,
         )
-        response.raise_for_status()
+        if response.status_code >= 400:
+            raise _http.HttpTransportError(f"HTTP {response.status_code}")
         payload = response.json()
-    except requests.RequestException as exc:
+    except _http.HttpTransportError as exc:
         raise ComparisonOrchestrationError(
             f"transport failed for route {target.route_id}: {exc}"
         ) from exc

@@ -75,7 +75,7 @@ class OrganizationRecordMigrationTests(unittest.TestCase):
         self.assertEqual("RECORDED", _record_status({"custody_status": "RECORDED"}))
         self.assertIsNone(_record_status({}))
 
-    @patch("stegverse.production_validation_runtime.requests.post")
+    @patch("stegverse.production_validation_runtime._http.post")
     def test_operation_event_request_writes_only_record_requested(self, post):
         # Route events append to the Organization ledger; only downstream
         # operation events go to Master Records.
@@ -86,7 +86,7 @@ class OrganizationRecordMigrationTests(unittest.TestCase):
         self.assertNotIn("custody_requested", payload)
         self.assertIs(payload["authority_requested"], False)
 
-    @patch("stegverse.production_validation_runtime.requests.post")
+    @patch("stegverse.production_validation_runtime._http.post")
     def test_operation_event_still_accepts_legacy_status_from_deployed_service(self, post):
         post.return_value = Mock(status_code=201, json=lambda: {"custody_status": "RECORDED"})
         body = _record_operation_event_strict("https://records.example", "token", "MR-1", "OP-1", "REPLAY", 0, "REQUESTED")
