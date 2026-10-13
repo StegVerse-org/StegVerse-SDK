@@ -80,3 +80,31 @@ def test_non_object_schema_fails_closed(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(packet), "--schema", str(schema)])
     assert main() == 1
     assert "FAIL_CLOSED: INPUT_OR_SCHEMA_INVALID ValueError" in capsys.readouterr().out
+
+
+def test_permissive_schema_missing_invariant_fields_fails_closed(tmp_path, monkeypatch, capsys):
+    packet = json.loads(Path("examples/universal_entry/site_chat_good_morning.json").read_text(encoding="utf-8"))
+    packet.pop("routing")
+    candidate = tmp_path / "missing-routing.json"
+    candidate.write_text(json.dumps(packet), encoding="utf-8")
+    schema = tmp_path / "permissive-schema.json"
+    schema.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr("sys.argv", [
+        "verify_universal_entry_envelope", str(candidate), "--schema", str(schema)
+    ])
+    assert main() == 1
+    assert "FAIL_CLOSED: INVARIANT_INPUT_INVALID KeyError" in capsys.readouterr().out
+
+
+def test_permissive_schema_invalid_invariant_type_fails_closed(tmp_path, monkeypatch, capsys):
+    packet = json.loads(Path("examples/universal_entry/site_chat_good_morning.json").read_text(encoding="utf-8"))
+    packet["routing"] = None
+    candidate = tmp_path / "invalid-routing.json"
+    candidate.write_text(json.dumps(packet), encoding="utf-8")
+    schema = tmp_path / "permissive-schema.json"
+    schema.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr("sys.argv", [
+        "verify_universal_entry_envelope", str(candidate), "--schema", str(schema)
+    ])
+    assert main() == 1
+    assert "FAIL_CLOSED: INVARIANT_INPUT_INVALID TypeError" in capsys.readouterr().out
