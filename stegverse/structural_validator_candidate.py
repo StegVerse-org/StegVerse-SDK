@@ -1,12 +1,18 @@
 """Bounded, offline structural validation candidate; NEVER governance authorization."""
 import hashlib
 import json
+import re
 
 DIALECT = "stegverse-bounded-v1"
 MAX_SCHEMA_DEPTH = 32
 MAX_INSTANCE_DEPTH = 256
+# pattern (T13): a dialect-neutral subset that means the same in Python re and ECMA-262
+# and cannot backtrack catastrophically; anything outside it fails closed.
+MAX_PATTERN_LENGTH = 256
+MAX_PATTERN_INPUT_LENGTH = 4096
+MAX_UNBOUNDED_QUANTIFIERS = 1
 SUPPORTED = {"type", "required", "properties", "additionalProperties", "items", "enum", "const", "minLength", "maxLength", "minimum", "maximum",
-             "minItems", "maxItems", "uniqueItems"}
+             "minItems", "maxItems", "uniqueItems", "pattern"}
 # Annotation-only keywords: accepted and ignored, as in 2020-12 they never affect validity.
 ANNOTATIONS = {"title", "description", "$comment", "examples"}
 # Root-only identity metadata (T12): no effect on validity. $schema must name exactly the
@@ -24,7 +30,10 @@ TYPES = {"null": lambda v: v is None, "boolean": lambda v: type(v) is bool,
 # accepts, never the reverse.
 CONTRACT = {
     "dialect": DIALECT,
-    "contract_version": "1.2",
+    "contract_version": "1.3",
+    "pattern_subset": {"dialect": "intersection of Python re (ASCII) and ECMA-262", "max_length": MAX_PATTERN_LENGTH,
+                       "max_input_length": MAX_PATTERN_INPUT_LENGTH, "max_unbounded_quantifiers": MAX_UNBOUNDED_QUANTIFIERS,
+                       "quantifiable": "single atoms; groups only with ?", "excluded": ". \\s \\b backreferences lookaround flags {"},
     "supported_keywords": sorted(SUPPORTED),
     "annotation_keywords": sorted(ANNOTATIONS),
     "root_identity_keywords": {"$schema": REFERENCE_DIALECT_URI, "$id": "string"},
@@ -41,6 +50,7 @@ CONTRACT = {
         "schemas nested deeper than max_schema_depth or not JSON-encodable are rejected",
         "instances that are not JSON values (NaN, Infinity, sets, tuples, bytes, non-string keys) are rejected",
         "instances nested deeper than max_instance_depth are rejected",
+        "pattern outside pattern_subset is rejected; strings longer than max_input_length fail a pattern",
     ],
     "authority_effect": "NONE",
 }
@@ -99,6 +109,110 @@ def _instance_finding(instance):
         return {"path": pointer(path), "code": "INVALID_INSTANCE_ENCODING"}
     return None
 
+_SIMPLE_ESCAPES = set("\\.^$*+?()[]{}|/-")
+_CLASS_ESCAPES = set("dw")
+
+def _pattern_subset_error(pattern):
+    """None when pattern is inside the safe dialect-neutral subset, else a reason code."""
+    if not isinstance(pattern, str) or not pattern or len(pattern) > MAX_PATTERN_LENGTH:
+        return "INVALID_PATTERN"
+    i, n, unbounded = 0, len(pattern), 0
+    last = None  # "atom", "group", or None (not quantifiable)
+    depth = 0
+    while i < n:
+        c = pattern[i]
+        if c == "\\":
+            if i + 1 >= n:
+                return "INVALID_PATTERN"
+            e = pattern[i + 1]
+            if e not in _SIMPLE_ESCAPES and e not in _CLASS_ESCAPES:
+                return "UNSUPPORTED_PATTERN"
+            i, last = i + 2, "atom"
+        elif c == "[":
+            j = i + 1
+            if j < n and pattern[j] == "^":
+                j += 1
+            if j < n and pattern[j] == "]":
+                return "UNSUPPORTED_PATTERN"
+            while j < n and pattern[j] != "]":
+                if pattern[j] == "[":
+                    return "UNSUPPORTED_PATTERN"
+                if pattern[j] == "\\":
+                    if j + 1 >= n or (pattern[j + 1] not in _SIMPLE_ESCAPES and pattern[j + 1] not in _CLASS_ESCAPES):
+                        return "UNSUPPORTED_PATTERN"
+                    j += 2
+                else:
+                    j += 1
+            if j >= n:
+                return "INVALID_PATTERN"
+            i, last = j + 1, "atom"
+        elif c == "(":
+            if pattern.startswith("(?", i):
+                return "UNSUPPORTED_PATTERN"
+            depth += 1
+            i, last = i + 1, None
+        elif c == ")":
+            if depth == 0:
+                return "INVALID_PATTERN"
+            depth -= 1
+            i, last = i + 1, "group"
+        elif c in "*+?":
+            if last is None or (last == "group" and c != "?"):
+                return "UNSUPPORTED_PATTERN"
+            if c != "?":
+                unbounded += 1
+            i, last = i + 1, None
+            if i < n and pattern[i] in "*+?{":
+                return "UNSUPPORTED_PATTERN"
+        elif c == "{":
+            m = re.match(r"\{(\d{1,4})(,(\d{0,4}))?\}", pattern[i:])
+            if not m or last != "atom":
+                return "UNSUPPORTED_PATTERN"
+            low, comma, high = int(m.group(1)), m.group(2), m.group(3)
+            if comma and not high:
+                unbounded += 1
+            elif high and int(high) < low:
+                return "INVALID_PATTERN"
+            i, last = i + len(m.group(0)), None
+            if i < n and pattern[i] in "*+?{":
+                return "UNSUPPORTED_PATTERN"
+        elif c in "^$|":
+            i, last = i + 1, None
+        elif c in ".}]":
+            return "UNSUPPORTED_PATTERN"
+        else:
+            i, last = i + 1, "atom"
+    if depth:
+        return "INVALID_PATTERN"
+    if unbounded > MAX_UNBOUNDED_QUANTIFIERS:
+        return "UNSUPPORTED_PATTERN"
+    try:
+        re.compile(pattern, re.ASCII)
+    except re.error:
+        return "INVALID_PATTERN"
+    return None
+
+def _ecma_end_anchor(pattern):
+    """Rewrite each unescaped $ outside a character class to \\Z. In Python re, $ also
+    matches before a trailing newline; in ECMA-262 (no m flag) it matches only at the end."""
+    out, i, in_class = [], 0, False
+    while i < len(pattern):
+        c = pattern[i]
+        if c == "\\":
+            out.append(pattern[i:i + 2])
+            i += 2
+            continue
+        if c == "[":
+            in_class = True
+        elif c == "]":
+            in_class = False
+        out.append("\\Z" if c == "$" and not in_class else c)
+        i += 1
+    return "".join(out)
+
+def _pattern_matches(pattern, value):
+    return re.search(_ecma_end_anchor(pattern), value, re.ASCII) is not None
+
 def _preflight(spec, path, error, depth=0):
     """Check every reachable subschema, including branches the instance never visits."""
     if depth > MAX_SCHEMA_DEPTH or not isinstance(spec, dict):
@@ -135,6 +249,10 @@ def _preflight(spec, path, error, depth=0):
             error(path, "INVALID_BOUND:" + key)
     if "uniqueItems" in spec and type(spec["uniqueItems"]) is not bool:
         error(path, "INVALID_BOUND:uniqueItems")
+    if "pattern" in spec:
+        reason = _pattern_subset_error(spec["pattern"])
+        if reason:
+            error(path, reason)
     for key in ("title", "description", "$comment"):
         if key in spec and not isinstance(spec[key], str):
             error(path, "INVALID_ANNOTATION:" + key)
@@ -236,6 +354,11 @@ def validate(instance, schema, schema_digest, dialect=DIALECT, registry=None):
                         error(path, "UNIQUE_ITEMS")
                         break
                     seen.add(key)
+        if isinstance(value, str) and "pattern" in spec:
+            if len(value) > MAX_PATTERN_INPUT_LENGTH:
+                error(path, "PATTERN_INPUT_TOO_LONG")
+            elif not _pattern_matches(spec["pattern"], value):
+                error(path, "PATTERN")
         for key, kind in (("minLength", str), ("maxLength", str), ("minimum", (int, float)), ("maximum", (int, float))):
             if key not in spec:
                 continue
