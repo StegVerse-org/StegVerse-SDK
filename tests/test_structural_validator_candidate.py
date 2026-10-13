@@ -322,7 +322,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
                     disagreements.append((instance, schema))
         self.assertEqual(disagreements, [])
-        self.assertIn(CONTRACT["contract_version"], ("1.1", "1.2", "1.3"))
+        self.assertIn(CONTRACT["contract_version"], ("1.1", "1.2", "1.3", "1.4"))
 
     def test_contract_1_1_diagnostics_and_malformed_bounds(self):
         codes = lambda instance, schema: [e["code"] for e in self.check_case(instance, schema, False)["errors"]]
@@ -341,7 +341,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
             with self.subTest(key=key):
                 schema = {key: "x"}
                 result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
-                self.assertEqual([e["code"] for e in result["errors"]], ["UNSUPPORTED_KEYWORD:" + key])
+                self.assertEqual([e["code"] for e in result["errors"]], ["UNSUPPORTED_FORMAT"])
 
     def test_contract_1_2_root_identity_metadata(self):
         # T12: $schema (exactly the 2020-12 URI) and $id (string) are root-only identity
@@ -356,7 +356,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         self.assertEqual(codes({"items": {"$id": "x"}}), ["UNSUPPORTED_KEYWORD:$id"])
         self.assertEqual(codes({"$schema": uri, "$ref": "#/$defs/a", "$defs": {"a": {}}}),
                          ["UNSUPPORTED_KEYWORD:$defs", "UNSUPPORTED_KEYWORD:$ref"])
-        self.assertIn(CONTRACT["contract_version"], ("1.2", "1.3"))
+        self.assertIn(CONTRACT["contract_version"], ("1.2", "1.3", "1.4"))
         self.assertEqual(CONTRACT["root_identity_keywords"]["$schema"], uri)
         Draft202012Validator = reference_validator(self)
         values, schemas = self._generated_corpus()
@@ -415,7 +415,42 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         self.assertEqual([e["code"] for e in self.check_case(long_value, {"pattern": "^a+$"}, False)["errors"]],
                          ["PATTERN_INPUT_TOO_LONG"])
         self.check_case(5, {"pattern": "^a$"}, True)  # pattern applies to strings only
-        self.assertEqual(CONTRACT["contract_version"], "1.3")
+        self.assertIn(CONTRACT["contract_version"], ("1.3", "1.4"))
+
+    def test_contract_1_4_format_date_agrees_with_reference_format_checker(self):
+        Draft202012Validator = reference_validator(self)
+        from jsonschema import FormatChecker
+        schema = {"type": "string", "format": "date"}
+        digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+        reference = Draft202012Validator(schema, format_checker=FormatChecker())
+        values = ["2026-10-13", "2024-02-29", "2025-02-29", "2026-02-30", "2026-13-01", "2026-00-10", "2026-1-1",
+                  "20261013", "2026-10-13T00:00:00Z", "", "x", "0001-01-01", "9999-12-31"]
+        disagreements = [v for v in values if validate(v, schema, digest)["valid"] != reference.is_valid(v)]
+        self.assertEqual(disagreements, [])
+
+    def test_contract_1_4_format_date_time_rfc3339(self):
+        schema = {"type": "string", "format": "date-time"}
+        valid = ["2026-10-13T00:29:33Z", "2026-10-13t00:29:33z", "2026-10-13T00:29:33.123456+05:30",
+                 "2024-02-29T23:59:59-23:59"]
+        invalid = ["2026-10-13T24:00:00Z", "2026-10-13T00:60:00Z", "2026-10-13T00:29:60Z", "2026-10-13T00:29:33",
+                   "2026-10-13 00:29:33Z", "2026-02-30T00:00:00Z", "2026-10-13T00:29:33+24:00", "2026-10-13T00:29:33Z\n",
+                   "2026-10-13", "x"]
+        for value in valid:
+            with self.subTest(value=value):
+                self.check_case(value, schema, True)
+        for value in invalid:
+            with self.subTest(value=value):
+                self.assertEqual([e["code"] for e in self.check_case(value, schema, False)["errors"]], ["FORMAT"])
+        self.check_case(5, {"format": "date-time"}, True)  # format applies to strings only
+
+    def test_contract_1_4_unsupported_formats_fail_closed(self):
+        for fmt in ("email", "uri", "uuid", "ipv4", "time", 1, None):
+            with self.subTest(fmt=fmt):
+                schema = {"format": fmt}
+                result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
+                self.assertEqual([e["code"] for e in result["errors"]], ["UNSUPPORTED_FORMAT"])
+        self.assertEqual(CONTRACT["contract_version"], "1.4")
+        self.assertEqual(CONTRACT["format"]["asserted"], ["date", "date-time"])
 
 if __name__ == "__main__":
     unittest.main()
