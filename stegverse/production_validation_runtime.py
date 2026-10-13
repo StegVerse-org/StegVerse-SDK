@@ -135,21 +135,6 @@ def _headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
 
-def _preflight_stegcore(base_url: str) -> dict[str, Any]:
-    try:
-        response = requests.get(f"{base_url}/v1/runtime-identity", timeout=15)
-    except requests.RequestException as exc:
-        raise PublicInspectionRuntimeError(f"StegCore production service preflight failed: {exc}") from exc
-    if response.status_code != 200:
-        raise PublicInspectionRuntimeError(f"StegCore production service preflight failed: HTTP {response.status_code}")
-    body = response.json()
-    if body.get("runtime_identity") != "stegverse:steggate:canonical:three-layer:v1":
-        raise PublicInspectionRuntimeError("StegCore production runtime identity mismatch")
-    if body.get("manifested_validation_endpoint") != "/v1/manifested-validation":
-        raise PublicInspectionRuntimeError("StegCore production service does not expose manifested validation")
-    return body
-
-
 def _retain_in_master_records(base_url: str, token: str, record: Any, evidence: Mapping[str, Any], build_submission: Any) -> dict[str, Any]:
     """Submit the released exact-run batch receipt to Master Records (downstream recording)."""
     payload = build_submission(record, evidence)
@@ -246,6 +231,12 @@ def _record_operation_event_strict(base_url: str, token: str, manifest_receipt_i
     return body
 
 
+# The identity the deployed StegCore must report on its manifested-validation
+# result. It is checked on that result; no separate liveness probe gates the run
+# (destination_liveness_is_transition_predicate=false).
+STEGCORE_RUNTIME_IDENTITY = "stegverse:steggate:canonical:three-layer:v1"
+
+
 def _run_deployed_stegcore(base_url: str, active_manifest: Mapping[str, Any], admissibility_request: Any, input_data: Any, normalized: Mapping[str, Any], provenance: Mapping[str, Any], ManifestedTransactionResult: Any) -> Any:
     payload = {
         "transaction_id": active_manifest["transaction_id"],
@@ -274,7 +265,7 @@ def _run_deployed_stegcore(base_url: str, active_manifest: Mapping[str, Any], ad
     body = response.json()
     if body.get("transaction_id") != active_manifest["transaction_id"]:
         raise PublicInspectionRuntimeError("deployed StegCore changed the manifested transaction identity")
-    if body.get("service_runtime_identity") != "stegverse:steggate:canonical:three-layer:v1":
+    if body.get("service_runtime_identity") != STEGCORE_RUNTIME_IDENTITY:
         raise PublicInspectionRuntimeError("deployed StegCore response runtime identity mismatch")
     if body.get("service_external_side_effect") is not False:
         raise PublicInspectionRuntimeError("deployed StegCore validation consequence boundary invalid")
@@ -318,7 +309,6 @@ def run_public_inspection_test(request: Mapping[str, Any], *, organization_ledge
 
     master_records = _optional_master_records_config(master_records_url, master_records_token)
     core_url = _stegcore_config(stegcore_url)
-    core_identity = _preflight_stegcore(core_url)
 
     build_submission, ManifestReceiptRegistry, AdmissibilityRequest, _evaluate, ManifestedTransactionResult = _load_stegcore()
     ManifestRouteCarrier, RouteCarrierError, build_route_manifest, default_validation_route = _load_route_carrier()
@@ -349,7 +339,7 @@ def run_public_inspection_test(request: Mapping[str, Any], *, organization_ledge
             "execution_provenance": dict(provenance),
             "route_receipt_chain_head_at_exact_run_custody": active_manifest.get("receipt_chain_head"),
             "stegcore_service_url": core_url,
-            "stegcore_runtime_identity": core_identity.get("runtime_identity"),
+            "stegcore_runtime_identity": STEGCORE_RUNTIME_IDENTITY,
         }
         evaluation = result.execution_observation.get("evaluation") or {}
         state.update({"result": result, "record": record, "evidence": evidence, "evaluation": evaluation})
@@ -389,7 +379,7 @@ def run_public_inspection_test(request: Mapping[str, Any], *, organization_ledge
         "runtime_mode": "PRODUCTION_LANE_VALIDATION_TEST",
         "execution_provenance": provenance,
         "stegcore_service_url": core_url,
-        "stegcore_runtime_identity": core_identity.get("runtime_identity"),
+        "stegcore_runtime_identity": STEGCORE_RUNTIME_IDENTITY,
         "route_manifest_id": route_result["route_manifest_id"],
         "route_transition_count": route_result["route_transition_count"],
         "route_receipt_chain_head": route_result["receipt_chain_head"],

@@ -11,6 +11,7 @@ from .llm_connection import (
     LLMConnectionError,
     build_connection_descriptor,
     discover_adapter,
+    normalize_adapter_url,
     probe_adapter,
     save_connection_descriptor,
 )
@@ -45,13 +46,34 @@ def _prompt(value: str | None, label: str, default: str | None = None) -> str:
     return entered or (default or "")
 
 
+def _declared_destination_probe(adapter_url: str) -> tuple[str, dict]:
+    """Observe a declared adapter without letting its liveness gate the connection.
+
+    The declared destination's existence is sufficient
+    (destination_liveness_is_transition_predicate=false); the probe is evidence
+    only. An adapter observed attaching authority is still refused.
+    """
+    base_url = normalize_adapter_url(adapter_url)
+    try:
+        probe = probe_adapter(base_url)
+    except LLMConnectionError as exc:
+        return base_url, {"state": "NOT_OBSERVED", "observation_error": str(exc),
+                          "gates_connection": False, "authority_effect": "NONE_EVIDENCE_ONLY"}
+    if probe.state == "REJECTED_AUTHORITY_ESCALATION":
+        raise LLMConnectionError("adapter_authority_escalation_observed")
+    return base_url, {**probe.as_dict(), "gates_connection": False}
+
+
 def _connection_result(args: argparse.Namespace) -> dict:
     if args.adapter_url:
-        probe = probe_adapter(args.adapter_url)
+        adapter_url, adapter_observation = _declared_destination_probe(args.adapter_url)
     else:
+        # No destination declared: discovery selects one by what answers, so it
+        # stays a CONNECTED-only search.
         probe = discover_adapter(DEFAULT_ADAPTER_URLS)
-    if probe.state != "CONNECTED":
-        raise LLMConnectionError(f"adapter_not_connected:state={probe.state}")
+        if probe.state != "CONNECTED":
+            raise LLMConnectionError(f"adapter_not_connected:state={probe.state}")
+        adapter_url, adapter_observation = probe.base_url, probe.as_dict()
 
     user_id = _prompt(args.user_id, "User id", "local-user")
     llm_id = _prompt(args.llm_id, "LLM name", "my-llm")
@@ -59,7 +81,7 @@ def _connection_result(args: argparse.Namespace) -> dict:
     model = _prompt(args.model, "Model", "local-model")
 
     descriptor = build_connection_descriptor(
-        adapter_url=probe.base_url,
+        adapter_url=adapter_url,
         user_id=user_id,
         llm_id=llm_id,
         provider=provider,
@@ -73,7 +95,8 @@ def _connection_result(args: argparse.Namespace) -> dict:
 
     return {
         "state": "CONNECTED",
-        "adapter_probe": probe.as_dict(),
+        "adapter_probe": adapter_observation,
+        "destination_liveness_gates_connection": False,
         "connection": descriptor,
         "saved_path": str(saved_path) if saved_path else None,
         "next": {
