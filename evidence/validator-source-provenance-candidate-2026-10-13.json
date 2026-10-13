@@ -19,7 +19,7 @@
     },
     {
       "path": "schemas/universal-entry-envelope.schema.v0.1.json",
-      "git_blob_sha1": "UNKNOWN_NOT_RECORDED"
+      "git_blob_sha1": "ef8a5d1d88d6386e6663482f5b819e569233faeb"
     }
   ],
   "previous_provenance": "SDK#484 RESPONSE-012 and RESPONSE-017 (prior source; superseded for current commit)",
