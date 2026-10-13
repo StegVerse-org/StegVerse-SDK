@@ -34,12 +34,12 @@ TYPES = {"null": lambda v: v is None, "boolean": lambda v: type(v) is bool,
 # accepts, never the reverse.
 CONTRACT = {
     "dialect": DIALECT,
-    "contract_version": "1.4",
+    "contract_version": "1.5",
     "format": {"asserted": list(SUPPORTED_FORMATS), "standard": "RFC 3339 (date, date-time); calendar-checked; leap second 60 rejected",
                "other_values": "rejected (UNSUPPORTED_FORMAT)"},
     "pattern_subset": {"dialect": "intersection of Python re (ASCII) and ECMA-262", "max_length": MAX_PATTERN_LENGTH,
                        "max_input_length": MAX_PATTERN_INPUT_LENGTH, "max_unbounded_quantifiers": MAX_UNBOUNDED_QUANTIFIERS,
-                       "quantifiable": "single atoms; groups only with ?", "excluded": ". \\s \\b backreferences lookaround flags {"},
+                       "quantifiable": "single atoms; groups only with ?", "excluded": ". \\s \\b backreferences lookaround flags { \\- outside a class; -- && || ~~ inside a class"},
     "supported_keywords": sorted(SUPPORTED),
     "annotation_keywords": sorted(ANNOTATIONS),
     "root_identity_keywords": {"$schema": REFERENCE_DIALECT_URI, "$id": "string"},
@@ -118,6 +118,7 @@ def _instance_finding(instance):
 
 _SIMPLE_ESCAPES = set("\\.^$*+?()[]{}|/-")
 _CLASS_ESCAPES = set("dw")
+_CLASS_SET_OPERATORS = set("-&|~")
 
 def _pattern_subset_error(pattern):
     """None when pattern is inside the safe dialect-neutral subset, else a reason code."""
@@ -132,7 +133,8 @@ def _pattern_subset_error(pattern):
             if i + 1 >= n:
                 return "INVALID_PATTERN"
             e = pattern[i + 1]
-            if e not in _SIMPLE_ESCAPES and e not in _CLASS_ESCAPES:
+            # \- is valid only inside a class under ECMA-262 unicode mode.
+            if (e not in _SIMPLE_ESCAPES and e not in _CLASS_ESCAPES) or e == "-":
                 return "UNSUPPORTED_PATTERN"
             i, last = i + 2, "atom"
         elif c == "[":
@@ -148,6 +150,9 @@ def _pattern_subset_error(pattern):
                     if j + 1 >= n or (pattern[j + 1] not in _SIMPLE_ESCAPES and pattern[j + 1] not in _CLASS_ESCAPES):
                         return "UNSUPPORTED_PATTERN"
                     j += 2
+                elif pattern[j] in _CLASS_SET_OPERATORS and pattern.startswith(pattern[j] * 2, j):
+                    # --, &&, ||, ~~ are set operations in ECMA-262 v mode and future Python re.
+                    return "UNSUPPORTED_PATTERN"
                 else:
                     j += 1
             if j >= n:
