@@ -66,9 +66,9 @@ def _validate_handler_result(lane: str, result: Mapping[str, Any]) -> Dict[str, 
         raise UniversalDispatchError(f"handler for {lane} attempted admissibility escalation")
     # Lane handlers are non-authorizing transport/processors. Their optional
     # metadata cannot assert an admitted state transition or runtime reality.
-    if normalized.get("disposition") in {"ALLOW", "DENY"}:
+    if "disposition" in normalized:
         raise UniversalDispatchError(f"handler for {lane} asserted transition disposition")
-    if normalized.get("runtime_observed") is True:
+    if "runtime_observed" in normalized:
         raise UniversalDispatchError(f"handler for {lane} asserted runtime observation")
     return normalized
 
