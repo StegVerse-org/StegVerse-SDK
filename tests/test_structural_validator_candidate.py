@@ -322,7 +322,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
                     disagreements.append((instance, schema))
         self.assertEqual(disagreements, [])
-        self.assertIn(CONTRACT["contract_version"], ("1.1", "1.2"))
+        self.assertIn(CONTRACT["contract_version"], ("1.1", "1.2", "1.3"))
 
     def test_contract_1_1_diagnostics_and_malformed_bounds(self):
         codes = lambda instance, schema: [e["code"] for e in self.check_case(instance, schema, False)["errors"]]
@@ -337,7 +337,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
                 self.assertEqual([e["code"] for e in result["errors"]], [code])
         # pattern and format stay outside the contract (T13 undecided).
-        for key in ("pattern", "format"):
+        for key in ("format",):
             with self.subTest(key=key):
                 schema = {key: "x"}
                 result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
@@ -356,7 +356,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         self.assertEqual(codes({"items": {"$id": "x"}}), ["UNSUPPORTED_KEYWORD:$id"])
         self.assertEqual(codes({"$schema": uri, "$ref": "#/$defs/a", "$defs": {"a": {}}}),
                          ["UNSUPPORTED_KEYWORD:$defs", "UNSUPPORTED_KEYWORD:$ref"])
-        self.assertEqual(CONTRACT["contract_version"], "1.2")
+        self.assertIn(CONTRACT["contract_version"], ("1.2", "1.3"))
         self.assertEqual(CONTRACT["root_identity_keywords"]["$schema"], uri)
         Draft202012Validator = reference_validator(self)
         values, schemas = self._generated_corpus()
@@ -369,6 +369,53 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
                     disagreements.append((instance, schema))
         self.assertEqual(disagreements, [])
+
+    # Ecosystem patterns observed by the StegDB contract report (SDK, StegCore, LLM-adapter).
+    ECOSYSTEM_PATTERNS = ["^[0-9a-f]{64}$", "^sha256:[0-9a-f]{64}$", "^[a-fA-F0-9]{64}$", "^[a-f0-9]{40}$",
+                          "^(sha256:)?[a-fA-F0-9]{64}$", "^ecosystem://", "^sha256:", "^[A-Za-z0-9._-]{3,80}$",
+                          "^design_[a-z0-9._-]+$", "^[A-Z]{3}$", "^OC-[0-9]{3,}$", "^svmr_[A-Za-z0-9_\\-]+$",
+                          "^ai:[a-z0-9\\-\\.]+$", "^STEGVA-FIN-[A-Z0-9-]{8,64}$", "^[0-9]+(\\.[0-9]{2})$",
+                          "^HIL-RECEIPT-[A-Z0-9-]+$"]
+
+    def test_contract_1_3_pattern_agrees_with_reference_on_ecosystem_patterns(self):
+        Draft202012Validator = reference_validator(self)
+        digest64 = "a" * 64
+        strings = ["", "a", "abc", "ABC", digest64, "sha256:" + digest64, "sha256:" + digest64.upper(), digest64[:40],
+                   "ecosystem://x", "design_a.b-c", "OC-123", "OC-12", "svmr_A-b_9", "ai:x.y-z", "ai:X",
+                   "STEGVA-FIN-ABCDEFGH", "STEGVA-FIN-ABC", "12.50", "12.5", "HIL-RECEIPT-AB-1", "x" + digest64,
+                   digest64 + "x", "naïve", "ab c"]
+        disagreements = []
+        for pattern in self.ECOSYSTEM_PATTERNS:
+            schema = {"type": "string", "pattern": pattern}
+            digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+            self.assertTrue(check_schema(schema, digest)["valid"], pattern)
+            for value in strings:
+                if validate(value, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(value):
+                    disagreements.append((pattern, value))
+        self.assertEqual(disagreements, [])
+
+    def test_contract_1_3_pattern_subset_fails_closed(self):
+        codes = lambda schema: [e["code"] for e in check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())["errors"]]
+        for pattern in ("(a+)+", "(a|b)*", "a*b*c", "a.b", "\\s", "\\b", "\\1", "(?=a)", "(?i)a", "a{2", "a**", "[[a]]", "x" * 300):
+            with self.subTest(pattern=pattern):
+                self.assertIn(codes({"pattern": pattern})[0], ("UNSUPPORTED_PATTERN", "INVALID_PATTERN"))
+        for pattern in ("(", "[a", "a{3,2}", "", 1):
+            with self.subTest(pattern=pattern):
+                self.assertEqual(codes({"pattern": pattern}), ["INVALID_PATTERN"])
+        self.assertEqual(codes({"pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z0-9_]+)+$"}), ["UNSUPPORTED_PATTERN"])
+
+    def test_contract_1_3_pattern_diagnostics_and_ecma_end_anchor(self):
+        schema = {"type": "string", "pattern": "^ab$"}
+        self.assertEqual([e["code"] for e in self.check_case("abc", schema, False)["errors"]], ["PATTERN"])
+        self.check_case("ab", schema, True)
+        # Python re lets $ match before a trailing newline; ECMA-262 does not. The candidate
+        # follows ECMA and rejects (fail-closed divergence from the Python reference).
+        self.assertEqual([e["code"] for e in self.check_case("ab\n", schema, False)["errors"]], ["PATTERN"])
+        long_value = "a" * (CONTRACT["pattern_subset"]["max_input_length"] + 1)
+        self.assertEqual([e["code"] for e in self.check_case(long_value, {"pattern": "^a+$"}, False)["errors"]],
+                         ["PATTERN_INPUT_TOO_LONG"])
+        self.check_case(5, {"pattern": "^a$"}, True)  # pattern applies to strings only
+        self.assertEqual(CONTRACT["contract_version"], "1.3")
 
 if __name__ == "__main__":
     unittest.main()
