@@ -526,6 +526,9 @@ def _validate_governance_runtime_result(
     action = result.get("manifest_directed_action")
     task_id = request.get("canonical_task_id")
     if task_id == "ORGANIZATION-BATCH-CUSTODY-REPLAY-001":
+        # This legacy batch contract declares an explicit governance-dependent
+        # action. Do not generalize its dependency to other manifested paths:
+        # a governance disposition never controls an unrelated packet operation.
         if disposition == "ALLOW":
             if not isinstance(action, Mapping):
                 raise ValueError("ORGANIZATION_BATCH_ACTION_RESULT_REQUIRED_AFTER_ALLOW")
