@@ -81,11 +81,16 @@ def test_both_sdk_preparation_paths_preserve_manifest_and_handoff_evidence(frame
     assert result["evidence_class"] == "SDK_LOCAL_MANIFEST_HANDOFF"
 
 
-def test_framework_does_not_fallback_when_canonical_source_is_unavailable():
+def test_framework_uses_pinned_boundary_when_legacy_source_fetcher_is_unavailable():
+    """T2: the installed pinned snapshot is independent of network/source fixtures."""
     def unavailable(_):
         raise ValueError("source-fixture-unavailable")
     kwargs = dict(data={}, source_framework="fixture", source_output_id="fixture",
                   processor_request=governance_request(), created_at="2026-10-05T00:00:00Z")
-    with pytest.raises(ValueError, match="source-fixture-unavailable"):
-        manifest_external_framework_submission(
-            **kwargs, **readiness(**kwargs), canonical_source_fetcher=unavailable)
+    prepared = manifest_external_framework_submission(
+        **kwargs, **readiness(**kwargs), canonical_source_fetcher=unavailable)
+    result = prepared["handoff"]
+    assert result["disposition"] == "ALLOW"
+    assert result["receiver_contacted"] is False
+    assert result["organization_receipt_observed"] is False
+    assert result["evidence_class"] == "SDK_LOCAL_MANIFEST_HANDOFF"
