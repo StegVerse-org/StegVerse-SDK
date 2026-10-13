@@ -14,3 +14,20 @@ def test_invalid_packet_is_non_allow(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(candidate)])
     assert main() == 1
     assert "FAIL_CLOSED: SCHEMA_INVALID" in capsys.readouterr().out
+
+
+def test_valid_fixture_still_passes(monkeypatch, capsys):
+    source = Path("examples/universal_entry/site_chat_good_morning.json")
+    monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(source)])
+    assert main() == 0
+    assert "PASS:" in capsys.readouterr().out
+
+
+def test_schema_failure_reports_non_allow_not_traceback(tmp_path, monkeypatch, capsys):
+    packet = json.loads(Path("examples/universal_entry/site_chat_good_morning.json").read_text(encoding="utf-8"))
+    packet["routing"] = "invalid"
+    candidate = tmp_path / "invalid-routing.json"
+    candidate.write_text(json.dumps(packet), encoding="utf-8")
+    monkeypatch.setattr("sys.argv", ["verify_universal_entry_envelope", str(candidate)])
+    assert main() == 1
+    assert "FAIL_CLOSED: SCHEMA_INVALID routing:" in capsys.readouterr().out
