@@ -13,7 +13,14 @@ MAX_PATTERN_LENGTH = 256
 MAX_PATTERN_INPUT_LENGTH = 4096
 MAX_UNBOUNDED_QUANTIFIERS = 1
 SUPPORTED = {"type", "required", "properties", "additionalProperties", "items", "enum", "const", "minLength", "maxLength", "minimum", "maximum",
-             "minItems", "maxItems", "uniqueItems", "pattern", "format"}
+             "minItems", "maxItems", "uniqueItems", "pattern", "format", "exclusiveMinimum", "exclusiveMaximum",
+             "allOf", "if", "then", "else", "$ref"}
+# Composition and references (contract 1.6): $defs only at the root, $ref only to "#/$defs/<name>"
+# with a plain name, no reference cycles, and a bounded evaluation budget. Remote, relative,
+# anchor and nested-$defs references stay unsupported and fail closed.
+ROOT_DEFINITIONS = "$defs"
+LOCAL_REF_PREFIX = "#/$defs/"
+MAX_EVALUATION_STEPS = 200_000
 # format (T13b) is asserted, not annotated, so the SDK validator can replace jsonschema
 # FormatChecker uses without the optional rfc3339-validator dependency. Stdlib only.
 SUPPORTED_FORMATS = ("date", "date-time")
@@ -34,7 +41,9 @@ TYPES = {"null": lambda v: v is None, "boolean": lambda v: type(v) is bool,
 # accepts, never the reverse.
 CONTRACT = {
     "dialect": DIALECT,
-    "contract_version": "1.5",
+    "contract_version": "1.6",
+    "composition": {"keywords": ["allOf", "if", "then", "else"], "references": "$ref to #/$defs/<name> only; $defs at the root only; cycles rejected",
+                    "max_evaluation_steps": MAX_EVALUATION_STEPS},
     "format": {"asserted": list(SUPPORTED_FORMATS), "standard": "RFC 3339 (date, date-time); calendar-checked; leap second 60 rejected",
                "other_values": "rejected (UNSUPPORTED_FORMAT)"},
     "pattern_subset": {"dialect": "intersection of Python re (ASCII) and ECMA-262", "max_length": MAX_PATTERN_LENGTH,
@@ -50,7 +59,9 @@ CONTRACT = {
     "divergences_fail_closed": [
         "integer-valued floats such as 1.0 are not type integer",
         "boolean subschemas (true/false) are unsupported",
-        "$ref, $defs and every keyword outside supported_keywords are rejected; $schema and $id only at the root",
+        "every keyword outside supported_keywords is rejected; $schema, $id and $defs only at the root",
+        "$ref other than #/$defs/<name>, and reference cycles, are rejected",
+        "evaluation beyond max_evaluation_steps is rejected (EVALUATION_BUDGET_EXCEEDED)",
         "$schema other than the 2020-12 URI is rejected",
         "external registries and dialects other than this one are rejected",
         "schemas nested deeper than max_schema_depth or not JSON-encodable are rejected",
@@ -250,12 +261,61 @@ def _format_ok(fmt, value):
         return int(m.group(8)) <= 23 and int(m.group(9)) <= 59
     return True
 
-def _preflight(spec, path, error, depth=0):
+def _ref_name(ref, definitions):
+    """The $defs entry a supported local reference names, else None."""
+    if not isinstance(ref, str) or not ref.startswith(LOCAL_REF_PREFIX):
+        return None
+    name = ref[len(LOCAL_REF_PREFIX):]
+    if not name or any(c in name for c in "/~%#") or name not in definitions:
+        return None
+    return name
+
+def _ref_targets(spec):
+    """Names referenced from spec without crossing into $defs (iterative)."""
+    names, stack = set(), [spec]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            ref = node.get("$ref")
+            if isinstance(ref, str) and ref.startswith(LOCAL_REF_PREFIX):
+                names.add(ref[len(LOCAL_REF_PREFIX):])
+            stack.extend(v for k, v in node.items() if k != ROOT_DEFINITIONS and isinstance(v, (dict, list)))
+        elif isinstance(node, list):
+            stack.extend(v for v in node if isinstance(v, (dict, list)))
+    return names
+
+def _ref_cycle(definitions):
+    """True when any $defs entry reaches itself through references."""
+    edges = {name: _ref_targets(spec) & definitions.keys() for name, spec in definitions.items()}
+    for start in edges:
+        seen, stack = set(), list(edges[start])
+        while stack:
+            name = stack.pop()
+            if name == start:
+                return True
+            if name not in seen:
+                seen.add(name)
+                stack.extend(edges[name])
+    return False
+
+def _preflight_root(schema, error):
+    definitions = schema.get(ROOT_DEFINITIONS, {}) if isinstance(schema, dict) else {}
+    if not isinstance(definitions, dict) or any(not isinstance(k, str) for k in definitions):
+        error([ROOT_DEFINITIONS], "INVALID_DEFINITIONS")
+        definitions = {}
+    elif _ref_cycle(definitions):
+        error([ROOT_DEFINITIONS], "REF_CYCLE")
+    _preflight(schema, [], error, definitions=definitions)
+    for name in sorted(definitions):
+        _preflight(definitions[name], [ROOT_DEFINITIONS, name], error, 1, definitions)
+
+def _preflight(spec, path, error, depth=0, definitions=None):
     """Check every reachable subschema, including branches the instance never visits."""
+    definitions = {} if definitions is None else definitions
     if depth > MAX_SCHEMA_DEPTH or not isinstance(spec, dict):
         error(path, "INVALID_SCHEMA_OR_DEPTH")
         return
-    allowed = SUPPORTED | ANNOTATIONS | (ROOT_IDENTITY if depth == 0 else set())
+    allowed = SUPPORTED | ANNOTATIONS | (ROOT_IDENTITY | {ROOT_DEFINITIONS} if depth == 0 else set())
     for key in sorted(spec.keys() - allowed):
         error(path, "UNSUPPORTED_KEYWORD:" + key)
     if depth == 0 and "$schema" in spec and spec["$schema"] != REFERENCE_DIALECT_URI:
@@ -278,9 +338,20 @@ def _preflight(spec, path, error, depth=0):
     for key in ("minLength", "maxLength"):
         if key in spec and (type(spec[key]) is not int or spec[key] < 0):
             error(path, "INVALID_BOUND:" + key)
-    for key in ("minimum", "maximum"):
+    for key in ("minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum"):
         if key in spec and type(spec[key]) not in (int, float):
             error(path, "INVALID_BOUND:" + key)
+    if "$ref" in spec and _ref_name(spec["$ref"], definitions) is None:
+        error(path, "UNSUPPORTED_REF")
+    if "allOf" in spec:
+        if not isinstance(spec["allOf"], list) or not spec["allOf"]:
+            error(path, "INVALID_ALLOF")
+        else:
+            for i, sub in enumerate(spec["allOf"]):
+                _preflight(sub, path + ["allOf", i], error, depth + 1, definitions)
+    for key in ("if", "then", "else"):
+        if key in spec:
+            _preflight(spec[key], path + [key], error, depth + 1, definitions)
     for key in ("minItems", "maxItems"):
         if key in spec and (type(spec[key]) is not int or spec[key] < 0):
             error(path, "INVALID_BOUND:" + key)
@@ -302,9 +373,9 @@ def _preflight(spec, path, error, depth=0):
         error(path, "INVALID_PROPERTIES")
     else:
         for k in sorted(props):
-            _preflight(props[k], path + ["properties", k], error, depth + 1)
+            _preflight(props[k], path + ["properties", k], error, depth + 1, definitions)
     if "items" in spec:
-        _preflight(spec["items"], path + ["items"], error, depth + 1)
+        _preflight(spec["items"], path + ["items"], error, depth + 1, definitions)
 
 def _admit_schema(schema, schema_digest, dialect, registry):
     def refused(code):
@@ -319,7 +390,7 @@ def _admit_schema(schema, schema_digest, dialect, registry):
     if actual != schema_digest:
         return refused("SCHEMA_DIGEST_MISMATCH")
     errors = []
-    _preflight(schema, [], lambda path, code: errors.append({"path": pointer(path), "code": code}))
+    _preflight_root(schema, lambda path, code: errors.append({"path": pointer(path), "code": code}))
     return {"valid": not errors, "errors": errors, "schema_digest": actual, "dialect": dialect, "authority_effect": "NONE"}
 
 def check_schema(schema, schema_digest, dialect=DIALECT, registry=None):
@@ -336,14 +407,33 @@ def validate(instance, schema, schema_digest, dialect=DIALECT, registry=None):
     if finding is not None:
         return {"valid": False, "errors": [finding], "schema_digest": actual, "dialect": dialect, "authority_effect": "NONE"}
     errors = []
-    def error(path, code):
-        errors.append({"path": pointer(path), "code": code})
-    def visit(value, spec, path, depth=0):
+    definitions = schema.get(ROOT_DEFINITIONS, {})
+    budget = [MAX_EVALUATION_STEPS]
+    def visit(value, spec, path, depth=0, sink=errors):
+        def error(where, code):
+            sink.append({"path": pointer(where), "code": code})
+        budget[0] -= 1
+        if budget[0] < 0:
+            error(path, "EVALUATION_BUDGET_EXCEEDED")
+            return
         if depth > MAX_SCHEMA_DEPTH or not isinstance(spec, dict):
             error(path, "INVALID_SCHEMA_OR_DEPTH")
             return
-        for key in sorted(spec.keys() - SUPPORTED - ANNOTATIONS - (ROOT_IDENTITY if depth == 0 else set())):
+        for key in sorted(spec.keys() - SUPPORTED - ANNOTATIONS - (ROOT_IDENTITY | {ROOT_DEFINITIONS} if depth == 0 else set())):
             error(path, "UNSUPPORTED_KEYWORD:" + key)
+        if "$ref" in spec:
+            visit(value, definitions[_ref_name(spec["$ref"], definitions)], path, depth + 1, sink)
+        for sub in spec.get("allOf", []):
+            visit(value, sub, path, depth + 1, sink)
+        if "if" in spec:
+            trial = []
+            visit(value, spec["if"], path, depth + 1, trial)
+            if any(e["code"] == "EVALUATION_BUDGET_EXCEEDED" for e in trial):
+                error(path, "EVALUATION_BUDGET_EXCEEDED")
+            elif not trial and "then" in spec:
+                visit(value, spec["then"], path, depth + 1, sink)
+            elif trial and "else" in spec:
+                visit(value, spec["else"], path, depth + 1, sink)
         types = spec.get("type")
         if types is not None:
             choices = types if isinstance(types, list) else [types]
@@ -374,12 +464,12 @@ def validate(instance, schema, schema_digest, dialect=DIALECT, registry=None):
                 error(path, "UNSUPPORTED_ADDITIONAL_PROPERTIES")
             for k in sorted(value):
                 if k in props:
-                    visit(value[k], props[k], path + [k], depth + 1)
+                    visit(value[k], props[k], path + [k], depth + 1, sink)
                 elif extra is False:
                     error(path + [k], "ADDITIONAL_PROPERTY")
         if isinstance(value, list) and "items" in spec:
             for i, item in enumerate(value):
-                visit(item, spec["items"], path + [i], depth + 1)
+                visit(item, spec["items"], path + [i], depth + 1, sink)
         if isinstance(value, list):
             if "minItems" in spec and len(value) < spec["minItems"]:
                 error(path, "MINITEMS")
@@ -400,6 +490,11 @@ def validate(instance, schema, schema_digest, dialect=DIALECT, registry=None):
                 error(path, "PATTERN_INPUT_TOO_LONG")
             elif not _pattern_matches(spec["pattern"], value):
                 error(path, "PATTERN")
+        if type(value) in (int, float):
+            if type(spec.get("exclusiveMinimum")) in (int, float) and not value > spec["exclusiveMinimum"]:
+                error(path, "EXCLUSIVEMINIMUM")
+            if type(spec.get("exclusiveMaximum")) in (int, float) and not value < spec["exclusiveMaximum"]:
+                error(path, "EXCLUSIVEMAXIMUM")
         for key, kind in (("minLength", str), ("maxLength", str), ("minimum", (int, float)), ("maximum", (int, float))):
             if key not in spec:
                 continue
