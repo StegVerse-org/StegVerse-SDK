@@ -1,0 +1,92 @@
+{
+  "authority_effect": "NONE",
+  "canonical_dispositions": {
+    "intr_admission": "UNKNOWN_NOT_AUTHENTICALLY_OBSERVED",
+    "master_records_reconstruction": "UNKNOWN_NOT_AUTHENTICALLY_OBSERVED (non-gating, never awaited)",
+    "organization_runtime_reality_for_sdk_484": "UNKNOWN_NOT_AUTHENTICALLY_OBSERVED"
+  },
+  "external_machine_awaited": false,
+  "issue": "StegVerse-org/StegVerse-SDK#484",
+  "next_predicates": [
+    "Labs patch 0002 merged (endpoint --envelope alias)",
+    "SDK-ingress governance path produces stegverse.org-governance-decision-request/v1 bound to the submitted manifest",
+    "issuer standing declared by the destination registry or manifest chain position, not a session default",
+    "canonical run of resident-runtime/organization_manifest_ingress.py on the organization's materialized ledger locus"
+  ],
+  "organization_ledger_readback": {
+    "evidence_class": "AUTHENTIC_READBACK_OF_CANONICAL_LEDGER_HEAD",
+    "head_commit": "9f0a53e5029a2587d2b4ac24e93f557c99238099",
+    "head_commit_time": "2026-10-12T02:31:49Z",
+    "head_org_transition_class": "REPO_STATE_PROPAGATION",
+    "head_receipt_recomputed": "MATCH (sha256 of canonical compact JSON without receipt_sha256)",
+    "head_receipt_sha256": "sha256:29ac732cfd9851c397e53e4166d52f57acb68d550334afff6f6049e2c9270d2f",
+    "ref": "StegVerse-Labs/.github:refs/stegverse/organization-ledger",
+    "sdk_484_transition_present": false
+  },
+  "recorded_at": "2026-10-13T15:45:00Z",
+  "sandbox_ledgers_are_canonical": false,
+  "schema": "stegverse.sdk-484-t6-attempt-record/v1",
+  "sdk_source_identity": {
+    "blobs": {
+      "schemas/universal-entry-envelope.schema.v0.1.json": "ef8a5d1d88d6386e6663482f5b819e569233faeb",
+      "scripts/verify_universal_entry_envelope.py": "0f274f585a430225c99ec1e299c14df24392f4d7",
+      "stegverse/structural_validator_candidate.py": "2622031c0317afc7a41b1f95e6570d5e8bf62d5c",
+      "tests/test_structural_validator_candidate.py": "8d57b2ffc159fd45a37fa4d91c90cdee69224df7"
+    },
+    "blobs_unchanged_since": "0dccc886d5bbe98cf0f2f84570e4a55802ede20a",
+    "main_commit_at_attempt": "85c7e67d9ed7d88b89da22da469b1d0b5ad18035"
+  },
+  "steps": [
+    {
+      "awaits_external_machine": false,
+      "destination_operation": "ORGANIZATION_SDK_MANIFEST_INGRESS",
+      "disposition": "ALLOW",
+      "entrypoint": "stegverse.manifest_execution.execute_manifest",
+      "evidence_class": "SDK_LOCAL_MANIFEST_HANDOFF",
+      "manifest_ref": "evidence/sdk-484-t6/manifest.json",
+      "receiver_contacted": false,
+      "result_ref": "evidence/sdk-484-t6/sdk-handoff.json",
+      "route_id": "stegverse.route.canonical-governed.v1",
+      "state": "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF",
+      "step": "SDK_MANIFEST_HANDOFF"
+    },
+    {
+      "detail": "CROSSING_REQUIRES_DECLARED_STANDING",
+      "disposition": "FAIL_CLOSED",
+      "evidence_class": "SANDBOX_RUNTIME_OBSERVED",
+      "failed_predicate": "CROSSING_IS_DRIVABLE_FROM_THE_MANIFEST_AS_DECLARED",
+      "receiver": "StegVerse-Labs/.github@77f65ae4f0fe5825f355222e5d23cfdc40b4ec07:resident-runtime/organization_manifest_ingress.py",
+      "refusal_recorded_in_sandbox_ledger": true,
+      "result_ref": "evidence/sdk-484-t6/sandbox-org-ingress-1-no-standing.json",
+      "standing": null,
+      "step": "ORGANIZATION_INGRESS_SANDBOX_1"
+    },
+    {
+      "detail": "governance_endpoint.py rejects the --envelope argument process_boundary.py passes",
+      "disposition": "FAIL_CLOSED",
+      "evidence_class": "SANDBOX_RUNTIME_OBSERVED",
+      "failed_predicate": "ADMITTED_CROSSING_REACHES_ITS_INTERNAL_ENDPOINT",
+      "receiver": "StegVerse-Labs/.github@77f65ae4f0fe5825f355222e5d23cfdc40b4ec07",
+      "result_ref": "evidence/sdk-484-t6/sandbox-org-ingress-2-genesis-standing-labs-main.json",
+      "standing": {
+        "generation": 1,
+        "mode": "ESTABLISH_GENESIS",
+        "node_ref": "stegverse_sdk_session",
+        "predecessor": null
+      },
+      "step": "ORGANIZATION_INGRESS_SANDBOX_2"
+    },
+    {
+      "detail": "no producer of stegverse.org-governance-decision-request/v1 on the SDK-ingress governance path",
+      "disposition": "FAIL_CLOSED",
+      "evidence_class": "SANDBOX_RUNTIME_OBSERVED",
+      "failed_predicate": "GOVERNANCE_REQUEST_IS_BOUND_TO_THE_SUBMITTED_MANIFEST",
+      "note": "organization_receipt_observed=true refers to the ephemeral sandbox ledger only",
+      "received": true,
+      "receiver": "StegVerse-Labs/.github@77f65ae + unmerged patch 0002 (--envelope alias)",
+      "result_ref": "evidence/sdk-484-t6/sandbox-org-ingress-3-with-endpoint-fix.json",
+      "step": "ORGANIZATION_INGRESS_SANDBOX_3"
+    }
+  ],
+  "task_id_proposed": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001"
+}

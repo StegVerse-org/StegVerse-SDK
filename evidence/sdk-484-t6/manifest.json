@@ -1,0 +1,204 @@
+{
+  "attestation": null,
+  "candidate": {
+    "action": "adopt",
+    "actor_class": "external_framework",
+    "parameters": {
+      "canonical_task_id_proposed": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001",
+      "contract_version": "1.6",
+      "external_side_effect": false,
+      "source_blob_ids": {
+        "schemas/universal-entry-envelope.schema.v0.1.json": "ef8a5d1d88d6386e6663482f5b819e569233faeb",
+        "scripts/verify_universal_entry_envelope.py": "0f274f585a430225c99ec1e299c14df24392f4d7",
+        "stegverse/structural_validator_candidate.py": "2622031c0317afc7a41b1f95e6570d5e8bf62d5c",
+        "tests/test_structural_validator_candidate.py": "8d57b2ffc159fd45a37fa4d91c90cdee69224df7"
+      }
+    },
+    "scope": "sdk_structural_validator_consolidation_migration",
+    "target": "StegVerse-org/StegVerse-SDK:stegverse/structural_validator_candidate.py"
+  },
+  "canonicalization_profile": "steggate.jcs.v1",
+  "completion": {
+    "direction": "SOUTH",
+    "egress": {
+      "far_side_transition_required": true,
+      "final_stegverse_transition_surface": "LLM_ADAPTER",
+      "transport": "INTERLOCK_INTR"
+    },
+    "initiator": {
+      "class": "external_framework",
+      "ref": "stegverse_sdk_session"
+    }
+  },
+  "context_refs": [],
+  "created_at": "2026-10-13T15:30:00Z",
+  "declared_intent": "Adopt SDK-native structural validator (contract 1.6) as consolidated validator under SDK #484",
+  "extensions": {
+    "capability_resolution": {
+      "authority_effect": "NONE_CLASSIFICATION_ONLY",
+      "capability": "governance",
+      "next_action": "BUILD_AND_SUBMIT_MANIFEST",
+      "route_id": "stegverse.route.canonical-governed.v1",
+      "schema": "stegverse.manifest-capability-resolution.v1",
+      "solution_required": false,
+      "status": "ONLINE"
+    },
+    "manifest_builder": {
+      "automatic_route_substitution_permitted": false,
+      "builder_grants_authority": false,
+      "capability_status": "ONLINE",
+      "compatible_routes": [
+        {
+          "automatic_substitution_permitted": false,
+          "execution_profile": "LOCAL_CONFORMANCE",
+          "operational_availability": "REQUIRES_EXECUTION_PROFILE_EVIDENCE",
+          "route_id": "stegverse.route.customer-local-governed.v1",
+          "sdk_runtime_binding_installed": true
+        },
+        {
+          "automatic_substitution_permitted": false,
+          "execution_profile": "ECOSYSTEM_CONNECTED",
+          "operational_availability": "REQUIRES_EXECUTION_PROFILE_EVIDENCE",
+          "route_id": "stegverse.route.canonical-governed.v1",
+          "sdk_runtime_binding_installed": true
+        }
+      ],
+      "execution_profile": "ECOSYSTEM_CONNECTED",
+      "external_review_requested": false,
+      "processing_capability": "governance",
+      "profile": "stegverse.manifest-builder.v1",
+      "publisher_required_by_review_default": false,
+      "publisher_selected_by_destination": false,
+      "return_depth": "result+evidence",
+      "route_id": "stegverse.route.canonical-governed.v1",
+      "source_semantic_custody": "EXTERNAL"
+    },
+    "stegverse_governance_request": {
+      "approval": {
+        "required": true,
+        "status": "OWNER_INTENT_ONLY_NOT_RUNTIME_ADMISSION"
+      },
+      "candidate": {
+        "action": "adopt",
+        "actor_class": "external_framework",
+        "parameters": {
+          "canonical_task_id_proposed": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001",
+          "contract_version": "1.6",
+          "external_side_effect": false,
+          "source_blob_ids": {
+            "schemas/universal-entry-envelope.schema.v0.1.json": "ef8a5d1d88d6386e6663482f5b819e569233faeb",
+            "scripts/verify_universal_entry_envelope.py": "0f274f585a430225c99ec1e299c14df24392f4d7",
+            "stegverse/structural_validator_candidate.py": "2622031c0317afc7a41b1f95e6570d5e8bf62d5c",
+            "tests/test_structural_validator_candidate.py": "8d57b2ffc159fd45a37fa4d91c90cdee69224df7"
+          }
+        },
+        "scope": "sdk_structural_validator_consolidation_migration",
+        "target": "StegVerse-org/StegVerse-SDK:stegverse/structural_validator_candidate.py"
+      },
+      "capability": {
+        "allowed": true
+      },
+      "continuity": {
+        "required": false
+      },
+      "execution": {
+        "actor_authority_current": null,
+        "affected_entity_conditions_represented": true,
+        "delegation_current": null,
+        "delegation_ref": "StegVerse-Labs/.github:control/goal-task-allocation-requests/sdk-484-structural-validator-2026-10-13.json",
+        "evidence_current": false,
+        "evidence_refs": [
+          "StegVerse-org/StegVerse-SDK#484",
+          "StegVerse-org/StegVerse-SDK#518",
+          "StegVerse-org/StegVerse-SDK#519",
+          "StegVerse-org/StegVerse-SDK:evidence/validator-source-provenance-candidate-2026-10-13.json"
+        ],
+        "policy_current": true,
+        "policy_ref": "StegVerse-Labs/.github:data/task-registry-global-invariants.json",
+        "recoverability_profile": "recoverable",
+        "validity_window_open": true
+      },
+      "judgment": {
+        "evidence_refs": [
+          "StegVerse-org/StegVerse-SDK#484",
+          "StegVerse-org/StegVerse-SDK#518",
+          "StegVerse-org/StegVerse-SDK#519",
+          "StegVerse-org/StegVerse-SDK:evidence/validator-source-provenance-candidate-2026-10-13.json"
+        ],
+        "isolation_state": "supported",
+        "operator_recoverability": "available",
+        "refusal_available": true,
+        "time_pressure": "normal",
+        "workload_state": "supported"
+      },
+      "permission_present": false,
+      "signal": {
+        "admitted_signal_refs": [
+          "StegVerse-org/StegVerse-SDK#484",
+          "StegVerse-org/StegVerse-SDK#518",
+          "StegVerse-org/StegVerse-SDK#519",
+          "StegVerse-org/StegVerse-SDK:evidence/validator-source-provenance-candidate-2026-10-13.json"
+        ],
+        "excluded_signal_refs": [],
+        "expected_reference_state_hash": null,
+        "missing_inputs": [
+          "AUTHENTICATED_TV_TVC_PROVENANCE",
+          "CANONICAL_GOAL_TASK_REGISTRATION_MERGED"
+        ],
+        "reconstruction_available": true,
+        "reference_state_hash": null,
+        "transformation_provenance_complete": true,
+        "transformations": [],
+        "uncertainty_state": "bounded"
+      }
+    },
+    "stegverse_route": {
+      "containment": "PRODUCTION_ROUTE_BOUNDED_CONSEQUENCE",
+      "external_consequence_enabled": false,
+      "lane_class": "PRODUCTION_VALIDATION",
+      "route_id": "stegverse.route.canonical-governed.v1",
+      "routing_surface": "CANONICAL_PRODUCTION",
+      "sandbox_required": false
+    }
+  },
+  "freshness": {},
+  "hashes": {
+    "candidate_sha256": "bd2c0d44f5a48ad1a05367df3e1b3196b8e6ab1f5fb03ecc6b0923edbef2d504",
+    "payload_sha256": "a013ad4994aa5778e2778c0b37c2026a6061611eb3104c6de2af0eb287e04382"
+  },
+  "manifest_labels": {
+    "mode": "NONE"
+  },
+  "manifest_profile": "stegverse.ingress-manifest.v1",
+  "manifest_profile_version": "1",
+  "payload": {
+    "issue": "StegVerse-org/StegVerse-SDK#484",
+    "sdk_source_identity": {
+      "blobs": {
+        "schemas/universal-entry-envelope.schema.v0.1.json": "ef8a5d1d88d6386e6663482f5b819e569233faeb",
+        "scripts/verify_universal_entry_envelope.py": "0f274f585a430225c99ec1e299c14df24392f4d7",
+        "stegverse/structural_validator_candidate.py": "2622031c0317afc7a41b1f95e6570d5e8bf62d5c",
+        "tests/test_structural_validator_candidate.py": "8d57b2ffc159fd45a37fa4d91c90cdee69224df7"
+      },
+      "commit": "0dccc886d5bbe98cf0f2f84570e4a55802ede20a"
+    }
+  },
+  "processing": {
+    "capability": "governance",
+    "route_id": "stegverse.route.canonical-governed.v1"
+  },
+  "requested_consequence": "governed validator migration",
+  "return_projection": {
+    "mode": "SELECTED",
+    "transition_classes": [
+      "ingestion",
+      "governance",
+      "consequence",
+      "return_ingestion",
+      "custody"
+    ]
+  },
+  "source_framework": "stegverse_sdk_session",
+  "source_instance": null,
+  "source_output_id": "sdk-484-t6-validator-migration-20261013"
+}
