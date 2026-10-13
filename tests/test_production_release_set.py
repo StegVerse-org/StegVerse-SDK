@@ -141,3 +141,50 @@ def test_replay_comparison_reports_the_schema_migration_and_verifies_the_origina
 def test_unknown_schema_is_not_verified():
     result = prs.verify_release_set({"schema": "stegverse.production-release-set.v9", "components": []})
     assert result == {**result, "verified": False, "reason": "unknown_release_set_schema"}
+
+
+def _only(installed):
+    def lookup(name):
+        if name in installed:
+            return installed[name]
+        raise prs.metadata.PackageNotFoundError(name)
+    return lookup
+
+
+def test_public_stegcore_distribution_is_recognised_under_its_source_role(monkeypatch):
+    public = FakeDistribution({})
+    public.version = "0.3.0"
+    monkeypatch.setattr(prs.metadata, "distribution", _only({"stegverse-stegcore": public}))
+    row = prs._installed_component({"role": "governance_runtime", "distribution": "stegcore",
+                                    "repository": "StegVerse-Labs/StegCore"})
+    assert row["installed"] is True
+    assert row["version"] == "0.3.0"
+    assert row["distribution"] == "stegcore"
+    assert row["installed_distribution"] == "stegverse-stegcore"
+
+
+def test_source_distribution_name_wins_and_leaves_the_row_unchanged(monkeypatch):
+    source = FakeDistribution({"url": "u", "vcs_info": {"commit_id": "a" * 40, "requested_revision": "a" * 40}})
+    monkeypatch.setattr(prs.metadata, "distribution", _only({"stegcore": source, "stegverse-stegcore": source}))
+    row = prs._installed_component({"role": "governance_runtime", "distribution": "stegcore",
+                                    "repository": "StegVerse-Labs/StegCore"})
+    assert row["installed"] is True
+    assert "installed_distribution" not in row
+
+
+def test_release_set_with_public_stegcore_still_verifies_under_v2(monkeypatch):
+    public = FakeDistribution({})
+    monkeypatch.setattr(prs.metadata, "distribution", _only({
+        "stegverse-sdk": public, "stegverse-stegcore": public, "stegverse-core-lite": public}))
+    recorded = prs.installed_release_set()
+    assert recorded["all_components_installed"] is True
+    assert prs.verify_release_set(recorded)["verified"] is True
+
+
+def test_absent_stegcore_under_either_name_is_not_installed(monkeypatch):
+    monkeypatch.setattr(prs.metadata, "distribution", _only({}))
+    row = prs._installed_component({"role": "governance_runtime", "distribution": "stegcore",
+                                    "repository": "StegVerse-Labs/StegCore"})
+    assert row["installed"] is False
+    assert row["release_binding_status"] == "NOT_INSTALLED"
+    assert "installed_distribution" not in row
