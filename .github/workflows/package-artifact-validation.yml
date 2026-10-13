@@ -129,11 +129,16 @@ jobs:
           assert metadata['Version'] == expected_version, (metadata['Version'], expected_version)
           assert metadata['Requires-Python'] == expected_python, (metadata['Requires-Python'], expected_python)
           requires = metadata.get_all('Requires-Dist') or []
-          required_fragments = ('requests>=2.28.0', 'pyyaml>=6.0', 'python-dotenv>=0.19.0')
+          required_fragments = ('requests>=2.28.0',)
+          # Never imported; removed 2026-10-13. Dependencies are reduced, never added back.
+          removed_fragments = ('pyyaml', 'python-dotenv')
           compact = [r.replace(' ', '') for r in requires]
           for expected in required_fragments:
               if not any(expected in r for r in compact):
                   raise SystemExit(f'MISSING_REQUIRES_DIST:{expected}:{requires!r}')
+          for removed in removed_fragments:
+              if any(r.lower().startswith(removed) for r in compact):
+                  raise SystemExit(f'REMOVED_DEPENDENCY_REINTRODUCED:{removed}:{requires!r}')
           for script, target in expected_scripts.items():
               expected = f'{script} = {target}'
               if expected not in entries:

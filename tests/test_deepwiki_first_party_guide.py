@@ -13,7 +13,7 @@ SOURCE_LINK = re.compile(
 )
 EXACT_LINES = (
     ("pyproject.toml", 29, "requests>=2.28.0"),
-    ("pyproject.toml", 30, "pyyaml>=6.0"),
+    # pyproject.toml line 30 "pyyaml>=6.0" removed 2026-10-13: never imported.
     # Pins below keep their literal and move to the literal's current line
     # when a merged change moves it; the guide links stay frozen at PIN.
     # L211 previously; drifted across route/profile publications to 267, then

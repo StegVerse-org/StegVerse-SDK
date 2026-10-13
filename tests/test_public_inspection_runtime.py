@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 
 from stegverse.production_validation_runtime import (
     PublicInspectionRuntimeError,
-    _preflight_stegcore,
     _runtime_input,
     run_public_inspection_test,
 )
@@ -181,18 +180,6 @@ class Tests(unittest.TestCase):
             self.assertTrue(result[field], field)
         self.assertFalse(result["consequence_committed"])
 
-    @patch("stegverse.production_validation_runtime.requests.get")
-    def test_preflight_requires_deployed_manifested_stegcore_surface(self, get):
-        get.return_value = Mock(
-            status_code=200,
-            json=lambda: {
-                "runtime_identity": "stegverse:steggate:canonical:three-layer:v1",
-                "manifested_validation_endpoint": "/v1/manifested-validation",
-            },
-        )
-        identity = _preflight_stegcore("https://stegcore.example")
-        self.assertEqual("/v1/manifested-validation", identity["manifested_validation_endpoint"])
-
     def _stegcore_response(self):
         return Mock(
             status_code=200,
@@ -203,11 +190,11 @@ class Tests(unittest.TestCase):
             },
         )
 
+    @patch("stegverse.production_validation_runtime.requests.get")
     @patch("stegverse.production_validation_runtime.requests.post")
-    @patch("stegverse.production_validation_runtime._preflight_stegcore", return_value={"runtime_identity": "stegverse:steggate:canonical:three-layer:v1", "manifested_validation_endpoint": "/v1/manifested-validation"})
     @patch("stegverse.production_validation_runtime._load_route_carrier", return_value=(Carrier, RouteError, make_manifest, lambda: []))
     @patch("stegverse.production_validation_runtime._load_stegcore", return_value=(build, Registry, Req, lambda req: Eval(), ManifestedModel))
-    def test_route_closes_on_organization_ledger_without_master_records(self, _core, _carrier, _core_preflight, post):
+    def test_route_closes_on_organization_ledger_without_master_records(self, _core, _carrier, post, get):
         post.return_value = self._stegcore_response()
         calls = []
         with patch.dict("os.environ", {}, clear=True):
@@ -218,6 +205,10 @@ class Tests(unittest.TestCase):
             )
         self.assertEqual("PRODUCTION_LANE_VALIDATION_TEST", result["runtime_mode"])
         self.assertEqual("https://stegcore.example", result["stegcore_service_url"])
+        # No liveness probe gates the transition; the identity comes from the
+        # verified manifested-validation result itself.
+        get.assert_not_called()
+        self.assertEqual("stegverse:steggate:canonical:three-layer:v1", result["stegcore_runtime_identity"])
         self.assertTrue(result["transaction_identity_continuous"])
         self.assertEqual(10, result["route_transition_count"])
         self.assertEqual(calls[0][0], "MF-" + "B" * 64)
@@ -229,10 +220,9 @@ class Tests(unittest.TestCase):
         self.assertTrue(post.call_args.args[0].endswith("/v1/manifested-validation"))
 
     @patch("stegverse.production_validation_runtime.requests.post")
-    @patch("stegverse.production_validation_runtime._preflight_stegcore", return_value={"runtime_identity": "stegverse:steggate:canonical:three-layer:v1", "manifested_validation_endpoint": "/v1/manifested-validation"})
     @patch("stegverse.production_validation_runtime._load_route_carrier", return_value=(Carrier, RouteError, make_manifest, lambda: []))
     @patch("stegverse.production_validation_runtime._load_stegcore", return_value=(build, Registry, Req, lambda req: Eval(), ManifestedModel))
-    def test_master_records_recording_failure_does_not_gate_the_run(self, _core, _carrier, _core_preflight, post):
+    def test_master_records_recording_failure_does_not_gate_the_run(self, _core, _carrier, post):
         unavailable = Mock(status_code=503, text="receiver unavailable")
         post.side_effect = [self._stegcore_response(), unavailable]
         result = run_public_inspection_test(
