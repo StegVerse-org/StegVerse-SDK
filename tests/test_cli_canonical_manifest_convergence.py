@@ -201,21 +201,17 @@ class ConvergenceTests(unittest.TestCase):
         self.assertEqual(output["failed_predicate"], "CUSTOMER_LOCAL_HOST_BINDINGS_REQUIRED")
         fetched.assert_not_called()
 
-    def test_missing_organization_boundary_fails_closed(self):
+    def test_unavailable_legacy_source_does_not_block_installed_boundary(self):
+        from stegverse.manifest_execution import _canonical_organization_boundary
+        def unavailable(_):
+            raise GitHubRepositoryFetcherError("source unavailable")
+        self.assertEqual(_canonical_organization_boundary(fetcher=unavailable), ORGANIZATION_BOUNDARY)
         manifest = governance_manifest()
-        rc, output, _ = self._run(
-            self._ready_0b_args(manifest),
-            boundary=GitHubRepositoryFetcherError("source unavailable"),
-        )
-        self.assertEqual(rc, 2)
-        result = output["result"]
-        self.assertEqual(output["disposition"], "FAIL_CLOSED")
-        self.assertEqual(result["failure_code"], "CANONICAL_ORGANIZATION_INGRESS_ENDPOINT_NOT_RESOLVED")
-        self.assertEqual(output["failed_predicate"], result["failed_predicate"])
-        self.assertIn("source unavailable", result["canonical_organization_boundary_unavailable"])
-        self.assertIs(result["receiver_availability_consulted"], False)
-        self.assertIs(result["external_machine_required"], False)
-        self.assertEqual(result["canonical_manifest_sha256"], validate_ingress_manifest(manifest)["canonical_manifest_sha256"])
+        rc, output, _ = self._run(self._ready_0b_args(manifest))
+        self.assertEqual(rc, 0)
+        self.assertEqual(output["disposition"], "ALLOW")
+        self.assertIs(output["result"]["receiver_contacted"], False)
+        self.assertIs(output["result"]["intr_admission_observed"], False)
 
     def test_handoff_performs_no_receiver_wait_or_probe(self):
         _, output, _ = self._run(self._ready_0b_args(governance_manifest()))
