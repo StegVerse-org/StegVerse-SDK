@@ -1,0 +1,10 @@
+{
+  "schema": "stegverse.unit-rate-card.v1",
+  "status": "CANDIDATE_PENDING_OWNER_DEFINITION",
+  "compute_unit_definition": "CANDIDATE: one GitHub-hosted Linux 2-core (x64) runner-minute. The ecosystem cost basis does not define compute_units; this definition is pending owner decision on StegVerse-org/StegVerse-SDK#484.",
+  "storage_assumption": "storage_bytes is priced as one GB-month retained per action (conservative; the cost basis records no retention period).",
+  "rates": {
+    "compute_unit": {"usd": "0.006", "unit": "runner-minute", "source": "https://docs.github.com/en/billing/reference/actions-runner-pricing", "observed_at": "2026-10-14"},
+    "storage_gb": {"usd": "0.25", "unit": "GB-month shared storage", "source": "https://docs.github.com/en/billing/concepts/product-billing/github-actions", "observed_at": "2026-10-14"}
+  }
+}

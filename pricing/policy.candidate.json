@@ -1,0 +1,12 @@
+{
+  "schema": "stegverse.tier-pricing-policy.v1",
+  "status": "CANDIDATE_PENDING_OWNER_DECISION",
+  "target_gross_margin": "0.75",
+  "plans": [
+    {"name": "Team", "included_actions": 1000,
+     "task_classes": ["governance_sovereign_task_observation", "organization_federation_readiness", "host_runtime_self_attest"]},
+    {"name": "Organization", "included_actions": 10000,
+     "task_classes": ["governance_sovereign_task_observation", "organization_federation_readiness", "host_runtime_self_attest",
+                      "sdk_mcp_canonical_validation", "steggate_stable_rendezvous"]}
+  ]
+}

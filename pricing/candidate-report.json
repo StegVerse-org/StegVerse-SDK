@@ -1,0 +1,88 @@
+{
+  "action_costs": [
+    {
+      "evidence": "OBSERVED",
+      "missing_rates": [],
+      "status": "PRICED",
+      "task_class": "governance_sovereign_task_observation",
+      "usd_per_action": "0.01806553600"
+    },
+    {
+      "evidence": "OBSERVED",
+      "missing_rates": [],
+      "status": "PRICED",
+      "task_class": "host_runtime_self_attest",
+      "usd_per_action": "0.00600102400"
+    },
+    {
+      "evidence": "OBSERVED",
+      "missing_rates": [],
+      "status": "PRICED",
+      "task_class": "organization_federation_readiness",
+      "usd_per_action": "0.01201638400"
+    },
+    {
+      "evidence": "OBSERVED",
+      "missing_rates": [],
+      "status": "PRICED",
+      "task_class": "sdk_mcp_canonical_validation",
+      "usd_per_action": "0.02426214400"
+    },
+    {
+      "evidence": "OBSERVED",
+      "missing_rates": [
+        "network_gb"
+      ],
+      "status": "UNKNOWN_RATE_NOT_SOURCED",
+      "task_class": "steggate_stable_rendezvous",
+      "usd_per_action": null
+    }
+  ],
+  "authority": {
+    "credential_issued": false,
+    "entitlement_issued": false,
+    "execution_authorized": false
+  },
+  "compute_unit_definition": "CANDIDATE: one GitHub-hosted Linux 2-core (x64) runner-minute. The ecosystem cost basis does not define compute_units; this definition is pending owner decision on StegVerse-org/StegVerse-SDK#484.",
+  "market_median_usd_per_action": null,
+  "schema": "stegverse.tier-pricing-candidate.v1",
+  "status": "INCOMPLETE",
+  "target_gross_margin": "0.75",
+  "tiers": [
+    {
+      "cost_floor_usd_per_action": "0.072262144",
+      "evidence": "OBSERVED",
+      "included_actions": "1000",
+      "market_position": "NO_MARKET_EVIDENCE",
+      "name": "Team",
+      "status": "PRICED",
+      "task_classes": [
+        "governance_sovereign_task_observation",
+        "host_runtime_self_attest",
+        "organization_federation_readiness"
+      ],
+      "unit_cost_usd": "0.01806553600",
+      "usd_per_action": "0.072262144",
+      "usd_per_period": "72.27"
+    },
+    {
+      "absent_cost_basis": [],
+      "included_actions": "10000",
+      "market_position": "NOT_EVALUATED",
+      "name": "Organization",
+      "status": "UNKNOWN_RATE_NOT_SOURCED",
+      "task_classes": [
+        "governance_sovereign_task_observation",
+        "host_runtime_self_attest",
+        "organization_federation_readiness",
+        "sdk_mcp_canonical_validation",
+        "steggate_stable_rendezvous"
+      ],
+      "unpriced_task_classes": [
+        "steggate_stable_rendezvous"
+      ],
+      "usd_per_action": null,
+      "usd_per_period": null
+    }
+  ]
+}
