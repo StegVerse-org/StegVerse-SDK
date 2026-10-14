@@ -155,6 +155,24 @@ class HandoffTest(unittest.TestCase):
         self.assertFalse(result["receiver_contacted"])
         self.assertFalse(result["intr_admission_observed"])
 
+    def test_handoff_allow_is_not_governance_or_packet_execution(self):
+        """Successful envelope construction cannot promote an operation verdict."""
+        request = {
+            **REQUEST,
+            "manifest_declared_destination": canonical_organization_destination(ORGANIZATION_BOUNDARY),
+            "governance_disposition": "DENY",
+            "failed_predicate": "GOVERNANCE_OPERATION_CONSTRAINT_UNSATISFIED",
+        }
+        before = json.loads(json.dumps(request))
+        result = build_intr_handoff(request)
+        self.assertEqual(request, before)
+        self.assertEqual(result["disposition"], "ALLOW")
+        self.assertFalse(result["transport_performed_by_sdk"])
+        self.assertFalse(result["receiver_contacted"])
+        self.assertFalse(result["intr_admission_observed"])
+        self.assertNotIn("governance_disposition", result)
+        self.assertNotIn("packet_disposition", result)
+
     def test_unresolved_canonical_endpoint_fails_closed(self):
         result = build_intr_handoff({**REQUEST, "manifest_declared_destination": None})
         self.assertEqual(result["disposition"], "FAIL_CLOSED")
