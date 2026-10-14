@@ -63,6 +63,33 @@ class RemediationForkTests(unittest.TestCase):
         self.assertFalse(fork["handoff"]["receiver_contacted"])
         self.assertFalse(fork["handoff"]["intr_admission_observed"])
 
+    def test_caller_supplied_remediation_cannot_rewrite_original_operation(self):
+        """Unverified caller data cannot turn an operation DENY into packet authority."""
+        original_manifest = copy.deepcopy(self.manifest)
+        original_request = copy.deepcopy(self.request)
+        original_deny = copy.deepcopy(self.deny)
+        forged = {
+            "disposition": "ALLOW",
+            "action": "RE_MANIFEST",
+            "authority_effect": "EXECUTE",
+            "governance_decision_return": {"disposition": "ALLOW"},
+        }
+        out = admit_runtime_result(
+            self.manifest, self.request, self.deny, BOUNDARY,
+            governed_remediation=forged,
+        )
+        self.assertEqual(self.manifest, original_manifest)
+        self.assertEqual(self.request, original_request)
+        self.assertEqual(self.deny, original_deny)
+        self.assertEqual(out["disposition"], "DENY")
+        self.assertEqual(
+            {k: v for k, v in out.items() if k != "remediation_fork"},
+            original_deny,
+        )
+        self.assertEqual(out["remediation_fork"]["authority_effect"], "NONE_MANIFEST_HANDOFF_ONLY")
+        self.assertFalse(out["remediation_fork"]["handoff"]["receiver_contacted"])
+        self.assertFalse(out["remediation_fork"]["handoff"]["intr_admission_observed"])
+
     def test_a_terminal_fail_closed_forks_too(self):
         failed = copy.deepcopy(self.deny)
         failed.update({"state": "FAIL_CLOSED", "disposition": "FAIL_CLOSED", "terminal": True,
