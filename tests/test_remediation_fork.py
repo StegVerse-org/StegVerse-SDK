@@ -90,6 +90,33 @@ class RemediationForkTests(unittest.TestCase):
         self.assertFalse(out["remediation_fork"]["handoff"]["receiver_contacted"])
         self.assertFalse(out["remediation_fork"]["handoff"]["intr_admission_observed"])
 
+    def test_distinct_operation_failures_have_independent_remediation_lineage(self):
+        """One operation's non-ALLOW cannot overwrite another operation's evidence."""
+        first = copy.deepcopy(self.deny)
+        second = copy.deepcopy(self.deny)
+        second["failed_predicate"] = "OTHER_MANIFESTED_OPERATION_CONSTRAINT"
+        second["source_disposition_ref"] = "runtime-state/other-operation.json"
+        first_before, second_before = copy.deepcopy(first), copy.deepcopy(second)
+
+        first_result = self._admit(first)
+        second_result = self._admit(second)
+
+        for actual, original in ((first_result, first_before), (second_result, second_before)):
+            self.assertEqual(
+                {k: v for k, v in actual.items() if k != "remediation_fork"},
+                original,
+            )
+            self.assertEqual(actual["disposition"], original["disposition"])
+            self.assertTrue(actual["remediation_fork"]["original_disposition_unchanged"])
+            self.assertEqual(actual["remediation_fork"]["non_allow_sha256"], canonical_sha256(original))
+            self.assertEqual(actual["remediation_fork"]["authority_effect"], "NONE_MANIFEST_HANDOFF_ONLY")
+        self.assertEqual(first, first_before)
+        self.assertEqual(second, second_before)
+        self.assertNotEqual(
+            first_result["remediation_fork"]["remediation_request_sha256"],
+            second_result["remediation_fork"]["remediation_request_sha256"],
+        )
+
     def test_a_terminal_fail_closed_forks_too(self):
         failed = copy.deepcopy(self.deny)
         failed.update({"state": "FAIL_CLOSED", "disposition": "FAIL_CLOSED", "terminal": True,
