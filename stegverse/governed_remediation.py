@@ -28,6 +28,7 @@ from .manifest_state_transition_runtime import (
     derive_execution_request,
     validate_runtime_result,
 )
+from .remediation_fork import original_wire_manifest_sha256 as _wire_manifest_sha256
 from .route_resolution import canonical_sha256
 
 SCHEMA = "stegverse.sdk.governed-remediation-attempt/v1"
@@ -39,18 +40,6 @@ ACTIONS = ("RESUBMIT", "RE_MANIFEST")
 
 def _request_document_sha256(request: Mapping[str, Any]) -> str:
     return canonical_sha256(dict(request))
-
-
-def _wire_manifest_sha256(request: Mapping[str, Any]) -> str:
-    # Requests derived before SDK #323 carry no wire_manifest_sha256 field; their
-    # wire identity is the digest of the canonical_manifest they hold (53a6749).
-    declared = request.get("wire_manifest_sha256")
-    if isinstance(declared, str) and declared:
-        return declared
-    original = request.get("canonical_manifest")
-    if not isinstance(original, Mapping):
-        raise ValueError("REMEDIATION_REQUEST_WIRE_IDENTITY_REQUIRED")
-    return canonical_sha256(dict(original))
 
 
 def _bind_classification(classification: Mapping[str, Any], request: Mapping[str, Any]) -> str:

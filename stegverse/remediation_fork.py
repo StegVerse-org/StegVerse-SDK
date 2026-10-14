@@ -157,8 +157,9 @@ def validate_remediation_fork_request(value: Any) -> dict[str, Any]:
     original = value.get("original_request")
     if not isinstance(original, Mapping):
         raise ValueError("original_request is required")
+    if original_wire_manifest_sha256(original) != value["original_wire_manifest_sha256"]:
+        raise ValueError("REMEDIATION_FORK_ORIGINAL_REQUEST_MISMATCH:wire_manifest_sha256")
     for field, key in (("original_request_sha256", "request_sha256"),
-                       ("original_wire_manifest_sha256", "wire_manifest_sha256"),
                        ("original_canonical_manifest_sha256", "canonical_manifest_sha256"),
                        ("original_processing_capability", "processing_capability"),
                        ("original_route_id", "route_id"),
@@ -203,6 +204,21 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def original_wire_manifest_sha256(request: Mapping[str, Any]) -> str:
+    """Wire identity of an original request.
+
+    Requests derived before SDK #323 carry no wire_manifest_sha256 field; their
+    wire identity is the digest of the canonical_manifest they hold (53a6749).
+    """
+    declared = request.get("wire_manifest_sha256")
+    if isinstance(declared, str) and declared:
+        return declared
+    original = request.get("canonical_manifest")
+    if not isinstance(original, Mapping):
+        raise ValueError("REMEDIATION_REQUEST_WIRE_IDENTITY_REQUIRED")
+    return canonical_sha256(dict(original))
+
+
 def fork_request(original_request: Mapping[str, Any], non_allow: Mapping[str, Any]) -> dict[str, Any]:
     """The remediation request bound to one original request and one of its non-ALLOW results."""
     destination = original_request.get("manifest_declared_destination")
@@ -215,7 +231,7 @@ def fork_request(original_request: Mapping[str, Any], non_allow: Mapping[str, An
             original_destination=destination),
         "schema": REQUEST_SCHEMA,
         "original_request_sha256": original_request.get("request_sha256"),
-        "original_wire_manifest_sha256": original_request.get("wire_manifest_sha256"),
+        "original_wire_manifest_sha256": original_wire_manifest_sha256(original_request),
         "original_canonical_manifest_sha256": original_request.get("canonical_manifest_sha256"),
         "original_processing_capability": original_request.get("processing_capability"),
         "original_route_id": original_request.get("route_id"),
