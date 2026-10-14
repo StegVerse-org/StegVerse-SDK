@@ -114,6 +114,21 @@ class RemediationForkTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unknown remediation request fields"):
             validate_remediation_fork_request(extra)
 
+    def test_a_pre_323_request_forks_on_the_digest_of_its_canonical_manifest(self):
+        # Requests derived before SDK #323 carry no wire_manifest_sha256 field.
+        legacy = {k: v for k, v in self.request.items() if k != "wire_manifest_sha256"}
+        deny = dict(self.deny, request_sha256=legacy["request_sha256"])
+        request = fork_request(legacy, deny)
+        self.assertEqual(request["original_wire_manifest_sha256"], canonical_sha256(legacy["canonical_manifest"]))
+        self.assertEqual(validate_remediation_fork_request(request), request)
+        forged = copy.deepcopy(request)
+        forged["original_wire_manifest_sha256"] = "f" * 64
+        with self.assertRaisesRegex(ValueError, "REMEDIATION_FORK_ORIGINAL_REQUEST_MISMATCH:wire_manifest_sha256"):
+            validate_remediation_fork_request(forged)
+        bare = {k: v for k, v in legacy.items() if k != "canonical_manifest"}
+        with self.assertRaisesRegex(ValueError, "REMEDIATION_REQUEST_WIRE_IDENTITY_REQUIRED"):
+            fork_request(bare, deny)
+
     def test_a_fork_that_cannot_be_built_is_a_six_field_refusal_and_the_deny_stands(self):
         from unittest.mock import patch
         with patch("stegverse.manifest_state_transition_runtime.validate_runtime_result", return_value=self.deny):
