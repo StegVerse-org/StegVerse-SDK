@@ -124,6 +124,17 @@ def remediation_route(non_allow: Mapping[str, Any], *, original_route_id: str,
     return route
 
 
+def _wire_identity(original_request: Mapping[str, Any]) -> Any:
+    # A request derived before SDK #323 carries no wire_manifest_sha256; its wire
+    # identity is the digest of the canonical_manifest it holds, as governed
+    # remediation and the organization preflight take it (StegVerse-org/.github#169).
+    from .governed_remediation import _wire_manifest_sha256
+    try:
+        return _wire_manifest_sha256(original_request)
+    except ValueError:
+        return None
+
+
 def _text(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{field} is required")
@@ -157,8 +168,9 @@ def validate_remediation_fork_request(value: Any) -> dict[str, Any]:
     original = value.get("original_request")
     if not isinstance(original, Mapping):
         raise ValueError("original_request is required")
+    if _wire_identity(original) != value["original_wire_manifest_sha256"]:
+        raise ValueError("REMEDIATION_FORK_ORIGINAL_REQUEST_MISMATCH:wire_manifest_sha256")
     for field, key in (("original_request_sha256", "request_sha256"),
-                       ("original_wire_manifest_sha256", "wire_manifest_sha256"),
                        ("original_canonical_manifest_sha256", "canonical_manifest_sha256"),
                        ("original_processing_capability", "processing_capability"),
                        ("original_route_id", "route_id"),
@@ -215,7 +227,7 @@ def fork_request(original_request: Mapping[str, Any], non_allow: Mapping[str, An
             original_destination=destination),
         "schema": REQUEST_SCHEMA,
         "original_request_sha256": original_request.get("request_sha256"),
-        "original_wire_manifest_sha256": original_request.get("wire_manifest_sha256"),
+        "original_wire_manifest_sha256": _wire_identity(original_request),
         "original_canonical_manifest_sha256": original_request.get("canonical_manifest_sha256"),
         "original_processing_capability": original_request.get("processing_capability"),
         "original_route_id": original_request.get("route_id"),

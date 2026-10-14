@@ -125,6 +125,56 @@ class RemediationForkTests(unittest.TestCase):
             self.assertTrue(refusal[field], field)
         self.assertIsNone(refusal["handoff"])
 
+class Pre323RequestForkTests(unittest.TestCase):
+    """A request derived before SDK#323 carries no wire_manifest_sha256; its fork binds the
+    wire identity governed remediation and the organization preflight take for it, the
+    canonical_manifest digest (StegVerse-org/.github#169, tests/test_remediation_lane.py)."""
+
+    def setUp(self):
+        historical = derive_execution_request(build_exp3_manifest(), BOUNDARY)
+        for key in ("wire_manifest_sha256", "canonical_manifest_projection", "request_sha256"):
+            historical.pop(key, None)
+        historical["request_sha256"] = canonical_sha256(historical)
+        self.historical = historical
+        self.deny = {"schema": "stegverse.sdk.manifest-profile-disposition/v1", "state": "DENY",
+                     "disposition": "DENY", "terminal": False, "evaluation_boundary": "SDK_MANIFEST_PROFILE",
+                     "request_sha256": historical["request_sha256"],
+                     "failed_predicate": "canonical_manifest_sha256_binding_mismatch"}
+
+    def test_the_fork_binds_the_canonical_manifest_digest_as_the_wire_identity(self):
+        from stegverse.governed_remediation import remediation_candidate
+        original = copy.deepcopy(self.historical)
+        fork = build_remediation_fork(self.historical, self.deny, BOUNDARY)
+        self.assertEqual(self.historical, original)
+        request = fork["remediation_manifest"]["extensions"][REQUEST_EXTENSION]
+        wire = canonical_sha256(self.historical["canonical_manifest"])
+        self.assertEqual(request["original_wire_manifest_sha256"], wire)
+        # The lane carries the historical request exactly; nothing is added to it.
+        self.assertEqual(request["original_request"], self.historical)
+        self.assertNotIn("wire_manifest_sha256", request["original_request"])
+        remediation = derive_execution_request(fork["remediation_manifest"], BOUNDARY)
+        self.assertEqual(remediation["processing_capability"], REMEDIATION_CAPABILITY)
+        classification = {"schema": "stegverse.healer.sdk-deny-classification/v1", "state": "DETECTED",
+                          "source_disposition_ref": "runtime-state/sdk-manifest-state-transition/dispositions/x.json",
+                          "original_request_sha256": self.historical["request_sha256"],
+                          "original_request_document_sha256": canonical_sha256(self.historical),
+                          "original_wire_manifest_sha256": wire, "suggested_action": "RE_MANIFEST",
+                          "governance_disposition": "NOT_EVALUATED", "execution_authority_granted": False,
+                          "authority_effect": "NONE_CLASSIFICATION_ONLY"}
+        self.assertEqual(remediation_candidate(classification, self.historical, self.deny)["parameters"]
+                         ["original_wire_manifest_sha256"], request["original_wire_manifest_sha256"])
+
+    def test_a_pre323_fork_request_with_another_wire_identity_is_refused(self):
+        request = fork_request(self.historical, self.deny)
+        forged = dict(request, original_wire_manifest_sha256="f" * 64)
+        with self.assertRaisesRegex(ValueError, "REMEDIATION_FORK_ORIGINAL_REQUEST_MISMATCH:wire_manifest_sha256"):
+            validate_remediation_fork_request(forged)
+        without = copy.deepcopy(self.historical)
+        without.pop("canonical_manifest")
+        with self.assertRaisesRegex(ValueError, "original_wire_manifest_sha256 is required"):
+            fork_request(without, self.deny)
+
+
 class RemediationRouteTests(unittest.TestCase):
     """The route: where remediation was recognized, the manifested path, the direct leg to StegHealer."""
 
