@@ -21,6 +21,19 @@ SIX_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair",
               "retry_entrypoint", "owning_existing_goal", "next_attempt")
 
 
+def test_empty_or_missing_packet_identity_fails_closed_before_return_matching():
+    for packet in ("", "   ", None):
+        result = _verify(
+            returns=[_return(governance_request_packet_id=packet)],
+            packet=packet,
+        )
+        assert result["disposition"] == "FAIL_CLOSED"
+        assert result["failed_predicate"] == "GOVERNANCE_REQUEST_PACKET_ID_REQUIRED"
+        assert result["end_to_end_acceptance"] is False
+        for field in SIX_FIELDS:
+            assert result[field], field
+
+
 def _sha(label):
     return "sha256:" + hashlib.sha256(label.encode()).hexdigest()
 
