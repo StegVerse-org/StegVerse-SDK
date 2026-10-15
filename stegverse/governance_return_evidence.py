@@ -100,6 +100,10 @@ def _check(return_readback: Any, sender_readback: Any, deciding_readback: Any, r
     if not isinstance(return_readback, Mapping) or return_readback.get("schema") != RETURN_READBACK_SCHEMA:
         raise _Refused("GOVERNANCE_RETURN_READBACK_PRESENT", "a return readback (" + RETURN_READBACK_SCHEMA + ")",
                        _RETURN, RETURN_ENTRYPOINT)
+    if not isinstance(request_packet_id, str) or not request_packet_id.strip():
+        raise _Refused("GOVERNANCE_REQUEST_PACKET_ID_REQUIRED",
+                       "a non-empty manifest-bound governance request packet ID",
+                       "bind the actual emitted governance request packet before verifying its return")
     rows = return_readback.get("returns")
     if not isinstance(rows, list):
         raise _Refused("GOVERNANCE_RETURN_READBACK_PRESENT",
