@@ -12,12 +12,14 @@ path. The route is re-derived on every validation, so no caller can redirect it.
 disposition and lineage unchanged and continues independently. Two lanes,
 one fork, each with its own receipts.
 
-StegHealer classifies RESUBMIT or RE_MANIFEST, non-authorizing, and the
-classification returns through the organization ``.github`` governance
-interfaces. Only an authenticated, read-back governance decision lets the SDK
-act (``stegverse.governed_remediation.perform_governed_remediation``).
-StegHealer never alters, changes or creates a manifest: a RE_MANIFEST is
-built here, by the Manifest Builder.
+A route-related non-ALLOW is recorded once, in the organization where it
+happened. The manifest requires that record to be pushed to StegHealer
+(``stegverse-labs.remediation``) over InTr on the route this module derives
+(``remediation_route``). The originating organization requests no
+classification, consumes no return, and makes no remediation decision.
+StegHealer maps the error or failure against known errors and failures, then
+either triggers a remediation task or returns the manifest and data packet to
+the SDK. Those outcomes are recorded in StegHealer's organization.
 
 Nothing here classifies, decides, transports, records a receipt or grants
 authority. A non-ALLOW of a remediation manifest does not fork again; it

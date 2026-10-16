@@ -823,15 +823,19 @@ def admit_runtime_result(
     The receiving runtime owns transport and admission before this is called.
     Every non-ALLOW carries its remediation fork (NODE_INGRESS_SETTLED_SPECIFICATION
     §8): the Manifest Builder builds a remediation manifest bound to this exact
-    request and result, and it travels the path it declares, to StegHealer, for a
-    non-authorizing RESUBMIT or RE_MANIFEST classification. The fork rides under
-    ``remediation_fork``; every field of the validated result is returned
-    unchanged, so the original disposition and its lineage stand and the main
-    packet continues independently. The SDK acts on a classification only
-    through ``stegverse.governed_remediation.perform_governed_remediation``,
-    on an authenticated, read-back governance decision. Nothing here retries,
-    classifies, decides or records a receipt. ``organization_boundary`` binds the
-    destination of both lanes; ``governed_remediation`` is accepted for
+    request and result. A route-related non-ALLOW is recorded once, in the
+    organization where it happened. The manifest requires that record to be
+    pushed to StegHealer (``stegverse-labs.remediation``) over InTr on the route
+    the manifest derives (``remediation_route``). The originating organization
+    requests no classification, consumes no return, and makes no remediation
+    decision. StegHealer maps the error or failure against known errors and
+    failures, then either triggers a remediation task or returns the manifest
+    and data packet to the SDK. Those outcomes are recorded in StegHealer's
+    organization. The fork rides under ``remediation_fork``; every field of the
+    validated result is returned unchanged, so the original disposition and its
+    lineage stand and the main packet continues independently. Nothing here
+    retries, classifies, decides or records a receipt. ``organization_boundary``
+    binds the destination of both lanes; ``governed_remediation`` is accepted for
     compatibility and grants nothing.
     """
     checked = validate_runtime_result(result, request)
