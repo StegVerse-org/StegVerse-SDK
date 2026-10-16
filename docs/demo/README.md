@@ -2,7 +2,13 @@
 
 A diagnostic of one-way InTr integrity and organization-ledger receipt integrity. It is also the SDK test lane that CI runs in fabricated mode.
 
-The lane discovers peers from each checkout's own advertisement: an overlay binding whose `profile_id` is `intr-destination`, and a service row whose `service_id` is `<slug>.<profile_id>`. Slug is the organization kernel's slug (`organization_slug`). `org-boundary/registry/federation.json` is not a peer source and is not read. The hop matrix is every ordered pair of discovered peers. A peer does not send a diagnostic to itself.
+Fabricated mode discovers peers from each checkout's own advertisement. Live mode asks the GitHub API for the same advertisement on each of these organizations' `<org>/.github` repositories:
+
+`StegVerse-org`, `StegVerse-Labs`, `SV-LLM`, `SV-011`, `GCAT-BCAT-Engine`, `Admissible-Existence`, `StegVerse-002`, `StegGhost`.
+
+An advertisement is an overlay binding whose `profile_id` is `intr-destination`, and a service row whose `service_id` is `<slug>.<profile_id>`. Slug is the organization kernel's slug (`organization_slug`). `org-boundary/registry/federation.json` is not a peer source and is not read. The hop matrix is every ordered pair. A peer does not send a diagnostic to itself.
+
+An organization whose advertisement cannot be read stays in that matrix. Every hop where it is sender or destination is `UNREACHABLE`. It is not dropped because one machine could not clone the repository.
 
 Routing and governance are out of scope. A disposition on this lane is transition evidence. Authority is the constraint `NONE`. Time is the constraint `SUPPLIED_HB_EPOCH` (a supplied heartbeat epoch, not a clock reading).
 
@@ -43,13 +49,27 @@ Exit status is 0 only when every hop is `PASS`.
 
 ## Live mode
 
-`workflow_dispatch` only. This mode does not append. It reads `refs/stegverse/organization-ledger` on each peer checkout (and the repository-ledger namespace named by that checkout's merged contract, when the file is present).
+`workflow_dispatch` only. This mode does not append. It discovers the eight organizations above at run time:
+
+- `GET https://api.github.com/repos/<org>/.github/contents/org-runtime/interlock-intr.json`
+- `GET https://api.github.com/repos/<org>/.github/contents/org-boundary/registry/services.json`
+
+Public repositories are read with no credential. When `FEDERATION_READ_TOKEN` is set, that value is sent as a bearer token so a private `<org>/.github` can be read. The token is optional. It is not written into the report. The workflow passes the repository secret `FEDERATION_READ_TOKEN` into the live job; leave the secret unset to read public repositories only.
+
+For each organization whose advertisement was read, the lane then reads `refs/stegverse/organization-ledger` (and the repository-ledger namespace named by that organization's contract, when the contract was read). A local `--org-root` whose slug matches a read advertisement is used as that ledger checkout. Otherwise `--fetch-ledger-refs` fetches the ref from `https://github.com/<org>/.github`.
 
 ```bash
+# Public advertisements, no token.
 python -m stegverse.intr_destination_hop_lane \
   --mode live \
   --fetch-ledger-refs \
-  --org-root /path/to/each/.github \
+  --out-dir /tmp/intr-hop-lane-live
+
+# Include private repositories the token can read.
+FEDERATION_READ_TOKEN="$FEDERATION_READ_TOKEN" \
+  python -m stegverse.intr_destination_hop_lane \
+  --mode live \
+  --fetch-ledger-refs \
   --out-dir /tmp/intr-hop-lane-live
 ```
 
@@ -57,10 +77,10 @@ python -m stegverse.intr_destination_hop_lane \
 | --- | --- |
 | `PASS` | Both ledgers were read, the chains verify, and this ordered pair has one correlated egress emission, closure, and destination ingress for the same `communication_id`. Authenticity is claimed only for that read-back. |
 | `FAIL` | A ledger was read and the chain or the correlation does not hold. |
-| `UNREACHABLE` | A peer has no ledger ref, or the ref has no head. The hop is reported and the lane continues. |
+| `UNREACHABLE` | An advertisement could not be read, or a ledger ref could not be read, or the ref has no head. The hop stays in the matrix and the lane continues. |
 
-Exit status is 0 when no hop is `FAIL`. `UNREACHABLE` is a reported gap, not a crash. A missing ledger is not described as a verified receipt.
+Exit status is 0 when no hop is `FAIL`. `UNREACHABLE` is a reported gap, not a crash, and not a reason to remove the organization from the peer set. A missing advertisement or ledger is not described as a verified receipt.
 
 ## CI
 
-`.github/workflows/intr-destination-hop-lane.yml` checks out the organization repositories it can read, discovers peers from those advertisements, and runs fabricated mode. A repository that cannot be read is listed on the report as an advertisement that was not readable. It is not added to the peer set. Live mode is a `workflow_dispatch` input and is not run by pull requests.
+`.github/workflows/intr-destination-hop-lane.yml` runs fabricated mode on pull requests. That job uses the organization checkouts it was given. Live mode is a `workflow_dispatch` input and is not run by pull requests. The live job queries all eight organizations through the GitHub API and passes `FEDERATION_READ_TOKEN` when that secret is configured.

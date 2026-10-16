@@ -15,19 +15,28 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import stegverse.intr_destination_hop_lane as lane
 from stegverse.intr_destination_hop_lane import (
     ACK_CLASS,
+    CANDIDATE_ORGANIZATIONS,
     CLOSED_CLASS,
+    CONTRACT_RELATIVE,
     EMITTED_CLASS,
+    FEDERATION_READ_TOKEN_ENV,
     INGRESS_CLASS,
     LEDGER_REF,
     ORG_SCHEMA,
+    OVERLAY_RELATIVE,
     PROFILE_ID,
+    REGISTRY_RELATIVE,
     REPO_SCHEMA,
     REQUEST_CLASS,
     discover_peers,
+    discover_peers_from_github,
+    github_read_file,
     hop_receipt_findings,
     integrity_findings,
+    main,
     ordered_pairs,
     organization_slug,
     render_markdown,
@@ -277,6 +286,28 @@ class LiveLedgerTests(unittest.TestCase):
             self.assertTrue(all(hop["status"] == "UNREACHABLE" for hop in degraded["hops"]))
             self.assertFalse(degraded["authenticity_claimed"])
 
+    def test_a_read_pair_still_passes_when_another_organization_cannot_be_read(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            alpha = self._peer(base / "alpha", "Alpha")
+            beta = self._peer(base / "beta", "Beta")
+            self._write_both(Path(alpha["root"]), Path(beta["root"]))
+            self._commit(Path(alpha["root"]), LEDGER_REF)
+            self._commit(Path(beta["root"]), LEDGER_REF)
+            unread, silent = discover_peers_from_github(
+                ["SV-011"], read_file=lambda repository, path: ("HTTP_404", None))
+            self.assertEqual(silent, [])
+            report = run_live([alpha, beta, unread[0]], fetch=True)
+        by_pair = {(hop["sender_slug"], hop["destination_slug"]): hop for hop in report["hops"]}
+        self.assertEqual(by_pair[("alpha", "beta")]["status"], "PASS", by_pair[("alpha", "beta")]["findings"])
+        self.assertEqual(by_pair[("beta", "alpha")]["status"], "PASS")
+        self.assertTrue(by_pair[("alpha", "beta")]["authenticity_claimed"])
+        self.assertEqual(by_pair[("alpha", "sv-011")]["status"], "UNREACHABLE")
+        self.assertFalse(by_pair[("sv-011", "beta")]["authenticity_claimed"])
+        self.assertEqual(report["counts"], {"PASS": 2, "FAIL": 0, "UNREACHABLE": 4})
+        self.assertTrue(report["authenticity_claimed"])
+        self.assertIn("sv-011", report["matrix"]["alpha"])
+
     def _write_both(self, alpha: Path, beta: Path) -> None:
         forward_e, forward_c, forward_i = _pair_receipts(
             "Alpha", "Beta", "beta.intr-destination", "live-alpha-beta", "pkt-ab")
@@ -326,6 +357,156 @@ class FabricatedCheckoutTests(unittest.TestCase):
         self.assertFalse(report["routing_in_scope"])
         self.assertFalse(report["governance_in_scope"])
         self.assertIsNone(_GRANT.search(render_markdown(report)))
+        self.assertIsNone(_GRANT.search(json.dumps(report)))
+
+
+def _advertised_documents(organization: str, *, bind: bool = True):
+    slug = organization_slug(organization)
+    service = slug + "." + PROFILE_ID
+    overlay = {"ingress": {"capability_endpoint_bindings": [] if not bind else [{
+        "profile_id": PROFILE_ID,
+        "receiving_operation": {
+            "addressed_service": service,
+            "operation_id": "ORGANIZATION_INTR_DESTINATION_INGRESS",
+        },
+    }]}}
+    registry = {"organization": organization, "services": [] if not bind else [{
+        "service_id": service,
+        "repository": organization + "/.github",
+        "capability_profile_id": PROFILE_ID,
+    }]}
+    return overlay, registry
+
+
+class GithubAdvertisementTests(unittest.TestCase):
+    def test_the_candidate_set_is_the_eight_organizations(self):
+        self.assertEqual(CANDIDATE_ORGANIZATIONS, (
+            "StegVerse-org", "StegVerse-Labs", "SV-LLM", "SV-011",
+            "GCAT-BCAT-Engine", "Admissible-Existence", "StegVerse-002", "StegGhost",
+        ))
+
+    def test_a_public_read_sends_no_token_and_a_set_token_is_only_a_bearer_header(self):
+        seen = []
+
+        class Response:
+            status_code = 404
+            content = b""
+
+        def getter(url, headers=None, timeout=30):
+            seen.append((url, dict(headers or {})))
+            return Response()
+
+        status, document = github_read_file("SV-011/.github", OVERLAY_RELATIVE, token=None, getter=getter)
+        self.assertEqual(status, "HTTP_404")
+        self.assertIsNone(document)
+        self.assertNotIn("Authorization", seen[0][1])
+        self.assertNotIn("token", seen[0][0])
+        github_read_file("SV-011/.github", OVERLAY_RELATIVE, token="  ", getter=getter)
+        self.assertNotIn("Authorization", seen[1][1])
+        github_read_file("SV-011/.github", OVERLAY_RELATIVE, token="hop-lane-token-value", getter=getter)
+        self.assertEqual(seen[2][1]["Authorization"], "Bearer hop-lane-token-value")
+        self.assertNotIn("hop-lane-token-value", seen[2][0])
+        self.assertEqual(seen[2][1]["Accept"], "application/vnd.github.raw")
+
+    def test_an_unreadable_organization_stays_in_the_peer_set(self):
+        files = {}
+        for organization, bind in (("Alpha", True), ("Beta", True), ("Silent", False)):
+            overlay, registry = _advertised_documents(organization, bind=bind)
+            repository = organization + "/.github"
+            files[(repository, OVERLAY_RELATIVE)] = ("ok", overlay)
+            files[(repository, REGISTRY_RELATIVE)] = ("ok", registry)
+            files[(repository, CONTRACT_RELATIVE)] = ("HTTP_404", None)
+        for path in (OVERLAY_RELATIVE, REGISTRY_RELATIVE, CONTRACT_RELATIVE):
+            files[("SV-011/.github", path)] = ("HTTP_404", None)
+        requested = []
+
+        def read(repository, path):
+            requested.append((repository, path))
+            return files[(repository, path)]
+
+        peers, silent = discover_peers_from_github(["Alpha", "Silent", "SV-011", "Beta"], read_file=read)
+        self.assertEqual([peer["slug"] for peer in peers], ["alpha", "beta", "sv-011"])
+        self.assertEqual(silent, [{"organization": "Silent", "repository": "Silent/.github"}])
+        unread = next(peer for peer in peers if peer["slug"] == "sv-011")
+        self.assertFalse(unread["advertisement_readable"])
+        self.assertEqual(unread["unreadable_reason"], "ADVERTISEMENT_NOT_READABLE_HTTP_404")
+        self.assertTrue(all("federation.json" not in path for _, path in requested))
+        self.assertIn(("SV-011/.github", OVERLAY_RELATIVE), requested)
+        report = run_live(peers, fetch=False)
+        self.assertEqual(report["hop_count"], 6)
+        self.assertEqual(set(report["matrix"]), {"alpha", "beta", "sv-011"})
+        involving = [hop for hop in report["hops"] if "sv-011" in (hop["sender_slug"], hop["destination_slug"])]
+        self.assertEqual(len(involving), 4)
+        for hop in involving:
+            self.assertEqual(hop["status"], "UNREACHABLE")
+            self.assertFalse(hop["authenticity_claimed"])
+            if hop["sender_slug"] == "sv-011":
+                self.assertEqual(hop["unreachable"]["sender"], "ADVERTISEMENT_NOT_READABLE_HTTP_404")
+            if hop["destination_slug"] == "sv-011":
+                self.assertEqual(hop["unreachable"]["destination"], "ADVERTISEMENT_NOT_READABLE_HTTP_404")
+                self.assertEqual(hop["resolution_source"], "ADVERTISEMENT_NOT_READABLE")
+        text = render_markdown(report)
+        self.assertIn("kept in the peer set", text)
+        self.assertNotIn("not peers", text)
+        self.assertIsNone(_GRANT.search(text))
+
+    def test_live_does_not_fetch_a_ledger_for_an_unread_advertisement(self):
+        peers, _silent = discover_peers_from_github(
+            ["SV-011", "StegGhost"],
+            read_file=lambda repository, path: ("HTTP_403", None))
+
+        def boom(*_args, **_kwargs):
+            raise AssertionError("remote ledger fetch ran for an unread advertisement")
+
+        original = lane.materialize_remote_ledger
+        lane.materialize_remote_ledger = boom
+        try:
+            report = run_live(peers, fetch=True)
+        finally:
+            lane.materialize_remote_ledger = original
+        self.assertEqual(report["counts"]["UNREACHABLE"], 2)
+        self.assertEqual(report["counts"]["FAIL"], 0)
+        self.assertFalse(report["authenticity_claimed"])
+
+    def test_live_cli_queries_every_candidate_and_does_not_record_the_token(self):
+        token = "hop-lane-token-value"
+        captured = {}
+
+        def fake_discover(organizations, *, token=None, read_file=None):
+            captured["organizations"] = tuple(organizations)
+            captured["token"] = token
+            return [lane._unreachable_peer(organization, "ADVERTISEMENT_NOT_READABLE_HTTP_404")
+                    for organization in organizations], []
+
+        original = lane.discover_peers_from_github
+        previous = os.environ.get(FEDERATION_READ_TOKEN_ENV)
+        lane.discover_peers_from_github = fake_discover
+        os.environ[FEDERATION_READ_TOKEN_ENV] = token
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                code = main(["--mode", "live", "--fetch-ledger-refs", "--out-dir", tmp])
+                report = json.loads((Path(tmp) / "intr-destination-hop-lane.json").read_text(encoding="utf-8"))
+                text = (Path(tmp) / "intr-destination-hop-lane.md").read_text(encoding="utf-8")
+        finally:
+            lane.discover_peers_from_github = original
+            if previous is None:
+                os.environ.pop(FEDERATION_READ_TOKEN_ENV, None)
+            else:
+                os.environ[FEDERATION_READ_TOKEN_ENV] = previous
+        self.assertEqual(code, 0)
+        self.assertEqual(captured["organizations"], CANDIDATE_ORGANIZATIONS)
+        self.assertEqual(captured["token"], token)
+        self.assertEqual({peer["organization"] for peer in report["peers"]}, set(CANDIDATE_ORGANIZATIONS))
+        self.assertTrue(all(peer["advertisement_readable"] is False for peer in report["peers"]))
+        self.assertEqual(report["hop_count"], len(CANDIDATE_ORGANIZATIONS) * (len(CANDIDATE_ORGANIZATIONS) - 1))
+        self.assertTrue(all(hop["status"] == "UNREACHABLE" for hop in report["hops"]))
+        self.assertFalse(report["authenticity_claimed"])
+        self.assertEqual(report["peer_source"], "GITHUB_API_ORG_DOTGITHUB_ADVERTISEMENT")
+        self.assertFalse(report["federation_json_is_a_peer_source"])
+        self.assertNotIn(token, json.dumps(report))
+        self.assertNotIn(token, text)
+        self.assertIn(FEDERATION_READ_TOKEN_ENV, text)
+        self.assertIsNone(_GRANT.search(text))
         self.assertIsNone(_GRANT.search(json.dumps(report)))
 
 

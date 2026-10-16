@@ -22,9 +22,16 @@ in-flight ledger writer is not imported. The far side is that kernel's
 ``receipt`` / ``build_control_response``. That answer is not a live peer and
 is not an authentic production receipt.
 
-``live`` only reads ``refs/stegverse/organization-ledger`` on each peer
-checkout. A peer with no such ref is ``UNREACHABLE`` for every hop that needs
-it. A ``PASS`` is claimed only for receipts this process read back.
+``live`` asks the GitHub API for each candidate organization's
+``<org>/.github`` advertisement. The candidate set is the eight organizations
+below. It is not ``federation.json``, and it is not a list of repositories
+one machine happened to be able to clone. Public repositories are read
+without a token. A token in ``FEDERATION_READ_TOKEN``, when set, is sent as a
+bearer credential so a private repository can be read too. An organization
+whose advertisement cannot be read stays in the peer set: every hop that
+uses it is ``UNREACHABLE``. A peer whose ledger ref cannot be read is
+``UNREACHABLE`` the same way. A ``PASS`` is claimed only for receipts this
+process read back.
 """
 from __future__ import annotations
 
@@ -35,8 +42,12 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Callable, Iterable, Mapping, Sequence
+
+from stegverse._stdlib_http import HttpTransportError
+from stegverse._stdlib_http import get as http_get
 
 PROFILE_ID = "intr-destination"
 ADDRESS_FORM = "ORGANIZATION_SLUG_DOT_CAPABILITY_PROFILE_ID"
@@ -47,7 +58,23 @@ MANIFEST_SCHEMA = "stegverse.intr-hop-manifest/v1"
 REPORT_SCHEMA = "stegverse.sdk.intr-destination-hop-lane/v1"
 OVERLAY_RELATIVE = "org-runtime/interlock-intr.json"
 REGISTRY_RELATIVE = "org-boundary/registry/services.json"
+CONTRACT_RELATIVE = ".stegverse/transition-ledger/contract.json"
 LEDGER_REF = "refs/stegverse/organization-ledger"
+GITHUB_API = "https://api.github.com"
+FEDERATION_READ_TOKEN_ENV = "FEDERATION_READ_TOKEN"
+# Live mode requests each of these organizations' `<org>/.github` advertisement.
+# Membership still comes from the advertisement when it can be read. An
+# organization that cannot be read is kept, and its hops are UNREACHABLE.
+CANDIDATE_ORGANIZATIONS = (
+    "StegVerse-org",
+    "StegVerse-Labs",
+    "SV-LLM",
+    "SV-011",
+    "GCAT-BCAT-Engine",
+    "Admissible-Existence",
+    "StegVerse-002",
+    "StegGhost",
+)
 EPOCH_ORIGIN = 32
 EMITTED_CLASS = "ORGANIZATION_EGRESS_EMITTED"
 CLOSED_CLASS = "ORGANIZATION_EGRESS_CLOSED"
@@ -219,6 +246,78 @@ def _load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _namespace_from_contract(document: Any) -> str | None:
+    if not isinstance(document, dict):
+        return None
+    location = document.get("repository_ledger_location")
+    namespace = location.get("namespace") if isinstance(location, dict) else None
+    return namespace if isinstance(namespace, str) and namespace else None
+
+
+def _peer_from_documents(overlay: Any, registry: Any, *, root: str | None, source: str) -> dict[str, Any] | None:
+    """A peer when these two documents advertise ``<slug>.intr-destination``.
+
+    Any other shape is not a peer. The caller has already read the documents;
+    this function does not open ``federation.json``.
+    """
+    organization = registry.get("organization") if isinstance(registry, dict) else None
+    if not isinstance(organization, str) or not organization.strip():
+        return None
+    slug = organization_slug(organization)
+    address = slug + "." + PROFILE_ID
+    bindings = ((overlay.get("ingress") or {}).get("capability_endpoint_bindings") or []) if isinstance(overlay, dict) else []
+    matches = [entry for entry in bindings if isinstance(entry, dict) and entry.get("profile_id") == PROFILE_ID]
+    if len(matches) != 1:
+        return None
+    receiving = matches[0].get("receiving_operation") or {}
+    if receiving.get("addressed_service") != address:
+        return None
+    services = registry.get("services") or []
+    row = next((item for item in services if isinstance(item, dict) and item.get("service_id") == address), None)
+    if row is None or row.get("capability_profile_id") != PROFILE_ID:
+        return None
+    repository = row.get("repository") if isinstance(row.get("repository"), str) else None
+    return {
+        "organization": organization,
+        "slug": slug,
+        "address": address,
+        "profile_id": PROFILE_ID,
+        "repository": repository,
+        "root": root,
+        "advertisement": {
+            "overlay": OVERLAY_RELATIVE,
+            "registry": REGISTRY_RELATIVE,
+            "address_form": ADDRESS_FORM,
+        },
+        "advertisement_readable": True,
+        "unreadable_reason": None,
+        "peer_source": source,
+        "repository_namespace": None,
+    }
+
+
+def _unreachable_peer(organization: str, reason: str) -> dict[str, Any]:
+    """Keep an organization whose advertisement could not be read.
+
+    The address is the login slug plus the profile id. It is a placeholder
+    until the advertisement is read, and hops that use it are UNREACHABLE.
+    """
+    slug = organization_slug(organization)
+    return {
+        "organization": organization,
+        "slug": slug,
+        "address": slug + "." + PROFILE_ID,
+        "profile_id": PROFILE_ID,
+        "repository": organization + "/.github",
+        "root": None,
+        "advertisement": None,
+        "advertisement_readable": False,
+        "unreadable_reason": reason,
+        "peer_source": "GITHUB_API_ADVERTISEMENT_UNREADABLE",
+        "repository_namespace": None,
+    }
+
+
 def discover_peers(roots: Iterable[Path | str]) -> list[dict[str, Any]]:
     """Peers whose own overlay and service row advertise ``<slug>.intr-destination``.
 
@@ -234,43 +333,149 @@ def discover_peers(roots: Iterable[Path | str]) -> list[dict[str, Any]]:
         registry_path = root / REGISTRY_RELATIVE
         if not overlay_path.is_file() or not registry_path.is_file():
             continue
-        overlay = _load_json(overlay_path)
-        registry = _load_json(registry_path)
-        organization = registry.get("organization") if isinstance(registry, dict) else None
-        if not isinstance(organization, str) or not organization.strip():
+        try:
+            overlay = _load_json(overlay_path)
+            registry = _load_json(registry_path)
+        except (OSError, json.JSONDecodeError):
             continue
-        slug = organization_slug(organization)
-        address = slug + "." + PROFILE_ID
-        bindings = ((overlay.get("ingress") or {}).get("capability_endpoint_bindings") or []) if isinstance(overlay, dict) else []
-        matches = [entry for entry in bindings if isinstance(entry, dict) and entry.get("profile_id") == PROFILE_ID]
-        if len(matches) != 1:
+        peer = _peer_from_documents(overlay, registry, root=str(root.resolve()), source="ADVERTISED_CAPABILITY")
+        if peer is None:
             continue
-        receiving = matches[0].get("receiving_operation") or {}
-        if receiving.get("addressed_service") != address:
-            continue
-        services = registry.get("services") or []
-        row = next((item for item in services if isinstance(item, dict) and item.get("service_id") == address), None)
-        if row is None or row.get("capability_profile_id") != PROFILE_ID:
-            continue
-        if slug in seen:
-            raise ValueError("two checkouts advertise the same intr-destination address: " + address)
-        seen[slug] = root
-        peers.append({
-            "organization": organization,
-            "slug": slug,
-            "address": address,
-            "profile_id": PROFILE_ID,
-            "repository": row.get("repository") if isinstance(row.get("repository"), str) else None,
-            "root": str(root.resolve()),
-            "advertisement": {
-                "overlay": OVERLAY_RELATIVE,
-                "registry": REGISTRY_RELATIVE,
-                "address_form": ADDRESS_FORM,
-            },
-            "peer_source": "ADVERTISED_CAPABILITY",
-        })
+        contract = root / CONTRACT_RELATIVE
+        if contract.is_file():
+            try:
+                peer["repository_namespace"] = _namespace_from_contract(_load_json(contract))
+            except (OSError, json.JSONDecodeError):
+                peer["repository_namespace"] = None
+        if peer["slug"] in seen:
+            raise ValueError("two checkouts advertise the same intr-destination address: " + peer["address"])
+        seen[peer["slug"]] = root
+        peers.append(peer)
     peers.sort(key=lambda peer: peer["slug"])
     return peers
+
+
+def _blank_to_none(token: str | None) -> str | None:
+    if not isinstance(token, str):
+        return None
+    token = token.strip()
+    return token or None
+
+
+def github_read_file(repository: str, path: str, *, token: str | None = None,
+                     getter: Callable[..., Any] | None = None) -> tuple[str, Any]:
+    """Read one file from a GitHub repository's default branch.
+
+    No token is sent unless ``token`` is non-blank. The token is a bearer
+    header, never part of the URL. Status is ``ok``, ``HTTP_<code>``,
+    ``TRANSPORT``, or ``NOT_JSON``. The body of an error response is discarded.
+    """
+    token = _blank_to_none(token)
+    url = GITHUB_API + "/repos/" + repository + "/contents/" + path
+    headers = {
+        "Accept": "application/vnd.github.raw",
+        "User-Agent": "stegverse-intr-hop-lane",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    if token:
+        headers["Authorization"] = "Bearer " + token
+    try:
+        response = (getter or http_get)(url, headers=headers, timeout=30)
+    except HttpTransportError:
+        return "TRANSPORT", None
+    if getattr(response, "status_code", None) != 200:
+        code = getattr(response, "status_code", None)
+        return "HTTP_%s" % code, None
+    try:
+        return "ok", json.loads(response.content.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError, AttributeError):
+        return "NOT_JSON", None
+
+
+def _advertisement_status(status: str) -> str:
+    if status == "ok":
+        return "ok"
+    if status.startswith("HTTP_"):
+        return "ADVERTISEMENT_NOT_READABLE_" + status
+    if status == "TRANSPORT":
+        return "ADVERTISEMENT_NOT_READABLE_TRANSPORT"
+    if status == "NOT_JSON":
+        return "ADVERTISEMENT_NOT_JSON"
+    return status
+
+
+def discover_peers_from_github(organizations: Sequence[str] = CANDIDATE_ORGANIZATIONS, *,
+                               token: str | None = None,
+                               read_file: Callable[[str, str], tuple[str, Any]] | None = None,
+                               ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    """Peers for live mode, one slot per organization whose advertisement is requested.
+
+    ``read_file(repository, path)`` returns ``(status, document)`` using the
+    same status words as ``github_read_file``. An organization whose overlay
+    or service row cannot be read is still a peer. An organization that was
+    read and does not advertise ``intr-destination`` is not a peer; it is
+    returned in the second list. ``federation.json`` is not requested.
+    """
+    token = _blank_to_none(token)
+    reader = read_file or (lambda repository, path: github_read_file(repository, path, token=token))
+    peers: list[dict[str, Any]] = []
+    silent: list[dict[str, str]] = []
+    seen: dict[str, str] = {}
+    for organization in organizations:
+        repository = organization + "/.github"
+        overlay_status, overlay = reader(repository, OVERLAY_RELATIVE)
+        registry_status, registry = reader(repository, REGISTRY_RELATIVE)
+        contract_status, contract = reader(repository, CONTRACT_RELATIVE)
+        overlay_status = _advertisement_status(overlay_status)
+        registry_status = _advertisement_status(registry_status)
+        if overlay_status != "ok" or registry_status != "ok":
+            reason = overlay_status if overlay_status != "ok" else registry_status
+            peer = _unreachable_peer(organization, reason)
+        else:
+            peer = _peer_from_documents(overlay, registry, root=None, source="GITHUB_API_ADVERTISEMENT")
+            if peer is None:
+                silent.append({"organization": organization, "repository": repository})
+                continue
+            if contract_status == "ok":
+                peer["repository_namespace"] = _namespace_from_contract(contract)
+        if peer["slug"] in seen:
+            raise ValueError("two organizations resolve to the same intr-destination address: " + peer["address"])
+        seen[peer["slug"]] = organization
+        peers.append(peer)
+    peers.sort(key=lambda peer: peer["slug"])
+    silent.sort(key=lambda item: item["organization"])
+    return peers, silent
+
+
+def materialize_remote_ledger(repository: str, dest: Path, token: str | None) -> str | None:
+    """Fetch ``refs/stegverse/organization-ledger`` into ``dest``.
+
+    Returns a reason when the ref cannot be read. The token, when set, is a
+    git extra header, not part of the remote URL.
+    """
+    token = _blank_to_none(token)
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.mkdir(parents=True)
+    env = os.environ.copy()
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    if token:
+        env["GIT_CONFIG_COUNT"] = "1"
+        env["GIT_CONFIG_KEY_0"] = "http.extraheader"
+        env["GIT_CONFIG_VALUE_0"] = "Authorization: Bearer " + token
+    url = "https://github.com/" + repository + ".git"
+    try:
+        init = subprocess.run(["git", "init", "-q"], cwd=dest, env=env, capture_output=True, text=True, timeout=30)
+        if init.returncode != 0:
+            return "LEDGER_REF_NOT_READABLE"
+        fetched = subprocess.run(
+            ["git", "fetch", "--quiet", "--depth", "1", url, LEDGER_REF + ":" + LEDGER_REF],
+            cwd=dest, env=env, capture_output=True, text=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired):
+        return "LEDGER_REF_NOT_READABLE"
+    if fetched.returncode != 0:
+        return "LEDGER_REF_NOT_READABLE"
+    return None
 
 
 def ordered_pairs(peers: Sequence[Mapping[str, Any]]) -> list[tuple[Mapping[str, Any], Mapping[str, Any]]]:
@@ -383,17 +588,23 @@ def materialize_reference(reference: Path, peer: Mapping[str, Any], dest: Path) 
 
 
 def destination_resolution(dest: Mapping[str, Any]) -> dict[str, Any]:
-    """The address the destination advertises. Not a federation-directory lookup."""
+    """The address the destination advertises. Not a federation-directory lookup.
+
+    An organization whose advertisement was not read contributes a placeholder
+    address. The resolution source says so, and the hop is UNREACHABLE.
+    """
+    readable = dest.get("advertisement_readable", True) is not False
     return {
         "destination_organization": dest["organization"],
         "destination_service": dest["address"],
         "destination_capability_profile_id": PROFILE_ID,
         "destination_capability_address_form": ADDRESS_FORM,
-        "destination_resolution_source": "ADVERTISED_CAPABILITY",
+        "destination_resolution_source": "ADVERTISED_CAPABILITY" if readable else "ADVERTISEMENT_NOT_READABLE",
         "destination_resolved_from_caller_argument": False,
         "destination_capability_declared_by_the_peer_directory": False,
         "peer_serves_this_capability_is_proven_here": False,
         "enumerated_in_federation_json": False,
+        "advertisement_readable": readable,
     }
 
 
@@ -840,27 +1051,75 @@ def _correlated_live(sender_repo: Sequence[Mapping[str, Any]], dest_repo: Sequen
     return matched, findings
 
 
-def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False) -> dict[str, Any]:
-    """Read each peer's organization-ledger ref. Do not append."""
+def _absent_ledger(reason: str, location: str | None = None) -> dict[str, Any]:
+    return {"present": False, "reason": reason, "location": location, "chain": [], "findings": [], "sources": {}}
+
+
+def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: str | None = None,
+            ledger_cache: Path | None = None) -> dict[str, Any]:
+    """Read each peer's organization-ledger ref. Do not append.
+
+    A peer whose advertisement was not read is UNREACHABLE and its ledger is
+    not fetched. A readable peer with no local checkout is read from
+    ``refs/stegverse/organization-ledger`` on ``https://github.com/<repo>``
+    when ``fetch`` is set. A ref that cannot be read is UNREACHABLE.
+    """
+    token = _blank_to_none(token)
     views = {}
     unreachable: dict[str, str] = {}
     integrity: dict[str, list[str]] = {}
-    for peer in peers:
-        root = Path(peer["root"])
-        org = walk_git(root, LEDGER_REF, fetch=fetch)
-        namespace = repository_namespace(root)
-        repo = walk_git(root, LEDGER_REF, namespace, fetch=False) if namespace and org.get("present") else {
-            "present": False, "reason": "REPOSITORY_LEDGER_NAMESPACE_ABSENT" if org.get("present") else org.get("reason"),
-            "chain": [], "findings": [], "location": org.get("location"),
-        }
-        views[peer["slug"]] = (repo, org)
-        if not org.get("present"):
-            unreachable[peer["slug"]] = org.get("reason") or "LEDGER_REF_ABSENT"
-            integrity[peer["slug"]] = []
-        elif not repo.get("present"):
-            integrity[peer["slug"]] = ["REPOSITORY_LEDGER_CHAIN_ABSENT"]
-        else:
-            integrity[peer["slug"]] = integrity_findings(repo, org)
+    owned_cache: tempfile.TemporaryDirectory | None = None
+    try:
+        for peer in peers:
+            slug = peer["slug"]
+            if peer.get("advertisement_readable", True) is False:
+                reason = peer.get("unreadable_reason") or "ADVERTISEMENT_NOT_READABLE"
+                unreachable[slug] = reason
+                views[slug] = (_absent_ledger(reason), _absent_ledger(reason))
+                integrity[slug] = []
+                continue
+            root = Path(peer["root"]) if peer.get("root") else None
+            remote_repository = None
+            if root is None and fetch:
+                if ledger_cache is None and owned_cache is None:
+                    owned_cache = tempfile.TemporaryDirectory(prefix="intr-hop-ledger-")
+                    ledger_cache = Path(owned_cache.name)
+                repository = peer.get("repository") or (peer["organization"] + "/.github")
+                fetch_reason = materialize_remote_ledger(repository, ledger_cache / slug, token)
+                if fetch_reason:
+                    unreachable[slug] = fetch_reason
+                    views[slug] = (_absent_ledger(fetch_reason), _absent_ledger(fetch_reason))
+                    integrity[slug] = []
+                    continue
+                root = ledger_cache / slug
+                remote_repository = repository
+            if root is None:
+                reason = "LEDGER_CHECKOUT_ABSENT"
+                unreachable[slug] = reason
+                views[slug] = (_absent_ledger(reason), _absent_ledger(reason))
+                integrity[slug] = []
+                continue
+            org = walk_git(root, LEDGER_REF, fetch=fetch and remote_repository is None)
+            namespace = peer.get("repository_namespace") or repository_namespace(root)
+            repo = walk_git(root, LEDGER_REF, namespace, fetch=False) if namespace and org.get("present") else {
+                "present": False, "reason": "REPOSITORY_LEDGER_NAMESPACE_ABSENT" if org.get("present") else org.get("reason"),
+                "chain": [], "findings": [], "location": org.get("location"),
+            }
+            if remote_repository:
+                base = "git+https://github.com/" + remote_repository + "#" + LEDGER_REF
+                org["location"] = base
+                repo["location"] = base + ((":" + namespace) if namespace else "")
+            views[slug] = (repo, org)
+            if not org.get("present"):
+                unreachable[slug] = org.get("reason") or "LEDGER_REF_ABSENT"
+                integrity[slug] = []
+            elif not repo.get("present"):
+                integrity[slug] = ["REPOSITORY_LEDGER_CHAIN_ABSENT"]
+            else:
+                integrity[slug] = integrity_findings(repo, org)
+    finally:
+        if owned_cache is not None:
+            owned_cache.cleanup()
 
     rendered = []
     for sender, dest in ordered_pairs(peers):
@@ -933,7 +1192,7 @@ def _public_hop(hop: Mapping[str, Any], *, status: str, findings: Sequence[str],
         "sender_slug": hop["sender_slug"],
         "destination_slug": hop["destination_slug"],
         "destination_service": hop["destination_service"],
-        "resolution_source": "ADVERTISED_CAPABILITY",
+        "resolution_source": (hop.get("resolved") or {}).get("destination_resolution_source") or "ADVERTISED_CAPABILITY",
         "communication_id": hop["communication_id"],
         "packet_id": hop["packet_id"],
         "closure": {
@@ -974,9 +1233,21 @@ def matrix(hops: Sequence[Mapping[str, Any]], peers: Sequence[Mapping[str, Any]]
     return table
 
 
+def _public_peer(peer: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "organization": peer["organization"],
+        "slug": peer["slug"],
+        "address": peer["address"],
+        "repository": peer.get("repository"),
+        "profile_id": peer.get("profile_id", PROFILE_ID),
+        "peer_source": peer.get("peer_source"),
+        "advertisement_readable": peer.get("advertisement_readable", True) is not False,
+        "unreadable_reason": peer.get("unreadable_reason"),
+    }
+
+
 def _report(peers: Sequence[Mapping[str, Any]], hops: Sequence[Mapping[str, Any]], *, mode: str,
-            mesh_root: Path | None = None, ledger_home: Path | None = None,
-            unreadable: Sequence[Mapping[str, Any]] | None = None) -> dict[str, Any]:
+            mesh_root: Path | None = None, ledger_home: Path | None = None) -> dict[str, Any]:
     counts = {"PASS": 0, "FAIL": 0, "UNREACHABLE": 0}
     for hop in hops:
         counts[hop["status"]] = counts.get(hop["status"], 0) + 1
@@ -999,9 +1270,11 @@ def _report(peers: Sequence[Mapping[str, Any]], hops: Sequence[Mapping[str, Any]
         "mesh_root": str(mesh_root) if mesh_root else None,
         "ledger_home": str(ledger_home) if ledger_home else None,
         "ledger_ref": LEDGER_REF if mode == "live" else None,
-        "peers": [{key: peer[key] for key in ("organization", "slug", "address", "repository", "profile_id", "peer_source")}
-                  for peer in peers],
-        "advertisements_not_readable": list(unreadable or []),
+        "peers": [_public_peer(peer) for peer in peers],
+        "advertisements_not_readable": [
+            {"organization": peer["organization"], "reason": peer.get("unreadable_reason"), "kept_in_peer_set": True}
+            for peer in peers if peer.get("advertisement_readable") is False
+        ],
         "hop_count": len(hops),
         "counts": counts,
         "matrix": matrix(hops, peers),
@@ -1022,7 +1295,7 @@ def render_markdown(report: Mapping[str, Any]) -> str:
         "",
         "- Mode: `" + report["mode"] + "`",
         "- Evidence class: `" + report["evidence_class"] + "`",
-        "- Peer source: advertised `" + PROFILE_ID + "` at `<slug>.<profile_id>`",
+        "- Peer source: `" + str(report.get("peer_source")) + "`",
         "- Hops: %d (PASS %d, FAIL %d, UNREACHABLE %d)" % (
             report["hop_count"], report["counts"].get("PASS", 0), report["counts"].get("FAIL", 0),
             report["counts"].get("UNREACHABLE", 0)),
@@ -1030,10 +1303,21 @@ def render_markdown(report: Mapping[str, Any]) -> str:
     if report["mode"] == "fabricated":
         lines.append("- Far side: `" + FAR_SIDE + "`, labeled non-authentic. Temporary mesh and ledger roots.")
     else:
-        lines.append("- Live read of `" + LEDGER_REF + "` only. Authenticity is claimed only for a hop whose receipts were read back.")
-    if report.get("advertisements_not_readable"):
-        lines.append("- Advertisements not readable (not peers): " + ", ".join(
-            item.get("organization", "?") for item in report["advertisements_not_readable"]))
+        lines.append("- Live read of `" + LEDGER_REF + "`. Authenticity is claimed only for a hop whose receipts were read back.")
+        queried = report.get("organizations_queried") or []
+        if queried:
+            lines.append("- Organizations queried: " + ", ".join(queried))
+        token_env = report.get("federation_read_token_env") or FEDERATION_READ_TOKEN_ENV
+        token_state = "set" if report.get("federation_read_token_present") else "not set"
+        lines.append("- Optional token `%s` is %s. Public repositories are read without it." % (token_env, token_state))
+    unread = report.get("advertisements_not_readable") or []
+    if unread:
+        lines.append("- Advertisements not read (kept in the peer set; their hops are UNREACHABLE): " + ", ".join(
+            "%s (%s)" % (item.get("organization", "?"), item.get("reason")) for item in unread))
+    silent = report.get("organizations_read_without_intr_destination") or []
+    if silent:
+        lines.append("- Read, and do not advertise `%s`: %s" % (
+            PROFILE_ID, ", ".join(item.get("organization", "?") for item in silent)))
     lines.extend(["", "## Matrix", "", "| sender \\\\ destination | " + " | ".join(slugs) + " |",
                   "| --- | " + " | ".join("---" for _ in slugs) + " |"])
     table = report["matrix"]
@@ -1103,24 +1387,36 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--reference-root", type=Path,
                         help="merged StegVerse-org/.github checkout used as the fabricated ledger and kernel contract")
     parser.add_argument("--fetch-ledger-refs", action="store_true",
-                        help="live mode: fetch refs/stegverse/organization-ledger when it is not local")
-    parser.add_argument("--unreadable", action="append", default=[],
-                        help="organization=reason for a checkout whose advertisement could not be read")
+                        help="live mode: fetch refs/stegverse/organization-ledger when it is not already local")
+    parser.add_argument("--organization", action="append", default=[],
+                        help="GitHub organization whose .github advertisement live mode reads. "
+                             "Defaults to the eight candidate organizations. An organization that "
+                             "cannot be read stays in the hop matrix.")
     args = parser.parse_args(argv)
-    peers = discover_peers(_roots_from_env_and_args(args))
+    local_peers = discover_peers(_roots_from_env_and_args(args))
     if args.mode == "fabricated":
+        peers = local_peers
         mesh = args.mesh_root or (args.out_dir / "mesh")
         ledger_home = args.ledger_home or (args.out_dir / "ledgers")
         report = run_fabricated(peers, mesh_root=mesh, ledger_home=ledger_home, epoch_origin=args.epoch_origin,
                                 reference_root=args.reference_root)
     else:
-        report = run_live(peers, fetch=args.fetch_ledger_refs)
-    unreadable = []
-    for item in args.unreadable:
-        organization, _, reason = item.partition("=")
-        unreadable.append({"organization": organization, "reason": reason or "ADVERTISEMENT_NOT_READABLE"})
-    if unreadable:
-        report["advertisements_not_readable"] = unreadable
+        names = list(args.organization) or list(CANDIDATE_ORGANIZATIONS)
+        token = _blank_to_none(os.environ.get(FEDERATION_READ_TOKEN_ENV))
+        peers, silent = discover_peers_from_github(names, token=token)
+        by_slug = {peer["slug"]: peer for peer in local_peers}
+        for peer in peers:
+            local = by_slug.get(peer["slug"])
+            if local and peer.get("advertisement_readable", True):
+                peer["root"] = local["root"]
+                if not peer.get("repository_namespace"):
+                    peer["repository_namespace"] = local.get("repository_namespace") or repository_namespace(Path(local["root"]))
+        report = run_live(peers, fetch=args.fetch_ledger_refs, token=token)
+        report["organizations_queried"] = names
+        report["organizations_read_without_intr_destination"] = silent
+        report["peer_source"] = "GITHUB_API_ORG_DOTGITHUB_ADVERTISEMENT"
+        report["federation_read_token_env"] = FEDERATION_READ_TOKEN_ENV
+        report["federation_read_token_present"] = token is not None
     write_report(report, args.out_dir)
     print(render_markdown(report))
     if args.mode == "live":
