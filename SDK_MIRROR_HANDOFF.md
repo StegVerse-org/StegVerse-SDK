@@ -673,3 +673,17 @@ SDK #540 merged at `ae4a2a12` (2026-10-17 19:10:51Z) and re-pointed the pricing 
 - Claim for TASK-2026-0014: a durable queue entry, with event-ephemeral consumption in Labs #3211.
 
 No external machine is awaited. Master Records is non-gating.
+
+
+### SDK #541 — owner-defined merge condition and skipped-job evidence (2026-10-17)
+
+**Owner instruction:** Merge is authorized **if the skipped checks are unintended**. This is a conditional authorization, not a blanket approval. Do not reinterpret it as requiring a separate unconditional merge authorization or as permitting a merge when its predicate is false.
+
+**Authenticated PR head:** `3acee8418d9d13d28cad381fe47e6399fcdf7723` (draft, one documentation file changed). Exact-head check-run inventory: eight SUCCESS, two SKIPPED, zero FAILURE.
+
+- `deploy`, check-run `117480345005`, workflow run `39061524920` (`sdk-public-developer-wiki-pages.yml`): SKIPPED by `if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release'`. This PR event does not meet the deployment condition; `validate` succeeded (`117480315194`).
+- `live`, check-run `117480316571`, workflow run `39061524985` (`intr-destination-hop-lane.yml`): SKIPPED by `if: github.event_name == 'workflow_dispatch' && inputs.mode == 'live'`. This PR event does not meet the live-read condition; fabricated CI succeeded (`117480315235`), and its evidence is NON_AUTHENTIC.
+
+The skips are **intentional by source condition**, so the owner's **if unintended** merge predicate is not satisfied. GitHub branch metadata reports `main` `protected:false`, required-status-check enforcement off and no contexts; the repository ruleset collection was empty, while the separate branch-protection endpoint returned 403. Those observations are not a sovereign governance authorization.
+
+**Disposition:** `DENY` for a merge under the specific owner-defined predicate (condition false); `MERGE_BLOCKED` for this draft PR. Do not change workflow conditions to trigger live reads or deployment on PR merely to manufacture green jobs. Do not claim a fresh CI rerun or runtime ALLOW. Keep this existing PR/branch as the sole handoff lane; no duplicate issue or PR. If the owner subsequently changes the merge condition, independently verify that instruction, current exact head, required checks and expected-head protection before any transition.
