@@ -7,12 +7,19 @@ must carry an https source and an observation time (the same rule TV/TVC's
 provider cost binding applies); a missing or uncited rate yields
 UNKNOWN_RATE_NOT_SOURCED instead of an invented price.
 
+Each task class's unit cost follows the owner pricing invariant
+(stegverse/cost_registry.py): C_pricing = max(C_estimated,
+C_authentically_observed), both operands preserved. A tier is PRICED only on a
+complete basis; with one operand it is a labelled PROVISIONAL_SCENARIO, never a
+final rate. No price is approved here.
+
 Standard library only. The output is a pricing candidate: it grants no
 entitlement, credential or execution authority (TV/TVC issues entitlements).
 """
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import statistics
 from decimal import Decimal, ROUND_CEILING
@@ -23,6 +30,7 @@ COST_BASIS_SCHEMA = "stegverse.worker-runtime-cost-basis/v0.1"
 RATE_CARD_SCHEMA = "stegverse.unit-rate-card.v1"
 MARKET_SCHEMA = "stegverse.market-comparables.v1"
 POLICY_SCHEMA = "stegverse.tier-pricing-policy.v1"
+OBSERVATION_SET_SCHEMA = "stegverse.cost-observation-set.v1"
 REPORT_SCHEMA = "stegverse.tier-pricing-candidate.v1"
 GB = Decimal(10**9)
 CENT = Decimal("0.01")
@@ -38,6 +46,19 @@ COMPONENTS = {
 
 class PricingInputError(ValueError):
     pass
+
+
+def _cost_registry():
+    """The sibling module, also when this file runs as a script with nothing installed."""
+    try:
+        from stegverse import cost_registry
+        return cost_registry
+    except ImportError:
+        spec = importlib.util.spec_from_file_location(
+            "stegverse_cost_registry", Path(__file__).resolve().with_name("cost_registry.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
 
 
 def _decimal(value: Any, field: str) -> Decimal:
@@ -112,7 +133,7 @@ def action_cost(record: Any, rates: Mapping[str, Decimal]) -> dict[str, Any]:
         "missing_rates": sorted(missing),
         "usd_per_action": None if missing else str(total),
         # A sample_count of 0 (or absent) is a source-declared estimate, not an observed measurement.
-        "evidence": "OBSERVED" if isinstance(samples, int) and samples > 0 else "PROVISIONAL_ESTIMATE",
+        "evidence": "SAMPLED_COST_BASIS" if isinstance(samples, int) and samples > 0 else "PROVISIONAL_ESTIMATE",
     }
 
 
@@ -135,9 +156,26 @@ def _cents_up(value: Decimal) -> str:
     return str(value.quantize(CENT, rounding=ROUND_CEILING))
 
 
-def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, market: Any = None) -> dict[str, Any]:
+def _observation_set(observations: Any) -> tuple[list[str], Mapping[str, Any]]:
+    if observations is None:
+        return ["NONE_SUPPLIED"], {}
+    doc = _schema(observations, OBSERVATION_SET_SCHEMA)
+    classes = doc.get("authentic_observation_classes")
+    entries = doc.get("observations")
+    if not isinstance(classes, list) or not classes or not isinstance(entries, Mapping):
+        raise PricingInputError("observation set: authentic_observation_classes list and observations map required")
+    return classes, entries
+
+
+def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, market: Any = None,
+                   observations: Any = None) -> dict[str, Any]:
     rates = rate_card_rates(rate_card)
     policy = _schema(policy, POLICY_SCHEMA)
+    version = policy.get("cost_basis_version")
+    if not isinstance(version, str) or not version:
+        raise PricingInputError("cost_basis_version required: estimates and observations compare only within one version")
+    authentic, observed_by_class = _observation_set(observations)
+    registry = _cost_registry()
     margin = _decimal(policy.get("target_gross_margin"), "target_gross_margin")
     if margin >= 1:
         raise PricingInputError("target_gross_margin must be below 1")
@@ -155,6 +193,13 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
     if duplicated:
         raise PricingInputError(f"duplicate cost basis for task classes {duplicated}")
     costs = {c: action_cost(records[0], rates) for c, records in by_class.items()}
+    for task_class, cost in costs.items():
+        estimate = {"scope_id": task_class, "currency": "USD", "unit": "action", "cost_basis_version": version,
+                    "amount": cost["usd_per_action"] if cost["status"] == "PRICED" else "UNKNOWN"}
+        try:
+            cost["pricing_basis"] = registry.pricing_basis(authentic, estimate, observed_by_class.get(task_class))
+        except registry.CostInputError as exc:
+            raise PricingInputError(f"{task_class}: {exc}") from exc
     median = market_median(market)
     tiers = []
     for index, plan in enumerate(plans):
@@ -165,7 +210,8 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
         if not isinstance(classes, list) or not classes or not all(isinstance(c, str) for c in classes):
             raise PricingInputError(f"plans[{index}].task_classes: non-empty list of task classes required")
         absent = sorted(set(classes) - set(costs))
-        unpriced = sorted(c for c in classes if c in costs and costs[c]["status"] != "PRICED")
+        unpriced = sorted(c for c in classes if c in costs
+                          and costs[c]["pricing_basis"]["status"] not in ("COMPLETE_BASIS", "PROVISIONAL_SCENARIO"))
         tier = {"name": plan["name"], "included_actions": str(included), "task_classes": sorted(classes)}
         if absent or unpriced:
             tier.update(status="UNKNOWN_RATE_NOT_SOURCED" if unpriced and not absent else "UNKNOWN_COST_BASIS",
@@ -174,7 +220,8 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
             tiers.append(tier)
             continue
         # Conservative: price every included action at the costliest class the plan admits.
-        unit_cost = max(Decimal(costs[c]["usd_per_action"]) for c in classes)
+        unit_cost = max(Decimal(costs[c]["pricing_basis"]["c_pricing"]) for c in classes)
+        complete = all(costs[c]["pricing_basis"]["status"] == "COMPLETE_BASIS" for c in classes)
         floor = unit_cost / (1 - margin)
         if median is None:
             price, position = floor, "NO_MARKET_EVIDENCE"
@@ -182,32 +229,44 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
             price, position = median, "AT_MARKET_MEDIAN"
         else:
             price, position = floor, "ABOVE_MARKET_COST_BOUND"
-        tier.update(status="PRICED", unit_cost_usd=str(unit_cost), cost_floor_usd_per_action=str(floor),
+        tier.update(status="PRICED" if complete else "PROVISIONAL_SCENARIO", unit_cost_usd=str(unit_cost), cost_floor_usd_per_action=str(floor),
                     usd_per_action=str(price), usd_per_period=_cents_up(price * included),
                     market_position=position,
-                    evidence="PROVISIONAL_ESTIMATE" if any(costs[c]["evidence"] != "OBSERVED" for c in classes)
-                    else "OBSERVED")
+                    evidence="PROVISIONAL_ESTIMATE" if any(costs[c]["evidence"] != "SAMPLED_COST_BASIS" for c in classes)
+                    else "SAMPLED_COST_BASIS")
         tiers.append(tier)
-    priced_all = all(t["status"] == "PRICED" for t in tiers)
+    statuses = {t["status"] for t in tiers}
+    status = ("PRICED" if statuses == {"PRICED"}
+              else "PROVISIONAL" if statuses <= {"PRICED", "PROVISIONAL_SCENARIO"} else "INCOMPLETE")
     extra = {}
-    if not priced_all:
-        unpriced = [t["name"] for t in tiers if t["status"] != "PRICED"]
+    if status == "PROVISIONAL":
+        unobserved = sorted(c for c, cost in costs.items() if cost["pricing_basis"]["status"] == "PROVISIONAL_SCENARIO")
+        extra["actionable_disposition"] = _actionable(
+            "PRICING_BASIS_PROVISIONAL",
+            f"C_pricing = max(C_estimated, C_authentically_observed) has one operand UNKNOWN for {unobserved}",
+            "supply an authentically observed cost (receipt-backed, same scope, currency, unit and cost_basis_version) "
+            "and a complete estimate for each listed task class")
+    elif status == "INCOMPLETE":
+        unpriced = [t["name"] for t in tiers if t["status"] not in ("PRICED", "PROVISIONAL_SCENARIO")]
         missing = sorted({r for c in costs.values() for r in c["missing_rates"]})
         absent = sorted({c for t in tiers for c in t.get("absent_cost_basis", [])})
         extra["actionable_disposition"] = _actionable(
             "PRICING_INCOMPLETE",
-            f"tiers {unpriced} lack a cited rate {missing} or a cost basis {absent}",
-            "add a cited rate card entry for each missing rate, or a cost-basis record for each absent task class")
+            f"tiers {unpriced} lack a cited rate {missing}, a cost basis {absent} or a comparable observation",
+            "add a cited rate card entry for each missing rate, a cost-basis record for each absent task class, "
+            "or an observation in the same cost_basis_version")
     return {
         **extra,
         "schema": REPORT_SCHEMA,
-        "status": "PRICED" if priced_all else "INCOMPLETE",
+        "status": status,
+        "cost_basis_version": version,
         "compute_unit_definition": rate_card["compute_unit_definition"],
         "target_gross_margin": str(margin),
         "market_median_usd_per_action": None if median is None else str(median),
         "action_costs": [costs[k] for k in sorted(costs)],
         "tiers": tiers,
-        "authority": {"entitlement_issued": False, "credential_issued": False, "execution_authorized": False},
+        "authority": {"final_price_approved": False, "entitlement_issued": False, "credential_issued": False,
+                      "execution_authorized": False},
     }
 
 
@@ -233,11 +292,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--rate-card", required=True)
     parser.add_argument("--policy", required=True)
     parser.add_argument("--market", help="Cited market comparables (optional)")
+    parser.add_argument("--observations", help="Authentically observed costs per task class (optional)")
     parser.add_argument("--output", help="Write the JSON report here (default: stdout)")
     args = parser.parse_args(argv)
     records = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(Path(args.cost_basis_dir).glob("*.json"))]
     try:
-        report = derive_pricing(records, _read(args.rate_card), _read(args.policy), _read(args.market))
+        report = derive_pricing(records, _read(args.rate_card), _read(args.policy), _read(args.market),
+                                _read(args.observations))
     except PricingInputError as exc:
         report = {"schema": REPORT_SCHEMA, "status": "FAIL_CLOSED", "error": str(exc),
                   "actionable_disposition": _actionable("PRICING_INPUT_INVALID", str(exc),
