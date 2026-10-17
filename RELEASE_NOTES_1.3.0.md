@@ -2,7 +2,7 @@
 
 The version is not set here. The owner and TV/TVC decide it. Coordination: [StegVerse-Labs/.github#3183](https://github.com/StegVerse-Labs/.github/issues/3183).
 
-These notes describe the gate as shipped by [pull request #534](https://github.com/StegVerse-org/StegVerse-SDK/pull/534) (`d56f45c652ba44cefe609af5b9e6610b95522143` on `cursor/governance-release-prep-940e`). They do not publish a tag or a GitHub Release. `VERSION.json` keeps `release.tag` at `null` and `release_candidate.tag_publication` at `READY_PENDING_TV_TVC_EXECUTION`. The recorded candidate `b1376d3e3e3c79b6e996d32766bfd7e41cd0ccc4` does not contain `governance-gate.yml`. `development_line` is `1.4.0.dev0` with `release_identity` false. This note does not choose a version.
+These notes describe the gate as shipped by [pull request #534](https://github.com/StegVerse-org/StegVerse-SDK/pull/534) (`4f3916aad9f0861436031a252b3223d63b690521` on `cursor/governance-release-prep-940e`). They do not publish a tag or a GitHub Release. `VERSION.json` keeps `release.tag` at `null` and `release_candidate.tag_publication` at `READY_PENDING_TV_TVC_EXECUTION`. The recorded candidate `b1376d3e3e3c79b6e996d32766bfd7e41cd0ccc4` does not contain `governance-gate.yml`. `development_line` is `1.4.0.dev0` with `release_identity` false. This note does not choose a version.
 
 ## Claim
 
@@ -12,21 +12,21 @@ The gate compares a customer-supplied `stegverse.portable-governance-verificatio
 
 ## The gate
 
-Reusable workflow `.github/workflows/governance-gate.yml` (`workflow_call`), as changed on #534.
+Reusable workflow `.github/workflows/governance-gate.yml` (`workflow_call`), as changed on #534 at `4f3916aad9f0861436031a252b3223d63b690521`.
 
-`ba5bbf42eabec6a6ae3b0efdff7c683967a79083` still has the older gate: `run_gate` there emits `PASS` or `FAIL_CLOSED`, and an empty glob is `PASS`. After #534 merges, the caller pin moves to that merge commit. The owner decides the commit. Set both the workflow ref and `sdk_ref` to it:
+`uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@ba5bbf42eabec6a6ae3b0efdff7c683967a79083` runs the pre-#534 workflow, whose `sdk_ref` defaults to `main` and whose actions are tag-pinned, so customers should not adopt it for the new behaviour; the pin becomes valid after the owner merges #534 and the follow-up retargets `uses:` and `sdk_ref` to the merge commit.
 
 ```yaml
 jobs:
   stegverse-governance:
-    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@<merge-commit>
+    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@<534-merge-commit>
     with:
-      sdk_ref: <merge-commit>
+      sdk_ref: <534-merge-commit>
 ```
 
-On #534's head the workflow file still defaults `sdk_ref` to `ba5bbf42eabec6a6ae3b0efdff7c683967a79083`. That default checks out the older `PASS` gate. The workflow ref and `sdk_ref` are separate pins.
+On this #534 head the workflow file still defaults `sdk_ref` to `ba5bbf42eabec6a6ae3b0efdff7c683967a79083`, which checks out the pre-#534 checker (`PASS`, and an empty glob passes). The workflow ref and `sdk_ref` are separate pins.
 
-The called workflow checks out the caller with `contents: read` and `persist-credentials: false`, sparse-checks out `stegverse/` at `sdk_ref`, and runs `python3 -I` on `stegverse/governance_gate.py`. It does not install a package. It verifies each JSON file selected by `bundle_glob` (default `.stegverse/governance/**/*.json`) and, unless `check_schemas` is false, classifies JSON Schemas. Classification does not change the disposition. The job output is `ALLOW` or `FAIL_CLOSED`. The process exits 0 on `ALLOW` and 1 on `FAIL_CLOSED`. It uploads `stegverse-governance-report.json` (`stegverse.governance-gate-report.v1`) when that file exists. If the report is missing or unparsable, the workflow output is `FAIL_CLOSED`.
+The called workflow checks out the caller with `contents: read` and `persist-credentials: false`, sparse-checks out `stegverse/` at `sdk_ref`, and runs `python3 -I` on `stegverse/governance_gate.py`. It does not install a package. It verifies each JSON file selected by `bundle_glob` (default `.stegverse/governance/**/*.json`) and, unless `check_schemas` is false, classifies JSON Schemas. Classification does not change the disposition. The job output is `ALLOW` or `FAIL_CLOSED`, written as `disposition=$disposition` to `$GITHUB_OUTPUT`. The job is green only on `ALLOW`: it exits 0 only when the checker status is 0 and the disposition is `ALLOW`, and exits 1 otherwise. A missing or unparsable report, or a checker without `read_workflow_disposition` (the `ba5bbf42` checker), falls back to `FAIL_CLOSED` and exit 1. It uploads `stegverse-governance-report.json` (`stegverse.governance-gate-report.v1`) when that file exists.
 
 `run_gate` selects the disposition in this order: over 25 bundles or 200 schemas is `FAIL_CLOSED` / `FREE_TIER_LIMIT_EXCEEDED`; otherwise an empty bundle glob is `FAIL_CLOSED` / `NO_GOVERNANCE_BUNDLES_FOUND`; otherwise any selected bundle whose status is not `ALLOW` is `FAIL_CLOSED` / `BUNDLE_VERIFICATION_FAILED`; otherwise `ALLOW` / `ALL_BUNDLES_VERIFIED`. The report records tier string `FREE`. The underlying verifier report uses status `PASS`; the gate maps that to bundle status `ALLOW`. A missing or unrecognized verifier status is bundle status `FAIL_CLOSED`.
 
@@ -36,7 +36,7 @@ On an interlock ingress, `validate_interlock_transition` checks the manifest con
 
 ## Notable changes since v1.0.12
 
-Range starts at tag `v1.0.12` (`04f774731dc438b1585d1040e17dc708f705447a`). The dependency and validator notes below are the tree #534 builds on. The disposition notes above are `stegverse/governance_gate.py` on #534.
+Range starts at tag `v1.0.12` (`04f774731dc438b1585d1040e17dc708f705447a`). The dependency and validator notes below are the tree #534 builds on. The disposition and job-exit notes above are `.github/workflows/governance-gate.yml` and `stegverse/governance_gate.py` on #534 at `4f3916aad9f0861436031a252b3223d63b690521`.
 
 ### Runtime dependencies
 
