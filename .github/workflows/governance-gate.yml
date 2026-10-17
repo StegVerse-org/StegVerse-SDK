@@ -1,31 +1,31 @@
 name: StegVerse Governance Gate
 
 # Reusable workflow any GitHub repository can call (free tier).
-# Callers should reference the pinned tag:
+# Callers reference this file by the full commit SHA:
 #
 #   jobs:
 #     stegverse-governance:
-#       uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@v1.3.0
+#       uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@ba5bbf42eabec6a6ae3b0efdff7c683967a79083
 #
-# sdk_ref defaults to v1.3.0, the same pin. Tag v1.3.0 is not published yet.
-# TV/TVC publishes tags. Until that tag exists, the workflow ref and this
-# default checkout ref do not resolve.
-#
-# It verifies portable governance evidence bundles and classifies JSON Schemas
-# against the SDK structural validator contract. Standard library only: no
-# package installation, no credentials, no repository mutation. The report is
-# evidence only and grants no execution, admissibility, standing or custody.
+# sdk_ref defaults to that same commit. It is the main commit that contains
+# this gate. The checker compares customer-supplied portable governance
+# bundles with the manifest constraints inside those bundles. Standard library
+# only: no package installation, no credentials, no repository mutation.
+# Disposition is ALLOW or FAIL_CLOSED. A non-ALLOW report carries failure_code,
+# failed_predicate, required_evidence_or_repair, retry_entrypoint,
+# owning_existing_goal, and next_attempt. The report records no execution,
+# admissibility, standing, custody, or credential.
 
 on:
   workflow_call:
     inputs:
       sdk_ref:
         description: >
-          StegVerse-SDK ref that supplies the gate. Callers should reference
-          this workflow at @v1.3.0. The default is v1.3.0 and resolves only
-          after TV/TVC publishes that tag.
+          StegVerse-SDK commit that supplies the gate. Callers reference this
+          workflow at @ba5bbf42eabec6a6ae3b0efdff7c683967a79083. The default is
+          that commit.
         type: string
-        default: v1.3.0
+        default: ba5bbf42eabec6a6ae3b0efdff7c683967a79083
       bundle_glob:
         description: Glob for portable governance bundles, relative to the caller repository
         type: string
@@ -36,7 +36,7 @@ on:
         default: true
     outputs:
       disposition:
-        description: PASS or FAIL_CLOSED
+        description: ALLOW or FAIL_CLOSED
         value: ${{ jobs.gate.outputs.disposition }}
 
 permissions:
@@ -48,11 +48,13 @@ jobs:
     outputs:
       disposition: ${{ steps.run.outputs.disposition }}
     steps:
-      - uses: actions/checkout@v4
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           path: caller
           persist-credentials: false
-      - uses: actions/checkout@v4
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: StegVerse-org/StegVerse-SDK
           ref: ${{ inputs.sdk_ref }}
@@ -69,10 +71,20 @@ jobs:
           if [ "$CHECK_SCHEMAS" != "true" ]; then flags+=(--no-schemas); fi
           python3 -I .stegverse-sdk/stegverse/governance_gate.py caller "${flags[@]}"
           status=$?
-          python3 -c 'import json; print("disposition=" + json.load(open("stegverse-governance-report.json"))["disposition"])' >> "$GITHUB_OUTPUT"
+          python3 -I -c 'import importlib.util
+          disposition = "FAIL_CLOSED"
+          try:
+              spec = importlib.util.spec_from_file_location("governance_gate", ".stegverse-sdk/stegverse/governance_gate.py")
+              module = importlib.util.module_from_spec(spec)
+              spec.loader.exec_module(module)
+              disposition = module.read_workflow_disposition("stegverse-governance-report.json")
+          except Exception:
+              disposition = "FAIL_CLOSED"
+          print("disposition=" + disposition)' >> "$GITHUB_OUTPUT"
           exit $status
+      # actions/upload-artifact v4.6.2
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: stegverse-governance-report
           path: stegverse-governance-report.json

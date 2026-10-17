@@ -1,4 +1,4 @@
-**Use StegVerse governance in any GitHub repository:** call `StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@v1.3.0`. The workflow's default `sdk_ref` is `v1.3.0`. That tag is not published yet, so the pin resolves only after TV/TVC publishes it. The check reads customer-supplied portable governance bundles and writes a verification report. See [docs/GITHUB_GOVERNANCE_QUICKSTART.md](docs/GITHUB_GOVERNANCE_QUICKSTART.md).
+**Use StegVerse governance in any GitHub repository:** call `StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@ba5bbf42eabec6a6ae3b0efdff7c683967a79083`. The workflow's default `sdk_ref` is that same commit. The check reads customer-supplied portable governance bundles and writes a verification report. See [docs/GITHUB_GOVERNANCE_QUICKSTART.md](docs/GITHUB_GOVERNANCE_QUICKSTART.md).
 
 ## SDK public wiki observer maintenance (2026-09-27)
 

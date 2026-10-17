@@ -2,9 +2,7 @@
 
 This page describes the reusable workflow in [`.github/workflows/governance-gate.yml`](../.github/workflows/governance-gate.yml) and the checker it runs, [`stegverse/governance_gate.py`](../stegverse/governance_gate.py).
 
-The check compares a customer-supplied portable governance bundle with the hash and identity constraints inside that bundle. A passing report is a record of that comparison. It is not a safety determination, a compliance determination, or an authorization.
-
-Tag `v1.3.0` is not published. `VERSION.json` keeps `release.tag` at `null` and `release_candidate.tag_publication` at `READY_PENDING_TV_TVC_EXECUTION`. TV/TVC publishes tags. Until tag `v1.3.0` exists, both the `uses:` ref below and the default `sdk_ref` fail to resolve.
+The check compares a customer-supplied portable governance bundle with the hash and identity constraints inside that bundle. An `ALLOW` report is a record of that comparison. It is not a safety determination, a compliance determination, or an authorization.
 
 ## Call the pinned workflow
 
@@ -17,10 +15,10 @@ permissions:
   contents: read
 jobs:
   stegverse-governance:
-    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@v1.3.0
+    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@ba5bbf42eabec6a6ae3b0efdff7c683967a79083
 ```
 
-Callers should reference `@v1.3.0`. The workflow input `sdk_ref` defaults to `v1.3.0`, which is the SDK checkout the job uses to run the checker. Omit `sdk_ref` to use that default. The workflow file's own `uses:` ref and `sdk_ref` are separate pins; this minimal job sets only the workflow ref and leaves `sdk_ref` at its default.
+Callers reference that full commit. The workflow input `sdk_ref` defaults to `ba5bbf42eabec6a6ae3b0efdff7c683967a79083`, which is the SDK checkout the job uses to run the checker. Omit `sdk_ref` to use that default. The workflow file's own `uses:` ref and `sdk_ref` are the same commit in this minimal job.
 
 The called workflow checks out the caller with `persist-credentials: false`, checks out `StegVerse-org/StegVerse-SDK` at `sdk_ref` with a sparse checkout of `stegverse/`, and runs:
 
@@ -37,7 +35,7 @@ Optional inputs, from the workflow file:
 
 | Input | Default | Effect |
 |---|---|---|
-| `sdk_ref` | `v1.3.0` | Ref passed to `actions/checkout` for `StegVerse-org/StegVerse-SDK`. |
+| `sdk_ref` | `ba5bbf42eabec6a6ae3b0efdff7c683967a79083` | Commit passed to `actions/checkout` for `StegVerse-org/StegVerse-SDK`. |
 | `bundle_glob` | `.stegverse/governance/**/*.json` | Glob, relative to the caller repository, of JSON files treated as bundles. Repeatable only in the local CLI (`--bundle-glob`); the workflow passes one glob. |
 | `check_schemas` | `true` | When `true`, walk `**/*.json` and classify a file when the object contains `$schema` or the file name ends with `.schema.json`. Classification does not change the disposition. Set `false` to pass `--no-schemas`. |
 
@@ -60,20 +58,23 @@ The same bundle also carries `spe_envelope`, `spe_receipt`, and `steggate_bridge
 
 ## What the run writes, and how to verify it
 
-The job output `disposition` is `PASS` or `FAIL_CLOSED`. The job always uploads `stegverse-governance-report.json` when that file exists. The step summary appended to `$GITHUB_STEP_SUMMARY` is a short Markdown rendering of the same report.
+The job output `disposition` is `ALLOW` or `FAIL_CLOSED`. If the report file is missing or unparsable, the workflow still writes `disposition=FAIL_CLOSED`. The job uploads `stegverse-governance-report.json` when that file exists. The step summary appended to `$GITHUB_STEP_SUMMARY` is a short Markdown rendering of the same report.
 
 The report object is schema `stegverse.governance-gate-report.v1`. Fields written by `run_gate`:
 
 - `tier`: the string `FREE`
-- `disposition`: `PASS` or `FAIL_CLOSED`
+- `disposition`: `ALLOW` or `FAIL_CLOSED`
 - `reason`: `ALL_BUNDLES_VERIFIED`, `NO_GOVERNANCE_BUNDLES_FOUND`, `BUNDLE_VERIFICATION_FAILED`, or `FREE_TIER_LIMIT_EXCEEDED`
 - `usage.bundles_verified`, `usage.schemas_classified`, `usage.limits` (`bundles` 25, `schemas` 200), `usage.over_limit`
-- `bundles[]`: `path`, `status`, and either `report_sha256` or `error`
+- `bundles[]`: `path`, `status` (`ALLOW` or `FAIL_CLOSED`), and either `report_sha256` or `error`. The underlying verifier report still uses status `PASS`; the gate maps that to `ALLOW`. A missing or unrecognized verifier status is `FAIL_CLOSED`.
 - `schemas`: counts and per-file `sdk_contract_compatible` plus `blocking_codes`
 - `sdk_validator_contract`: the structural validator contract version loaded from the `sdk_ref` checkout
-- `authority`: the six fields listed in the claim boundary below
+- `authority`: the object listed in the claim boundary below
+- on every `FAIL_CLOSED` report: `failure_code`, `failed_predicate`, `required_evidence_or_repair`, `retry_entrypoint`, `owning_existing_goal`, and `next_attempt`
 
-The limit check runs first. A count above either limit is `FAIL_CLOSED` / `FREE_TIER_LIMIT_EXCEEDED`, including a run with no bundles and more than 200 classified schemas. Otherwise `PASS` / `ALL_BUNDLES_VERIFIED` means every selected bundle returned status `PASS` from `verify_portable_governance_bundle`. `PASS` / `NO_GOVERNANCE_BUNDLES_FOUND` means the glob matched no bundles and the schema count was within its limit. A bundle that fails verification, is not a JSON object, or cannot be read is `FAIL_CLOSED` / `BUNDLE_VERIFICATION_FAILED`. The process exit code is 0 for `PASS` and 1 for `FAIL_CLOSED`. Schema results never select the disposition.
+The limit check runs first. A count above either limit is `FAIL_CLOSED` / `FREE_TIER_LIMIT_EXCEEDED`, including a run with no bundles and more than 200 classified schemas. Otherwise `ALLOW` / `ALL_BUNDLES_VERIFIED` means every selected bundle's gate status is `ALLOW`. `FAIL_CLOSED` / `NO_GOVERNANCE_BUNDLES_FOUND` means the glob matched no bundles. A bundle that fails verification, is not a JSON object, or cannot be read is `FAIL_CLOSED` / `BUNDLE_VERIFICATION_FAILED`. The process exit code is 0 for `ALLOW` and 1 for `FAIL_CLOSED`. Schema results never select the disposition.
+
+`owning_existing_goal` on these refusals is `SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001`. `retry_entrypoint` is `stegverse/governance_gate.py::run_gate`. `failure_code` is the same string as `reason`.
 
 For each bundle that verifies, `report_sha256` is the hex SHA-256 of `json.dumps(verifier_report, sort_keys=True)` encoded as UTF-8. The uploaded gate report does not include the verifier report body. The verifier report schema is `stegverse.portable-governance-verification-report.v1`. On success it includes `status` `PASS`, `bundle_hash`, `ingress_interlock_hash`, `bridge_hash`, and `checks`. Those checks are the labels the verifier appends after each comparison succeeds:
 
@@ -106,7 +107,7 @@ Delete the customer workflow file, or delete the job whose `uses:` value points 
 
 The claim this workflow can support is a verifiable receipt chain for the bundle the customer supplied: the manifest hashes and predecessor receipt references inside that bundle, the recomputed SPE and bridge hashes, and the identity fields that tie those objects together.
 
-A `PASS` report does not say the caller is safe, compliant, or authorized. The report records this `authority` object on every run:
+An `ALLOW` report does not say the caller is safe, compliant, or authorized. The report records this `authority` object on every run:
 
 - `verification_authority`: `NONE`
 - `execution_authorized`: false
@@ -115,4 +116,4 @@ A `PASS` report does not say the caller is safe, compliant, or authorized. The r
 - `custody_claimed`: false
 - `credential_issued`: false
 
-The checker does not perform a state transition, admit a new action, contact an organization ledger, or retrieve predecessor receipts. `NO_GOVERNANCE_BUNDLES_FOUND` is still `PASS`; an empty glob is not evidence that a transition occurred. JSON Schema classification is a compatibility list for the SDK structural validator and does not pass or fail the run.
+The checker does not perform a state transition, admit a new action, contact an organization ledger, or retrieve predecessor receipts. It emits no organization-ledger receipt. `NO_GOVERNANCE_BUNDLES_FOUND` is `FAIL_CLOSED`. JSON Schema classification is a compatibility list for the SDK structural validator and does not by itself select the disposition.

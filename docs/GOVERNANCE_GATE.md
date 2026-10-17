@@ -1,12 +1,10 @@
 # StegVerse Governance Gate
 
-The governance gate lets any GitHub repository run StegVerse governance checks in its own CI. This is the free tier.
+The governance gate lets any GitHub repository run the bundle checker in its own CI. This is the free tier. Callers reference the workflow by commit `ba5bbf42eabec6a6ae3b0efdff7c683967a79083`.
 
 ## Install
 
-Add `.github/workflows/stegverse-governance.yml` to your repository. Callers should reference `@v1.3.0`. Customer-facing steps, the supplied bundle, the report, uninstall, and the claim boundary are in [GITHUB_GOVERNANCE_QUICKSTART.md](GITHUB_GOVERNANCE_QUICKSTART.md).
-
-Tag `v1.3.0` is not published yet. TV/TVC publishes tags. Until that tag exists, `@v1.3.0` and the default `sdk_ref` do not resolve.
+Add `.github/workflows/stegverse-governance.yml` to your repository. Customer-facing steps, the supplied bundle, the report, uninstall, and the claim boundary are in [GITHUB_GOVERNANCE_QUICKSTART.md](GITHUB_GOVERNANCE_QUICKSTART.md).
 
 ```yaml
 name: StegVerse governance
@@ -15,18 +13,18 @@ permissions:
   contents: read
 jobs:
   stegverse-governance:
-    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@v1.3.0
+    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@ba5bbf42eabec6a6ae3b0efdff7c683967a79083
 ```
 
 Optional inputs:
 
 | Input | Default | Meaning |
 |---|---|---|
-| `sdk_ref` | `v1.3.0` | StegVerse-SDK ref that supplies the gate. Callers should reference `@v1.3.0`. The default resolves only after TV/TVC publishes that tag. |
+| `sdk_ref` | `ba5bbf42eabec6a6ae3b0efdff7c683967a79083` | StegVerse-SDK commit that supplies the gate. Callers reference the workflow at that same commit. |
 | `bundle_glob` | `.stegverse/governance/**/*.json` | Where your portable governance evidence bundles live |
 | `check_schemas` | `true` | Classify your JSON Schema files against the SDK structural validator contract |
 
-The workflow exposes `disposition` (`PASS` or `FAIL_CLOSED`) as an output and uploads `stegverse-governance-report.json` as an artifact.
+The workflow exposes `disposition` (`ALLOW` or `FAIL_CLOSED`) as an output and uploads `stegverse-governance-report.json` as an artifact. `FAIL_CLOSED` carries `failure_code`, `failed_predicate`, `required_evidence_or_repair`, `retry_entrypoint`, `owning_existing_goal`, and `next_attempt`. An empty bundle glob is `FAIL_CLOSED` / `NO_GOVERNANCE_BUNDLES_FOUND`.
 
 ## What it checks
 
@@ -34,13 +32,14 @@ The workflow exposes `disposition` (`PASS` or `FAIL_CLOSED`) as an output and up
    - ingress interlock, SPE envelope, SPE receipt, and StegGate bridge;
    - the hashes and identity fields those objects bind together. The checker does not fetch predecessor receipts and does not recompute `manifest_hash` from a manifest document that is not in the bundle.
    
-   Any bundle that does not verify, is malformed or is unreadable fails the gate closed.
-2. **Schemas.** Each JSON Schema is classified against the SDK structural validator contract. This is informational: it lists which schemas the stdlib-only SDK validator can enforce, and never fails the gate.
+   Any bundle that does not verify, is malformed or is unreadable fails the gate closed. The gate records that bundle's status as `ALLOW` only when the verifier status is `PASS`; any other verifier status is `FAIL_CLOSED`.
+2. **Schemas.** Each JSON Schema is classified against the SDK structural validator contract. This is informational: it lists which schemas the stdlib-only SDK validator can enforce, and never fails the gate by itself.
 
 ## Boundary
 
 - **Standard library only.** No package installation, credentials or network beyond the two checkouts, and no repository mutation (`contents: read`).
 - **Receipt check only.** The report records `authority.verification_authority` as `NONE` and the other `authority` flags as false. See [GITHUB_GOVERNANCE_QUICKSTART.md](GITHUB_GOVERNANCE_QUICKSTART.md) for the claim boundary.
+- The gate is a read-only verifier run by the customer, not a StegVerse state transition, and it emits no organization-ledger receipt.
 
 ## Limits in this workflow
 
@@ -56,4 +55,4 @@ Every report records `usage.bundles_verified` and `usage.schemas_classified`. `p
 python3 -I stegverse/governance_gate.py path/to/repo --output report.json
 ```
 
-The exit code is 0 for `PASS` and 1 for `FAIL_CLOSED`.
+The exit code is 0 for `ALLOW` and 1 for `FAIL_CLOSED`.
