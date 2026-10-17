@@ -661,9 +661,11 @@ Coordination: `StegVerse-org/StegVerse-SDK#484`. Parent: `StegVerse-Labs/.github
 | Scope | Goal Task ID / COSV | Handoff |
 |---|---|---|
 | SDK-native structural validator (contract 1.6), T2 offline boundary, T6 envelope migration | `SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001` / `60200000013002` | `docs/SDK_VALIDATOR_T2_OFFLINE_BOUNDARY_MIRROR_HANDOFF.md`, `docs/SDK_T6_UNIVERSAL_ENTRY_VALIDATOR_MIRROR_HANDOFF.md`; Labs `docs/SDK_STRUCTURAL_VALIDATOR_CONSOLIDATION_TASK_REGISTRY_REGISTRATION_MIRROR_HANDOFF.md` |
-| Governance gate (free tier), tier pricing, cost-component registry | gate: the validator task above; pricing: `SDK-COST-DERIVED-TIER-PRICING-001` / `10300000011002` (Labs #3214, open) | `docs/SDK_GOVERNANCE_PRODUCT_MIRROR_HANDOFF.md` |
+| Governance gate (free tier), tier pricing, cost-component registry | gate: the validator task above; pricing: `SDK-COST-DERIVED-TIER-PRICING-001` / `10300000011002` (Labs #3214 merged at `60d90c48`, 2026-10-17 18:52:26Z; `SDK-COST-DERIVED-TIER-PRICING-001` ACTIVE, UNCLAIMED) | `docs/SDK_GOVERNANCE_PRODUCT_MIRROR_HANDOFF.md` |
 
-**Evidence classes:** source MERGED + CI_VALIDATED for the validator, T2, T6 and the gate. #538 (cost registry, MAX rule, pricing six-field dispositions) is CI_VALIDATED and open. The gate's disposition rework is #534 (draft). No runtime class has been reached.
+**Evidence classes:** source MERGED + CI_VALIDATED for the validator, T2, T6 and the gate. #538 (cost registry, MAX rule, pricing six-field dispositions) merged at `07a6a90a` (2026-10-17 16:21:47Z), with gate changes dropped in favour of #534. The gate's disposition rework is #534 (draft). No runtime class has been reached.
+
+SDK #540 merged at `ae4a2a12` (2026-10-17 19:10:51Z) and re-pointed the pricing `owning_existing_goal` to `SDK-COST-DERIVED-TIER-PRICING-001`.
 
 **Governed transitions:**
 - T6-001: DENY.
