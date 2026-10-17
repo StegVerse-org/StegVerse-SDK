@@ -20,7 +20,14 @@ Until #3214 merges, pricing dispositions name `SDK-STRUCTURAL-VALIDATOR-CONSOLID
   - Adoption outside the SDK: `StegVerse-org/LLM-adapter#420` was merged by the owner. CI_VALIDATED there: PASS / `NO_GOVERNANCE_BUNDLES_FOUND`, with 17 of 21 schemas compatible with contract 1.6.
   - Not runtime-observed.
 - **Tier pricing.** SDK #527 is MERGED at `376512c`.
-- **Six-field actionable dispositions, cost-component registry, and the MAX rule.** SDK #538 is open at head `00fc13a`. It is SOURCE_IMPLEMENTED and CI_VALIDATED: 21 checks succeeded, deploy and live were skipped. Not merged.
+- **Gate disposition rework.** Open draft SDK #534 (head `4f3916a`) carries it:
+  - `ALLOW` replaces `PASS`;
+  - an empty bundle glob becomes `FAIL_CLOSED`;
+  - the six disposition fields are emitted on every `FAIL_CLOSED`;
+  - actions are pinned by commit SHA;
+  - the version is 1.3.0.
+  It supersedes the gate part originally in #538, which was removed from #538 to avoid a conflict.
+- **Cost-component registry, the MAX rule, and pricing six-field dispositions.** These are in SDK #538 (open). They are SOURCE_IMPLEMENTED and CI_VALIDATED on the PR head. Not merged.
 
 No surface here is SANDBOX_RUNTIME_OBSERVED, EXTERNAL_PROVIDER_OBSERVED, MASTER_RECORDS_RECONSTRUCTED or END_TO_END. Nothing here is complete in the terminal sense.
 
@@ -30,7 +37,7 @@ No surface here is SANDBOX_RUNTIME_OBSERVED, EXTERNAL_PROVIDER_OBSERVED, MASTER_
   - It is standard library only and loads SDK modules by path. It is read-only (`contents: read`).
   - It verifies portable governance bundles and classifies JSON Schemas (informational only).
   - Free-tier limits are 25 bundles and 200 schemas.
-  - Every `FAIL_CLOSED` carries the six-field `actionable_disposition`.
+  - Dispositions: `main` still emits `PASS`/`FAIL_CLOSED` without the six fields. #534 changes this to `ALLOW`/`FAIL_CLOSED`, with the six fields and an empty glob treated as `FAIL_CLOSED`.
   - It grants no authority.
   - It runs on the caller's runner, so StegVerse bears no marginal compute cost for it.
 - **Cost registry** (`pricing/cost-component-registry.v1.json`, version `SV-COST-COMPONENTS-2026-10-17`).
@@ -65,4 +72,4 @@ Cost calculation, commercial price and execution authority are separate:
 | Compute-unit definition, 75% margin, tier composition, final rate | Owner | Approve once there is validated cost coverage. A GitHub runner-minute is a cited costing proxy only. |
 | Network egress rate and market comparables | Owner (sources) | Cited `https` sources with `observed_at`. The Organization tier stays `UNKNOWN_RATE_NOT_SOURCED` until then. |
 | Gate and pricing invoked directly by CI, not selected by a manifest | Review query (#3183 acknowledgement) | Neither changes state. Expose them as manifest capabilities if the review requires it. |
-| Merge #538 and `.github` #3214 | Owner | Owner approves merges (#3183). |
+| Merge order | Owner | Owner approves merges (#3183). Lane C's suggested order is #539, #536, #534, #538, pin follow-up, #535. #538 no longer touches gate files, so it merges cleanly in either order with #534. Then merge `.github` #3214. |
