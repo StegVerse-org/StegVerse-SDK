@@ -277,7 +277,7 @@ def _actionable(code: str, predicate: str, repair: str) -> dict[str, str]:
         "failed_predicate": predicate,
         "required_evidence_or_repair": repair,
         "retry_entrypoint": "stegverse/tier_pricing.py::main",
-        "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001",
+        "owning_existing_goal": "SDK-COST-DERIVED-TIER-PRICING-001",
         "next_attempt": "re-run with the corrected inputs; no price or tier is presumed until then",
     }
 

@@ -9,9 +9,9 @@ Coordination issue: `StegVerse-org/StegVerse-SDK#484`. Parent: `StegVerse-Labs/.
 | Surface | Goal Task ID | COSV | Registry state |
 |---|---|---|---|
 | Governance gate (`stegverse/governance_gate.py`, `.github/workflows/governance-gate.yml`) | `SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001` | `60200000013002` | REGISTERED (`.github` #3181) |
-| Tier pricing and cost registry (`stegverse/tier_pricing.py`, `stegverse/cost_registry.py`, `pricing/`) | `SDK-COST-DERIVED-TIER-PRICING-001` | `10300000011002` | Proposed in `StegVerse-Labs/.github` #3214, open and awaiting owner merge |
+| Tier pricing and cost registry (`stegverse/tier_pricing.py`, `stegverse/cost_registry.py`, `pricing/`) | `SDK-COST-DERIVED-TIER-PRICING-001` | `10300000011002` | ACTIVE, UNCLAIMED (registered by `StegVerse-Labs/.github` #3214, `60d90c48`) |
 
-Until #3214 merges, pricing dispositions name `SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001` as `owning_existing_goal`. After the merge, that field moves to the pricing task in a separate change.
+Pricing dispositions name `SDK-COST-DERIVED-TIER-PRICING-001` as `owning_existing_goal`. The goal is registered via StegVerse-Labs/.github#3214 (`60d90c48`).
 
 ## Evidence class per surface (2026-10-17)
 
@@ -27,7 +27,7 @@ Until #3214 merges, pricing dispositions name `SDK-STRUCTURAL-VALIDATOR-CONSOLID
   - actions are pinned by commit SHA;
   - the version is 1.3.0.
   It supersedes the gate part originally in #538, which was removed from #538 to avoid a conflict.
-- **Cost-component registry, the MAX rule, and pricing six-field dispositions.** These are in SDK #538 (open). They are SOURCE_IMPLEMENTED and CI_VALIDATED on the PR head. Not merged.
+- **Cost-component registry, the MAX rule, and pricing six-field dispositions.** These are in SDK #538, merged at `07a6a90a` (2026-10-17 16:21:47Z). Gate changes were dropped in favour of #534.
 
 No surface here is SANDBOX_RUNTIME_OBSERVED, EXTERNAL_PROVIDER_OBSERVED, MASTER_RECORDS_RECONSTRUCTED or END_TO_END. Nothing here is complete in the terminal sense.
 
@@ -72,4 +72,4 @@ Cost calculation, commercial price and execution authority are separate:
 | Compute-unit definition, 75% margin, tier composition, final rate | Owner | Approve once there is validated cost coverage. A GitHub runner-minute is a cited costing proxy only. |
 | Network egress rate and market comparables | Owner (sources) | Cited `https` sources with `observed_at`. The Organization tier stays `UNKNOWN_RATE_NOT_SOURCED` until then. |
 | Gate and pricing invoked directly by CI, not selected by a manifest | Review query (#3183 acknowledgement) | Neither changes state. Expose them as manifest capabilities if the review requires it. |
-| Merge order | Owner | Owner approves merges (#3183). Lane C's suggested order is #539, #536, #534, #538, pin follow-up, #535. #538 no longer touches gate files, so it merges cleanly in either order with #534. Then merge `.github` #3214. |
+| Merge order | Owner | Owner approves merges (#3183). Lane C's suggested order was #539, #536, #534, #538, pin follow-up, #535. #538 merged at `07a6a90a` without the gate files (those stayed with #534). `StegVerse-Labs/.github` #3214 merged at `60d90c48`. |

@@ -162,7 +162,7 @@
     "failed_predicate": "tiers ['Organization'] lack a cited rate ['network_gb'], a cost basis [] or a comparable observation",
     "failure_code": "PRICING_INCOMPLETE",
     "next_attempt": "re-run with the corrected inputs; no price or tier is presumed until then",
-    "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001",
+    "owning_existing_goal": "SDK-COST-DERIVED-TIER-PRICING-001",
     "required_evidence_or_repair": "add a cited rate card entry for each missing rate, a cost-basis record for each absent task class, or an observation in the same cost_basis_version",
     "retry_entrypoint": "stegverse/tier_pricing.py::main"
   },

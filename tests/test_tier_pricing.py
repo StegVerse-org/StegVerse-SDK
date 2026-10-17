@@ -179,6 +179,7 @@ def test_non_priced_results_carry_the_six_actionable_fields(tmp_path):
               "owning_existing_goal", "next_attempt"}
     incomplete = tp.derive_pricing(BASIS, _card(compute_unit="0.006"), _policy(("team", 10, ["gate"])))
     assert set(incomplete["actionable_disposition"]) == fields
+    assert incomplete["actionable_disposition"]["owning_existing_goal"] == "SDK-COST-DERIVED-TIER-PRICING-001"
     assert "storage_gb" in incomplete["actionable_disposition"]["failed_predicate"]
     priced = tp.derive_pricing(BASIS, _card(compute_unit="0.006"), _policy(("s", 1, ["canary"])),
                                observations=_observations(canary="0.006"))
