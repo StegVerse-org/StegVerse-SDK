@@ -75,7 +75,9 @@ class _StegHealer(dict):
                 DeprecationWarning,
                 stacklevel=2,
             )
-            return super().__getitem__(_ERROR_OR_FAILURE_MAP_FIELD)
+            return ERROR_OR_FAILURE_MAP
+        if key == _ERROR_OR_FAILURE_MAP_FIELD:
+            return ERROR_OR_FAILURE_MAP
         return super().__getitem__(key)
 
     def get(self, key: str, default: Any = None) -> Any:
@@ -85,23 +87,21 @@ class _StegHealer(dict):
                 DeprecationWarning,
                 stacklevel=2,
             )
-            return super().get(_ERROR_OR_FAILURE_MAP_FIELD, default)
+            return ERROR_OR_FAILURE_MAP
+        if key == _ERROR_OR_FAILURE_MAP_FIELD:
+            return ERROR_OR_FAILURE_MAP
         return super().get(key, default)
 
     def route_record(self) -> dict[str, str]:
         """The steghealer object hashed into ``route_sha256``.
 
-        The historical key only. The primary field supplies the value, and it
-        must equal the deprecated alias or the route is not emitted.
+        Historical key only. The value is the ``ERROR_OR_FAILURE_MAP`` constant.
         """
-        mapped = super().__getitem__(_ERROR_OR_FAILURE_MAP_FIELD)
-        if mapped != super().__getitem__(_CLASSIFIER_FIELD):
-            raise ValueError("STEGHEALER_CLASSIFIER_ALIAS_DIVERGED")
         return {
             "organization": super().__getitem__("organization"),
             "service_id": super().__getitem__("service_id"),
             "repository": super().__getitem__("repository"),
-            "classifier": mapped,
+            "classifier": ERROR_OR_FAILURE_MAP,
         }
 
 
