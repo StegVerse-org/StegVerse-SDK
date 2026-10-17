@@ -15,10 +15,10 @@ permissions:
   contents: read
 jobs:
   stegverse-governance:
-    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@ba5bbf42eabec6a6ae3b0efdff7c683967a79083
+    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@<534-merge-commit>
 ```
 
-Callers reference that full commit. The workflow input `sdk_ref` defaults to `ba5bbf42eabec6a6ae3b0efdff7c683967a79083`, which is the SDK checkout the job uses to run the checker. Omit `sdk_ref` to use that default. The workflow file's own `uses:` ref and `sdk_ref` are the same commit in this minimal job.
+`ba5bbf42eabec6a6ae3b0efdff7c683967a79083` is the pre-#534 workflow and checker. That workflow's `sdk_ref` default is moving `main`, its actions are pinned to tags such as `@v4`, and its checker emits `PASS` and passes an empty bundle glob. Do not adopt that commit for the behavior on this page. The `uses:` ref above, and `sdk_ref`, become valid only after the owner merges #534 and a follow-up retargets both to that merge commit. Until that follow-up, this page is not an install instruction for a commit that already contains this checker.
 
 The called workflow checks out the caller with `persist-credentials: false`, checks out `StegVerse-org/StegVerse-SDK` at `sdk_ref` with a sparse checkout of `stegverse/`, and runs:
 
@@ -35,7 +35,7 @@ Optional inputs, from the workflow file:
 
 | Input | Default | Effect |
 |---|---|---|
-| `sdk_ref` | `ba5bbf42eabec6a6ae3b0efdff7c683967a79083` | Commit passed to `actions/checkout` for `StegVerse-org/StegVerse-SDK`. |
+| `sdk_ref` | `ba5bbf42eabec6a6ae3b0efdff7c683967a79083` in this file today | Checkout of `StegVerse-org/StegVerse-SDK`. That default is the pre-#534 checker (`PASS`, empty glob passes), not the checker described below. The follow-up after the owner merges #534 retargets it to the merge commit. |
 | `bundle_glob` | `.stegverse/governance/**/*.json` | Glob, relative to the caller repository, of JSON files treated as bundles. Repeatable only in the local CLI (`--bundle-glob`); the workflow passes one glob. |
 | `check_schemas` | `true` | When `true`, walk `**/*.json` and classify a file when the object contains `$schema` or the file name ends with `.schema.json`. Classification does not change the disposition. Set `false` to pass `--no-schemas`. |
 
@@ -58,7 +58,7 @@ The same bundle also carries `spe_envelope`, `spe_receipt`, and `steggate_bridge
 
 ## What the run writes, and how to verify it
 
-The job output `disposition` is `ALLOW` or `FAIL_CLOSED`. If the report file is missing or unparsable, the workflow still writes `disposition=FAIL_CLOSED`. The job uploads `stegverse-governance-report.json` when that file exists. The step summary appended to `$GITHUB_STEP_SUMMARY` is a short Markdown rendering of the same report.
+The job output `disposition` is `ALLOW` or `FAIL_CLOSED`. The step prints only that value, then writes `disposition=$disposition` to `$GITHUB_OUTPUT`. If the report file is missing or unparsable, or `read_workflow_disposition` is absent, the value is `FAIL_CLOSED`. The job exits 0 only when the checker status is 0 and that value is `ALLOW`; otherwise it exits 1. The job uploads `stegverse-governance-report.json` when that file exists. The step summary appended to `$GITHUB_STEP_SUMMARY` is a short Markdown rendering of the same report.
 
 The report object is schema `stegverse.governance-gate-report.v1`. Fields written by `run_gate`:
 

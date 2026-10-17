@@ -160,6 +160,71 @@ def test_workflow_snippet_prints_fail_closed_without_a_report(tmp_path):
     assert "v1.3.0" not in workflow
 
 
+def test_workflow_step_exits_nonzero_unless_disposition_is_allow(tmp_path):
+    workflow = (ROOT / ".github" / "workflows" / "governance-gate.yml").read_text(encoding="utf-8")
+    exit_line = 'if [ "$status" -eq 0 ] && [ "$disposition" = "ALLOW" ]; then exit 0; else exit 1; fi'
+    assert exit_line in workflow
+    assert 'echo "disposition=$disposition" >> "$GITHUB_OUTPUT"' in workflow
+    assert "print(disposition)" in workflow
+    assert "exit $status" not in workflow
+
+    def exit_for(status, disposition):
+        script = 'status="$1"\ndisposition="$2"\n' + exit_line + "\n"
+        return subprocess.run(["bash", "-c", script, "bash", str(status), disposition]).returncode
+
+    assert exit_for(0, "ALLOW") == 0
+    for disposition in ("FAIL_CLOSED", "DENY", "PASS", "UNKNOWN", ""):
+        assert exit_for(0, disposition) != 0, disposition
+        assert exit_for(1, disposition) != 0, disposition
+    assert exit_for(1, "ALLOW") != 0
+
+    step = """
+set +e
+status=$1
+disposition=$(python3 -I -c 'import importlib.util
+disposition = "FAIL_CLOSED"
+try:
+    spec = importlib.util.spec_from_file_location("governance_gate", ".stegverse-sdk/stegverse/governance_gate.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    disposition = module.read_workflow_disposition("stegverse-governance-report.json")
+except Exception:
+    disposition = "FAIL_CLOSED"
+print(disposition)')
+echo "disposition=$disposition" > github_output.txt
+if [ "$status" -eq 0 ] && [ "$disposition" = "ALLOW" ]; then exit 0; else exit 1; fi
+"""
+
+    def run_step(directory, status):
+        return subprocess.run(["bash", "-c", step, "bash", str(status)], cwd=directory,
+                              capture_output=True, text=True)
+
+    old = tmp_path / "old"
+    sdk = old / ".stegverse-sdk" / "stegverse"
+    sdk.mkdir(parents=True)
+    (sdk / "governance_gate.py").write_text("VALUE = 'pre-534'\n", encoding="utf-8")
+    (old / "stegverse-governance-report.json").write_text('{"disposition": "PASS"}\n', encoding="utf-8")
+    missing_helper = run_step(old, 0)
+    assert missing_helper.returncode != 0, missing_helper.stderr
+    assert (old / "github_output.txt").read_text(encoding="utf-8").strip() == "disposition=FAIL_CLOSED"
+
+    current = tmp_path / "current"
+    current_sdk = current / ".stegverse-sdk" / "stegverse"
+    current_sdk.mkdir(parents=True)
+    (current_sdk / "governance_gate.py").write_text(
+        (ROOT / "stegverse" / "governance_gate.py").read_text(encoding="utf-8"), encoding="utf-8")
+    (current / "stegverse-governance-report.json").write_text('{"disposition": "FAIL_CLOSED"}\n', encoding="utf-8")
+    closed = run_step(current, 0)
+    assert closed.returncode != 0, closed.stderr
+    assert (current / "github_output.txt").read_text(encoding="utf-8").strip() == "disposition=FAIL_CLOSED"
+    (current / "stegverse-governance-report.json").write_text('{"disposition": "ALLOW"}\n', encoding="utf-8")
+    allowed = run_step(current, 0)
+    assert allowed.returncode == 0, allowed.stderr
+    assert (current / "github_output.txt").read_text(encoding="utf-8").strip() == "disposition=ALLOW"
+    checker_failed = run_step(current, 1)
+    assert checker_failed.returncode != 0
+
+
 def test_gate_imports_only_the_standard_library_and_runs_without_the_package_dependencies(tmp_path):
     for module in ("governance_gate", "portable_governance_verifier", "interlock_transition", "interlock_return",
                    "spe_steggate_bridge", "organization_record_names", "structural_validator_candidate"):

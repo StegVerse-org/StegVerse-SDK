@@ -1,6 +1,6 @@
 # StegVerse Governance Gate
 
-The governance gate lets any GitHub repository run the bundle checker in its own CI. This is the free tier. Callers reference the workflow by commit `ba5bbf42eabec6a6ae3b0efdff7c683967a79083`.
+The governance gate lets any GitHub repository run the bundle checker in its own CI. This is the free tier. Commit `ba5bbf42eabec6a6ae3b0efdff7c683967a79083` is the pre-#534 workflow and checker. That workflow defaults `sdk_ref` to moving `main`, pins actions to tags such as `@v4`, and its checker emits `PASS` and passes an empty bundle glob. Do not adopt that commit for the behavior on this page. The documented pin becomes valid only after the owner merges #534 and a follow-up retargets `uses:` and `sdk_ref` to that merge commit.
 
 ## Install
 
@@ -13,14 +13,14 @@ permissions:
   contents: read
 jobs:
   stegverse-governance:
-    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@ba5bbf42eabec6a6ae3b0efdff7c683967a79083
+    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@<534-merge-commit>
 ```
 
 Optional inputs:
 
 | Input | Default | Meaning |
 |---|---|---|
-| `sdk_ref` | `ba5bbf42eabec6a6ae3b0efdff7c683967a79083` | StegVerse-SDK commit that supplies the gate. Callers reference the workflow at that same commit. |
+| `sdk_ref` | `ba5bbf42eabec6a6ae3b0efdff7c683967a79083` in this file today | That default is the pre-#534 checker (`PASS`, empty glob passes). It does not supply the checker described below. The follow-up after the owner merges #534 retargets it to the merge commit. |
 | `bundle_glob` | `.stegverse/governance/**/*.json` | Where your portable governance evidence bundles live |
 | `check_schemas` | `true` | Classify your JSON Schema files against the SDK structural validator contract |
 
