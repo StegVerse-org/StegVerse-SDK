@@ -230,15 +230,16 @@ jobs:
       - name: Read every ledger, then record one disposition per hop (dispatch, no wait)
         run: |
           set -eu
-          if [ -z "${FEDERATION_HOP_TOKEN:-}" ]; then
-            echo '{"disposition":"FAIL_CLOSED","failure_code":"HOP_DISPATCH_CREDENTIAL_ABSENT","failed_predicate":"HOP_DISPATCH_CREDENTIAL_IS_PRESENT","required_evidence_or_repair":"a credential that dispatches intr-destination-hop.yml send in each sender organization; TV/TVC issuance is the pending owner decision on StegVerse-Labs/.github#2897","retry_entrypoint":".github/workflows/intr-destination-hop-lane.yml mode=orchestrate","owning_existing_goal":"StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody","next_attempt":"dispatch mode=orchestrate once the credential decision lands","consequence_committed":false}'
-            exit 1
-          fi
+          # hb_epoch is resolved first: missing or malformed is FAIL_CLOSED and nothing is dispatched.
           case "$HB_EPOCH" in
             ''|*[!0-9]*)
               echo '{"disposition":"FAIL_CLOSED","failure_code":"DISPATCH_HB_EPOCH_INVALID","failed_predicate":"HB_EPOCH_IS_SUPPLIED_AS_A_NON_NEGATIVE_INTEGER","required_evidence_or_repair":"a non-negative integer hb_epoch input","retry_entrypoint":".github/workflows/intr-destination-hop-lane.yml mode=orchestrate","owning_existing_goal":"StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody","next_attempt":"re-dispatch mode=orchestrate with a supplied hb_epoch","consequence_committed":false}'
               exit 1 ;;
           esac
+          if [ -z "${FEDERATION_HOP_TOKEN:-}" ]; then
+            echo '{"disposition":"FAIL_CLOSED","failure_code":"HOP_DISPATCH_CREDENTIAL_ABSENT","failed_predicate":"HOP_DISPATCH_CREDENTIAL_IS_PRESENT","required_evidence_or_repair":"a credential that dispatches intr-destination-hop.yml send in each sender organization; TV/TVC issuance is the pending owner decision on StegVerse-Labs/.github#2897","retry_entrypoint":".github/workflows/intr-destination-hop-lane.yml mode=orchestrate","owning_existing_goal":"StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody","next_attempt":"dispatch mode=orchestrate once the credential decision lands","consequence_committed":false}'
+            exit 1
+          fi
           python -m stegverse.intr_destination_hop_lane \
             --mode orchestrate \
             --hb-epoch "$HB_EPOCH" \

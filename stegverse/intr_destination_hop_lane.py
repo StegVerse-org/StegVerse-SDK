@@ -1548,6 +1548,47 @@ def hop_waves(peers: Sequence[Mapping[str, Any]]) -> list[list[tuple[Mapping[str
     return [wave for wave in waves if wave]
 
 
+HB_EPOCH_FAILURE_CODE = "DISPATCH_HB_EPOCH_INVALID"
+HB_EPOCH_PREDICATE = "HB_EPOCH_IS_SUPPLIED_AS_A_NON_NEGATIVE_INTEGER"
+
+
+def parse_hb_epoch(value: Any) -> int | None:
+    """``hb_epoch`` in the form the org hop workflow and the ledger writer take it.
+
+    Both take a ``workflow_dispatch`` string input named ``hb_epoch`` and accept
+    ASCII decimal digits only (a non-negative integer). A non-negative ``int``
+    is the same value. Anything else (absent, blank, signed, spaced, ``1e3``,
+    ``1_000``, non-ASCII digits, bool) is malformed and returns ``None``.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if value >= 0 else None
+    if isinstance(value, str) and value and value.isascii() and value.isdigit():
+        return int(value)
+    return None
+
+
+def hb_epoch_fail_closed(value: Any) -> dict[str, Any]:
+    """The orchestrate transition when ``hb_epoch`` is missing or malformed. Nothing is dispatched."""
+    missing = value is None or (isinstance(value, str) and not value.strip())
+    finding = "MISSING" if missing else "MALFORMED"
+    return {
+        "disposition": "FAIL_CLOSED", "hb_epoch_finding": finding,
+        "supplied_hb_epoch": None if value is None else repr(value),
+        **non_allow_fields(
+            HB_EPOCH_FAILURE_CODE, HB_EPOCH_PREDICATE,
+            "a supplied hb_epoch of ASCII decimal digits (a non-negative integer); the org hop workflow and "
+            "the organization-ledger writer take it as the workflow_dispatch input hb_epoch (hb_epoch was "
+            + finding.lower() + ")",
+            LANE_WORKFLOW + " mode=orchestrate",
+            "re-dispatch mode=orchestrate with a supplied hb_epoch"),
+        "consequence_committed": False, "dispatched": 0, "hops": [], "outcomes": {},
+        "hb_epoch": None, "time_constraint": TIME_CONSTRAINT, "receiver_wait": False,
+        "always_on_receiver_required": False,
+    }
+
+
 def hop_communication_id(sender: Mapping[str, Any], dest: Mapping[str, Any], epoch: int) -> str:
     return "intr-hop:%s:%s:%d" % (sender["slug"], dest["slug"], epoch)
 
@@ -1556,11 +1597,14 @@ def dispatch_send_hop(sender: Mapping[str, Any], dest: Mapping[str, Any], *, com
                       hb_epoch: int, token: str, ref: str = "main",
                       poster: Callable[..., Any] | None = None) -> tuple[bool, str]:
     """Dispatch ``phase=send`` of the sender's hop workflow. The token is a header only."""
+    epoch = parse_hb_epoch(hb_epoch)
+    if epoch is None:
+        return False, "HB_EPOCH_INVALID"
     repository = sender.get("repository") or (sender["organization"] + "/.github")
     url = GITHUB_API + "/repos/" + repository + "/actions/workflows/" + HOP_WORKFLOW + "/dispatches"
     body = {"ref": ref, "inputs": {
         "phase": "send", "destination_slug": dest["slug"], "communication_id": communication_id,
-        "hb_epoch": str(hb_epoch), "forward": "true",
+        "hb_epoch": str(epoch), "forward": "true",
     }}
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "stegverse-intr-hop-lane",
                "X-GitHub-Api-Version": "2022-11-28", "Authorization": "Bearer " + token}
@@ -1585,12 +1629,17 @@ def run_orchestrate(peers: Sequence[Mapping[str, Any]], *, hb_epoch: int, token:
     readback that follows a later transition evaluates whatever receipts exist
     then. A peer whose advertisement was not read is not dispatched; its hops
     are ``UNREACHABLE``.
+
+    A missing or malformed ``hb_epoch`` resolves the whole transition to
+    ``FAIL_CLOSED`` with the six fields, and nothing is dispatched.
     """
+    epoch = parse_hb_epoch(hb_epoch)
+    if epoch is None:
+        return hb_epoch_fail_closed(hb_epoch)
+    hb_epoch = epoch
     token = _blank_to_none(token)
     if token is None:
         raise ValueError(FEDERATION_HOP_TOKEN_ENV + " is required to dispatch hops")
-    if isinstance(hb_epoch, bool) or not isinstance(hb_epoch, int) or hb_epoch < 0:
-        raise ValueError("hb_epoch is supplied as a non-negative integer")
     send = dispatcher or (lambda sender, dest, **kw: dispatch_send_hop(sender, dest, token=token, **kw))
     states = dict(ledger_state or {})
     readable = [peer for peer in peers if peer.get("advertisement_readable", True) is not False]
@@ -1924,8 +1973,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                         help="GitHub organization whose .github advertisement live mode reads. "
                              "Defaults to the eight candidate organizations. An organization that "
                              "cannot be read stays in the hop matrix.")
-    parser.add_argument("--hb-epoch", type=int,
-                        help="orchestrate: supplied epoch of this transition's send dispatches")
+    parser.add_argument("--hb-epoch", default=None,
+                        help="orchestrate: supplied epoch of this transition's send dispatches "
+                             "(ASCII decimal digits, a non-negative integer)")
     parser.add_argument("--writer-introduced", action="append", default=[],
                         help="ORGANIZATION=<unix seconds or ISO 8601>: receipts added before it are LEGACY. "
                              "Overrides the default-branch history lookup for that organization.")
@@ -1945,8 +1995,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         hop_token = _blank_to_none(os.environ.get(FEDERATION_HOP_TOKEN_ENV))
         token = _blank_to_none(os.environ.get(FEDERATION_READ_TOKEN_ENV)) or hop_token
         if args.mode == "orchestrate":
-            if args.hb_epoch is None or args.hb_epoch < 0:
-                parser.error("--mode orchestrate needs --hb-epoch (a supplied non-negative epoch)")
+            if parse_hb_epoch(args.hb_epoch) is None:
+                # Resolved before any read or dispatch: nothing is sent.
+                refusal = hb_epoch_fail_closed(args.hb_epoch)
+                args.out_dir.mkdir(parents=True, exist_ok=True)
+                (args.out_dir / "intr-destination-hop-lane.json").write_text(
+                    json.dumps({"mode": "orchestrate", "orchestration": refusal}, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8")
+                print(json.dumps(refusal, sort_keys=True))
+                return 1
             if hop_token is None:
                 parser.error("--mode orchestrate needs " + FEDERATION_HOP_TOKEN_ENV)
         peers, silent = discover_peers_from_github(names, token=token)
@@ -1978,7 +2035,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             states = {(hop["sender_slug"], hop["destination_slug"]): hop.get("ledger_state", "UNSENT")
                       for hop in report["hops"]}
             report["mode"] = "orchestrate"
-            report["orchestration"] = run_orchestrate(peers, hb_epoch=args.hb_epoch, token=hop_token,
+            report["orchestration"] = run_orchestrate(peers, hb_epoch=parse_hb_epoch(args.hb_epoch), token=hop_token,
                                                       ledger_state=states)
         report["organizations_queried"] = names
         report["organizations_read_without_intr_destination"] = silent

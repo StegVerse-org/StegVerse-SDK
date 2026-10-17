@@ -110,6 +110,8 @@ FEDERATION_HOP_TOKEN="$FEDERATION_HOP_TOKEN" \
 
 **Manifest-directed, no waiting.** One orchestrate run is one transition. It first reads every organization ledger (the live readback) and derives each ordered pair's ledger state: `CLOSED`, `REFUSED`, `OPEN` (sent, not yet closed) or `UNSENT`. It then records one disposition per pair. An `UNSENT` pair whose sender and destination hold no open hop, and are not already in a hop dispatched by this run, is dispatched. Every ledger writer in an organization shares the `organization-ledger` concurrency group, and GitHub cancels a second pending run in a group, so no organization appears in two dispatched hops. A later run, at a later supplied `--hb-epoch`, selects the next hops from ledger state.
 
+**`hb_epoch`.** Every send dispatch passes `hb_epoch` to the organization's `intr-destination-hop.yml` as a `workflow_dispatch` string of ASCII decimal digits, the same input name and form the organization-ledger writer takes (StegVerse-Labs/.github#3205). A missing or malformed `hb_epoch` (blank, signed, spaced, fractional, exponent, underscore or non-ASCII digits) resolves the run to `FAIL_CLOSED` with `failure_code` `DISPATCH_HB_EPOCH_INVALID`, `failed_predicate` `HB_EPOCH_IS_SUPPLIED_AS_A_NON_NEGATIVE_INTEGER` and the other four fields, before any ledger read or dispatch. Nothing is dispatched.
+
 **One hop.** A hop dispatched at epoch `E` has communication id `intr-hop:<sender>:<destination>:<E>`:
 
 1. The lane dispatches the sender's `phase=send`. It records `ORGANIZATION_EGRESS_EMITTED` at `E`.

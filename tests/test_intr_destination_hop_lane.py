@@ -786,8 +786,9 @@ class OrchestrationTests(unittest.TestCase):
         self.assertNotIn("TIMEOUT", json.dumps(result))
         with self.assertRaises(ValueError):
             lane.run_orchestrate(peers, hb_epoch=40, token=" ", dispatcher=dispatcher)
-        with self.assertRaises(ValueError):
-            lane.run_orchestrate(peers, hb_epoch=-1, token="t-value", dispatcher=dispatcher)
+        refused = lane.run_orchestrate(peers, hb_epoch=-1, token="t-value", dispatcher=dispatcher)
+        self.assertEqual(refused["disposition"], "FAIL_CLOSED")
+        _assert_six(self, refused)
 
     def test_pair_ledger_state_reads_the_sender_chain(self):
         emitted, closed, _ = _pair_receipts("Alpha", "Beta", "beta.intr-destination", "cid-1", "pkt-1")
@@ -810,6 +811,118 @@ class OrchestrationTests(unittest.TestCase):
             if '"disposition":"FAIL_CLOSED"' in line:
                 for field in _SIX:
                     self.assertIn('"%s"' % field, line)
+
+    def _no_dispatch(self):
+        calls = []
+
+        def dispatcher(sender, dest, **kw):
+            calls.append((sender["slug"], dest["slug"], kw))
+            return True, "DISPATCHED"
+
+        return calls, dispatcher
+
+    def _assert_hb_epoch_fail_closed(self, result, finding):
+        self.assertEqual(result["disposition"], "FAIL_CLOSED")
+        self.assertEqual(result["failure_code"], "DISPATCH_HB_EPOCH_INVALID")
+        self.assertEqual(result["failed_predicate"], "HB_EPOCH_IS_SUPPLIED_AS_A_NON_NEGATIVE_INTEGER")
+        self.assertEqual(result["retry_entrypoint"], ".github/workflows/intr-destination-hop-lane.yml mode=orchestrate")
+        self.assertEqual(result["hb_epoch_finding"], finding)
+        self.assertEqual(result["dispatched"], 0)
+        self.assertEqual(result["hops"], [])
+        self.assertIs(result["consequence_committed"], False)
+        _assert_six(self, result)
+
+    def test_a_missing_hb_epoch_fails_closed_and_dispatches_nothing(self):
+        peers = self._peers()
+        for missing in (None, "", "   "):
+            calls, dispatcher = self._no_dispatch()
+            result = lane.run_orchestrate(peers, hb_epoch=missing, token="t-value", dispatcher=dispatcher)
+            self._assert_hb_epoch_fail_closed(result, "MISSING")
+            self.assertEqual(calls, [])
+
+    def test_a_malformed_hb_epoch_fails_closed_and_dispatches_nothing(self):
+        peers = self._peers()
+        for malformed in (-1, "-1", "+7", " 7", "7 ", "1.5", "1e3", "1_000", "0x10", "abc",
+                          "\u0663", 7.0, True, False, [7]):
+            calls, dispatcher = self._no_dispatch()
+            result = lane.run_orchestrate(peers, hb_epoch=malformed, token="t-value", dispatcher=dispatcher)
+            self._assert_hb_epoch_fail_closed(result, "MALFORMED")
+            self.assertEqual(calls, [], repr(malformed))
+
+    def test_hb_epoch_reaches_every_hop_dispatch_in_the_writer_format(self):
+        # The org hop workflow and the organization-ledger writer (StegVerse-Labs/.github#3205)
+        # take hb_epoch as a workflow_dispatch string of ASCII decimal digits.
+        self.assertEqual(lane.parse_hb_epoch("40"), 40)
+        self.assertEqual(lane.parse_hb_epoch("0"), 0)
+        self.assertEqual(lane.parse_hb_epoch(40), 40)
+        posted = []
+
+        class Response:
+            status_code = 204
+            content = b""
+
+        def poster(url, json=None, headers=None, timeout=30):
+            posted.append(json)
+            return Response()
+
+        peers = self._peers()
+        dispatcher = lambda s, t, **kw: lane.dispatch_send_hop(s, t, token="t-value", poster=poster, **kw)
+        result = lane.run_orchestrate(peers, hb_epoch="40", token="t-value", dispatcher=dispatcher)
+        self.assertEqual(result["dispatched"], 4)
+        self.assertEqual(len(posted), 4)
+        for body in posted:
+            self.assertEqual(body["inputs"]["hb_epoch"], "40")
+            self.assertRegex(body["inputs"]["hb_epoch"], r"^[0-9]+$")
+            self.assertTrue(body["inputs"]["communication_id"].endswith(":40"))
+        # A malformed epoch handed straight to the dispatcher is not posted.
+        before = len(posted)
+        for malformed in ("-1", "x", None, True):
+            ok, detail = lane.dispatch_send_hop(peers[0], peers[1], communication_id="c", hb_epoch=malformed,
+                                                token="t-value", poster=poster)
+            self.assertFalse(ok)
+            self.assertEqual(detail, "HB_EPOCH_INVALID")
+        self.assertEqual(len(posted), before)
+
+    def test_orchestrate_cli_fails_closed_on_a_missing_or_malformed_hb_epoch_before_any_read(self):
+        reads = []
+        original = lane.discover_peers_from_github
+        lane.discover_peers_from_github = lambda *a, **kw: reads.append(a) or ([], [])
+        previous = {name: os.environ.pop(name, None) for name in (lane.FEDERATION_HOP_TOKEN_ENV, FEDERATION_READ_TOKEN_ENV)}
+        os.environ[lane.FEDERATION_HOP_TOKEN_ENV] = "t-value"
+        try:
+            for argv, finding in (([], "MISSING"), (["--hb-epoch", ""], "MISSING"),
+                                  (["--hb-epoch", "abc"], "MALFORMED"), (["--hb-epoch=-1"], "MALFORMED"),
+                                  (["--hb-epoch", "1.5"], "MALFORMED")):
+                with tempfile.TemporaryDirectory() as tmp:
+                    code = main(["--mode", "orchestrate", "--out-dir", tmp] + argv)
+                    self.assertEqual(code, 1)
+                    report = json.loads((Path(tmp) / "intr-destination-hop-lane.json").read_text(encoding="utf-8"))
+                    self._assert_hb_epoch_fail_closed(report["orchestration"], finding)
+                    self.assertNotIn("t-value", json.dumps(report))
+            self.assertEqual(reads, [])
+        finally:
+            lane.discover_peers_from_github = original
+            for name, value in previous.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+
+    def test_the_orchestrate_workflow_carries_hb_epoch_and_resolves_it_first(self):
+        workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/intr-destination-hop-lane.yml").read_text(encoding="utf-8")
+        self.assertRegex(workflow, r"(?m)^      hb_epoch:\n(?:        .*\n)*?        type: string$")
+        job = workflow[workflow.index("\n  orchestrate:\n"):]
+        self.assertIn("HB_EPOCH: ${{ inputs.hb_epoch }}", job)
+        guard = job.index('case "$HB_EPOCH" in')
+        self.assertLess(guard, job.index("FEDERATION_HOP_TOKEN:-"))
+        self.assertLess(guard, job.index("python -m stegverse.intr_destination_hop_lane"))
+        self.assertIn("''|*[!0-9]*)", job[guard:guard + 80])
+        self.assertIn('--hb-epoch "$HB_EPOCH"', job)
+        refusal = [line for line in job.splitlines() if "DISPATCH_HB_EPOCH_INVALID" in line]
+        self.assertEqual(len(refusal), 1)
+        echoed = json.loads(refusal[0].strip()[len("echo '"):-1])
+        self.assertEqual(echoed["disposition"], "FAIL_CLOSED")
+        _assert_six(self, echoed)
 
     def test_the_send_dispatch_names_the_hop_workflow_and_keeps_the_token_in_a_header(self):
         seen = {}
@@ -840,8 +953,7 @@ class OrchestrationTests(unittest.TestCase):
         try:
             with tempfile.TemporaryDirectory() as tmp:
                 os.environ[lane.FEDERATION_HOP_TOKEN_ENV] = "t-value"
-                with self.assertRaises(SystemExit):
-                    main(["--mode", "orchestrate", "--out-dir", tmp])
+                self.assertEqual(main(["--mode", "orchestrate", "--out-dir", tmp]), 1)
                 os.environ.pop(lane.FEDERATION_HOP_TOKEN_ENV)
                 with self.assertRaises(SystemExit):
                     main(["--mode", "orchestrate", "--hb-epoch", "40", "--out-dir", tmp])
