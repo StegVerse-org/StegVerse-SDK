@@ -1,0 +1,38 @@
+{
+  "schema": "stegverse.cost-component-registry.v1",
+  "registry_version": "SV-COST-COMPONENTS-2026-10-17",
+  "status": "CANDIDATE_PENDING_OWNER_APPROVAL",
+  "currency": "USD",
+  "comparison_unit": "successful equivalent admissible outcome",
+  "foundation": "SV-COST-FIVE-LANE-RESULTS-001 (https://github.com/GCAT-BCAT-Engine/workflows/blob/main/experiments/sv-cost-program/five-lane-results/results/five_lane_results.json); expansion SV-COST-ELEVEN-LANE-RESULTS-001",
+  "execution_preference": "INTERNAL_FIRST: execute inside the StegVerse ecosystem when capability and authorization allow; externally billed provider calls are attributed to the governed outcome they serve, never omitted",
+  "authentic_observation_classes": [
+    "PROVIDER_REPORTED_REQUEST_COST_USD",
+    "EXACT_USAGE_PLUS_BOUND_VERSIONED_RATE_CARD",
+    "ORGANIZATION_RECEIPT_MEASURED"
+  ],
+  "components": [
+    {"component_id": "external.openai.input_tokens", "quantity_field": "input_tokens", "divisor": 1000000,
+     "rate_key": "openai.input_usd_per_million", "covers": "external_model_input",
+     "attribution": "DIRECT", "applies_when": {"execution_locus": ["EXTERNAL_PROVIDER"], "provider": ["openai"]}},
+    {"component_id": "external.openai.output_tokens", "quantity_field": "output_tokens", "divisor": 1000000,
+     "rate_key": "openai.output_usd_per_million", "covers": "external_model_output",
+     "attribution": "DIRECT", "applies_when": {"execution_locus": ["EXTERNAL_PROVIDER"], "provider": ["openai"]}},
+    {"component_id": "external.anthropic.input_tokens", "quantity_field": "input_tokens", "divisor": 1000000,
+     "rate_key": "anthropic.input_usd_per_million", "covers": "external_model_input",
+     "attribution": "DIRECT", "applies_when": {"execution_locus": ["EXTERNAL_PROVIDER"], "provider": ["anthropic"]}},
+    {"component_id": "external.anthropic.output_tokens", "quantity_field": "output_tokens", "divisor": 1000000,
+     "rate_key": "anthropic.output_usd_per_million", "covers": "external_model_output",
+     "attribution": "DIRECT", "applies_when": {"execution_locus": ["EXTERNAL_PROVIDER"], "provider": ["anthropic"]}},
+    {"component_id": "internal.runner_minutes", "quantity_field": "runner_minutes",
+     "rate_key": "internal.runner_usd_per_minute", "covers": "internal_compute",
+     "attribution": "DIRECT", "applies_when": {"execution_locus": ["INTERNAL"]}},
+    {"component_id": "internal.storage_gb_month", "quantity_field": "storage_gb_month",
+     "rate_key": "internal.storage_usd_per_gb_month", "covers": "retained_storage",
+     "attribution": "DIRECT"},
+    {"component_id": "shared.governance_overhead", "quantity_field": "governance_overhead_runner_minutes",
+     "rate_key": "internal.runner_usd_per_minute", "covers": "shared_governance_compute",
+     "attribution": "SHARED", "allocation_basis": "attributable_outcomes_in_period"}
+  ],
+  "authority_effect": "NONE: cost calculation only; no price approval, TV/TVC entitlement or InTr ALLOW"
+}

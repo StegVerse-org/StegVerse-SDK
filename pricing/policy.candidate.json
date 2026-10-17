@@ -1,12 +1,28 @@
 {
   "schema": "stegverse.tier-pricing-policy.v1",
-  "status": "CANDIDATE_PENDING_OWNER_DECISION",
+  "status": "CANDIDATE_PENDING_OWNER_DECISION: margin 0.75 and plan composition are candidate assumptions (SDK#484 comment 6235730818)",
   "target_gross_margin": "0.75",
   "plans": [
-    {"name": "Team", "included_actions": 1000,
-     "task_classes": ["governance_sovereign_task_observation", "organization_federation_readiness", "host_runtime_self_attest"]},
-    {"name": "Organization", "included_actions": 10000,
-     "task_classes": ["governance_sovereign_task_observation", "organization_federation_readiness", "host_runtime_self_attest",
-                      "sdk_mcp_canonical_validation", "steggate_stable_rendezvous"]}
-  ]
+    {
+      "name": "Team",
+      "included_actions": 1000,
+      "task_classes": [
+        "governance_sovereign_task_observation",
+        "organization_federation_readiness",
+        "host_runtime_self_attest"
+      ]
+    },
+    {
+      "name": "Organization",
+      "included_actions": 10000,
+      "task_classes": [
+        "governance_sovereign_task_observation",
+        "organization_federation_readiness",
+        "host_runtime_self_attest",
+        "sdk_mcp_canonical_validation",
+        "steggate_stable_rendezvous"
+      ]
+    }
+  ],
+  "cost_basis_version": "SV-COST-COMPONENTS-2026-10-17"
 }
