@@ -1,4 +1,4 @@
-**Use StegVerse governance in any GitHub repository:** call the free-tier reusable workflow `StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@main`. It verifies portable governance evidence bundles and classifies your JSON Schemas, using the standard library only and granting no authority. See [docs/GOVERNANCE_GATE.md](docs/GOVERNANCE_GATE.md).
+**Use StegVerse governance in any GitHub repository:** call `StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@v1.3.0`. The workflow's default `sdk_ref` is `v1.3.0`. That tag is not published yet, so the pin resolves only after TV/TVC publishes it. The check reads customer-supplied portable governance bundles and writes a verification report. See [docs/GITHUB_GOVERNANCE_QUICKSTART.md](docs/GITHUB_GOVERNANCE_QUICKSTART.md).
 
 ## SDK public wiki observer maintenance (2026-09-27)
 

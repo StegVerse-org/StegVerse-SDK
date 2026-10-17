@@ -1,4 +1,5 @@
 from pathlib import Path
+import ast
 import json
 import re
 import unittest
@@ -8,6 +9,21 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PackageVersionIdentityTests(unittest.TestCase):
+    def test_dunder_version_matches_pyproject(self):
+        pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        match = re.search(r"(?m)^version\s*=\s*[\"']([^\"']+)[\"']\s*$", pyproject)
+        self.assertIsNotNone(match)
+        module = ast.parse((ROOT / "stegverse" / "__init__.py").read_text(encoding="utf-8"))
+        found = []
+        for stmt in module.body:
+            if not isinstance(stmt, ast.Assign):
+                continue
+            if not any(isinstance(target, ast.Name) and target.id == "__version__" for target in stmt.targets):
+                continue
+            if isinstance(stmt.value, ast.Constant) and isinstance(stmt.value.value, str):
+                found.append(stmt.value.value)
+        self.assertEqual(found, [match.group(1)])
+
     def test_pyproject_owns_release_candidate_version(self):
         text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
         self.assertRegex(text, r"(?m)^name\s*=\s*[\"']stegverse-sdk[\"']\s*$")

@@ -1,10 +1,15 @@
 name: StegVerse Governance Gate
 
-# Reusable workflow any GitHub repository can call (free tier):
+# Reusable workflow any GitHub repository can call (free tier).
+# Callers should reference the pinned tag:
 #
 #   jobs:
 #     stegverse-governance:
-#       uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@main
+#       uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@v1.3.0
+#
+# sdk_ref defaults to v1.3.0, the same pin. Tag v1.3.0 is not published yet.
+# TV/TVC publishes tags. Until that tag exists, the workflow ref and this
+# default checkout ref do not resolve.
 #
 # It verifies portable governance evidence bundles and classifies JSON Schemas
 # against the SDK structural validator contract. Standard library only: no
@@ -15,9 +20,12 @@ on:
   workflow_call:
     inputs:
       sdk_ref:
-        description: StegVerse-SDK ref that supplies the gate
+        description: >
+          StegVerse-SDK ref that supplies the gate. Callers should reference
+          this workflow at @v1.3.0. The default is v1.3.0 and resolves only
+          after TV/TVC publishes that tag.
         type: string
-        default: main
+        default: v1.3.0
       bundle_glob:
         description: Glob for portable governance bundles, relative to the caller repository
         type: string

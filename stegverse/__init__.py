@@ -1,6 +1,6 @@
 """StegVerse SDK — governed AI execution with verifiable receipts."""
 
-__version__ = "1.0.0"
+__version__ = "1.3.0"
 
 # --- Core client ---
 from .client import StegClient as StegVerseSDK, StegClient
