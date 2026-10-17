@@ -47,6 +47,16 @@ from stegverse.intr_destination_hop_lane import (
 )
 
 _GRANT = re.compile(r"\bgrants?\b", re.IGNORECASE)
+_SIX = ("failure_code", "failed_predicate", "required_evidence_or_repair",
+        "retry_entrypoint", "owning_existing_goal", "next_attempt")
+_GOAL = "StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody"
+
+
+def _assert_six(test, item):
+    for field in _SIX:
+        test.assertIsInstance(item.get(field), str, (field, item))
+        test.assertTrue(item[field].strip(), (field, item))
+    test.assertEqual(item["owning_existing_goal"], _GOAL)
 
 
 def _advertise(root: Path, organization: str, *, bind: bool = True, address: str | None = None) -> None:
@@ -264,6 +274,8 @@ class LiveLedgerTests(unittest.TestCase):
         self.assertTrue(all(hop["status"] == "UNREACHABLE" for hop in report["hops"]))
         self.assertFalse(report["authenticity_claimed"])
         self.assertTrue(all(hop["authenticity_claimed"] is False for hop in report["hops"]))
+        for hop in report["hops"]:
+            _assert_six(self, hop)
         text = render_markdown(report)
         self.assertIsNone(_GRANT.search(text))
         self.assertIn("UNREACHABLE", text)
@@ -304,7 +316,7 @@ class LiveLedgerTests(unittest.TestCase):
         self.assertTrue(by_pair[("alpha", "beta")]["authenticity_claimed"])
         self.assertEqual(by_pair[("alpha", "sv-011")]["status"], "UNREACHABLE")
         self.assertFalse(by_pair[("sv-011", "beta")]["authenticity_claimed"])
-        self.assertEqual(report["counts"], {"PASS": 2, "FAIL": 0, "UNREACHABLE": 4})
+        self.assertEqual(report["counts"], {"PASS": 2, "FAIL": 0, "UNREACHABLE": 4, lane.DURABLE_QUEUE: 0})
         self.assertTrue(report["authenticity_claimed"])
         self.assertIn("sv-011", report["matrix"]["alpha"])
 
@@ -508,6 +520,478 @@ class GithubAdvertisementTests(unittest.TestCase):
         self.assertIn(FEDERATION_READ_TOKEN_ENV, text)
         self.assertIsNone(_GRANT.search(text))
         self.assertIsNone(_GRANT.search(json.dumps(report)))
+
+
+class LedgerIntegrityClassificationTests(unittest.TestCase):
+    """Fabricated receipts on temporary ledgers. None of them is authentic."""
+
+    def _views(self, repo_chain, org_chain, *, repo_times=None, org_times=None, sources=None):
+        repo = {"present": True, "chain": repo_chain, "findings": [], "sources": {},
+                "introduced_at": repo_times or {}}
+        org = {"present": True, "chain": org_chain, "findings": [],
+               "sources": sources if sources is not None else {
+                   item["source_transition_sha256"]: next(s for s in repo_chain if s["receipt_sha256"] == item["repo_receipt_sha256"])
+                   for item in org_chain if item.get("source_transition_sha256")},
+               "introduced_at": org_times or {}}
+        return repo, org
+
+    def test_findings_on_receipts_before_the_writer_are_legacy_and_reported(self):
+        emitted, closed, _ = _pair_receipts("Alpha", "Beta", "beta.intr-destination", "cid-1", "pkt-1")
+        clocked = json.loads(json.dumps(emitted))
+        clocked["hb_reference"]["derived_from_clock"] = True
+        clocked = _repo(None, clocked["transition_id"], EMITTED_CLASS, clocked["evidence"], "Alpha/.github")
+        body = {key: value for key, value in clocked.items() if key != "receipt_sha256"}
+        body["hb_reference"] = {**body["hb_reference"], "derived_from_clock": True}
+        clocked = {**body, "receipt_sha256": sha256(body)}
+        linked = _org(None, clocked)
+        orphan_source = _repo(None, "ORGANIZATION_LEDGER_OPENED:x", "ORGANIZATION_LEDGER_OPENED", {}, "Alpha/.github")
+        orphan = _org(linked["receipt_sha256"], orphan_source)
+        repo, org = self._views([clocked], [linked, orphan],
+                                repo_times={clocked["receipt_sha256"]: 100},
+                                org_times={linked["receipt_sha256"]: 100, orphan["receipt_sha256"]: 100},
+                                sources={linked["source_transition_sha256"]: clocked})
+        strict = lane.integrity_report(repo, org)
+        self.assertIn("TIME_CONSTRAINT_DERIVED_FROM_CLOCK", strict["findings"])
+        self.assertIn("ORPHAN_ORGANIZATION_RECEIPT", strict["findings"])
+        self.assertEqual(strict["legacy_receipt_count"], 0)
+        writer = {"commit": "c0ffee", "committed_at_unix": 200, "source": "TEST"}
+        classified = lane.integrity_report(repo, org, writer_introduction=writer)
+        self.assertEqual(classified["findings"], [])
+        reported = {item["finding"]: item for item in classified["reported"]}
+        self.assertEqual(reported["TIME_CONSTRAINT_DERIVED_FROM_CLOCK"]["classification"], "LEGACY")
+        self.assertEqual(reported["ORPHAN_ORGANIZATION_RECEIPT"]["classification"], "LEGACY")
+        self.assertEqual(classified["legacy_receipt_count"], 3)
+        # A receipt the writer itself appended is not legacy: it still fails.
+        later = lane.integrity_report(repo, org, writer_introduction={**writer, "committed_at_unix": 50})
+        self.assertIn("TIME_CONSTRAINT_DERIVED_FROM_CLOCK", later["findings"])
+        self.assertEqual(lane.integrity_findings(repo, org, writer_introduction=writer), [])
+
+    def test_identical_duplicates_are_reported_and_divergent_ones_fail(self):
+        first = _repo(None, "ORGANIZATION_INGRESS_MATERIALIZED:node", "ORGANIZATION_INGRESS_MATERIALIZED",
+                      {"node": "n"}, "Alpha/.github")
+        again = _repo(first["receipt_sha256"], first["transition_id"], first["transition_class"],
+                      {"node": "n"}, "Alpha/.github")
+        org = [_org(None, first)]
+        org.append(_org(org[0]["receipt_sha256"], again))
+        repo_view, org_view = self._views([first, again], org)
+        report = lane.integrity_report(repo_view, org_view)
+        self.assertEqual(report["findings"], [])
+        identical, = [item for item in report["reported"] if item["finding"] == "IDENTICAL_DUPLICATE_REPOSITORY_RECEIPT"]
+        self.assertEqual(identical["transition_id"], first["transition_id"])
+        self.assertEqual(len(identical["receipt_sha256"]), 2)
+        divergent = _repo(first["receipt_sha256"], first["transition_id"], first["transition_class"],
+                          {"node": "other"}, "Alpha/.github")
+        org2 = [_org(None, first)]
+        org2.append(_org(org2[0]["receipt_sha256"], divergent))
+        repo_view, org_view = self._views([first, divergent], org2)
+        self.assertIn("DUPLICATE_REPOSITORY_RECEIPT", lane.integrity_findings(repo_view, org_view))
+        times = {first["receipt_sha256"]: 10, divergent["receipt_sha256"]: 10}
+        repo_view, org_view = self._views([first, divergent], org2, repo_times=times)
+        legacy = lane.integrity_report(repo_view, org_view,
+                                       writer_introduction={"committed_at_unix": 20})
+        self.assertEqual(legacy["findings"], [])
+        self.assertEqual([item["classification"] for item in legacy["reported"]
+                          if item["finding"] == "DUPLICATE_REPOSITORY_RECEIPT"], ["LEGACY"])
+
+    def test_an_organization_receipt_that_names_no_source_is_reported_not_compared(self):
+        _emitted, _closed, arrived = _pair_receipts("Alpha", "Beta", "beta.intr-destination", "cid-1", "pkt-1")
+        org = _org(None, arrived)
+        body = {key: value for key, value in org.items() if key != "receipt_sha256"}
+        body["source_transition_sha256"] = None
+        org = {**body, "receipt_sha256": sha256(body)}
+        repo_view, org_view = self._views([arrived], [org], sources={})
+        report = lane.integrity_report(repo_view, org_view)
+        self.assertEqual(report["findings"], [])
+        self.assertEqual([item["finding"] for item in report["reported"]],
+                         ["ORGANIZATION_RECEIPT_NAMES_NO_SOURCE_RECEIPT"])
+
+    def test_receipt_introduction_times_come_from_the_ledger_ref_history(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            env = {**os.environ, "GIT_AUTHOR_NAME": "lane", "GIT_AUTHOR_EMAIL": "lane@example.invalid",
+                   "GIT_COMMITTER_NAME": "lane", "GIT_COMMITTER_EMAIL": "lane@example.invalid"}
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True, env=env)
+            emitted, closed, _ = _pair_receipts("Alpha", "Beta", "beta.intr-destination", "cid-1", "pkt-1")
+            org0 = _org(None, emitted)
+            _store(root, [org0], [emitted])
+            _store(root / "repository-ledger" / "Alpha" / ".github", [emitted], [])
+            subprocess.run(["git", "add", "-A"], cwd=root, check=True, env=env)
+            subprocess.run(["git", "commit", "-q", "-m", "one"], cwd=root, check=True,
+                           env={**env, "GIT_COMMITTER_DATE": "1000000000 +0000", "GIT_AUTHOR_DATE": "1000000000 +0000"})
+            org1 = _org(org0["receipt_sha256"], closed)
+            _store(root, [org0, org1], [emitted, closed])
+            _store(root / "repository-ledger" / "Alpha" / ".github", [emitted, closed], [])
+            subprocess.run(["git", "add", "-A"], cwd=root, check=True, env=env)
+            subprocess.run(["git", "commit", "-q", "-m", "two"], cwd=root, check=True,
+                           env={**env, "GIT_COMMITTER_DATE": "1000000500 +0000", "GIT_AUTHOR_DATE": "1000000500 +0000"})
+            subprocess.run(["git", "update-ref", LEDGER_REF, "HEAD"], cwd=root, check=True)
+            org = lane.walk_git(root, LEDGER_REF)
+            repo = lane.walk_git(root, LEDGER_REF, "repository-ledger/Alpha/.github")
+        self.assertEqual(org["introduced_at"][org0["receipt_sha256"]], 1000000000)
+        self.assertEqual(org["introduced_at"][org1["receipt_sha256"]], 1000000500)
+        self.assertEqual(repo["introduced_at"][emitted["receipt_sha256"]], 1000000000)
+        self.assertEqual(repo["introduced_at"][closed["receipt_sha256"]], 1000000500)
+        report = lane.integrity_report(repo, org, writer_introduction={"committed_at_unix": 1000000100})
+        self.assertEqual(report["legacy_receipt_count"], 2)
+
+    def test_the_writer_marker_and_its_introduction(self):
+        self.assertTrue(lane.writer_marker("    inputs:\n      hb_epoch:\n        required: true\nrun: x --self-close\n"))
+        self.assertFalse(lane.writer_marker("run: x --self-close\n"))
+        self.assertFalse(lane.writer_marker("      hb_epoch:\n"))
+        listed = [
+            {"sha": "new", "commit": {"committer": {"date": "2026-10-17T10:00:00Z"}}},
+            {"sha": "mid", "commit": {"committer": {"date": "2026-10-16T10:00:00Z"}}},
+            {"sha": "old", "commit": {"committer": {"date": "2026-10-15T10:00:00Z"}}},
+        ]
+        files = {"old": "run: --self-close\n", "mid": "      hb_epoch:\nrun: --self-close\n",
+                 "new": "      hb_epoch:\nrun: --self-close\n"}
+        seen = []
+
+        class Response:
+            def __init__(self, status, content):
+                self.status_code, self.content = status, content
+
+        def getter(url, headers=None, timeout=30):
+            seen.append((url, dict(headers or {})))
+            if "/commits?" in url:
+                return Response(200, json.dumps(listed if "page=1" in url else []).encode())
+            sha = url.rsplit("ref=", 1)[1]
+            return Response(200, files[sha].encode())
+
+        found = lane.writer_introduction_from_github("Alpha/.github", token="t-value", getter=getter)
+        self.assertEqual(found["commit"], "mid")
+        self.assertEqual(found["committed_at_unix"], 1792144800)
+        self.assertTrue(all("t-value" not in url for url, _ in seen))
+        self.assertTrue(all(headers["Authorization"] == "Bearer t-value" for _, headers in seen))
+        overrides = lane.parse_writer_overrides(["Alpha=1792144800", "Beta=2026-10-16T10:00:00Z"])
+        self.assertEqual(overrides["Alpha"]["committed_at_unix"], overrides["Beta"]["committed_at_unix"])
+        with self.assertRaises(ValueError):
+            lane.parse_writer_overrides(["Alpha"])
+
+    def test_the_remote_ledger_header_is_basic_and_the_history_is_full(self):
+        header = lane.git_auth_header("t-value")
+        self.assertTrue(header.startswith("Authorization: Basic "))
+        import base64
+        self.assertEqual(base64.b64decode(header.split()[-1]).decode(), "x-access-token:t-value")
+        source = Path(lane.__file__).read_text(encoding="utf-8")
+        fetch = source.split("def materialize_remote_ledger(")[1].split("\ndef ")[0]
+        self.assertNotIn("--depth", fetch)
+
+
+class OrchestrationTests(unittest.TestCase):
+    """No workflow is dispatched here. The dispatcher and the ledger probe are fakes."""
+
+    def _peers(self, count=8):
+        names = ["StegVerse-org", "StegVerse-Labs", "SV-LLM", "SV-011", "GCAT-BCAT-Engine",
+                 "Admissible-Existence", "StegVerse-002", "StegGhost"][:count]
+        return [{"organization": name, "slug": organization_slug(name),
+                 "address": organization_slug(name) + "." + PROFILE_ID,
+                 "repository": name + "/.github"} for name in names]
+
+    def test_waves_cover_every_ordered_pair_once_with_disjoint_organizations(self):
+        peers = self._peers()
+        waves = lane.hop_waves(peers)
+        self.assertEqual(len(waves), 14)
+        pairs = []
+        for wave in waves:
+            self.assertEqual(len(wave), 4)
+            members = [peer["slug"] for hop in wave for peer in hop]
+            self.assertEqual(len(members), len(set(members)))
+            pairs.extend((sender["slug"], dest["slug"]) for sender, dest in wave)
+        expected = {(s["slug"], d["slug"]) for s, d in ordered_pairs(peers)}
+        self.assertEqual(len(pairs), 56)
+        self.assertEqual(set(pairs), expected)
+        odd = lane.hop_waves(self._peers(5))
+        self.assertEqual(sum(len(wave) for wave in odd), 20)
+        for wave in odd:
+            members = [peer["slug"] for hop in wave for peer in hop]
+            self.assertEqual(len(members), len(set(members)))
+
+    def test_orchestration_dispatches_once_per_organization_and_never_waits(self):
+        peers = self._peers()
+        dispatched = []
+
+        def dispatcher(sender, dest, *, communication_id, hb_epoch):
+            dispatched.append((sender["slug"], dest["slug"], communication_id, hb_epoch))
+            return True, "DISPATCHED"
+
+        result = lane.run_orchestrate(peers, hb_epoch=1000, token="t-value", dispatcher=dispatcher)
+        # One transition: four disjoint hops are sent; the rest wait for a later transition.
+        self.assertEqual(len(dispatched), 4)
+        members = [slug for hop in dispatched for slug in hop[:2]]
+        self.assertEqual(len(members), len(set(members)))
+        self.assertEqual(result["dispatched"], 4)
+        self.assertEqual(result["outcomes"], {lane.DURABLE_QUEUE: 4,
+                                              "DEFERRED_ORGANIZATION_LEDGER_CONCURRENCY": 52})
+        self.assertEqual(len(result["hops"]), 56)
+        first = dispatched[0]
+        self.assertEqual(first[2], "intr-hop:%s:%s:1000" % (first[0], first[1]))
+        self.assertTrue(all(hop[3] == 1000 for hop in dispatched))
+        for hop in result["hops"]:
+            if hop["outcome"] == lane.DURABLE_QUEUE:
+                self.assertIs(hop["always_on_receiver_required"], False)
+                self.assertEqual(hop["failure_code"], lane.DURABLE_QUEUE)
+                self.assertEqual(hop["send_transition_disposition"], "ALLOW")
+            _assert_six(self, hop)
+        self.assertIs(result["receiver_wait"], False)
+        self.assertIs(result["always_on_receiver_required"], False)
+        self.assertNotIn("t-value", json.dumps(result))
+        self.assertEqual(result["time_constraint"], "SUPPLIED_HB_EPOCH")
+
+    def test_ledger_state_directs_the_next_transition(self):
+        peers = self._peers(4)
+        slugs = [peer["slug"] for peer in peers]
+        a, b, c, d = slugs
+        states = {(a, b): "CLOSED", (b, a): "REFUSED", (c, d): "OPEN"}
+        sent = []
+        result = lane.run_orchestrate(
+            peers, hb_epoch=7, token="t-value", ledger_state=states,
+            dispatcher=lambda s, t, **kw: (sent.append((s["slug"], t["slug"])) or True, "DISPATCHED"))
+        by_pair = {(hop["sender_slug"], hop["destination_slug"]): hop for hop in result["hops"]}
+        self.assertEqual(by_pair[(a, b)]["outcome"], "CLOSED_IN_READ_LEDGERS")
+        self.assertEqual(by_pair[(b, a)]["outcome"], "CLOSURE_REFUSED")
+        _assert_six(self, by_pair[(b, a)])
+        self.assertEqual(by_pair[(c, d)]["outcome"], lane.DURABLE_QUEUE)
+        self.assertIs(by_pair[(c, d)]["always_on_receiver_required"], False)
+        _assert_six(self, by_pair[(c, d)])
+        # c and d hold an open hop: nothing touching them is sent; a and b are free.
+        # a -> b is closed and b -> a refused, so nothing is left to send this transition.
+        self.assertEqual(sent, [])
+        self.assertEqual(result["outcomes"]["DEFERRED_ORGANIZATION_LEDGER_CONCURRENCY"], 9)
+        # Once c -> d closes, the next transition sends from ledger state.
+        states[(c, d)] = "CLOSED"
+        lane.run_orchestrate(
+            peers, hb_epoch=8, token="t-value", ledger_state=states,
+            dispatcher=lambda s, t, **kw: (sent.append((s["slug"], t["slug"])) or True, "DISPATCHED"))
+        self.assertEqual(len(sent), 2)
+        members = [slug for pair in sent for slug in pair]
+        self.assertEqual(len(members), len(set(members)))
+        self.assertTrue(all(pair not in states for pair in sent))
+
+    def test_unreachable_and_failed_dispatch_carry_the_six_fields(self):
+        peers = self._peers(3)
+        peers[2]["advertisement_readable"] = False
+
+        def dispatcher(sender, dest, *, communication_id, hb_epoch):
+            return False, "DISPATCH_HTTP_404"
+
+        result = lane.run_orchestrate(peers, hb_epoch=40, token="t-value", dispatcher=dispatcher)
+        outcomes = {hop["outcome"] for hop in result["hops"]}
+        self.assertEqual(outcomes, {"NOT_DISPATCHED", "UNREACHABLE"})
+        self.assertEqual(len(result["hops"]), 6)
+        for hop in result["hops"]:
+            _assert_six(self, hop)
+        failed = [hop for hop in result["hops"] if hop["outcome"] == "NOT_DISPATCHED"]
+        self.assertTrue(all(hop["failure_code"] == "INTR_HOP_SEND_DISPATCH_DISPATCH_HTTP_404" for hop in failed))
+        self.assertNotIn("TIMEOUT", json.dumps(result))
+        with self.assertRaises(ValueError):
+            lane.run_orchestrate(peers, hb_epoch=40, token=" ", dispatcher=dispatcher)
+        refused = lane.run_orchestrate(peers, hb_epoch=-1, token="t-value", dispatcher=dispatcher)
+        self.assertEqual(refused["disposition"], "FAIL_CLOSED")
+        _assert_six(self, refused)
+
+    def test_pair_ledger_state_reads_the_sender_chain(self):
+        emitted, closed, _ = _pair_receipts("Alpha", "Beta", "beta.intr-destination", "cid-1", "pkt-1")
+        self.assertEqual(lane.pair_ledger_state([], "Beta", "beta.intr-destination"), "UNSENT")
+        self.assertEqual(lane.pair_ledger_state([emitted], "Beta", "beta.intr-destination"), "OPEN")
+        self.assertEqual(lane.pair_ledger_state([emitted, closed], "Beta", "beta.intr-destination"), "CLOSED")
+        refused = dict(closed, transition_class=lane.CLOSURE_REFUSED_CLASS)
+        self.assertEqual(lane.pair_ledger_state([emitted, refused], "Beta", "beta.intr-destination"), "REFUSED")
+        self.assertEqual(lane.pair_ledger_state([emitted], "Gamma", "gamma.intr-destination"), "UNSENT")
+
+    def test_the_lane_source_and_workflow_carry_no_receiver_wait(self):
+        source = Path(lane.__file__).read_text(encoding="utf-8")
+        for waiting in ("time.sleep", "sleep(", "monotonic", "wave_timeout", "poll_seconds", '"TIMEOUT"'):
+            self.assertNotIn(waiting, source)
+        workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/intr-destination-hop-lane.yml").read_text(encoding="utf-8")
+        self.assertNotIn("wave_timeout", workflow)
+        self.assertNotIn("timeout-minutes: 350", workflow)
+        self.assertNotIn("classic PAT", workflow)
+        for line in workflow.splitlines():
+            if '"disposition":"FAIL_CLOSED"' in line:
+                for field in _SIX:
+                    self.assertIn('"%s"' % field, line)
+
+    def _no_dispatch(self):
+        calls = []
+
+        def dispatcher(sender, dest, **kw):
+            calls.append((sender["slug"], dest["slug"], kw))
+            return True, "DISPATCHED"
+
+        return calls, dispatcher
+
+    def _assert_hb_epoch_fail_closed(self, result, finding):
+        self.assertEqual(result["disposition"], "FAIL_CLOSED")
+        self.assertEqual(result["failure_code"], "DISPATCH_HB_EPOCH_INVALID")
+        self.assertEqual(result["failed_predicate"], "HB_EPOCH_IS_SUPPLIED_AS_A_NON_NEGATIVE_INTEGER")
+        self.assertEqual(result["retry_entrypoint"], ".github/workflows/intr-destination-hop-lane.yml mode=orchestrate")
+        self.assertEqual(result["hb_epoch_finding"], finding)
+        self.assertEqual(result["dispatched"], 0)
+        self.assertEqual(result["hops"], [])
+        self.assertIs(result["consequence_committed"], False)
+        _assert_six(self, result)
+
+    def test_a_missing_hb_epoch_fails_closed_and_dispatches_nothing(self):
+        peers = self._peers()
+        for missing in (None, "", "   "):
+            calls, dispatcher = self._no_dispatch()
+            result = lane.run_orchestrate(peers, hb_epoch=missing, token="t-value", dispatcher=dispatcher)
+            self._assert_hb_epoch_fail_closed(result, "MISSING")
+            self.assertEqual(calls, [])
+
+    def test_a_malformed_hb_epoch_fails_closed_and_dispatches_nothing(self):
+        peers = self._peers()
+        for malformed in (-1, "-1", "+7", " 7", "7 ", "1.5", "1e3", "1_000", "0x10", "abc",
+                          "\u0663", 7.0, True, False, [7]):
+            calls, dispatcher = self._no_dispatch()
+            result = lane.run_orchestrate(peers, hb_epoch=malformed, token="t-value", dispatcher=dispatcher)
+            self._assert_hb_epoch_fail_closed(result, "MALFORMED")
+            self.assertEqual(calls, [], repr(malformed))
+
+    def test_hb_epoch_reaches_every_hop_dispatch_in_the_writer_format(self):
+        # The org hop workflow and the organization-ledger writer (StegVerse-Labs/.github#3205)
+        # take hb_epoch as a workflow_dispatch string of ASCII decimal digits.
+        self.assertEqual(lane.parse_hb_epoch("40"), 40)
+        self.assertEqual(lane.parse_hb_epoch("0"), 0)
+        self.assertEqual(lane.parse_hb_epoch(40), 40)
+        posted = []
+
+        class Response:
+            status_code = 204
+            content = b""
+
+        def poster(url, json=None, headers=None, timeout=30):
+            posted.append(json)
+            return Response()
+
+        peers = self._peers()
+        dispatcher = lambda s, t, **kw: lane.dispatch_send_hop(s, t, token="t-value", poster=poster, **kw)
+        result = lane.run_orchestrate(peers, hb_epoch="40", token="t-value", dispatcher=dispatcher)
+        self.assertEqual(result["dispatched"], 4)
+        self.assertEqual(len(posted), 4)
+        for body in posted:
+            self.assertEqual(body["inputs"]["hb_epoch"], "40")
+            self.assertRegex(body["inputs"]["hb_epoch"], r"^[0-9]+$")
+            self.assertTrue(body["inputs"]["communication_id"].endswith(":40"))
+        # A malformed epoch handed straight to the dispatcher is not posted.
+        before = len(posted)
+        for malformed in ("-1", "x", None, True):
+            ok, detail = lane.dispatch_send_hop(peers[0], peers[1], communication_id="c", hb_epoch=malformed,
+                                                token="t-value", poster=poster)
+            self.assertFalse(ok)
+            self.assertEqual(detail, "HB_EPOCH_INVALID")
+        self.assertEqual(len(posted), before)
+
+    def test_orchestrate_cli_fails_closed_on_a_missing_or_malformed_hb_epoch_before_any_read(self):
+        reads = []
+        original = lane.discover_peers_from_github
+        lane.discover_peers_from_github = lambda *a, **kw: reads.append(a) or ([], [])
+        previous = {name: os.environ.pop(name, None) for name in (lane.FEDERATION_HOP_TOKEN_ENV, FEDERATION_READ_TOKEN_ENV)}
+        os.environ[lane.FEDERATION_HOP_TOKEN_ENV] = "t-value"
+        try:
+            for argv, finding in (([], "MISSING"), (["--hb-epoch", ""], "MISSING"),
+                                  (["--hb-epoch", "abc"], "MALFORMED"), (["--hb-epoch=-1"], "MALFORMED"),
+                                  (["--hb-epoch", "1.5"], "MALFORMED")):
+                with tempfile.TemporaryDirectory() as tmp:
+                    code = main(["--mode", "orchestrate", "--out-dir", tmp] + argv)
+                    self.assertEqual(code, 1)
+                    report = json.loads((Path(tmp) / "intr-destination-hop-lane.json").read_text(encoding="utf-8"))
+                    self._assert_hb_epoch_fail_closed(report["orchestration"], finding)
+                    self.assertNotIn("t-value", json.dumps(report))
+            self.assertEqual(reads, [])
+        finally:
+            lane.discover_peers_from_github = original
+            for name, value in previous.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+
+    def test_the_orchestrate_workflow_carries_hb_epoch_and_resolves_it_first(self):
+        workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/intr-destination-hop-lane.yml").read_text(encoding="utf-8")
+        self.assertRegex(workflow, r"(?m)^      hb_epoch:\n(?:        .*\n)*?        type: string$")
+        job = workflow[workflow.index("\n  orchestrate:\n"):]
+        self.assertIn("HB_EPOCH: ${{ inputs.hb_epoch }}", job)
+        guard = job.index('case "$HB_EPOCH" in')
+        self.assertLess(guard, job.index("FEDERATION_HOP_TOKEN:-"))
+        self.assertLess(guard, job.index("python -m stegverse.intr_destination_hop_lane"))
+        self.assertIn("''|*[!0-9]*)", job[guard:guard + 80])
+        self.assertIn('--hb-epoch "$HB_EPOCH"', job)
+        refusal = [line for line in job.splitlines() if "DISPATCH_HB_EPOCH_INVALID" in line]
+        self.assertEqual(len(refusal), 1)
+        echoed = json.loads(refusal[0].strip()[len("echo '"):-1])
+        self.assertEqual(echoed["disposition"], "FAIL_CLOSED")
+        _assert_six(self, echoed)
+
+    def test_the_send_dispatch_names_the_hop_workflow_and_keeps_the_token_in_a_header(self):
+        seen = {}
+
+        class Response:
+            status_code = 204
+            content = b""
+
+        def poster(url, json=None, headers=None, timeout=30):
+            seen.update(url=url, json=json, headers=headers)
+            return Response()
+
+        peers = self._peers(2)
+        ok, detail = lane.dispatch_send_hop(peers[0], peers[1], communication_id="intr-hop:a:b:7",
+                                            hb_epoch=7, token="t-value", poster=poster)
+        self.assertTrue(ok)
+        self.assertEqual(detail, "DISPATCHED")
+        self.assertEqual(seen["url"], "https://api.github.com/repos/StegVerse-org/.github/actions/workflows/"
+                         "intr-destination-hop.yml/dispatches")
+        self.assertEqual(seen["json"]["inputs"], {"phase": "send", "destination_slug": "stegverse-labs",
+                                                  "communication_id": "intr-hop:a:b:7", "hb_epoch": "7",
+                                                  "forward": "true"})
+        self.assertEqual(seen["headers"]["Authorization"], "Bearer t-value")
+        self.assertNotIn("t-value", seen["url"])
+
+    def test_orchestrate_cli_requires_a_supplied_epoch_and_the_hop_token(self):
+        previous = {name: os.environ.pop(name, None) for name in (lane.FEDERATION_HOP_TOKEN_ENV, FEDERATION_READ_TOKEN_ENV)}
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                os.environ[lane.FEDERATION_HOP_TOKEN_ENV] = "t-value"
+                self.assertEqual(main(["--mode", "orchestrate", "--out-dir", tmp]), 1)
+                os.environ.pop(lane.FEDERATION_HOP_TOKEN_ENV)
+                with self.assertRaises(SystemExit):
+                    main(["--mode", "orchestrate", "--hb-epoch", "40", "--out-dir", tmp])
+        finally:
+            for name, value in previous.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+
+    def test_live_reads_fall_back_to_the_hop_token(self):
+        captured = {}
+
+        def fake_discover(organizations, *, token=None, read_file=None):
+            captured["token"] = token
+            return [lane._unreachable_peer(organization, "ADVERTISEMENT_NOT_READABLE_HTTP_404")
+                    for organization in organizations], []
+
+        original = lane.discover_peers_from_github
+        previous = {name: os.environ.pop(name, None) for name in (lane.FEDERATION_HOP_TOKEN_ENV, FEDERATION_READ_TOKEN_ENV)}
+        lane.discover_peers_from_github = fake_discover
+        os.environ[lane.FEDERATION_HOP_TOKEN_ENV] = "hop-token-value"
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                main(["--mode", "live", "--out-dir", tmp, "--no-writer-lookup"])
+                text = (Path(tmp) / "intr-destination-hop-lane.md").read_text(encoding="utf-8")
+                report = (Path(tmp) / "intr-destination-hop-lane.json").read_text(encoding="utf-8")
+        finally:
+            lane.discover_peers_from_github = original
+            for name, value in previous.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+        self.assertEqual(captured["token"], "hop-token-value")
+        self.assertNotIn("hop-token-value", text + report)
+        self.assertIn(lane.FEDERATION_HOP_TOKEN_ENV, text)
+        self.assertIsNone(_GRANT.search(text))
 
 
 if __name__ == "__main__":
