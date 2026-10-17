@@ -13,6 +13,7 @@ task-class cost basis (`StegVerse-Labs/.github/cost-basis/worker-runtime`,
   result is `NO_MARKET_EVIDENCE`.
 - **Every USD figure needs an `https` source and `observed_at`.** A missing rate gives `UNKNOWN_RATE_NOT_SOURCED`.
   A missing class gives `UNKNOWN_COST_BASIS`. Malformed input fails closed. Nothing is invented.
+- **Non-PRICED results** (`INCOMPLETE`, `FAIL_CLOSED`) carry an `actionable_disposition` with the six fields: failure code, failed predicate, required evidence or repair, retry entrypoint, owning goal and next attempt.
 - **Free tier**: the governance gate (`docs/GOVERNANCE_GATE.md`) runs on the caller's own runner, so StegVerse
   bears no marginal compute cost for it.
 - **Authority**: the output is a pricing candidate only. Entitlements are issued by TV/TVC.

@@ -189,7 +189,17 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
                     else "OBSERVED")
         tiers.append(tier)
     priced_all = all(t["status"] == "PRICED" for t in tiers)
+    extra = {}
+    if not priced_all:
+        unpriced = [t["name"] for t in tiers if t["status"] != "PRICED"]
+        missing = sorted({r for c in costs.values() for r in c["missing_rates"]})
+        absent = sorted({c for t in tiers for c in t.get("absent_cost_basis", [])})
+        extra["actionable_disposition"] = _actionable(
+            "PRICING_INCOMPLETE",
+            f"tiers {unpriced} lack a cited rate {missing} or a cost basis {absent}",
+            "add a cited rate card entry for each missing rate, or a cost-basis record for each absent task class")
     return {
+        **extra,
         "schema": REPORT_SCHEMA,
         "status": "PRICED" if priced_all else "INCOMPLETE",
         "compute_unit_definition": rate_card["compute_unit_definition"],
@@ -198,6 +208,18 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
         "action_costs": [costs[k] for k in sorted(costs)],
         "tiers": tiers,
         "authority": {"entitlement_issued": False, "credential_issued": False, "execution_authorized": False},
+    }
+
+
+def _actionable(code: str, predicate: str, repair: str) -> dict[str, str]:
+    """The six fields every non-PRICED result carries (ecosystem disposition invariant)."""
+    return {
+        "failure_code": code,
+        "failed_predicate": predicate,
+        "required_evidence_or_repair": repair,
+        "retry_entrypoint": "stegverse/tier_pricing.py::main",
+        "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001",
+        "next_attempt": "re-run with the corrected inputs; no price or tier is presumed until then",
     }
 
 
@@ -217,7 +239,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         report = derive_pricing(records, _read(args.rate_card), _read(args.policy), _read(args.market))
     except PricingInputError as exc:
-        report = {"schema": REPORT_SCHEMA, "status": "FAIL_CLOSED", "error": str(exc)}
+        report = {"schema": REPORT_SCHEMA, "status": "FAIL_CLOSED", "error": str(exc),
+                  "actionable_disposition": _actionable("PRICING_INPUT_INVALID", str(exc),
+                                                        "correct the named input; every USD figure needs an https source and observed_at")}
     rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.output:
         Path(args.output).write_text(rendered, encoding="utf-8")

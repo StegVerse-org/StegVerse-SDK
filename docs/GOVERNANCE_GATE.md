@@ -35,6 +35,8 @@ The workflow exposes `disposition` (`PASS` or `FAIL_CLOSED`) as an output and up
    Any bundle that does not verify, is malformed or is unreadable fails the gate closed.
 2. **Schemas.** Each JSON Schema is classified against the SDK structural validator contract. This is informational: it lists which schemas the stdlib-only SDK validator can enforce, and never fails the gate.
 
+Every `FAIL_CLOSED` report carries an `actionable_disposition` with `failure_code`, `failed_predicate`, `required_evidence_or_repair`, `retry_entrypoint`, `owning_existing_goal` and `next_attempt`, per the ecosystem state-transition disposition invariant.
+
 ## Guarantees
 
 - **Standard library only.** No package installation, credentials or network beyond the two checkouts, and no repository mutation (`contents: read`).

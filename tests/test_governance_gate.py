@@ -82,3 +82,20 @@ def test_gate_imports_only_the_standard_library_and_runs_without_the_package_dep
                             capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["disposition"] == "PASS"
+
+
+SIX_FIELDS = {"failure_code", "failed_predicate", "required_evidence_or_repair", "retry_entrypoint",
+              "owning_existing_goal", "next_attempt"}
+
+
+def test_every_fail_closed_carries_the_six_actionable_fields(tmp_path, monkeypatch):
+    bad = _repo(tmp_path / "bad", bundles=[("x.json", {"schema": "nope"})])
+    report = governance_gate.run_gate(bad)
+    assert report["disposition"] == "FAIL_CLOSED"
+    action = report["actionable_disposition"]
+    assert set(action) == SIX_FIELDS and all(action.values())
+    assert "x.json" in action["failed_predicate"]
+    monkeypatch.setitem(governance_gate.FREE_TIER_LIMITS, "bundles", 0)
+    over = governance_gate.run_gate(_repo(tmp_path / "over", bundles=[("ok.json", _bundle())]))
+    assert over["actionable_disposition"]["failure_code"] == "FREE_TIER_LIMIT_EXCEEDED"
+    assert "actionable_disposition" not in governance_gate.run_gate(_repo(tmp_path / "ok"))

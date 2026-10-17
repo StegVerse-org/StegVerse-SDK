@@ -119,6 +119,9 @@ def run_gate(root: Path, bundle_globs: Sequence[str] = DEFAULT_BUNDLE_GLOBS, che
     else:
         disposition = "PASS"
         reason = "ALL_BUNDLES_VERIFIED" if bundles else "NO_GOVERNANCE_BUNDLES_FOUND"
+    report_extra = {}
+    if disposition != "PASS":
+        report_extra["actionable_disposition"] = _actionable(reason, over_limit, failed)
     return {
         "schema": REPORT_SCHEMA,
         "tier": TIER,
@@ -130,8 +133,27 @@ def run_gate(root: Path, bundle_globs: Sequence[str] = DEFAULT_BUNDLE_GLOBS, che
         "schemas": {"compatible": sum(s["sdk_contract_compatible"] for s in schemas), "total": len(schemas),
                     "files": schemas},
         "sdk_validator_contract": _sdk_module("structural_validator_candidate").CONTRACT["contract_version"],
+        **report_extra,
         "authority": {"verification_authority": "NONE", "execution_authorized": False, "standing_minted": False,
                       "admissibility_decided": False, "custody_claimed": False, "credential_issued": False},
+    }
+
+
+def _actionable(reason: str, over_limit: dict, failed: list[dict]) -> dict:
+    """The six fields every non-PASS result carries (ecosystem disposition invariant)."""
+    if reason == "FREE_TIER_LIMIT_EXCEEDED":
+        predicate = "FREE_TIER_LIMITS " + ", ".join(f"{k}<={FREE_TIER_LIMITS[k]}" for k in sorted(over_limit))
+        repair = "reduce the matched files with --bundle-glob or --no-schemas, or hold a paid-tier entitlement issued by TV/TVC"
+    else:
+        predicate = "PORTABLE_GOVERNANCE_BUNDLE_VERIFIES: " + ", ".join(b["path"] for b in failed)
+        repair = "replace or repair each listed bundle so verify_portable_governance_bundle returns PASS"
+    return {
+        "failure_code": reason,
+        "failed_predicate": predicate,
+        "required_evidence_or_repair": repair,
+        "retry_entrypoint": "stegverse/governance_gate.py::main (the calling repository's next push or pull_request run)",
+        "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001",
+        "next_attempt": "the next gate run on the corrected source; this result commits nothing and is not altered by it",
     }
 
 
@@ -143,6 +165,10 @@ def _summary(report: dict) -> str:
              f"{report['schemas']['compatible']}/{report['schemas']['total']}", ""]
     for bundle in report["bundles"]:
         lines.append(f"- `{bundle['path']}`: {bundle['status']}" + (f" ({bundle['error']})" if "error" in bundle else ""))
+    if "actionable_disposition" in report:
+        action = report["actionable_disposition"]
+        lines += ["", f"Failed predicate: {action['failed_predicate']}",
+                  f"Repair: {action['required_evidence_or_repair']}"]
     lines += ["", "Evidence only: this gate grants no execution, admissibility, standing, custody or credential authority."]
     return "\n".join(lines) + "\n"
 

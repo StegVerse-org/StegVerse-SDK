@@ -111,3 +111,20 @@ def test_imports_only_the_standard_library():
     modules = {a.name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
     modules |= {n.module.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.level == 0}
     assert modules <= set(sys.stdlib_module_names) | {"__future__"}
+
+
+def test_non_priced_results_carry_the_six_actionable_fields(tmp_path):
+    fields = {"failure_code", "failed_predicate", "required_evidence_or_repair", "retry_entrypoint",
+              "owning_existing_goal", "next_attempt"}
+    incomplete = tp.derive_pricing(BASIS, _card(compute_unit="0.006"), _policy(("team", 10, ["gate"])))
+    assert set(incomplete["actionable_disposition"]) == fields
+    assert "storage_gb" in incomplete["actionable_disposition"]["failed_predicate"]
+    priced = tp.derive_pricing(BASIS, _card(compute_unit="0.006"), _policy(("s", 1, ["canary"])))
+    assert "actionable_disposition" not in priced
+    (tmp_path / "card.json").write_text(json.dumps({"schema": "wrong"}))
+    (tmp_path / "policy.json").write_text(json.dumps(_policy(("s", 1, ["canary"]))))
+    (tmp_path / "basis").mkdir()
+    out = tmp_path / "out.json"
+    assert tp.main(["--cost-basis-dir", str(tmp_path / "basis"), "--rate-card", str(tmp_path / "card.json"),
+                    "--policy", str(tmp_path / "policy.json"), "--output", str(out)]) == 1
+    assert set(json.loads(out.read_text())["actionable_disposition"]) == fields
