@@ -205,6 +205,18 @@ class GovernedResubmitTests(unittest.TestCase):
         self.assertIsNone(out["handoff"])
         self.assertIsNone(out["remediated_request"])
 
+    def test_governance_deny_is_actionable_without_reauthorizing_original(self):
+        out = self._run(_governance_result(self.gov_request, "DENY"),
+                        decision_return_evidence=None)
+        self.assertEqual(out["state"], "REMEDIATION_NOT_AUTHORIZED")
+        self.assertEqual(out["disposition"], "DENY")
+        for field in SIX_FIELDS:
+            self.assertTrue(out[field], field)
+        self.assertEqual(out["authority_effect"], "NONE_MANIFEST_HANDOFF_ONLY")
+        self.assertIsNone(out["handoff"])
+        self.assertIsNone(out["remediated_request"])
+        self.assertEqual(out["original_disposition"]["disposition"], "DENY")
+
     def test_caller_supplied_allow_without_ledger_readback_grants_nothing(self):
         allow = _governance_result(self.gov_request, "ALLOW")
         for evidence in (None, {}):
