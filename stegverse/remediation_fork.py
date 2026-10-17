@@ -21,19 +21,29 @@ StegHealer maps the error or failure against known errors and failures, then
 either triggers a remediation task or returns the manifest and data packet to
 the SDK. Those outcomes are recorded in StegHealer's organization.
 
+The primary names are ``STEGHEALER["error_or_failure_map"]`` and
+``STEGHEALTH_FAILURE_REMEDIATION_TASK_ID``. ``classifier`` and ``OWNER_TASK_ID``
+remain deprecated aliases of those same values. The route record still carries
+the key ``classifier`` because ``route_sha256`` covers it; removing that key
+would change the hash of existing routes.
+
 Nothing here classifies, decides, transports, records a receipt or grants
 authority. A non-ALLOW of a remediation manifest does not fork again; it
 stays the remediation lane's own non-ALLOW.
 """
 from __future__ import annotations
 
+import warnings
 from copy import deepcopy
 from typing import Any, Mapping
 
 from .manifest_contract import validate_ingress_manifest
 from .route_resolution import GOVERNED_REMEDIATION_ROUTE_ID, canonical_sha256, route_from_manifest
 
-OWNER_TASK_ID = "STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001"
+# The StegHealth task row derive_state_graph, fork_refusal, manifest_plan and
+# governed_remediation read. The value is unchanged. OWNER_TASK_ID is the
+# deprecated alias (see module __getattr__).
+STEGHEALTH_FAILURE_REMEDIATION_TASK_ID = "STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001"
 REMEDIATION_CAPABILITY = "remediation"
 REQUEST_EXTENSION = "stegverse_remediation_fork_request"
 REQUEST_SCHEMA = "stegverse.remediation-fork-request/v1"
@@ -41,15 +51,72 @@ FORK_SCHEMA = "stegverse.sdk.remediation-fork/v1"
 NON_ALLOW = ("DENY", "FAIL_CLOSED")
 
 ROUTE_SCHEMA = "stegverse.remediation-route/v1"
+# StegHealer maps the error or failure. The originating organization requests
+# no classification. This is the intake the route names.
+ERROR_OR_FAILURE_MAP = "app/manifest_remediation_intake.py::classify_sdk_deny"
+_ERROR_OR_FAILURE_MAP_FIELD = "error_or_failure_map"
+# Historical route-record key. route_sha256 covers this key, so the route
+# record still emits it. It is a deprecated alias of error_or_failure_map.
+_CLASSIFIER_FIELD = "classifier"
+
+
+class _StegHealer(dict):
+    """Primary field ``error_or_failure_map``; ``classifier`` is a deprecated alias.
+
+    ``route_record`` is the object placed on the route and covered by
+    ``route_sha256``. It keeps the historical key only, so existing route
+    hashes stay byte-identical.
+    """
+
+    def __getitem__(self, key: str) -> Any:
+        if key == _CLASSIFIER_FIELD:
+            warnings.warn(
+                "STEGHEALER['classifier'] is deprecated; use STEGHEALER['error_or_failure_map']",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return super().__getitem__(_ERROR_OR_FAILURE_MAP_FIELD)
+        return super().__getitem__(key)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if key == _CLASSIFIER_FIELD:
+            warnings.warn(
+                "STEGHEALER['classifier'] is deprecated; use STEGHEALER['error_or_failure_map']",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return super().get(_ERROR_OR_FAILURE_MAP_FIELD, default)
+        return super().get(key, default)
+
+    def route_record(self) -> dict[str, str]:
+        """The steghealer object hashed into ``route_sha256``.
+
+        The historical key only. The primary field supplies the value, and it
+        must equal the deprecated alias or the route is not emitted.
+        """
+        mapped = super().__getitem__(_ERROR_OR_FAILURE_MAP_FIELD)
+        if mapped != super().__getitem__(_CLASSIFIER_FIELD):
+            raise ValueError("STEGHEALER_CLASSIFIER_ALIAS_DIVERGED")
+        return {
+            "organization": super().__getitem__("organization"),
+            "service_id": super().__getitem__("service_id"),
+            "repository": super().__getitem__("repository"),
+            "classifier": mapped,
+        }
+
+
 # StegHealer's one location: the StegVerse-Labs organization, service
 # stegverse-labs.remediation (the address form organization_slug + "." +
 # capability every organization answers at), served by StegVerse-Labs/StegVerse-Healer.
-STEGHEALER = {
+STEGHEALER = _StegHealer({
     "organization": "StegVerse-Labs",
     "service_id": "stegverse-labs.remediation",
     "repository": "StegVerse-Labs/StegVerse-Healer",
-    "classifier": "app/manifest_remediation_intake.py::classify_sdk_deny",
-}
+    _ERROR_OR_FAILURE_MAP_FIELD: ERROR_OR_FAILURE_MAP,
+    # Deprecated alias of error_or_failure_map. Present so a copied mapping
+    # still answers "classifier". The route record omits the new key.
+    _CLASSIFIER_FIELD: ERROR_OR_FAILURE_MAP,
+})
 
 _DIGESTS = ("original_request_sha256", "original_wire_manifest_sha256", "original_canonical_manifest_sha256")
 _FIELDS = frozenset({
@@ -119,7 +186,7 @@ def remediation_route(non_allow: Mapping[str, Any], *, original_route_id: str,
         },
         "entry_organization": entry,
         "direct_route_to_steghealer": hops,
-        "steghealer": dict(STEGHEALER),
+        "steghealer": STEGHEALER.route_record(),
         "follows_remaining_manifested_path": False,
     }
     route["route_sha256"] = canonical_sha256(route)
@@ -177,7 +244,7 @@ def validate_remediation_fork_request(value: Any) -> dict[str, Any]:
 
 
 def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
-    """Request graph for the remediation lane; classification belongs to StegHealer."""
+    """Request graph for the remediation lane; mapping the error or failure belongs to StegHealer."""
     canonical = validate_ingress_manifest(manifest)
     route = route_from_manifest(canonical)
     if route.get("route_id") != GOVERNED_REMEDIATION_ROUTE_ID:
@@ -187,9 +254,9 @@ def derive_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
     request = validate_remediation_fork_request((canonical.get("extensions") or {}).get(REQUEST_EXTENSION))
     return {
         "schema": "stegverse.sdk.installed-state-transition-graph/v1",
-        "graph_id": f"{OWNER_TASK_ID}:REMEDIATION:{request['original_request_sha256']}:{request['non_allow_sha256']}",
+        "graph_id": f"{STEGHEALTH_FAILURE_REMEDIATION_TASK_ID}:REMEDIATION:{request['original_request_sha256']}:{request['non_allow_sha256']}",
         "canonical_task_id": None,
-        "owner_task_id": OWNER_TASK_ID,
+        "owner_task_id": STEGHEALTH_FAILURE_REMEDIATION_TASK_ID,
         "processing_capability": REMEDIATION_CAPABILITY,
         "route_id": GOVERNED_REMEDIATION_ROUTE_ID,
         "request": request,
@@ -253,7 +320,7 @@ def fork_refusal(detail: str) -> dict[str, Any]:
         "failed_predicate": "REMEDIATION_FORK_BINDS_THE_COMPLETE_ORIGINAL_REQUEST",
         "required_evidence_or_repair": "the original request as derive_execution_request produced it (" + detail + ")",
         "retry_entrypoint": "stegverse/remediation_fork.py::build_remediation_fork",
-        "owning_existing_goal": OWNER_TASK_ID,
+        "owning_existing_goal": STEGHEALTH_FAILURE_REMEDIATION_TASK_ID,
         "next_attempt": "admit the result against the complete original request",
         "remediation_manifest": None,
         "handoff": None,
@@ -316,8 +383,22 @@ def build_remediation_fork(
     }
 
 
+def __getattr__(name: str) -> Any:
+    """Deprecated compatibility aliases. The primary names are the constants above."""
+    if name == "OWNER_TASK_ID":
+        warnings.warn(
+            "OWNER_TASK_ID is deprecated; use STEGHEALTH_FAILURE_REMEDIATION_TASK_ID",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return STEGHEALTH_FAILURE_REMEDIATION_TASK_ID
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 __all__ = [
-    "FORK_SCHEMA", "OWNER_TASK_ID", "ROUTE_SCHEMA", "STEGHEALER", "recognition_location", "remediation_route", "REMEDIATION_CAPABILITY", "REQUEST_EXTENSION", "REQUEST_SCHEMA",
+    "ERROR_OR_FAILURE_MAP", "FORK_SCHEMA", "OWNER_TASK_ID", "ROUTE_SCHEMA", "STEGHEALER",
+    "STEGHEALTH_FAILURE_REMEDIATION_TASK_ID", "recognition_location", "remediation_route",
+    "REMEDIATION_CAPABILITY", "REQUEST_EXTENSION", "REQUEST_SCHEMA",
     "build_remediation_fork", "derive_state_graph", "fork_refusal", "fork_request",
     "validate_remediation_fork_request",
 ]

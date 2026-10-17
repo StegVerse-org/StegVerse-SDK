@@ -8,6 +8,7 @@ from pathlib import Path
 
 from scripts.build_mir_sv_exp3_manifest import build_exp3_manifest
 from stegverse.governed_remediation import perform_governed_remediation, remediation_candidate
+from stegverse.remediation_fork import STEGHEALTH_FAILURE_REMEDIATION_TASK_ID
 from stegverse.manifest_builder import build_manifest
 from stegverse.manifest_state_transition_runtime import RESULT_SCHEMA, derive_execution_request
 from stegverse.route_resolution import canonical_sha256
@@ -15,7 +16,7 @@ from tests.test_organization_batch_manifest_task_binding import canonical_reques
 from tests.test_governance_return_evidence import CLOSURE, DECIDED, PACKET, _readback, _return, _sha
 from stegverse.governance_return_evidence import RETURN_READBACK_SCHEMA
 
-REMEDIATION_TASK = "STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001"
+REMEDIATION_TASK = STEGHEALTH_FAILURE_REMEDIATION_TASK_ID
 BOUNDARY = json.loads((Path(__file__).parent / "fixtures" /
                        "stegverse-labs-interlock-intr-boundary.aa2f89ac.json").read_text(encoding="utf-8"))
 
