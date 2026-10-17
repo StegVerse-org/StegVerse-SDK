@@ -1152,9 +1152,12 @@ def durable_queue_fields() -> dict[str, Any]:
     return {
         "always_on_receiver_required": False,
         "receiver_wait": False,
-        "owning_existing_goal": OWNING_EXISTING_GOAL,
-        "next_attempt": "the destination receive and sender close materialize from the dispatched events; "
-                        "the next readback evaluates the receipts present then",
+        **non_allow_fields(
+            DURABLE_QUEUE, "DESTINATION_ARRIVED_AND_SENDER_CLOSED_RECEIPTS_IN_THE_READ_LEDGERS",
+            "none from a receiver: the destination receive and sender close materialize from the dispatched "
+            "events and are observed only as organization-ledger receipts",
+            LANE_WORKFLOW + " mode=live (readback)",
+            "the next readback evaluates the receipts present then; nothing waits or polls"),
     }
 
 

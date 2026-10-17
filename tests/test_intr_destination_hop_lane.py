@@ -730,10 +730,9 @@ class OrchestrationTests(unittest.TestCase):
         for hop in result["hops"]:
             if hop["outcome"] == lane.DURABLE_QUEUE:
                 self.assertIs(hop["always_on_receiver_required"], False)
-                self.assertNotIn("failure_code", hop)
+                self.assertEqual(hop["failure_code"], lane.DURABLE_QUEUE)
                 self.assertEqual(hop["send_transition_disposition"], "ALLOW")
-            else:
-                _assert_six(self, hop)
+            _assert_six(self, hop)
         self.assertIs(result["receiver_wait"], False)
         self.assertIs(result["always_on_receiver_required"], False)
         self.assertNotIn("t-value", json.dumps(result))
@@ -754,6 +753,7 @@ class OrchestrationTests(unittest.TestCase):
         _assert_six(self, by_pair[(b, a)])
         self.assertEqual(by_pair[(c, d)]["outcome"], lane.DURABLE_QUEUE)
         self.assertIs(by_pair[(c, d)]["always_on_receiver_required"], False)
+        _assert_six(self, by_pair[(c, d)])
         # c and d hold an open hop: nothing touching them is sent; a and b are free.
         # a -> b is closed and b -> a refused, so nothing is left to send this transition.
         self.assertEqual(sent, [])
