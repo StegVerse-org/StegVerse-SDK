@@ -5,9 +5,12 @@ import unittest
 from pathlib import Path
 
 from stegverse.manifest_path_differential import (
+    FINDING_OBSERVATIONS,
     OWNING_EXISTING_GOAL,
+    REFUSAL_DISPOSITIONS,
     ManifestPathDifferentialRefusal,
     compare_manifest_paths,
+    declared_refusal,
 )
 
 SIX_FIELDS = (
@@ -43,7 +46,8 @@ class ManifestPathDifferentialTests(unittest.TestCase):
 
     def test_route_delta_is_evidence_bound_candidate_only(self):
         result = compare_manifest_paths(
-            snapshot(), snapshot(route_id="route-b", evidence_refs=["receipt:diagnostic"]),
+            snapshot(),
+            snapshot(route_id="route-b", disposition="FAIL_CLOSED", evidence_refs=["receipt:diagnostic"]),
             finding="CAPABILITY_GAP_IDENTIFIED",
         )
         self.assertEqual(result["path_deltas"][0]["field"], "route_id")
@@ -69,7 +73,10 @@ class SixFieldRefusalTests(unittest.TestCase):
         with self.assertRaises(ManifestPathDifferentialRefusal) as ctx:
             compare_manifest_paths(*args, **kwargs)
         refusal = ctx.exception.refusal
-        self.assertEqual(refusal["disposition"], "FAIL_CLOSED")
+        self.assertEqual(
+            refusal["disposition"],
+            REFUSAL_DISPOSITIONS[(refusal["failure_code"], refusal["failed_predicate"])],
+        )
         for field in SIX_FIELDS:
             self.assertIsInstance(refusal[field], str)
             self.assertTrue(refusal[field].strip(), field)
@@ -79,21 +86,28 @@ class SixFieldRefusalTests(unittest.TestCase):
 
     def test_every_refusal_carries_six_fields(self):
         cases = {
-            "MPDV_FINDING_UNSUPPORTED": ((snapshot(), snapshot()), {"finding": "EXPERIMENT_FAILED"}),
-            "MPDV_SNAPSHOT_NOT_A_MAPPING": ((["x"], snapshot()), {}),
-            "MPDV_SNAPSHOT_FIELD_ABSENT": ((snapshot(route_id="  "), snapshot()), {}),
-            "MPDV_EVIDENCE_REFS_MALFORMED": ((snapshot(evidence_refs="receipt"), snapshot()), {}),
-            "MPDV_ORIGINAL_NOT_NON_ALLOW": ((snapshot(disposition="ALLOW"), snapshot()), {}),
-            "MPDV_DIAGNOSTIC_DISPOSITION_UNDECLARED": ((snapshot(), snapshot(disposition="PENDING")), {}),
+            "MPDV_FINDING_UNSUPPORTED": ((snapshot(), snapshot()), {"finding": "EXPERIMENT_FAILED"}, "DENY"),
+            "MPDV_SNAPSHOT_NOT_A_MAPPING": ((["x"], snapshot()), {}, "DENY"),
+            "MPDV_SNAPSHOT_FIELD_ABSENT": ((snapshot(route_id="  "), snapshot()), {}, "FAIL_CLOSED"),
+            "MPDV_EVIDENCE_REFS_MALFORMED": ((snapshot(evidence_refs="receipt"), snapshot()), {}, "DENY"),
+            "MPDV_ORIGINAL_IS_ALLOW": ((snapshot(disposition="ALLOW"), snapshot()), {}, "DENY"),
+            "MPDV_DIAGNOSTIC_DISPOSITION_UNDECLARED": (
+                (snapshot(), snapshot(disposition="PENDING")), {}, "DENY"),
+            "MPDV_FINDING_NOT_DECLARED_FOR_OBSERVED_DIAGNOSTIC": (
+                (snapshot(), snapshot(disposition="ALLOW")), {"finding": "EXPECTED_GOVERNED_DENY"}, "FAIL_CLOSED"),
         }
-        for code, (args, kwargs) in cases.items():
+        for code, (args, kwargs, disposition) in cases.items():
             with self.subTest(code=code):
-                self.assertEqual(self.refusal(*args, **kwargs)["failure_code"], code)
+                refusal = self.refusal(*args, **kwargs)
+                self.assertEqual(refusal["failure_code"], code)
+                self.assertEqual(refusal["disposition"], disposition)
 
     def test_absent_original_disposition_is_refused_not_compared(self):
         row = snapshot()
         del row["disposition"]
-        self.assertEqual(self.refusal(row, snapshot())["failure_code"], "MPDV_ORIGINAL_NOT_NON_ALLOW")
+        refusal = self.refusal(row, snapshot())
+        self.assertEqual(refusal["failure_code"], "MPDV_ORIGINAL_DISPOSITION_ABSENT")
+        self.assertEqual(refusal["disposition"], "FAIL_CLOSED")
 
     def test_blank_evidence_locator_is_refused(self):
         refusal = self.refusal(snapshot(evidence_refs=["   "]), snapshot())
@@ -101,10 +115,96 @@ class SixFieldRefusalTests(unittest.TestCase):
 
     def test_empty_evidence_cannot_carry_a_substantive_finding(self):
         # Empty evidence on both sides must not yield an evidenced-looking result.
-        refusal = self.refusal(
+        result = compare_manifest_paths(
             snapshot(evidence_refs=[]), snapshot(evidence_refs=[]), finding="EXPECTED_GOVERNED_DENY",
         )
-        self.assertEqual(refusal["failure_code"], "MPDV_FINDING_WITHOUT_EVIDENCE")
+        self.assertEqual(result["finding_candidate"], "INSUFFICIENT_AUTHENTIC_EVIDENCE")
+        self.assertEqual(result["requested_finding"], "EXPECTED_GOVERNED_DENY")
+
+    def test_undeclared_refusal_pair_fails_closed_not_declared(self):
+        refusal = declared_refusal({
+            "failure_code": "MPDV_SOMETHING_NEW", "failed_predicate": "SOME_PREDICATE",
+            "required_evidence_or_repair": "x", "retry_entrypoint": "y",
+            "owning_existing_goal": OWNING_EXISTING_GOAL, "next_attempt": "z",
+        })
+        self.assertEqual(refusal["disposition"], "FAIL_CLOSED")
+        self.assertEqual(refusal["failure_code"], "MPDV_REFUSAL_DISPOSITION_NOT_DECLARED")
+        self.assertEqual(refusal["undeclared_refusal_failure_code"], "MPDV_SOMETHING_NEW")
+        self.assertEqual(refusal["undeclared_refusal_failed_predicate"], "SOME_PREDICATE")
+
+    def test_every_declared_refusal_is_deny_or_fail_closed(self):
+        self.assertTrue(set(REFUSAL_DISPOSITIONS.values()) <= {"DENY", "FAIL_CLOSED"})
+
+
+class FindingConsistencyTests(unittest.TestCase):
+    """R3: the caller's finding must be declared for what the comparison observed."""
+
+    def test_expected_deny_refused_for_diagnostic_allow_with_route_change(self):
+        with self.assertRaises(ManifestPathDifferentialRefusal) as ctx:
+            compare_manifest_paths(snapshot(), snapshot(route_id="route-b", disposition="ALLOW"),
+                                   finding="EXPECTED_GOVERNED_DENY")
+        refusal = ctx.exception.refusal
+        self.assertEqual(refusal["failure_code"], "MPDV_FINDING_NOT_DECLARED_FOR_OBSERVED_DIAGNOSTIC")
+        self.assertEqual(refusal["disposition"], "FAIL_CLOSED")
+
+    def test_expected_deny_requires_unchanged_path(self):
+        with self.assertRaises(ManifestPathDifferentialRefusal):
+            compare_manifest_paths(snapshot(), snapshot(route_id="route-b"), finding="EXPECTED_GOVERNED_DENY")
+
+    def test_absent_diagnostic_disposition_only_supports_insufficient_evidence(self):
+        replay = snapshot()
+        del replay["disposition"]
+        for finding in FINDING_OBSERVATIONS:
+            with self.subTest(finding=finding):
+                if finding == "INSUFFICIENT_AUTHENTIC_EVIDENCE":
+                    self.assertEqual(compare_manifest_paths(snapshot(), replay, finding=finding)["finding_candidate"],
+                                     finding)
+                else:
+                    with self.assertRaises(ManifestPathDifferentialRefusal):
+                        compare_manifest_paths(snapshot(), replay, finding=finding)
+
+    def test_table_is_exhaustive_over_the_vocabulary(self):
+        # Every pair the table lists is accepted, and every unlisted pair is refused.
+        for finding, observations in FINDING_OBSERVATIONS.items():
+            for disposition in ("ALLOW", "DENY", "FAIL_CLOSED"):
+                for changed in (False, True):
+                    replay = snapshot(disposition=disposition, evidence_refs=["receipt:diagnostic"],
+                                      **({"route_id": "route-b"} if changed else {}))
+                    with self.subTest(finding=finding, disposition=disposition, changed=changed):
+                        if (disposition, changed) in observations:
+                            self.assertEqual(
+                                compare_manifest_paths(snapshot(), replay, finding=finding)["finding_candidate"],
+                                finding)
+                        else:
+                            with self.assertRaises(ManifestPathDifferentialRefusal):
+                                compare_manifest_paths(snapshot(), replay, finding=finding)
+
+
+class EvidenceBothSidesTests(unittest.TestCase):
+    """R5: a substantive finding needs evidence from both snapshots."""
+
+    def test_original_side_evidence_alone_downgrades(self):
+        result = compare_manifest_paths(snapshot(), snapshot(evidence_refs=[]), finding="EXPECTED_GOVERNED_DENY")
+        self.assertEqual(result["finding_candidate"], "INSUFFICIENT_AUTHENTIC_EVIDENCE")
+        self.assertEqual(result["finding_downgrade_reason"], "EVIDENCE_REFS_ABSENT_ON_ONE_OR_BOTH_SIDES")
+
+    def test_diagnostic_side_evidence_alone_downgrades(self):
+        result = compare_manifest_paths(snapshot(evidence_refs=[]), snapshot(evidence_refs=["receipt:d"]),
+                                        finding="EXPECTED_GOVERNED_DENY")
+        self.assertEqual(result["finding_candidate"], "INSUFFICIENT_AUTHENTIC_EVIDENCE")
+
+    def test_both_sides_keep_the_finding(self):
+        result = compare_manifest_paths(snapshot(), snapshot(evidence_refs=["receipt:d"]),
+                                        finding="EXPECTED_GOVERNED_DENY")
+        self.assertEqual(result["finding_candidate"], "EXPECTED_GOVERNED_DENY")
+        self.assertIsNone(result["finding_downgrade_reason"])
+        self.assertEqual(result["finding_source"], "CALLER_SUPPLIED_CHECKED_AGAINST_DECLARED_OBSERVATIONS")
+
+    def test_inconsistent_finding_is_refused_even_without_evidence(self):
+        # The input check (consistency) runs before the evidence downgrade.
+        with self.assertRaises(ManifestPathDifferentialRefusal):
+            compare_manifest_paths(snapshot(evidence_refs=[]), snapshot(evidence_refs=[], disposition="ALLOW"),
+                                   finding="EXPECTED_GOVERNED_DENY")
 
     def test_success_is_comparison_allow_with_no_authority(self):
         result = compare_manifest_paths(snapshot(), snapshot(), finding="EXPECTED_GOVERNED_DENY")
@@ -150,7 +250,7 @@ class StegHealth51NegativeControlFixtureTests(unittest.TestCase):
         deny = compare_manifest_paths(self.fixture["original_deny"], self.fixture["diagnostic_replay"],
                                       finding="EXPECTED_GOVERNED_DENY")
         fail_closed = compare_manifest_paths(self.fixture["original_fail_closed"], self.fixture["diagnostic_replay"],
-                                             finding="REASONING_REVIEW_REQUIRED")
+                                             finding="REQUIREMENTS_AMBIGUOUS")
         self.assertEqual(deny["original_disposition"], "DENY")
         self.assertEqual(fail_closed["original_disposition"], "FAIL_CLOSED")
         self.assertEqual([d["field"] for d in fail_closed["path_deltas"]], ["predicate_id"])
@@ -159,7 +259,8 @@ class StegHealth51NegativeControlFixtureTests(unittest.TestCase):
         allowed = dict(self.fixture["original_deny"], disposition="ALLOW")
         with self.assertRaises(ManifestPathDifferentialRefusal) as ctx:
             compare_manifest_paths(allowed, self.fixture["diagnostic_replay"])
-        self.assertEqual(ctx.exception.refusal["failure_code"], "MPDV_ORIGINAL_NOT_NON_ALLOW")
+        self.assertEqual(ctx.exception.refusal["failure_code"], "MPDV_ORIGINAL_IS_ALLOW")
+        self.assertEqual(ctx.exception.refusal["disposition"], "DENY")
 
 
 if __name__ == "__main__":
