@@ -235,7 +235,15 @@ def perform_governed_remediation(
         # A governance DENY or FAIL_CLOSED of the remediation leaves the original
         # non-ALLOW in place; it is not retried here.
         return {**base, "state": "REMEDIATION_NOT_AUTHORIZED", "disposition": decision.get("disposition"),
+                "failure_code": decision.get("failure_code") or "GOVERNANCE_REMEDIATION_NOT_ALLOWED",
                 "failed_predicate": decision.get("failed_predicate") or "REMEDIATION_NOT_AUTHORIZED",
+                "required_evidence_or_repair": decision.get("required_evidence_or_repair") or
+                    "retain the governance refusal and obtain a separately admitted successor decision",
+                "retry_entrypoint": decision.get("retry_entrypoint") or
+                    "stegverse/governed_remediation.py::perform_governed_remediation",
+                "owning_existing_goal": decision.get("owning_existing_goal") or REMEDIATION_TASK,
+                "next_attempt": decision.get("next_attempt") or
+                    "submit a separately governed successor; do not retry this refused attempt",
                 "handoff": None, "remediated_request": None}
 
     evidence = decision_return_evidence if isinstance(decision_return_evidence, Mapping) else {}
