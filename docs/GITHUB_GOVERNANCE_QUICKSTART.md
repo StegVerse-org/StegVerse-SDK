@@ -1,0 +1,119 @@
+# GitHub governance quickstart
+
+This page describes the reusable workflow in [`.github/workflows/governance-gate.yml`](../.github/workflows/governance-gate.yml) and the checker it runs, [`stegverse/governance_gate.py`](../stegverse/governance_gate.py).
+
+The check compares a customer-supplied portable governance bundle with the hash and identity constraints inside that bundle. An `ALLOW` report is a record of that comparison. It is not a safety determination, a compliance determination, or an authorization.
+
+## Call the pinned workflow
+
+Add `.github/workflows/stegverse-governance.yml` in the customer repository:
+
+```yaml
+name: StegVerse governance
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  stegverse-governance:
+    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@<534-merge-commit>
+```
+
+`ba5bbf42eabec6a6ae3b0efdff7c683967a79083` is the pre-#534 workflow and checker. That workflow's `sdk_ref` default is moving `main`, its actions are pinned to tags such as `@v4`, and its checker emits `PASS` and passes an empty bundle glob. Do not adopt that commit for the behavior on this page. The `uses:` ref above, and `sdk_ref`, become valid only after the owner merges #534 and a follow-up retargets both to that merge commit. Until that follow-up, this page is not an install instruction for a commit that already contains this checker.
+
+The called workflow checks out the caller with `persist-credentials: false`, checks out `StegVerse-org/StegVerse-SDK` at `sdk_ref` with a sparse checkout of `stegverse/`, and runs:
+
+```text
+python3 -I .stegverse-sdk/stegverse/governance_gate.py caller \
+  --bundle-glob "$BUNDLE_GLOB" \
+  --output stegverse-governance-report.json \
+  --summary "$GITHUB_STEP_SUMMARY"
+```
+
+`python3 -I` is isolated mode. The checker imports its verifier by path from that checkout. It does not install a package. `permissions` on the reusable workflow are `contents: read`.
+
+Optional inputs, from the workflow file:
+
+| Input | Default | Effect |
+|---|---|---|
+| `sdk_ref` | `ba5bbf42eabec6a6ae3b0efdff7c683967a79083` in this file today | Checkout of `StegVerse-org/StegVerse-SDK`. That default is the pre-#534 checker (`PASS`, empty glob passes), not the checker described below. The follow-up after the owner merges #534 retargets it to the merge commit. |
+| `bundle_glob` | `.stegverse/governance/**/*.json` | Glob, relative to the caller repository, of JSON files treated as bundles. Repeatable only in the local CLI (`--bundle-glob`); the workflow passes one glob. |
+| `check_schemas` | `true` | When `true`, walk `**/*.json` and classify a file when the object contains `$schema` or the file name ends with `.schema.json`. Classification does not change the disposition. Set `false` to pass `--no-schemas`. |
+
+## What the customer supplies
+
+The workflow has no manifest input. The customer commits the JSON files selected by `bundle_glob`. Each file must be one object whose `schema` is `stegverse.portable-governance-verification-bundle.v1`, or the checker records that file as `FAIL_CLOSED`.
+
+The manifest constraint is the `manifest` object inside `ingress_interlock` (`stegverse.interlock-transition.v1`). The checker does not accept a separate manifest document and does not build one. For an interlock ingress it requires:
+
+- `manifest.manifest_hash` and `manifest.source_state_hash`, each `sha256:` plus 64 lowercase hex digits
+- `manifest.canonicalization` equal to `JCS_RFC8785_NFC`
+- `manifest.predecessor_receipts` with at least one entry; each entry has `receipt_id`, `issuer`, and `receipt_hash` in the same hash form
+- `connection.participant_boundary_receipt_hash` equal to one of those predecessor `receipt_hash` values
+- `boundary.original_manifest_hash` equal to `manifest.manifest_hash`
+- `connection.class` equal to `INTERLOCK` (the portable verifier rejects any other class)
+
+The same bundle also carries `spe_envelope`, `spe_receipt`, and `steggate_bridge`, plus `package_id`, `transition_id`, `run_id`, and `stage` (`PRE_STEGGATE` or `POST_RETURN`). `POST_RETURN` additionally requires `interlock_return`. `PRE_STEGGATE` requires `interlock_return` to be JSON `null`.
+
+`manifest_hash` is checked as a string and bound to `boundary.original_manifest_hash`. The checker does not recompute that hash from a manifest body, because the bundle does not contain one. Predecessor receipt objects are checked for the three fields above. They are not downloaded, and their bytes are not compared with a ledger.
+
+## What the run writes, and how to verify it
+
+The job output `disposition` is `ALLOW` or `FAIL_CLOSED`. The step prints only that value, then writes `disposition=$disposition` to `$GITHUB_OUTPUT`. If the report file is missing or unparsable, or `read_workflow_disposition` is absent, the value is `FAIL_CLOSED`. The job exits 0 only when the checker status is 0 and that value is `ALLOW`; otherwise it exits 1. The job uploads `stegverse-governance-report.json` when that file exists. The step summary appended to `$GITHUB_STEP_SUMMARY` is a short Markdown rendering of the same report.
+
+The report object is schema `stegverse.governance-gate-report.v1`. Fields written by `run_gate`:
+
+- `tier`: the string `FREE`
+- `disposition`: `ALLOW` or `FAIL_CLOSED`
+- `reason`: `ALL_BUNDLES_VERIFIED`, `NO_GOVERNANCE_BUNDLES_FOUND`, `BUNDLE_VERIFICATION_FAILED`, or `FREE_TIER_LIMIT_EXCEEDED`
+- `usage.bundles_verified`, `usage.schemas_classified`, `usage.limits` (`bundles` 25, `schemas` 200), `usage.over_limit`
+- `bundles[]`: `path`, `status` (`ALLOW` or `FAIL_CLOSED`), and either `report_sha256` or `error`. The underlying verifier report still uses status `PASS`; the gate maps that to `ALLOW`. A missing or unrecognized verifier status is `FAIL_CLOSED`.
+- `schemas`: counts and per-file `sdk_contract_compatible` plus `blocking_codes`
+- `sdk_validator_contract`: the structural validator contract version loaded from the `sdk_ref` checkout
+- `authority`: the object listed in the claim boundary below
+- on every `FAIL_CLOSED` report: `failure_code`, `failed_predicate`, `required_evidence_or_repair`, `retry_entrypoint`, `owning_existing_goal`, and `next_attempt`
+
+The limit check runs first. A count above either limit is `FAIL_CLOSED` / `FREE_TIER_LIMIT_EXCEEDED`, including a run with no bundles and more than 200 classified schemas. Otherwise `ALLOW` / `ALL_BUNDLES_VERIFIED` means every selected bundle's gate status is `ALLOW`. `FAIL_CLOSED` / `NO_GOVERNANCE_BUNDLES_FOUND` means the glob matched no bundles. A bundle that fails verification, is not a JSON object, or cannot be read is `FAIL_CLOSED` / `BUNDLE_VERIFICATION_FAILED`. The process exit code is 0 for `ALLOW` and 1 for `FAIL_CLOSED`. Schema results never select the disposition.
+
+`owning_existing_goal` on these refusals is `SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001`. `retry_entrypoint` is `stegverse/governance_gate.py::run_gate`. `failure_code` is the same string as `reason`.
+
+For each bundle that verifies, `report_sha256` is the hex SHA-256 of `json.dumps(verifier_report, sort_keys=True)` encoded as UTF-8. The uploaded gate report does not include the verifier report body. The verifier report schema is `stegverse.portable-governance-verification-report.v1`. On success it includes `status` `PASS`, `bundle_hash`, `ingress_interlock_hash`, `bridge_hash`, and `checks`. Those checks are the labels the verifier appends after each comparison succeeds:
+
+- `INGRESS_INTERLOCK_VALID`
+- `SPE_ENVELOPE_HASH_VALID`
+- `SPE_RECEIPT_HASH_VALID`
+- `IDENTITY_CONTINUITY_VALID`
+- `SPE_BINDING_VALID`
+- `STEGGATE_BRIDGE_HASH_VALID`
+- `AUTHORITY_NON_TRANSFER_VALID`
+- `INTERLOCK_RETURN_VALID` only when `stage` is `POST_RETURN`
+
+To recompute the chain, check out `StegVerse-org/StegVerse-SDK` at the same ref the run used and, from that checkout, run the standard-library checker against the customer repository:
+
+```bash
+python3 -I stegverse/governance_gate.py /path/to/customer/repo \
+  --bundle-glob '.stegverse/governance/**/*.json' \
+  --output report.json
+```
+
+Match `sdk_ref` to the ref you check out. Otherwise the local report is a different checker than the Actions run. The verifier recomputes the SPE candidate hash, envelope hash, receipt hash, and bridge hash with `stable_hash`: SHA-256 of UTF-8 JSON produced with sorted object keys, separators `(",", ":")`, and `ensure_ascii` false. That digest is lowercase hex with no prefix. It recomputes the ingress interlock hash with `canonical_hash`, which is the same JSON encoding prefixed by `sha256:`. It then requires `package_id`, `transition_id`, and `run_id` to match across the ingress, envelope, receipt, and bridge, and requires the bridge's stored ingress, receipt, candidate, and envelope hashes to match those recomputed values.
+
+The SPE receipt must have `execution_authorized`, `execution_performed`, and `master_record_installed` all false. The bridge must keep `admissibility_candidate.decision` at `PENDING`, `authority.sdk_authority` at `NONE`, and `authority.execution_authorized` false. A `standing_result` string inside the receipt, including `ALLOW`, is not re-derived by this checker and is not treated as permission to execute.
+
+## Uninstall
+
+Delete the customer workflow file, or delete the job whose `uses:` value points at `governance-gate.yml`. That is the whole install: the reusable workflow does not commit to the caller, install a package, or store a credential. Files the customer committed under the bundle glob remain until the customer deletes them. The report artifact stays on the Actions run that uploaded it, subject to that repository's artifact retention. This workflow does not delete artifacts.
+
+## Claim boundary
+
+The claim this workflow can support is a verifiable receipt chain for the bundle the customer supplied: the manifest hashes and predecessor receipt references inside that bundle, the recomputed SPE and bridge hashes, and the identity fields that tie those objects together.
+
+An `ALLOW` report does not say the caller is safe, compliant, or authorized. The report records this `authority` object on every run:
+
+- `verification_authority`: `NONE`
+- `execution_authorized`: false
+- `standing_minted`: false
+- `admissibility_decided`: false
+- `custody_claimed`: false
+- `credential_issued`: false
+
+The checker does not perform a state transition, admit a new action, contact an organization ledger, or retrieve predecessor receipts. It emits no organization-ledger receipt. `NO_GOVERNANCE_BUNDLES_FOUND` is `FAIL_CLOSED`. JSON Schema classification is a compatibility list for the SDK structural validator and does not by itself select the disposition.

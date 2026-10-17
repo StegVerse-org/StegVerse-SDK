@@ -22,3 +22,6 @@ jobs:
     uses: ./.github/workflows/governance-gate.yml
     with:
       sdk_ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      # Synthetic bundle so this job is not an empty-glob run. The empty glob
+      # is FAIL_CLOSED and is covered by tests/test_governance_gate.py.
+      bundle_glob: tests/fixtures/governance-gate/*.json
