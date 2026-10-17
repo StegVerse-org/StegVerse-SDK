@@ -1,5 +1,7 @@
 **Use StegVerse governance in any GitHub repository:** call the free-tier reusable workflow `StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@main`. It verifies portable governance evidence bundles and classifies your JSON Schemas, using the standard library only and granting no authority. See [docs/GOVERNANCE_GATE.md](docs/GOVERNANCE_GATE.md).
 
+**Cost-derived pricing:** `stegverse/tier_pricing.py` prices paid tiers from the versioned cost-component registry (`stegverse/cost_registry.py`) under the owner invariant `C_pricing = max(C_estimated, C_authentically_observed)`. No price is presumed; see [docs/TIER_PRICING.md](docs/TIER_PRICING.md).
+
 ## SDK public wiki observer maintenance (2026-09-27)
 
 Existing [issue #361](https://github.com/StegVerse-org/StegVerse-SDK/issues/361) corrects case-specific public origins while retaining SDK-origin and destination-marker checks. [Current evidence and completion criteria](docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md) distinguish public observation from sovereign runtime execution.
