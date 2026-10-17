@@ -1,8 +1,8 @@
 # SDK #484 T2 — Offline Pinned Organization Boundary Mirror Handoff
 
 Goal reference: StegVerse-org/StegVerse-SDK#484, T2.
-Canonical Goal Task ID / COSV: unresolved; reconcile with StegVerse-Labs/.github Registry and existing successor owners before governed runtime migration.
-Status: SOURCE_CI_VALIDATED / RUNTIME_NOT_AUTHENTICALLY_OBSERVED / INTEGRATION_BLOCKED_BY_ANCESTRY_AND_AUTHORITY.
+Canonical Goal Task ID / COSV: `SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001` / `60200000013002` (registered by StegVerse-Labs/.github #3181).
+Status (2026-10-17): MERGED + CI_VALIDATED source (#505, squash `aa069b2`, 30/30 exact-head workflows); RUNTIME_NOT_AUTHENTICALLY_OBSERVED. Sections below are chronology; earlier "draft, unmerged" and "ancestry diverged" lines are superseded by the merge.
 
 ## Repair
 - Replaces the live GitHub boundary read in `stegverse/manifest_execution.py` with an SDK-installed immutable JSON snapshot.
