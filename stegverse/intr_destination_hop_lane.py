@@ -32,10 +32,29 @@ whose advertisement cannot be read stays in the peer set: every hop that
 uses it is ``UNREACHABLE``. A peer whose ledger ref cannot be read is
 ``UNREACHABLE`` the same way. A ``PASS`` is claimed only for receipts this
 process read back.
+
+``orchestrate`` runs the real hops. It dispatches each organization's
+``intr-destination-hop.yml`` send phase with ``FEDERATION_HOP_TOKEN``. The
+sender records ``sent``, the destination's own ``intr-destination`` ingress
+records ``arrived``, and the sender records ``closed`` on the responded request
+class. The 56 ordered pairs run in round-robin waves of disjoint
+organizations: every organization's ledger runs share one concurrency group,
+and GitHub cancels a second pending run in a group. The epochs are supplied
+(``--hb-epoch-base``); no clock is read for them. After the waves, the live
+readback above runs over every ledger.
+
+Ledger integrity separates what fails from what is reported. A receipt
+committed to the ledger ref before the organization's supplied-epoch writer
+reached its default branch is ``LEGACY``. Its orphan, duplicate, source, and
+clock findings are reported and do not fail the lane. History is not
+rewritten. Repository receipts that repeat one transition with identical
+evidence are reported as identical duplicates. Divergent duplicates fail
+unless every copy is legacy.
 """
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -43,11 +62,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from stegverse._stdlib_http import HttpTransportError
 from stegverse._stdlib_http import get as http_get
+from stegverse._stdlib_http import post as http_post
 
 PROFILE_ID = "intr-destination"
 ADDRESS_FORM = "ORGANIZATION_SLUG_DOT_CAPABILITY_PROFILE_ID"
@@ -62,6 +83,22 @@ CONTRACT_RELATIVE = ".stegverse/transition-ledger/contract.json"
 LEDGER_REF = "refs/stegverse/organization-ledger"
 GITHUB_API = "https://api.github.com"
 FEDERATION_READ_TOKEN_ENV = "FEDERATION_READ_TOKEN"
+# Dispatches the hop workflow in every organization (classic PAT: repo +
+# workflow). Reads fall back to it when FEDERATION_READ_TOKEN is unset.
+FEDERATION_HOP_TOKEN_ENV = "FEDERATION_HOP_TOKEN"
+HOP_WORKFLOW = "intr-destination-hop.yml"
+WRITER_WORKFLOW = ".github/workflows/organization-ledger-transition.yml"
+CLOSURE_REFUSED_CLASS = "ORGANIZATION_EGRESS_CLOSURE_REFUSED"
+LEGACY = "LEGACY"
+# Reported, not failing, when every receipt it names is LEGACY.
+LEGACY_REPORTABLE = (
+    "ORPHAN_ORGANIZATION_RECEIPT",
+    "ORPHAN_REPOSITORY_RECEIPT",
+    "DUPLICATE_REPOSITORY_RECEIPT",
+    "SOURCE_RECEIPT_DOES_NOT_MATCH_REPOSITORY_CHAIN",
+    "TIME_CONSTRAINT_DERIVED_FROM_CLOCK",
+    "AUTHORITY_CONSTRAINT_IS_NOT_NONE",
+)
 # Live mode requests each of these organizations' `<org>/.github` advertisement.
 # Membership still comes from the advertisement when it can be read. An
 # organization that cannot be read is kept, and its hops are UNREACHABLE.
@@ -447,11 +484,19 @@ def discover_peers_from_github(organizations: Sequence[str] = CANDIDATE_ORGANIZA
     return peers, silent
 
 
+def git_auth_header(token: str) -> str:
+    """The extra header git sends to github.com for ``token``."""
+    basic = base64.b64encode(("x-access-token:" + token).encode("utf-8")).decode("ascii")
+    return "Authorization: Basic " + basic
+
+
 def materialize_remote_ledger(repository: str, dest: Path, token: str | None) -> str | None:
     """Fetch ``refs/stegverse/organization-ledger`` into ``dest``.
 
     Returns a reason when the ref cannot be read. The token, when set, is a
-    git extra header, not part of the remote URL.
+    git extra header (HTTP basic, ``x-access-token``), not part of the remote
+    URL. The full ref history is fetched: the commit that added a receipt is
+    what places it before or after the organization's writer.
     """
     token = _blank_to_none(token)
     if dest.exists():
@@ -462,14 +507,14 @@ def materialize_remote_ledger(repository: str, dest: Path, token: str | None) ->
     if token:
         env["GIT_CONFIG_COUNT"] = "1"
         env["GIT_CONFIG_KEY_0"] = "http.extraheader"
-        env["GIT_CONFIG_VALUE_0"] = "Authorization: Bearer " + token
+        env["GIT_CONFIG_VALUE_0"] = git_auth_header(token)
     url = "https://github.com/" + repository + ".git"
     try:
         init = subprocess.run(["git", "init", "-q"], cwd=dest, env=env, capture_output=True, text=True, timeout=30)
         if init.returncode != 0:
             return "LEDGER_REF_NOT_READABLE"
         fetched = subprocess.run(
-            ["git", "fetch", "--quiet", "--depth", "1", url, LEDGER_REF + ":" + LEDGER_REF],
+            ["git", "fetch", "--quiet", url, LEDGER_REF + ":" + LEDGER_REF],
             cwd=dest, env=env, capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired):
         return "LEDGER_REF_NOT_READABLE"
@@ -758,7 +803,37 @@ def walk_git(repository: Path | str, ref: str = LEDGER_REF, namespace: str | Non
             findings.append("SOURCE_RECEIPT_NOT_RETAINED_OR_DOES_NOT_VERIFY")
     return {"present": True, "location": location, "ref": ref, "revision": revision, "chain": chain,
             "sources": sources, "findings": list(dict.fromkeys(findings)),
-            "head_receipt_sha256": head.get("receipt_sha256")}
+            "head_receipt_sha256": head.get("receipt_sha256"),
+            "introduced_at": ledger_introductions(repo, revision, prefix)}
+
+
+def ledger_introductions(repo: Path, revision: str, prefix: str = "") -> dict[str, int]:
+    """Receipt digest -> committer time (unix seconds) of the ledger commit that added it.
+
+    Read from the ledger ref's own history. A shallow history names only what
+    it holds; a receipt it cannot place is absent here and is not LEGACY.
+    """
+    completed = _git(repo, "log", "--reverse", "--diff-filter=A", "--format=@%ct", "--name-only",
+                     revision, "--", prefix + "receipts/")
+    if completed.returncode != 0:
+        return {}
+    found: dict[str, int] = {}
+    stamp: int | None = None
+    for line in completed.stdout.decode("utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if line.startswith("@"):
+            try:
+                stamp = int(line[1:])
+            except ValueError:
+                stamp = None
+            continue
+        if not line or stamp is None or not line.startswith(prefix + "receipts/") or not line.endswith(".json"):
+            continue
+        name = line[len(prefix + "receipts/"):-len(".json")]
+        if "/" in name:
+            continue
+        found.setdefault("sha256:" + name, stamp)
+    return found
 
 
 def repository_namespace(root: Path) -> str | None:
@@ -785,18 +860,57 @@ def _by_class(chain: Sequence[Mapping[str, Any]], transition_class: str) -> list
             and receipt.get("transition_class") == transition_class]
 
 
-def integrity_findings(repo: Mapping[str, Any], org: Mapping[str, Any]) -> list[str]:
-    """Hash chain and source retention for one organization's two ledger levels."""
+def _duplicate_key(receipt: Mapping[str, Any]) -> bytes:
+    return canon({key: receipt.get(key) for key in (
+        "repository", "transition_id", "transition_class", "predecessor_state_sha256",
+        "successor_state_sha256", "evidence", "authority_effect")})
+
+
+def integrity_report(repo: Mapping[str, Any], org: Mapping[str, Any], *,
+                     writer_introduction: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """Hash chain and source retention for one organization's two ledger levels.
+
+    ``findings`` fail the lane. ``reported`` are findings on LEGACY receipts
+    (added to the ref before ``writer_introduction``), identical duplicates,
+    and organization receipts that name no source receipt. Chain-shape
+    findings always fail. Nothing is rewritten.
+    """
     findings = list(repo.get("findings") or []) + list(org.get("findings") or [])
+    reported: list[dict[str, Any]] = []
     if not repo.get("present"):
         findings.append("REPOSITORY_LEDGER_ABSENT")
     if not org.get("present"):
         findings.append("ORGANIZATION_LEDGER_ABSENT")
+    cutoff = (writer_introduction or {}).get("committed_at_unix")
+    cutoff = cutoff if isinstance(cutoff, int) else None
+    introduced = {"repository": repo.get("introduced_at") or {}, "organization": org.get("introduced_at") or {}}
+
+    def legacy(level: str, digest: Any) -> bool:
+        stamp = introduced[level].get(digest) if isinstance(digest, str) else None
+        return cutoff is not None and isinstance(stamp, int) and stamp < cutoff
+
+    def note(finding: str, level: str, digests: Sequence[Any]) -> None:
+        if digests and all(legacy(level, digest) for digest in digests):
+            reported.append({"finding": finding, "classification": LEGACY, "level": level,
+                             "receipt_sha256": list(digests)})
+        else:
+            findings.append(finding)
+
     repo_chain = repo.get("chain") or []
     org_chain = org.get("chain") or []
-    repo_ids = [receipt.get("transition_id") for receipt in repo_chain]
-    if len(repo_ids) != len(set(repo_ids)):
-        findings.append("DUPLICATE_REPOSITORY_RECEIPT")
+    groups: dict[Any, list[Mapping[str, Any]]] = {}
+    for receipt in repo_chain:
+        groups.setdefault(receipt.get("transition_id"), []).append(receipt)
+    for transition_id, group in groups.items():
+        if len(group) < 2:
+            continue
+        digests = [item.get("receipt_sha256") for item in group]
+        if len({_duplicate_key(item) for item in group}) == 1:
+            reported.append({"finding": "IDENTICAL_DUPLICATE_REPOSITORY_RECEIPT",
+                             "classification": LEGACY if all(legacy("repository", d) for d in digests) else "REPORTED",
+                             "level": "repository", "transition_id": transition_id, "receipt_sha256": digests})
+        else:
+            note("DUPLICATE_REPOSITORY_RECEIPT", "repository", digests)
     consumed: dict[str, int] = {}
     for receipt in org_chain:
         if receipt.get("schema") != ORG_SCHEMA:
@@ -807,22 +921,145 @@ def integrity_findings(repo: Mapping[str, Any], org: Mapping[str, Any]) -> list[
             findings.append("ORGANIZATION_RECEIPT_DOES_NOT_NAME_A_REPOSITORY_RECEIPT")
             continue
         consumed[digest] = consumed.get(digest, 0) + 1
-        source = (org.get("sources") or {}).get(receipt.get("source_transition_sha256"))
         match = next((item for item in repo_chain if item.get("receipt_sha256") == digest), None)
         if match is None:
-            findings.append("ORPHAN_ORGANIZATION_RECEIPT")
-        elif source != match:
-            findings.append("SOURCE_RECEIPT_DOES_NOT_MATCH_REPOSITORY_CHAIN")
+            note("ORPHAN_ORGANIZATION_RECEIPT", "organization", [receipt.get("receipt_sha256")])
+            continue
+        named = receipt.get("source_transition_sha256")
+        if named is None:
+            # The repository receipt it names is on the chain; there is no
+            # retained source copy to compare.
+            reported.append({"finding": "ORGANIZATION_RECEIPT_NAMES_NO_SOURCE_RECEIPT",
+                             "classification": "REPORTED", "level": "organization",
+                             "receipt_sha256": [receipt.get("receipt_sha256")]})
+            continue
+        if (org.get("sources") or {}).get(named) != match:
+            note("SOURCE_RECEIPT_DOES_NOT_MATCH_REPOSITORY_CHAIN", "organization", [receipt.get("receipt_sha256")])
     for receipt in repo_chain:
         if consumed.get(receipt.get("receipt_sha256"), 0) != 1:
-            findings.append("ORPHAN_REPOSITORY_RECEIPT")
+            note("ORPHAN_REPOSITORY_RECEIPT", "repository", [receipt.get("receipt_sha256")])
     for receipt in repo_chain:
         reference = receipt.get("hb_reference") or {}
         if reference.get("derived_from_clock") is True:
-            findings.append("TIME_CONSTRAINT_DERIVED_FROM_CLOCK")
+            note("TIME_CONSTRAINT_DERIVED_FROM_CLOCK", "repository", [receipt.get("receipt_sha256")])
         if reference.get("authority_effect") not in (None, "NONE"):
-            findings.append("AUTHORITY_CONSTRAINT_IS_NOT_NONE")
-    return list(dict.fromkeys(findings))
+            note("AUTHORITY_CONSTRAINT_IS_NOT_NONE", "repository", [receipt.get("receipt_sha256")])
+    legacy_count = sum(1 for level, chain in (("repository", repo_chain), ("organization", org_chain))
+                       for receipt in chain if legacy(level, receipt.get("receipt_sha256")))
+    return {
+        "findings": list(dict.fromkeys(findings)),
+        "reported": reported,
+        "writer_introduction": dict(writer_introduction) if writer_introduction else None,
+        "legacy_receipt_count": legacy_count,
+        "receipt_count": len(repo_chain) + len(org_chain),
+    }
+
+
+def integrity_findings(repo: Mapping[str, Any], org: Mapping[str, Any], *,
+                       writer_introduction: Mapping[str, Any] | None = None) -> list[str]:
+    """The failing part of ``integrity_report``."""
+    return integrity_report(repo, org, writer_introduction=writer_introduction)["findings"]
+
+
+def writer_marker(text: str | None) -> bool:
+    """The writer takes ``hb_epoch`` as a dispatch input and runs the self-closure."""
+    if not isinstance(text, str):
+        return False
+    lowered = text.lower()
+    takes_epoch = any(line.strip() == "hb_epoch:" for line in text.splitlines())
+    return takes_epoch and ("self-clos" in lowered or "self_clos" in lowered)
+
+
+def writer_introduction_local(root: Path | str, revision: str = "HEAD") -> dict[str, Any] | None:
+    """Earliest commit on ``revision`` whose writer workflow carries ``writer_marker``."""
+    repo = Path(root)
+    listed = _git(repo, "log", "--reverse", "--format=%H %ct", revision, "--", WRITER_WORKFLOW)
+    if listed.returncode != 0:
+        return None
+    for line in listed.stdout.decode("utf-8", errors="replace").splitlines():
+        parts = line.split()
+        if len(parts) != 2:
+            continue
+        shown = _git(repo, "show", parts[0] + ":" + WRITER_WORKFLOW)
+        if shown.returncode == 0 and writer_marker(shown.stdout.decode("utf-8", errors="replace")):
+            return {"commit": parts[0], "committed_at_unix": int(parts[1]), "source": "LOCAL_CHECKOUT_HISTORY"}
+    return None
+
+
+def _github_get(url: str, token: str | None, accept: str,
+                getter: Callable[..., Any] | None = None) -> tuple[int | None, bytes]:
+    headers = {"Accept": accept, "User-Agent": "stegverse-intr-hop-lane", "X-GitHub-Api-Version": "2022-11-28"}
+    token = _blank_to_none(token)
+    if token:
+        headers["Authorization"] = "Bearer " + token
+    try:
+        response = (getter or http_get)(url, headers=headers, timeout=30)
+    except HttpTransportError:
+        return None, b""
+    return getattr(response, "status_code", None), getattr(response, "content", b"") or b""
+
+
+def _iso_to_unix(value: Any) -> int | None:
+    if not isinstance(value, str):
+        return None
+    from datetime import datetime
+    try:
+        return int(datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp())
+    except ValueError:
+        return None
+
+
+def writer_introduction_from_github(repository: str, *, token: str | None = None,
+                                    getter: Callable[..., Any] | None = None,
+                                    max_pages: int = 10) -> dict[str, Any] | None:
+    """Earliest default-branch commit whose writer workflow carries ``writer_marker``.
+
+    Lists the commits that touched the workflow, oldest first, and reads the
+    file at each one until the marker appears. None when it never does or the
+    history cannot be read.
+    """
+    commits: list[tuple[str, int]] = []
+    for page in range(1, max_pages + 1):
+        status, body = _github_get(
+            GITHUB_API + "/repos/" + repository + "/commits?path=" + WRITER_WORKFLOW
+            + "&per_page=100&page=" + str(page), token, "application/vnd.github+json", getter)
+        if status != 200:
+            return None
+        try:
+            listed = json.loads(body.decode("utf-8"))
+        except (UnicodeError, json.JSONDecodeError):
+            return None
+        if not isinstance(listed, list) or not listed:
+            break
+        for item in listed:
+            sha = item.get("sha") if isinstance(item, dict) else None
+            stamp = _iso_to_unix((((item.get("commit") or {}).get("committer") or {}).get("date"))
+                                 if isinstance(item, dict) else None)
+            if isinstance(sha, str) and stamp is not None:
+                commits.append((sha, stamp))
+        if len(listed) < 100:
+            break
+    for sha, stamp in reversed(commits):
+        status, body = _github_get(
+            GITHUB_API + "/repos/" + repository + "/contents/" + WRITER_WORKFLOW + "?ref=" + sha,
+            token, "application/vnd.github.raw", getter)
+        if status == 200 and writer_marker(body.decode("utf-8", errors="replace")):
+            return {"commit": sha, "committed_at_unix": stamp, "source": "GITHUB_API_DEFAULT_BRANCH_HISTORY"}
+    return None
+
+
+def parse_writer_overrides(items: Sequence[str]) -> dict[str, dict[str, Any]]:
+    """``ORGANIZATION=<unix seconds | ISO 8601>`` from the command line."""
+    found: dict[str, dict[str, Any]] = {}
+    for item in items:
+        organization, separator, value = item.partition("=")
+        if not separator or not organization or not value:
+            raise ValueError("--writer-introduced expects ORGANIZATION=<unix seconds or ISO 8601>: " + item)
+        stamp = int(value) if value.isdigit() else _iso_to_unix(value)
+        if stamp is None:
+            raise ValueError("--writer-introduced time is not readable: " + item)
+        found[organization] = {"commit": None, "committed_at_unix": stamp, "source": "COMMAND_LINE_OVERRIDE"}
+    return found
 
 
 def hop_receipt_findings(hop: Mapping[str, Any], sender_repo: Sequence[Mapping[str, Any]],
@@ -1056,18 +1293,25 @@ def _absent_ledger(reason: str, location: str | None = None) -> dict[str, Any]:
 
 
 def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: str | None = None,
-            ledger_cache: Path | None = None) -> dict[str, Any]:
+            ledger_cache: Path | None = None,
+            writer_introduction: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
+            ) -> dict[str, Any]:
     """Read each peer's organization-ledger ref. Do not append.
 
     A peer whose advertisement was not read is UNREACHABLE and its ledger is
     not fetched. A readable peer with no local checkout is read from
     ``refs/stegverse/organization-ledger`` on ``https://github.com/<repo>``
     when ``fetch`` is set. A ref that cannot be read is UNREACHABLE.
+
+    ``writer_introduction(peer)`` names when the peer's supplied-epoch writer
+    reached its default branch. Receipts added to the ref before it are
+    LEGACY: reported, not failing. Without it nothing is LEGACY.
     """
     token = _blank_to_none(token)
     views = {}
     unreachable: dict[str, str] = {}
     integrity: dict[str, list[str]] = {}
+    ledger_integrity: dict[str, dict[str, Any]] = {}
     owned_cache: tempfile.TemporaryDirectory | None = None
     try:
         for peer in peers:
@@ -1116,7 +1360,10 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
             elif not repo.get("present"):
                 integrity[slug] = ["REPOSITORY_LEDGER_CHAIN_ABSENT"]
             else:
-                integrity[slug] = integrity_findings(repo, org)
+                introduced = writer_introduction(peer) if writer_introduction else None
+                detail = integrity_report(repo, org, writer_introduction=introduced)
+                integrity[slug] = detail["findings"]
+                ledger_integrity[slug] = {"organization": peer["organization"], **detail}
     finally:
         if owned_cache is not None:
             owned_cache.cleanup()
@@ -1162,7 +1409,149 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
                              sender_ledger=sender_org, destination_ledger=dest_org, mode="live")
         public["communication_ids_read_back"] = matched
         rendered.append(public)
-    return _report(peers, rendered, mode="live")
+    report = _report(peers, rendered, mode="live")
+    report["ledger_integrity"] = ledger_integrity
+    return report
+
+
+def hop_waves(peers: Sequence[Mapping[str, Any]]) -> list[list[tuple[Mapping[str, Any], Mapping[str, Any]]]]:
+    """Every ordered pair, in waves where no organization appears twice.
+
+    Round-robin (circle) pairing: ``n - 1`` rounds of ``n // 2`` disjoint
+    pairs, each round run once forward and once reversed. Eight peers give
+    14 waves of 4 hops. An odd peer count leaves one organization idle per
+    wave.
+    """
+    ordered = sorted(peers, key=lambda peer: peer["slug"])
+    slots: list[Mapping[str, Any] | None] = list(ordered)
+    if len(slots) % 2:
+        slots.append(None)
+    count = len(slots)
+    waves: list[list[tuple[Mapping[str, Any], Mapping[str, Any]]]] = []
+    for _round in range(max(count - 1, 0)):
+        pairs = [(slots[index], slots[count - 1 - index]) for index in range(count // 2)]
+        pairs = [(left, right) for left, right in pairs if left is not None and right is not None]
+        waves.append([(left, right) for left, right in pairs])
+        waves.append([(right, left) for left, right in pairs])
+        slots = [slots[0], slots[-1], *slots[1:-1]]
+    return [wave for wave in waves if wave]
+
+
+def hop_communication_id(sender: Mapping[str, Any], dest: Mapping[str, Any], epoch: int) -> str:
+    return "intr-hop:%s:%s:%d" % (sender["slug"], dest["slug"], epoch)
+
+
+def dispatch_send_hop(sender: Mapping[str, Any], dest: Mapping[str, Any], *, communication_id: str,
+                      hb_epoch: int, token: str, ref: str = "main",
+                      poster: Callable[..., Any] | None = None) -> tuple[bool, str]:
+    """Dispatch ``phase=send`` of the sender's hop workflow. The token is a header only."""
+    repository = sender.get("repository") or (sender["organization"] + "/.github")
+    url = GITHUB_API + "/repos/" + repository + "/actions/workflows/" + HOP_WORKFLOW + "/dispatches"
+    body = {"ref": ref, "inputs": {
+        "phase": "send", "destination_slug": dest["slug"], "communication_id": communication_id,
+        "hb_epoch": str(hb_epoch), "forward": "true",
+    }}
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "stegverse-intr-hop-lane",
+               "X-GitHub-Api-Version": "2022-11-28", "Authorization": "Bearer " + token}
+    try:
+        response = (poster or http_post)(url, json=body, headers=headers, timeout=30)
+    except HttpTransportError:
+        return False, "DISPATCH_TRANSPORT"
+    status = getattr(response, "status_code", None)
+    return (status == 204, "DISPATCHED" if status == 204 else "DISPATCH_HTTP_%s" % status)
+
+
+def closure_outcome(sender_repo_chain: Sequence[Mapping[str, Any]], communication_id: str) -> str | None:
+    """CLOSED, REFUSED, or None (still open) for one hop, read off the sender's repository chain."""
+    for receipt in sender_repo_chain:
+        if receipt.get("schema") != REPO_SCHEMA:
+            continue
+        evidence = _evidence(receipt)
+        if evidence.get("communication_id") != communication_id:
+            continue
+        if receipt.get("transition_class") == CLOSED_CLASS:
+            return "CLOSED"
+        if receipt.get("transition_class") == CLOSURE_REFUSED_CLASS:
+            return "REFUSED"
+    return None
+
+
+def probe_sender_ledger(sender: Mapping[str, Any], cache: Path, token: str | None) -> list[dict[str, Any]] | None:
+    """The sender's repository chain from a fresh fetch, or None when it cannot be read."""
+    repository = sender.get("repository") or (sender["organization"] + "/.github")
+    if materialize_remote_ledger(repository, cache, token):
+        return None
+    namespace = sender.get("repository_namespace") or ("repository-ledger/" + repository)
+    walked = walk_git(cache, LEDGER_REF, namespace)
+    return walked.get("chain") if walked.get("present") else None
+
+
+def run_orchestrate(peers: Sequence[Mapping[str, Any]], *, hb_epoch_base: int, token: str,
+                    wave_timeout_seconds: float = 900.0, poll_seconds: float = 20.0,
+                    dispatcher: Callable[..., tuple[bool, str]] | None = None,
+                    probe: Callable[[Mapping[str, Any]], list[dict[str, Any]] | None] | None = None,
+                    sleep: Callable[[float], None] = time.sleep,
+                    monotonic: Callable[[], float] = time.monotonic) -> dict[str, Any]:
+    """Dispatch every one-way hop, one wave at a time, and wait for each wave to close.
+
+    Wave ``w`` uses epoch ``E = hb_epoch_base + 3w``: sent at ``E``, arrived
+    at ``E + 1``, closed at ``E + 2``. The epochs come from the caller. The
+    monotonic clock only bounds the wait; it never reaches a receipt. A peer
+    whose advertisement was not read is not dispatched; its hops are
+    UNREACHABLE.
+    """
+    token = _blank_to_none(token)
+    if token is None:
+        raise ValueError(FEDERATION_HOP_TOKEN_ENV + " is required to dispatch hops")
+    send = dispatcher or (lambda sender, dest, **kw: dispatch_send_hop(sender, dest, token=token, **kw))
+    owned = None
+    if probe is None:
+        owned = tempfile.TemporaryDirectory(prefix="intr-hop-probe-")
+        probe = lambda sender: probe_sender_ledger(sender, Path(owned.name) / sender["slug"], token)  # noqa: E731
+    readable = [peer for peer in peers if peer.get("advertisement_readable", True) is not False]
+    unread = sorted(peer["slug"] for peer in peers if peer.get("advertisement_readable", True) is False)
+    waves_out: list[dict[str, Any]] = []
+    outcomes: dict[str, int] = {}
+    dispatched = 0
+    try:
+        for index, wave in enumerate(hop_waves(readable)):
+            epoch = hb_epoch_base + 3 * index
+            hops = []
+            for sender, dest in wave:
+                communication_id = hop_communication_id(sender, dest, epoch)
+                ok, detail = send(sender, dest, communication_id=communication_id, hb_epoch=epoch)
+                dispatched += 1 if ok else 0
+                hops.append({"sender_slug": sender["slug"], "destination_slug": dest["slug"],
+                             "communication_id": communication_id, "hb_epoch": epoch,
+                             "dispatch": detail, "outcome": None if ok else "NOT_DISPATCHED",
+                             "_sender": sender})
+            deadline = monotonic() + wave_timeout_seconds
+            while any(hop["outcome"] is None for hop in hops):
+                for hop in hops:
+                    if hop["outcome"] is not None:
+                        continue
+                    chain = probe(hop["_sender"])
+                    if chain is not None:
+                        hop["outcome"] = closure_outcome(chain, hop["communication_id"])
+                if all(hop["outcome"] is not None for hop in hops):
+                    break
+                if monotonic() >= deadline:
+                    for hop in hops:
+                        if hop["outcome"] is None:
+                            hop["outcome"] = "TIMEOUT"
+                    break
+                sleep(poll_seconds)
+            for hop in hops:
+                hop.pop("_sender", None)
+                outcomes[hop["outcome"]] = outcomes.get(hop["outcome"], 0) + 1
+            waves_out.append({"wave": index, "hb_epoch": epoch, "hops": hops})
+    finally:
+        if owned is not None:
+            owned.cleanup()
+    return {"waves": waves_out, "dispatched": dispatched, "outcomes": outcomes,
+            "not_dispatched_unread_advertisement": unread,
+            "hb_epoch_base": hb_epoch_base, "time_constraint": TIME_CONSTRAINT,
+            "wave_timeout_seconds": wave_timeout_seconds}
 
 
 def _request_packet(chain: Sequence[Mapping[str, Any]], communication_id: str) -> str | None:
@@ -1309,7 +1698,8 @@ def render_markdown(report: Mapping[str, Any]) -> str:
             lines.append("- Organizations queried: " + ", ".join(queried))
         token_env = report.get("federation_read_token_env") or FEDERATION_READ_TOKEN_ENV
         token_state = "set" if report.get("federation_read_token_present") else "not set"
-        lines.append("- Optional token `%s` is %s. Public repositories are read without it." % (token_env, token_state))
+        lines.append("- Optional token `%s` is %s (reads fall back to `%s`). Public repositories are read without it." % (
+            token_env, token_state, report.get("federation_hop_token_env") or FEDERATION_HOP_TOKEN_ENV))
     unread = report.get("advertisements_not_readable") or []
     if unread:
         lines.append("- Advertisements not read (kept in the peer set; their hops are UNREACHABLE): " + ", ".join(
@@ -1343,6 +1733,35 @@ def render_markdown(report: Mapping[str, Any]) -> str:
         if hop.get("destination_ledger_head"):
             lines.append("- Destination head: `%s`" % hop["destination_ledger_head"])
         lines.append("")
+    integrity = report.get("ledger_integrity") or {}
+    if integrity:
+        lines.extend(["## Ledger integrity", ""])
+        for slug in sorted(integrity):
+            item = integrity[slug]
+            writer = item.get("writer_introduction") or {}
+            lines.append("### " + slug)
+            lines.append("")
+            lines.append("- Writer introduction: %s" % (
+                "`%s` at %s (%s)" % (writer.get("commit"), writer.get("committed_at_unix"), writer.get("source"))
+                if writer else "not found; no receipt is classified LEGACY"))
+            lines.append("- Receipts: %d, LEGACY: %d" % (item.get("receipt_count", 0), item.get("legacy_receipt_count", 0)))
+            counts: dict[str, int] = {}
+            for entry in item.get("reported") or []:
+                key = entry["finding"] + " (" + entry["classification"] + ")"
+                counts[key] = counts.get(key, 0) + 1
+            if counts:
+                lines.append("- Reported, not failing: " + ", ".join(
+                    "`%s` ×%d" % (key, value) for key, value in sorted(counts.items())))
+            if item.get("findings"):
+                lines.append("- Failing: " + ", ".join("`%s`" % finding for finding in item["findings"]))
+            lines.append("")
+    orchestration = report.get("orchestration")
+    if orchestration:
+        lines.extend(["## Orchestration", "",
+                      "- Waves: %d, hops dispatched: %d" % (len(orchestration.get("waves") or []),
+                                                            orchestration.get("dispatched", 0)),
+                      "- Outcomes: " + ", ".join("%s %d" % (key, value) for key, value in sorted(
+                          (orchestration.get("outcomes") or {}).items())), ""])
     lines.append("Routing and governance are out of scope for this lane.")
     lines.append("")
     return "\n".join(lines)
@@ -1377,7 +1796,7 @@ def _roots_from_env_and_args(args: argparse.Namespace) -> list[Path]:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="InTr destination hop lane: integrity diagnostic for one-way hops and ledger receipts.")
-    parser.add_argument("--mode", choices=("fabricated", "live"), default="fabricated")
+    parser.add_argument("--mode", choices=("fabricated", "live", "orchestrate"), default="fabricated")
     parser.add_argument("--org-root", action="append", default=[], help="organization checkout to discover peers from")
     parser.add_argument("--org-dir", help="directory whose children are organization checkouts")
     parser.add_argument("--mesh-root", type=Path)
@@ -1392,7 +1811,17 @@ def main(argv: Sequence[str] | None = None) -> int:
                         help="GitHub organization whose .github advertisement live mode reads. "
                              "Defaults to the eight candidate organizations. An organization that "
                              "cannot be read stays in the hop matrix.")
+    parser.add_argument("--hb-epoch-base", type=int,
+                        help="orchestrate: supplied epoch of the first wave; wave w sends at base + 3w")
+    parser.add_argument("--wave-timeout-seconds", type=float, default=900.0)
+    parser.add_argument("--poll-seconds", type=float, default=20.0)
+    parser.add_argument("--writer-introduced", action="append", default=[],
+                        help="ORGANIZATION=<unix seconds or ISO 8601>: receipts added before it are LEGACY. "
+                             "Overrides the default-branch history lookup for that organization.")
+    parser.add_argument("--no-writer-lookup", action="store_true",
+                        help="live: do not look up writer introductions; nothing is LEGACY unless overridden")
     args = parser.parse_args(argv)
+    overrides = parse_writer_overrides(args.writer_introduced)
     local_peers = discover_peers(_roots_from_env_and_args(args))
     if args.mode == "fabricated":
         peers = local_peers
@@ -1402,7 +1831,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                                 reference_root=args.reference_root)
     else:
         names = list(args.organization) or list(CANDIDATE_ORGANIZATIONS)
-        token = _blank_to_none(os.environ.get(FEDERATION_READ_TOKEN_ENV))
+        hop_token = _blank_to_none(os.environ.get(FEDERATION_HOP_TOKEN_ENV))
+        token = _blank_to_none(os.environ.get(FEDERATION_READ_TOKEN_ENV)) or hop_token
+        if args.mode == "orchestrate":
+            if args.hb_epoch_base is None or args.hb_epoch_base < 0:
+                parser.error("--mode orchestrate needs --hb-epoch-base (a supplied non-negative epoch)")
+            if hop_token is None:
+                parser.error("--mode orchestrate needs " + FEDERATION_HOP_TOKEN_ENV)
         peers, silent = discover_peers_from_github(names, token=token)
         by_slug = {peer["slug"]: peer for peer in local_peers}
         for peer in peers:
@@ -1411,14 +1846,41 @@ def main(argv: Sequence[str] | None = None) -> int:
                 peer["root"] = local["root"]
                 if not peer.get("repository_namespace"):
                     peer["repository_namespace"] = local.get("repository_namespace") or repository_namespace(Path(local["root"]))
-        report = run_live(peers, fetch=args.fetch_ledger_refs, token=token)
+        orchestration = None
+        if args.mode == "orchestrate":
+            orchestration = run_orchestrate(
+                peers, hb_epoch_base=args.hb_epoch_base, token=hop_token,
+                wave_timeout_seconds=args.wave_timeout_seconds, poll_seconds=args.poll_seconds)
+
+        def introduction(peer: Mapping[str, Any]) -> Mapping[str, Any] | None:
+            if peer["organization"] in overrides:
+                return overrides[peer["organization"]]
+            if args.no_writer_lookup:
+                return None
+            if peer.get("root"):
+                local = writer_introduction_local(Path(peer["root"]))
+                if local:
+                    return local
+            repository = peer.get("repository") or (peer["organization"] + "/.github")
+            return writer_introduction_from_github(repository, token=token)
+
+        report = run_live(peers, fetch=args.fetch_ledger_refs or args.mode == "orchestrate", token=token,
+                          writer_introduction=introduction)
+        if orchestration is not None:
+            report["mode"] = "orchestrate"
+            report["orchestration"] = orchestration
         report["organizations_queried"] = names
         report["organizations_read_without_intr_destination"] = silent
         report["peer_source"] = "GITHUB_API_ORG_DOTGITHUB_ADVERTISEMENT"
         report["federation_read_token_env"] = FEDERATION_READ_TOKEN_ENV
         report["federation_read_token_present"] = token is not None
+        report["federation_hop_token_env"] = FEDERATION_HOP_TOKEN_ENV
     write_report(report, args.out_dir)
     print(render_markdown(report))
+    if args.mode == "orchestrate":
+        outcomes = (report.get("orchestration") or {}).get("outcomes") or {}
+        closed_all = set(outcomes) <= {"CLOSED"}
+        return 0 if closed_all and not report["counts"].get("FAIL") else 1
     if args.mode == "live":
         return 1 if report["counts"].get("FAIL") else 0
     if not peers:

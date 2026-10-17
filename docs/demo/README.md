@@ -54,7 +54,7 @@ Exit status is 0 only when every hop is `PASS`.
 - `GET https://api.github.com/repos/<org>/.github/contents/org-runtime/interlock-intr.json`
 - `GET https://api.github.com/repos/<org>/.github/contents/org-boundary/registry/services.json`
 
-Public repositories are read with no credential. When `FEDERATION_READ_TOKEN` is set, that value is sent as a bearer token so a private `<org>/.github` can be read. The token is optional. It is not written into the report. The workflow passes the repository secret `FEDERATION_READ_TOKEN` into the live job; leave the secret unset to read public repositories only.
+Public repositories are read with no credential. When `FEDERATION_READ_TOKEN` is set, that value is sent as a bearer token so a private `<org>/.github` can be read. When it is unset, reads fall back to `FEDERATION_HOP_TOKEN`. The token is optional. It is not written into the report. The workflow passes the repository secret `FEDERATION_READ_TOKEN` into the live job; leave the secret unset to read public repositories only.
 
 For each organization whose advertisement was read, the lane then reads `refs/stegverse/organization-ledger` (and the repository-ledger namespace named by that organization's contract, when the contract was read). A local `--org-root` whose slug matches a read advertisement is used as that ledger checkout. Otherwise `--fetch-ledger-refs` fetches the ref from `https://github.com/<org>/.github`.
 
@@ -79,8 +79,44 @@ FEDERATION_READ_TOKEN="$FEDERATION_READ_TOKEN" \
 | `FAIL` | A ledger was read and the chain or the correlation does not hold. |
 | `UNREACHABLE` | An advertisement could not be read, or a ledger ref could not be read, or the ref has no head. The hop stays in the matrix and the lane continues. |
 
+### Ledger integrity: LEGACY and duplicates
+
+History is not rewritten. Each organization's ledger is classified against its **writer introduction**: the earliest default-branch commit whose `.github/workflows/organization-ledger-transition.yml` takes `hb_epoch` as a dispatch input and runs the self-closure. It is read from the local checkout's history, or from the GitHub API (`commits?path=` and `contents?ref=`). `--writer-introduced ORG=<unix seconds | ISO 8601>` overrides it, and `--no-writer-lookup` turns the lookup off.
+
+A receipt is `LEGACY` when the ledger-ref commit that added it is older than the writer introduction. The full ref history is fetched so that commit can be found. These findings on legacy receipts are reported under **Ledger integrity**, and they do not fail the lane:
+
+- orphan
+- duplicate
+- source mismatch
+- clock-derived time
+- authority-effect
+
+Repository receipts that repeat one `transition_id` with identical evidence are reported as `IDENTICAL_DUPLICATE_REPOSITORY_RECEIPT`. Divergent duplicates fail unless every copy is legacy. An organization receipt that names no source receipt is reported, and is not compared against a source copy. Chain-shape findings always fail: missing receipts, broken links, and bodies that do not verify.
+
+## Orchestrate mode
+
+`workflow_dispatch` only, and run only on Rigel's go. It needs `FEDERATION_HOP_TOKEN`, and it needs `intr-destination-hop.yml` on `main` in all eight organizations.
+
+```bash
+FEDERATION_HOP_TOKEN="$FEDERATION_HOP_TOKEN" \
+  python -m stegverse.intr_destination_hop_lane \
+  --mode orchestrate \
+  --hb-epoch-base 40000 \
+  --out-dir /tmp/intr-hop-lane-orchestrate
+```
+
+**Waves.** The 56 ordered pairs run in 14 round-robin waves of 4 disjoint organizations. Every ledger writer in an organization shares the `organization-ledger` concurrency group, and GitHub cancels a second pending run in a group, so no organization appears twice in a wave.
+
+**One hop.** Wave `w` uses epoch `E = base + 3w`, with communication id `intr-hop:<sender>:<destination>:<E>`:
+
+1. The lane dispatches the sender's `phase=send`. It records `ORGANIZATION_EGRESS_EMITTED` at `E`.
+2. The destination's own `intr-destination` ingress records `ORGANIZATION_INTR_DESTINATION_INGRESS` at `E+1`.
+3. The sender records `ORGANIZATION_EGRESS_CLOSED` at `E+2`, only for the responded request class.
+
+**Waiting.** Each wave polls the sender ledgers until every hop is `CLOSED` or `REFUSED`, or until `--wave-timeout-seconds` marks it `TIMEOUT`. The live readback then runs over every ledger. Exit status is 0 only when every hop closed and no hop is `FAIL`.
+
 Exit status is 0 when no hop is `FAIL`. `UNREACHABLE` is a reported gap, not a crash, and not a reason to remove the organization from the peer set. A missing advertisement or ledger is not described as a verified receipt.
 
 ## CI
 
-`.github/workflows/intr-destination-hop-lane.yml` runs fabricated mode on pull requests. That job uses the organization checkouts it was given. Live mode is a `workflow_dispatch` input and is not run by pull requests. The live job queries all eight organizations through the GitHub API and passes `FEDERATION_READ_TOKEN` when that secret is configured.
+`.github/workflows/intr-destination-hop-lane.yml` runs fabricated mode on pull requests. That job uses the organization checkouts it was given. Live mode is a `workflow_dispatch` input and is not run by pull requests. The live job queries all eight organizations through the GitHub API and passes `FEDERATION_READ_TOKEN` when that secret is configured. Orchestrate mode is a separate `workflow_dispatch` input (`mode=orchestrate`, `hb_epoch_base`), and it fails closed without `FEDERATION_HOP_TOKEN`. Pull requests never dispatch a hop.

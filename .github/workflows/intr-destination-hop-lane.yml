@@ -8,6 +8,16 @@ name: InTr Destination Hop Lane
 # refs/stegverse/organization-ledger. It does not append. An organization
 # whose advertisement or ledger ref cannot be read stays in the matrix as
 # UNREACHABLE. It is not dropped because a checkout failed.
+#
+# Orchestrate mode is workflow_dispatch only, and runs only when Rigel
+# dispatches it. It dispatches each organization's intr-destination-hop.yml
+# send phase with FEDERATION_HOP_TOKEN (classic PAT, repo + workflow, from an
+# account in all eight organizations). The 56 ordered pairs run in 14
+# round-robin waves of 4 disjoint organizations, so the shared
+# organization-ledger concurrency group never holds two pending runs. Each
+# wave waits for the sender ledgers to record ORGANIZATION_EGRESS_CLOSED or
+# ORGANIZATION_EGRESS_CLOSURE_REFUSED. Then the live readback runs over every
+# ledger. The epochs are supplied (hb_epoch_base); no clock is read for them.
 
 on:
   pull_request:
@@ -21,7 +31,18 @@ on:
         options:
           - fabricated
           - live
+          - orchestrate
         default: fabricated
+      hb_epoch_base:
+        description: 'orchestrate: supplied epoch of wave 0 (non-negative integer); wave w sends at base + 3w'
+        required: false
+        default: ''
+        type: string
+      wave_timeout_seconds:
+        description: 'orchestrate: how long one wave may stay open before its open hops are TIMEOUT'
+        required: false
+        default: '900'
+        type: string
 
 permissions:
   contents: read
@@ -145,6 +166,8 @@ jobs:
       # is read when this secret is configured; an organization that still
       # cannot be read stays in the matrix as UNREACHABLE.
       FEDERATION_READ_TOKEN: ${{ secrets.FEDERATION_READ_TOKEN }}
+      # Reads fall back to this when FEDERATION_READ_TOKEN is unset.
+      FEDERATION_HOP_TOKEN: ${{ secrets.FEDERATION_HOP_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -185,4 +208,51 @@ jobs:
         with:
           name: intr-destination-hop-lane-live
           path: ${{ runner.temp }}/intr-hop-lane-live
+          if-no-files-found: warn
+
+  orchestrate:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'orchestrate'
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      FEDERATION_HOP_TOKEN: ${{ secrets.FEDERATION_HOP_TOKEN }}
+      FEDERATION_READ_TOKEN: ${{ secrets.FEDERATION_READ_TOKEN }}
+      HB_EPOCH_BASE: ${{ inputs.hb_epoch_base }}
+      WAVE_TIMEOUT_SECONDS: ${{ inputs.wave_timeout_seconds }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install the SDK
+        run: python -m pip install -q -e .
+
+      - name: Dispatch every one-way hop in waves and read every ledger back
+        run: |
+          set -eu
+          if [ -z "${FEDERATION_HOP_TOKEN:-}" ]; then
+            echo '{"disposition":"FAIL_CLOSED","failure_code":"FEDERATION_HOP_TOKEN_ABSENT","consequence_committed":false}'
+            exit 1
+          fi
+          case "$HB_EPOCH_BASE" in
+            ''|*[!0-9]*)
+              echo '{"disposition":"FAIL_CLOSED","failure_code":"DISPATCH_HB_EPOCH_INVALID","failed_predicate":"HB_EPOCH_BASE_IS_SUPPLIED_AS_A_NON_NEGATIVE_INTEGER","consequence_committed":false}'
+              exit 1 ;;
+          esac
+          case "$WAVE_TIMEOUT_SECONDS" in
+            ''|*[!0-9]*) WAVE_TIMEOUT_SECONDS=900 ;;
+          esac
+          python -m stegverse.intr_destination_hop_lane \
+            --mode orchestrate \
+            --hb-epoch-base "$HB_EPOCH_BASE" \
+            --wave-timeout-seconds "$WAVE_TIMEOUT_SECONDS" \
+            --out-dir "$RUNNER_TEMP/intr-hop-lane-orchestrate"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: intr-destination-hop-lane-orchestrate
+          path: ${{ runner.temp }}/intr-hop-lane-orchestrate
           if-no-files-found: warn
