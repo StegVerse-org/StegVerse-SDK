@@ -2,7 +2,7 @@
 
 The version is not set here. The owner and TV/TVC decide it. Coordination: [StegVerse-Labs/.github#3183](https://github.com/StegVerse-Labs/.github/issues/3183).
 
-This note describes the governance gate at `ba5bbf42eabec6a6ae3b0efdff7c683967a79083`. It does not publish a tag or a GitHub Release. `VERSION.json` keeps `release.tag` at `null` and `release_candidate.tag_publication` at `READY_PENDING_TV_TVC_EXECUTION`. The recorded candidate `b1376d3e3e3c79b6e996d32766bfd7e41cd0ccc4` does not contain `governance-gate.yml`. `development_line` is `1.4.0.dev0` with `release_identity` false.
+These notes describe the gate as shipped by [pull request #534](https://github.com/StegVerse-org/StegVerse-SDK/pull/534) (`d56f45c652ba44cefe609af5b9e6610b95522143` on `cursor/governance-release-prep-940e`). They do not publish a tag or a GitHub Release. `VERSION.json` keeps `release.tag` at `null` and `release_candidate.tag_publication` at `READY_PENDING_TV_TVC_EXECUTION`. The recorded candidate `b1376d3e3e3c79b6e996d32766bfd7e41cd0ccc4` does not contain `governance-gate.yml`. `development_line` is `1.4.0.dev0` with `release_identity` false. This note does not choose a version.
 
 ## Claim
 
@@ -12,25 +12,31 @@ The gate compares a customer-supplied `stegverse.portable-governance-verificatio
 
 ## The gate
 
-Reusable workflow [`.github/workflows/governance-gate.yml`](.github/workflows/governance-gate.yml) (`workflow_call`). Pin the caller to the commit:
+Reusable workflow `.github/workflows/governance-gate.yml` (`workflow_call`), as changed on #534.
+
+`ba5bbf42eabec6a6ae3b0efdff7c683967a79083` still has the older gate: `run_gate` there emits `PASS` or `FAIL_CLOSED`, and an empty glob is `PASS`. After #534 merges, the caller pin moves to that merge commit. The owner decides the commit. Set both the workflow ref and `sdk_ref` to it:
 
 ```yaml
 jobs:
   stegverse-governance:
-    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@ba5bbf42eabec6a6ae3b0efdff7c683967a79083
+    uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@<merge-commit>
     with:
-      sdk_ref: ba5bbf42eabec6a6ae3b0efdff7c683967a79083
+      sdk_ref: <merge-commit>
 ```
 
-The workflow ref and `sdk_ref` are separate pins. In that commit, `sdk_ref` defaults to `main`, so the caller sets `sdk_ref` to the same commit.
+On #534's head the workflow file still defaults `sdk_ref` to `ba5bbf42eabec6a6ae3b0efdff7c683967a79083`. That default checks out the older `PASS` gate. The workflow ref and `sdk_ref` are separate pins.
 
-The called workflow checks out the caller with `contents: read` and `persist-credentials: false`, sparse-checks out `stegverse/` at `sdk_ref`, and runs `python3 -I` on `stegverse/governance_gate.py`. It does not install a package. It verifies each JSON file selected by `bundle_glob` (default `.stegverse/governance/**/*.json`) and, unless `check_schemas` is false, classifies JSON Schemas. Classification does not change the disposition. The job output is `ALLOW`, `DENY`, or `FAIL_CLOSED`. It uploads `stegverse-governance-report.json` (`stegverse.governance-gate-report.v1`). A missing report is `FAIL_CLOSED`.
+The called workflow checks out the caller with `contents: read` and `persist-credentials: false`, sparse-checks out `stegverse/` at `sdk_ref`, and runs `python3 -I` on `stegverse/governance_gate.py`. It does not install a package. It verifies each JSON file selected by `bundle_glob` (default `.stegverse/governance/**/*.json`) and, unless `check_schemas` is false, classifies JSON Schemas. Classification does not change the disposition. The job output is `ALLOW` or `FAIL_CLOSED`. The process exits 0 on `ALLOW` and 1 on `FAIL_CLOSED`. It uploads `stegverse-governance-report.json` (`stegverse.governance-gate-report.v1`) when that file exists. If the report is missing or unparsable, the workflow output is `FAIL_CLOSED`.
+
+`run_gate` selects the disposition in this order: over 25 bundles or 200 schemas is `FAIL_CLOSED` / `FREE_TIER_LIMIT_EXCEEDED`; otherwise an empty bundle glob is `FAIL_CLOSED` / `NO_GOVERNANCE_BUNDLES_FOUND`; otherwise any selected bundle whose status is not `ALLOW` is `FAIL_CLOSED` / `BUNDLE_VERIFICATION_FAILED`; otherwise `ALLOW` / `ALL_BUNDLES_VERIFIED`. The report records tier string `FREE`. The underlying verifier report uses status `PASS`; the gate maps that to bundle status `ALLOW`. A missing or unrecognized verifier status is bundle status `FAIL_CLOSED`.
+
+Every `FAIL_CLOSED` report carries `failure_code`, `failed_predicate`, `required_evidence_or_repair`, `retry_entrypoint`, `owning_existing_goal`, and `next_attempt`. `failure_code` is the same string as `reason`. `retry_entrypoint` is `stegverse/governance_gate.py::run_gate`. `owning_existing_goal` is `SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001`.
 
 On an interlock ingress, `validate_interlock_transition` checks the manifest constraints inside that bundle. Those include `manifest.manifest_hash` and `manifest.source_state_hash` (`sha256:` plus 64 lowercase hex digits), `manifest.canonicalization` equal to `JCS_RFC8785_NFC`, at least one `manifest.predecessor_receipts` entry (`receipt_id`, `issuer`, `receipt_hash`), `connection.participant_boundary_receipt_hash` equal to one of those receipt hashes, and `boundary.original_manifest_hash` equal to `manifest.manifest_hash`. The verifier then recomputes the SPE candidate, envelope, receipt, and bridge hashes and requires `package_id`, `transition_id`, and `run_id` to match across the ingress, envelope, receipt, and bridge. It does not recompute `manifest_hash` from a manifest body, and it does not download predecessor receipts.
 
 ## Notable changes since v1.0.12
 
-Range starts at tag `v1.0.12` (`04f774731dc438b1585d1040e17dc708f705447a`).
+Range starts at tag `v1.0.12` (`04f774731dc438b1585d1040e17dc708f705447a`). The dependency and validator notes below are the tree #534 builds on. The disposition notes above are `stegverse/governance_gate.py` on #534.
 
 ### Runtime dependencies
 
@@ -43,22 +49,11 @@ At `v1.0.12`, `pyproject.toml` required `requests`, `pyyaml`, and `python-dotenv
 
 The gate loads the verifier and validator by path. Optional `dev`, `governed-test`, and `manifold-test` extras are not runtime dependencies of the gate.
 
-On the pinned commit, `pyproject.toml` `version` is `1.3.0` and `stegverse.__version__` is `1.0.0`. This note does not choose a version.
-
 ### Validator
 
-`stegverse/structural_validator_candidate.py` contract version is `1.6`. The gate copies that version into the report and records, per schema file, `sdk_contract_compatible` and `blocking_codes`. Those fields do not select `ALLOW`, `DENY`, or `FAIL_CLOSED`.
+`stegverse/structural_validator_candidate.py` contract version is `1.6`. The gate copies that version into the report and records, per schema file, `sdk_contract_compatible` and `blocking_codes`. Those fields do not select `ALLOW` or `FAIL_CLOSED`.
 
-Contract steps on the pinned commit since the candidate landed: JSON equality for `const` / `enum`; array bounds and annotation keywords (1.1); `$schema` / `$id` as root identity metadata (1.2); `pattern` limited to a dialect-neutral subset (1.3); `date` and `date-time` asserted with the standard library, RFC 3339 (1.4); dialect-dependent pattern syntax excluded (1.5); `allOf`, `if` / `then` / `else`, local `$ref` / `$defs`, and exclusive bounds (1.6); arbitrary-precision integers in `uniqueItems` (#508).
-
-### Fail-closed
-
-- A selected bundle that fails verification, is not a JSON object, or cannot be read is recorded `FAIL_CLOSED`. The run is then `FAIL_CLOSED` / `BUNDLE_VERIFICATION_FAILED`.
-- An empty bundle glob is `FAIL_CLOSED`.
-- More than 25 bundles or 200 schemas is `FAIL_CLOSED` / `FREE_TIER_LIMIT_EXCEEDED`. The report records tier string `FREE`.
-- A missing report is `FAIL_CLOSED`.
-- The process exits 0 on `ALLOW` and 1 on `DENY` or `FAIL_CLOSED`.
-- A `DENY` or `FAIL_CLOSED` report carries the six refusal fields: `failure_code`, `failed_predicate`, `required_evidence_or_repair`, `retry_entrypoint`, `owning_existing_goal`, and `next_attempt`.
+Contract steps since the candidate landed: JSON equality for `const` / `enum`; array bounds and annotation keywords (1.1); `$schema` / `$id` as root identity metadata (1.2); `pattern` limited to a dialect-neutral subset (1.3); `date` and `date-time` asserted with the standard library, RFC 3339 (1.4); dialect-dependent pattern syntax excluded (1.5); `allOf`, `if` / `then` / `else`, local `$ref` / `$defs`, and exclusive bounds (1.6); arbitrary-precision integers in `uniqueItems` (#508).
 
 The structural validator rejects unsupported keywords, non-JSON instances, schemas or instances past its depth bounds, patterns outside its subset, and `$ref` forms other than `#/$defs/<name>`. `CONTRACT["divergences_fail_closed"]` records that it may reject a document JSON Schema 2020-12 would accept. Those results stay inside schema classification.
 
@@ -70,7 +65,7 @@ The structural validator rejects unsupported keywords, non-JSON instances, schem
 - An empty bundle glob is not a receipt chain.
 - Schema classification does not select the disposition and is not a scan for code patterns.
 - No price, paid tier, or entitlement is approved here.
-- This note does not publish a tag or a GitHub Release.
+- This note does not publish a tag or a GitHub Release, and it does not name the merge commit.
 
 ## Supersedes the v1.0.1 release text
 
