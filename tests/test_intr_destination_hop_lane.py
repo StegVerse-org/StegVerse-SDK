@@ -47,6 +47,16 @@ from stegverse.intr_destination_hop_lane import (
 )
 
 _GRANT = re.compile(r"\bgrants?\b", re.IGNORECASE)
+_SIX = ("failure_code", "failed_predicate", "required_evidence_or_repair",
+        "retry_entrypoint", "owning_existing_goal", "next_attempt")
+_GOAL = "StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody"
+
+
+def _assert_six(test, item):
+    for field in _SIX:
+        test.assertIsInstance(item.get(field), str, (field, item))
+        test.assertTrue(item[field].strip(), (field, item))
+    test.assertEqual(item["owning_existing_goal"], _GOAL)
 
 
 def _advertise(root: Path, organization: str, *, bind: bool = True, address: str | None = None) -> None:
@@ -264,6 +274,8 @@ class LiveLedgerTests(unittest.TestCase):
         self.assertTrue(all(hop["status"] == "UNREACHABLE" for hop in report["hops"]))
         self.assertFalse(report["authenticity_claimed"])
         self.assertTrue(all(hop["authenticity_claimed"] is False for hop in report["hops"]))
+        for hop in report["hops"]:
+            _assert_six(self, hop)
         text = render_markdown(report)
         self.assertIsNone(_GRANT.search(text))
         self.assertIn("UNREACHABLE", text)
@@ -304,7 +316,7 @@ class LiveLedgerTests(unittest.TestCase):
         self.assertTrue(by_pair[("alpha", "beta")]["authenticity_claimed"])
         self.assertEqual(by_pair[("alpha", "sv-011")]["status"], "UNREACHABLE")
         self.assertFalse(by_pair[("sv-011", "beta")]["authenticity_claimed"])
-        self.assertEqual(report["counts"], {"PASS": 2, "FAIL": 0, "UNREACHABLE": 4})
+        self.assertEqual(report["counts"], {"PASS": 2, "FAIL": 0, "UNREACHABLE": 4, lane.DURABLE_QUEUE: 0})
         self.assertTrue(report["authenticity_claimed"])
         self.assertIn("sv-011", report["matrix"]["alpha"])
 
@@ -695,47 +707,109 @@ class OrchestrationTests(unittest.TestCase):
             members = [peer["slug"] for hop in wave for peer in hop]
             self.assertEqual(len(members), len(set(members)))
 
-    def test_orchestration_dispatches_send_per_wave_and_waits_for_closure(self):
+    def test_orchestration_dispatches_once_per_organization_and_never_waits(self):
         peers = self._peers()
         dispatched = []
-        ledgers: dict[str, list] = {peer["slug"]: [] for peer in peers}
 
         def dispatcher(sender, dest, *, communication_id, hb_epoch):
             dispatched.append((sender["slug"], dest["slug"], communication_id, hb_epoch))
-            # The fabricated sender ledger closes the hop (non-authentic).
-            klass = CLOSED_CLASS if dest["slug"] != "stegghost" else lane.CLOSURE_REFUSED_CLASS
-            ledgers[sender["slug"]].append({"schema": REPO_SCHEMA, "transition_class": klass,
-                                            "evidence": {"communication_id": communication_id}})
             return True, "DISPATCHED"
 
-        slept = []
-        result = lane.run_orchestrate(
-            peers, hb_epoch_base=1000, token="t-value", dispatcher=dispatcher,
-            probe=lambda sender: ledgers[sender["slug"]], sleep=slept.append)
-        self.assertEqual(len(dispatched), 56)
-        self.assertEqual(result["dispatched"], 56)
-        self.assertEqual([wave["hb_epoch"] for wave in result["waves"]], [1000 + 3 * i for i in range(14)])
-        self.assertEqual(result["outcomes"], {"CLOSED": 49, "REFUSED": 7})
+        result = lane.run_orchestrate(peers, hb_epoch=1000, token="t-value", dispatcher=dispatcher)
+        # One transition: four disjoint hops are sent; the rest wait for a later transition.
+        self.assertEqual(len(dispatched), 4)
+        members = [slug for hop in dispatched for slug in hop[:2]]
+        self.assertEqual(len(members), len(set(members)))
+        self.assertEqual(result["dispatched"], 4)
+        self.assertEqual(result["outcomes"], {lane.DURABLE_QUEUE: 4,
+                                              "DEFERRED_ORGANIZATION_LEDGER_CONCURRENCY": 52})
+        self.assertEqual(len(result["hops"]), 56)
         first = dispatched[0]
         self.assertEqual(first[2], "intr-hop:%s:%s:1000" % (first[0], first[1]))
-        self.assertEqual(slept, [])
+        self.assertTrue(all(hop[3] == 1000 for hop in dispatched))
+        for hop in result["hops"]:
+            if hop["outcome"] == lane.DURABLE_QUEUE:
+                self.assertIs(hop["always_on_receiver_required"], False)
+                self.assertNotIn("failure_code", hop)
+                self.assertEqual(hop["send_transition_disposition"], "ALLOW")
+            else:
+                _assert_six(self, hop)
+        self.assertIs(result["receiver_wait"], False)
+        self.assertIs(result["always_on_receiver_required"], False)
         self.assertNotIn("t-value", json.dumps(result))
         self.assertEqual(result["time_constraint"], "SUPPLIED_HB_EPOCH")
 
-    def test_an_open_hop_times_out_and_a_failed_dispatch_is_recorded(self):
-        peers = self._peers(2)
-        ticks = iter(range(0, 10000, 100))
+    def test_ledger_state_directs_the_next_transition(self):
+        peers = self._peers(4)
+        slugs = [peer["slug"] for peer in peers]
+        a, b, c, d = slugs
+        states = {(a, b): "CLOSED", (b, a): "REFUSED", (c, d): "OPEN"}
+        sent = []
+        result = lane.run_orchestrate(
+            peers, hb_epoch=7, token="t-value", ledger_state=states,
+            dispatcher=lambda s, t, **kw: (sent.append((s["slug"], t["slug"])) or True, "DISPATCHED"))
+        by_pair = {(hop["sender_slug"], hop["destination_slug"]): hop for hop in result["hops"]}
+        self.assertEqual(by_pair[(a, b)]["outcome"], "CLOSED_IN_READ_LEDGERS")
+        self.assertEqual(by_pair[(b, a)]["outcome"], "CLOSURE_REFUSED")
+        _assert_six(self, by_pair[(b, a)])
+        self.assertEqual(by_pair[(c, d)]["outcome"], lane.DURABLE_QUEUE)
+        self.assertIs(by_pair[(c, d)]["always_on_receiver_required"], False)
+        # c and d hold an open hop: nothing touching them is sent; a and b are free.
+        # a -> b is closed and b -> a refused, so nothing is left to send this transition.
+        self.assertEqual(sent, [])
+        self.assertEqual(result["outcomes"]["DEFERRED_ORGANIZATION_LEDGER_CONCURRENCY"], 9)
+        # Once c -> d closes, the next transition sends from ledger state.
+        states[(c, d)] = "CLOSED"
+        lane.run_orchestrate(
+            peers, hb_epoch=8, token="t-value", ledger_state=states,
+            dispatcher=lambda s, t, **kw: (sent.append((s["slug"], t["slug"])) or True, "DISPATCHED"))
+        self.assertEqual(len(sent), 2)
+        members = [slug for pair in sent for slug in pair]
+        self.assertEqual(len(members), len(set(members)))
+        self.assertTrue(all(pair not in states for pair in sent))
+
+    def test_unreachable_and_failed_dispatch_carry_the_six_fields(self):
+        peers = self._peers(3)
+        peers[2]["advertisement_readable"] = False
 
         def dispatcher(sender, dest, *, communication_id, hb_epoch):
-            return (sender["slug"] == "stegverse-org"), ("DISPATCHED" if sender["slug"] == "stegverse-org" else "DISPATCH_HTTP_404")
+            return False, "DISPATCH_HTTP_404"
 
-        result = lane.run_orchestrate(
-            peers, hb_epoch_base=40, token="t-value", dispatcher=dispatcher, probe=lambda sender: [],
-            sleep=lambda seconds: None, monotonic=lambda: next(ticks), wave_timeout_seconds=250)
-        outcomes = {(hop["sender_slug"], hop["outcome"]) for wave in result["waves"] for hop in wave["hops"]}
-        self.assertEqual(outcomes, {("stegverse-org", "TIMEOUT"), ("stegverse-labs", "NOT_DISPATCHED")})
+        result = lane.run_orchestrate(peers, hb_epoch=40, token="t-value", dispatcher=dispatcher)
+        outcomes = {hop["outcome"] for hop in result["hops"]}
+        self.assertEqual(outcomes, {"NOT_DISPATCHED", "UNREACHABLE"})
+        self.assertEqual(len(result["hops"]), 6)
+        for hop in result["hops"]:
+            _assert_six(self, hop)
+        failed = [hop for hop in result["hops"] if hop["outcome"] == "NOT_DISPATCHED"]
+        self.assertTrue(all(hop["failure_code"] == "INTR_HOP_SEND_DISPATCH_DISPATCH_HTTP_404" for hop in failed))
+        self.assertNotIn("TIMEOUT", json.dumps(result))
         with self.assertRaises(ValueError):
-            lane.run_orchestrate(peers, hb_epoch_base=40, token=" ", dispatcher=dispatcher, probe=lambda s: [])
+            lane.run_orchestrate(peers, hb_epoch=40, token=" ", dispatcher=dispatcher)
+        with self.assertRaises(ValueError):
+            lane.run_orchestrate(peers, hb_epoch=-1, token="t-value", dispatcher=dispatcher)
+
+    def test_pair_ledger_state_reads_the_sender_chain(self):
+        emitted, closed, _ = _pair_receipts("Alpha", "Beta", "beta.intr-destination", "cid-1", "pkt-1")
+        self.assertEqual(lane.pair_ledger_state([], "Beta", "beta.intr-destination"), "UNSENT")
+        self.assertEqual(lane.pair_ledger_state([emitted], "Beta", "beta.intr-destination"), "OPEN")
+        self.assertEqual(lane.pair_ledger_state([emitted, closed], "Beta", "beta.intr-destination"), "CLOSED")
+        refused = dict(closed, transition_class=lane.CLOSURE_REFUSED_CLASS)
+        self.assertEqual(lane.pair_ledger_state([emitted, refused], "Beta", "beta.intr-destination"), "REFUSED")
+        self.assertEqual(lane.pair_ledger_state([emitted], "Gamma", "gamma.intr-destination"), "UNSENT")
+
+    def test_the_lane_source_and_workflow_carry_no_receiver_wait(self):
+        source = Path(lane.__file__).read_text(encoding="utf-8")
+        for waiting in ("time.sleep", "sleep(", "monotonic", "wave_timeout", "poll_seconds", '"TIMEOUT"'):
+            self.assertNotIn(waiting, source)
+        workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/intr-destination-hop-lane.yml").read_text(encoding="utf-8")
+        self.assertNotIn("wave_timeout", workflow)
+        self.assertNotIn("timeout-minutes: 350", workflow)
+        self.assertNotIn("classic PAT", workflow)
+        for line in workflow.splitlines():
+            if '"disposition":"FAIL_CLOSED"' in line:
+                for field in _SIX:
+                    self.assertIn('"%s"' % field, line)
 
     def test_the_send_dispatch_names_the_hop_workflow_and_keeps_the_token_in_a_header(self):
         seen = {}
@@ -770,7 +844,7 @@ class OrchestrationTests(unittest.TestCase):
                     main(["--mode", "orchestrate", "--out-dir", tmp])
                 os.environ.pop(lane.FEDERATION_HOP_TOKEN_ENV)
                 with self.assertRaises(SystemExit):
-                    main(["--mode", "orchestrate", "--hb-epoch-base", "40", "--out-dir", tmp])
+                    main(["--mode", "orchestrate", "--hb-epoch", "40", "--out-dir", tmp])
         finally:
             for name, value in previous.items():
                 if value is None:

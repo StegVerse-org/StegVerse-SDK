@@ -78,6 +78,9 @@ FEDERATION_READ_TOKEN="$FEDERATION_READ_TOKEN" \
 | `PASS` | Both ledgers were read, the chains verify, and this ordered pair has one correlated egress emission, closure, and destination ingress for the same `communication_id`. Authenticity is claimed only for that read-back. |
 | `FAIL` | A ledger was read and the chain or the correlation does not hold. |
 | `UNREACHABLE` | An advertisement could not be read, or a ledger ref could not be read, or the ref has no head. The hop stays in the matrix and the lane continues. |
+| `DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION` | The sender recorded the emission and no closure is in the read ledgers yet. `always_on_receiver_required: false`; not a failure. |
+
+`FAIL` and `UNREACHABLE` carry the six non-ALLOW fields.
 
 ### Ledger integrity: LEGACY and duplicates
 
@@ -101,22 +104,24 @@ Repository receipts that repeat one `transition_id` with identical evidence are 
 FEDERATION_HOP_TOKEN="$FEDERATION_HOP_TOKEN" \
   python -m stegverse.intr_destination_hop_lane \
   --mode orchestrate \
-  --hb-epoch-base 40000 \
+  --hb-epoch 40000 \
   --out-dir /tmp/intr-hop-lane-orchestrate
 ```
 
-**Waves.** The 56 ordered pairs run in 14 round-robin waves of 4 disjoint organizations. Every ledger writer in an organization shares the `organization-ledger` concurrency group, and GitHub cancels a second pending run in a group, so no organization appears twice in a wave.
+**Manifest-directed, no waiting.** One orchestrate run is one transition. It first reads every organization ledger (the live readback) and derives each ordered pair's ledger state: `CLOSED`, `REFUSED`, `OPEN` (sent, not yet closed) or `UNSENT`. It then records one disposition per pair. An `UNSENT` pair whose sender and destination hold no open hop, and are not already in a hop dispatched by this run, is dispatched. Every ledger writer in an organization shares the `organization-ledger` concurrency group, and GitHub cancels a second pending run in a group, so no organization appears in two dispatched hops. A later run, at a later supplied `--hb-epoch`, selects the next hops from ledger state.
 
-**One hop.** Wave `w` uses epoch `E = base + 3w`, with communication id `intr-hop:<sender>:<destination>:<E>`:
+**One hop.** A hop dispatched at epoch `E` has communication id `intr-hop:<sender>:<destination>:<E>`:
 
 1. The lane dispatches the sender's `phase=send`. It records `ORGANIZATION_EGRESS_EMITTED` at `E`.
 2. The destination's own `intr-destination` ingress records `ORGANIZATION_INTR_DESTINATION_INGRESS` at `E+1`.
 3. The sender records `ORGANIZATION_EGRESS_CLOSED` at `E+2`, only for the responded request class.
 
-**Waiting.** Each wave polls the sender ledgers until every hop is `CLOSED` or `REFUSED`, or until `--wave-timeout-seconds` marks it `TIMEOUT`. The live readback then runs over every ledger. Exit status is 0 only when every hop closed and no hop is `FAIL`.
+**Dispositions.** A dispatched or `OPEN` hop is `DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION` with `always_on_receiver_required: false`: the destination's receive and the sender's close materialize from the dispatched events, and the next readback evaluates whatever receipts exist then. Nothing polls, sleeps or times out. Every non-ALLOW outcome (`UNREACHABLE`, `NOT_DISPATCHED`, `FAIL`, `CLOSURE_REFUSED`, `DEFERRED_ORGANIZATION_LEDGER_CONCURRENCY`) carries `failure_code`, `failed_predicate`, `required_evidence_or_repair`, `retry_entrypoint`, `owning_existing_goal` (StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody) and `next_attempt`. Exit status is 1 when a dispatch was not accepted, or a hop is `FAIL` for a reason other than not yet being sent.
+
+The credential path is a pending owner decision: TV/TVC least-privilege issuance per StegVerse-Labs/.github#2897.
 
 Exit status is 0 when no hop is `FAIL`. `UNREACHABLE` is a reported gap, not a crash, and not a reason to remove the organization from the peer set. A missing advertisement or ledger is not described as a verified receipt.
 
 ## CI
 
-`.github/workflows/intr-destination-hop-lane.yml` runs fabricated mode on pull requests. That job uses the organization checkouts it was given. Live mode is a `workflow_dispatch` input and is not run by pull requests. The live job queries all eight organizations through the GitHub API and passes `FEDERATION_READ_TOKEN` when that secret is configured. Orchestrate mode is a separate `workflow_dispatch` input (`mode=orchestrate`, `hb_epoch_base`), and it fails closed without `FEDERATION_HOP_TOKEN`. Pull requests never dispatch a hop.
+`.github/workflows/intr-destination-hop-lane.yml` runs fabricated mode on pull requests. That job uses the organization checkouts it was given. Live mode is a `workflow_dispatch` input and is not run by pull requests. The live job queries all eight organizations through the GitHub API and passes `FEDERATION_READ_TOKEN` when that secret is configured. Orchestrate mode is a separate `workflow_dispatch` input (`mode=orchestrate`, `hb_epoch`), and it fails closed without `FEDERATION_HOP_TOKEN`. Pull requests never dispatch a hop.

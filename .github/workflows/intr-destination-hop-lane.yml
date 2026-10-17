@@ -10,14 +10,18 @@ name: InTr Destination Hop Lane
 # UNREACHABLE. It is not dropped because a checkout failed.
 #
 # Orchestrate mode is workflow_dispatch only, and runs only when Rigel
-# dispatches it. It dispatches each organization's intr-destination-hop.yml
-# send phase with FEDERATION_HOP_TOKEN (classic PAT, repo + workflow, from an
-# account in all eight organizations). The 56 ordered pairs run in 14
-# round-robin waves of 4 disjoint organizations, so the shared
-# organization-ledger concurrency group never holds two pending runs. Each
-# wave waits for the sender ledgers to record ORGANIZATION_EGRESS_CLOSED or
-# ORGANIZATION_EGRESS_CLOSURE_REFUSED. Then the live readback runs over every
-# ledger. The epochs are supplied (hb_epoch_base); no clock is read for them.
+# dispatches it. One run is one manifest-directed transition: it reads every
+# organization ledger, derives each ordered pair's ledger state, and records
+# one disposition per pair. Unsent pairs whose organizations hold no open hop
+# are dispatched (the sender's intr-destination-hop.yml send phase), at most
+# one hop per organization, so the shared organization-ledger concurrency
+# group never holds two pending runs. A dispatched or open hop is
+# DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION with
+# always_on_receiver_required: false. Nothing waits, polls or times out; the
+# next run's readback evaluates whatever receipts exist then. Every non-ALLOW
+# outcome carries the six fields. The epoch is supplied (hb_epoch); no clock
+# is read for it. The credential (FEDERATION_HOP_TOKEN here) is a pending
+# owner decision: TV/TVC least-privilege issuance per StegVerse-Labs/.github#2897.
 
 on:
   pull_request:
@@ -33,15 +37,10 @@ on:
           - live
           - orchestrate
         default: fabricated
-      hb_epoch_base:
-        description: 'orchestrate: supplied epoch of wave 0 (non-negative integer); wave w sends at base + 3w'
+      hb_epoch:
+        description: 'orchestrate: supplied epoch of this transition''s send dispatches (non-negative integer)'
         required: false
         default: ''
-        type: string
-      wave_timeout_seconds:
-        description: 'orchestrate: how long one wave may stay open before its open hops are TIMEOUT'
-        required: false
-        default: '900'
         type: string
 
 permissions:
@@ -213,12 +212,11 @@ jobs:
   orchestrate:
     if: github.event_name == 'workflow_dispatch' && inputs.mode == 'orchestrate'
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    timeout-minutes: 20
     env:
       FEDERATION_HOP_TOKEN: ${{ secrets.FEDERATION_HOP_TOKEN }}
       FEDERATION_READ_TOKEN: ${{ secrets.FEDERATION_READ_TOKEN }}
-      HB_EPOCH_BASE: ${{ inputs.hb_epoch_base }}
-      WAVE_TIMEOUT_SECONDS: ${{ inputs.wave_timeout_seconds }}
+      HB_EPOCH: ${{ inputs.hb_epoch }}
     steps:
       - uses: actions/checkout@v4
 
@@ -229,25 +227,21 @@ jobs:
       - name: Install the SDK
         run: python -m pip install -q -e .
 
-      - name: Dispatch every one-way hop in waves and read every ledger back
+      - name: Read every ledger, then record one disposition per hop (dispatch, no wait)
         run: |
           set -eu
           if [ -z "${FEDERATION_HOP_TOKEN:-}" ]; then
-            echo '{"disposition":"FAIL_CLOSED","failure_code":"FEDERATION_HOP_TOKEN_ABSENT","consequence_committed":false}'
+            echo '{"disposition":"FAIL_CLOSED","failure_code":"HOP_DISPATCH_CREDENTIAL_ABSENT","failed_predicate":"HOP_DISPATCH_CREDENTIAL_IS_PRESENT","required_evidence_or_repair":"a credential that dispatches intr-destination-hop.yml send in each sender organization; TV/TVC issuance is the pending owner decision on StegVerse-Labs/.github#2897","retry_entrypoint":".github/workflows/intr-destination-hop-lane.yml mode=orchestrate","owning_existing_goal":"StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody","next_attempt":"dispatch mode=orchestrate once the credential decision lands","consequence_committed":false}'
             exit 1
           fi
-          case "$HB_EPOCH_BASE" in
+          case "$HB_EPOCH" in
             ''|*[!0-9]*)
-              echo '{"disposition":"FAIL_CLOSED","failure_code":"DISPATCH_HB_EPOCH_INVALID","failed_predicate":"HB_EPOCH_BASE_IS_SUPPLIED_AS_A_NON_NEGATIVE_INTEGER","consequence_committed":false}'
+              echo '{"disposition":"FAIL_CLOSED","failure_code":"DISPATCH_HB_EPOCH_INVALID","failed_predicate":"HB_EPOCH_IS_SUPPLIED_AS_A_NON_NEGATIVE_INTEGER","required_evidence_or_repair":"a non-negative integer hb_epoch input","retry_entrypoint":".github/workflows/intr-destination-hop-lane.yml mode=orchestrate","owning_existing_goal":"StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody","next_attempt":"re-dispatch mode=orchestrate with a supplied hb_epoch","consequence_committed":false}'
               exit 1 ;;
-          esac
-          case "$WAVE_TIMEOUT_SECONDS" in
-            ''|*[!0-9]*) WAVE_TIMEOUT_SECONDS=900 ;;
           esac
           python -m stegverse.intr_destination_hop_lane \
             --mode orchestrate \
-            --hb-epoch-base "$HB_EPOCH_BASE" \
-            --wave-timeout-seconds "$WAVE_TIMEOUT_SECONDS" \
+            --hb-epoch "$HB_EPOCH" \
             --out-dir "$RUNNER_TEMP/intr-hop-lane-orchestrate"
 
       - uses: actions/upload-artifact@v4

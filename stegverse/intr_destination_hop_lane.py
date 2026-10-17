@@ -33,15 +33,28 @@ uses it is ``UNREACHABLE``. A peer whose ledger ref cannot be read is
 ``UNREACHABLE`` the same way. A ``PASS`` is claimed only for receipts this
 process read back.
 
-``orchestrate`` runs the real hops. It dispatches each organization's
-``intr-destination-hop.yml`` send phase with ``FEDERATION_HOP_TOKEN``. The
-sender records ``sent``, the destination's own ``intr-destination`` ingress
-records ``arrived``, and the sender records ``closed`` on the responded request
-class. The 56 ordered pairs run in round-robin waves of disjoint
-organizations: every organization's ledger runs share one concurrency group,
-and GitHub cancels a second pending run in a group. The epochs are supplied
-(``--hb-epoch-base``); no clock is read for them. After the waves, the live
-readback above runs over every ledger.
+``orchestrate`` is manifest-directed and does not wait. It first reads every
+organization ledger (the live readback above) and derives each ordered pair's
+ledger state: ``CLOSED``, ``REFUSED``, ``OPEN`` (sent, not yet closed) or
+``UNSENT``. For each pair it then records one disposition. An ``UNSENT`` pair
+whose sender and destination hold no open hop is a send transition: the
+sender's ``intr-destination-hop.yml`` send phase is dispatched (credential:
+``FEDERATION_HOP_TOKEN``; the TV/TVC credential path is a pending owner
+decision on StegVerse-Labs/.github#2897). A dispatched or ``OPEN`` hop
+resolves as ``DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION`` with
+``always_on_receiver_required: false``: the destination's receive and the
+sender's close materialize from the dispatched events and are observed only as
+receipts in the next readback. Nothing polls a ledger, sleeps, or bounds a
+wait. Each organization appears in at most one dispatched hop per transition
+and an organization with an open hop is not dispatched, because every
+organization's ledger runs share one concurrency group and GitHub cancels a
+second pending run in a group. The epoch is supplied (``--hb-epoch``); no
+clock is read for it.
+
+Every non-ALLOW outcome (``UNREACHABLE``, ``NOT_DISPATCHED``, ``FAIL``,
+``CLOSURE_REFUSED``, ``DEFERRED_ORGANIZATION_LEDGER_CONCURRENCY``) carries
+``failure_code``, ``failed_predicate``, ``required_evidence_or_repair``,
+``retry_entrypoint``, ``owning_existing_goal`` and ``next_attempt``.
 
 Ledger integrity separates what fails from what is reported. A receipt
 committed to the ledger ref before the organization's supplied-epoch writer
@@ -62,7 +75,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import time
 from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
@@ -90,6 +102,12 @@ HOP_WORKFLOW = "intr-destination-hop.yml"
 WRITER_WORKFLOW = ".github/workflows/organization-ledger-transition.yml"
 CLOSURE_REFUSED_CLASS = "ORGANIZATION_EGRESS_CLOSURE_REFUSED"
 LEGACY = "LEGACY"
+DURABLE_QUEUE = "DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION"
+OWNING_EXISTING_GOAL = "StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody"
+NON_ALLOW_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair",
+                    "retry_entrypoint", "owning_existing_goal", "next_attempt")
+LANE_WORKFLOW = ".github/workflows/intr-destination-hop-lane.yml"
+NOT_SENT_FINDING = "CORRELATED_RECEIPTS_NOT_IN_THE_READ_LEDGERS"
 # Reported, not failing, when every receipt it names is LEGACY.
 LEGACY_REPORTABLE = (
     "ORPHAN_ORGANIZATION_RECEIPT",
@@ -1116,6 +1134,87 @@ def hop_receipt_findings(hop: Mapping[str, Any], sender_repo: Sequence[Mapping[s
     return list(dict.fromkeys(findings))
 
 
+def non_allow_fields(failure_code: str, failed_predicate: str, required_evidence_or_repair: str,
+                     retry_entrypoint: str, next_attempt: str) -> dict[str, Any]:
+    """The six fields every non-ALLOW outcome carries."""
+    return {
+        "failure_code": failure_code,
+        "failed_predicate": failed_predicate,
+        "required_evidence_or_repair": required_evidence_or_repair,
+        "retry_entrypoint": retry_entrypoint,
+        "owning_existing_goal": OWNING_EXISTING_GOAL,
+        "next_attempt": next_attempt,
+    }
+
+
+def durable_queue_fields() -> dict[str, Any]:
+    """An unavailable or not-yet-run receiver is the protocol's own disposition, not a blocker."""
+    return {
+        "always_on_receiver_required": False,
+        "receiver_wait": False,
+        "owning_existing_goal": OWNING_EXISTING_GOAL,
+        "next_attempt": "the destination receive and sender close materialize from the dispatched events; "
+                        "the next readback evaluates the receipts present then",
+    }
+
+
+def hop_outcome_fields(status: str, findings: Sequence[str], unreachable: Mapping[str, Any] | None,
+                       mode: str) -> dict[str, Any]:
+    """Six fields for a non-ALLOW hop status; the durable-queue fields for an open hop."""
+    if status == "UNREACHABLE":
+        reasons = ", ".join("%s: %s" % (side, reason) for side, reason in sorted((unreachable or {}).items()) if reason)
+        return non_allow_fields(
+            "INTR_HOP_ADVERTISEMENT_OR_LEDGER_REF_UNREADABLE",
+            "SENDER_AND_DESTINATION_ADVERTISEMENT_AND_LEDGER_REF_ARE_READABLE",
+            "a readable <org>/.github advertisement and " + LEDGER_REF + " for each side (" + (reasons or "unread") + ")",
+            LANE_WORKFLOW + " mode=" + mode,
+            "read again once the read credential reaches the organization; the hop stays in the matrix")
+    if status == "FAIL":
+        listed = list(findings) or ["HOP_RECEIPT_FINDINGS"]
+        if listed == [NOT_SENT_FINDING]:
+            return non_allow_fields(
+                "INTR_HOP_NOT_SENT_IN_READ_LEDGERS", NOT_SENT_FINDING,
+                "a send transition for this ordered pair; no emission, arrival or closure is in the read ledgers",
+                LANE_WORKFLOW + " mode=orchestrate",
+                "orchestrate dispatches the send transition at a supplied hb_epoch; the next readback evaluates it")
+        return non_allow_fields(
+            "INTR_HOP_RECEIPT_FINDINGS", ",".join(listed),
+            "sender and destination ledger receipts that clear: " + ", ".join(listed),
+            LANE_WORKFLOW + " mode=" + mode,
+            "repair the named receipts or ledger writer, then read again; LEGACY receipts are reported, not failing")
+    if status == DURABLE_QUEUE:
+        return durable_queue_fields()
+    return {}
+
+
+def pair_ledger_state(sender_repo: Sequence[Mapping[str, Any]], destination_organization: str, address: str) -> str:
+    """``OPEN``, ``CLOSED``, ``REFUSED`` or ``UNSENT`` for one ordered pair, read off the sender's chain.
+
+    ``OPEN`` is an emission to the destination's address whose packet has no
+    closure or refused closure yet. It is a state of the hop, not a blocker.
+    """
+    terminal: dict[str, str] = {}
+    for receipt in sender_repo:
+        klass = receipt.get("transition_class")
+        if klass not in (CLOSED_CLASS, CLOSURE_REFUSED_CLASS):
+            continue
+        evidence = _evidence(receipt)
+        if evidence.get("destination_organization") != destination_organization:
+            continue
+        packet = evidence.get("request_packet_id")
+        if isinstance(packet, str):
+            terminal[packet] = klass
+    emitted = [_evidence(receipt).get("packet_id") for receipt in _by_class(sender_repo, EMITTED_CLASS)
+               if _evidence(receipt).get("destination_service") == address]
+    if any(packet not in terminal for packet in emitted):
+        return "OPEN"
+    if CLOSED_CLASS in terminal.values():
+        return "CLOSED"
+    if CLOSURE_REFUSED_CLASS in terminal.values():
+        return "REFUSED"
+    return "UNSENT"
+
+
 def _status(findings: Sequence[str], *, unreachable: str | None = None) -> str:
     if unreachable:
         return "UNREACHABLE"
@@ -1386,10 +1485,13 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
         dest_repo, dest_org = views[dest["slug"]]
         if sender_reason or dest_reason:
             reason = {"sender": sender_reason, "destination": dest_reason}
-            rendered.append(_public_hop(
+            public = _public_hop(
                 hop, status="UNREACHABLE", findings=[], writer={}, sender_ledger=sender_org,
-                destination_ledger=dest_org, mode="live", unreachable=reason))
+                destination_ledger=dest_org, mode="live", unreachable=reason)
+            public["ledger_state"] = "UNREACHABLE"
+            rendered.append(public)
             continue
+        state = pair_ledger_state(sender_repo.get("chain") or [], dest["organization"], dest["address"])
         findings = list(integrity[sender["slug"]]) + list(integrity[dest["slug"]])
         matched, correlation = _correlated_live(
             sender_repo.get("chain") or [], dest_repo.get("chain") or [], dest["organization"], dest["address"])
@@ -1405,8 +1507,14 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
                 dest_repo.get("chain") or [], dest_org.get("chain") or [])
                 if item != "TIME_CONSTRAINT_NOT_THE_SUPPLIED_EPOCH")
         findings = list(dict.fromkeys(findings))
-        public = _public_hop(hop, status=_status(findings), findings=findings, writer={},
+        status = _status(findings)
+        if not matched and state == "OPEN" and findings == [NOT_SENT_FINDING]:
+            # Sent and not yet closed. The receiver materializes from the
+            # dispatched event; its absence here is not a failure.
+            status, findings = DURABLE_QUEUE, []
+        public = _public_hop(hop, status=status, findings=findings, writer={},
                              sender_ledger=sender_org, destination_ledger=dest_org, mode="live")
+        public["ledger_state"] = state
         public["communication_ids_read_back"] = matched
         rendered.append(public)
     report = _report(peers, rendered, mode="live")
@@ -1461,97 +1569,92 @@ def dispatch_send_hop(sender: Mapping[str, Any], dest: Mapping[str, Any], *, com
     return (status == 204, "DISPATCHED" if status == 204 else "DISPATCH_HTTP_%s" % status)
 
 
-def closure_outcome(sender_repo_chain: Sequence[Mapping[str, Any]], communication_id: str) -> str | None:
-    """CLOSED, REFUSED, or None (still open) for one hop, read off the sender's repository chain."""
-    for receipt in sender_repo_chain:
-        if receipt.get("schema") != REPO_SCHEMA:
-            continue
-        evidence = _evidence(receipt)
-        if evidence.get("communication_id") != communication_id:
-            continue
-        if receipt.get("transition_class") == CLOSED_CLASS:
-            return "CLOSED"
-        if receipt.get("transition_class") == CLOSURE_REFUSED_CLASS:
-            return "REFUSED"
-    return None
+def run_orchestrate(peers: Sequence[Mapping[str, Any]], *, hb_epoch: int, token: str,
+                    ledger_state: Mapping[tuple[str, str], str] | None = None,
+                    dispatcher: Callable[..., tuple[bool, str]] | None = None) -> dict[str, Any]:
+    """Record one manifest-directed disposition per ordered pair. Never wait.
 
-
-def probe_sender_ledger(sender: Mapping[str, Any], cache: Path, token: str | None) -> list[dict[str, Any]] | None:
-    """The sender's repository chain from a fresh fetch, or None when it cannot be read."""
-    repository = sender.get("repository") or (sender["organization"] + "/.github")
-    if materialize_remote_ledger(repository, cache, token):
-        return None
-    namespace = sender.get("repository_namespace") or ("repository-ledger/" + repository)
-    walked = walk_git(cache, LEDGER_REF, namespace)
-    return walked.get("chain") if walked.get("present") else None
-
-
-def run_orchestrate(peers: Sequence[Mapping[str, Any]], *, hb_epoch_base: int, token: str,
-                    wave_timeout_seconds: float = 900.0, poll_seconds: float = 20.0,
-                    dispatcher: Callable[..., tuple[bool, str]] | None = None,
-                    probe: Callable[[Mapping[str, Any]], list[dict[str, Any]] | None] | None = None,
-                    sleep: Callable[[float], None] = time.sleep,
-                    monotonic: Callable[[], float] = time.monotonic) -> dict[str, Any]:
-    """Dispatch every one-way hop, one wave at a time, and wait for each wave to close.
-
-    Wave ``w`` uses epoch ``E = hb_epoch_base + 3w``: sent at ``E``, arrived
-    at ``E + 1``, closed at ``E + 2``. The epochs come from the caller. The
-    monotonic clock only bounds the wait; it never reaches a receipt. A peer
-    whose advertisement was not read is not dispatched; its hops are
-    UNREACHABLE.
+    ``ledger_state[(sender_slug, destination_slug)]`` is what the readback
+    found (``pair_ledger_state``); a pair it does not name is ``UNSENT``. An
+    ``UNSENT`` pair whose organizations hold no open hop, and are not already
+    in a hop dispatched by this transition, is dispatched at the supplied
+    ``hb_epoch``. A dispatched or ``OPEN`` hop is ``DURABLE_QUEUE``; the
+    readback that follows a later transition evaluates whatever receipts exist
+    then. A peer whose advertisement was not read is not dispatched; its hops
+    are ``UNREACHABLE``.
     """
     token = _blank_to_none(token)
     if token is None:
         raise ValueError(FEDERATION_HOP_TOKEN_ENV + " is required to dispatch hops")
+    if isinstance(hb_epoch, bool) or not isinstance(hb_epoch, int) or hb_epoch < 0:
+        raise ValueError("hb_epoch is supplied as a non-negative integer")
     send = dispatcher or (lambda sender, dest, **kw: dispatch_send_hop(sender, dest, token=token, **kw))
-    owned = None
-    if probe is None:
-        owned = tempfile.TemporaryDirectory(prefix="intr-hop-probe-")
-        probe = lambda sender: probe_sender_ledger(sender, Path(owned.name) / sender["slug"], token)  # noqa: E731
+    states = dict(ledger_state or {})
     readable = [peer for peer in peers if peer.get("advertisement_readable", True) is not False]
     unread = sorted(peer["slug"] for peer in peers if peer.get("advertisement_readable", True) is False)
-    waves_out: list[dict[str, Any]] = []
+    busy = {slug for (sender, dest), state in states.items() if state == "OPEN" for slug in (sender, dest)}
+    order = [pair for wave in hop_waves(readable) for pair in wave]
+    order += [(sender, dest) for sender, dest in ordered_pairs(peers)
+              if sender["slug"] in unread or dest["slug"] in unread]
+    hops: list[dict[str, Any]] = []
     outcomes: dict[str, int] = {}
     dispatched = 0
-    try:
-        for index, wave in enumerate(hop_waves(readable)):
-            epoch = hb_epoch_base + 3 * index
-            hops = []
-            for sender, dest in wave:
-                communication_id = hop_communication_id(sender, dest, epoch)
-                ok, detail = send(sender, dest, communication_id=communication_id, hb_epoch=epoch)
-                dispatched += 1 if ok else 0
-                hops.append({"sender_slug": sender["slug"], "destination_slug": dest["slug"],
-                             "communication_id": communication_id, "hb_epoch": epoch,
-                             "dispatch": detail, "outcome": None if ok else "NOT_DISPATCHED",
-                             "_sender": sender})
-            deadline = monotonic() + wave_timeout_seconds
-            while any(hop["outcome"] is None for hop in hops):
-                for hop in hops:
-                    if hop["outcome"] is not None:
-                        continue
-                    chain = probe(hop["_sender"])
-                    if chain is not None:
-                        hop["outcome"] = closure_outcome(chain, hop["communication_id"])
-                if all(hop["outcome"] is not None for hop in hops):
-                    break
-                if monotonic() >= deadline:
-                    for hop in hops:
-                        if hop["outcome"] is None:
-                            hop["outcome"] = "TIMEOUT"
-                    break
-                sleep(poll_seconds)
-            for hop in hops:
-                hop.pop("_sender", None)
-                outcomes[hop["outcome"]] = outcomes.get(hop["outcome"], 0) + 1
-            waves_out.append({"wave": index, "hb_epoch": epoch, "hops": hops})
-    finally:
-        if owned is not None:
-            owned.cleanup()
-    return {"waves": waves_out, "dispatched": dispatched, "outcomes": outcomes,
-            "not_dispatched_unread_advertisement": unread,
-            "hb_epoch_base": hb_epoch_base, "time_constraint": TIME_CONSTRAINT,
-            "wave_timeout_seconds": wave_timeout_seconds}
+    retry = ".github/workflows/intr-destination-hop.yml phase=send"
+    for sender, dest in order:
+        pair = (sender["slug"], dest["slug"])
+        state = "UNREACHABLE" if (pair[0] in unread or pair[1] in unread) else states.get(pair, "UNSENT")
+        hop: dict[str, Any] = {"sender_slug": pair[0], "destination_slug": pair[1], "ledger_state": state,
+                               "hb_epoch": None, "communication_id": None, "dispatch": None}
+        if state == "UNREACHABLE":
+            hop["outcome"] = "UNREACHABLE"
+            hop.update(non_allow_fields(
+                "INTR_HOP_ADVERTISEMENT_UNREADABLE", "SENDER_AND_DESTINATION_ADVERTISEMENTS_ARE_READABLE",
+                "a readable <org>/.github advertisement for: " + ", ".join(slug for slug in pair if slug in unread),
+                LANE_WORKFLOW + " mode=orchestrate",
+                "the next orchestrate transition dispatches it once the advertisement is read"))
+        elif state == "CLOSED":
+            hop["outcome"] = "CLOSED_IN_READ_LEDGERS"
+        elif state == "OPEN":
+            hop["outcome"] = DURABLE_QUEUE
+            hop.update(durable_queue_fields())
+        elif state == "REFUSED":
+            hop["outcome"] = "CLOSURE_REFUSED"
+            hop.update(non_allow_fields(
+                "INTR_HOP_CLOSURE_REFUSED_IN_SENDER_LEDGER", "SENDER_CLOSURE_VERIFIES_THE_DESTINATION_ACKNOWLEDGEMENT",
+                "the refused closure's findings repaired at the sender or destination; the refusal stays recorded",
+                retry + " at " + (sender.get("repository") or sender["organization"] + "/.github"),
+                "an owner-directed send with a new communication_id; orchestrate does not repeat a recorded refusal"))
+        elif pair[0] in busy or pair[1] in busy:
+            hop["outcome"] = "DEFERRED_ORGANIZATION_LEDGER_CONCURRENCY"
+            hop.update(non_allow_fields(
+                "ORGANIZATION_LEDGER_CONCURRENCY_GROUP_OCCUPIED",
+                "SENDER_AND_DESTINATION_HOLD_NO_OPEN_OR_DISPATCHED_HOP",
+                "no open hop at " + pair[0] + " or " + pair[1] + " in the read ledgers and none dispatched by this transition",
+                LANE_WORKFLOW + " mode=orchestrate",
+                "the next orchestrate transition, at a later supplied hb_epoch, selects it from ledger state"))
+        else:
+            communication_id = hop_communication_id(sender, dest, hb_epoch)
+            ok, detail = send(sender, dest, communication_id=communication_id, hb_epoch=hb_epoch)
+            hop.update(hb_epoch=hb_epoch, communication_id=communication_id, dispatch=detail)
+            if ok:
+                dispatched += 1
+                busy.update(pair)
+                hop["outcome"] = DURABLE_QUEUE
+                hop["send_transition_disposition"] = "ALLOW"
+                hop.update(durable_queue_fields())
+            else:
+                hop["outcome"] = "NOT_DISPATCHED"
+                hop.update(non_allow_fields(
+                    "INTR_HOP_SEND_DISPATCH_" + detail, "SEND_PHASE_DISPATCH_ACCEPTED",
+                    "an accepted workflow_dispatch of " + HOP_WORKFLOW + " phase=send at "
+                    + (sender.get("repository") or sender["organization"] + "/.github") + " (" + detail + ")",
+                    retry, "the next orchestrate transition dispatches it again at a later supplied hb_epoch"))
+        outcomes[hop["outcome"]] = outcomes.get(hop["outcome"], 0) + 1
+        hops.append(hop)
+    return {"hops": hops, "dispatched": dispatched, "outcomes": outcomes,
+            "not_dispatched_unread_advertisement": unread, "hb_epoch": hb_epoch,
+            "time_constraint": TIME_CONSTRAINT, "receiver_wait": False,
+            "always_on_receiver_required": False, "ledger_state_source": "LIVE_READBACK_BEFORE_DISPATCH"}
 
 
 def _request_packet(chain: Sequence[Mapping[str, Any]], communication_id: str) -> str | None:
@@ -1611,6 +1714,7 @@ def _public_hop(hop: Mapping[str, Any], *, status: str, findings: Sequence[str],
         "evidence_class": EVIDENCE_FABRICATED if mode == "fabricated" else EVIDENCE_LIVE,
         "authenticity_claimed": authentic,
         "authenticity_basis": (destination_ledger.get("location") if authentic else None),
+        **hop_outcome_fields(status, findings, unreachable, mode),
     }
 
 
@@ -1637,7 +1741,7 @@ def _public_peer(peer: Mapping[str, Any]) -> dict[str, Any]:
 
 def _report(peers: Sequence[Mapping[str, Any]], hops: Sequence[Mapping[str, Any]], *, mode: str,
             mesh_root: Path | None = None, ledger_home: Path | None = None) -> dict[str, Any]:
-    counts = {"PASS": 0, "FAIL": 0, "UNREACHABLE": 0}
+    counts = {"PASS": 0, "FAIL": 0, "UNREACHABLE": 0, DURABLE_QUEUE: 0}
     for hop in hops:
         counts[hop["status"]] = counts.get(hop["status"], 0) + 1
     return {
@@ -1685,9 +1789,9 @@ def render_markdown(report: Mapping[str, Any]) -> str:
         "- Mode: `" + report["mode"] + "`",
         "- Evidence class: `" + report["evidence_class"] + "`",
         "- Peer source: `" + str(report.get("peer_source")) + "`",
-        "- Hops: %d (PASS %d, FAIL %d, UNREACHABLE %d)" % (
+        "- Hops: %d (PASS %d, FAIL %d, UNREACHABLE %d, %s %d)" % (
             report["hop_count"], report["counts"].get("PASS", 0), report["counts"].get("FAIL", 0),
-            report["counts"].get("UNREACHABLE", 0)),
+            report["counts"].get("UNREACHABLE", 0), DURABLE_QUEUE, report["counts"].get(DURABLE_QUEUE, 0)),
     ]
     if report["mode"] == "fabricated":
         lines.append("- Far side: `" + FAR_SIDE + "`, labeled non-authentic. Temporary mesh and ledger roots.")
@@ -1726,8 +1830,14 @@ def render_markdown(report: Mapping[str, Any]) -> str:
             lines.append("- Authenticity basis: read back from the destination ledger ref above.")
         elif hop["status"] == "UNREACHABLE":
             lines.append("- Unreachable: `%s`" % json.dumps(hop.get("unreachable"), sort_keys=True))
+        elif hop["status"] == DURABLE_QUEUE:
+            lines.append("- Sent, not yet closed: `always_on_receiver_required: false`; the next readback evaluates it.")
         elif hop["findings"]:
             lines.append("- Findings: " + ", ".join("`%s`" % item for item in hop["findings"]))
+        if hop.get("failure_code"):
+            lines.append("- Non-ALLOW: `%s` / `%s`; repair: %s; retry: `%s`; goal: %s; next: %s" % (
+                hop["failure_code"], hop["failed_predicate"], hop["required_evidence_or_repair"],
+                hop["retry_entrypoint"], hop["owning_existing_goal"], hop["next_attempt"]))
         if hop.get("sender_ledger_head"):
             lines.append("- Sender head: `%s`" % hop["sender_ledger_head"])
         if hop.get("destination_ledger_head"):
@@ -1758,8 +1868,8 @@ def render_markdown(report: Mapping[str, Any]) -> str:
     orchestration = report.get("orchestration")
     if orchestration:
         lines.extend(["## Orchestration", "",
-                      "- Waves: %d, hops dispatched: %d" % (len(orchestration.get("waves") or []),
-                                                            orchestration.get("dispatched", 0)),
+                      "- Supplied hb_epoch: %s, send transitions dispatched: %d (no receiver wait)" % (
+                          orchestration.get("hb_epoch"), orchestration.get("dispatched", 0)),
                       "- Outcomes: " + ", ".join("%s %d" % (key, value) for key, value in sorted(
                           (orchestration.get("outcomes") or {}).items())), ""])
     lines.append("Routing and governance are out of scope for this lane.")
@@ -1811,10 +1921,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                         help="GitHub organization whose .github advertisement live mode reads. "
                              "Defaults to the eight candidate organizations. An organization that "
                              "cannot be read stays in the hop matrix.")
-    parser.add_argument("--hb-epoch-base", type=int,
-                        help="orchestrate: supplied epoch of the first wave; wave w sends at base + 3w")
-    parser.add_argument("--wave-timeout-seconds", type=float, default=900.0)
-    parser.add_argument("--poll-seconds", type=float, default=20.0)
+    parser.add_argument("--hb-epoch", type=int,
+                        help="orchestrate: supplied epoch of this transition's send dispatches")
     parser.add_argument("--writer-introduced", action="append", default=[],
                         help="ORGANIZATION=<unix seconds or ISO 8601>: receipts added before it are LEGACY. "
                              "Overrides the default-branch history lookup for that organization.")
@@ -1834,8 +1942,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         hop_token = _blank_to_none(os.environ.get(FEDERATION_HOP_TOKEN_ENV))
         token = _blank_to_none(os.environ.get(FEDERATION_READ_TOKEN_ENV)) or hop_token
         if args.mode == "orchestrate":
-            if args.hb_epoch_base is None or args.hb_epoch_base < 0:
-                parser.error("--mode orchestrate needs --hb-epoch-base (a supplied non-negative epoch)")
+            if args.hb_epoch is None or args.hb_epoch < 0:
+                parser.error("--mode orchestrate needs --hb-epoch (a supplied non-negative epoch)")
             if hop_token is None:
                 parser.error("--mode orchestrate needs " + FEDERATION_HOP_TOKEN_ENV)
         peers, silent = discover_peers_from_github(names, token=token)
@@ -1846,11 +1954,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 peer["root"] = local["root"]
                 if not peer.get("repository_namespace"):
                     peer["repository_namespace"] = local.get("repository_namespace") or repository_namespace(Path(local["root"]))
-        orchestration = None
-        if args.mode == "orchestrate":
-            orchestration = run_orchestrate(
-                peers, hb_epoch_base=args.hb_epoch_base, token=hop_token,
-                wave_timeout_seconds=args.wave_timeout_seconds, poll_seconds=args.poll_seconds)
 
         def introduction(peer: Mapping[str, Any]) -> Mapping[str, Any] | None:
             if peer["organization"] in overrides:
@@ -1864,11 +1967,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             repository = peer.get("repository") or (peer["organization"] + "/.github")
             return writer_introduction_from_github(repository, token=token)
 
+        # The readback reads whatever receipts exist now. Orchestrate derives
+        # each pair's ledger state from it, then records its dispositions.
         report = run_live(peers, fetch=args.fetch_ledger_refs or args.mode == "orchestrate", token=token,
                           writer_introduction=introduction)
-        if orchestration is not None:
+        if args.mode == "orchestrate":
+            states = {(hop["sender_slug"], hop["destination_slug"]): hop.get("ledger_state", "UNSENT")
+                      for hop in report["hops"]}
             report["mode"] = "orchestrate"
-            report["orchestration"] = orchestration
+            report["orchestration"] = run_orchestrate(peers, hb_epoch=args.hb_epoch, token=hop_token,
+                                                      ledger_state=states)
         report["organizations_queried"] = names
         report["organizations_read_without_intr_destination"] = silent
         report["peer_source"] = "GITHUB_API_ORG_DOTGITHUB_ADVERTISEMENT"
@@ -1879,8 +1987,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(render_markdown(report))
     if args.mode == "orchestrate":
         outcomes = (report.get("orchestration") or {}).get("outcomes") or {}
-        closed_all = set(outcomes) <= {"CLOSED"}
-        return 0 if closed_all and not report["counts"].get("FAIL") else 1
+        failing = [hop for hop in report["hops"] if hop["status"] == "FAIL" and hop["findings"] != [NOT_SENT_FINDING]]
+        return 1 if outcomes.get("NOT_DISPATCHED") or failing else 0
     if args.mode == "live":
         return 1 if report["counts"].get("FAIL") else 0
     if not peers:
