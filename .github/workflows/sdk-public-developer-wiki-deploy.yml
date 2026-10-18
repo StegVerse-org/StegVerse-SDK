@@ -8,10 +8,10 @@ on:
   release:
     types: [published]
 
+# Workflow default is read-only. Only the deploy job, which runs after
+# validate passes, gets the Pages and OIDC permissions it needs.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: sdk-developer-wiki-pages-${{ github.ref }}
@@ -47,6 +47,10 @@ jobs:
 
   deploy:
     needs: validate
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
