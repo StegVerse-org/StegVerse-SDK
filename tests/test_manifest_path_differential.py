@@ -12,12 +12,18 @@ from stegverse.manifest_path_differential import (
     compare_manifest_paths,
     declared_refusal,
 )
+from stegverse.negative_conformance import (
+    FIXTURE_SCHEMA as NEGATIVE_CONFORMANCE_FIXTURE_SCHEMA,
+    PASS as NEGATIVE_CONFORMANCE_PASS,
+    classify_governed_deny_fixture,
+)
 
 SIX_FIELDS = (
     "failure_code", "failed_predicate", "required_evidence_or_repair",
     "retry_entrypoint", "owning_existing_goal", "next_attempt",
 )
 FIXTURE = Path(__file__).parent / "fixtures" / "ecosystem-diagnostic" / "steghealth-51-governed-deny-negative-control.json"
+EXP3_FIXTURE = Path(__file__).parent / "fixtures" / "conformance" / "governed_deny_experiment3.json"
 
 
 def snapshot(**overrides):
@@ -261,6 +267,51 @@ class StegHealth51NegativeControlFixtureTests(unittest.TestCase):
             compare_manifest_paths(allowed, self.fixture["diagnostic_replay"])
         self.assertEqual(ctx.exception.refusal["failure_code"], "MPDV_ORIGINAL_IS_ALLOW")
         self.assertEqual(ctx.exception.refusal["disposition"], "DENY")
+
+
+class Pr539ReconciliationTests(unittest.TestCase):
+    """#539's governed-DENY classifier and fixture are reused, not restated."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mpdv_fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
+        cls.exp3_fixture = json.loads(EXP3_FIXTURE.read_text(encoding="utf-8"))
+
+    def test_shared_vocabulary_is_imported_not_restated(self):
+        from stegverse import manifest_path_differential as mpdv
+        from stegverse.negative_conformance import NON_ALLOW
+        from stegverse.organization_ledger_evidence import REFUSAL_FIELDS
+        self.assertIs(mpdv.SIX_FIELDS, REFUSAL_FIELDS)
+        self.assertEqual(mpdv.SIX_FIELDS, SIX_FIELDS)
+        self.assertIs(mpdv._NON_ALLOW, NON_ALLOW)
+
+    def test_same_owner_and_origin_as_exp3_fixture(self):
+        self.assertEqual(self.exp3_fixture["owning_existing_goal"], OWNING_EXISTING_GOAL)
+        self.assertEqual(self.mpdv_fixture["owning_existing_goal"], OWNING_EXISTING_GOAL)
+        self.assertEqual(self.exp3_fixture["provenance"]["originating_issue"],
+                         self.mpdv_fixture["provenance"]["origin_issue"])
+        self.assertEqual(self.exp3_fixture["provenance"]["originating_cosv"],
+                         self.mpdv_fixture["provenance"]["origin_cosv"])
+
+    def test_steghealth51_fixture_covers_a_case_exp3_does_not(self):
+        # Exp3 carries sha256-bound receipts for trial classification and no
+        # manifest-path snapshots; the MPDV fixture carries the original/replay
+        # path snapshots compare_manifest_paths needs and is not a #539 fixture.
+        path_keys = ("original_deny", "original_fail_closed", "diagnostic_replay")
+        self.assertFalse(any(key in self.exp3_fixture for key in path_keys))
+        self.assertTrue(all(key in self.mpdv_fixture for key in path_keys))
+        self.assertNotEqual(self.mpdv_fixture["schema"], NEGATIVE_CONFORMANCE_FIXTURE_SCHEMA)
+        with self.assertRaises(ValueError):
+            classify_governed_deny_fixture(self.mpdv_fixture)
+
+    def test_both_keep_refusal_distinct_from_experiment_result(self):
+        classification = classify_governed_deny_fixture(self.exp3_fixture)
+        self.assertEqual(classification["classification"], NEGATIVE_CONFORMANCE_PASS)
+        self.assertFalse(classification["refusal_counted_as_experiment_failure"])
+        result = compare_manifest_paths(self.mpdv_fixture["original_deny"], self.mpdv_fixture["diagnostic_replay"],
+                                        finding="EXPECTED_GOVERNED_DENY")
+        self.assertFalse(result["experiment_result_established"])
+        self.assertEqual(classification["authority_effect"], result["authority_effect"])
 
 
 if __name__ == "__main__":

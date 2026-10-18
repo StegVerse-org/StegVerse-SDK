@@ -19,23 +19,31 @@ findings the table does not support are FAIL_CLOSED; a pair the table does not
 declare is FAIL_CLOSED under MPDV_REFUSAL_DISPOSITION_NOT_DECLARED. The
 exception subclasses ``ValueError`` so existing callers that catch
 ``ValueError`` keep working.
+
+Relation to ``stegverse.negative_conformance`` (same owning goal): that module
+classifies a governed-DENY *trial* from sha256-bound receipts (refusal is the
+governance disposition, not the experiment outcome). This module compares the
+declared *manifest path* of an original non-ALLOW with a diagnostic replay. The
+two answer different questions, so neither reimplements the other; the shared
+vocabulary is imported rather than restated: the six refusal fields are
+``organization_ledger_evidence.REFUSAL_FIELDS`` and the non-ALLOW dispositions
+are ``negative_conformance.NON_ALLOW``.
 """
 from __future__ import annotations
 
 from typing import Any, Mapping
 
+from .negative_conformance import NON_ALLOW as _NON_ALLOW
+from .organization_ledger_evidence import REFUSAL_FIELDS
+
 OWNING_EXISTING_GOAL = "SDK-ECOSYSTEM-DIAGNOSTIC-PROCESSOR-001"
 RETRY_ENTRYPOINT = "stegverse/manifest_path_differential.py::compare_manifest_paths"
 SCHEMA = "stegverse.mpdv-source-comparison.v1"
-SIX_FIELDS = (
-    "failure_code", "failed_predicate", "required_evidence_or_repair",
-    "retry_entrypoint", "owning_existing_goal", "next_attempt",
-)
+SIX_FIELDS = REFUSAL_FIELDS
 
 _FIELDS = ("manifest_digest", "route_id", "component_id", "predicate_id", "policy_version", "authority_binding")
 _REQUIRED = ("manifest_digest", "route_id", "predicate_id")
-_DISPOSITIONS = ("ALLOW", "DENY", "FAIL_CLOSED")
-_NON_ALLOW = ("DENY", "FAIL_CLOSED")
+_DISPOSITIONS = ("ALLOW", *_NON_ALLOW)
 # The only finding that may be reported without evidence on both sides: it is
 # the statement that evidence is insufficient. Every other finding is a claim
 # about the compared paths and must rest on locators from both snapshots.
