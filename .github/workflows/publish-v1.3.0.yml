@@ -25,14 +25,14 @@ jobs:
           cat <<'EOF'
           attempted_transition: StegVerse SDK v1.3.0 tag/release at b1376d3e3e3c79b6e996d32766bfd7e41cd0ccc4
           disposition: FAIL_CLOSED
-          failure_codes:
-            - GITHUB_ACTIONS_TOKEN_IS_NOT_RELEASE_AUTHORITY
-            - DIRECT_REFERENCE_DEPENDENCIES_UNPUBLISHABLE
-          failed_predicates:
-            - TV/TVC GRANTED release authorization bound to the exact commit
-            - published Requires-Dist contains no direct URL references
+          failure_code: GITHUB_ACTIONS_TOKEN_IS_NOT_RELEASE_AUTHORITY
+          failed_predicate: TV/TVC GRANTED release authorization bound to the exact commit
+          required_evidence_or_repair: a GRANTED TV/TVC release authorization and governance-decision ALLOW for b1376d3e3e3c79b6e996d32766bfd7e41cd0ccc4 through the TVC RELEASE_ADMITTED transition, and published Requires-Dist with no direct URL references
+          retry_entrypoint: TVC RELEASE_ADMITTED (StegVerse-Labs/TVC tvc_release_admission.admit_release); not this workflow
           owning_existing_goal: StegVerse-org/StegVerse-SDK#165
           next_attempt: TV/TVC-owned release transition for a candidate whose published metadata is index-installable
+          secondary_failure_code: DIRECT_REFERENCE_DEPENDENCIES_UNPUBLISHABLE
+          secondary_failed_predicate: published Requires-Dist contains no direct URL references
           consequence_committed: false
           EOF
           exit 1
