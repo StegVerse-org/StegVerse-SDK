@@ -653,3 +653,28 @@ That is an SDK handoff, not Test 5's authentic InTr outcome. Authentic
 Test 5 completion requires the existing InTr/StegBrowser/provider path to return
 the governed transition, endpoint receipts, organization recording and Master
 Records reconstruction.
+
+## SDK#484 lane: structural validator, governance gate and cost-derived pricing — 2026-10-17
+
+Coordination: `StegVerse-org/StegVerse-SDK#484`. Parent: `StegVerse-Labs/.github#3183`.
+
+| Scope | Goal Task ID / COSV | Handoff |
+|---|---|---|
+| SDK-native structural validator (contract 1.7), T2 offline boundary, T6 envelope migration | `SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001` / `60200000013002` | `docs/SDK_VALIDATOR_T2_OFFLINE_BOUNDARY_MIRROR_HANDOFF.md`, `docs/SDK_T6_UNIVERSAL_ENTRY_VALIDATOR_MIRROR_HANDOFF.md`; Labs `docs/SDK_STRUCTURAL_VALIDATOR_CONSOLIDATION_TASK_REGISTRY_REGISTRATION_MIRROR_HANDOFF.md` |
+| Governance gate (free tier), tier pricing, cost-component registry | gate: the validator task above; pricing: `SDK-COST-DERIVED-TIER-PRICING-001` / `10300000011002` (Labs #3214, open) | `docs/SDK_GOVERNANCE_PRODUCT_MIRROR_HANDOFF.md` |
+
+**Evidence classes:** source MERGED + CI_VALIDATED for the validator, T2, T6 and the gate. #538 (cost registry, MAX rule, pricing six-field dispositions) is CI_VALIDATED and open. The gate's disposition rework is #534 (draft). No runtime class has been reached.
+
+**Governed transitions:**
+- T6-001: DENY.
+- T5: FAIL_CLOSED, with its TVC lane repair proposed as A5 on TVC#488.
+- Claim for TASK-2026-0014: a durable queue entry, with event-ephemeral consumption in Labs #3211.
+
+No external machine is awaited. Master Records is non-gating.
+
+**Contract 1.7 (2026-10-17), source only.**
+- **New keywords:** `anyOf`, `oneOf`, `not`, `additionalProperties` as a subschema, `minProperties`, `maxProperties`, `prefixItems` (`items: false` only as its closing form), `propertyNames`, `contains` with `minContains` and `maxContains`, and `default` as an annotation.
+- **Fail-open fix:** a branch that cannot be evaluated (schema depth, evaluation budget, or an unsupported or invalid schema) now propagates its structural error. It never counts as an ordinary branch failure, so `not`, `else` and `anyOf` cannot accept an instance because of it. This also fixes a fail-open path in 1.6's `if`.
+- **Differential check:** agrees with the 2020-12 reference in both directions on the new corpus.
+- **Ecosystem fit:** StegVerse-Labs/.github schemas on main went from 55/75 to 64/75. The remaining blockers stay fail-closed by design: patterns outside the safe subset (8), non-local `$ref` (3), depth (1).
+- **T5 provenance:** the source identity was rebound. A successor T5 attempt must target the new blobs.

@@ -1,0 +1,13 @@
+{
+  "schema": "stegverse.cost-rate-card.v1",
+  "rate_card_id": "SV-COST-DECLARED-2026-08-03",
+  "status": "VERSIONED_DECLARED_RATE_NOT_INVOICE_RECONCILED",
+  "rates": {
+    "openai.input_usd_per_million": {"amount": "5.0", "currency": "USD", "source": "https://github.com/GCAT-BCAT-Engine/workflows/blob/main/experiments/sv-cost-program/five-lane-results/results/five_lane_results.json", "observed_at": "2026-08-03"},
+    "openai.output_usd_per_million": {"amount": "30.0", "currency": "USD", "source": "https://github.com/GCAT-BCAT-Engine/workflows/blob/main/experiments/sv-cost-program/five-lane-results/results/five_lane_results.json", "observed_at": "2026-08-03"},
+    "anthropic.input_usd_per_million": {"amount": "3.0", "currency": "USD", "source": "https://github.com/GCAT-BCAT-Engine/workflows/blob/main/experiments/sv-cost-program/five-lane-results/results/five_lane_results.json", "observed_at": "2026-08-03"},
+    "anthropic.output_usd_per_million": {"amount": "15.0", "currency": "USD", "source": "https://github.com/GCAT-BCAT-Engine/workflows/blob/main/experiments/sv-cost-program/five-lane-results/results/five_lane_results.json", "observed_at": "2026-08-03"},
+    "internal.runner_usd_per_minute": {"amount": "0.008", "currency": "USD", "source": "https://github.com/GCAT-BCAT-Engine/workflows/blob/main/experiments/sv-cost-program/five-lane-results/results/five_lane_results.json", "observed_at": "2026-08-03"},
+    "internal.storage_usd_per_gb_month": {"amount": "0.008", "currency": "USD", "source": "https://github.com/GCAT-BCAT-Engine/workflows/blob/main/experiments/sv-cost-program/five-lane-results/results/five_lane_results.json", "observed_at": "2026-08-03"}
+  }
+}

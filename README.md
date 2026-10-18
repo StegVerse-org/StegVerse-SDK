@@ -1,5 +1,7 @@
 **Use StegVerse governance in any GitHub repository:** the customer job calls `.github/workflows/governance-gate.yml` in StegVerse-org/StegVerse-SDK. Commit `ba5bbf42eabec6a6ae3b0efdff7c683967a79083` is the pre-#534 workflow and checker: that workflow's `sdk_ref` default is moving `main`, its actions are pinned to tags such as `@v4`, and that checker emits `PASS` and passes an empty bundle glob. Do not adopt that commit for the behavior described in [docs/GITHUB_GOVERNANCE_QUICKSTART.md](docs/GITHUB_GOVERNANCE_QUICKSTART.md). The documented pin becomes valid only after the owner merges #534 and a follow-up retargets `uses:` and `sdk_ref` to that merge commit. The check reads customer-supplied portable governance bundles and writes a verification report.
 
+**Cost-derived pricing:** `stegverse/tier_pricing.py` prices paid tiers from the versioned cost-component registry (`stegverse/cost_registry.py`) under the owner invariant `C_pricing = max(C_estimated, C_authentically_observed)`. No price is presumed; see [docs/TIER_PRICING.md](docs/TIER_PRICING.md).
+
 ## SDK public wiki observer maintenance (2026-09-27)
 
 Existing [issue #361](https://github.com/StegVerse-org/StegVerse-SDK/issues/361) corrects case-specific public origins while retaining SDK-origin and destination-marker checks. [Current evidence and completion criteria](docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md) distinguish public observation from sovereign runtime execution.
