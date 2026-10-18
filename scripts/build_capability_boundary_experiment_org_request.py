@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
 from scripts.build_mir_sv_exp3_manifest import build_exp3_manifest
 from stegverse.manifest_state_transition_runtime import derive_execution_request
@@ -21,6 +22,8 @@ MANIFEST_FILE_SHA256 = "e1b05a082ce19d3d254e3cde1dced03019174a94287724959672c9e6
 WIRE_MANIFEST_SHA256 = "ad9b8b8aab2beeea04bff2aac34fd2e7bfa5915133bcaef9209c16de7d9bea68"
 CANONICAL_MANIFEST_SHA256 = "f0fa715e6a25e7fbf57cf4075ff664751b7606cab93ecdbb59f560e90ae510c6"
 REQUEST_FILE_SHA256 = "b5f0f546ea93d8643c77bd1ad5338aaccbd8d2e8875c59438c0380dbeb10bb48"
+OWNING_EXISTING_GOAL = "MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003"
+RETRY_ENTRYPOINT = "python -m scripts.build_capability_boundary_experiment_org_request"
 
 PURPOSE = (
     "Record the frozen MIR/SV Experiment 3 SDK diagnostic manifest (COSV 50000000100000; owner "
@@ -38,6 +41,50 @@ def manifest_file_bytes(manifest):
     return (json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
 
 
+class FailClosed(Exception):
+    """A pinned digest did not reproduce; carries the six-field failure record."""
+
+    def __init__(self, record):
+        super().__init__(record["failure_code"])
+        self.record = record
+
+
+def failure_record(failure_code, failed_predicate, required_evidence_or_repair, next_attempt):
+    return {
+        "failure_code": failure_code,
+        "failed_predicate": failed_predicate,
+        "required_evidence_or_repair": required_evidence_or_repair,
+        "retry_entrypoint": RETRY_ENTRYPOINT,
+        "owning_existing_goal": OWNING_EXISTING_GOAL,
+        "next_attempt": next_attempt,
+    }
+
+
+def pinned_canonical_manifest_sha256(manifest):
+    """The canonical digest, derived here and required to equal the pinned constant.
+
+    The organization ingress (StegVerse-org/.github organization-ledger-transition.yml)
+    recomputes this as derive_execution_request(manifest, boundary())["canonical_manifest_sha256"]
+    with its own Interlock/InTr boundary, whereas this derives it with no boundary.
+    The digest comes from validate_ingress_manifest and is boundary-independent: the
+    boundary only selects manifest_declared_destination. Tests prove the digest is
+    identical with organization_boundary=None and with a boundary shaped like the
+    organization's boundary(), and this fails closed if the derivation ever drifts.
+    """
+    derived = derive_execution_request(manifest)["canonical_manifest_sha256"]
+    if derived != CANONICAL_MANIFEST_SHA256:
+        raise FailClosed(failure_record(
+            "EXP3_ORG_REQUEST_CANONICAL_MANIFEST_MISMATCH",
+            f"derive_execution_request(manifest).canonical_manifest_sha256 == {CANONICAL_MANIFEST_SHA256} "
+            f"(derived {derived})",
+            "Restore the frozen Experiment 3 manifest or the SDK canonicalization it was pinned "
+            "under; re-pin CANONICAL_MANIFEST_SHA256 only through a reviewed change that also "
+            "proves the organization ingress recomputes the same digest.",
+            "Re-run the retry entrypoint after the manifest or canonicalization is restored; "
+            "no request is written until the derived canonical digest equals the pin."))
+    return derived
+
+
 def build_exp3_org_request():
     # Key order of the manifest file, so the request reproduces byte for byte.
     manifest = json.loads(manifest_file_bytes(build_exp3_manifest()))
@@ -47,7 +94,7 @@ def build_exp3_org_request():
         "owning_existing_goal": "MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003",
         "purpose": PURPOSE,
         "manifest": manifest,
-        "expected_canonical_manifest_sha256": derive_execution_request(manifest)["canonical_manifest_sha256"],
+        "expected_canonical_manifest_sha256": pinned_canonical_manifest_sha256(manifest),
         "standing": {
             "mode": "ESTABLISH_GENESIS",
             "node_ref": "StegVerse-org/StegVerse-SDK",
@@ -68,10 +115,20 @@ def main(argv=None):
     p.add_argument("--organization-root", type=Path, required=True,
                    help="StegVerse-org/.github checkout the request is written into")
     a = p.parse_args(argv)
-    data = request_file_bytes(build_exp3_org_request())
-    digest = hashlib.sha256(data).hexdigest()
-    if digest != REQUEST_FILE_SHA256:
-        raise SystemExit(f"FAIL_CLOSED: EXP3_ORG_REQUEST_DIGEST_MISMATCH {digest}")
+    try:
+        data = request_file_bytes(build_exp3_org_request())
+        digest = hashlib.sha256(data).hexdigest()
+        if digest != REQUEST_FILE_SHA256:
+            raise FailClosed(failure_record(
+                "EXP3_ORG_REQUEST_DIGEST_MISMATCH",
+                f"sha256(request file bytes) == {REQUEST_FILE_SHA256} (observed {digest})",
+                "Restore the request builder, purpose text or manifest so the request file "
+                "reproduces byte for byte; re-pin REQUEST_FILE_SHA256 only through a reviewed change.",
+                "Re-run the retry entrypoint after the request reproduces; nothing is written "
+                "into the organization checkout until the digest equals the pin."))
+    except FailClosed as exc:
+        sys.stderr.write(json.dumps(exc.record, sort_keys=True) + "\n")
+        return 1
     out = a.organization_root / REQUEST_PATH
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(data)
