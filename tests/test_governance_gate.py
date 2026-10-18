@@ -24,7 +24,7 @@ def _repo(tmp_path, bundles=(), schemas=()):
 def test_valid_bundle_passes_and_report_claims_no_authority(tmp_path):
     root = _repo(tmp_path, bundles=[("ok.json", _bundle())],
                  schemas=[("a.schema.json", {"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object"}),
-                          ("b.schema.json", {"type": "object", "oneOf": [{}]})])
+                          ("b.schema.json", {"type": "object", "patternProperties": {}})])
     report = governance_gate.run_gate(root)
     assert report["disposition"] == "PASS"
     assert report["reason"] == "ALL_BUNDLES_VERIFIED"
