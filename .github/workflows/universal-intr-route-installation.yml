@@ -41,17 +41,29 @@ jobs:
           SDK_REF: ${{ inputs.sdk_ref }}
         run: |
           set -eu
-          test -z "${GITHUB_TOKEN:-}"
-          test -z "${GH_TOKEN:-}"
-          case "$SDK_REF" in *[!0-9a-f]*|'')
-            echo "disposition: FAIL_CLOSED"
-            echo "failure_code: SDK_REF_NOT_A_COMMIT"
-            echo "failed_predicate: SDK_REF_IS_A_HEX_COMMIT_SHA"
-            echo "required_evidence_or_repair: pass sdk_ref as the full hex commit SHA of the SDK commit named in uses:"
-            echo "retry_entrypoint: .github/workflows/universal-intr-route-installation.yml (workflow_call with sdk_ref=<sdk commit>)"
-            echo "owning_existing_goal: INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001"
-            echo "next_attempt: re-run the calling job with a commit sdk_ref"
-            exit 2;;
+          # Every refusal here prints one six-field disposition line and exits non-zero.
+          # Arguments: failure_code failed_predicate required_evidence_or_repair next_attempt
+          refuse() {
+            printf '{"disposition":"FAIL_CLOSED","failure_code":"%s","failed_predicate":"%s","required_evidence_or_repair":"%s","retry_entrypoint":"%s","owning_existing_goal":"%s","next_attempt":"%s"}\n' \
+              "$1" "$2" "$3" \
+              "StegVerse-org/StegVerse-SDK/.github/workflows/universal-intr-route-installation.yml (workflow_call from the caller workflow)" \
+              "INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001" \
+              "$4"
+            exit 2
+          }
+          if [ -n "${GITHUB_TOKEN:-}" ] || [ -n "${GH_TOKEN:-}" ]; then
+            refuse "INSTALLER_CREDENTIAL_PRESENT" \
+              "NO_GITHUB_TOKEN_OR_GH_TOKEN_IN_INSTALLER_ENVIRONMENT" \
+              "Remove GITHUB_TOKEN and GH_TOKEN from the caller job environment; the installer reads source anonymously from public archives and carries no credential." \
+              "Re-run the caller workflow without GITHUB_TOKEN or GH_TOKEN set for this job."
+          fi
+          case "$SDK_REF" in
+            *[!0-9a-f]*|'')
+              refuse "SDK_REF_NOT_A_COMMIT" \
+                "SDK_REF_IS_LOWERCASE_HEX_COMMIT" \
+                "Pass with.sdk_ref as the lowercase hex StegVerse-SDK commit SHA that hosts the installer, the same commit pinned in uses: ...@<sdk commit>." \
+                "Re-run the caller workflow with sdk_ref set to the pinned StegVerse-SDK commit SHA."
+              ;;
           esac
           mkdir -p /tmp/caller /tmp/sdk
           curl -fsSL "https://github.com/${CALLER_REPO}/archive/${CALLER_SHA}.tar.gz" | tar -xz -C /tmp/caller --strip-components=1
