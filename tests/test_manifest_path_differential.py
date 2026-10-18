@@ -301,8 +301,12 @@ class Pr539ReconciliationTests(unittest.TestCase):
         self.assertFalse(any(key in self.exp3_fixture for key in path_keys))
         self.assertTrue(all(key in self.mpdv_fixture for key in path_keys))
         self.assertNotEqual(self.mpdv_fixture["schema"], NEGATIVE_CONFORMANCE_FIXTURE_SCHEMA)
-        with self.assertRaises(ValueError):
+        # Pin the classifier's specific rejection (negative_conformance
+        # classify_governed_deny_fixture schema gate), not any ValueError.
+        with self.assertRaises(ValueError) as ctx:
             classify_governed_deny_fixture(self.mpdv_fixture)
+        self.assertIs(type(ctx.exception), ValueError)
+        self.assertEqual(ctx.exception.args, ("NEGATIVE_CONFORMANCE_FIXTURE_SCHEMA_MISMATCH",))
 
     def test_both_keep_refusal_distinct_from_experiment_result(self):
         classification = classify_governed_deny_fixture(self.exp3_fixture)
