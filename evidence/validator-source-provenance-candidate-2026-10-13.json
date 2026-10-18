@@ -11,7 +11,7 @@
     },
     {
       "path": "tests/test_structural_validator_candidate.py",
-      "git_blob_sha1": "da4a61378f94b32130ecb537257bcf920ceda876"
+      "git_blob_sha1": "57b6e7f0e05704fe5a01cc2896d98b98a75fa836"
     },
     {
       "path": "scripts/verify_universal_entry_envelope.py",
@@ -32,17 +32,16 @@
   "failed_predicate": "AUTHENTICATED_TV_TVC_PROVENANCE_NOT_ESTABLISHED",
   "source_main_commit_role": "HISTORICAL_SOURCE_BASELINE_NOT_CURRENT_HEAD",
   "latest_source_identity_reconciliation": {
-    "basis": "Working-tree blob recomputation for SDK#484 contract 1.7 (anyOf, oneOf, not, additionalProperties subschema, min/maxProperties, prefixItems, default annotation, propertyNames, contains/minContains/maxContains; indeterminate branches propagate structural errors instead of failing open), after contract 1.6 and SDK#516",
+    "basis": "Working-tree blob recomputation for SDK#484 WU-V9 (LLM-adapter#368 Q6 option b): tests/test_structural_validator_candidate.py replays frozen reference verdicts (tests/reference_oracle.py) instead of importing jsonschema; the validator itself is unchanged since contract 1.7",
     "scope": "FOUR_LISTED_ARTIFACTS_ONLY",
     "source_main_head": "NOT_BOUND_IN_THIS_EVIDENCE",
     "result": "LISTED_BLOBS_REBOUND_TO_CHANGED_SOURCE",
     "rebound_paths": [
-      "stegverse/structural_validator_candidate.py",
       "tests/test_structural_validator_candidate.py"
     ],
     "authority_effect": "NONE",
     "authenticated_tv_tvc_proof": "NOT_OBSERVED",
     "note": "Source identity rebinding only, as in SDK#515; not a new TV/TVC attestation. T5 must authenticate the final main head.",
-    "t5_request_note": "The pending T5 TV/TVC request (StegVerse-Labs/TVC#515) bound the contract 1.6 blobs; a successor T5 attempt must target these rebound blobs. Rebinding is source identity only and confers no attestation."
+    "t5_request_note": "The pending T5 TV/TVC request (StegVerse-Labs/TVC#515) bound the contract 1.6 blobs. A successor T5 attempt must target the blobs in this record at the main head it authenticates; this rebinding changes only the test blob (validator blob e88f8566 unchanged). Rebinding is source identity only and confers no attestation."
   }
 }

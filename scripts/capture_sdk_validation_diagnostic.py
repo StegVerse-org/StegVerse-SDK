@@ -22,7 +22,7 @@ COMMANDS = [
     [sys.executable, "-m", "pytest", "tests/", "-q", "--maxfail=1"],
 ]
 
-REQUIRED_MODULES = ["jsonschema", "pytest", "requests", "yaml", "dotenv"]
+REQUIRED_MODULES = ["pytest", "requests", "yaml", "dotenv"]
 
 
 def git_value(*args: str) -> str | None:

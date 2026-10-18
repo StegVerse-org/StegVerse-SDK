@@ -54,7 +54,7 @@ jobs:
           tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
       - name: Install validation-only dependencies
         run: |
-          python3 -m pip install --disable-pip-version-check pytest 'jsonschema>=4.18'
+          python3 -m pip install --disable-pip-version-check pytest
       - name: Validate MHIA contracts, capability composition, reference firmware, HAL, and procurement gate
         run: |
           set -eu
