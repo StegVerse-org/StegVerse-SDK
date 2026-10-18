@@ -1,0 +1,78 @@
+name: Deploy SDK Developer Wiki
+
+# Publication only: push to main or a published release. Pull requests are
+# validated by sdk-public-developer-wiki-pages.yml, which never deploys.
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: sdk-developer-wiki-pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate SDK public wiki
+        run: python -m unittest tests.test_sdk_public_developer_wiki -v
+      - name: Build exact-source wiki projection
+        run: python scripts/build_sdk_public_wiki.py
+      - name: Validate generated provenance
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path('_site/wiki-source-manifest.json').read_text())
+          assert m['goal_task_id']=='SDK-PUBLIC-DEVELOPER-WIKI-001'
+          assert m['public_origin']=='https://sdk.stegverse.org/'
+          assert m['authority_effect']=='NONE_DOCUMENTATION_PROJECTION_ONLY'
+          assert len(m['sources']) >= 6
+          assert Path('_site/CNAME').read_text().strip()=='sdk.stegverse.org'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdk-public-developer-wiki-preview
+          path: _site
+          retention-days: 30
+          if-no-files-found: error
+
+  deploy:
+    needs: validate
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/configure-pages@v5
+      - name: Build exact-source wiki projection
+        run: python scripts/build_sdk_public_wiki.py
+      - name: Verify release/source binding
+        if: github.event_name == 'release'
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          manifest = json.loads(Path('_site/wiki-source-manifest.json').read_text())
+          tag_sha = subprocess.check_output(['git', 'rev-list', '-n', '1', os.environ['RELEASE_TAG']], text=True).strip()
+          assert manifest['source_revision'] == tag_sha, 'Wiki revision does not match release tag'
+          PY
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

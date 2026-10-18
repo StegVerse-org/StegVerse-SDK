@@ -83,4 +83,4 @@ Exit status is 0 when no hop is `FAIL`. `UNREACHABLE` is a reported gap, not a c
 
 ## CI
 
-`.github/workflows/intr-destination-hop-lane.yml` runs fabricated mode on pull requests. That job uses the organization checkouts it was given. Live mode is a `workflow_dispatch` input and is not run by pull requests. The live job queries all eight organizations through the GitHub API and passes `FEDERATION_READ_TOKEN` when that secret is configured.
+`.github/workflows/intr-destination-hop-lane.yml` runs fabricated mode on pull requests. That job uses the organization checkouts it was given. Live mode is the separate `workflow_dispatch`-only workflow `.github/workflows/intr-destination-hop-lane-live.yml` and is not run by pull requests. The live job queries all eight organizations through the GitHub API and passes `FEDERATION_READ_TOKEN` when that secret is configured.
