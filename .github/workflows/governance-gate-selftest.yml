@@ -25,3 +25,9 @@ jobs:
       # Synthetic bundle so this job is not an empty-glob run. The empty glob
       # is FAIL_CLOSED and is covered by tests/test_governance_gate.py.
       bundle_glob: tests/fixtures/governance-gate/*.json
+  self-default-sdk-ref:
+    # No sdk_ref: the gate resolves job.workflow_sha, the commit this run is
+    # at, so the default path is exercised on every gate change.
+    uses: ./.github/workflows/governance-gate.yml
+    with:
+      bundle_glob: tests/fixtures/governance-gate/*.json

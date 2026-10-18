@@ -18,9 +18,9 @@ jobs:
     uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@<534-merge-commit>
 ```
 
-`ba5bbf42eabec6a6ae3b0efdff7c683967a79083` is the pre-#534 workflow and checker. That workflow's `sdk_ref` default is moving `main`, its actions are pinned to tags such as `@v4`, and its checker emits `PASS` and passes an empty bundle glob. Do not adopt that commit for the behavior on this page. The `uses:` ref above, and `sdk_ref`, become valid only after the owner merges #534 and a follow-up retargets both to that merge commit. Until that follow-up, this page is not an install instruction for a commit that already contains this checker.
+`ba5bbf42eabec6a6ae3b0efdff7c683967a79083` is the pre-#534 workflow and checker. That workflow's `sdk_ref` default is moving `main`, its actions are pinned to tags such as `@v4`, and its checker emits `PASS` and passes an empty bundle glob. Do not adopt that commit for the behavior on this page. `sdk_ref` defaults to empty, which checks out `job.workflow_sha`: the checker always comes from the exact commit pinned in `uses:`. The `uses:` ref above becomes valid only once #534 is on main (admitted through TVC#519 MERGE_ADMITTED_PULL_REQUEST); a docs follow-up then replaces `<534-merge-commit>` with that merge commit. Until that follow-up, this page is not an install instruction for a commit that already contains this checker.
 
-The called workflow checks out the caller with `persist-credentials: false`, checks out `StegVerse-org/StegVerse-SDK` at `sdk_ref` with a sparse checkout of `stegverse/`, and runs:
+The called workflow checks out the caller with `persist-credentials: false`, checks out `StegVerse-org/StegVerse-SDK` at `sdk_ref` (default: `job.workflow_sha`) with a sparse checkout of `stegverse/`, and runs:
 
 ```text
 python3 -I .stegverse-sdk/stegverse/governance_gate.py caller \
@@ -35,7 +35,7 @@ Optional inputs, from the workflow file:
 
 | Input | Default | Effect |
 |---|---|---|
-| `sdk_ref` | `ba5bbf42eabec6a6ae3b0efdff7c683967a79083` in this file today | Checkout of `StegVerse-org/StegVerse-SDK`. That default is the pre-#534 checker (`PASS`, empty glob passes), not the checker described below. The follow-up after the owner merges #534 retargets it to the merge commit. |
+| `sdk_ref` | empty | Empty checks out `job.workflow_sha`, the exact StegVerse-SDK commit the workflow was called at. Set it only to override with another 40-hex commit. Anything else, or an empty `job.workflow_sha`, fails closed before checkout with the six fields. |
 | `bundle_glob` | `.stegverse/governance/**/*.json` | Glob, relative to the caller repository, of JSON files treated as bundles. Repeatable only in the local CLI (`--bundle-glob`); the workflow passes one glob. |
 | `check_schemas` | `true` | When `true`, walk `**/*.json` and classify a file when the object contains `$schema` or the file name ends with `.schema.json`. Classification does not change the disposition. Set `false` to pass `--no-schemas`. |
 
@@ -95,7 +95,7 @@ python3 -I stegverse/governance_gate.py /path/to/customer/repo \
   --output report.json
 ```
 
-Match `sdk_ref` to the ref you check out. Otherwise the local report is a different checker than the Actions run. The verifier recomputes the SPE candidate hash, envelope hash, receipt hash, and bridge hash with `stable_hash`: SHA-256 of UTF-8 JSON produced with sorted object keys, separators `(",", ":")`, and `ensure_ascii` false. That digest is lowercase hex with no prefix. It recomputes the ingress interlock hash with `canonical_hash`, which is the same JSON encoding prefixed by `sha256:`. It then requires `package_id`, `transition_id`, and `run_id` to match across the ingress, envelope, receipt, and bridge, and requires the bridge's stored ingress, receipt, candidate, and envelope hashes to match those recomputed values.
+Check out the same StegVerse-SDK commit the Actions run used: your `uses:` ref, or your `sdk_ref` override. Otherwise the local report is a different checker than the Actions run. The verifier recomputes the SPE candidate hash, envelope hash, receipt hash, and bridge hash with `stable_hash`: SHA-256 of UTF-8 JSON produced with sorted object keys, separators `(",", ":")`, and `ensure_ascii` false. That digest is lowercase hex with no prefix. It recomputes the ingress interlock hash with `canonical_hash`, which is the same JSON encoding prefixed by `sha256:`. It then requires `package_id`, `transition_id`, and `run_id` to match across the ingress, envelope, receipt, and bridge, and requires the bridge's stored ingress, receipt, candidate, and envelope hashes to match those recomputed values.
 
 The SPE receipt must have `execution_authorized`, `execution_performed`, and `master_record_installed` all false. The bridge must keep `admissibility_candidate.decision` at `PENDING`, `authority.sdk_authority` at `NONE`, and `authority.execution_authorized` false. A `standing_result` string inside the receipt, including `ALLOW`, is not re-derived by this checker and is not treated as permission to execute.
 

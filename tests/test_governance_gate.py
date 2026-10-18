@@ -239,3 +239,45 @@ def test_gate_imports_only_the_standard_library_and_runs_without_the_package_dep
                             capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["disposition"] == "ALLOW"
+
+
+def _sdk_ref_step_script():
+    lines = (ROOT / ".github" / "workflows" / "governance-gate.yml").read_text(encoding="utf-8").splitlines()
+    start = next(i for i, line in enumerate(lines) if line.strip() == "- id: sdk_ref")
+    run = next(i for i in range(start, len(lines)) if lines[i].strip() == "run: |")
+    indent = len(lines[run + 1]) - len(lines[run + 1].lstrip())
+    body = []
+    for line in lines[run + 1:]:
+        if line.strip() and len(line) - len(line.lstrip()) < indent:
+            break
+        body.append(line[indent:])
+    return "\n".join(body) + "\n"
+
+
+def test_sdk_ref_defaults_to_the_called_workflow_commit_and_fails_closed_otherwise(tmp_path):
+    workflow = (ROOT / ".github" / "workflows" / "governance-gate.yml").read_text(encoding="utf-8")
+    assert "        default: ''\n" in workflow
+    assert "ref: ${{ steps.sdk_ref.outputs.ref }}" in workflow
+    assert "ref: ${{ inputs.sdk_ref }}" not in workflow
+    assert "default: ba5bbf42eabec6a6ae3b0efdff7c683967a79083" not in workflow
+    script = _sdk_ref_step_script()
+    sdk, own, other = "StegVerse-org/StegVerse-SDK", "c" * 40, "d" * 40
+
+    def resolve(sdk_ref, workflow_sha, workflow_repository):
+        out = tmp_path / "out"
+        out.write_text("", encoding="utf-8")
+        env = {"PATH": "/usr/bin:/bin", "GITHUB_OUTPUT": str(out), "SDK_REF_INPUT": sdk_ref,
+               "JOB_WORKFLOW_SHA": workflow_sha, "JOB_WORKFLOW_REPOSITORY": workflow_repository}
+        proc = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True)
+        return proc.returncode, out.read_text(encoding="utf-8"), proc.stdout
+
+    assert resolve("", own, sdk)[:2] == (0, f"ref={own}\n")
+    assert resolve(other, own, sdk)[:2] == (0, f"ref={other}\n")
+    assert resolve(other, own, "Fork/StegVerse-SDK")[:2] == (0, f"ref={other}\n")
+    for case in (("", "", sdk), ("", own, "Fork/StegVerse-SDK"), ("main", own, sdk), ("v1.3.0", own, sdk),
+                 ("C" * 40, own, sdk), ("c" * 39, own, sdk)):
+        status, output, stdout = resolve(*case)
+        assert status == 1 and output == "", case
+        assert "FAIL_CLOSED" in stdout
+        for field in SIX_FIELDS:
+            assert field + "=" in stdout, (case, field)
