@@ -111,14 +111,55 @@ def _connection_result(args: argparse.Namespace) -> dict:
     }
 
 
+_OWNING_GOAL = "INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001"
+_RETRY = "stegverse-llm-connect --adapter-url <declared adapter>"
+
+
+def connection_refusal(exc: BaseException) -> dict:
+    """Six-field FAIL_CLOSED record for a refused connection; never a wait on the adapter.
+
+    A declared destination is never gated on liveness, so every refusal that comes from
+    an undeclared destination names declaring it as the repair, not retrying until it answers.
+    """
+    reason = "interactive_input_unavailable" if isinstance(exc, EOFError) else str(exc)
+    if reason.startswith(("adapter_not_connected", "adapter_not_discovered")):
+        code, predicate = "ADAPTER_DESTINATION_NOT_DECLARED", "ADAPTER_DESTINATION_DECLARED"
+        repair = ("declare the adapter with --adapter-url; a declared destination is connected without "
+                  "observing its liveness (destination_liveness_is_transition_predicate=false)")
+    elif reason == "adapter_authority_escalation_observed":
+        code, predicate = "ADAPTER_AUTHORITY_ESCALATION_OBSERVED", "ADAPTER_ATTACHES_NO_AUTHORITY"
+        repair = "declare an adapter instance whose activation proof attaches no authority"
+    elif reason == "interactive_input_unavailable":
+        code, predicate = "INTERACTIVE_INPUT_UNAVAILABLE", "CONNECTION_INPUTS_SUPPLIED"
+        repair = "supply --user-id, --llm-id, --provider and --model as options"
+    else:
+        code, predicate = "LLM_CONNECTION_INPUT_INVALID", "CONNECTION_DESCRIPTOR_VALID"
+        repair = f"correct the connection input ({reason})"
+    return {
+        "disposition": "FAIL_CLOSED",
+        "failure_code": code,
+        "failed_predicate": predicate,
+        "required_evidence_or_repair": repair,
+        "retry_entrypoint": _RETRY,
+        "owning_existing_goal": _OWNING_GOAL,
+        "next_attempt": "rerun with the repaired input; nothing waits on, polls or retries the adapter",
+        "reason": reason,
+        "authority_effect": "NONE",
+    }
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
         result = _connection_result(args)
     except (LLMConnectionError, EOFError) as exc:
-        print(f"ERROR: {exc}")
-        print("Start the canonical LLM-adapter user-LLM surface or pass --adapter-url to an admitted instance.")
+        refusal = connection_refusal(exc)
+        if args.json:
+            print(json.dumps(refusal, indent=2, sort_keys=True))
+        else:
+            print(f"FAIL_CLOSED {refusal['failure_code']}: {refusal['required_evidence_or_repair']}")
+            print(json.dumps(refusal, sort_keys=True))
         return 2
 
     if args.json:
