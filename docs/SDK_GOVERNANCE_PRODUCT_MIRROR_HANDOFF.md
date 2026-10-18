@@ -29,6 +29,13 @@ Pricing dispositions name `SDK-COST-DERIVED-TIER-PRICING-001` as `owning_existin
   It supersedes the gate part originally in #538, which was removed from #538 to avoid a conflict.
 - **Cost-component registry, the MAX rule, and pricing six-field dispositions.** These are in SDK #538, merged at `07a6a90a` (2026-10-17 16:21:47Z). Gate changes were dropped in favour of #534.
 
+- **CM-GOV-1 (old pin vs #534).** `scripts/reproduce_governance_gate_pins.py` reproduces the pinned behaviour deterministically; the record is `evidence/cm-gov-1-governance-gate-pin-reproduction.json` and the tests are in `tests/test_governance_gate_pin_reproduction.py`. LOCAL_DETERMINISTIC_REPRODUCTION.
+  - Old pin `ba5bbf42` (identical to main's gate) emits `PASS`/`FAIL_CLOSED` with no six fields. An empty glob is `PASS`, exit 0.
+  - #534 head `3dd6c80b` emits `ALLOW`/`FAIL_CLOSED`. Every `FAIL_CLOSED` carries the six fields, and an empty glob is `FAIL_CLOSED`, exit 1.
+  - #534's workflow keeps `sdk_ref` defaulting to `ba5bbf42`. With that default, the job fails closed on every input, including a valid bundle. This is safe, but the gate is unusable until the pin follow-up retargets `sdk_ref`.
+  - Install and rollback at both pins leave the caller tree unchanged. The gate runs under `python3 -I -S` (no site-packages). Re-running the old pin after #534 reproduces it exactly.
+- **Six-field check.** `scripts/check_six_field_dispositions.py` (docs: `docs/SIX_FIELD_DISPOSITION_CHECK.md`) is a stdlib CI check for refusals that lack any of the six fields.
+
 No surface here is SANDBOX_RUNTIME_OBSERVED, EXTERNAL_PROVIDER_OBSERVED, MASTER_RECORDS_RECONSTRUCTED or END_TO_END. Nothing here is complete in the terminal sense.
 
 ## Contracts
