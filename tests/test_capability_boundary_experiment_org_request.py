@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from scripts.build_mir_sv_exp3_manifest import build_exp3_manifest
-from scripts.build_mir_sv_exp3_org_request import (
+from scripts.build_capability_boundary_experiment_org_request import (
     CANONICAL_MANIFEST_SHA256, MANIFEST_FILE_SHA256, REQUEST_FILE_SHA256, REQUEST_PATH, WIRE_MANIFEST_SHA256,
     build_exp3_org_request, main, manifest_file_bytes, request_file_bytes)
 from stegverse.manifest_state_transition_runtime import derive_execution_request
