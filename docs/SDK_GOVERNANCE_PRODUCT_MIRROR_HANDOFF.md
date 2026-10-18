@@ -20,7 +20,7 @@ Pricing dispositions name `SDK-COST-DERIVED-TIER-PRICING-001` as `owning_existin
   - Adoption outside the SDK: `StegVerse-org/LLM-adapter#420` was merged by the owner. CI_VALIDATED there: PASS / `NO_GOVERNANCE_BUNDLES_FOUND`, with 17 of 21 schemas compatible with contract 1.6.
   - Not runtime-observed.
 - **Tier pricing.** SDK #527 is MERGED at `376512c`.
-- **Gate disposition rework.** Open draft SDK #534 (head `4f3916a`) carries it:
+- **Gate disposition rework.** Open draft SDK #534 (independently verified head `3dd6c80b54828821f83834e76a90b62ccd0237f0`) carries it:
   - `ALLOW` replaces `PASS`;
   - an empty bundle glob becomes `FAIL_CLOSED`;
   - the six disposition fields are emitted on every `FAIL_CLOSED`;
@@ -72,4 +72,4 @@ Cost calculation, commercial price and execution authority are separate:
 | Compute-unit definition, 75% margin, tier composition, final rate | Owner | Approve once there is validated cost coverage. A GitHub runner-minute is a cited costing proxy only. |
 | Network egress rate and market comparables | Owner (sources) | Cited `https` sources with `observed_at`. The Organization tier stays `UNKNOWN_RATE_NOT_SOURCED` until then. |
 | Gate and pricing invoked directly by CI, not selected by a manifest | Review query (#3183 acknowledgement) | Neither changes state. Expose them as manifest capabilities if the review requires it. |
-| Merge order | Owner | Owner approves merges (#3183). Lane C's suggested order was #539, #536, #534, #538, pin follow-up, #535. #538 merged at `07a6a90a` without the gate files (those stayed with #534). `StegVerse-Labs/.github` #3214 merged at `60d90c48`. |
+| Merge order | Owner | Owner approves merges (#3183). Earlier proposed order was #539, #536, #534, #538, pin follow-up, #535; this is superseded because #538, #542 and #539 have already merged. Remaining #536/#534, immutable pin follow-up and #535 require fresh exact-head owner-governed admission. #538 merged at `07a6a90a` without the gate files (those stayed with #534). `StegVerse-Labs/.github` #3214 merged at `60d90c48`. |
