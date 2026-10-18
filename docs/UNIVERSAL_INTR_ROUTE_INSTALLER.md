@@ -35,7 +35,39 @@ No exemption applies (ORRD L69), because a manifest-bound transition is possible
    - retry_entrypoint: `stegverse/universal_intr_route_installer.py::evaluate_installation`
    - owning_existing_goal: `INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001`
    - next_attempt: after this SDK draft lands on SDK main
-2. **Six consumers have no published route.** These are `EDGE_CONSUMER_ROUTE_NOT_PUBLISHED`, as listed in the table above.
+2. **Six consumers have no published route.** These are `EDGE_CONSUMER_ROUTE_NOT_PUBLISHED`. Route publication was checked against the invariants at SDK `c138cad4` and Labs main `978b8880`. A route is published only when existing manifests, registry rows and runtime declarations supply every field the StegBrowser entry carries (`route_resolution.py` L117-128): `route_id`, `processor_capability`, `lane_class`, `routing_surface`, `containment`, `sandbox_required`, `external_consequence_enabled`, `state_graph_adapter_binding`, `runtime_binding` and `runtime_installed`. None of the six meets that bar, so `PUBLISHED_ROUTES` is unchanged and no field is invented (`route_resolution.py` L3-5). See [Route publication evidence](#route-publication-evidence-six-consumers).
+
+## Route publication evidence (six consumers)
+
+The consumer list comes from `EDGE_CONSUMERS` (`universal_intr_route_installer.py` L86-107), not from a prose list. Each Labs profile is cited from the router `workers/universal_intr_profiled_ingress.py` and its installer, at Labs `978b8880`.
+
+The missing evidence is the same for all six:
+- **Processor:** no `stegverse/*_processor.py` defines `derive_state_graph` for the capability. That supplies `processor_capability` and `state_graph_adapter_binding`. The SDK has processors only for atomic_task_worker, collab_ingress, organization_role_conformance, purpose_bound_worker, remediation_fork, stegbrowser and svg_governance_cycle.
+- **Route fields:** no Labs manifest, registry row or runtime declaration states `lane_class`, `containment`, `sandbox_required` or `external_consequence_enabled` for the profile. `git grep` finds the profile string only in the files listed below, and none of them carries a route field.
+- **Registry row:** Labs `org-boundary/registry/services.json` (blob `00c6580e`) has no service row whose `admits_processing` names the capability.
+
+| consumer_id | Labs profile | Labs evidence present (profile-bearing files) |
+|---|---|---|
+| `canonical_work` | `CanonicalWork:Coordination` | installer, `scripts/run_canonical_work_event_bootstrap.py`, `scripts/consume_stegbrowser_runtime_connection_ingress_request.py`; SDK `manifest_state_transition_adapters.py` L30-31 declares the bootstrap mode, not a processor |
+| `erl_active_research` | `ERL:ActiveResearch` | installer, `workers/erl_active_research_intr_profile.py` |
+| `kv_ai_memory` | `KV:AI-MemoryPacketAdmission` | installer only (plus tests) |
+| `site_publication` | `StegOS:SitePublicationRuntime` | installer, `workers/site_publication_intr_ingress.py`, `scripts/consume_site_publication_intr_materialization_request.py`, `docs/SITE_PUBLICATION_INTR_CONSUMER_MIRROR_HANDOFF.md` |
+| `stegsocials_bounded` | `StegSocials:BoundedSocialIngress` | installer, `workers/stegsocials_bounded_intr_ingress.py`, `scripts/build_stegsocials_bounded_intr_materialization.py` |
+| `tvc_recipient_admission_sign` | `TVC:RecipientAdmissionAuthoritySign` | installer, `scripts/build_tvc_recipient_admission_sign_intr_request.py`, `docs/TVC_RECIPIENT_ADMISSION_SIGN_INTR_ROUTE_MIRROR_HANDOFF.md` |
+
+Six fields, the same for each consumer except the named profile:
+- disposition: `FAIL_CLOSED`
+- failure_code: `EDGE_CONSUMER_ROUTE_NOT_PUBLISHED`
+- failed_predicate: `EDGE_CONSUMER_ENTERS_THROUGH_SDK_PUBLISHED_ROUTE_WITH_ORG_LEDGER_RECEIPT`
+- required_evidence_or_repair: needs all three of the following, then a `PUBLISHED_ROUTES` entry and an `EDGE_CONSUMERS` `route_id` in the same generation.
+  - The consumer owner declares `lane_class`, `containment`, `sandbox_required` and `external_consequence_enabled` for the profile in an existing manifest or runtime declaration.
+  - An SDK processor module provides `derive_state_graph` for the capability.
+  - A Labs `org-boundary/registry/services.json` row has `admits_processing` `{capability, route_id}`.
+- retry_entrypoint: `stegverse/universal_intr_route_installer.py::evaluate_installation`, with the consumer's committed request through the Labs caller `.github/workflows/universal-intr-route-installation.yml`
+- owning_existing_goal: `INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001`
+- next_attempt: once those declarations exist for the consumer. Nothing waits on a receiver (ORRD L59).
+
+There is also a finding for StegBrowser. Its route is published, but Labs `services.json` has no `admits_processing` row for `stegbrowser` either. So the repair text's registry-row condition (`_route_not_published`) does not hold for the one published consumer. That question goes to the joint discovery queue, and this draft does not resolve it.
 3. **The role-version record does not include the shared file.**
    - failure_code: `ROLE_VERSION_TARGET_FILES_EXCLUDE_SHARED_INSTALLER`
    - failed_predicate: `SHARED_EDGE_INSTALLER_IS_A_RECORDED_TARGET_VERSION_FILE`

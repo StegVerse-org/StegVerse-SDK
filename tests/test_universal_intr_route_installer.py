@@ -136,6 +136,20 @@ class InstallationTests(Base):
             result = installer.evaluate_installation(install_request(consumer_id=consumer_id), ROUTER.encode())
             self.assertNonAllow(result, "FAIL_CLOSED", "EDGE_CONSUMER_ROUTE_NOT_PUBLISHED")
 
+    def test_route_publication_evidence_lists_exactly_the_unpublished_consumers(self):
+        doc = (Path(__file__).resolve().parents[1] / "docs/UNIVERSAL_INTR_ROUTE_INSTALLER.md").read_text(encoding="utf-8")
+        section = doc.split("## Route publication evidence (six consumers)", 1)[1]
+        rows = sorted(line.split("`")[1] for line in section.splitlines() if line.startswith("| `"))
+        unpublished = sorted(cid for cid, row in installer.EDGE_CONSUMERS.items() if row["route_id"] is None)
+        self.assertEqual(unpublished, rows)
+        capabilities = {row.get("processor_capability") for row in PUBLISHED_ROUTES.values()}
+        for consumer_id in unpublished:
+            self.assertNotIn(consumer_id, capabilities)
+            self.assertIn(installer.EDGE_CONSUMERS[consumer_id]["profile"], section)
+        for field in ("failure_code", "failed_predicate", "required_evidence_or_repair",
+                      "retry_entrypoint", "owning_existing_goal", "next_attempt"):
+            self.assertIn("- " + field + ":", section)
+
     def test_every_declared_route_is_published_and_installed(self):
         for row in installer.EDGE_CONSUMERS.values():
             if row["route_id"] is not None:
