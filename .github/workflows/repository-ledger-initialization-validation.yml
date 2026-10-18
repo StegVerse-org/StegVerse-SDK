@@ -1,0 +1,62 @@
+name: SDK Repository Ledger Initialization - Validation Only / No Ledger Write
+
+# Validates REPOSITORY_LEDGER_INITIALIZATION against temporary local ledgers.
+# It never initializes, appends to or pushes any ledger ref. Publication of
+# refs/stegverse/organization-ledger is the organization's own append
+# (StegVerse-org/.github organization-ledger-transition.yml under
+# ORGANIZATION_LEDGER_LOCK).
+on:
+  pull_request:
+    paths:
+      - ".stegverse/transition-ledger/**"
+      - "scripts/initialize_repository_ledger.py"
+      - "tests/test_repository_ledger_initialization.py"
+      - "docs/TRANSITION_LEDGER_MIRROR_HANDOFF.md"
+      - ".github/workflows/repository-ledger-initialization-validation.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".stegverse/transition-ledger/**"
+      - "scripts/initialize_repository_ledger.py"
+      - "tests/test_repository_ledger_initialization.py"
+      - ".github/workflows/repository-ledger-initialization-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout validation source
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          persist-credentials: false
+      - name: Compile
+        run: python3 -m py_compile scripts/initialize_repository_ledger.py tests/test_repository_ledger_initialization.py
+      - name: Run deterministic tests (stdlib only, no token, no network)
+        env:
+          GITHUB_TOKEN: ""
+          GH_TOKEN: ""
+          TVC_EPHEMERAL_GITHUB_TOKEN: ""
+        run: python3 -m unittest -v tests.test_repository_ledger_initialization
+      - name: Plan against the committed manifest with a temporary ledger
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          git init -q --bare "$tmp/org.git"
+          tree=$(printf '' | git -C "$tmp/org.git" mktree)
+          head=$(git -C "$tmp/org.git" -c user.name=t -c user.email=t@t commit-tree "$tree" -m seed)
+          git -C "$tmp/org.git" update-ref refs/stegverse/organization-ledger "$head"
+          python3 - "$head" "$tmp/manifest.json" <<'PY'
+          import json, sys
+          m = json.load(open(".stegverse/transition-ledger/initialization-manifest.v1.json"))
+          m["expected_organization_ledger_head"] = sys.argv[1]
+          open(sys.argv[2], "w").write(json.dumps(m, indent=2, sort_keys=True) + "\n")
+          PY
+          digest="sha256:$(sha256sum "$tmp/manifest.json" | cut -d' ' -f1)"
+          python3 scripts/initialize_repository_ledger.py --manifest "$tmp/manifest.json" \
+            --manifest-sha256 "$digest" --hb-epoch 1 \
+            --ledger-location "git+$tmp/org.git#refs/stegverse/organization-ledger" > "$tmp/plan.json"
+          python3 -c "import json,sys; d=json.load(open(sys.argv[1])); assert d['disposition']=='ALLOW' and d['result']=='PLANNED_NO_WRITE' and d['consequence_committed'] is False, d; print('REPOSITORY_LEDGER_INITIALIZATION_PLAN_ALLOW', d['genesis_receipt']['receipt_sha256'])" "$tmp/plan.json"
+          test "$(git -C "$tmp/org.git" rev-parse refs/stegverse/organization-ledger)" = "$head"

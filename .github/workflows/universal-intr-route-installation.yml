@@ -1,0 +1,57 @@
+name: Universal InTr route installation (reusable, evaluation only)
+
+# Fix 4 (StegVerse-org/.github#162). An organization references the SDK-hosted
+# installer by parameters instead of carrying its own install_*_universal_intr_route.py:
+#
+#   jobs:
+#     evaluate:
+#       uses: StegVerse-org/StegVerse-SDK/.github/workflows/universal-intr-route-installation.yml@<sdk commit>
+#       with:
+#         request_path: <committed stegverse.universal-intr-route-installation-request/v1 file>
+#         sdk_ref: <the same sdk commit>
+#
+# The request (consumer, published route, router predecessor digest, supplied
+# hb_epoch) is a committed file, so the installation is bound by manifest. This
+# evaluates it and prints ALLOW / DENY / FAIL_CLOSED with the six fields. It
+# writes no source, binds no socket, carries no credential, appends no ledger
+# entry and reads no clock. Source is read anonymously from public archives.
+
+on:
+  workflow_call:
+    inputs:
+      request_path:
+        description: Path, in the calling repository, of the committed installation request
+        required: true
+        type: string
+      sdk_ref:
+        description: StegVerse-SDK commit that hosts the installer
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize caller and SDK source anonymously
+        env:
+          CALLER_REPO: ${{ github.repository }}
+          CALLER_SHA: ${{ github.sha }}
+          SDK_REF: ${{ inputs.sdk_ref }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          case "$SDK_REF" in *[!0-9a-f]*|'') echo "FAIL_CLOSED: sdk_ref is not a commit"; exit 2;; esac
+          mkdir -p /tmp/caller /tmp/sdk
+          curl -fsSL "https://github.com/${CALLER_REPO}/archive/${CALLER_SHA}.tar.gz" | tar -xz -C /tmp/caller --strip-components=1
+          curl -fsSL "https://github.com/StegVerse-org/StegVerse-SDK/archive/${SDK_REF}.tar.gz" | tar -xz -C /tmp/sdk --strip-components=1
+      - name: Evaluate the installation request
+        env:
+          REQUEST_PATH: ${{ inputs.request_path }}
+        run: |
+          set -eu
+          cd /tmp/sdk
+          python3 -P -c 'import sys; sys.path.insert(0, "."); from stegverse.universal_intr_route_installer import main; sys.exit(main())' \
+            evaluate-installation --request "/tmp/caller/${REQUEST_PATH}" --organization-root /tmp/caller
