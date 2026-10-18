@@ -7,11 +7,11 @@
   "artifacts": [
     {
       "path": "stegverse/structural_validator_candidate.py",
-      "git_blob_sha1": "2622031c0317afc7a41b1f95e6570d5e8bf62d5c"
+      "git_blob_sha1": "e88f85666f60d5508c70ef0d61daf3f3ede3bdf4"
     },
     {
       "path": "tests/test_structural_validator_candidate.py",
-      "git_blob_sha1": "8d57b2ffc159fd45a37fa4d91c90cdee69224df7"
+      "git_blob_sha1": "da4a61378f94b32130ecb537257bcf920ceda876"
     },
     {
       "path": "scripts/verify_universal_entry_envelope.py",
@@ -32,17 +32,17 @@
   "failed_predicate": "AUTHENTICATED_TV_TVC_PROVENANCE_NOT_ESTABLISHED",
   "source_main_commit_role": "HISTORICAL_SOURCE_BASELINE_NOT_CURRENT_HEAD",
   "latest_source_identity_reconciliation": {
-    "basis": "Working-tree blob recomputation for SDK#484 contract 1.6 (allOf, if/then/else, local $ref/$defs) and SDK#516 (verifier on SDK-native validator)",
+    "basis": "Working-tree blob recomputation for SDK#484 contract 1.7 (anyOf, oneOf, not, additionalProperties subschema, min/maxProperties, prefixItems, default annotation, propertyNames, contains/minContains/maxContains; indeterminate branches propagate structural errors instead of failing open), after contract 1.6 and SDK#516",
     "scope": "FOUR_LISTED_ARTIFACTS_ONLY",
     "source_main_head": "NOT_BOUND_IN_THIS_EVIDENCE",
     "result": "LISTED_BLOBS_REBOUND_TO_CHANGED_SOURCE",
     "rebound_paths": [
       "stegverse/structural_validator_candidate.py",
-      "tests/test_structural_validator_candidate.py",
-      "scripts/verify_universal_entry_envelope.py"
+      "tests/test_structural_validator_candidate.py"
     ],
     "authority_effect": "NONE",
     "authenticated_tv_tvc_proof": "NOT_OBSERVED",
-    "note": "Source identity rebinding only, as in SDK#515; not a new TV/TVC attestation. T5 must authenticate the final main head."
+    "note": "Source identity rebinding only, as in SDK#515; not a new TV/TVC attestation. T5 must authenticate the final main head.",
+    "t5_request_note": "The pending T5 TV/TVC request (StegVerse-Labs/TVC#515) bound the contract 1.6 blobs; a successor T5 attempt must target these rebound blobs. Rebinding is source identity only and confers no attestation."
   }
 }
