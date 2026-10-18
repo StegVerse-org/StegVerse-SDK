@@ -25,6 +25,10 @@ jobs:
           cat <<'EOF'
           attempted_transition: StegVerse SDK v1.3.0 tag/release at b1376d3e3e3c79b6e996d32766bfd7e41cd0ccc4
           disposition: FAIL_CLOSED
+          failure_code: GITHUB_ACTIONS_TOKEN_IS_NOT_RELEASE_AUTHORITY
+          failed_predicate: TV/TVC GRANTED release authorization bound to the exact commit
+          required_evidence_or_repair: a TV/TVC GRANTED release authorization bound to the exact commit, and published Requires-Dist with no direct URL references
+          retry_entrypoint: .github/release-requests/v1.3.0.json, evaluated by the TV/TVC-owned release transition
           failure_codes:
             - GITHUB_ACTIONS_TOKEN_IS_NOT_RELEASE_AUTHORITY
             - DIRECT_REFERENCE_DEPENDENCIES_UNPUBLISHABLE
