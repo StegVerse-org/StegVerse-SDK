@@ -255,6 +255,150 @@
           "job_exit_status": 1
         }
       }
+    },
+    {
+      "actions_pinned_by_sha": true,
+      "dispositions_observed": [
+        "ALLOW",
+        "FAIL_CLOSED"
+      ],
+      "gate_blob": "eb56809530a3f3c23d96a7297c8cb4fbc0896a6e",
+      "install_rollback": {
+        "empty": {
+          "caller_tree_unchanged": true,
+          "rollback_restores_workspace": true
+        },
+        "not_object": {
+          "caller_tree_unchanged": true,
+          "rollback_restores_workspace": true
+        },
+        "tampered": {
+          "caller_tree_unchanged": true,
+          "rollback_restores_workspace": true
+        },
+        "valid": {
+          "caller_tree_unchanged": true,
+          "rollback_restores_workspace": true
+        }
+      },
+      "ref": "4c9dfac7b31c5dcd30a8bc9b13e6d11353a51328",
+      "scenarios": {
+        "empty": {
+          "checker": {
+            "authority_all_false": true,
+            "bundle_statuses": [],
+            "exit_status": 1,
+            "observed_disposition": "FAIL_CLOSED",
+            "reason": "NO_GOVERNANCE_BUNDLES_FOUND",
+            "report_present": true,
+            "report_sha256": "811f854afd235bcea85a0f0c73787a5d31f6e3ae62f14a9dcb7b72f7bc78490c",
+            "six_fields_present": [
+              "failure_code",
+              "failed_predicate",
+              "required_evidence_or_repair",
+              "retry_entrypoint",
+              "owning_existing_goal",
+              "next_attempt"
+            ]
+          },
+          "workflow_step": {
+            "disposition_output": "FAIL_CLOSED",
+            "job_exit_status": 1
+          }
+        },
+        "not_object": {
+          "checker": {
+            "authority_all_false": true,
+            "bundle_statuses": [
+              "FAIL_CLOSED"
+            ],
+            "exit_status": 1,
+            "observed_disposition": "FAIL_CLOSED",
+            "reason": "BUNDLE_VERIFICATION_FAILED",
+            "report_present": true,
+            "report_sha256": "22446bf3c90d30ae3c48db2b2c34638808319b92204532d8e67129414d57974a",
+            "six_fields_present": [
+              "failure_code",
+              "failed_predicate",
+              "required_evidence_or_repair",
+              "retry_entrypoint",
+              "owning_existing_goal",
+              "next_attempt"
+            ]
+          },
+          "workflow_step": {
+            "disposition_output": "FAIL_CLOSED",
+            "job_exit_status": 1
+          }
+        },
+        "tampered": {
+          "checker": {
+            "authority_all_false": true,
+            "bundle_statuses": [
+              "FAIL_CLOSED"
+            ],
+            "exit_status": 1,
+            "observed_disposition": "FAIL_CLOSED",
+            "reason": "BUNDLE_VERIFICATION_FAILED",
+            "report_present": true,
+            "report_sha256": "98cfec2c1366eefc6fe1f7410eb1b505950a62a30755143387876c8112ac2f15",
+            "six_fields_present": [
+              "failure_code",
+              "failed_predicate",
+              "required_evidence_or_repair",
+              "retry_entrypoint",
+              "owning_existing_goal",
+              "next_attempt"
+            ]
+          },
+          "workflow_step": {
+            "disposition_output": "FAIL_CLOSED",
+            "job_exit_status": 1
+          }
+        },
+        "valid": {
+          "checker": {
+            "authority_all_false": true,
+            "bundle_statuses": [
+              "ALLOW"
+            ],
+            "exit_status": 0,
+            "observed_disposition": "ALLOW",
+            "reason": "ALL_BUNDLES_VERIFIED",
+            "report_present": true,
+            "report_sha256": "3ff1fe1caa6a6c2b701a1750ae64db54c7193e47b2c7932d28527f756f1b296d",
+            "six_fields_present": []
+          },
+          "workflow_step": {
+            "disposition_output": "ALLOW",
+            "job_exit_status": 0
+          }
+        }
+      },
+      "workflow_actions": [
+        "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
+      ],
+      "workflow_blob": "f733465972fb3db884bc16d68a7a86c431dad500",
+      "workflow_sdk_ref_default": "job.workflow_sha",
+      "workflow_with_default_sdk_ref": {
+        "empty": {
+          "disposition_output": "FAIL_CLOSED",
+          "job_exit_status": 1
+        },
+        "not_object": {
+          "disposition_output": "FAIL_CLOSED",
+          "job_exit_status": 1
+        },
+        "tampered": {
+          "disposition_output": "FAIL_CLOSED",
+          "job_exit_status": 1
+        },
+        "valid": {
+          "disposition_output": "ALLOW",
+          "job_exit_status": 0
+        }
+      }
     }
   ],
   "schema": "stegverse.governance-gate-pin-reproduction.v1",

@@ -39,7 +39,11 @@ from typing import Sequence
 REPORT_SCHEMA = "stegverse.governance-gate-pin-reproduction.v1"
 SIX_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair",
               "retry_entrypoint", "owning_existing_goal", "next_attempt")
-DEFAULT_REFS = ("ba5bbf42eabec6a6ae3b0efdff7c683967a79083", "3dd6c80b54828821f83834e76a90b62ccd0237f0")
+# Third ref: the SDK#534 commit whose workflow defaults sdk_ref to job.workflow_sha. It is an ancestor of
+# the commit holding this file, so recording it here is not self-referential.
+DEFAULT_REFS = ("ba5bbf42eabec6a6ae3b0efdff7c683967a79083", "3dd6c80b54828821f83834e76a90b62ccd0237f0",
+                "4c9dfac7b31c5dcd30a8bc9b13e6d11353a51328")
+SELF_REF_DEFAULT = "job.workflow_sha"
 GATE_PATH = "stegverse/governance_gate.py"
 WORKFLOW_PATH = ".github/workflows/governance-gate.yml"
 REPORT_NAME = "stegverse-governance-report.json"
@@ -201,6 +205,9 @@ def reproduce_ref(repo: Path, ref: str, valid: dict) -> dict:
     script = run_step_script(workflow)
     sdk_ref_default = re.search(r"sdk_ref:.*?default:\s*(\S+)", workflow, re.S)
     sdk_ref_default = sdk_ref_default.group(1) if sdk_ref_default else None
+    if sdk_ref_default in ("''", '""') and "${{ job.workflow_sha }}" in workflow:
+        # Empty default resolves to the commit the workflow was called at: the checker of this same commit.
+        sdk_ref_default = SELF_REF_DEFAULT
     actions = sorted(set(re.findall(r"uses:\s*(actions/[\w-]+@\S+)", workflow)))
     scenarios, install = _scenarios(repo, commit, script, valid)
     # What a caller gets when it pins this workflow and keeps the default sdk_ref: the run step of this
@@ -209,6 +216,8 @@ def reproduce_ref(repo: Path, ref: str, valid: dict) -> dict:
     if sdk_ref_default and re.fullmatch(r"[0-9a-f]{40}", sdk_ref_default) and sdk_ref_default != commit:
         combined, _ = _scenarios(repo, sdk_ref_default, script, valid)
         default_combination = {name: s["workflow_step"] for name, s in combined.items()}
+    elif sdk_ref_default == SELF_REF_DEFAULT:
+        default_combination = {name: s["workflow_step"] for name, s in scenarios.items()}
     return {
         "ref": commit,
         "gate_blob": _git(repo, "rev-parse", f"{commit}:{GATE_PATH}").decode().strip(),
