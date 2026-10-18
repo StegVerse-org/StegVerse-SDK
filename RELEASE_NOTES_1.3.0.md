@@ -51,9 +51,9 @@ The gate loads the verifier and validator by path. Optional `dev`, `governed-tes
 
 ### Validator
 
-`stegverse/structural_validator_candidate.py` contract version is `1.6`. The gate copies that version into the report and records, per schema file, `sdk_contract_compatible` and `blocking_codes`. Those fields do not select `ALLOW` or `FAIL_CLOSED`.
+`stegverse/structural_validator_candidate.py` contract version is `1.7`. The gate copies that version into the report and records, per schema file, `sdk_contract_compatible` and `blocking_codes`. Those fields do not select `ALLOW` or `FAIL_CLOSED`.
 
-Contract steps since the candidate landed: JSON equality for `const` / `enum`; array bounds and annotation keywords (1.1); `$schema` / `$id` as root identity metadata (1.2); `pattern` limited to a dialect-neutral subset (1.3); `date` and `date-time` asserted with the standard library, RFC 3339 (1.4); dialect-dependent pattern syntax excluded (1.5); `allOf`, `if` / `then` / `else`, local `$ref` / `$defs`, and exclusive bounds (1.6); arbitrary-precision integers in `uniqueItems` (#508).
+Contract steps since the candidate landed: JSON equality for `const` / `enum`; array bounds and annotation keywords (1.1); `$schema` / `$id` as root identity metadata (1.2); `pattern` limited to a dialect-neutral subset (1.3); `date` and `date-time` asserted with the standard library, RFC 3339 (1.4); dialect-dependent pattern syntax excluded (1.5); `allOf`, `if` / `then` / `else`, local `$ref` / `$defs`, and exclusive bounds (1.6); arbitrary-precision integers in `uniqueItems` (#508); `anyOf`, `oneOf`, `not`, `additionalProperties` as a subschema, `minProperties` / `maxProperties`, `prefixItems`, `propertyNames`, `contains` with `minContains` / `maxContains`, and the `default` annotation, with a branch that cannot be evaluated propagating its structural error instead of failing open (1.7, #542).
 
 The structural validator rejects unsupported keywords, non-JSON instances, schemas or instances past its depth bounds, patterns outside its subset, and `$ref` forms other than `#/$defs/<name>`. `CONTRACT["divergences_fail_closed"]` records that it may reject a document JSON Schema 2020-12 would accept. Those results stay inside schema classification.
 
