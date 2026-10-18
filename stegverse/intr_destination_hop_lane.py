@@ -120,6 +120,39 @@ LEGACY_REPORTABLE = (
     "TIME_CONSTRAINT_DERIVED_FROM_CLOCK",
     "AUTHORITY_CONSTRAINT_IS_NOT_NONE",
 )
+# Declared correlation evidence classes. Every receipt class the readback
+# distinguishes maps to exactly one disposition, and the code reads this table
+# rather than hard-coding the branches:
+#   LIVE_EVIDENCE  may correlate a live hop (and may PASS);
+#   REPORTABLE     is reported, not failing, and is never live-mesh evidence;
+#   REFUSED        is a failing finding.
+# A class the code meets that is not listed here is FAIL_CLOSED
+# CORRELATION_EVIDENCE_CLASS_NOT_DECLARED with the six fields.
+# Review note: this table awaits ChatGPT's answer to Q-G4 (JOINT DISCOVERY
+# QUEUE). It records current behaviour and adds no live evidence.
+LIVE_EVIDENCE = "LIVE_EVIDENCE"
+REPORTABLE = "REPORTABLE"
+REFUSED = "REFUSED"
+CORRELATION_EVIDENCE_DISPOSITIONS = (LIVE_EVIDENCE, REPORTABLE, REFUSED)
+LIVE_SUPPLIED_EPOCH = "LIVE_SUPPLIED_EPOCH"
+IDENTICAL_DUPLICATE = "IDENTICAL_DUPLICATE"
+DIVERGENT_DUPLICATE = "DIVERGENT_DUPLICATE"
+ORG_RECEIPT_SOURCE_UNNAMED = "ORG_RECEIPT_SOURCE_UNNAMED"
+CORRELATION_EVIDENCE_CLASSES = {
+    # A receipt appended by the supplied-epoch writer (on or after its
+    # introduction; with no introduction known, nothing is LEGACY).
+    LIVE_SUPPLIED_EPOCH: LIVE_EVIDENCE,
+    # Added to the ledger ref before the writer's introduction.
+    LEGACY: REPORTABLE,
+    # Repository receipts with the same transition_id and identical evidence.
+    IDENTICAL_DUPLICATE: REPORTABLE,
+    # Same transition_id, differing evidence, not every copy LEGACY.
+    DIVERGENT_DUPLICATE: REFUSED,
+    # An organization receipt that names no source_transition_sha256.
+    ORG_RECEIPT_SOURCE_UNNAMED: REPORTABLE,
+}
+CORRELATION_EVIDENCE_CLASS_NOT_DECLARED = "CORRELATION_EVIDENCE_CLASS_NOT_DECLARED"
+
 # Live mode requests each of these organizations' `<org>/.github` advertisement.
 # Membership still comes from the advertisement when it can be read. An
 # organization that cannot be read is kept, and its hops are UNREACHABLE.
@@ -887,6 +920,29 @@ def _duplicate_key(receipt: Mapping[str, Any]) -> bytes:
         "successor_state_sha256", "evidence", "authority_effect")})
 
 
+def correlation_evidence_class_refusal(evidence_class: Any) -> dict[str, Any]:
+    """FAIL_CLOSED for a receipt class not in ``CORRELATION_EVIDENCE_CLASSES``."""
+    return {
+        "disposition": "FAIL_CLOSED", "evidence_class": evidence_class, "consequence_committed": False,
+        **non_allow_fields(
+            CORRELATION_EVIDENCE_CLASS_NOT_DECLARED, "RECEIPT_CLASS_IS_A_DECLARED_CORRELATION_EVIDENCE_CLASS",
+            "declare " + repr(evidence_class) + " in CORRELATION_EVIDENCE_CLASSES as LIVE_EVIDENCE, REPORTABLE "
+            "or REFUSED (owner review; the table awaits the answer to Q-G4, JOINT DISCOVERY QUEUE)",
+            LANE_WORKFLOW + " mode=live",
+            "read again once the class is declared; until then it is neither evidence nor reported"),
+    }
+
+
+def correlation_evidence_disposition(evidence_class: Any,
+                                     table: Mapping[str, str] | None = None) -> tuple[str | None, dict[str, Any] | None]:
+    """(disposition, None) for a declared class; (None, six-field FAIL_CLOSED) otherwise."""
+    declared = (CORRELATION_EVIDENCE_CLASSES if table is None else table).get(evidence_class) \
+        if isinstance(evidence_class, str) else None
+    if declared not in CORRELATION_EVIDENCE_DISPOSITIONS:
+        return None, correlation_evidence_class_refusal(evidence_class)
+    return declared, None
+
+
 def integrity_report(repo: Mapping[str, Any], org: Mapping[str, Any], *,
                      writer_introduction: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Hash chain and source retention for one organization's two ledger levels.
@@ -910,14 +966,26 @@ def integrity_report(repo: Mapping[str, Any], org: Mapping[str, Any], *,
         stamp = introduced[level].get(digest) if isinstance(digest, str) else None
         return cutoff is not None and isinstance(stamp, int) and stamp < cutoff
 
+    refusals: list[dict[str, Any]] = []
+
+    def classify(evidence_class: str) -> str | None:
+        disposition, refusal = correlation_evidence_disposition(evidence_class)
+        if refusal is not None:
+            findings.append(CORRELATION_EVIDENCE_CLASS_NOT_DECLARED)
+            if refusal not in refusals:
+                refusals.append(refusal)
+        return disposition
+
     def note(finding: str, level: str, digests: Sequence[Any]) -> None:
         # Only the declared LEGACY_REPORTABLE findings can be reported instead
-        # of failing; anything else fails even on a LEGACY receipt.
+        # of failing, and only while the table holds LEGACY as REPORTABLE;
+        # anything else fails even on a LEGACY receipt.
         if finding in LEGACY_REPORTABLE and digests and all(legacy(level, digest) for digest in digests):
-            reported.append({"finding": finding, "classification": LEGACY, "level": level,
-                             "receipt_sha256": list(digests)})
-        else:
-            findings.append(finding)
+            if classify(LEGACY) == REPORTABLE:
+                reported.append({"finding": finding, "classification": LEGACY, "level": level,
+                                 "receipt_sha256": list(digests)})
+                return
+        findings.append(finding)
 
     repo_chain = repo.get("chain") or []
     org_chain = org.get("chain") or []
@@ -929,11 +997,18 @@ def integrity_report(repo: Mapping[str, Any], org: Mapping[str, Any], *,
             continue
         digests = [item.get("receipt_sha256") for item in group]
         if len({_duplicate_key(item) for item in group}) == 1:
-            reported.append({"finding": "IDENTICAL_DUPLICATE_REPOSITORY_RECEIPT",
-                             "classification": LEGACY if all(legacy("repository", d) for d in digests) else "REPORTED",
-                             "level": "repository", "transition_id": transition_id, "receipt_sha256": digests})
-        else:
+            disposition = classify(IDENTICAL_DUPLICATE)
+            if disposition == REPORTABLE:
+                reported.append({"finding": "IDENTICAL_DUPLICATE_REPOSITORY_RECEIPT",
+                                 "classification": LEGACY if all(legacy("repository", d) for d in digests) else "REPORTED",
+                                 "evidence_class": IDENTICAL_DUPLICATE,
+                                 "level": "repository", "transition_id": transition_id, "receipt_sha256": digests})
+            elif disposition is not None:
+                findings.append("IDENTICAL_DUPLICATE_REPOSITORY_RECEIPT")
+        elif all(legacy("repository", d) for d in digests):
             note("DUPLICATE_REPOSITORY_RECEIPT", "repository", digests)
+        elif classify(DIVERGENT_DUPLICATE) is not None:
+            findings.append("DUPLICATE_REPOSITORY_RECEIPT")
     consumed: dict[str, int] = {}
     for receipt in org_chain:
         if receipt.get("schema") != ORG_SCHEMA:
@@ -952,9 +1027,13 @@ def integrity_report(repo: Mapping[str, Any], org: Mapping[str, Any], *,
         if named is None:
             # The repository receipt it names is on the chain; there is no
             # retained source copy to compare.
-            reported.append({"finding": "ORGANIZATION_RECEIPT_NAMES_NO_SOURCE_RECEIPT",
-                             "classification": "REPORTED", "level": "organization",
-                             "receipt_sha256": [receipt.get("receipt_sha256")]})
+            disposition = classify(ORG_RECEIPT_SOURCE_UNNAMED)
+            if disposition == REPORTABLE:
+                reported.append({"finding": "ORGANIZATION_RECEIPT_NAMES_NO_SOURCE_RECEIPT",
+                                 "classification": "REPORTED", "evidence_class": ORG_RECEIPT_SOURCE_UNNAMED,
+                                 "level": "organization", "receipt_sha256": [receipt.get("receipt_sha256")]})
+            elif disposition is not None:
+                findings.append("ORGANIZATION_RECEIPT_NAMES_NO_SOURCE_RECEIPT")
             continue
         if (org.get("sources") or {}).get(named) != match:
             note("SOURCE_RECEIPT_DOES_NOT_MATCH_REPOSITORY_CHAIN", "organization", [receipt.get("receipt_sha256")])
@@ -967,6 +1046,14 @@ def integrity_report(repo: Mapping[str, Any], org: Mapping[str, Any], *,
             note("TIME_CONSTRAINT_DERIVED_FROM_CLOCK", "repository", [receipt.get("receipt_sha256")])
         if reference.get("authority_effect") not in (None, "NONE"):
             note("AUTHORITY_CONSTRAINT_IS_NOT_NONE", "repository", [receipt.get("receipt_sha256")])
+    # Which repository receipts may correlate a live hop: read off the table.
+    non_live: list[str] = []
+    for receipt in repo_chain:
+        digest = receipt.get("receipt_sha256")
+        if not isinstance(digest, str):
+            continue
+        if classify(LEGACY if legacy("repository", digest) else LIVE_SUPPLIED_EPOCH) != LIVE_EVIDENCE:
+            non_live.append(digest)
     legacy_count = sum(1 for level, chain in (("repository", repo_chain), ("organization", org_chain))
                        for receipt in chain if legacy(level, receipt.get("receipt_sha256")))
     return {
@@ -978,6 +1065,8 @@ def integrity_report(repo: Mapping[str, Any], org: Mapping[str, Any], *,
             level: sorted(receipt["receipt_sha256"] for receipt in chain
                           if isinstance(receipt.get("receipt_sha256"), str) and legacy(level, receipt["receipt_sha256"]))
             for level, chain in (("repository", repo_chain), ("organization", org_chain))},
+        "non_live_repository_receipts": sorted(non_live),
+        "evidence_class_refusals": refusals,
         "receipt_count": len(repo_chain) + len(org_chain),
     }
 
@@ -1183,6 +1272,9 @@ def hop_outcome_fields(status: str, findings: Sequence[str], unreachable: Mappin
             "read again once the read credential reaches the organization; the hop stays in the matrix")
     if status == "FAIL":
         listed = list(findings) or ["HOP_RECEIPT_FINDINGS"]
+        if CORRELATION_EVIDENCE_CLASS_NOT_DECLARED in listed:
+            refusal = correlation_evidence_class_refusal("an undeclared receipt class (ledger_integrity evidence_class_refusals)")
+            return {key: refusal[key] for key in NON_ALLOW_FIELDS}
         if listed == [LEGACY_ONLY_FINDING]:
             return non_allow_fields(
                 "INTR_HOP_CORRELATED_ONLY_BY_LEGACY_RECEIPTS", "LIVE_HOP_CORRELATION_USES_NON_LEGACY_RECEIPTS",
@@ -1491,9 +1583,14 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
                 introduced = writer_introduction(peer) if writer_introduction else None
                 detail = integrity_report(repo, org, writer_introduction=introduced)
                 integrity[slug] = detail["findings"]
-                legacy_by_slug[slug] = list(detail["legacy_receipts"]["repository"])
+                # Excluded from live correlation: every receipt whose declared
+                # class is not LIVE_EVIDENCE (LEGACY is REPORTABLE, never live).
+                legacy_by_slug[slug] = list(detail["non_live_repository_receipts"])
                 ledger_integrity[slug] = {"organization": peer["organization"], **detail}
-                if detail["findings"]:
+                if detail["evidence_class_refusals"]:
+                    ledger_integrity[slug].update(
+                        {key: detail["evidence_class_refusals"][0][key] for key in NON_ALLOW_FIELDS})
+                elif detail["findings"]:
                     ledger_integrity[slug].update(non_allow_fields(
                         "INTR_HOP_LEDGER_INTEGRITY_FINDINGS", ",".join(detail["findings"]),
                         "repository and organization ledger chains that clear: " + ", ".join(detail["findings"]),

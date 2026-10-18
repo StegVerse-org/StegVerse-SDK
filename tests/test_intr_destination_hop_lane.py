@@ -1232,5 +1232,94 @@ class LegacyOnlyCorrelationTests(unittest.TestCase):
         self.assertEqual(report["legacy_receipts"], {"repository": [], "organization": []})
 
 
+class CorrelationEvidenceClassTests(unittest.TestCase):
+    """The declared table, and the refusal of a class it does not list. Receipts are fabricated."""
+
+    _peer = LiveLedgerTests._peer
+    _commit = LiveLedgerTests._commit
+    _write_both = LiveLedgerTests._write_both
+    _write_org = LiveLedgerTests._write_org
+
+    def _swap(self, table):
+        original = dict(lane.CORRELATION_EVIDENCE_CLASSES)
+        lane.CORRELATION_EVIDENCE_CLASSES.clear()
+        lane.CORRELATION_EVIDENCE_CLASSES.update(table)
+        self.addCleanup(lambda: (lane.CORRELATION_EVIDENCE_CLASSES.clear(),
+                                 lane.CORRELATION_EVIDENCE_CLASSES.update(original)))
+
+    def _assert_refusal(self, refusal, evidence_class=None):
+        self.assertEqual(refusal["disposition"], "FAIL_CLOSED")
+        self.assertEqual(refusal["failure_code"], "CORRELATION_EVIDENCE_CLASS_NOT_DECLARED")
+        self.assertEqual(refusal["failed_predicate"], "RECEIPT_CLASS_IS_A_DECLARED_CORRELATION_EVIDENCE_CLASS")
+        self.assertIs(refusal["consequence_committed"], False)
+        if evidence_class is not None:
+            self.assertEqual(refusal["evidence_class"], evidence_class)
+        _assert_six(self, refusal)
+
+    def test_the_table_is_pinned(self):
+        self.assertEqual(lane.CORRELATION_EVIDENCE_CLASSES, {
+            "LIVE_SUPPLIED_EPOCH": "LIVE_EVIDENCE",
+            "LEGACY": "REPORTABLE",
+            "IDENTICAL_DUPLICATE": "REPORTABLE",
+            "DIVERGENT_DUPLICATE": "REFUSED",
+            "ORG_RECEIPT_SOURCE_UNNAMED": "REPORTABLE",
+        })
+        live = [name for name, value in lane.CORRELATION_EVIDENCE_CLASSES.items() if value == "LIVE_EVIDENCE"]
+        self.assertEqual(live, ["LIVE_SUPPLIED_EPOCH"])
+        source = Path(lane.__file__).read_text(encoding="utf-8")
+        self.assertIn("Q-G4 (JOINT DISCOVERY", source)
+
+    def test_an_unlisted_class_is_fail_closed_with_the_six_fields(self):
+        for unlisted in ("NOT_A_CLASS", "", None, 7):
+            disposition, refusal = lane.correlation_evidence_disposition(unlisted)
+            self.assertIsNone(disposition)
+            self._assert_refusal(refusal, unlisted)
+        disposition, refusal = lane.correlation_evidence_disposition("LEGACY", {"LEGACY": "MAYBE"})
+        self.assertIsNone(disposition)
+        self._assert_refusal(refusal, "LEGACY")
+        self.assertEqual(lane.correlation_evidence_disposition("LEGACY"), ("REPORTABLE", None))
+
+    def test_the_readback_reads_the_table_for_reported_cases(self):
+        first = _repo(None, "ORGANIZATION_INGRESS_MATERIALIZED:node", "ORGANIZATION_INGRESS_MATERIALIZED",
+                      {"node": "n"}, "Alpha/.github")
+        again = _repo(first["receipt_sha256"], first["transition_id"], first["transition_class"],
+                      {"node": "n"}, "Alpha/.github")
+        org = [_org(None, first)]
+        org.append(_org(org[0]["receipt_sha256"], again))
+        repo_view, org_view = LedgerIntegrityClassificationTests._views(self, [first, again], org)
+        self.assertEqual(lane.integrity_report(repo_view, org_view)["findings"], [])
+        table = dict(lane.CORRELATION_EVIDENCE_CLASSES)
+        del table["IDENTICAL_DUPLICATE"]
+        self._swap(table)
+        report = lane.integrity_report(repo_view, org_view)
+        self.assertIn("CORRELATION_EVIDENCE_CLASS_NOT_DECLARED", report["findings"])
+        self._assert_refusal(report["evidence_class_refusals"][0], "IDENTICAL_DUPLICATE")
+        self.assertNotIn("IDENTICAL_DUPLICATE_REPOSITORY_RECEIPT", [item["finding"] for item in report["reported"]])
+
+    def test_an_undeclared_live_class_correlates_nothing(self):
+        table = dict(lane.CORRELATION_EVIDENCE_CLASSES)
+        del table["LIVE_SUPPLIED_EPOCH"]
+        self._swap(table)
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            alpha = self._peer(base / "alpha", "Alpha")
+            beta = self._peer(base / "beta", "Beta")
+            self._write_both(Path(alpha["root"]), Path(beta["root"]))
+            self._commit(Path(alpha["root"]), LEDGER_REF)
+            self._commit(Path(beta["root"]), LEDGER_REF)
+            report = run_live([alpha, beta], fetch=False)
+        self.assertEqual(report["counts"]["PASS"], 0)
+        self.assertFalse(report["authenticity_claimed"])
+        for hop in report["hops"]:
+            self.assertEqual(hop["status"], "FAIL")
+            self.assertIn("CORRELATION_EVIDENCE_CLASS_NOT_DECLARED", hop["findings"])
+            self.assertEqual(hop["failure_code"], "CORRELATION_EVIDENCE_CLASS_NOT_DECLARED")
+            self.assertEqual(hop["communication_ids_read_back"], [])
+            _assert_six(self, hop)
+        for detail in report["ledger_integrity"].values():
+            self.assertEqual(detail["failure_code"], "CORRELATION_EVIDENCE_CLASS_NOT_DECLARED")
+            self._assert_refusal(detail["evidence_class_refusals"][0], "LIVE_SUPPLIED_EPOCH")
+
+
 if __name__ == "__main__":
     unittest.main()
