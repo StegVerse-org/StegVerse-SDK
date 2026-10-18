@@ -814,7 +814,10 @@ class OrchestrationTests(unittest.TestCase):
         source = Path(lane.__file__).read_text(encoding="utf-8")
         for waiting in ("time.sleep", "sleep(", "monotonic", "wave_timeout", "poll_seconds", '"TIMEOUT"'):
             self.assertNotIn(waiting, source)
-        workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/intr-destination-hop-lane.yml").read_text(encoding="utf-8")
+        workflows = Path(__file__).resolve().parents[1] / ".github/workflows"
+        workflow = "\n".join((workflows / name).read_text(encoding="utf-8") for name in (
+            "intr-destination-hop-lane.yml", "intr-destination-hop-lane-live.yml",
+            "intr-destination-hop-lane-orchestrate.yml"))
         self.assertNotIn("wave_timeout", workflow)
         self.assertNotIn("timeout-minutes: 350", workflow)
         self.assertNotIn("classic PAT", workflow)
@@ -838,7 +841,8 @@ class OrchestrationTests(unittest.TestCase):
                          "HB_EPOCH_NOT_SUPPLIED" if finding == "MISSING" else "HB_EPOCH_INVALID")
         self.assertEqual(result["failed_predicate"], "SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH")
         self.assertIs(result["derived_from_clock"], False)
-        self.assertEqual(result["retry_entrypoint"], ".github/workflows/intr-destination-hop-lane.yml mode=orchestrate")
+        self.assertEqual(result["retry_entrypoint"],
+                         ".github/workflows/intr-destination-hop-lane-orchestrate.yml hb_epoch=<supplied>")
         self.assertEqual(result["hb_epoch_finding"], finding)
         self.assertEqual(result["dispatched"], 0)
         self.assertEqual(result["hops"], [])
@@ -930,7 +934,13 @@ class OrchestrationTests(unittest.TestCase):
                     os.environ[name] = value
 
     def test_the_orchestrate_workflow_carries_hb_epoch_and_resolves_it_first(self):
-        workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/intr-destination-hop-lane.yml").read_text(encoding="utf-8")
+        workflows = Path(__file__).resolve().parents[1] / ".github/workflows"
+        workflow = (workflows / "intr-destination-hop-lane-orchestrate.yml").read_text(encoding="utf-8")
+        # SDK#543: the pull-request lane has no `mode` input and no dispatch-only job.
+        pr_lane = (workflows / "intr-destination-hop-lane.yml").read_text(encoding="utf-8")
+        self.assertNotIn("inputs.mode", pr_lane)
+        self.assertNotIn("\n  orchestrate:\n", pr_lane)
+        self.assertNotIn("pull_request", workflow.split("\njobs:")[0])
         self.assertRegex(workflow, r"(?m)^      hb_epoch:\n(?:        .*\n)*?        type: string$")
         job = workflow[workflow.index("\n  orchestrate:\n"):]
         self.assertIn("HB_EPOCH: ${{ inputs.hb_epoch }}", job)

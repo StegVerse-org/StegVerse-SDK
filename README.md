@@ -934,6 +934,7 @@ Implementation:
 scripts/build_sdk_public_wiki.py
 tests/test_sdk_public_developer_wiki.py
 .github/workflows/sdk-public-developer-wiki-pages.yml
+.github/workflows/sdk-public-developer-wiki-deploy.yml
 docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md
 ```
 

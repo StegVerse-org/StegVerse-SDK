@@ -1,0 +1,13 @@
+{
+  "authority_effect": "NONE_MANIFEST_ONLY",
+  "expected_organization_ledger_head": "2acec0e1cfd158a6a3313ad422737caf41badda3",
+  "expected_organization_ledger_head_observed_by": "git ls-remote https://github.com/StegVerse-org/.github refs/stegverse/organization-ledger (2026-10-18 ~06:12Z, Lane C, read-only)",
+  "hb_epoch": "SUPPLIED_AT_EXECUTION_NOT_IN_MANIFEST",
+  "namespace": "repository-ledger/StegVerse-org/StegVerse-SDK",
+  "new_ledger_root": false,
+  "organization_ledger_ref": "refs/stegverse/organization-ledger",
+  "organization_ledger_repository": "StegVerse-org/.github",
+  "repository": "StegVerse-org/StegVerse-SDK",
+  "schema": "stegverse.sdk.repository-ledger-initialization-manifest/v1",
+  "transition_class": "REPOSITORY_LEDGER_INITIALIZATION"
+}

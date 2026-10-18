@@ -107,6 +107,18 @@ OWNING_EXISTING_GOAL = "StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 
 NON_ALLOW_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair",
                     "retry_entrypoint", "owning_existing_goal", "next_attempt")
 LANE_WORKFLOW = ".github/workflows/intr-destination-hop-lane.yml"
+# SDK#543 removed the lane's `mode` input: fabricated runs in LANE_WORKFLOW;
+# live and orchestrate are separate workflow_dispatch-only workflows.
+LANE_WORKFLOWS = {
+    "fabricated": LANE_WORKFLOW,
+    "live": ".github/workflows/intr-destination-hop-lane-live.yml",
+    "orchestrate": ".github/workflows/intr-destination-hop-lane-orchestrate.yml hb_epoch=<supplied>",
+}
+
+
+def lane_entrypoint(mode):
+    """The workflow that re-runs ``mode``. An unknown mode names the pull-request lane and the mode."""
+    return LANE_WORKFLOWS.get(mode, LANE_WORKFLOW + " mode=" + str(mode))
 NOT_SENT_FINDING = "CORRELATED_RECEIPTS_NOT_IN_THE_READ_LEDGERS"
 # LEGACY receipts are reported, never live-mesh evidence: a pair correlated
 # only by LEGACY receipts is this finding, with the six fields, and is sent again.
@@ -928,7 +940,7 @@ def correlation_evidence_class_refusal(evidence_class: Any) -> dict[str, Any]:
             CORRELATION_EVIDENCE_CLASS_NOT_DECLARED, "RECEIPT_CLASS_IS_A_DECLARED_CORRELATION_EVIDENCE_CLASS",
             "declare " + repr(evidence_class) + " in CORRELATION_EVIDENCE_CLASSES as LIVE_EVIDENCE, REPORTABLE "
             "or REFUSED (owner review; the table awaits the answer to Q-G4, JOINT DISCOVERY QUEUE)",
-            LANE_WORKFLOW + " mode=live",
+            lane_entrypoint("live"),
             "read again once the class is declared; until then it is neither evidence nor reported"),
     }
 
@@ -1254,7 +1266,7 @@ def durable_queue_fields() -> dict[str, Any]:
             DURABLE_QUEUE, "DESTINATION_ARRIVED_AND_SENDER_CLOSED_RECEIPTS_IN_THE_READ_LEDGERS",
             "none from a receiver: the destination receive and sender close materialize from the dispatched "
             "events and are observed only as organization-ledger receipts",
-            LANE_WORKFLOW + " mode=live (readback)",
+            lane_entrypoint("live") + " (readback)",
             "the next readback evaluates the receipts present then; nothing waits or polls"),
     }
 
@@ -1268,7 +1280,7 @@ def hop_outcome_fields(status: str, findings: Sequence[str], unreachable: Mappin
             "INTR_HOP_ADVERTISEMENT_OR_LEDGER_REF_UNREADABLE",
             "SENDER_AND_DESTINATION_ADVERTISEMENT_AND_LEDGER_REF_ARE_READABLE",
             "a readable <org>/.github advertisement and " + LEDGER_REF + " for each side (" + (reasons or "unread") + ")",
-            LANE_WORKFLOW + " mode=" + mode,
+            lane_entrypoint(mode),
             "read again once the read credential reaches the organization; the hop stays in the matrix")
     if status == "FAIL":
         listed = list(findings) or ["HOP_RECEIPT_FINDINGS"]
@@ -1280,18 +1292,18 @@ def hop_outcome_fields(status: str, findings: Sequence[str], unreachable: Mappin
                 "INTR_HOP_CORRELATED_ONLY_BY_LEGACY_RECEIPTS", "LIVE_HOP_CORRELATION_USES_NON_LEGACY_RECEIPTS",
                 "an emission, arrival and closure for this ordered pair appended by the supplied-epoch writer "
                 "(after its introduction); receipts added before it are LEGACY, reported and never live-mesh evidence",
-                LANE_WORKFLOW + " mode=orchestrate",
+                lane_entrypoint("orchestrate"),
                 "orchestrate dispatches a fresh send at a supplied hb_epoch >= 32; the next readback evaluates it")
         if listed == [NOT_SENT_FINDING]:
             return non_allow_fields(
                 "INTR_HOP_NOT_SENT_IN_READ_LEDGERS", NOT_SENT_FINDING,
                 "a send transition for this ordered pair; no emission, arrival or closure is in the read ledgers",
-                LANE_WORKFLOW + " mode=orchestrate",
+                lane_entrypoint("orchestrate"),
                 "orchestrate dispatches the send transition at a supplied hb_epoch; the next readback evaluates it")
         return non_allow_fields(
             "INTR_HOP_RECEIPT_FINDINGS", ",".join(listed),
             "sender and destination ledger receipts that clear: " + ", ".join(listed),
-            LANE_WORKFLOW + " mode=" + mode,
+            lane_entrypoint(mode),
             "repair the named receipts or ledger writer, then read again; LEGACY receipts are reported, not failing")
     if status == DURABLE_QUEUE:
         return durable_queue_fields()
@@ -1594,7 +1606,7 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
                     ledger_integrity[slug].update(non_allow_fields(
                         "INTR_HOP_LEDGER_INTEGRITY_FINDINGS", ",".join(detail["findings"]),
                         "repository and organization ledger chains that clear: " + ", ".join(detail["findings"]),
-                        LANE_WORKFLOW + " mode=live",
+                        lane_entrypoint("live"),
                         "repair the named receipts or ledger writer, then read again; LEGACY receipts are reported, not failing"))
     finally:
         if owned_cache is not None:
@@ -1774,8 +1786,8 @@ def hb_epoch_fail_closed(value: Any) -> dict[str, Any]:
             detail + "; supply hb_epoch as ASCII [0-9]+ with value >= 32 (the HB32 anchor), not derived "
             "from a clock; the org hop workflow and the organization-ledger writer take it as the "
             "workflow_dispatch input hb_epoch",
-            LANE_WORKFLOW + " mode=orchestrate",
-            "re-dispatch mode=orchestrate with a supplied hb_epoch >= 32"),
+            lane_entrypoint("orchestrate"),
+            "re-dispatch the orchestrate workflow with a supplied hb_epoch >= 32"),
         "derived_from_clock": False,
         "consequence_committed": False, "dispatched": 0, "hops": [], "outcomes": {},
         "hb_epoch": None, "time_constraint": TIME_CONSTRAINT, "receiver_wait": False,
@@ -1791,8 +1803,8 @@ def hop_credential_fail_closed() -> dict[str, Any]:
             "HOP_DISPATCH_CREDENTIAL_ABSENT", "HOP_DISPATCH_CREDENTIAL_IS_PRESENT",
             "a credential that dispatches " + HOP_WORKFLOW + " send in each sender organization; TV/TVC "
             "issuance is the pending owner decision on StegVerse-Labs/.github#2897",
-            LANE_WORKFLOW + " mode=orchestrate",
-            "dispatch mode=orchestrate once the credential decision lands"),
+            lane_entrypoint("orchestrate"),
+            "dispatch the orchestrate workflow once the credential decision lands"),
         "consequence_committed": False, "dispatched": 0, "hops": [], "outcomes": {},
         "hb_epoch": None, "time_constraint": TIME_CONSTRAINT, "receiver_wait": False,
         "always_on_receiver_required": False,
@@ -1874,7 +1886,7 @@ def run_orchestrate(peers: Sequence[Mapping[str, Any]], *, hb_epoch: int, token:
             hop.update(non_allow_fields(
                 "INTR_HOP_ADVERTISEMENT_UNREADABLE", "SENDER_AND_DESTINATION_ADVERTISEMENTS_ARE_READABLE",
                 "a readable <org>/.github advertisement for: " + ", ".join(slug for slug in pair if slug in unread),
-                LANE_WORKFLOW + " mode=orchestrate",
+                lane_entrypoint("orchestrate"),
                 "the next orchestrate transition dispatches it once the advertisement is read"))
         elif state == "CLOSED":
             hop["outcome"] = "CLOSED_IN_READ_LEDGERS"
@@ -1894,7 +1906,7 @@ def run_orchestrate(peers: Sequence[Mapping[str, Any]], *, hb_epoch: int, token:
                 "ORGANIZATION_LEDGER_CONCURRENCY_GROUP_OCCUPIED",
                 "SENDER_AND_DESTINATION_HOLD_NO_OPEN_OR_DISPATCHED_HOP",
                 "no open hop at " + pair[0] + " or " + pair[1] + " in the read ledgers and none dispatched by this transition",
-                LANE_WORKFLOW + " mode=orchestrate",
+                lane_entrypoint("orchestrate"),
                 "the next orchestrate transition, at a later supplied hb_epoch, selects it from ledger state"))
         else:
             communication_id = hop_communication_id(sender, dest, hb_epoch)
@@ -2215,8 +2227,8 @@ def lane_input_fail_closed(mode: str, reason: str) -> dict[str, Any]:
         **non_allow_fields(
             "INTR_HOP_LANE_INPUT_REFUSED", "LANE_INPUTS_RESOLVE_ONE_ADDRESS_PER_PEER_AND_A_MERGED_REFERENCE",
             "repair the refused input: " + reason[:800],
-            LANE_WORKFLOW + " mode=" + mode,
-            "re-run mode=" + mode + " once the named input is repaired"),
+            lane_entrypoint(mode),
+            "re-run " + lane_entrypoint(mode) + " once the named input is repaired"),
     }
 
 

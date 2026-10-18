@@ -2,53 +2,30 @@ name: InTr Destination Hop Lane
 
 # Fabricated mode is the CI default: temporary mesh and ledger roots, far side
 # kernel.receipt/build_control_response, labeled non-authentic.
-# Live mode is workflow_dispatch only. It reads each candidate organization's
+# Live mode is workflow_dispatch only and lives in
+# intr-destination-hop-lane-live.yml, so it is never reported as a skipped
+# pull-request check. It reads each candidate organization's
 # <org>/.github advertisement from the GitHub API (optional secret
 # FEDERATION_READ_TOKEN for private repositories) and then reads
 # refs/stegverse/organization-ledger. It does not append. An organization
 # whose advertisement or ledger ref cannot be read stays in the matrix as
 # UNREACHABLE. It is not dropped because a checkout failed.
 #
-# Orchestrate mode is workflow_dispatch only, and runs only when Rigel
-# dispatches it. One run is one manifest-directed transition: it reads every
-# organization ledger, derives each ordered pair's ledger state, and records
-# one disposition per pair. Unsent pairs whose organizations hold no open hop
-# are dispatched (the sender's intr-destination-hop.yml send phase), at most
-# one hop per organization, so the shared organization-ledger concurrency
-# group never holds two pending runs. A dispatched or open hop is
-# DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION with
-# always_on_receiver_required: false. Nothing waits, polls or times out; the
-# next run's readback evaluates whatever receipts exist then. Every non-ALLOW
-# outcome carries the six fields. The epoch is supplied (hb_epoch); no clock
-# is read for it. The credential (FEDERATION_HOP_TOKEN here) is a pending
-# owner decision: TV/TVC least-privilege issuance per StegVerse-Labs/.github#2897.
+# Orchestrate mode is workflow_dispatch only and lives in
+# intr-destination-hop-lane-orchestrate.yml (hb_epoch input), so it is not a
+# skipped pull-request check either. Pull requests never dispatch a hop.
 
 on:
   pull_request:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      mode:
-        description: fabricated uses temporary ledgers; live only reads organization-ledger refs
-        type: choice
-        options:
-          - fabricated
-          - live
-          - orchestrate
-        default: fabricated
-      hb_epoch:
-        description: 'orchestrate: supplied epoch of this transition''s send dispatches (ASCII digits, at least 32: the HB32 anchor)'
-        required: false
-        default: ''
-        type: string
 
 permissions:
   contents: read
 
 jobs:
   fabricated:
-    if: github.event_name != 'workflow_dispatch' || inputs.mode == 'fabricated'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -154,106 +131,4 @@ jobs:
         with:
           name: intr-destination-hop-lane
           path: ${{ runner.temp }}/intr-hop-lane
-          if-no-files-found: warn
-
-  live:
-    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'live'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      # Optional. Unset reads public repositories only. A private <org>/.github
-      # is read when this secret is configured; an organization that still
-      # cannot be read stays in the matrix as UNREACHABLE.
-      FEDERATION_READ_TOKEN: ${{ secrets.FEDERATION_READ_TOKEN }}
-      # Reads fall back to this when FEDERATION_READ_TOKEN is unset.
-      FEDERATION_HOP_TOKEN: ${{ secrets.FEDERATION_HOP_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install the SDK
-        run: python -m pip install -q -e .
-
-      - name: Read advertisements and organization-ledger refs
-        run: |
-          set -eu
-          python -m stegverse.intr_destination_hop_lane \
-            --mode live \
-            --fetch-ledger-refs \
-            --out-dir "$RUNNER_TEMP/intr-hop-lane-live"
-          python - <<'PY'
-          import json, os
-          report = json.load(open(os.environ["RUNNER_TEMP"] + "/intr-hop-lane-live/intr-destination-hop-lane.json", encoding="utf-8"))
-          queried = set(report["organizations_queried"])
-          expected = {
-              "StegVerse-org", "StegVerse-Labs", "SV-LLM", "SV-011",
-              "GCAT-BCAT-Engine", "Admissible-Existence", "StegVerse-002", "StegGhost",
-          }
-          assert queried == expected, sorted(queried)
-          peer_orgs = {peer["organization"] for peer in report["peers"]}
-          silent = {item["organization"] for item in report["organizations_read_without_intr_destination"]}
-          assert queried == peer_orgs | silent, (sorted(peer_orgs), sorted(silent))
-          assert report["federation_json_is_a_peer_source"] is False
-          assert report["authenticity_claimed"] is False or report["counts"]["PASS"] > 0
-          print("INTR_DESTINATION_HOP_LANE_LIVE peers=%d unreachable=%d fail=%d" % (
-              len(report["peers"]), report["counts"]["UNREACHABLE"], report["counts"]["FAIL"]))
-          PY
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: intr-destination-hop-lane-live
-          path: ${{ runner.temp }}/intr-hop-lane-live
-          if-no-files-found: warn
-
-  orchestrate:
-    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'orchestrate'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      FEDERATION_HOP_TOKEN: ${{ secrets.FEDERATION_HOP_TOKEN }}
-      FEDERATION_READ_TOKEN: ${{ secrets.FEDERATION_READ_TOKEN }}
-      HB_EPOCH: ${{ inputs.hb_epoch }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install the SDK
-        run: python -m pip install -q -e .
-
-      - name: Read every ledger, then record one disposition per hop (dispatch, no wait)
-        run: |
-          set -eu
-          # hb_epoch is resolved first by the shared rule (supplied_epoch_failure):
-          # absent is HB_EPOCH_NOT_SUPPLIED; not ASCII [0-9]+ or below 32 (the HB32
-          # anchor) is HB_EPOCH_INVALID. Either is FAIL_CLOSED with the six fields,
-          # before any read or dispatch. An empty dispatch input is not supplied.
-          python - <<'PY'
-          import json, os, sys
-          from stegverse.intr_destination_hop_lane import hb_epoch_fail_closed, parse_hb_epoch
-          supplied = os.environ.get("HB_EPOCH") or None
-          if parse_hb_epoch(supplied) is None:
-              print(json.dumps(hb_epoch_fail_closed(supplied), sort_keys=True))
-              sys.exit(1)
-          PY
-          if [ -z "${FEDERATION_HOP_TOKEN:-}" ]; then
-            echo '{"disposition":"FAIL_CLOSED","failure_code":"HOP_DISPATCH_CREDENTIAL_ABSENT","failed_predicate":"HOP_DISPATCH_CREDENTIAL_IS_PRESENT","required_evidence_or_repair":"a credential that dispatches intr-destination-hop.yml send in each sender organization; TV/TVC issuance is the pending owner decision on StegVerse-Labs/.github#2897","retry_entrypoint":".github/workflows/intr-destination-hop-lane.yml mode=orchestrate","owning_existing_goal":"StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody","next_attempt":"dispatch mode=orchestrate once the credential decision lands","consequence_committed":false}'
-            exit 1
-          fi
-          python -m stegverse.intr_destination_hop_lane \
-            --mode orchestrate \
-            --hb-epoch "$HB_EPOCH" \
-            --out-dir "$RUNNER_TEMP/intr-hop-lane-orchestrate"
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: intr-destination-hop-lane-orchestrate
-          path: ${{ runner.temp }}/intr-hop-lane-orchestrate
           if-no-files-found: warn
