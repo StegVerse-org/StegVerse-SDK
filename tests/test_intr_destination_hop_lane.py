@@ -161,6 +161,11 @@ def _pair_receipts(sender: str, dest: str, address: str, communication_id: str, 
     return emitted, closed, arrived
 
 
+
+def _WRITER_BEFORE_EVERY_RECEIPT(peer):
+    """An observed writer introduction older than every fabricated receipt: none is LEGACY."""
+    return {"commit": "writer", "committed_at_unix": 1, "source": "TEST"}
+
 class DiscoveryTests(unittest.TestCase):
     def test_peers_are_advertised_addresses_and_the_federation_file_is_not_read(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -296,13 +301,13 @@ class LiveLedgerTests(unittest.TestCase):
             self._write_both(Path(alpha["root"]), Path(beta["root"]))
             self._commit(Path(alpha["root"]), LEDGER_REF)
             self._commit(Path(beta["root"]), LEDGER_REF)
-            report = run_live([alpha, beta], fetch=False)
+            report = run_live([alpha, beta], fetch=False, writer_introduction=_WRITER_BEFORE_EVERY_RECEIPT)
             self.assertEqual(report["counts"]["PASS"], 2, [hop["findings"] for hop in report["hops"]])
             self.assertTrue(report["authenticity_claimed"])
             self.assertTrue(all(hop["authenticity_claimed"] for hop in report["hops"]))
             # Drop Beta's ref. Hops that need Beta degrade; nothing is appended.
             subprocess.run(["git", "update-ref", "-d", LEDGER_REF], cwd=beta["root"], check=True)
-            degraded = run_live([alpha, beta], fetch=False)
+            degraded = run_live([alpha, beta], fetch=False, writer_introduction=_WRITER_BEFORE_EVERY_RECEIPT)
             self.assertTrue(all(hop["status"] == "UNREACHABLE" for hop in degraded["hops"]))
             self.assertFalse(degraded["authenticity_claimed"])
 
@@ -317,7 +322,7 @@ class LiveLedgerTests(unittest.TestCase):
             unread, silent = discover_peers_from_github(
                 ["SV-011"], read_file=lambda repository, path: ("HTTP_404", None))
             self.assertEqual(silent, [])
-            report = run_live([alpha, beta, unread[0]], fetch=True)
+            report = run_live([alpha, beta, unread[0]], fetch=True, writer_introduction=_WRITER_BEFORE_EVERY_RECEIPT)
         by_pair = {(hop["sender_slug"], hop["destination_slug"]): hop for hop in report["hops"]}
         self.assertEqual(by_pair[("alpha", "beta")]["status"], "PASS", by_pair[("alpha", "beta")]["findings"])
         self.assertEqual(by_pair[("beta", "alpha")]["status"], "PASS")
@@ -1329,6 +1334,115 @@ class CorrelationEvidenceClassTests(unittest.TestCase):
         for detail in report["ledger_integrity"].values():
             self.assertEqual(detail["failure_code"], "CORRELATION_EVIDENCE_CLASS_NOT_DECLARED")
             self._assert_refusal(detail["evidence_class_refusals"][0], "LIVE_SUPPLIED_EPOCH")
+
+
+class WriterIntroductionNotObservedTests(unittest.TestCase):
+    """Without an observed writer introduction nothing is LEGACY, so the hop is FAIL_CLOSED.
+
+    Pre-writer receipts must never PASS or claim authenticity just because the
+    introduction was not found or the lookup was turned off. Fabricated
+    temporary ledgers only; nothing is dispatched or appended.
+    """
+
+    def _two(self, base: Path):
+        helper = LiveLedgerTests()
+        alpha = helper._peer(base / "alpha", "Alpha")
+        beta = helper._peer(base / "beta", "Beta")
+        helper._write_both(Path(alpha["root"]), Path(beta["root"]))
+        helper._commit(Path(alpha["root"]), LEDGER_REF)
+        helper._commit(Path(beta["root"]), LEDGER_REF)
+        return alpha, beta
+
+    def _assert_fail_closed(self, report, reason):
+        self.assertEqual(report["hop_count"], 2)
+        self.assertEqual(report["counts"].get("PASS", 0), 0, [hop["findings"] for hop in report["hops"]])
+        self.assertIs(report["authenticity_claimed"], False)
+        self.assertEqual(set(report["writer_introduction_not_observed"].values()), {reason})
+        for hop in report["hops"]:
+            self.assertEqual(hop["status"], "FAIL")
+            self.assertEqual(hop["disposition"], "FAIL_CLOSED")
+            self.assertIn(lane.WRITER_INTRODUCTION_NOT_OBSERVED, hop["findings"])
+            self.assertEqual(hop["failure_code"], "WRITER_INTRODUCTION_NOT_OBSERVED")
+            self.assertEqual(hop["failed_predicate"], lane.WRITER_INTRODUCTION_PREDICATE)
+            self.assertEqual(hop["owning_existing_goal"], "INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001")
+            self.assertIs(hop["authenticity_claimed"], False)
+            self.assertIsNone(hop["authenticity_basis"])
+            self.assertEqual(hop["communication_ids_read_back"], [])
+            self.assertTrue(hop["unclassified_communication_ids_reported"])
+            for field in lane.NON_ALLOW_FIELDS:
+                self.assertIsInstance(hop.get(field), str, field)
+                self.assertTrue(hop[field].strip(), field)
+
+    def test_control_an_observed_introduction_passes_the_same_ledgers(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            peers = self._two(Path(tmp))
+            report = run_live(list(peers), fetch=False, writer_introduction=_WRITER_BEFORE_EVERY_RECEIPT)
+        self.assertEqual(report["counts"]["PASS"], 2, [hop["findings"] for hop in report["hops"]])
+        self.assertEqual(report["writer_introduction_not_observed"], {})
+
+    def test_a_writer_introduction_not_found_fails_closed_and_never_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            peers = self._two(Path(tmp))
+            report = run_live(list(peers), fetch=False, writer_introduction=lambda peer: None)
+        self._assert_fail_closed(report, lane.WRITER_INTRODUCTION_NOT_FOUND)
+
+    def test_a_malformed_introduction_is_not_observed(self):
+        for bad in ({}, {"committed_at_unix": None}, {"committed_at_unix": "1"}, {"committed_at_unix": True}, "x"):
+            with tempfile.TemporaryDirectory() as tmp:
+                peers = self._two(Path(tmp))
+                report = run_live(list(peers), fetch=False, writer_introduction=lambda peer, bad=bad: bad)
+            self._assert_fail_closed(report, lane.WRITER_INTRODUCTION_NOT_FOUND)
+
+    def test_one_side_without_an_introduction_fails_both_of_its_hops(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            peers = self._two(Path(tmp))
+            report = run_live(list(peers), fetch=False, writer_introduction=lambda peer: (
+                None if peer["slug"] == "beta" else _WRITER_BEFORE_EVERY_RECEIPT(peer)))
+        self.assertEqual(report["writer_introduction_not_observed"], {"beta": lane.WRITER_INTRODUCTION_NOT_FOUND})
+        for hop in report["hops"]:
+            self.assertEqual(hop["failure_code"], "WRITER_INTRODUCTION_NOT_OBSERVED")
+            self.assertEqual(hop["writer_introduction_not_observed"], {"beta": lane.WRITER_INTRODUCTION_NOT_FOUND})
+            self.assertIs(hop["authenticity_claimed"], False)
+
+    def test_no_writer_introduction_argument_is_lookup_disabled(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            peers = self._two(Path(tmp))
+            report = run_live(list(peers), fetch=False)
+        self._assert_fail_closed(report, lane.WRITER_LOOKUP_DISABLED)
+
+    def test_cli_no_writer_lookup_fails_closed_with_six_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            peers = self._two(Path(tmp) / "orgs")
+            original = lane.discover_peers_from_github
+            lane.discover_peers_from_github = lambda organizations, *, token=None, read_file=None: (
+                [dict(peer) for peer in peers], [])
+            try:
+                out = Path(tmp) / "out"
+                code = main(["--mode", "live", "--out-dir", str(out), "--no-writer-lookup",
+                             "--organization", "Alpha", "--organization", "Beta"])
+            finally:
+                lane.discover_peers_from_github = original
+            report = json.loads((out / "intr-destination-hop-lane.json").read_text(encoding="utf-8"))
+        self.assertEqual(code, 1)
+        self._assert_fail_closed(report, lane.WRITER_LOOKUP_DISABLED)
+
+    def test_cli_writer_override_still_classifies_with_lookup_disabled(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            peers = self._two(Path(tmp) / "orgs")
+            original = lane.discover_peers_from_github
+            lane.discover_peers_from_github = lambda organizations, *, token=None, read_file=None: (
+                [dict(peer) for peer in peers], [])
+            try:
+                out = Path(tmp) / "out"
+                code = main(["--mode", "live", "--out-dir", str(out), "--no-writer-lookup",
+                             "--organization", "Alpha", "--organization", "Beta",
+                             "--writer-introduced", "Alpha=1", "--writer-introduced", "Beta=1"])
+            finally:
+                lane.discover_peers_from_github = original
+            report = json.loads((out / "intr-destination-hop-lane.json").read_text(encoding="utf-8"))
+        self.assertEqual(code, 0, [hop["findings"] for hop in report["hops"]])
+        self.assertEqual(report["counts"]["PASS"], 2)
+        self.assertEqual(report["writer_introduction_not_observed"], {})
 
 
 if __name__ == "__main__":

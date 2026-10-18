@@ -123,6 +123,15 @@ NOT_SENT_FINDING = "CORRELATED_RECEIPTS_NOT_IN_THE_READ_LEDGERS"
 # LEGACY receipts are reported, never live-mesh evidence: a pair correlated
 # only by LEGACY receipts is this finding, with the six fields, and is sent again.
 LEGACY_ONLY_FINDING = "CORRELATED_RECEIPTS_ARE_LEGACY_ONLY"
+# A read ledger whose supplied-epoch writer introduction was not observed (not
+# found, unreadable, or --no-writer-lookup): no receipt on it can be classed
+# LEGACY, so none is live evidence. The hop is FAIL_CLOSED, never PASS, and
+# claims no authenticity.
+WRITER_INTRODUCTION_NOT_OBSERVED = "WRITER_INTRODUCTION_NOT_OBSERVED"
+WRITER_INTRODUCTION_PREDICATE = "LEDGER_RECEIPTS_ARE_CLASSIFIED_AGAINST_AN_OBSERVED_WRITER_INTRODUCTION"
+WRITER_INTRODUCTION_OWNING_GOAL = "INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001"
+WRITER_LOOKUP_DISABLED = "WRITER_LOOKUP_DISABLED"
+WRITER_INTRODUCTION_NOT_FOUND = "WRITER_INTRODUCTION_NOT_FOUND"
 # Reported, not failing, when every receipt it names is LEGACY.
 LEGACY_REPORTABLE = (
     "ORPHAN_ORGANIZATION_RECEIPT",
@@ -1310,6 +1319,33 @@ def hop_outcome_fields(status: str, findings: Sequence[str], unreachable: Mappin
     return {}
 
 
+def observed_writer_introduction(introduced: Any) -> bool:
+    """An introduction the readback can classify against: a mapping with integer ``committed_at_unix``."""
+    if not isinstance(introduced, Mapping):
+        return False
+    stamp = introduced.get("committed_at_unix")
+    return isinstance(stamp, int) and not isinstance(stamp, bool)
+
+
+def writer_introduction_fail_closed(unobserved: Mapping[str, str], mode: str = "live") -> dict[str, Any]:
+    """Six fields for a hop read off a ledger whose writer introduction was not observed."""
+    sides = ", ".join("%s: %s" % (slug, reason) for slug, reason in sorted(unobserved.items())) or "unobserved"
+    return {
+        "disposition": "FAIL_CLOSED",
+        "failure_code": WRITER_INTRODUCTION_NOT_OBSERVED,
+        "failed_predicate": WRITER_INTRODUCTION_PREDICATE,
+        "required_evidence_or_repair": (
+            "the supplied-epoch writer introduction for each read ledger (" + sides + "): the earliest "
+            "default-branch commit of " + WRITER_WORKFLOW + " that takes hb_epoch and runs the self-closure, "
+            "read from the checkout history or the GitHub API, or --writer-introduced ORG=<unix seconds | ISO 8601>; "
+            "without it no receipt can be classed LEGACY and none is live-mesh evidence"),
+        "retry_entrypoint": lane_entrypoint(mode) + " (writer lookup on, no --no-writer-lookup)",
+        "owning_existing_goal": WRITER_INTRODUCTION_OWNING_GOAL,
+        "next_attempt": ("the next readback looks the writer introduction up again and classifies the receipts "
+                         "against it; until then the hop is FAIL_CLOSED, never PASS, and claims no authenticity"),
+    }
+
+
 def _without_legacy(chain: Sequence[Mapping[str, Any]], legacy: Iterable[str] = ()) -> list[Mapping[str, Any]]:
     excluded = set(legacy)
     return [receipt for receipt in chain if receipt.get("receipt_sha256") not in excluded]
@@ -1526,6 +1562,7 @@ def _absent_ledger(reason: str, location: str | None = None) -> dict[str, Any]:
 def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: str | None = None,
             ledger_cache: Path | None = None,
             writer_introduction: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
+            writer_lookup_disabled: bool = False,
             ) -> dict[str, Any]:
     """Read each peer's organization-ledger ref. Do not append.
 
@@ -1536,7 +1573,11 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
 
     ``writer_introduction(peer)`` names when the peer's supplied-epoch writer
     reached its default branch. Receipts added to the ref before it are
-    LEGACY: reported, not failing. Without it nothing is LEGACY.
+    LEGACY: reported, not failing. Without an observed introduction (none
+    given, not found, or ``writer_lookup_disabled``) nothing can be classed
+    LEGACY, so every hop touching that ledger is FAIL_CLOSED
+    ``WRITER_INTRODUCTION_NOT_OBSERVED`` with the six fields: never PASS, no
+    authenticity claimed, no communication id read back as live.
     """
     token = _blank_to_none(token)
     views = {}
@@ -1544,6 +1585,7 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
     integrity: dict[str, list[str]] = {}
     ledger_integrity: dict[str, dict[str, Any]] = {}
     legacy_by_slug: dict[str, list[str]] = {}
+    writer_unobserved: dict[str, str] = {}
     owned_cache: tempfile.TemporaryDirectory | None = None
     try:
         for peer in peers:
@@ -1593,6 +1635,10 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
                 integrity[slug] = ["REPOSITORY_LEDGER_CHAIN_ABSENT"]
             else:
                 introduced = writer_introduction(peer) if writer_introduction else None
+                if not observed_writer_introduction(introduced):
+                    writer_unobserved[slug] = (WRITER_LOOKUP_DISABLED if writer_lookup_disabled or writer_introduction is None
+                                               else WRITER_INTRODUCTION_NOT_FOUND)
+                    introduced = None
                 detail = integrity_report(repo, org, writer_introduction=introduced)
                 integrity[slug] = detail["findings"]
                 # Excluded from live correlation: every receipt whose declared
@@ -1654,6 +1700,13 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
         if not matched and legacy_matched and correlation == [NOT_SENT_FINDING] and state != "OPEN":
             correlation = [LEGACY_ONLY_FINDING]
         findings.extend(correlation)
+        unobserved = {slug: writer_unobserved[slug] for slug in (sender["slug"], dest["slug"])
+                      if slug in writer_unobserved}
+        unclassified: list[str] = []
+        if unobserved:
+            # Nothing on that ledger can be classed LEGACY: no id is live evidence.
+            findings.insert(0, WRITER_INTRODUCTION_NOT_OBSERVED)
+            unclassified, matched = list(matched), []
         # Organization receipts must still hold each correlated repository receipt.
         for identifier in matched:
             synthetic = {
@@ -1675,9 +1728,19 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
         public["ledger_state"] = state
         public["communication_ids_read_back"] = matched
         public["legacy_communication_ids_reported"] = legacy_matched
+        public["writer_introduction_not_observed"] = unobserved
+        if unobserved:
+            public["unclassified_communication_ids_reported"] = unclassified
+            public["authenticity_claimed"] = False
+            public["authenticity_basis"] = None
+            if CORRELATION_EVIDENCE_CLASS_NOT_DECLARED not in findings:
+                public.update(writer_introduction_fail_closed(unobserved, "live"))
+            else:
+                public["disposition"] = "FAIL_CLOSED"
         rendered.append(public)
     report = _report(peers, rendered, mode="live")
     report["ledger_integrity"] = ledger_integrity
+    report["writer_introduction_not_observed"] = dict(sorted(writer_unobserved.items()))
     return report
 
 
@@ -2204,7 +2267,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                         help="ORGANIZATION=<unix seconds or ISO 8601>: receipts added before it are LEGACY. "
                              "Overrides the default-branch history lookup for that organization.")
     parser.add_argument("--no-writer-lookup", action="store_true",
-                        help="live: do not look up writer introductions; nothing is LEGACY unless overridden")
+                        help="live: do not look up writer introductions. A ledger with no override is then "
+                             "FAIL_CLOSED WRITER_INTRODUCTION_NOT_OBSERVED: never PASS, no authenticity")
     args = parser.parse_args(argv)
     try:
         return _run_main(args)
@@ -2287,7 +2351,7 @@ def _run_main(args: argparse.Namespace) -> int:
         # The readback reads whatever receipts exist now. Orchestrate derives
         # each pair's ledger state from it, then records its dispositions.
         report = run_live(peers, fetch=args.fetch_ledger_refs or args.mode == "orchestrate", token=token,
-                          writer_introduction=introduction)
+                          writer_introduction=introduction, writer_lookup_disabled=args.no_writer_lookup)
         if args.mode == "orchestrate":
             states = {(hop["sender_slug"], hop["destination_slug"]): hop.get("ledger_state", "UNSENT")
                       for hop in report["hops"]}

@@ -84,7 +84,7 @@ FEDERATION_READ_TOKEN="$FEDERATION_READ_TOKEN" \
 
 ### Ledger integrity: LEGACY and duplicates
 
-History is not rewritten. Each organization's ledger is classified against its **writer introduction**: the earliest default-branch commit whose `.github/workflows/organization-ledger-transition.yml` takes `hb_epoch` as a dispatch input and runs the self-closure. It is read from the local checkout's history, or from the GitHub API (`commits?path=` and `contents?ref=`). `--writer-introduced ORG=<unix seconds | ISO 8601>` overrides it, and `--no-writer-lookup` turns the lookup off.
+History is not rewritten. Each organization's ledger is classified against its **writer introduction**: the earliest default-branch commit whose `.github/workflows/organization-ledger-transition.yml` takes `hb_epoch` as a dispatch input and runs the self-closure. It is read from the local checkout's history, or from the GitHub API (`commits?path=` and `contents?ref=`). `--writer-introduced ORG=<unix seconds | ISO 8601>` overrides it, and `--no-writer-lookup` turns the lookup off. A read ledger whose writer introduction is not observed (not found, unreadable, or the lookup turned off with no override) cannot have any receipt classed LEGACY, so every hop on it is `FAIL_CLOSED` `WRITER_INTRODUCTION_NOT_OBSERVED` with the six fields (owning goal `INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001`): never `PASS`, no authenticity claimed, no communication id read back as live.
 
 A receipt is `LEGACY` when the ledger-ref commit that added it is older than the writer introduction. The full ref history is fetched so that commit can be found. These findings on legacy receipts are reported under **Ledger integrity**, and they do not fail the lane:
 
