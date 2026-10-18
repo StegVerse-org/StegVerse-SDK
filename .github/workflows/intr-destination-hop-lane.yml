@@ -2,7 +2,9 @@ name: InTr Destination Hop Lane
 
 # Fabricated mode is the CI default: temporary mesh and ledger roots, far side
 # kernel.receipt/build_control_response, labeled non-authentic.
-# Live mode is workflow_dispatch only. It reads each candidate organization's
+# Live mode is workflow_dispatch only and lives in
+# intr-destination-hop-lane-live.yml, so it is never reported as a skipped
+# pull-request check. It reads each candidate organization's
 # <org>/.github advertisement from the GitHub API (optional secret
 # FEDERATION_READ_TOKEN for private repositories) and then reads
 # refs/stegverse/organization-ledger. It does not append. An organization
@@ -14,21 +16,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      mode:
-        description: fabricated uses temporary ledgers; live only reads organization-ledger refs
-        type: choice
-        options:
-          - fabricated
-          - live
-        default: fabricated
 
 permissions:
   contents: read
 
 jobs:
   fabricated:
-    if: github.event_name != 'workflow_dispatch' || inputs.mode == 'fabricated'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -134,55 +127,4 @@ jobs:
         with:
           name: intr-destination-hop-lane
           path: ${{ runner.temp }}/intr-hop-lane
-          if-no-files-found: warn
-
-  live:
-    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'live'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      # Optional. Unset reads public repositories only. A private <org>/.github
-      # is read when this secret is configured; an organization that still
-      # cannot be read stays in the matrix as UNREACHABLE.
-      FEDERATION_READ_TOKEN: ${{ secrets.FEDERATION_READ_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install the SDK
-        run: python -m pip install -q -e .
-
-      - name: Read advertisements and organization-ledger refs
-        run: |
-          set -eu
-          python -m stegverse.intr_destination_hop_lane \
-            --mode live \
-            --fetch-ledger-refs \
-            --out-dir "$RUNNER_TEMP/intr-hop-lane-live"
-          python - <<'PY'
-          import json, os
-          report = json.load(open(os.environ["RUNNER_TEMP"] + "/intr-hop-lane-live/intr-destination-hop-lane.json", encoding="utf-8"))
-          queried = set(report["organizations_queried"])
-          expected = {
-              "StegVerse-org", "StegVerse-Labs", "SV-LLM", "SV-011",
-              "GCAT-BCAT-Engine", "Admissible-Existence", "StegVerse-002", "StegGhost",
-          }
-          assert queried == expected, sorted(queried)
-          peer_orgs = {peer["organization"] for peer in report["peers"]}
-          silent = {item["organization"] for item in report["organizations_read_without_intr_destination"]}
-          assert queried == peer_orgs | silent, (sorted(peer_orgs), sorted(silent))
-          assert report["federation_json_is_a_peer_source"] is False
-          assert report["authenticity_claimed"] is False or report["counts"]["PASS"] > 0
-          print("INTR_DESTINATION_HOP_LANE_LIVE peers=%d unreachable=%d fail=%d" % (
-              len(report["peers"]), report["counts"]["UNREACHABLE"], report["counts"]["FAIL"]))
-          PY
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: intr-destination-hop-lane-live
-          path: ${{ runner.temp }}/intr-hop-lane-live
           if-no-files-found: warn

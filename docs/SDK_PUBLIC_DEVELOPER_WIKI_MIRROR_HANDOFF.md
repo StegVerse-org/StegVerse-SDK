@@ -45,7 +45,8 @@ The public surface explicitly separates payload class, processing capability, ru
 
 - builder: `scripts/build_sdk_public_wiki.py`
 - validation: `tests/test_sdk_public_developer_wiki.py`
-- Pages workflow: `.github/workflows/sdk-public-developer-wiki-pages.yml`
+- Pages validation workflow (pull requests, manual): `.github/workflows/sdk-public-developer-wiki-pages.yml`
+- Pages deploy workflow (push to `main`, published release): `.github/workflows/sdk-public-developer-wiki-deploy.yml`
 - generated site root: `_site/` (ephemeral build output; not canonical source)
 - custom-domain source: generated `_site/CNAME = sdk.stegverse.org`
 - provenance: generated `_site/wiki-source-manifest.json`
