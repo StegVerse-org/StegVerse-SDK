@@ -660,7 +660,7 @@ Coordination: `StegVerse-org/StegVerse-SDK#484`. Parent: `StegVerse-Labs/.github
 
 | Scope | Goal Task ID / COSV | Handoff |
 |---|---|---|
-| SDK-native structural validator (contract 1.6), T2 offline boundary, T6 envelope migration | `SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001` / `60200000013002` | `docs/SDK_VALIDATOR_T2_OFFLINE_BOUNDARY_MIRROR_HANDOFF.md`, `docs/SDK_T6_UNIVERSAL_ENTRY_VALIDATOR_MIRROR_HANDOFF.md`; Labs `docs/SDK_STRUCTURAL_VALIDATOR_CONSOLIDATION_TASK_REGISTRY_REGISTRATION_MIRROR_HANDOFF.md` |
+| SDK-native structural validator (contract 1.7), T2 offline boundary, T6 envelope migration | `SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001` / `60200000013002` | `docs/SDK_VALIDATOR_T2_OFFLINE_BOUNDARY_MIRROR_HANDOFF.md`, `docs/SDK_T6_UNIVERSAL_ENTRY_VALIDATOR_MIRROR_HANDOFF.md`; Labs `docs/SDK_STRUCTURAL_VALIDATOR_CONSOLIDATION_TASK_REGISTRY_REGISTRATION_MIRROR_HANDOFF.md` |
 | Governance gate (free tier), tier pricing, cost-component registry | gate: the validator task above; pricing: `SDK-COST-DERIVED-TIER-PRICING-001` / `10300000011002` (Labs #3214 merged at `60d90c48`, 2026-10-17 18:52:26Z; `SDK-COST-DERIVED-TIER-PRICING-001` ACTIVE, UNCLAIMED) | `docs/SDK_GOVERNANCE_PRODUCT_MIRROR_HANDOFF.md` |
 
 **Evidence classes:** source MERGED + CI_VALIDATED for the validator, T2, T6 and the gate. #538 (cost registry, MAX rule, pricing six-field dispositions) merged at `07a6a90a` (2026-10-17 16:21:47Z), with gate changes dropped in favour of #534. The gate's disposition rework is #534 (draft). No runtime class has been reached.
@@ -674,6 +674,12 @@ SDK #540 merged at `ae4a2a12` (2026-10-17 19:10:51Z) and re-pointed the pricing 
 
 No external machine is awaited. Master Records is non-gating.
 
+**Contract 1.7 (2026-10-17), source only.**
+- **New keywords:** `anyOf`, `oneOf`, `not`, `additionalProperties` as a subschema, `minProperties`, `maxProperties`, `prefixItems` (`items: false` only as its closing form), `propertyNames`, `contains` with `minContains` and `maxContains`, and `default` as an annotation.
+- **Fail-open fix:** a branch that cannot be evaluated (schema depth, evaluation budget, or an unsupported or invalid schema) now propagates its structural error. It never counts as an ordinary branch failure, so `not`, `else` and `anyOf` cannot accept an instance because of it. This also fixes a fail-open path in 1.6's `if`.
+- **Differential check:** agrees with the 2020-12 reference in both directions on the new corpus.
+- **Ecosystem fit:** StegVerse-Labs/.github schemas on main went from 55/75 to 64/75. The remaining blockers stay fail-closed by design: patterns outside the safe subset (8), non-local `$ref` (3), depth (1).
+- **T5 provenance:** the source identity was rebound. A successor T5 attempt must target the new blobs.
 
 ### SDK #541 — owner-defined merge condition and skipped-job evidence (2026-10-17)
 

@@ -125,3 +125,23 @@ The root README still contains older prose stating governance is the only instal
 ## 2026-09-25 Experiment 3 existing-owner cross-repository source replay
 
 `SDK-ECOSYSTEM-DIAGNOSTIC-PROCESSOR-001` (COSV `71000000101000`) remains the existing SDK processor owner. Related MIR/SV Experiment 3 (COSV `50000000100000`) reuses that installed read-only processor and the existing StegBrowser/Universal InTr event-ephemeral contract; no parallel processor, runtime, scheduler, authority or device is introduced. Merged SDK PR #325 and #328 already preserve strict source-profile DENY, separately typed local terminal FAIL_CLOSED and nonterminal diagnostic processing ALLOW without claiming terminal Publisher/far-side completion. Older overlapping SDK PR #324 is being reconciled onto current main solely for its unique historical frozen-manifest cross-repository source replay. The existing `mir-sv-exp3-sdk-manifest.yml` source-only workflow now regenerates the original from pinned SDK commit `2508068f5475364ed4b47db6f6349e9b91fdb290`, requires exact archived file SHA-256 `e1b05a082ce19d3d254e3cde1dced03019174a94287724959672c9e65510c8f3`, independently validates original wire digest `ad9b8b8aab2beeea04bff2aac34fd2e7bfa5915133bcaef9209c16de7d9bea68`, and invokes the existing central profile pinned at `f4b234dd1c9e93dc67f0ede2738bbf5b50c54751` for its correctable source-only `ECOSYSTEM_DIAGNOSTIC_NONWORKER_DISPATCH_UNWIRED` result. SDK result validation rejects altered request digest and forged authenticated ingress. These are source-only CI acceptance criteria: do not promote them to actual organization custody or independent Master Records reconstruction. The authentic resident event-ephemeral attempt remains a separately required transition through native owners, and `FAIL_CLOSED` terminates an attempted execution without automatic retry.
+
+## 2026-10-17 governed-DENY negative-conformance fixture (StegVerse-Labs/.github#3183 Workstream A)
+
+Per the StegHealth #51 2026-10-16 directive, the StegHealth-originated deliberate governed-DENY trial (`STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001` / COSV `10100000100000`; Experiment 3, `MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003` / COSV `50000000100000`) is reused under this owner as an SDK Mesh Destination Map / InTr full-mesh **negative-conformance** diagnostic. It is not a new StegHealth remediation.
+
+- Fixture `tests/fixtures/conformance/governed_deny_experiment3.json` binds the original source and record bytes by repository, commit, path and sha256. It does not contain or claim any resident organization-ledger receipt, because none was appended. The directive also records that no authenticated trial was executed.
+- `stegverse/negative_conformance.py` is a pure, non-authorizing classifier. It reuses `organization_ledger_evidence.REFUSAL_FIELDS` for the six refusal fields. It emits an `ecosystem_diagnostic` request for the installed processor.
+- `tests/test_governed_deny_negative_conformance.py` covers the following:
+  - The SDK-held receipts are byte-bound.
+  - The current builder regenerates the frozen original file exactly (sha256 `e1b05a08…`, wire `ad9b8b8a…`).
+  - The live `execute_manifest` handoff through the Labs boundary has `awaits_external_machine=false`, `organization_receipt_observed=false` and returns via `admit_runtime_result`.
+  - The governance disposition `FAIL_CLOSED` with experiment outcome `NOT_FAILED` classifies as `NEGATIVE_CONFORMANCE_PASS_CORRECT_REFUSAL`.
+  - The installed processor keeps the organization receipt, InTr admission and Master Records effects `NOT_OBSERVED`.
+  - The classifier rejects a variant that is missing any of the six fields.
+  - It rejects a variant that marks the experiment `FAILED` with the refusal as its only basis.
+  - It rejects a variant that awaits an external machine or gates on destination liveness.
+  - It rejects an unobserved effect that lacks `NOT_AUTHENTICALLY_OBSERVED` and a `reconciliation_entrypoint`.
+- The 2026-09-30 `FROZEN_EXP3_ORIGINAL_MANIFEST_ROOT_DRIFT` FAIL_CLOSED is carried verbatim as `HISTORICAL_SUPERSEDED`, because the current builder now reproduces the frozen bytes. The Labs canonical record has not been reconciled to reflect this.
+
+Source-only. This fixture adds no authentic InTr verdict, organization receipt, Master Records record, retry or authority.

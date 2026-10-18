@@ -166,7 +166,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
             ({"enum": []}, "INVALID_ENUM"),
             ({"maxLength": -1}, "INVALID_BOUND:maxLength"),
             ({"minimum": True}, "INVALID_BOUND:minimum"),
-            ({"additionalProperties": {}}, "UNSUPPORTED_ADDITIONAL_PROPERTIES"),
+            ({"additionalProperties": 1}, "UNSUPPORTED_ADDITIONAL_PROPERTIES"),
             ({"items": True}, "INVALID_SCHEMA_OR_DEPTH"),
             ({"properties": []}, "INVALID_PROPERTIES"),
         ]
@@ -330,7 +330,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
                     disagreements.append((instance, schema))
         self.assertEqual(disagreements, [])
-        self.assertIn(CONTRACT["contract_version"], ("1.1", "1.2", "1.3", "1.4", "1.5", "1.6"))
+        self.assertIn(CONTRACT["contract_version"], ("1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"))
 
     def test_contract_1_1_diagnostics_and_malformed_bounds(self):
         codes = lambda instance, schema: [e["code"] for e in self.check_case(instance, schema, False)["errors"]]
@@ -365,7 +365,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         # Contract 1.6 admits root $defs with a local $ref; nested $defs stay unsupported.
         self.assertEqual(codes({"$schema": uri, "$ref": "#/$defs/a", "$defs": {"a": {}}}), [])
         self.assertEqual(codes({"properties": {"a": {"$defs": {}}}}), ["UNSUPPORTED_KEYWORD:$defs"])
-        self.assertIn(CONTRACT["contract_version"], ("1.2", "1.3", "1.4", "1.5", "1.6"))
+        self.assertIn(CONTRACT["contract_version"], ("1.2", "1.3", "1.4", "1.5", "1.6", "1.7"))
         self.assertEqual(CONTRACT["root_identity_keywords"]["$schema"], uri)
         Draft202012Validator = reference_validator(self)
         values, schemas = self._generated_corpus()
@@ -436,7 +436,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
         self.assertEqual([e["code"] for e in self.check_case(long_value, {"pattern": "^a+$"}, False)["errors"]],
                          ["PATTERN_INPUT_TOO_LONG"])
         self.check_case(5, {"pattern": "^a$"}, True)  # pattern applies to strings only
-        self.assertIn(CONTRACT["contract_version"], ("1.3", "1.4", "1.5", "1.6"))
+        self.assertIn(CONTRACT["contract_version"], ("1.3", "1.4", "1.5", "1.6", "1.7"))
 
     def test_contract_1_4_format_date_agrees_with_reference_format_checker(self):
         Draft202012Validator = reference_validator(self)
@@ -470,7 +470,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
                 schema = {"format": fmt}
                 result = check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())
                 self.assertEqual([e["code"] for e in result["errors"]], ["UNSUPPORTED_FORMAT"])
-        self.assertIn(CONTRACT["contract_version"], ("1.4", "1.5", "1.6"))
+        self.assertIn(CONTRACT["contract_version"], ("1.4", "1.5", "1.6", "1.7"))
         self.assertEqual(CONTRACT["format"]["asserted"], ["date", "date-time"])
 
 if __name__ == "__main__":
@@ -550,4 +550,117 @@ class Contract16CompositionTests(unittest.TestCase):
         self.assertFalse(result["valid"])
         self.assertIn("EVALUATION_BUDGET_EXCEEDED", {e["code"] for e in result["errors"]})
         self.assertEqual(CONTRACT["composition"]["max_evaluation_steps"], 200_000)
-        self.assertEqual(CONTRACT["contract_version"], "1.6")
+        self.assertIn(CONTRACT["contract_version"], ("1.6", "1.7"))
+
+
+class Contract17Tests(unittest.TestCase):
+    """Contract 1.7: anyOf, oneOf, not, additionalProperties subschema, min/maxProperties,
+    prefixItems (items: false only as its closing form) and the default annotation."""
+
+    @staticmethod
+    def codes(schema):
+        return [e["code"] for e in check_schema(schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())["errors"]]
+
+    @staticmethod
+    def corpus():
+        values = [None, True, 0, 1, 2, -1, 1.5, "", "a", "abc", [], [1], [1, "a"], ["a", 1], [1, "a", 2], [1, "a", None],
+                  {}, {"a": 1}, {"a": "x"}, {"b": 1}, {"a": 1, "b": "s"}, {"a": 1, "b": 2, "c": 3}]
+        leaves = [{"type": "string"}, {"type": "integer"}, {"minimum": 1}, {"maxLength": 2}, {"const": 1},
+                  {"type": "object"}, {"type": "array"}]
+        schemas = []
+        for a in leaves:
+            schemas.append({"not": a})
+            for b in leaves[:5]:
+                schemas.append({"anyOf": [a, b]})
+                schemas.append({"oneOf": [a, b]})
+            schemas.append({"oneOf": [a, {"type": "integer"}, {"minimum": 0}]})
+            schemas.append({"type": "object", "properties": {"a": {"type": "integer"}}, "additionalProperties": a})
+        for low, high in ((0, 0), (1, 2), (2, 5)):
+            schemas.append({"minProperties": low, "maxProperties": high})
+        schemas += [
+            {"prefixItems": [{"type": "integer"}, {"type": "string"}]},
+            {"prefixItems": [{"type": "integer"}, {"type": "string"}], "items": False},
+            {"prefixItems": [{"type": "integer"}], "items": {"type": "string"}},
+            {"prefixItems": [{"type": "integer"}, {"type": "string"}], "items": {"type": "integer"}, "minItems": 2},
+            {"type": "integer", "default": 3, "anyOf": [{"minimum": 2}, {"const": -1}]},
+            {"not": {"anyOf": [{"type": "string"}, {"oneOf": [{"minimum": 1}, {"type": "integer"}]}]}},
+            {"propertyNames": {"maxLength": 1}},
+            {"propertyNames": {"pattern": "^[a-b]$"}, "minProperties": 1},
+            {"contains": {"type": "string"}},
+            {"contains": {"type": "integer"}, "minContains": 2},
+            {"contains": {"type": "integer"}, "maxContains": 1},
+            {"contains": {"type": "integer"}, "minContains": 0, "maxContains": 1},
+            {"contains": {"type": "integer"}, "minContains": 0},
+        ]
+        return values, schemas
+
+    def test_corpus_agrees_with_reference_in_both_directions(self):
+        Draft202012Validator = reference_validator(self)
+        values, schemas = self.corpus()
+        self.assertGreaterEqual(len(schemas), 80)
+        disagreements = []
+        for schema in schemas:
+            digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+            self.assertEqual(check_schema(schema, digest)["errors"], [], schema)
+            for instance in values:
+                if validate(instance, schema, digest)["valid"] != Draft202012Validator(schema).is_valid(instance):
+                    disagreements.append((schema, instance))
+        self.assertEqual(disagreements, [])
+        self.assertEqual(CONTRACT["contract_version"], "1.7")
+
+    def test_error_codes(self):
+        def errors(instance, schema):
+            return [e["code"] for e in validate(instance, schema, hashlib.sha256(canonical_bytes(schema)).hexdigest())["errors"]]
+        self.assertEqual(errors("a", {"anyOf": [{"type": "integer"}, {"type": "null"}]}), ["ANYOF"])
+        self.assertEqual(errors(2, {"oneOf": [{"type": "integer"}, {"minimum": 1}]}), ["ONEOF"])
+        self.assertEqual(errors(1, {"not": {"type": "integer"}}), ["NOT"])
+        self.assertEqual(errors({}, {"minProperties": 1}), ["MINPROPERTIES"])
+        self.assertEqual(errors({"a": 1, "b": 2}, {"maxProperties": 1}), ["MAXPROPERTIES"])
+        self.assertEqual(errors([1, "a", 2], {"prefixItems": [{}, {}], "items": False}), ["ITEMS"])
+        self.assertEqual(errors({"x": "s"}, {"additionalProperties": {"type": "integer"}}), ["TYPE"])
+
+    def test_still_fail_closed(self):
+        for schema, code in (({"anyOf": []}, "INVALID_ANYOF"), ({"oneOf": {}}, "INVALID_ONEOF"),
+                             ({"prefixItems": []}, "INVALID_PREFIXITEMS"), ({"items": False}, "INVALID_SCHEMA_OR_DEPTH"),
+                             ({"items": True}, "INVALID_SCHEMA_OR_DEPTH"), ({"not": True}, "INVALID_SCHEMA_OR_DEPTH"),
+                             ({"minProperties": -1}, "INVALID_BOUND:minProperties"),
+                             ({"minContains": -1}, "INVALID_BOUND:minContains"),
+                             ({"contains": True}, "INVALID_SCHEMA_OR_DEPTH"),
+                             ({"propertyNames": {"type": "imaginary"}}, "UNSUPPORTED_TYPE"),
+                             ({"maxProperties": 1.5}, "INVALID_BOUND:maxProperties"),
+                             ({"additionalProperties": {"type": "imaginary"}}, "UNSUPPORTED_TYPE"),
+                             ({"anyOf": [{"patternProperties": {}}]}, "UNSUPPORTED_KEYWORD:patternProperties")):
+            with self.subTest(schema=schema):
+                self.assertIn(code, self.codes(schema))
+
+    def test_branch_budget_exhaustion_is_reported_not_swallowed(self):
+        defs = {"b0": {"type": "integer"}}
+        for i in range(1, 9):  # 5 branches per level, 8 levels: well past the step budget, within depth
+            ref = {"$ref": f"#/$defs/b{i-1}"}
+            defs[f"b{i}"] = {"anyOf": [ref, ref, ref, ref, {"not": ref}]}
+        schema = {"$defs": defs, "not": {"$ref": "#/$defs/b8"}}
+        digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+        self.assertEqual(check_schema(schema, digest)["errors"], [])
+        result = validate("x", schema, digest)
+        self.assertFalse(result["valid"])
+        self.assertIn("EVALUATION_BUDGET_EXCEEDED", {e["code"] for e in result["errors"]})
+        self.assertNotIn("NOT", {e["code"] for e in result["errors"]})
+
+    def test_structural_error_inside_a_branch_never_fails_open(self):
+        # A branch that cannot be evaluated (here: schema depth) must not count as "branch failed",
+        # or `not` / `else` / `anyOf` would accept the instance.
+        # Each $defs entry is shallow, so preflight admits the schema; following the 40-link
+        # $ref chain during evaluation then exceeds the depth bound inside the branch.
+        defs = {"d0": {"type": "integer"}}
+        for i in range(1, 41):
+            defs[f"d{i}"] = {"$ref": f"#/$defs/d{i-1}"}
+        deep = {"$ref": "#/$defs/d40"}
+        for branches in ({"not": deep}, {"if": deep, "else": {}}, {"anyOf": [deep, {"type": "integer"}]},
+                         {"oneOf": [deep, {"type": "string"}]}):
+            schema = dict(branches, **{"$defs": defs})
+            digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+            self.assertEqual(check_schema(schema, digest)["errors"], [])
+            with self.subTest(schema=list(branches)):
+                result = validate("x", schema, digest)
+                self.assertFalse(result["valid"])
+                self.assertIn("INVALID_SCHEMA_OR_DEPTH", {e["code"] for e in result["errors"]})
