@@ -115,6 +115,36 @@ class S4CostBenchmarkTests(unittest.TestCase):
             self.assertEqual((code, result["failure_code"], result["evidence"]["input"]),
                              (1, "INPUT_ARGUMENT_MALFORMED", "not_declared"))
 
+    def test_zero_cost_basis_and_zero_reserve_periods_are_refused(self):
+        # Remediation review D1: a zero pricing basis (zero quantities, observed "0") gave a vacuous ALLOW.
+        ctx = context()
+        ctx["quantities"] = {key: 0 for key in ctx["quantities"]}
+        with self.assertRaises(s4.Refused) as raised:
+            s4.evaluate(*bundle(execution_context=ctx, cost_observation=observation(amount="0")))
+        self.assertEqual((raised.exception.result["failure_code"], raised.exception.result["evidence"]["field"]),
+                         ("INPUT_OUT_OF_RANGE", "pricing_basis.c_pricing"))
+        # D2: zero reserve periods met the reserve requirement with no reserve.
+        with self.assertRaises(s4.Refused) as raised:
+            s4.evaluate(*bundle(economics_policy=policy(reserve_periods=0, reserve_available="0")))
+        self.assertEqual((raised.exception.result["failure_code"], raised.exception.result["evidence"]["field"]),
+                         ("INPUT_OUT_OF_RANGE", "reserve_periods"))
+
+    def test_numbers_are_plain_bounded_and_users_whole(self):
+        # Remediation review nits 1 and 3: huge magnitudes raised a bare ValueError (or ran for seconds); fractional
+        # user counts and loose string forms were accepted.
+        cases = [("conversion_rates", ["1e-5000"]), ("reserve_available", "1e5000"), ("reserve_available", "1e99999999"),
+                 ("users_per_period", "1e5000"), ("users_per_period", "0.5"), ("users_per_period", "1e-30"),
+                 ("users_per_period", " 5 "), ("users_per_period", "1_000"), ("actions_per_user_per_period", "+5"),
+                 ("paid_price_per_user_per_period", "5."), ("reserve_available", 10 ** 60)]
+        for field, value in cases:
+            with self.subTest(field=field, value=str(value)[:20]):
+                with self.assertRaises(s4.Refused) as raised:
+                    s4.evaluate(*bundle(economics_policy=policy(**{field: value})))
+                self.assertEqual(raised.exception.result["failure_code"], "INPUT_VALUE_INVALID")
+        self.assertEqual(s4.evaluate(*bundle(economics_policy=policy(users_per_period="1000",
+                                                                     actions_per_user_per_period="2.5")))["disposition"],
+                         "ALLOW")
+
     def test_text_is_exact(self):
         F = s4.Fraction
         self.assertEqual([s4._text(F(1, 3)), s4._text(F(7, 8)), s4._text(F(-1, 40)), s4._text(F(14, 100)), s4._text(F(5))],

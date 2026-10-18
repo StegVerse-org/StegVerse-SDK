@@ -117,13 +117,25 @@ def verified_inputs(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, A
     return parsed
 
 
-def _fraction(value: Any, field: str, *, upper: Fraction | None = None, positive: bool = False) -> Fraction:
-    if isinstance(value, bool) or not isinstance(value, (int, str)):
-        raise _fail("INPUT_VALUE_INVALID", f"{field} is an integer or decimal string", "write it exactly", field=field)
+_DECIMAL = re.compile(r"^-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?$")
+MAX_DIGITS, MAX_EXPONENT = 50, 30  # bounds every input so exact arithmetic and text stay small
+
+
+def _fraction(value: Any, field: str, *, upper: Fraction | None = None, positive: bool = False,
+              integer: bool = False) -> Fraction:
+    if isinstance(value, bool) or not isinstance(value, (int, str)) or (isinstance(value, str) and not _DECIMAL.match(value)):
+        raise _fail("INPUT_VALUE_INVALID", f"{field} is an integer or a plain decimal string", "write it exactly",
+                    field=field)
     try:
-        number = Fraction(Decimal(value)) if isinstance(value, str) else Fraction(value)
+        exact = Decimal(value)
     except (ArithmeticError, ValueError):
         raise _fail("INPUT_VALUE_INVALID", f"{field} parses exactly", "fix the number", field=field) from None
+    if not exact.is_finite() or len(exact.as_tuple().digits) > MAX_DIGITS or (exact and abs(exact.adjusted()) > MAX_EXPONENT):
+        raise _fail("INPUT_VALUE_INVALID", f"{field} has at most {MAX_DIGITS} digits and magnitude 1e±{MAX_EXPONENT}",
+                    "write the value at a realistic magnitude", field=field)
+    number = Fraction(exact)
+    if integer and number.denominator != 1:
+        raise _fail("INPUT_VALUE_INVALID", f"{field} is a whole number", f"declare {field} as a whole number", field=field)
     if number < 0 or (upper is not None and number > upper):
         raise _fail("INPUT_VALUE_INVALID", f"{field} is within range", "correct the value", field=field)
     if positive and number == 0:
@@ -162,10 +174,11 @@ def evaluate(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, Any]:
     if not isinstance(policy, Mapping) or policy.get("schema") != POLICY_SCHEMA:
         raise _fail("INPUT_VALUE_INVALID", f"economics_policy schema == {POLICY_SCHEMA}", "supply the economics policy",
                     input="economics_policy")
-    users = _fraction(policy.get("users_per_period"), "users_per_period", positive=True)
+    users = _fraction(policy.get("users_per_period"), "users_per_period", positive=True, integer=True)
     actions = _fraction(policy.get("actions_per_user_per_period"), "actions_per_user_per_period", positive=True)
     price = _fraction(policy.get("paid_price_per_user_per_period"), "paid_price_per_user_per_period", positive=True)
-    reserve_periods = _fraction(policy.get("reserve_periods"), "reserve_periods")
+    # Zero reserve periods would make the reserve requirement hold with no reserve at all.
+    reserve_periods = _fraction(policy.get("reserve_periods"), "reserve_periods", positive=True)
     reserve_available = _fraction(policy.get("reserve_available"), "reserve_available")
     rates = policy.get("conversion_rates")
     if not isinstance(rates, list) or not rates:
@@ -181,11 +194,14 @@ def evaluate(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, Any]:
         unit_cost = None
     else:
         unit_cost = Fraction(Decimal(basis["c_pricing"]))
+        if unit_cost == 0:
+            # A zero cost basis makes sensitivity and reserve hold vacuously; it is not an operating cost.
+            raise _fail("INPUT_OUT_OF_RANGE", "pricing_basis.c_pricing > 0",
+                        "supply cost inputs whose pricing basis is a positive operating cost", field="pricing_basis.c_pricing")
     sensitivity, breakeven = [], None
     if unit_cost is not None:
         period_cost = users * actions * unit_cost
-        if users and price:
-            breakeven = period_cost / (users * price)
+        breakeven = period_cost / (users * price)  # users and price are > 0 (refused above otherwise)
         for conversion in conversions:
             revenue = users * conversion * price
             sensitivity.append({"conversion_rate": _text(conversion), "revenue": _text(revenue),
