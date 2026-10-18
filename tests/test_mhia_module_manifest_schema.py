@@ -12,7 +12,12 @@ from tests.reference_oracle import ValidationError
 # Frozen JSON Schema 2020-12 verdicts (tests/reference_oracle.py). The module manifest's
 # capability-id pattern quantifies a group, which the SDK validator contract excludes, so
 # these contracts are checked against the recorded reference rather than the SDK validator.
-Draft202012Validator = reference_oracle.reference_validator(pytest.fail, pytest.skip)
+
+
+def _reference():
+    """Resolve the frozen reference inside each test, so an unusable fixture is an explicit
+    failure (reference required) or skip of that test, never a collection-time accident."""
+    return reference_oracle.reference_validator(pytest.fail, pytest.skip)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,8 +38,8 @@ def _load(path: Path):
 
 def _validate(schema_path: Path, example_path: Path):
     schema = _load(schema_path)
-    Draft202012Validator.check_schema(schema)
-    Draft202012Validator(schema).validate(_load(example_path))
+    _reference().check_schema(schema)
+    _reference()(schema).validate(_load(example_path))
     return schema
 
 
@@ -56,21 +61,21 @@ def test_module_authority_boundary_fails_closed(field, value):
     packet = deepcopy(_load(MODULE_EXAMPLE))
     packet["authority_boundary"][field] = value
     with pytest.raises(ValidationError):
-        Draft202012Validator(_load(MODULE_SCHEMA)).validate(packet)
+        _reference()(_load(MODULE_SCHEMA)).validate(packet)
 
 
 def test_capability_id_requires_machine_readable_namespace():
     packet = deepcopy(_load(MODULE_EXAMPLE))
     packet["capabilities"][0]["id"] = "not a capability id"
     with pytest.raises(ValidationError):
-        Draft202012Validator(_load(MODULE_SCHEMA)).validate(packet)
+        _reference()(_load(MODULE_SCHEMA)).validate(packet)
 
 
 def test_module_provenance_is_required():
     packet = deepcopy(_load(MODULE_EXAMPLE))
     del packet["module"]["provenance"]
     with pytest.raises(ValidationError):
-        Draft202012Validator(_load(MODULE_SCHEMA)).validate(packet)
+        _reference()(_load(MODULE_SCHEMA)).validate(packet)
 
 
 @pytest.mark.parametrize(
@@ -92,11 +97,11 @@ def test_electrical_contract_fails_closed(section, field, value):
     packet = deepcopy(_load(ELECTRICAL_EXAMPLE))
     packet[section][field] = value
     with pytest.raises(ValidationError):
-        Draft202012Validator(_load(ELECTRICAL_SCHEMA)).validate(packet)
+        _reference()(_load(ELECTRICAL_SCHEMA)).validate(packet)
 
 
 def test_mechanical_profile_requires_user_serviceability_and_cycles():
     packet = deepcopy(_load(MECH_EXAMPLE))
     packet["serviceability"]["cycle_target"] = 50
     with pytest.raises(ValidationError):
-        Draft202012Validator(_load(MECH_SCHEMA)).validate(packet)
+        _reference()(_load(MECH_SCHEMA)).validate(packet)

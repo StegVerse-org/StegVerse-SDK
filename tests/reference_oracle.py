@@ -46,8 +46,29 @@ class FormatChecker:
     """Marker: the reference asserts format (recorded under formats=True)."""
 
 
+GENERATOR = "scripts/generate_structural_validator_reference_fixtures.py"
+OWNING_GOAL = "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001"
+
+
+def refusal(failure_code: str, failed_predicate: str, detail: str) -> dict:
+    """Six-field FAIL_CLOSED record for every way the frozen reference cannot answer."""
+    return {
+        "disposition": "FAIL_CLOSED",
+        "failure_code": failure_code,
+        "failed_predicate": failed_predicate,
+        "required_evidence_or_repair": f"{detail}; regenerate the verdicts with {GENERATOR} and commit the fixture",
+        "retry_entrypoint": GENERATOR,
+        "owning_existing_goal": OWNING_GOAL,
+        "next_attempt": "rerun the tests after the regenerated fixture and its pinned digest are committed",
+    }
+
+
 class ReferenceFixtureMiss(AssertionError):
-    pass
+    """Raised with a six-field FAIL_CLOSED record (also available as .disposition)."""
+
+    def __init__(self, failure_code: str, failed_predicate: str, detail: str):
+        self.disposition = refusal(failure_code, failed_predicate, detail)
+        super().__init__(json.dumps(self.disposition, sort_keys=True))
 
 
 def _load(path: Path = FIXTURE):
@@ -56,7 +77,8 @@ def _load(path: Path = FIXTURE):
     raw = path.read_bytes()
     data = json.loads(raw)
     if data.get("schema") != FIXTURE_SCHEMA:
-        raise ReferenceFixtureMiss(f"{path} is not a {FIXTURE_SCHEMA} document")
+        raise ReferenceFixtureMiss("REFERENCE_FIXTURE_SCHEMA_MISMATCH", "REFERENCE_FIXTURE_IS_VERDICT_DOCUMENT",
+                                   f"{path} is not a {FIXTURE_SCHEMA} document")
     return hashlib.sha256(raw).hexdigest(), data
 
 
@@ -67,19 +89,21 @@ def fixture_status(path: Path = FIXTURE, require: bool = REQUIRE_REFERENCE) -> t
     """(usable, reason). When required, the digest must equal PINNED_FIXTURE_SHA256."""
     loaded = _LOADED if path == FIXTURE else _load(path)
     if loaded is None:
-        return False, f"reference fixture missing: {path}"
+        return False, json.dumps(refusal("REFERENCE_FIXTURE_MISSING", "REFERENCE_FIXTURE_PRESENT",
+                                         f"reference fixture missing: {path}"), sort_keys=True)
     digest, _ = loaded
     if require and digest != PINNED_FIXTURE_SHA256:
-        return False, f"reference fixture digest {digest} != pinned {PINNED_FIXTURE_SHA256}"
+        return False, json.dumps(refusal("REFERENCE_FIXTURE_DIGEST_MISMATCH", "REFERENCE_FIXTURE_MATCHES_PINNED_DIGEST",
+                                         f"reference fixture digest {digest} != pinned {PINNED_FIXTURE_SHA256}"),
+                                 sort_keys=True)
     return True, digest
 
 
 def _answer(table: str, key: str, what: str):
     verdicts = _LOADED[1][table]
     if key not in verdicts:
-        raise ReferenceFixtureMiss(
-            f"REFERENCE_FIXTURE_MISS: {what} is not in {FIXTURE.name}; "
-            "run scripts/generate_structural_validator_reference_fixtures.py")
+        raise ReferenceFixtureMiss("REFERENCE_FIXTURE_MISS", "EVERY_REFERENCE_QUERY_IS_RECORDED",
+                                   f"{what} is not in {FIXTURE.name}")
     return verdicts[key]
 
 

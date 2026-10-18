@@ -24,6 +24,27 @@ def test_a_query_the_fixture_does_not_hold_fails_closed():
         reference_oracle.Draft202012Validator.check_schema({"x-never-recorded": True})
 
 
+SIX_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair", "retry_entrypoint",
+              "owning_existing_goal", "next_attempt")
+
+
+def test_every_refusal_carries_the_six_fields(tmp_path):
+    with pytest.raises(reference_oracle.ReferenceFixtureMiss) as miss:
+        reference_oracle.Draft202012Validator({"x-never-recorded": 1}).is_valid(0)
+    records = [miss.value.disposition, json.loads(str(miss.value))]
+    for path in (tmp_path / "absent.json",):
+        records.append(json.loads(reference_oracle.fixture_status(path, require=True)[1]))
+    edited = tmp_path / "edited.json"
+    edited.write_bytes(reference_oracle.FIXTURE.read_bytes().replace(b'"NONE"', b'"NONE" ', 1))
+    records.append(json.loads(reference_oracle.fixture_status(edited, require=True)[1]))
+    codes = [r["failure_code"] for r in records]
+    assert codes == ["REFERENCE_FIXTURE_MISS", "REFERENCE_FIXTURE_MISS", "REFERENCE_FIXTURE_MISSING",
+                     "REFERENCE_FIXTURE_DIGEST_MISMATCH"]
+    for record in records:
+        assert record["disposition"] == "FAIL_CLOSED"
+        assert all(isinstance(record[f], str) and record[f] for f in SIX_FIELDS), record
+
+
 def test_recorded_verdicts_replay_including_rejections():
     # Both directions are recorded: a reference rejection must replay as a rejection.
     rejects = reference_oracle.Draft202012Validator({"type": "array", "items": {"type": "integer"}})
