@@ -1,0 +1,34 @@
+name: Six-field disposition check
+
+# Every pull request and every push to main, with no path filter, so the job
+# can be declared a required check: a refusal (FAIL_CLOSED, DENY, BLOCK,
+# BLOCKED, REFUSED) anywhere in JSON results or workflow run blocks must carry
+# the six fields. Standard library only (scripts/check_six_field_dispositions.py,
+# docs/SIX_FIELD_DISPOSITION_CHECK.md); no package install, no credential.
+# Legacy refusals that cannot change are exempted explicitly in
+# .six-field-exemptions.json, never silently. The job exits 0 only on ALLOW.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  six-field-dispositions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Check every non-ALLOW result carries the six fields
+        run: |
+          set -eu
+          python3 -I -S scripts/check_six_field_dispositions.py . \
+            --allow-legacy-file .six-field-exemptions.json \
+            --output six-field-report.json
+          python3 -I -S -c 'import json; r = json.load(open("six-field-report.json")); print("disposition", r["disposition"], "scanned", r["scanned"]["json"], r["scanned"]["workflows"], "findings", len(r["findings"]), "exempted", len(r["exempted"]))'

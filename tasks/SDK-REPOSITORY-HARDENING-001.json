@@ -47,5 +47,27 @@
     "environment": "pypi",
     "static_token_required": false,
     "new_mapping_required": false
-  }
+  },
+  "required_checks_declared": [
+    {
+      "check_run_name": "six-field-dispositions",
+      "workflow": ".github/workflows/six-field-disposition-check.yml",
+      "events": [
+        "pull_request",
+        "push:main"
+      ],
+      "path_filter": null,
+      "fails_closed": true,
+      "declared_by": "Lane C G-8 draft (Authoring-Session: grok-lane-c)",
+      "enforcement_state": "DECLARED_NOT_ENFORCED",
+      "enforcement_blocker": {
+        "failure_code": "REQUIRED_CHECK_ENFORCEMENT_REQUIRES_RULESET_TRANSITION",
+        "failed_predicate": "MAIN_RULESET_REQUIRES_SIX_FIELD_DISPOSITIONS_CHECK",
+        "required_evidence_or_repair": "a main ruleset requiring check six-field-dispositions, applied through the existing TVC ruleset transition (TVC#522 ruleset lease issuer / TVC#518 apply-organization-ruleset); observed 2026-10-18: main not protected, 0 repository rulesets",
+        "retry_entrypoint": "TVC ruleset lease issuer (StegVerse-Labs/TVC#522) then this declaration",
+        "owning_existing_goal": "SDK-REPOSITORY-HARDENING-001",
+        "next_attempt": "after the check has run green on main, request the ruleset lease for StegVerse-org/StegVerse-SDK main naming check six-field-dispositions"
+      }
+    }
+  ]
 }

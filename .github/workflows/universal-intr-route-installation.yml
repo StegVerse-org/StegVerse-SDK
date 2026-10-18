@@ -43,7 +43,7 @@ jobs:
           set -eu
           test -z "${GITHUB_TOKEN:-}"
           test -z "${GH_TOKEN:-}"
-          case "$SDK_REF" in *[!0-9a-f]*|'') echo "FAIL_CLOSED: sdk_ref is not a commit"; exit 2;; esac
+          case "$SDK_REF" in *[!0-9a-f]*|'') echo "FAIL_CLOSED failure_code=SDK_REF_NOT_A_COMMIT failed_predicate=SDK_REF_IS_HEX_COMMIT required_evidence_or_repair=pass_sdk_ref_as_the_StegVerse-SDK_commit_hex retry_entrypoint=.github/workflows/universal-intr-route-installation.yml owning_existing_goal=INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001 next_attempt=rerun_with_sdk_ref_pinned_to_a_commit"; exit 2;; esac
           mkdir -p /tmp/caller /tmp/sdk
           curl -fsSL "https://github.com/${CALLER_REPO}/archive/${CALLER_SHA}.tar.gz" | tar -xz -C /tmp/caller --strip-components=1
           curl -fsSL "https://github.com/StegVerse-org/StegVerse-SDK/archive/${SDK_REF}.tar.gz" | tar -xz -C /tmp/sdk --strip-components=1

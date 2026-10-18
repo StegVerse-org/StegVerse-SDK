@@ -1,0 +1,29 @@
+{
+  "entries": [
+    {
+      "path": "evidence/sdk-484-t6/*.json",
+      "reason": "recorded SDK#484 T6 sandbox-ingress attempt evidence (historical, observed outputs); editing would falsify the record",
+      "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001"
+    },
+    {
+      "path": "evidence/sdk-capability-assessment/execution-evidence-2026-09-30.json",
+      "reason": "dated 2026-09-30 execution evidence record (historical); the six fields postdate it",
+      "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001"
+    },
+    {
+      "path": "evidence/validator-source-provenance-candidate-2026-10-13.json",
+      "reason": "dated 2026-10-13 validator provenance candidate record (historical)",
+      "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001"
+    },
+    {
+      "path": "examples/governed_llm_demo/admittedcode/admissibility_receipt.deny.json",
+      "reason": "generated AdmittedCode DENY receipt fixture; tests/test_admittedcode_receipt_fixture.py verifies it independently by hash, and stegverse/sdk_surfaces.py serves it, so its bytes cannot change",
+      "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001"
+    },
+    {
+      "path": "stegverse/demo_data/admittedcode_deny.json",
+      "reason": "packaged AdmittedCode DENY demo receipt (stegverse/cli.py demo case 'deny'); receipt bytes are hash-bound",
+      "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001"
+    }
+  ]
+}
