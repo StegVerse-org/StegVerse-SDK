@@ -108,6 +108,9 @@ NON_ALLOW_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_re
                     "retry_entrypoint", "owning_existing_goal", "next_attempt")
 LANE_WORKFLOW = ".github/workflows/intr-destination-hop-lane.yml"
 NOT_SENT_FINDING = "CORRELATED_RECEIPTS_NOT_IN_THE_READ_LEDGERS"
+# LEGACY receipts are reported, never live-mesh evidence: a pair correlated
+# only by LEGACY receipts is this finding, with the six fields, and is sent again.
+LEGACY_ONLY_FINDING = "CORRELATED_RECEIPTS_ARE_LEGACY_ONLY"
 # Reported, not failing, when every receipt it names is LEGACY.
 LEGACY_REPORTABLE = (
     "ORPHAN_ORGANIZATION_RECEIPT",
@@ -908,7 +911,9 @@ def integrity_report(repo: Mapping[str, Any], org: Mapping[str, Any], *,
         return cutoff is not None and isinstance(stamp, int) and stamp < cutoff
 
     def note(finding: str, level: str, digests: Sequence[Any]) -> None:
-        if digests and all(legacy(level, digest) for digest in digests):
+        # Only the declared LEGACY_REPORTABLE findings can be reported instead
+        # of failing; anything else fails even on a LEGACY receipt.
+        if finding in LEGACY_REPORTABLE and digests and all(legacy(level, digest) for digest in digests):
             reported.append({"finding": finding, "classification": LEGACY, "level": level,
                              "receipt_sha256": list(digests)})
         else:
@@ -969,6 +974,10 @@ def integrity_report(repo: Mapping[str, Any], org: Mapping[str, Any], *,
         "reported": reported,
         "writer_introduction": dict(writer_introduction) if writer_introduction else None,
         "legacy_receipt_count": legacy_count,
+        "legacy_receipts": {
+            level: sorted(receipt["receipt_sha256"] for receipt in chain
+                          if isinstance(receipt.get("receipt_sha256"), str) and legacy(level, receipt["receipt_sha256"]))
+            for level, chain in (("repository", repo_chain), ("organization", org_chain))},
         "receipt_count": len(repo_chain) + len(org_chain),
     }
 
@@ -1174,6 +1183,13 @@ def hop_outcome_fields(status: str, findings: Sequence[str], unreachable: Mappin
             "read again once the read credential reaches the organization; the hop stays in the matrix")
     if status == "FAIL":
         listed = list(findings) or ["HOP_RECEIPT_FINDINGS"]
+        if listed == [LEGACY_ONLY_FINDING]:
+            return non_allow_fields(
+                "INTR_HOP_CORRELATED_ONLY_BY_LEGACY_RECEIPTS", "LIVE_HOP_CORRELATION_USES_NON_LEGACY_RECEIPTS",
+                "an emission, arrival and closure for this ordered pair appended by the supplied-epoch writer "
+                "(after its introduction); receipts added before it are LEGACY, reported and never live-mesh evidence",
+                LANE_WORKFLOW + " mode=orchestrate",
+                "orchestrate dispatches a fresh send at a supplied hb_epoch >= 32; the next readback evaluates it")
         if listed == [NOT_SENT_FINDING]:
             return non_allow_fields(
                 "INTR_HOP_NOT_SENT_IN_READ_LEDGERS", NOT_SENT_FINDING,
@@ -1190,12 +1206,21 @@ def hop_outcome_fields(status: str, findings: Sequence[str], unreachable: Mappin
     return {}
 
 
-def pair_ledger_state(sender_repo: Sequence[Mapping[str, Any]], destination_organization: str, address: str) -> str:
+def _without_legacy(chain: Sequence[Mapping[str, Any]], legacy: Iterable[str] = ()) -> list[Mapping[str, Any]]:
+    excluded = set(legacy)
+    return [receipt for receipt in chain if receipt.get("receipt_sha256") not in excluded]
+
+
+def pair_ledger_state(sender_repo: Sequence[Mapping[str, Any]], destination_organization: str, address: str,
+                      legacy: Iterable[str] = ()) -> str:
     """``OPEN``, ``CLOSED``, ``REFUSED`` or ``UNSENT`` for one ordered pair, read off the sender's chain.
 
     ``OPEN`` is an emission to the destination's address whose packet has no
     closure or refused closure yet. It is a state of the hop, not a blocker.
+    Receipts named in ``legacy`` (LEGACY repository receipt digests) are not
+    read: a pair whose only receipts are LEGACY is ``UNSENT``.
     """
+    sender_repo = _without_legacy(sender_repo, legacy)
     terminal: dict[str, str] = {}
     for receipt in sender_repo:
         klass = receipt.get("transition_class")
@@ -1414,6 +1439,7 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
     unreachable: dict[str, str] = {}
     integrity: dict[str, list[str]] = {}
     ledger_integrity: dict[str, dict[str, Any]] = {}
+    legacy_by_slug: dict[str, list[str]] = {}
     owned_cache: tempfile.TemporaryDirectory | None = None
     try:
         for peer in peers:
@@ -1465,7 +1491,14 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
                 introduced = writer_introduction(peer) if writer_introduction else None
                 detail = integrity_report(repo, org, writer_introduction=introduced)
                 integrity[slug] = detail["findings"]
+                legacy_by_slug[slug] = list(detail["legacy_receipts"]["repository"])
                 ledger_integrity[slug] = {"organization": peer["organization"], **detail}
+                if detail["findings"]:
+                    ledger_integrity[slug].update(non_allow_fields(
+                        "INTR_HOP_LEDGER_INTEGRITY_FINDINGS", ",".join(detail["findings"]),
+                        "repository and organization ledger chains that clear: " + ", ".join(detail["findings"]),
+                        LANE_WORKFLOW + " mode=live",
+                        "repair the named receipts or ledger writer, then read again; LEGACY receipts are reported, not failing"))
     finally:
         if owned_cache is not None:
             owned_cache.cleanup()
@@ -1494,10 +1527,23 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
             public["ledger_state"] = "UNREACHABLE"
             rendered.append(public)
             continue
-        state = pair_ledger_state(sender_repo.get("chain") or [], dest["organization"], dest["address"])
+        sender_legacy = legacy_by_slug.get(sender["slug"]) or []
+        dest_legacy = legacy_by_slug.get(dest["slug"]) or []
+        state = pair_ledger_state(sender_repo.get("chain") or [], dest["organization"], dest["address"],
+                                  legacy=sender_legacy)
         findings = list(integrity[sender["slug"]]) + list(integrity[dest["slug"]])
+        # LEGACY-only correlation: only receipts the supplied-epoch writer
+        # appended correlate a live hop. LEGACY ones are reported, not evidence.
         matched, correlation = _correlated_live(
-            sender_repo.get("chain") or [], dest_repo.get("chain") or [], dest["organization"], dest["address"])
+            _without_legacy(sender_repo.get("chain") or [], sender_legacy),
+            _without_legacy(dest_repo.get("chain") or [], dest_legacy), dest["organization"], dest["address"])
+        legacy_matched: list[str] = []
+        if sender_legacy or dest_legacy:
+            every, _ = _correlated_live(
+                sender_repo.get("chain") or [], dest_repo.get("chain") or [], dest["organization"], dest["address"])
+            legacy_matched = [identifier for identifier in every if identifier not in matched]
+        if not matched and legacy_matched and correlation == [NOT_SENT_FINDING] and state != "OPEN":
+            correlation = [LEGACY_ONLY_FINDING]
         findings.extend(correlation)
         # Organization receipts must still hold each correlated repository receipt.
         for identifier in matched:
@@ -1519,6 +1565,7 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
                              sender_ledger=sender_org, destination_ledger=dest_org, mode="live")
         public["ledger_state"] = state
         public["communication_ids_read_back"] = matched
+        public["legacy_communication_ids_reported"] = legacy_matched
         rendered.append(public)
     report = _report(peers, rendered, mode="live")
     report["ledger_integrity"] = ledger_integrity
@@ -1548,41 +1595,107 @@ def hop_waves(peers: Sequence[Mapping[str, Any]]) -> list[list[tuple[Mapping[str
     return [wave for wave in waves if wave]
 
 
-HB_EPOCH_FAILURE_CODE = "DISPATCH_HB_EPOCH_INVALID"
-HB_EPOCH_PREDICATE = "HB_EPOCH_IS_SUPPLIED_AS_A_NON_NEGATIVE_INTEGER"
+# The shared supplied-epoch rule (SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH),
+# copied byte-for-byte from StegVerse-Labs/.github org-kernel/kernel.py
+# (StegVerse-org/.github#185, StegVerse-Labs/.github#3212/#3213). The SDK has
+# no dependency on org-kernel, so the function is vendored, not imported.
+HB_EPOCH_NOT_SUPPLIED = "HB_EPOCH_NOT_SUPPLIED"
+HB_EPOCH_INVALID = "HB_EPOCH_INVALID"
+HB_EPOCH_PREDICATE = "SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH"
+HB32_ANCHOR = 32
 
 
-def parse_hb_epoch(value: Any) -> int | None:
-    """``hb_epoch`` in the form the org hop workflow and the ledger writer take it.
+def supplied_epoch_failure(hb_epoch: Any, reference: Any = None) -> tuple[str, str] | None:
+    """The shared supplied-epoch rule (SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH).
 
-    Both take a ``workflow_dispatch`` string input named ``hb_epoch`` and accept
-    ASCII decimal digits only (a non-negative integer). A non-negative ``int``
-    is the same value. Anything else (absent, blank, signed, spaced, ``1e3``,
-    ``1_000``, non-ASCII digits, bool) is malformed and returns ``None``.
+    Byte-identical in StegVerse-org/.github#185 and StegVerse-Labs/.github#3212
+    and #3213. `hb_epoch` absent (None) is HB_EPOCH_NOT_SUPPLIED. Otherwise it
+    must be ASCII [0-9]+ only -- an int is read as its decimal text; a bool, a
+    float or anything coerced ('+33', ' 33', '3_3', '33.0') is refused -- with
+    integer value >= 32 (the HB32 anchor). `reference`, the carrier frame's
+    heartbeat reference when there is one, must be an object, and a
+    `derived_from_clock` it carries must be exactly false. Any failure is
+    HB_EPOCH_INVALID. Returns (failure_code, detail), or None when the epoch is
+    supplied. No clock is read.
     """
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int):
-        return value if value >= 0 else None
-    if isinstance(value, str) and value and value.isascii() and value.isdigit():
-        return int(value)
+    if reference is not None and not isinstance(reference, dict):
+        return "HB_EPOCH_INVALID", "the carrier's heartbeat reference is not an object"
+    if hb_epoch is None:
+        return "HB_EPOCH_NOT_SUPPLIED", "no hb_epoch was supplied and no clock is read"
+    if isinstance(hb_epoch, bool):
+        text = None
+    elif isinstance(hb_epoch, int):
+        text = str(hb_epoch)
+    elif isinstance(hb_epoch, str):
+        text = hb_epoch
+    else:
+        text = None
+    if text is None or not text.isascii() or not text.isdigit():
+        return "HB_EPOCH_INVALID", "hb_epoch " + repr(hb_epoch) + " is not ASCII [0-9]+"
+    if int(text) < 32:
+        return "HB_EPOCH_INVALID", "hb_epoch " + text + " is below the HB32 anchor (32)"
+    if reference is not None and "derived_from_clock" in reference \
+            and reference["derived_from_clock"] is not False:
+        return "HB_EPOCH_INVALID", ("the carrier's derived_from_clock is not exactly false; "
+                                    "a clock-derived epoch is not a supplied one")
     return None
 
 
+def parse_hb_epoch(value: Any) -> int | None:
+    """``hb_epoch`` as the shared rule accepts it, or ``None``.
+
+    The org hop workflow and the ledger writer take a ``workflow_dispatch``
+    string input named ``hb_epoch``. ``supplied_epoch_failure`` accepts ASCII
+    ``[0-9]+`` (an ``int`` is read as its decimal text) with value at least 32,
+    the HB32 anchor. Anything else (absent, blank, signed, spaced, ``1e3``,
+    ``1_000``, non-ASCII digits, bool, float, below 32) returns ``None``.
+    """
+    if supplied_epoch_failure(value) is not None:
+        return None
+    return int(str(value))
+
+
+def _hb_epoch_finding(value: Any, failure_code: str) -> str:
+    if failure_code == HB_EPOCH_NOT_SUPPLIED:
+        return "MISSING"
+    text = str(value) if isinstance(value, (int, str)) and not isinstance(value, bool) else None
+    if text is not None and text.isascii() and text.isdigit():
+        return "BELOW_HB32_ANCHOR"
+    return "MALFORMED"
+
+
 def hb_epoch_fail_closed(value: Any) -> dict[str, Any]:
-    """The orchestrate transition when ``hb_epoch`` is missing or malformed. Nothing is dispatched."""
-    missing = value is None or (isinstance(value, str) and not value.strip())
-    finding = "MISSING" if missing else "MALFORMED"
+    """The orchestrate transition when ``hb_epoch`` fails the shared rule. Nothing is read or dispatched."""
+    failure = supplied_epoch_failure(value) or (HB_EPOCH_INVALID, "hb_epoch " + repr(value) + " was refused")
+    code, detail = failure
+    finding = _hb_epoch_finding(value, code)
     return {
-        "disposition": "FAIL_CLOSED", "hb_epoch_finding": finding,
+        "disposition": "FAIL_CLOSED", "hb_epoch_finding": finding, "hb_epoch_detail": detail,
         "supplied_hb_epoch": None if value is None else repr(value),
         **non_allow_fields(
-            HB_EPOCH_FAILURE_CODE, HB_EPOCH_PREDICATE,
-            "a supplied hb_epoch of ASCII decimal digits (a non-negative integer); the org hop workflow and "
-            "the organization-ledger writer take it as the workflow_dispatch input hb_epoch (hb_epoch was "
-            + finding.lower() + ")",
+            code, HB_EPOCH_PREDICATE,
+            detail + "; supply hb_epoch as ASCII [0-9]+ with value >= 32 (the HB32 anchor), not derived "
+            "from a clock; the org hop workflow and the organization-ledger writer take it as the "
+            "workflow_dispatch input hb_epoch",
             LANE_WORKFLOW + " mode=orchestrate",
-            "re-dispatch mode=orchestrate with a supplied hb_epoch"),
+            "re-dispatch mode=orchestrate with a supplied hb_epoch >= 32"),
+        "derived_from_clock": False,
+        "consequence_committed": False, "dispatched": 0, "hops": [], "outcomes": {},
+        "hb_epoch": None, "time_constraint": TIME_CONSTRAINT, "receiver_wait": False,
+        "always_on_receiver_required": False,
+    }
+
+
+def hop_credential_fail_closed() -> dict[str, Any]:
+    """The orchestrate transition when no dispatch credential is present. Nothing is dispatched."""
+    return {
+        "disposition": "FAIL_CLOSED",
+        **non_allow_fields(
+            "HOP_DISPATCH_CREDENTIAL_ABSENT", "HOP_DISPATCH_CREDENTIAL_IS_PRESENT",
+            "a credential that dispatches " + HOP_WORKFLOW + " send in each sender organization; TV/TVC "
+            "issuance is the pending owner decision on StegVerse-Labs/.github#2897",
+            LANE_WORKFLOW + " mode=orchestrate",
+            "dispatch mode=orchestrate once the credential decision lands"),
         "consequence_committed": False, "dispatched": 0, "hops": [], "outcomes": {},
         "hb_epoch": None, "time_constraint": TIME_CONSTRAINT, "receiver_wait": False,
         "always_on_receiver_required": False,
@@ -1630,8 +1743,10 @@ def run_orchestrate(peers: Sequence[Mapping[str, Any]], *, hb_epoch: int, token:
     then. A peer whose advertisement was not read is not dispatched; its hops
     are ``UNREACHABLE``.
 
-    A missing or malformed ``hb_epoch`` resolves the whole transition to
-    ``FAIL_CLOSED`` with the six fields, and nothing is dispatched.
+    An ``hb_epoch`` the shared rule refuses (missing, not ASCII ``[0-9]+``, or
+    below the HB32 anchor) resolves the whole transition to ``FAIL_CLOSED``
+    with the six fields, and nothing is dispatched. So does a missing dispatch
+    credential.
     """
     epoch = parse_hb_epoch(hb_epoch)
     if epoch is None:
@@ -1639,7 +1754,7 @@ def run_orchestrate(peers: Sequence[Mapping[str, Any]], *, hb_epoch: int, token:
     hb_epoch = epoch
     token = _blank_to_none(token)
     if token is None:
-        raise ValueError(FEDERATION_HOP_TOKEN_ENV + " is required to dispatch hops")
+        return hop_credential_fail_closed()
     send = dispatcher or (lambda sender, dest, **kw: dispatch_send_hop(sender, dest, token=token, **kw))
     states = dict(ledger_state or {})
     readable = [peer for peer in peers if peer.get("advertisement_readable", True) is not False]
@@ -1975,13 +2090,40 @@ def main(argv: Sequence[str] | None = None) -> int:
                              "cannot be read stays in the hop matrix.")
     parser.add_argument("--hb-epoch", default=None,
                         help="orchestrate: supplied epoch of this transition's send dispatches "
-                             "(ASCII decimal digits, a non-negative integer)")
+                             "(ASCII [0-9]+, value >= 32, the HB32 anchor)")
     parser.add_argument("--writer-introduced", action="append", default=[],
                         help="ORGANIZATION=<unix seconds or ISO 8601>: receipts added before it are LEGACY. "
                              "Overrides the default-branch history lookup for that organization.")
     parser.add_argument("--no-writer-lookup", action="store_true",
                         help="live: do not look up writer introductions; nothing is LEGACY unless overridden")
     args = parser.parse_args(argv)
+    try:
+        return _run_main(args)
+    except ValueError as exc:
+        # An input the lane refuses (two peers on one address, no merged
+        # reference checkout, an unreadable --writer-introduced) is FAIL_CLOSED
+        # with the six fields, not a bare traceback. Nothing is dispatched.
+        refusal = lane_input_fail_closed(args.mode, str(exc))
+        args.out_dir.mkdir(parents=True, exist_ok=True)
+        (args.out_dir / "intr-destination-hop-lane.json").write_text(
+            json.dumps({"mode": args.mode, "refusal": refusal}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(json.dumps(refusal, sort_keys=True))
+        return 1
+
+
+def lane_input_fail_closed(mode: str, reason: str) -> dict[str, Any]:
+    """A lane input that cannot be resolved. Nothing is read further or dispatched."""
+    return {
+        "disposition": "FAIL_CLOSED", "mode": mode, "consequence_committed": False, "dispatched": 0,
+        **non_allow_fields(
+            "INTR_HOP_LANE_INPUT_REFUSED", "LANE_INPUTS_RESOLVE_ONE_ADDRESS_PER_PEER_AND_A_MERGED_REFERENCE",
+            "repair the refused input: " + reason[:800],
+            LANE_WORKFLOW + " mode=" + mode,
+            "re-run mode=" + mode + " once the named input is repaired"),
+    }
+
+
+def _run_main(args: argparse.Namespace) -> int:
     overrides = parse_writer_overrides(args.writer_introduced)
     local_peers = discover_peers(_roots_from_env_and_args(args))
     if args.mode == "fabricated":
@@ -2005,7 +2147,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(json.dumps(refusal, sort_keys=True))
                 return 1
             if hop_token is None:
-                parser.error("--mode orchestrate needs " + FEDERATION_HOP_TOKEN_ENV)
+                refusal = hop_credential_fail_closed()
+                args.out_dir.mkdir(parents=True, exist_ok=True)
+                (args.out_dir / "intr-destination-hop-lane.json").write_text(
+                    json.dumps({"mode": "orchestrate", "orchestration": refusal}, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8")
+                print(json.dumps(refusal, sort_keys=True))
+                return 1
         peers, silent = discover_peers_from_github(names, token=token)
         by_slug = {peer["slug"]: peer for peer in local_peers}
         for peer in peers:
@@ -2047,7 +2195,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(render_markdown(report))
     if args.mode == "orchestrate":
         outcomes = (report.get("orchestration") or {}).get("outcomes") or {}
-        failing = [hop for hop in report["hops"] if hop["status"] == "FAIL" and hop["findings"] != [NOT_SENT_FINDING]]
+        failing = [hop for hop in report["hops"] if hop["status"] == "FAIL"
+                   and hop["findings"] not in ([NOT_SENT_FINDING], [LEGACY_ONLY_FINDING])]
         return 1 if outcomes.get("NOT_DISPATCHED") or failing else 0
     if args.mode == "live":
         return 1 if report["counts"].get("FAIL") else 0

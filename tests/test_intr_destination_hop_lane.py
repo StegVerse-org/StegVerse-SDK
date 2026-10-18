@@ -10,7 +10,9 @@ from __future__ import annotations
 import json
 import os
 import re
+import hashlib
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -50,6 +52,12 @@ _GRANT = re.compile(r"\bgrants?\b", re.IGNORECASE)
 _SIX = ("failure_code", "failed_predicate", "required_evidence_or_repair",
         "retry_entrypoint", "owning_existing_goal", "next_attempt")
 _GOAL = "StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody"
+
+
+def _workflow_epoch_gate(job: str) -> str:
+    """The orchestrate job's own python hb_epoch gate, read out of the workflow file."""
+    body = job.split("python - <<'PY'\n", 1)[1].split("\n          PY\n", 1)[0]
+    return "\n".join(line[10:] for line in body.splitlines())
 
 
 def _assert_six(test, item):
@@ -745,7 +753,7 @@ class OrchestrationTests(unittest.TestCase):
         states = {(a, b): "CLOSED", (b, a): "REFUSED", (c, d): "OPEN"}
         sent = []
         result = lane.run_orchestrate(
-            peers, hb_epoch=7, token="t-value", ledger_state=states,
+            peers, hb_epoch=40, token="t-value", ledger_state=states,
             dispatcher=lambda s, t, **kw: (sent.append((s["slug"], t["slug"])) or True, "DISPATCHED"))
         by_pair = {(hop["sender_slug"], hop["destination_slug"]): hop for hop in result["hops"]}
         self.assertEqual(by_pair[(a, b)]["outcome"], "CLOSED_IN_READ_LEDGERS")
@@ -761,7 +769,7 @@ class OrchestrationTests(unittest.TestCase):
         # Once c -> d closes, the next transition sends from ledger state.
         states[(c, d)] = "CLOSED"
         lane.run_orchestrate(
-            peers, hb_epoch=8, token="t-value", ledger_state=states,
+            peers, hb_epoch=41, token="t-value", ledger_state=states,
             dispatcher=lambda s, t, **kw: (sent.append((s["slug"], t["slug"])) or True, "DISPATCHED"))
         self.assertEqual(len(sent), 2)
         members = [slug for pair in sent for slug in pair]
@@ -784,8 +792,11 @@ class OrchestrationTests(unittest.TestCase):
         failed = [hop for hop in result["hops"] if hop["outcome"] == "NOT_DISPATCHED"]
         self.assertTrue(all(hop["failure_code"] == "INTR_HOP_SEND_DISPATCH_DISPATCH_HTTP_404" for hop in failed))
         self.assertNotIn("TIMEOUT", json.dumps(result))
-        with self.assertRaises(ValueError):
-            lane.run_orchestrate(peers, hb_epoch=40, token=" ", dispatcher=dispatcher)
+        absent = lane.run_orchestrate(peers, hb_epoch=40, token=" ", dispatcher=dispatcher)
+        self.assertEqual(absent["disposition"], "FAIL_CLOSED")
+        self.assertEqual(absent["failure_code"], "HOP_DISPATCH_CREDENTIAL_ABSENT")
+        self.assertEqual(absent["dispatched"], 0)
+        _assert_six(self, absent)
         refused = lane.run_orchestrate(peers, hb_epoch=-1, token="t-value", dispatcher=dispatcher)
         self.assertEqual(refused["disposition"], "FAIL_CLOSED")
         _assert_six(self, refused)
@@ -823,8 +834,10 @@ class OrchestrationTests(unittest.TestCase):
 
     def _assert_hb_epoch_fail_closed(self, result, finding):
         self.assertEqual(result["disposition"], "FAIL_CLOSED")
-        self.assertEqual(result["failure_code"], "DISPATCH_HB_EPOCH_INVALID")
-        self.assertEqual(result["failed_predicate"], "HB_EPOCH_IS_SUPPLIED_AS_A_NON_NEGATIVE_INTEGER")
+        self.assertEqual(result["failure_code"],
+                         "HB_EPOCH_NOT_SUPPLIED" if finding == "MISSING" else "HB_EPOCH_INVALID")
+        self.assertEqual(result["failed_predicate"], "SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH")
+        self.assertIs(result["derived_from_clock"], False)
         self.assertEqual(result["retry_entrypoint"], ".github/workflows/intr-destination-hop-lane.yml mode=orchestrate")
         self.assertEqual(result["hb_epoch_finding"], finding)
         self.assertEqual(result["dispatched"], 0)
@@ -834,10 +847,15 @@ class OrchestrationTests(unittest.TestCase):
 
     def test_a_missing_hb_epoch_fails_closed_and_dispatches_nothing(self):
         peers = self._peers()
-        for missing in (None, "", "   "):
+        calls, dispatcher = self._no_dispatch()
+        result = lane.run_orchestrate(peers, hb_epoch=None, token="t-value", dispatcher=dispatcher)
+        self._assert_hb_epoch_fail_closed(result, "MISSING")
+        self.assertEqual(calls, [])
+        # A blank string is supplied but not ASCII [0-9]+ under the shared rule.
+        for blank in ("", "   "):
             calls, dispatcher = self._no_dispatch()
-            result = lane.run_orchestrate(peers, hb_epoch=missing, token="t-value", dispatcher=dispatcher)
-            self._assert_hb_epoch_fail_closed(result, "MISSING")
+            result = lane.run_orchestrate(peers, hb_epoch=blank, token="t-value", dispatcher=dispatcher)
+            self._assert_hb_epoch_fail_closed(result, "MALFORMED")
             self.assertEqual(calls, [])
 
     def test_a_malformed_hb_epoch_fails_closed_and_dispatches_nothing(self):
@@ -853,7 +871,9 @@ class OrchestrationTests(unittest.TestCase):
         # The org hop workflow and the organization-ledger writer (StegVerse-Labs/.github#3205)
         # take hb_epoch as a workflow_dispatch string of ASCII decimal digits.
         self.assertEqual(lane.parse_hb_epoch("40"), 40)
-        self.assertEqual(lane.parse_hb_epoch("0"), 0)
+        self.assertIsNone(lane.parse_hb_epoch("0"))
+        self.assertIsNone(lane.parse_hb_epoch("31"))
+        self.assertEqual(lane.parse_hb_epoch("32"), 32)
         self.assertEqual(lane.parse_hb_epoch(40), 40)
         posted = []
 
@@ -876,7 +896,7 @@ class OrchestrationTests(unittest.TestCase):
             self.assertTrue(body["inputs"]["communication_id"].endswith(":40"))
         # A malformed epoch handed straight to the dispatcher is not posted.
         before = len(posted)
-        for malformed in ("-1", "x", None, True):
+        for malformed in ("-1", "x", None, True, "0", "31", 31):
             ok, detail = lane.dispatch_send_hop(peers[0], peers[1], communication_id="c", hb_epoch=malformed,
                                                 token="t-value", poster=poster)
             self.assertFalse(ok)
@@ -890,9 +910,10 @@ class OrchestrationTests(unittest.TestCase):
         previous = {name: os.environ.pop(name, None) for name in (lane.FEDERATION_HOP_TOKEN_ENV, FEDERATION_READ_TOKEN_ENV)}
         os.environ[lane.FEDERATION_HOP_TOKEN_ENV] = "t-value"
         try:
-            for argv, finding in (([], "MISSING"), (["--hb-epoch", ""], "MISSING"),
+            for argv, finding in (([], "MISSING"), (["--hb-epoch", ""], "MALFORMED"),
                                   (["--hb-epoch", "abc"], "MALFORMED"), (["--hb-epoch=-1"], "MALFORMED"),
-                                  (["--hb-epoch", "1.5"], "MALFORMED")):
+                                  (["--hb-epoch", "1.5"], "MALFORMED"), (["--hb-epoch", "0"], "BELOW_HB32_ANCHOR"),
+                                  (["--hb-epoch", "31"], "BELOW_HB32_ANCHOR")):
                 with tempfile.TemporaryDirectory() as tmp:
                     code = main(["--mode", "orchestrate", "--out-dir", tmp] + argv)
                     self.assertEqual(code, 1)
@@ -913,16 +934,28 @@ class OrchestrationTests(unittest.TestCase):
         self.assertRegex(workflow, r"(?m)^      hb_epoch:\n(?:        .*\n)*?        type: string$")
         job = workflow[workflow.index("\n  orchestrate:\n"):]
         self.assertIn("HB_EPOCH: ${{ inputs.hb_epoch }}", job)
-        guard = job.index('case "$HB_EPOCH" in')
+        guard = job.index("hb_epoch_fail_closed(supplied)")
         self.assertLess(guard, job.index("FEDERATION_HOP_TOKEN:-"))
         self.assertLess(guard, job.index("python -m stegverse.intr_destination_hop_lane"))
-        self.assertIn("''|*[!0-9]*)", job[guard:guard + 80])
         self.assertIn('--hb-epoch "$HB_EPOCH"', job)
-        refusal = [line for line in job.splitlines() if "DISPATCH_HB_EPOCH_INVALID" in line]
-        self.assertEqual(len(refusal), 1)
-        echoed = json.loads(refusal[0].strip()[len("echo '"):-1])
-        self.assertEqual(echoed["disposition"], "FAIL_CLOSED")
-        _assert_six(self, echoed)
+        self.assertNotIn("DISPATCH_HB_EPOCH_INVALID", workflow)
+        # Run the workflow's own gate on the exact head: 0, 31, blank, abc refuse; 32 passes.
+        root = Path(__file__).resolve().parents[1]
+        for supplied, code in (("0", "HB_EPOCH_INVALID"), ("31", "HB_EPOCH_INVALID"), ("", "HB_EPOCH_NOT_SUPPLIED"),
+                               ("abc", "HB_EPOCH_INVALID"), ("32", None)):
+            done = subprocess.run([sys.executable, "-c", _workflow_epoch_gate(job)], cwd=root, capture_output=True,
+                                  text=True, env={**os.environ, "HB_EPOCH": supplied, "PYTHONPATH": str(root)})
+            if code is None:
+                self.assertEqual(done.returncode, 0, done.stderr)
+                self.assertEqual(done.stdout, "")
+                continue
+            self.assertEqual(done.returncode, 1, (supplied, done.stderr))
+            echoed = json.loads(done.stdout)
+            self.assertEqual(echoed["disposition"], "FAIL_CLOSED")
+            self.assertEqual(echoed["failure_code"], code)
+            self.assertEqual(echoed["failed_predicate"], "SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH")
+            self.assertEqual(echoed["dispatched"], 0)
+            _assert_six(self, echoed)
 
     def test_the_send_dispatch_names_the_hop_workflow_and_keeps_the_token_in_a_header(self):
         seen = {}
@@ -936,14 +969,14 @@ class OrchestrationTests(unittest.TestCase):
             return Response()
 
         peers = self._peers(2)
-        ok, detail = lane.dispatch_send_hop(peers[0], peers[1], communication_id="intr-hop:a:b:7",
-                                            hb_epoch=7, token="t-value", poster=poster)
+        ok, detail = lane.dispatch_send_hop(peers[0], peers[1], communication_id="intr-hop:a:b:40",
+                                            hb_epoch=40, token="t-value", poster=poster)
         self.assertTrue(ok)
         self.assertEqual(detail, "DISPATCHED")
         self.assertEqual(seen["url"], "https://api.github.com/repos/StegVerse-org/.github/actions/workflows/"
                          "intr-destination-hop.yml/dispatches")
         self.assertEqual(seen["json"]["inputs"], {"phase": "send", "destination_slug": "stegverse-labs",
-                                                  "communication_id": "intr-hop:a:b:7", "hb_epoch": "7",
+                                                  "communication_id": "intr-hop:a:b:40", "hb_epoch": "40",
                                                   "forward": "true"})
         self.assertEqual(seen["headers"]["Authorization"], "Bearer t-value")
         self.assertNotIn("t-value", seen["url"])
@@ -955,8 +988,11 @@ class OrchestrationTests(unittest.TestCase):
                 os.environ[lane.FEDERATION_HOP_TOKEN_ENV] = "t-value"
                 self.assertEqual(main(["--mode", "orchestrate", "--out-dir", tmp]), 1)
                 os.environ.pop(lane.FEDERATION_HOP_TOKEN_ENV)
-                with self.assertRaises(SystemExit):
-                    main(["--mode", "orchestrate", "--hb-epoch", "40", "--out-dir", tmp])
+                self.assertEqual(main(["--mode", "orchestrate", "--hb-epoch", "40", "--out-dir", tmp]), 1)
+                report = json.loads((Path(tmp) / "intr-destination-hop-lane.json").read_text(encoding="utf-8"))
+                self.assertEqual(report["orchestration"]["failure_code"], "HOP_DISPATCH_CREDENTIAL_ABSENT")
+                self.assertEqual(report["orchestration"]["dispatched"], 0)
+                _assert_six(self, report["orchestration"])
         finally:
             for name, value in previous.items():
                 if value is None:
@@ -992,6 +1028,208 @@ class OrchestrationTests(unittest.TestCase):
         self.assertNotIn("hop-token-value", text + report)
         self.assertIn(lane.FEDERATION_HOP_TOKEN_ENV, text)
         self.assertIsNone(_GRANT.search(text))
+
+
+class HB32EpochFloorTests(unittest.TestCase):
+    """Exact-head negatives for the HB32 floor under the shared supplied_epoch_failure rule.
+
+    No workflow is dispatched and no ledger is read: the dispatcher is a fake
+    that records calls, and the GitHub reads are replaced by a recorder.
+    """
+
+    # sha256 of `def supplied_epoch_failure ... return None` in org-kernel/kernel.py
+    # (StegVerse-Labs/.github#3225 core head e6ba9601, StegVerse-org/.github#185).
+    SHARED_RULE_SHA256 = "726248a585904b52cfe2eec1754e7ce582f67d6b501bd664bb7bee80bce9b7ef"
+
+    def _peers(self):
+        return OrchestrationTests._peers(self, 4)
+
+    def _run(self, epoch):
+        calls = []
+
+        def dispatcher(sender, dest, **kw):
+            calls.append((sender["slug"], dest["slug"], kw))
+            return True, "DISPATCHED"
+
+        return lane.run_orchestrate(self._peers(), hb_epoch=epoch, token="t-value", dispatcher=dispatcher), calls
+
+    def _assert_refused(self, result, calls, code):
+        self.assertEqual(result["disposition"], "FAIL_CLOSED")
+        self.assertEqual(result["failure_code"], code)
+        self.assertEqual(result["failed_predicate"], "SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH")
+        self.assertIs(result["derived_from_clock"], False)
+        self.assertIs(result["consequence_committed"], False)
+        self.assertEqual(result["dispatched"], 0)
+        self.assertEqual(result["hops"], [])
+        self.assertIsNone(result["hb_epoch"])
+        self.assertEqual(calls, [])
+        _assert_six(self, result)
+        self.assertNotIn("PENDING", json.dumps(result))
+
+    def test_the_vendored_rule_is_the_shared_supplied_epoch_failure(self):
+        source = Path(lane.__file__).read_text(encoding="utf-8")
+        start = source.index("def supplied_epoch_failure")
+        end = source.index("\ndef ", start + 5)
+        self.assertEqual(hashlib.sha256(source[start:end].rstrip().encode()).hexdigest(), self.SHARED_RULE_SHA256)
+        self.assertEqual(lane.HB_EPOCH_PREDICATE, "SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH")
+        self.assertEqual(lane.HB32_ANCHOR, 32)
+
+    def test_epochs_0_and_31_are_fail_closed_invalid_and_nothing_is_dispatched(self):
+        for epoch in (0, 31, "0", "31", "00", "031"):
+            result, calls = self._run(epoch)
+            self._assert_refused(result, calls, "HB_EPOCH_INVALID")
+            self.assertEqual(result["hb_epoch_finding"], "BELOW_HB32_ANCHOR", repr(epoch))
+            self.assertIn("HB32", result["required_evidence_or_repair"])
+
+    def test_epoch_32_is_accepted_and_carried_to_every_dispatch(self):
+        for epoch in (32, "32", "0032"):
+            result, calls = self._run(epoch)
+            self.assertNotIn("disposition", result)
+            self.assertEqual(result["hb_epoch"], 32)
+            self.assertEqual(result["dispatched"], 2)
+            self.assertEqual(len(calls), 2)
+            self.assertTrue(all(kw["hb_epoch"] == 32 for _, _, kw in calls))
+            self.assertTrue(all(kw["communication_id"].endswith(":32") for _, _, kw in calls))
+
+    def test_a_missing_epoch_is_not_supplied_and_a_non_digit_string_is_invalid(self):
+        result, calls = self._run(None)
+        self._assert_refused(result, calls, "HB_EPOCH_NOT_SUPPLIED")
+        self.assertEqual(result["hb_epoch_finding"], "MISSING")
+        for epoch in ("abc", "3x", "+32", " 32", "32 ", "3_2", "32.0", "1e2", "\u0663\u0662", 32.0, True, [32]):
+            result, calls = self._run(epoch)
+            self._assert_refused(result, calls, "HB_EPOCH_INVALID")
+            self.assertEqual(result["hb_epoch_finding"], "MALFORMED", repr(epoch))
+
+    def test_a_clock_derived_reference_is_invalid(self):
+        self.assertEqual(lane.supplied_epoch_failure(32, {"derived_from_clock": True})[0], "HB_EPOCH_INVALID")
+        self.assertEqual(lane.supplied_epoch_failure(32, "not-an-object")[0], "HB_EPOCH_INVALID")
+        self.assertIsNone(lane.supplied_epoch_failure(32, {"derived_from_clock": False}))
+        self.assertIsNone(lane.supplied_epoch_failure("32"))
+
+    def test_the_send_dispatch_refuses_below_32_and_posts_nothing(self):
+        posted = []
+        peers = self._peers()
+        for epoch in (0, 31, "31"):
+            ok, detail = lane.dispatch_send_hop(peers[0], peers[1], communication_id="c", hb_epoch=epoch,
+                                                token="t-value", poster=lambda *a, **kw: posted.append(kw))
+            self.assertFalse(ok)
+            self.assertEqual(detail, "HB_EPOCH_INVALID")
+        self.assertEqual(posted, [])
+
+    def test_the_cli_writes_only_the_refusal_and_reads_nothing_for_0_and_31(self):
+        reads = []
+        original = lane.discover_peers_from_github
+        lane.discover_peers_from_github = lambda *a, **kw: reads.append(a) or ([], [])
+        previous = {name: os.environ.pop(name, None) for name in (lane.FEDERATION_HOP_TOKEN_ENV, FEDERATION_READ_TOKEN_ENV)}
+        os.environ[lane.FEDERATION_HOP_TOKEN_ENV] = "t-value"
+        try:
+            for epoch in ("0", "31"):
+                with tempfile.TemporaryDirectory() as tmp:
+                    self.assertEqual(main(["--mode", "orchestrate", "--hb-epoch", epoch, "--out-dir", tmp]), 1)
+                    written = sorted(path.name for path in Path(tmp).rglob("*"))
+                    self.assertEqual(written, ["intr-destination-hop-lane.json"])
+                    report = json.loads((Path(tmp) / "intr-destination-hop-lane.json").read_text(encoding="utf-8"))
+                    self._assert_refused(report["orchestration"], [], "HB_EPOCH_INVALID")
+            self.assertEqual(reads, [])
+        finally:
+            lane.discover_peers_from_github = original
+            for name, value in previous.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+
+
+class LaneInputRefusalTests(unittest.TestCase):
+    def test_a_refused_lane_input_is_fail_closed_with_the_six_fields(self):
+        original = lane.discover_peers_from_github
+
+        def duplicate(*_args, **_kwargs):
+            raise ValueError("two organizations resolve to the same intr-destination address: a.intr-destination")
+
+        lane.discover_peers_from_github = duplicate
+        try:
+            for argv in (["--mode", "live"], ["--mode", "live", "--writer-introduced", "Alpha"]):
+                with tempfile.TemporaryDirectory() as tmp:
+                    self.assertEqual(main(argv + ["--out-dir", tmp]), 1)
+                    report = json.loads((Path(tmp) / "intr-destination-hop-lane.json").read_text(encoding="utf-8"))
+                refusal = report["refusal"]
+                self.assertEqual(refusal["disposition"], "FAIL_CLOSED")
+                self.assertEqual(refusal["failure_code"], "INTR_HOP_LANE_INPUT_REFUSED")
+                self.assertEqual(refusal["dispatched"], 0)
+                _assert_six(self, refusal)
+        finally:
+            lane.discover_peers_from_github = original
+
+
+class LegacyOnlyCorrelationTests(unittest.TestCase):
+    """LEGACY receipts are reported, never live-mesh evidence. All receipts are fabricated."""
+
+    _peer = LiveLedgerTests._peer
+    _commit = LiveLedgerTests._commit
+    _write_both = LiveLedgerTests._write_both
+    _write_org = LiveLedgerTests._write_org
+
+    def _ledgers(self, base):
+        alpha = self._peer(base / "alpha", "Alpha")
+        beta = self._peer(base / "beta", "Beta")
+        self._write_both(Path(alpha["root"]), Path(beta["root"]))
+        self._commit(Path(alpha["root"]), LEDGER_REF)
+        self._commit(Path(beta["root"]), LEDGER_REF)
+        return alpha, beta
+
+    def test_a_pair_correlated_only_by_legacy_receipts_is_refused_with_the_six_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            alpha, beta = self._ledgers(Path(tmp))
+            later = {"commit": "writer", "committed_at_unix": 2 ** 40, "source": "TEST"}
+            report = run_live([alpha, beta], fetch=False, writer_introduction=lambda peer: later)
+            earlier = run_live([alpha, beta], fetch=False,
+                               writer_introduction=lambda peer: {**later, "committed_at_unix": 1})
+        self.assertEqual(report["counts"]["PASS"], 0)
+        self.assertFalse(report["authenticity_claimed"])
+        for hop in report["hops"]:
+            self.assertEqual(hop["status"], "FAIL")
+            self.assertEqual(hop["findings"], [lane.LEGACY_ONLY_FINDING])
+            self.assertEqual(hop["failure_code"], "INTR_HOP_CORRELATED_ONLY_BY_LEGACY_RECEIPTS")
+            self.assertEqual(hop["failed_predicate"], "LIVE_HOP_CORRELATION_USES_NON_LEGACY_RECEIPTS")
+            self.assertEqual(hop["communication_ids_read_back"], [])
+            self.assertEqual(len(hop["legacy_communication_ids_reported"]), 1)
+            self.assertEqual(hop["ledger_state"], "UNSENT")
+            self.assertIs(hop["authenticity_claimed"], False)
+            _assert_six(self, hop)
+        # The same receipts appended after the writer's introduction correlate and pass.
+        self.assertEqual(earlier["counts"]["PASS"], 2, [hop["findings"] for hop in earlier["hops"]])
+        self.assertTrue(all(hop["legacy_communication_ids_reported"] == [] for hop in earlier["hops"]))
+
+    def test_orchestrate_sends_a_legacy_only_pair_again(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            alpha, beta = self._ledgers(Path(tmp))
+            later = {"commit": "writer", "committed_at_unix": 2 ** 40, "source": "TEST"}
+            report = run_live([alpha, beta], fetch=False, writer_introduction=lambda peer: later)
+        states = {(hop["sender_slug"], hop["destination_slug"]): hop["ledger_state"] for hop in report["hops"]}
+        sent = []
+        result = lane.run_orchestrate([alpha, beta], hb_epoch=32, token="t-value", ledger_state=states,
+                                      dispatcher=lambda s, t, **kw: (sent.append((s["slug"], t["slug"])) or True,
+                                                                     "DISPATCHED"))
+        self.assertEqual(len(sent), 1)
+        self.assertNotIn("CLOSED_IN_READ_LEDGERS", result["outcomes"])
+
+    def test_pair_state_ignores_legacy_receipts(self):
+        emitted, closed, _ = _pair_receipts("Alpha", "Beta", "beta.intr-destination", "cid-1", "pkt-1")
+        chain = [emitted, closed]
+        self.assertEqual(lane.pair_ledger_state(chain, "Beta", "beta.intr-destination"), "CLOSED")
+        everything = [emitted["receipt_sha256"], closed["receipt_sha256"]]
+        self.assertEqual(lane.pair_ledger_state(chain, "Beta", "beta.intr-destination", legacy=everything), "UNSENT")
+        self.assertEqual(lane.pair_ledger_state(chain, "Beta", "beta.intr-destination",
+                                                legacy=[closed["receipt_sha256"]]), "OPEN")
+
+    def test_only_declared_findings_are_reported_on_legacy_receipts(self):
+        self.assertNotIn("CHAIN_PREDECESSOR_MISMATCH", lane.LEGACY_REPORTABLE)
+        repo = {"present": True, "chain": [], "findings": ["CHAIN_PREDECESSOR_MISMATCH"], "sources": {}, "introduced_at": {}}
+        org = {"present": True, "chain": [], "findings": [], "sources": {}, "introduced_at": {}}
+        report = lane.integrity_report(repo, org, writer_introduction={"committed_at_unix": 2 ** 40})
+        self.assertIn("CHAIN_PREDECESSOR_MISMATCH", report["findings"])
+        self.assertEqual(report["legacy_receipts"], {"repository": [], "organization": []})
 
 
 if __name__ == "__main__":
