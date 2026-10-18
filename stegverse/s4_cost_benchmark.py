@@ -117,7 +117,7 @@ def verified_inputs(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, A
     return parsed
 
 
-def _fraction(value: Any, field: str, *, upper: Fraction | None = None) -> Fraction:
+def _fraction(value: Any, field: str, *, upper: Fraction | None = None, positive: bool = False) -> Fraction:
     if isinstance(value, bool) or not isinstance(value, (int, str)):
         raise _fail("INPUT_VALUE_INVALID", f"{field} is an integer or decimal string", "write it exactly", field=field)
     try:
@@ -126,11 +126,27 @@ def _fraction(value: Any, field: str, *, upper: Fraction | None = None) -> Fract
         raise _fail("INPUT_VALUE_INVALID", f"{field} parses exactly", "fix the number", field=field) from None
     if number < 0 or (upper is not None and number > upper):
         raise _fail("INPUT_VALUE_INVALID", f"{field} is within range", "correct the value", field=field)
+    if positive and number == 0:
+        # A zero volume or price makes every predicate hold vacuously; it is not an economics scenario.
+        raise _fail("INPUT_OUT_OF_RANGE", f"{field} > 0", f"declare a positive {field}", field=field)
     return number
 
 
 def _text(fraction: Fraction) -> str:
-    return str(Decimal(fraction.numerator) / Decimal(fraction.denominator)) if fraction.denominator != 1 else str(fraction.numerator)
+    """Exact text: a terminating decimal when one exists, otherwise numerator/denominator."""
+    if fraction.denominator == 1:
+        return str(fraction.numerator)
+    rest, places = fraction.denominator, 0
+    for prime in (2, 5):
+        while rest % prime == 0:
+            rest //= prime
+    if rest != 1:
+        return f"{fraction.numerator}/{fraction.denominator}"
+    while (fraction * 10 ** places).denominator != 1:
+        places += 1
+    scaled = abs(fraction.numerator) * 10 ** places // fraction.denominator
+    digits = str(scaled).rjust(places + 1, "0")
+    return ("-" if fraction < 0 else "") + digits[:-places] + "." + digits[-places:]
 
 
 def evaluate(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, Any]:
@@ -146,9 +162,9 @@ def evaluate(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, Any]:
     if not isinstance(policy, Mapping) or policy.get("schema") != POLICY_SCHEMA:
         raise _fail("INPUT_VALUE_INVALID", f"economics_policy schema == {POLICY_SCHEMA}", "supply the economics policy",
                     input="economics_policy")
-    users = _fraction(policy.get("users_per_period"), "users_per_period")
-    actions = _fraction(policy.get("actions_per_user_per_period"), "actions_per_user_per_period")
-    price = _fraction(policy.get("paid_price_per_user_per_period"), "paid_price_per_user_per_period")
+    users = _fraction(policy.get("users_per_period"), "users_per_period", positive=True)
+    actions = _fraction(policy.get("actions_per_user_per_period"), "actions_per_user_per_period", positive=True)
+    price = _fraction(policy.get("paid_price_per_user_per_period"), "paid_price_per_user_per_period", positive=True)
     reserve_periods = _fraction(policy.get("reserve_periods"), "reserve_periods")
     reserve_available = _fraction(policy.get("reserve_available"), "reserve_available")
     rates = policy.get("conversion_rates")
@@ -209,6 +225,9 @@ def main(argv: list[str] | None = None) -> int:
             name, sep, path = item.partition("=")
             if not sep:
                 raise _fail("INPUT_ARGUMENT_MALFORMED", "--input is NAME=PATH", "pass --input NAME=PATH", value=item)
+            if name not in REQUIRED_INPUTS:
+                raise _fail("INPUT_ARGUMENT_MALFORMED", f"--input NAME is one of {', '.join(REQUIRED_INPUTS)}",
+                            "pass only declared input names", input=name)
             supplied[name] = Path(path).read_bytes()
         result = evaluate(json.loads(args.manifest.read_text(encoding="utf-8")), supplied)
     except Refused as refusal:

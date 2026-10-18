@@ -6,6 +6,8 @@ not an owner-accepted cost sample and proves nothing about real StegVerse econom
 import copy
 import hashlib
 import json
+import contextlib
+import io
 import subprocess
 import sys
 import tempfile
@@ -82,6 +84,41 @@ class S4CostBenchmarkTests(unittest.TestCase):
                 for field in ("failure_code", "required_evidence_or_repair", "retry_entrypoint",
                               "owning_existing_goal", "next_attempt"):
                     self.assertTrue(out[field])
+
+    def test_zero_volume_or_price_is_refused_not_a_vacuous_allow(self):
+        # WU-B24 defect 1: zero users or actions made every predicate hold vacuously (ALLOW).
+        for field in ("users_per_period", "actions_per_user_per_period", "paid_price_per_user_per_period"):
+            for zero in (0, "0", "0.00"):
+                with self.subTest(field=field, value=zero):
+                    with self.assertRaises(s4.Refused) as raised:
+                        s4.evaluate(*bundle(economics_policy=policy(**{field: zero})))
+                    result = raised.exception.result
+                    self.assertEqual((result["disposition"], result["failure_code"], result["evidence"]["field"]),
+                                     ("FAIL_CLOSED", "INPUT_OUT_OF_RANGE", field))
+                    for key in ("failed_predicate", "required_evidence_or_repair", "retry_entrypoint",
+                                "owning_existing_goal", "next_attempt"):
+                        self.assertTrue(result[key], key)
+
+    def test_unknown_input_name_is_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            d = Path(directory)
+            manifest, supplied = bundle()
+            (d / "m.json").write_text(json.dumps(manifest), encoding="utf-8")
+            args = [str(d / "m.json")]
+            for name, data in list(supplied.items()) + [("not_declared", b"{}")]:
+                (d / f"{name}.json").write_bytes(data)
+                args += ["--input", f"{name}={d / (name + '.json')}"]
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                code = s4.main(args)
+            result = json.loads(out.getvalue())
+            self.assertEqual((code, result["failure_code"], result["evidence"]["input"]),
+                             (1, "INPUT_ARGUMENT_MALFORMED", "not_declared"))
+
+    def test_text_is_exact(self):
+        F = s4.Fraction
+        self.assertEqual([s4._text(F(1, 3)), s4._text(F(7, 8)), s4._text(F(-1, 40)), s4._text(F(14, 100)), s4._text(F(5))],
+                         ["1/3", "0.875", "-0.025", "0.14", "5"])
 
     def test_unknown_observation_is_not_an_authenticated_sample(self):
         out = s4.evaluate(*bundle(cost_observation=observation(amount="UNKNOWN")))
