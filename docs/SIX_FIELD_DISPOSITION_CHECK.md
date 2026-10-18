@@ -104,6 +104,16 @@ An exemption works like this:
   entry is incomplete, or the file is unreadable, the run is `FAIL_CLOSED`
   (`EXEMPTION_DECLARATION_INCOMPLETE`).
 
+## Adopted in this repository
+
+`.github/workflows/six-field-disposition-check.yml` runs the check over the whole tree on every
+pull request and every push to `main`, with no path filter, as job `six-field-dispositions`.
+Legacy refusals whose bytes cannot change are declared in `.six-field-exemptions.json`. The job is
+declared as a required check in `tasks/SDK-REPOSITORY-HARDENING-001.json`
+(`required_checks_declared`). Enforcement needs a `main` ruleset, which is applied only through the
+existing TVC ruleset transition; until then the declaration records `DECLARED_NOT_ENFORCED` with the
+six fields.
+
 ## Adopting it in Labs, org and Site repositories
 
 The script has no dependencies, so adopting it takes one of two forms:
