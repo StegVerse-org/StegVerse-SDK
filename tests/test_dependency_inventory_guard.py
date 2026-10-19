@@ -157,6 +157,15 @@ def test_undeclared_owner_packages_are_exactly_the_listed_ones():
     assert _optional_owner_imports() == {(p, m, site) for p, (m, site) in UNDECLARED_OPTIONAL_PACKAGES.items()}
 
 
+def test_owner_packages_are_injection_only_and_never_pinned():
+    from stegverse.optional_package_refusal import (INJECTION_ONLY_CONTRACT, UNDECLARED_OPTIONAL_PACKAGES,
+                                                    UPSTREAM_OBSERVATION_POINTS)
+    assert INJECTION_ONLY_CONTRACT is True
+    assert set(UPSTREAM_OBSERVATION_POINTS) == set(UNDECLARED_OPTIONAL_PACKAGES)
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8").lower()
+    assert not any(name in pyproject for name in ("stegos", "stegbrowser", "playwright", "cryptography"))
+
+
 def test_each_undeclared_owner_package_refuses_with_six_fields():
     import stegverse.evaluator_governance_runtime as runtime
     import stegverse.governed_llm_fan as fan

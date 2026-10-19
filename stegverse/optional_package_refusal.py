@@ -1,11 +1,16 @@
 """Six-field refusal when an undeclared optional owner package is not installed.
 
-stegos and stegbrowser are owner packages the SDK cannot declare: neither has a public,
-pinnable source the SDK can name in pyproject.toml. The SDK therefore imports each lazily
-inside one function, and every caller may inject the callable instead. When neither is
-present the call fails closed with the six fields, never a bare ImportError and never a wait
-for the package to appear. tests/test_dependency_inventory_guard.py holds the list below
-equal to the imports that actually occur (SDK#484 V-P4).
+Declared contract: injection-only (SDK#484 V-P4 b; Lane B B-P13; Coordinator decision).
+stegos and stegbrowser are private owner repositories, StegBrowser is not pip-installable, and
+pinning either would add cryptography and playwright transitively, which the no-new-dependency
+directive forbids. So neither is declared in pyproject.toml. The SDK imports each lazily inside
+one function, and every caller may inject the callable instead. A call with neither fails
+closed with the six fields, never a bare ImportError and never a wait for the package to
+appear. tests/test_dependency_inventory_guard.py holds the list below equal to the imports
+that actually occur.
+
+The upstream heads below are observation points, not pins: they record which owner source the
+injected callables were last read against, and nothing installs or checks out from them.
 """
 from __future__ import annotations
 
@@ -18,6 +23,13 @@ OWNING_GOAL = "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001"
 UNDECLARED_OPTIONAL_PACKAGES = {
     "stegos": ("stegos.intr_security_posture_resolution", "stegverse/evaluator_governance_runtime.py"),
     "stegbrowser": ("stegbrowser.llm_browser_execution", "stegverse/governed_llm_fan.py"),
+}
+
+INJECTION_ONLY_CONTRACT = True
+# package -> upstream head observed 2026-10-19 (Lane B B-P13, SDK#484 6256984316); not a pin.
+UPSTREAM_OBSERVATION_POINTS = {
+    "stegos": "StegVerse-Labs/StegOS@e63f7e8",
+    "stegbrowser": "StegVerse-Labs/StegBrowser@ac29091",
 }
 
 
@@ -39,4 +51,5 @@ def render(record: dict[str, Any]) -> str:
     return json.dumps(record, sort_keys=True)
 
 
-__all__ = ["OWNING_GOAL", "UNDECLARED_OPTIONAL_PACKAGES", "optional_package_unavailable", "render"]
+__all__ = ["INJECTION_ONLY_CONTRACT", "OWNING_GOAL", "UNDECLARED_OPTIONAL_PACKAGES", "UPSTREAM_OBSERVATION_POINTS",
+           "optional_package_unavailable", "render"]
