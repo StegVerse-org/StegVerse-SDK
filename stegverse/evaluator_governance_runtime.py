@@ -14,18 +14,33 @@ from typing import Any, Callable, Mapping
 
 from .governance_ingress_runtime import external_manifest_to_public_request
 from .intr_posture_runtime_bridge import resolve_manifest_posture
+from .optional_package_refusal import optional_package_unavailable, render
 
 Resolver = Callable[..., Mapping[str, Any]]
+
+FAILURE_INTR_RESOLVER_UNAVAILABLE = "INTR_POSTURE_RESOLVER_UNAVAILABLE"
+INTR_RESOLVER_REPAIR = (
+    "Interlock/InTr security-posture resolver is unavailable; install/materialize "
+    "the canonical StegOS runtime or inject intr_posture_resolver"
+)
+
+
+class IntrResolverUnavailable(RuntimeError):
+    """No StegOS resolver installed and none injected; .disposition holds the six fields."""
+
+    def __init__(self, disposition: Mapping[str, Any]):
+        self.disposition = dict(disposition)
+        super().__init__(f"{INTR_RESOLVER_REPAIR}: {render(self.disposition)}")
 
 
 def _load_intr_resolver() -> Resolver:
     try:
         from stegos.intr_security_posture_resolution import resolve_task_security_posture
     except ImportError as exc:
-        raise RuntimeError(
-            "Interlock/InTr security-posture resolver is unavailable; install/materialize "
-            "the canonical StegOS runtime or inject intr_posture_resolver"
-        ) from exc
+        raise IntrResolverUnavailable(optional_package_unavailable(
+            FAILURE_INTR_RESOLVER_UNAVAILABLE, "stegos.intr_security_posture_resolution", INTR_RESOLVER_REPAIR,
+            "stegverse.evaluator_governance_runtime.run_evaluator_governance_manifest(intr_posture_resolver=...)",
+        )) from exc
     return resolve_task_security_posture
 
 

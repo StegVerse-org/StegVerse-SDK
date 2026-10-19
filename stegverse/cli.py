@@ -486,14 +486,17 @@ def _ask_question(args: argparse.Namespace) -> int:
     except GovernedLlmFanError as error:
         # The node's StegBrowser capability is what performs the branches. When
         # it is not reachable, say so and name the repair rather than traceback.
-        print(json.dumps({
+        record = {
             "disposition": "FAN_NOT_ATTEMPTED",
             "failure_code": FAILURE_EXECUTOR_UNAVAILABLE,
             "detail": str(error),
             "required_evidence_or_repair": EXECUTOR_REPAIR,
             "journey_planned": True,
             "authority_effect": "NONE",
-        }, indent=2, sort_keys=True))
+        }
+        # The six fields of the refusal, so this output carries them too (SDK#484 V-P4).
+        record.update({k: v for k, v in (error.disposition or {}).items() if k != "disposition"})
+        print(json.dumps(record, indent=2, sort_keys=True))
         return 1
     print(json.dumps({
         "answer": answer,
