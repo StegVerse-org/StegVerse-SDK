@@ -31,6 +31,8 @@ permissions:
   contents: read
 
 env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints/sdk-install.txt
   STEGVERSE_ORG_DOTGITHUB_SHA: 893e921677cbed1a24e90c98771e77c9ed3cec16
   SV_LLM_DOTGITHUB_SHA: 29227a4bab57a2a4453fa8b8a86ada953d6cc4cc
   PUBLISHER_SHA: 1b3fc65c1bcab5c835985b878508e7b848d13025
@@ -39,29 +41,29 @@ jobs:
   roundtrip:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Materialize StegVerse-org/.github at the pinned commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: StegVerse-org/.github
           ref: ${{ env.STEGVERSE_ORG_DOTGITHUB_SHA }}
           path: _orgs/stegverse-org
           persist-credentials: false
       - name: Materialize SV-LLM/.github at the pinned commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: SV-LLM/.github
           ref: ${{ env.SV_LLM_DOTGITHUB_SHA }}
           path: _orgs/sv-llm
           persist-credentials: false
       - name: Materialize GCAT-BCAT-Engine/Publisher at the pinned commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: GCAT-BCAT-Engine/Publisher
           ref: ${{ env.PUBLISHER_SHA }}
           path: _orgs/publisher
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.11'
       - name: Install the SDK and its declared dependencies
@@ -91,7 +93,7 @@ jobs:
           PY
       - name: Publish run report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: sv-llm-intr-roundtrip-run
           path: |

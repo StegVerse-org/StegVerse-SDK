@@ -20,7 +20,9 @@ class PyPITrustedPublishingContractTests(unittest.TestCase):
         self.assertIn("name: Publish SDK to PyPI (Trusted Publisher)", self.text)
         self.assertIn("types: [published]", self.text)
         self.assertIn("name: pypi", self.text)
-        self.assertIn("pypa/gh-action-pypi-publish@release/v1", self.text)
+        # Pinned to the commit release/v1 resolved to (SDK#484 V-P6); the trusted-publisher identity is
+        # the workflow file and environment, which the pin does not change.
+        self.assertIn("pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1", self.text)
         self.assertIn("PyPI project: stegverse-sdk", self.handoff)
         self.assertIn("PyPI trusted workflow: .github/workflows/release.yml", self.handoff)
         self.assertIn("GitHub environment: pypi", self.handoff)

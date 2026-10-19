@@ -7,6 +7,8 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from .destination_refusal import destination_unavailable
+
 RELEASE_API = "https://api.github.com/repos/StegVerse-Labs/StegCore/releases?per_page=100"
 TAG_PREFIX = "stegverse-portable-v"
 SEMVER = r"[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?"
@@ -113,6 +115,7 @@ def fetch_versions(*, timeout: int = 15) -> dict[str, Any]:
             "repository": "StegVerse-Labs/StegCore",
             "versions": [],
             "error": type(exc).__name__,
+            **destination_unavailable(RELEASE_API, exc, "stegverse-versions"),
             "authority_effect": "NONE",
         }
     if not isinstance(rows, list):

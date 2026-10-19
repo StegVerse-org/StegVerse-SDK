@@ -29,7 +29,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Validate SDK public wiki
         run: python -m unittest tests.test_sdk_public_developer_wiki -v
       - name: Build exact-source wiki projection
@@ -46,7 +46,7 @@ jobs:
           assert len(m['sources']) >= 6
           assert Path('_site/CNAME').read_text().strip()=='sdk.stegverse.org'
           PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: sdk-public-developer-wiki-preview
           path: _site

@@ -14,11 +14,15 @@ on:
 
 permissions: {}
 
+env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints/sdk-install.txt
+
 jobs:
   validate-active-probe:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
 

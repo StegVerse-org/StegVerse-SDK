@@ -17,6 +17,9 @@ jobs:
     if: startsWith(inputs.release_tag || github.event.release.tag_name, 'v')
     name: Build and verify exact tagged SDK artifacts
     runs-on: ubuntu-latest
+    env:
+      # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+      PIP_CONSTRAINT: /tmp/source/constraints/sdk-install.txt
     permissions: {}
     outputs:
       version: ${{ steps.identity.outputs.version }}
@@ -118,7 +121,7 @@ jobs:
           echo RELEASE_ARTIFACT_HASH_SET_PASS
 
       - name: Stage exact distributions for isolated publisher
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: pypi-distributions-${{ steps.identity.outputs.version }}
           path: |
@@ -139,7 +142,7 @@ jobs:
       id-token: write
     steps:
       - name: Retrieve verified distributions
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: pypi-distributions-${{ needs.build-and-verify.outputs.version }}
           path: publish-input
@@ -162,7 +165,7 @@ jobs:
           echo PUBLISHER_ARTIFACT_SET_VERIFIED
 
       - name: Publish to PyPI using Trusted Publishing
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
         with:
           packages-dir: dist/
           verbose: true

@@ -17,7 +17,7 @@ permissions: {}
 
 jobs:
   validate-release-candidate:
-    uses: StegVerse-org/StegVerse-SDK/.github/workflows/reusable-release.yml@main
+    uses: ./.github/workflows/reusable-release.yml
     with:
       version: ${{ inputs.version }}
       dry_run: true

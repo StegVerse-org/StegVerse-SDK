@@ -20,35 +20,39 @@ on:
 permissions:
   contents: read
 
+env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints/sdk-install.txt
+
 jobs:
   fabricated:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: StegVerse-org/.github
           ref: 6e0f1e216f0e2cf1407be7f3f32338080cb8d2c4
           path: _orgs/StegVerse-org
           persist-credentials: false
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: StegVerse-Labs/.github
           ref: 6880847e223b32edfb1a10204048d38d4e4adf09
           path: _orgs/StegVerse-Labs
           persist-credentials: false
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: SV-LLM/.github
           ref: c0e46aa39f7e4040cf70cd8b8655d1f8d22465ad
           path: _orgs/SV-LLM
           persist-credentials: false
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: Admissible-Existence/.github
           ref: b6d499be6d15a73630be99fbdc4156403a978ebd
@@ -76,7 +80,7 @@ jobs:
             fi
           done
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.11'
 
@@ -123,7 +127,7 @@ jobs:
 
       - name: Publish the matrix report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: intr-destination-hop-lane
           path: ${{ runner.temp }}/intr-hop-lane
