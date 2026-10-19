@@ -78,7 +78,8 @@ def _execute_target(target: ExecutorTarget, envelope: Mapping[str, Any]) -> Mapp
             timeout=target.timeout_seconds,
         )
         if response.status_code >= 400:
-            raise _http.HttpTransportError(f"HTTP {response.status_code}")
+            raise _http.HttpTransportError(f"HTTP {response.status_code}", destination=target.endpoint,
+                                           failure_code="DESTINATION_ANSWERED_WITH_ERROR_STATUS")
         payload = response.json()
     except _http.HttpTransportError as exc:
         raise ComparisonOrchestrationError(

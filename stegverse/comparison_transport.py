@@ -108,7 +108,8 @@ def submit_comparison(
             timeout=timeout_seconds,
         )
         if response.status_code >= 400:
-            raise _http.HttpTransportError(f"HTTP {response.status_code}")
+            raise _http.HttpTransportError(f"HTTP {response.status_code}", destination=endpoint,
+                                           failure_code="DESTINATION_ANSWERED_WITH_ERROR_STATUS")
         payload = response.json()
     except _http.HttpTransportError as exc:
         raise ComparisonTransportError(f"comparison transport failed: {exc}") from exc
