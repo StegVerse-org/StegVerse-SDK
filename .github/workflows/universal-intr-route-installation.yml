@@ -65,6 +65,13 @@ jobs:
                 "Re-run the caller workflow with sdk_ref set to the pinned StegVerse-SDK commit SHA."
               ;;
           esac
+          # An abbreviated SHA can match a different commit as history grows (SDK#484 RESPONSE-062).
+          if [ "${#SDK_REF}" -ne 40 ]; then
+            refuse "SDK_REF_NOT_A_COMMIT" \
+              "SDK_REF_IS_40_CHARACTER_LOWERCASE_HEX_COMMIT" \
+              "Pass with.sdk_ref as the full 40-character StegVerse-SDK commit SHA that hosts the installer; an abbreviated SHA is refused." \
+              "Re-run the caller workflow with sdk_ref set to the full pinned StegVerse-SDK commit SHA."
+          fi
           mkdir -p /tmp/caller /tmp/sdk
           curl -fsSL "https://github.com/${CALLER_REPO}/archive/${CALLER_SHA}.tar.gz" | tar -xz -C /tmp/caller --strip-components=1
           curl -fsSL "https://github.com/StegVerse-org/StegVerse-SDK/archive/${SDK_REF}.tar.gz" | tar -xz -C /tmp/sdk --strip-components=1
