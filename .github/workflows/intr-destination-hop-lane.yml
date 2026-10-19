@@ -20,6 +20,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints/sdk-install.txt
+
 jobs:
   fabricated:
     runs-on: ubuntu-latest

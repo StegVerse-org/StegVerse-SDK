@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints/sdk-install.txt
+
 jobs:
   capability-map:
     runs-on: ubuntu-latest

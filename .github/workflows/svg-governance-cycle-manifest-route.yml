@@ -22,6 +22,10 @@ on:
       - 'README.md'
       - '.github/workflows/svg-governance-cycle-manifest-route.yml'
   workflow_dispatch:
+env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints/sdk-install.txt
+
 jobs:
   svg-manifest-route:
     runs-on: ubuntu-latest

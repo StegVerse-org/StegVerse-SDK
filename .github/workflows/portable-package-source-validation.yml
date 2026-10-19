@@ -22,6 +22,10 @@ on:
 
 permissions: {}
 
+env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints/sdk-install.txt
+
 jobs:
   portable-package-source-validation:
     runs-on: ubuntu-latest

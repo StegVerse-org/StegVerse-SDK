@@ -13,6 +13,10 @@ on:
       - "tests/test_stegbrowser_manifest_profile.py"
       - "docs/CAPABILITY_GRAPH_DECLARATION.md"
       - ".github/workflows/manifest-capability-resolution.yml"
+env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints/sdk-install.txt
+
 jobs:
   validate:
     runs-on: ubuntu-latest

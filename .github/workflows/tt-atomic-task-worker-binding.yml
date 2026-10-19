@@ -20,6 +20,10 @@ on:
       - '.github/workflows/tt-atomic-task-worker-binding.yml'
   workflow_dispatch:
 
+env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints/sdk-install.txt
+
 jobs:
   manifest-only-experiment:
     runs-on: ubuntu-latest

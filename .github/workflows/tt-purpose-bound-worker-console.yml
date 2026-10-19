@@ -15,6 +15,10 @@ on:
       - '.github/workflows/tt-purpose-bound-worker-console.yml'
   workflow_dispatch:
 
+env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: ${{ github.workspace }}/constraints/sdk-install.txt
+
 jobs:
   evaluator-test-one:
     runs-on: ubuntu-latest

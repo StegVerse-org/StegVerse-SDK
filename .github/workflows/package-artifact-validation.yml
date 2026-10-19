@@ -31,6 +31,10 @@ on:
 
 permissions: {}
 
+env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: /tmp/source/constraints/sdk-install.txt
+
 jobs:
   package-artifact:
     runs-on: ubuntu-latest

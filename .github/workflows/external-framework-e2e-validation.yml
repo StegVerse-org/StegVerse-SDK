@@ -17,6 +17,10 @@ on:
 
 permissions: {}
 
+env:
+  # Exact transitive install set (constraints/sdk-install.txt, SDK#484 V-P5).
+  PIP_CONSTRAINT: /tmp/source/constraints/sdk-install.txt
+
 jobs:
   external-framework-public-submission:
     runs-on: ubuntu-latest
