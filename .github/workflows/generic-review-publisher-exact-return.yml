@@ -17,7 +17,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install -q requests
       - run: python -m unittest tests.test_publisher_return_binding tests.test_review_publisher_transfer -v
       - name: Materialize exact existing Publisher contract
         env:
@@ -30,4 +29,5 @@ jobs:
       - name: Verify original bytes and complete source-to-return parity
         env:
           PYTHONPATH: '.:/tmp/publisher'
+          STEGVERSE_REQUIRE_PUBLISHER_SOURCE: '1'
         run: python -m unittest tests.test_generic_publisher_exact_crossrepo -v

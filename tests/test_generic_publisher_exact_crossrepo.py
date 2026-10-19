@@ -15,10 +15,29 @@ from stegverse.review_publisher_transfer import (
 from stegverse.publisher_return_binding import PublisherReturnBindingError, verify_publisher_return
 from tests.test_review_publisher_transfer import review_manifest, source_bundle, originals
 
+import json
+import os
+
 try:
     from publisher.intr_artifact_transfer import process_artifact_transfer, verify_artifact_return
-except ImportError:
+    PUBLISHER_IMPORT_ERROR = None
+except ImportError as exc:
     process_artifact_transfer = verify_artifact_return = None
+    PUBLISHER_IMPORT_ERROR = exc
+
+# The workflow materializes the pinned Publisher and sets this, so a failed import there is a
+# six-field FAIL_CLOSED naming the missing module, never a silent skip (SDK#484 V-P4 c).
+if PUBLISHER_IMPORT_ERROR is not None and os.environ.get("STEGVERSE_REQUIRE_PUBLISHER_SOURCE") == "1":
+    raise ImportError(json.dumps({
+        "disposition": "FAIL_CLOSED",
+        "failure_code": "PINNED_PUBLISHER_SOURCE_NOT_IMPORTABLE",
+        "failed_predicate": "PUBLISHER_INTR_ARTIFACT_TRANSFER_IMPORTS_WITH_DECLARED_DEPENDENCIES_ONLY",
+        "required_evidence_or_repair": f"{PUBLISHER_IMPORT_ERROR!r}; Publisher@33511ff must import without "
+                                       "an undeclared module, or the module must be declared here",
+        "retry_entrypoint": ".github/workflows/generic-review-publisher-exact-return.yml",
+        "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001",
+        "next_attempt": "rerun the workflow after the import closure is resolved",
+    }, sort_keys=True)) from PUBLISHER_IMPORT_ERROR
 
 def inputs():
     m = review_manifest()
