@@ -31,10 +31,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      # The package's own dependencies, not just pytest. `requests` alone is
-      # imported by 208 test modules; installing pytest by itself collects them
-      # as errors and the gate then reads a failure set for an environment the
-      # suite cannot run in. `-e '.[dev]'` is this repository's own convention.
+      # The package plus its [dev] extra (pytest only; the SDK has no runtime
+      # third-party dependency and no test imports requests). Installing the
+      # package keeps imports resolving the same way the suite runs locally.
+      # `-e '.[dev]'` is this repository's own convention.
       - run: python -m pip install -e '.[dev]'
 
       # The StegBrowser owner performs each branch's LLM interaction, and the

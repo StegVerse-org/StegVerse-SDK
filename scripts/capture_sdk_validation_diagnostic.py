@@ -22,7 +22,8 @@ COMMANDS = [
     [sys.executable, "-m", "pytest", "tests/", "-q", "--maxfail=1"],
 ]
 
-REQUIRED_MODULES = ["pytest", "requests", "yaml", "dotenv"]
+# Only the [dev] extra; requests, PyYAML and python-dotenv are no longer SDK dependencies.
+REQUIRED_MODULES = ["pytest"]
 
 
 def git_value(*args: str) -> str | None:
