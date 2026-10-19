@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Materialize exact source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Verify and package completed authentic result
         run: |
@@ -35,7 +35,7 @@ jobs:
           cat cross-framework-current-basis-v0.4-results.tar.gz.sha256
 
       - name: Attach optional mirror artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cross-framework-current-basis-v0.4-results
           path: |

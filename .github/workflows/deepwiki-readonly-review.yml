@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Test fail-closed parser and review-only export
@@ -143,7 +143,7 @@ jobs:
             --root . \
             --out deepwiki-review-export
       - name: Retrieve exact original 38-page source-review snapshot
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           run-id: 36175208212
           name: deepwiki-sdk-review-only-de615ea3b7e9a1c7c118afb74b4db69b821272f7
@@ -160,7 +160,7 @@ jobs:
             --unresolved frozen-deepwiki-review/remaining-citation-proposals-UNREVIEWED.json \
             --out deepwiki-review-export
       - name: Retrieve prior exact 75-case frozen and 613-case inspection packet
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           run-id: 36183020371
           name: deepwiki-sdk-review-only-05abad329e8dd27159a75e203ec5532206510697
@@ -262,7 +262,7 @@ jobs:
             --out deepwiki-review-export
       - name: Upload unreviewed documentation evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: deepwiki-sdk-review-only-${{ github.sha }}
           path: deepwiki-review-export/
