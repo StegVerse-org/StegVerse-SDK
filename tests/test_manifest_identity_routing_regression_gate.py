@@ -189,7 +189,10 @@ def build_route_manifest(route_id, request=None):
 
 
 def builder_routes():
-    return tuple(r for r in GOVERNED_ROUTES if PUBLISHED_ROUTES[r]["processor_capability"] in PROCESSOR_ROUTES)
+    # 0A cannot supply an authenticated canonical task binding. Canonical Work
+    # must fail closed on 0A; its fully bound fixture is exercised on 0B.
+    return tuple(r for r in GOVERNED_ROUTES if PUBLISHED_ROUTES[r]["processor_capability"] in PROCESSOR_ROUTES
+                 and PUBLISHED_ROUTES[r]["processor_capability"] != "canonical_work")
 
 
 def _fresh_evidence(manifest):
