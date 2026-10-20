@@ -32,10 +32,42 @@ whose advertisement cannot be read stays in the peer set: every hop that
 uses it is ``UNREACHABLE``. A peer whose ledger ref cannot be read is
 ``UNREACHABLE`` the same way. A ``PASS`` is claimed only for receipts this
 process read back.
+
+``orchestrate`` is manifest-directed and does not wait. It first reads every
+organization ledger (the live readback above) and derives each ordered pair's
+ledger state: ``CLOSED``, ``REFUSED``, ``OPEN`` (sent, not yet closed) or
+``UNSENT``. For each pair it then records one disposition. An ``UNSENT`` pair
+whose sender and destination hold no open hop is a send transition: the
+sender's ``intr-destination-hop.yml`` send phase is dispatched (credential:
+``FEDERATION_HOP_TOKEN``; the TV/TVC credential path is a pending owner
+decision on StegVerse-Labs/.github#2897). A dispatched or ``OPEN`` hop
+resolves as ``DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION`` with
+``always_on_receiver_required: false``: the destination's receive and the
+sender's close materialize from the dispatched events and are observed only as
+receipts in the next readback. Nothing polls a ledger, sleeps, or bounds a
+wait. Each organization appears in at most one dispatched hop per transition
+and an organization with an open hop is not dispatched, because every
+organization's ledger runs share one concurrency group and GitHub cancels a
+second pending run in a group. The epoch is supplied (``--hb-epoch``); no
+clock is read for it.
+
+Every non-ALLOW outcome (``UNREACHABLE``, ``NOT_DISPATCHED``, ``FAIL``,
+``CLOSURE_REFUSED``, ``DEFERRED_ORGANIZATION_LEDGER_CONCURRENCY``) carries
+``failure_code``, ``failed_predicate``, ``required_evidence_or_repair``,
+``retry_entrypoint``, ``owning_existing_goal`` and ``next_attempt``.
+
+Ledger integrity separates what fails from what is reported. A receipt
+committed to the ledger ref before the organization's supplied-epoch writer
+reached its default branch is ``LEGACY``. Its orphan, duplicate, source, and
+clock findings are reported and do not fail the lane. History is not
+rewritten. Repository receipts that repeat one transition with identical
+evidence are reported as identical duplicates. Divergent duplicates fail
+unless every copy is legacy.
 """
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -48,6 +80,7 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from stegverse._stdlib_http import HttpTransportError
 from stegverse._stdlib_http import get as http_get
+from stegverse._stdlib_http import post as http_post
 
 PROFILE_ID = "intr-destination"
 ADDRESS_FORM = "ORGANIZATION_SLUG_DOT_CAPABILITY_PROFILE_ID"
@@ -62,6 +95,85 @@ CONTRACT_RELATIVE = ".stegverse/transition-ledger/contract.json"
 LEDGER_REF = "refs/stegverse/organization-ledger"
 GITHUB_API = "https://api.github.com"
 FEDERATION_READ_TOKEN_ENV = "FEDERATION_READ_TOKEN"
+# Dispatches the hop workflow in every organization (classic PAT: repo +
+# workflow). Reads fall back to it when FEDERATION_READ_TOKEN is unset.
+FEDERATION_HOP_TOKEN_ENV = "FEDERATION_HOP_TOKEN"
+HOP_WORKFLOW = "intr-destination-hop.yml"
+WRITER_WORKFLOW = ".github/workflows/organization-ledger-transition.yml"
+CLOSURE_REFUSED_CLASS = "ORGANIZATION_EGRESS_CLOSURE_REFUSED"
+LEGACY = "LEGACY"
+DURABLE_QUEUE = "DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION"
+OWNING_EXISTING_GOAL = "StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody"
+NON_ALLOW_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair",
+                    "retry_entrypoint", "owning_existing_goal", "next_attempt")
+LANE_WORKFLOW = ".github/workflows/intr-destination-hop-lane.yml"
+# SDK#543 removed the lane's `mode` input: fabricated runs in LANE_WORKFLOW;
+# live and orchestrate are separate workflow_dispatch-only workflows.
+LANE_WORKFLOWS = {
+    "fabricated": LANE_WORKFLOW,
+    "live": ".github/workflows/intr-destination-hop-lane-live.yml",
+    "orchestrate": ".github/workflows/intr-destination-hop-lane-orchestrate.yml hb_epoch=<supplied>",
+}
+
+
+def lane_entrypoint(mode):
+    """The workflow that re-runs ``mode``. An unknown mode names the pull-request lane and the mode."""
+    return LANE_WORKFLOWS.get(mode, LANE_WORKFLOW + " mode=" + str(mode))
+NOT_SENT_FINDING = "CORRELATED_RECEIPTS_NOT_IN_THE_READ_LEDGERS"
+# LEGACY receipts are reported, never live-mesh evidence: a pair correlated
+# only by LEGACY receipts is this finding, with the six fields, and is sent again.
+LEGACY_ONLY_FINDING = "CORRELATED_RECEIPTS_ARE_LEGACY_ONLY"
+# A read ledger whose supplied-epoch writer introduction was not observed (not
+# found, unreadable, or --no-writer-lookup): no receipt on it can be classed
+# LEGACY, so none is live evidence. The hop is FAIL_CLOSED, never PASS, and
+# claims no authenticity.
+WRITER_INTRODUCTION_NOT_OBSERVED = "WRITER_INTRODUCTION_NOT_OBSERVED"
+WRITER_INTRODUCTION_PREDICATE = "LEDGER_RECEIPTS_ARE_CLASSIFIED_AGAINST_AN_OBSERVED_WRITER_INTRODUCTION"
+WRITER_INTRODUCTION_OWNING_GOAL = "INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001"
+WRITER_LOOKUP_DISABLED = "WRITER_LOOKUP_DISABLED"
+WRITER_INTRODUCTION_NOT_FOUND = "WRITER_INTRODUCTION_NOT_FOUND"
+# Reported, not failing, when every receipt it names is LEGACY.
+LEGACY_REPORTABLE = (
+    "ORPHAN_ORGANIZATION_RECEIPT",
+    "ORPHAN_REPOSITORY_RECEIPT",
+    "DUPLICATE_REPOSITORY_RECEIPT",
+    "SOURCE_RECEIPT_DOES_NOT_MATCH_REPOSITORY_CHAIN",
+    "TIME_CONSTRAINT_DERIVED_FROM_CLOCK",
+    "AUTHORITY_CONSTRAINT_IS_NOT_NONE",
+)
+# Declared correlation evidence classes. Every receipt class the readback
+# distinguishes maps to exactly one disposition, and the code reads this table
+# rather than hard-coding the branches:
+#   LIVE_EVIDENCE  may correlate a live hop (and may PASS);
+#   REPORTABLE     is reported, not failing, and is never live-mesh evidence;
+#   REFUSED        is a failing finding.
+# A class the code meets that is not listed here is FAIL_CLOSED
+# CORRELATION_EVIDENCE_CLASS_NOT_DECLARED with the six fields.
+# Review note: this table awaits ChatGPT's answer to Q-G4 (JOINT DISCOVERY
+# QUEUE). It records current behaviour and adds no live evidence.
+LIVE_EVIDENCE = "LIVE_EVIDENCE"
+REPORTABLE = "REPORTABLE"
+REFUSED = "REFUSED"
+CORRELATION_EVIDENCE_DISPOSITIONS = (LIVE_EVIDENCE, REPORTABLE, REFUSED)
+LIVE_SUPPLIED_EPOCH = "LIVE_SUPPLIED_EPOCH"
+IDENTICAL_DUPLICATE = "IDENTICAL_DUPLICATE"
+DIVERGENT_DUPLICATE = "DIVERGENT_DUPLICATE"
+ORG_RECEIPT_SOURCE_UNNAMED = "ORG_RECEIPT_SOURCE_UNNAMED"
+CORRELATION_EVIDENCE_CLASSES = {
+    # A receipt appended by the supplied-epoch writer (on or after its
+    # introduction; with no introduction known, nothing is LEGACY).
+    LIVE_SUPPLIED_EPOCH: LIVE_EVIDENCE,
+    # Added to the ledger ref before the writer's introduction.
+    LEGACY: REPORTABLE,
+    # Repository receipts with the same transition_id and identical evidence.
+    IDENTICAL_DUPLICATE: REPORTABLE,
+    # Same transition_id, differing evidence, not every copy LEGACY.
+    DIVERGENT_DUPLICATE: REFUSED,
+    # An organization receipt that names no source_transition_sha256.
+    ORG_RECEIPT_SOURCE_UNNAMED: REPORTABLE,
+}
+CORRELATION_EVIDENCE_CLASS_NOT_DECLARED = "CORRELATION_EVIDENCE_CLASS_NOT_DECLARED"
+
 # Live mode requests each of these organizations' `<org>/.github` advertisement.
 # Membership still comes from the advertisement when it can be read. An
 # organization that cannot be read is kept, and its hops are UNREACHABLE.
@@ -447,11 +559,19 @@ def discover_peers_from_github(organizations: Sequence[str] = CANDIDATE_ORGANIZA
     return peers, silent
 
 
+def git_auth_header(token: str) -> str:
+    """The extra header git sends to github.com for ``token``."""
+    basic = base64.b64encode(("x-access-token:" + token).encode("utf-8")).decode("ascii")
+    return "Authorization: Basic " + basic
+
+
 def materialize_remote_ledger(repository: str, dest: Path, token: str | None) -> str | None:
     """Fetch ``refs/stegverse/organization-ledger`` into ``dest``.
 
     Returns a reason when the ref cannot be read. The token, when set, is a
-    git extra header, not part of the remote URL.
+    git extra header (HTTP basic, ``x-access-token``), not part of the remote
+    URL. The full ref history is fetched: the commit that added a receipt is
+    what places it before or after the organization's writer.
     """
     token = _blank_to_none(token)
     if dest.exists():
@@ -462,14 +582,14 @@ def materialize_remote_ledger(repository: str, dest: Path, token: str | None) ->
     if token:
         env["GIT_CONFIG_COUNT"] = "1"
         env["GIT_CONFIG_KEY_0"] = "http.extraheader"
-        env["GIT_CONFIG_VALUE_0"] = "Authorization: Bearer " + token
+        env["GIT_CONFIG_VALUE_0"] = git_auth_header(token)
     url = "https://github.com/" + repository + ".git"
     try:
         init = subprocess.run(["git", "init", "-q"], cwd=dest, env=env, capture_output=True, text=True, timeout=30)
         if init.returncode != 0:
             return "LEDGER_REF_NOT_READABLE"
         fetched = subprocess.run(
-            ["git", "fetch", "--quiet", "--depth", "1", url, LEDGER_REF + ":" + LEDGER_REF],
+            ["git", "fetch", "--quiet", url, LEDGER_REF + ":" + LEDGER_REF],
             cwd=dest, env=env, capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired):
         return "LEDGER_REF_NOT_READABLE"
@@ -758,7 +878,37 @@ def walk_git(repository: Path | str, ref: str = LEDGER_REF, namespace: str | Non
             findings.append("SOURCE_RECEIPT_NOT_RETAINED_OR_DOES_NOT_VERIFY")
     return {"present": True, "location": location, "ref": ref, "revision": revision, "chain": chain,
             "sources": sources, "findings": list(dict.fromkeys(findings)),
-            "head_receipt_sha256": head.get("receipt_sha256")}
+            "head_receipt_sha256": head.get("receipt_sha256"),
+            "introduced_at": ledger_introductions(repo, revision, prefix)}
+
+
+def ledger_introductions(repo: Path, revision: str, prefix: str = "") -> dict[str, int]:
+    """Receipt digest -> committer time (unix seconds) of the ledger commit that added it.
+
+    Read from the ledger ref's own history. A shallow history names only what
+    it holds; a receipt it cannot place is absent here and is not LEGACY.
+    """
+    completed = _git(repo, "log", "--reverse", "--diff-filter=A", "--format=@%ct", "--name-only",
+                     revision, "--", prefix + "receipts/")
+    if completed.returncode != 0:
+        return {}
+    found: dict[str, int] = {}
+    stamp: int | None = None
+    for line in completed.stdout.decode("utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if line.startswith("@"):
+            try:
+                stamp = int(line[1:])
+            except ValueError:
+                stamp = None
+            continue
+        if not line or stamp is None or not line.startswith(prefix + "receipts/") or not line.endswith(".json"):
+            continue
+        name = line[len(prefix + "receipts/"):-len(".json")]
+        if "/" in name:
+            continue
+        found.setdefault("sha256:" + name, stamp)
+    return found
 
 
 def repository_namespace(root: Path) -> str | None:
@@ -785,18 +935,101 @@ def _by_class(chain: Sequence[Mapping[str, Any]], transition_class: str) -> list
             and receipt.get("transition_class") == transition_class]
 
 
-def integrity_findings(repo: Mapping[str, Any], org: Mapping[str, Any]) -> list[str]:
-    """Hash chain and source retention for one organization's two ledger levels."""
+def _duplicate_key(receipt: Mapping[str, Any]) -> bytes:
+    return canon({key: receipt.get(key) for key in (
+        "repository", "transition_id", "transition_class", "predecessor_state_sha256",
+        "successor_state_sha256", "evidence", "authority_effect")})
+
+
+def correlation_evidence_class_refusal(evidence_class: Any) -> dict[str, Any]:
+    """FAIL_CLOSED for a receipt class not in ``CORRELATION_EVIDENCE_CLASSES``."""
+    return {
+        "disposition": "FAIL_CLOSED", "evidence_class": evidence_class, "consequence_committed": False,
+        **non_allow_fields(
+            CORRELATION_EVIDENCE_CLASS_NOT_DECLARED, "RECEIPT_CLASS_IS_A_DECLARED_CORRELATION_EVIDENCE_CLASS",
+            "declare " + repr(evidence_class) + " in CORRELATION_EVIDENCE_CLASSES as LIVE_EVIDENCE, REPORTABLE "
+            "or REFUSED (owner review; the table awaits the answer to Q-G4, JOINT DISCOVERY QUEUE)",
+            lane_entrypoint("live"),
+            "read again once the class is declared; until then it is neither evidence nor reported"),
+    }
+
+
+def correlation_evidence_disposition(evidence_class: Any,
+                                     table: Mapping[str, str] | None = None) -> tuple[str | None, dict[str, Any] | None]:
+    """(disposition, None) for a declared class; (None, six-field FAIL_CLOSED) otherwise."""
+    declared = (CORRELATION_EVIDENCE_CLASSES if table is None else table).get(evidence_class) \
+        if isinstance(evidence_class, str) else None
+    if declared not in CORRELATION_EVIDENCE_DISPOSITIONS:
+        return None, correlation_evidence_class_refusal(evidence_class)
+    return declared, None
+
+
+def integrity_report(repo: Mapping[str, Any], org: Mapping[str, Any], *,
+                     writer_introduction: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """Hash chain and source retention for one organization's two ledger levels.
+
+    ``findings`` fail the lane. ``reported`` are findings on LEGACY receipts
+    (added to the ref before ``writer_introduction``), identical duplicates,
+    and organization receipts that name no source receipt. Chain-shape
+    findings always fail. Nothing is rewritten.
+    """
     findings = list(repo.get("findings") or []) + list(org.get("findings") or [])
+    reported: list[dict[str, Any]] = []
     if not repo.get("present"):
         findings.append("REPOSITORY_LEDGER_ABSENT")
     if not org.get("present"):
         findings.append("ORGANIZATION_LEDGER_ABSENT")
+    cutoff = (writer_introduction or {}).get("committed_at_unix")
+    cutoff = cutoff if isinstance(cutoff, int) else None
+    introduced = {"repository": repo.get("introduced_at") or {}, "organization": org.get("introduced_at") or {}}
+
+    def legacy(level: str, digest: Any) -> bool:
+        stamp = introduced[level].get(digest) if isinstance(digest, str) else None
+        return cutoff is not None and isinstance(stamp, int) and stamp < cutoff
+
+    refusals: list[dict[str, Any]] = []
+
+    def classify(evidence_class: str) -> str | None:
+        disposition, refusal = correlation_evidence_disposition(evidence_class)
+        if refusal is not None:
+            findings.append(CORRELATION_EVIDENCE_CLASS_NOT_DECLARED)
+            if refusal not in refusals:
+                refusals.append(refusal)
+        return disposition
+
+    def note(finding: str, level: str, digests: Sequence[Any]) -> None:
+        # Only the declared LEGACY_REPORTABLE findings can be reported instead
+        # of failing, and only while the table holds LEGACY as REPORTABLE;
+        # anything else fails even on a LEGACY receipt.
+        if finding in LEGACY_REPORTABLE and digests and all(legacy(level, digest) for digest in digests):
+            if classify(LEGACY) == REPORTABLE:
+                reported.append({"finding": finding, "classification": LEGACY, "level": level,
+                                 "receipt_sha256": list(digests)})
+                return
+        findings.append(finding)
+
     repo_chain = repo.get("chain") or []
     org_chain = org.get("chain") or []
-    repo_ids = [receipt.get("transition_id") for receipt in repo_chain]
-    if len(repo_ids) != len(set(repo_ids)):
-        findings.append("DUPLICATE_REPOSITORY_RECEIPT")
+    groups: dict[Any, list[Mapping[str, Any]]] = {}
+    for receipt in repo_chain:
+        groups.setdefault(receipt.get("transition_id"), []).append(receipt)
+    for transition_id, group in groups.items():
+        if len(group) < 2:
+            continue
+        digests = [item.get("receipt_sha256") for item in group]
+        if len({_duplicate_key(item) for item in group}) == 1:
+            disposition = classify(IDENTICAL_DUPLICATE)
+            if disposition == REPORTABLE:
+                reported.append({"finding": "IDENTICAL_DUPLICATE_REPOSITORY_RECEIPT",
+                                 "classification": LEGACY if all(legacy("repository", d) for d in digests) else "REPORTED",
+                                 "evidence_class": IDENTICAL_DUPLICATE,
+                                 "level": "repository", "transition_id": transition_id, "receipt_sha256": digests})
+            elif disposition is not None:
+                findings.append("IDENTICAL_DUPLICATE_REPOSITORY_RECEIPT")
+        elif all(legacy("repository", d) for d in digests):
+            note("DUPLICATE_REPOSITORY_RECEIPT", "repository", digests)
+        elif classify(DIVERGENT_DUPLICATE) is not None:
+            findings.append("DUPLICATE_REPOSITORY_RECEIPT")
     consumed: dict[str, int] = {}
     for receipt in org_chain:
         if receipt.get("schema") != ORG_SCHEMA:
@@ -807,22 +1040,163 @@ def integrity_findings(repo: Mapping[str, Any], org: Mapping[str, Any]) -> list[
             findings.append("ORGANIZATION_RECEIPT_DOES_NOT_NAME_A_REPOSITORY_RECEIPT")
             continue
         consumed[digest] = consumed.get(digest, 0) + 1
-        source = (org.get("sources") or {}).get(receipt.get("source_transition_sha256"))
         match = next((item for item in repo_chain if item.get("receipt_sha256") == digest), None)
         if match is None:
-            findings.append("ORPHAN_ORGANIZATION_RECEIPT")
-        elif source != match:
-            findings.append("SOURCE_RECEIPT_DOES_NOT_MATCH_REPOSITORY_CHAIN")
+            note("ORPHAN_ORGANIZATION_RECEIPT", "organization", [receipt.get("receipt_sha256")])
+            continue
+        named = receipt.get("source_transition_sha256")
+        if named is None:
+            # The repository receipt it names is on the chain; there is no
+            # retained source copy to compare.
+            disposition = classify(ORG_RECEIPT_SOURCE_UNNAMED)
+            if disposition == REPORTABLE:
+                reported.append({"finding": "ORGANIZATION_RECEIPT_NAMES_NO_SOURCE_RECEIPT",
+                                 "classification": "REPORTED", "evidence_class": ORG_RECEIPT_SOURCE_UNNAMED,
+                                 "level": "organization", "receipt_sha256": [receipt.get("receipt_sha256")]})
+            elif disposition is not None:
+                findings.append("ORGANIZATION_RECEIPT_NAMES_NO_SOURCE_RECEIPT")
+            continue
+        if (org.get("sources") or {}).get(named) != match:
+            note("SOURCE_RECEIPT_DOES_NOT_MATCH_REPOSITORY_CHAIN", "organization", [receipt.get("receipt_sha256")])
     for receipt in repo_chain:
         if consumed.get(receipt.get("receipt_sha256"), 0) != 1:
-            findings.append("ORPHAN_REPOSITORY_RECEIPT")
+            note("ORPHAN_REPOSITORY_RECEIPT", "repository", [receipt.get("receipt_sha256")])
     for receipt in repo_chain:
         reference = receipt.get("hb_reference") or {}
         if reference.get("derived_from_clock") is True:
-            findings.append("TIME_CONSTRAINT_DERIVED_FROM_CLOCK")
+            note("TIME_CONSTRAINT_DERIVED_FROM_CLOCK", "repository", [receipt.get("receipt_sha256")])
         if reference.get("authority_effect") not in (None, "NONE"):
-            findings.append("AUTHORITY_CONSTRAINT_IS_NOT_NONE")
-    return list(dict.fromkeys(findings))
+            note("AUTHORITY_CONSTRAINT_IS_NOT_NONE", "repository", [receipt.get("receipt_sha256")])
+    # Which repository receipts may correlate a live hop: read off the table.
+    non_live: list[str] = []
+    for receipt in repo_chain:
+        digest = receipt.get("receipt_sha256")
+        if not isinstance(digest, str):
+            continue
+        if classify(LEGACY if legacy("repository", digest) else LIVE_SUPPLIED_EPOCH) != LIVE_EVIDENCE:
+            non_live.append(digest)
+    legacy_count = sum(1 for level, chain in (("repository", repo_chain), ("organization", org_chain))
+                       for receipt in chain if legacy(level, receipt.get("receipt_sha256")))
+    return {
+        "findings": list(dict.fromkeys(findings)),
+        "reported": reported,
+        "writer_introduction": dict(writer_introduction) if writer_introduction else None,
+        "legacy_receipt_count": legacy_count,
+        "legacy_receipts": {
+            level: sorted(receipt["receipt_sha256"] for receipt in chain
+                          if isinstance(receipt.get("receipt_sha256"), str) and legacy(level, receipt["receipt_sha256"]))
+            for level, chain in (("repository", repo_chain), ("organization", org_chain))},
+        "non_live_repository_receipts": sorted(non_live),
+        "evidence_class_refusals": refusals,
+        "receipt_count": len(repo_chain) + len(org_chain),
+    }
+
+
+def integrity_findings(repo: Mapping[str, Any], org: Mapping[str, Any], *,
+                       writer_introduction: Mapping[str, Any] | None = None) -> list[str]:
+    """The failing part of ``integrity_report``."""
+    return integrity_report(repo, org, writer_introduction=writer_introduction)["findings"]
+
+
+def writer_marker(text: str | None) -> bool:
+    """The writer takes ``hb_epoch`` as a dispatch input and runs the self-closure."""
+    if not isinstance(text, str):
+        return False
+    lowered = text.lower()
+    takes_epoch = any(line.strip() == "hb_epoch:" for line in text.splitlines())
+    return takes_epoch and ("self-clos" in lowered or "self_clos" in lowered)
+
+
+def writer_introduction_local(root: Path | str, revision: str = "HEAD") -> dict[str, Any] | None:
+    """Earliest commit on ``revision`` whose writer workflow carries ``writer_marker``."""
+    repo = Path(root)
+    listed = _git(repo, "log", "--reverse", "--format=%H %ct", revision, "--", WRITER_WORKFLOW)
+    if listed.returncode != 0:
+        return None
+    for line in listed.stdout.decode("utf-8", errors="replace").splitlines():
+        parts = line.split()
+        if len(parts) != 2:
+            continue
+        shown = _git(repo, "show", parts[0] + ":" + WRITER_WORKFLOW)
+        if shown.returncode == 0 and writer_marker(shown.stdout.decode("utf-8", errors="replace")):
+            return {"commit": parts[0], "committed_at_unix": int(parts[1]), "source": "LOCAL_CHECKOUT_HISTORY"}
+    return None
+
+
+def _github_get(url: str, token: str | None, accept: str,
+                getter: Callable[..., Any] | None = None) -> tuple[int | None, bytes]:
+    headers = {"Accept": accept, "User-Agent": "stegverse-intr-hop-lane", "X-GitHub-Api-Version": "2022-11-28"}
+    token = _blank_to_none(token)
+    if token:
+        headers["Authorization"] = "Bearer " + token
+    try:
+        response = (getter or http_get)(url, headers=headers, timeout=30)
+    except HttpTransportError:
+        return None, b""
+    return getattr(response, "status_code", None), getattr(response, "content", b"") or b""
+
+
+def _iso_to_unix(value: Any) -> int | None:
+    if not isinstance(value, str):
+        return None
+    from datetime import datetime
+    try:
+        return int(datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp())
+    except ValueError:
+        return None
+
+
+def writer_introduction_from_github(repository: str, *, token: str | None = None,
+                                    getter: Callable[..., Any] | None = None,
+                                    max_pages: int = 10) -> dict[str, Any] | None:
+    """Earliest default-branch commit whose writer workflow carries ``writer_marker``.
+
+    Lists the commits that touched the workflow, oldest first, and reads the
+    file at each one until the marker appears. None when it never does or the
+    history cannot be read.
+    """
+    commits: list[tuple[str, int]] = []
+    for page in range(1, max_pages + 1):
+        status, body = _github_get(
+            GITHUB_API + "/repos/" + repository + "/commits?path=" + WRITER_WORKFLOW
+            + "&per_page=100&page=" + str(page), token, "application/vnd.github+json", getter)
+        if status != 200:
+            return None
+        try:
+            listed = json.loads(body.decode("utf-8"))
+        except (UnicodeError, json.JSONDecodeError):
+            return None
+        if not isinstance(listed, list) or not listed:
+            break
+        for item in listed:
+            sha = item.get("sha") if isinstance(item, dict) else None
+            stamp = _iso_to_unix((((item.get("commit") or {}).get("committer") or {}).get("date"))
+                                 if isinstance(item, dict) else None)
+            if isinstance(sha, str) and stamp is not None:
+                commits.append((sha, stamp))
+        if len(listed) < 100:
+            break
+    for sha, stamp in reversed(commits):
+        status, body = _github_get(
+            GITHUB_API + "/repos/" + repository + "/contents/" + WRITER_WORKFLOW + "?ref=" + sha,
+            token, "application/vnd.github.raw", getter)
+        if status == 200 and writer_marker(body.decode("utf-8", errors="replace")):
+            return {"commit": sha, "committed_at_unix": stamp, "source": "GITHUB_API_DEFAULT_BRANCH_HISTORY"}
+    return None
+
+
+def parse_writer_overrides(items: Sequence[str]) -> dict[str, dict[str, Any]]:
+    """``ORGANIZATION=<unix seconds | ISO 8601>`` from the command line."""
+    found: dict[str, dict[str, Any]] = {}
+    for item in items:
+        organization, separator, value = item.partition("=")
+        if not separator or not organization or not value:
+            raise ValueError("--writer-introduced expects ORGANIZATION=<unix seconds or ISO 8601>: " + item)
+        stamp = int(value) if value.isdigit() else _iso_to_unix(value)
+        if stamp is None:
+            raise ValueError("--writer-introduced time is not readable: " + item)
+        found[organization] = {"commit": None, "committed_at_unix": stamp, "source": "COMMAND_LINE_OVERRIDE"}
+    return found
 
 
 def hop_receipt_findings(hop: Mapping[str, Any], sender_repo: Sequence[Mapping[str, Any]],
@@ -877,6 +1251,136 @@ def hop_receipt_findings(hop: Mapping[str, Any], sender_repo: Sequence[Mapping[s
     if reference.get("derived_from_clock") is True:
         findings.append("TIME_CONSTRAINT_DERIVED_FROM_CLOCK")
     return list(dict.fromkeys(findings))
+
+
+def non_allow_fields(failure_code: str, failed_predicate: str, required_evidence_or_repair: str,
+                     retry_entrypoint: str, next_attempt: str) -> dict[str, Any]:
+    """The six fields every non-ALLOW outcome carries."""
+    return {
+        "failure_code": failure_code,
+        "failed_predicate": failed_predicate,
+        "required_evidence_or_repair": required_evidence_or_repair,
+        "retry_entrypoint": retry_entrypoint,
+        "owning_existing_goal": OWNING_EXISTING_GOAL,
+        "next_attempt": next_attempt,
+    }
+
+
+def durable_queue_fields() -> dict[str, Any]:
+    """An unavailable or not-yet-run receiver is the protocol's own disposition, not a blocker."""
+    return {
+        "always_on_receiver_required": False,
+        "receiver_wait": False,
+        **non_allow_fields(
+            DURABLE_QUEUE, "DESTINATION_ARRIVED_AND_SENDER_CLOSED_RECEIPTS_IN_THE_READ_LEDGERS",
+            "none from a receiver: the destination receive and sender close materialize from the dispatched "
+            "events and are observed only as organization-ledger receipts",
+            lane_entrypoint("live") + " (readback)",
+            "the next readback evaluates the receipts present then; nothing waits or polls"),
+    }
+
+
+def hop_outcome_fields(status: str, findings: Sequence[str], unreachable: Mapping[str, Any] | None,
+                       mode: str) -> dict[str, Any]:
+    """Six fields for a non-ALLOW hop status; the durable-queue fields for an open hop."""
+    if status == "UNREACHABLE":
+        reasons = ", ".join("%s: %s" % (side, reason) for side, reason in sorted((unreachable or {}).items()) if reason)
+        return non_allow_fields(
+            "INTR_HOP_ADVERTISEMENT_OR_LEDGER_REF_UNREADABLE",
+            "SENDER_AND_DESTINATION_ADVERTISEMENT_AND_LEDGER_REF_ARE_READABLE",
+            "a readable <org>/.github advertisement and " + LEDGER_REF + " for each side (" + (reasons or "unread") + ")",
+            lane_entrypoint(mode),
+            "read again once the read credential reaches the organization; the hop stays in the matrix")
+    if status == "FAIL":
+        listed = list(findings) or ["HOP_RECEIPT_FINDINGS"]
+        if CORRELATION_EVIDENCE_CLASS_NOT_DECLARED in listed:
+            refusal = correlation_evidence_class_refusal("an undeclared receipt class (ledger_integrity evidence_class_refusals)")
+            return {key: refusal[key] for key in NON_ALLOW_FIELDS}
+        if listed == [LEGACY_ONLY_FINDING]:
+            return non_allow_fields(
+                "INTR_HOP_CORRELATED_ONLY_BY_LEGACY_RECEIPTS", "LIVE_HOP_CORRELATION_USES_NON_LEGACY_RECEIPTS",
+                "an emission, arrival and closure for this ordered pair appended by the supplied-epoch writer "
+                "(after its introduction); receipts added before it are LEGACY, reported and never live-mesh evidence",
+                lane_entrypoint("orchestrate"),
+                "orchestrate dispatches a fresh send at a supplied hb_epoch >= 32; the next readback evaluates it")
+        if listed == [NOT_SENT_FINDING]:
+            return non_allow_fields(
+                "INTR_HOP_NOT_SENT_IN_READ_LEDGERS", NOT_SENT_FINDING,
+                "a send transition for this ordered pair; no emission, arrival or closure is in the read ledgers",
+                lane_entrypoint("orchestrate"),
+                "orchestrate dispatches the send transition at a supplied hb_epoch; the next readback evaluates it")
+        return non_allow_fields(
+            "INTR_HOP_RECEIPT_FINDINGS", ",".join(listed),
+            "sender and destination ledger receipts that clear: " + ", ".join(listed),
+            lane_entrypoint(mode),
+            "repair the named receipts or ledger writer, then read again; LEGACY receipts are reported, not failing")
+    if status == DURABLE_QUEUE:
+        return durable_queue_fields()
+    return {}
+
+
+def observed_writer_introduction(introduced: Any) -> bool:
+    """An introduction the readback can classify against: a mapping with integer ``committed_at_unix``."""
+    if not isinstance(introduced, Mapping):
+        return False
+    stamp = introduced.get("committed_at_unix")
+    return isinstance(stamp, int) and not isinstance(stamp, bool)
+
+
+def writer_introduction_fail_closed(unobserved: Mapping[str, str], mode: str = "live") -> dict[str, Any]:
+    """Six fields for a hop read off a ledger whose writer introduction was not observed."""
+    sides = ", ".join("%s: %s" % (slug, reason) for slug, reason in sorted(unobserved.items())) or "unobserved"
+    return {
+        "disposition": "FAIL_CLOSED",
+        "failure_code": WRITER_INTRODUCTION_NOT_OBSERVED,
+        "failed_predicate": WRITER_INTRODUCTION_PREDICATE,
+        "required_evidence_or_repair": (
+            "the supplied-epoch writer introduction for each read ledger (" + sides + "): the earliest "
+            "default-branch commit of " + WRITER_WORKFLOW + " that takes hb_epoch and runs the self-closure, "
+            "read from the checkout history or the GitHub API, or --writer-introduced ORG=<unix seconds | ISO 8601>; "
+            "without it no receipt can be classed LEGACY and none is live-mesh evidence"),
+        "retry_entrypoint": lane_entrypoint(mode) + " (writer lookup on, no --no-writer-lookup)",
+        "owning_existing_goal": WRITER_INTRODUCTION_OWNING_GOAL,
+        "next_attempt": ("the next readback looks the writer introduction up again and classifies the receipts "
+                         "against it; until then the hop is FAIL_CLOSED, never PASS, and claims no authenticity"),
+    }
+
+
+def _without_legacy(chain: Sequence[Mapping[str, Any]], legacy: Iterable[str] = ()) -> list[Mapping[str, Any]]:
+    excluded = set(legacy)
+    return [receipt for receipt in chain if receipt.get("receipt_sha256") not in excluded]
+
+
+def pair_ledger_state(sender_repo: Sequence[Mapping[str, Any]], destination_organization: str, address: str,
+                      legacy: Iterable[str] = ()) -> str:
+    """``OPEN``, ``CLOSED``, ``REFUSED`` or ``UNSENT`` for one ordered pair, read off the sender's chain.
+
+    ``OPEN`` is an emission to the destination's address whose packet has no
+    closure or refused closure yet. It is a state of the hop, not a blocker.
+    Receipts named in ``legacy`` (LEGACY repository receipt digests) are not
+    read: a pair whose only receipts are LEGACY is ``UNSENT``.
+    """
+    sender_repo = _without_legacy(sender_repo, legacy)
+    terminal: dict[str, str] = {}
+    for receipt in sender_repo:
+        klass = receipt.get("transition_class")
+        if klass not in (CLOSED_CLASS, CLOSURE_REFUSED_CLASS):
+            continue
+        evidence = _evidence(receipt)
+        if evidence.get("destination_organization") != destination_organization:
+            continue
+        packet = evidence.get("request_packet_id")
+        if isinstance(packet, str):
+            terminal[packet] = klass
+    emitted = [_evidence(receipt).get("packet_id") for receipt in _by_class(sender_repo, EMITTED_CLASS)
+               if _evidence(receipt).get("destination_service") == address]
+    if any(packet not in terminal for packet in emitted):
+        return "OPEN"
+    if CLOSED_CLASS in terminal.values():
+        return "CLOSED"
+    if CLOSURE_REFUSED_CLASS in terminal.values():
+        return "REFUSED"
+    return "UNSENT"
 
 
 def _status(findings: Sequence[str], *, unreachable: str | None = None) -> str:
@@ -1056,18 +1560,32 @@ def _absent_ledger(reason: str, location: str | None = None) -> dict[str, Any]:
 
 
 def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: str | None = None,
-            ledger_cache: Path | None = None) -> dict[str, Any]:
+            ledger_cache: Path | None = None,
+            writer_introduction: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
+            writer_lookup_disabled: bool = False,
+            ) -> dict[str, Any]:
     """Read each peer's organization-ledger ref. Do not append.
 
     A peer whose advertisement was not read is UNREACHABLE and its ledger is
     not fetched. A readable peer with no local checkout is read from
     ``refs/stegverse/organization-ledger`` on ``https://github.com/<repo>``
     when ``fetch`` is set. A ref that cannot be read is UNREACHABLE.
+
+    ``writer_introduction(peer)`` names when the peer's supplied-epoch writer
+    reached its default branch. Receipts added to the ref before it are
+    LEGACY: reported, not failing. Without an observed introduction (none
+    given, not found, or ``writer_lookup_disabled``) nothing can be classed
+    LEGACY, so every hop touching that ledger is FAIL_CLOSED
+    ``WRITER_INTRODUCTION_NOT_OBSERVED`` with the six fields: never PASS, no
+    authenticity claimed, no communication id read back as live.
     """
     token = _blank_to_none(token)
     views = {}
     unreachable: dict[str, str] = {}
     integrity: dict[str, list[str]] = {}
+    ledger_integrity: dict[str, dict[str, Any]] = {}
+    legacy_by_slug: dict[str, list[str]] = {}
+    writer_unobserved: dict[str, str] = {}
     owned_cache: tempfile.TemporaryDirectory | None = None
     try:
         for peer in peers:
@@ -1116,7 +1634,26 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
             elif not repo.get("present"):
                 integrity[slug] = ["REPOSITORY_LEDGER_CHAIN_ABSENT"]
             else:
-                integrity[slug] = integrity_findings(repo, org)
+                introduced = writer_introduction(peer) if writer_introduction else None
+                if not observed_writer_introduction(introduced):
+                    writer_unobserved[slug] = (WRITER_LOOKUP_DISABLED if writer_lookup_disabled or writer_introduction is None
+                                               else WRITER_INTRODUCTION_NOT_FOUND)
+                    introduced = None
+                detail = integrity_report(repo, org, writer_introduction=introduced)
+                integrity[slug] = detail["findings"]
+                # Excluded from live correlation: every receipt whose declared
+                # class is not LIVE_EVIDENCE (LEGACY is REPORTABLE, never live).
+                legacy_by_slug[slug] = list(detail["non_live_repository_receipts"])
+                ledger_integrity[slug] = {"organization": peer["organization"], **detail}
+                if detail["evidence_class_refusals"]:
+                    ledger_integrity[slug].update(
+                        {key: detail["evidence_class_refusals"][0][key] for key in NON_ALLOW_FIELDS})
+                elif detail["findings"]:
+                    ledger_integrity[slug].update(non_allow_fields(
+                        "INTR_HOP_LEDGER_INTEGRITY_FINDINGS", ",".join(detail["findings"]),
+                        "repository and organization ledger chains that clear: " + ", ".join(detail["findings"]),
+                        lane_entrypoint("live"),
+                        "repair the named receipts or ledger writer, then read again; LEGACY receipts are reported, not failing"))
     finally:
         if owned_cache is not None:
             owned_cache.cleanup()
@@ -1139,14 +1676,37 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
         dest_repo, dest_org = views[dest["slug"]]
         if sender_reason or dest_reason:
             reason = {"sender": sender_reason, "destination": dest_reason}
-            rendered.append(_public_hop(
+            public = _public_hop(
                 hop, status="UNREACHABLE", findings=[], writer={}, sender_ledger=sender_org,
-                destination_ledger=dest_org, mode="live", unreachable=reason))
+                destination_ledger=dest_org, mode="live", unreachable=reason)
+            public["ledger_state"] = "UNREACHABLE"
+            rendered.append(public)
             continue
+        sender_legacy = legacy_by_slug.get(sender["slug"]) or []
+        dest_legacy = legacy_by_slug.get(dest["slug"]) or []
+        state = pair_ledger_state(sender_repo.get("chain") or [], dest["organization"], dest["address"],
+                                  legacy=sender_legacy)
         findings = list(integrity[sender["slug"]]) + list(integrity[dest["slug"]])
+        # LEGACY-only correlation: only receipts the supplied-epoch writer
+        # appended correlate a live hop. LEGACY ones are reported, not evidence.
         matched, correlation = _correlated_live(
-            sender_repo.get("chain") or [], dest_repo.get("chain") or [], dest["organization"], dest["address"])
+            _without_legacy(sender_repo.get("chain") or [], sender_legacy),
+            _without_legacy(dest_repo.get("chain") or [], dest_legacy), dest["organization"], dest["address"])
+        legacy_matched: list[str] = []
+        if sender_legacy or dest_legacy:
+            every, _ = _correlated_live(
+                sender_repo.get("chain") or [], dest_repo.get("chain") or [], dest["organization"], dest["address"])
+            legacy_matched = [identifier for identifier in every if identifier not in matched]
+        if not matched and legacy_matched and correlation == [NOT_SENT_FINDING] and state != "OPEN":
+            correlation = [LEGACY_ONLY_FINDING]
         findings.extend(correlation)
+        unobserved = {slug: writer_unobserved[slug] for slug in (sender["slug"], dest["slug"])
+                      if slug in writer_unobserved}
+        unclassified: list[str] = []
+        if unobserved:
+            # Nothing on that ledger can be classed LEGACY: no id is live evidence.
+            findings.insert(0, WRITER_INTRODUCTION_NOT_OBSERVED)
+            unclassified, matched = list(matched), []
         # Organization receipts must still hold each correlated repository receipt.
         for identifier in matched:
             synthetic = {
@@ -1158,11 +1718,282 @@ def run_live(peers: Sequence[Mapping[str, Any]], *, fetch: bool = False, token: 
                 dest_repo.get("chain") or [], dest_org.get("chain") or [])
                 if item != "TIME_CONSTRAINT_NOT_THE_SUPPLIED_EPOCH")
         findings = list(dict.fromkeys(findings))
-        public = _public_hop(hop, status=_status(findings), findings=findings, writer={},
+        status = _status(findings)
+        if not matched and state == "OPEN" and findings == [NOT_SENT_FINDING]:
+            # Sent and not yet closed. The receiver materializes from the
+            # dispatched event; its absence here is not a failure.
+            status, findings = DURABLE_QUEUE, []
+        public = _public_hop(hop, status=status, findings=findings, writer={},
                              sender_ledger=sender_org, destination_ledger=dest_org, mode="live")
+        public["ledger_state"] = state
         public["communication_ids_read_back"] = matched
+        public["legacy_communication_ids_reported"] = legacy_matched
+        public["writer_introduction_not_observed"] = unobserved
+        if unobserved:
+            public["unclassified_communication_ids_reported"] = unclassified
+            public["authenticity_claimed"] = False
+            public["authenticity_basis"] = None
+            if CORRELATION_EVIDENCE_CLASS_NOT_DECLARED not in findings:
+                public.update(writer_introduction_fail_closed(unobserved, "live"))
+            else:
+                public["disposition"] = "FAIL_CLOSED"
         rendered.append(public)
-    return _report(peers, rendered, mode="live")
+    report = _report(peers, rendered, mode="live")
+    report["ledger_integrity"] = ledger_integrity
+    report["writer_introduction_not_observed"] = dict(sorted(writer_unobserved.items()))
+    return report
+
+
+def hop_waves(peers: Sequence[Mapping[str, Any]]) -> list[list[tuple[Mapping[str, Any], Mapping[str, Any]]]]:
+    """Every ordered pair, in waves where no organization appears twice.
+
+    Round-robin (circle) pairing: ``n - 1`` rounds of ``n // 2`` disjoint
+    pairs, each round run once forward and once reversed. Eight peers give
+    14 waves of 4 hops. An odd peer count leaves one organization idle per
+    wave.
+    """
+    ordered = sorted(peers, key=lambda peer: peer["slug"])
+    slots: list[Mapping[str, Any] | None] = list(ordered)
+    if len(slots) % 2:
+        slots.append(None)
+    count = len(slots)
+    waves: list[list[tuple[Mapping[str, Any], Mapping[str, Any]]]] = []
+    for _round in range(max(count - 1, 0)):
+        pairs = [(slots[index], slots[count - 1 - index]) for index in range(count // 2)]
+        pairs = [(left, right) for left, right in pairs if left is not None and right is not None]
+        waves.append([(left, right) for left, right in pairs])
+        waves.append([(right, left) for left, right in pairs])
+        slots = [slots[0], slots[-1], *slots[1:-1]]
+    return [wave for wave in waves if wave]
+
+
+# The shared supplied-epoch rule (SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH),
+# copied byte-for-byte from StegVerse-Labs/.github org-kernel/kernel.py
+# (StegVerse-org/.github#185, StegVerse-Labs/.github#3212/#3213). The SDK has
+# no dependency on org-kernel, so the function is vendored, not imported.
+HB_EPOCH_NOT_SUPPLIED = "HB_EPOCH_NOT_SUPPLIED"
+HB_EPOCH_INVALID = "HB_EPOCH_INVALID"
+HB_EPOCH_PREDICATE = "SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH"
+HB32_ANCHOR = 32
+
+
+def supplied_epoch_failure(hb_epoch: Any, reference: Any = None) -> tuple[str, str] | None:
+    """The shared supplied-epoch rule (SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH).
+
+    Byte-identical in StegVerse-org/.github#185 and StegVerse-Labs/.github#3212
+    and #3213. `hb_epoch` absent (None) is HB_EPOCH_NOT_SUPPLIED. Otherwise it
+    must be ASCII [0-9]+ only -- an int is read as its decimal text; a bool, a
+    float or anything coerced ('+33', ' 33', '3_3', '33.0') is refused -- with
+    integer value >= 32 (the HB32 anchor). `reference`, the carrier frame's
+    heartbeat reference when there is one, must be an object, and a
+    `derived_from_clock` it carries must be exactly false. Any failure is
+    HB_EPOCH_INVALID. Returns (failure_code, detail), or None when the epoch is
+    supplied. No clock is read.
+    """
+    if reference is not None and not isinstance(reference, dict):
+        return "HB_EPOCH_INVALID", "the carrier's heartbeat reference is not an object"
+    if hb_epoch is None:
+        return "HB_EPOCH_NOT_SUPPLIED", "no hb_epoch was supplied and no clock is read"
+    if isinstance(hb_epoch, bool):
+        text = None
+    elif isinstance(hb_epoch, int):
+        text = str(hb_epoch)
+    elif isinstance(hb_epoch, str):
+        text = hb_epoch
+    else:
+        text = None
+    if text is None or not text.isascii() or not text.isdigit():
+        return "HB_EPOCH_INVALID", "hb_epoch " + repr(hb_epoch) + " is not ASCII [0-9]+"
+    if int(text) < 32:
+        return "HB_EPOCH_INVALID", "hb_epoch " + text + " is below the HB32 anchor (32)"
+    if reference is not None and "derived_from_clock" in reference \
+            and reference["derived_from_clock"] is not False:
+        return "HB_EPOCH_INVALID", ("the carrier's derived_from_clock is not exactly false; "
+                                    "a clock-derived epoch is not a supplied one")
+    return None
+
+
+def parse_hb_epoch(value: Any) -> int | None:
+    """``hb_epoch`` as the shared rule accepts it, or ``None``.
+
+    The org hop workflow and the ledger writer take a ``workflow_dispatch``
+    string input named ``hb_epoch``. ``supplied_epoch_failure`` accepts ASCII
+    ``[0-9]+`` (an ``int`` is read as its decimal text) with value at least 32,
+    the HB32 anchor. Anything else (absent, blank, signed, spaced, ``1e3``,
+    ``1_000``, non-ASCII digits, bool, float, below 32) returns ``None``.
+    """
+    if supplied_epoch_failure(value) is not None:
+        return None
+    return int(str(value))
+
+
+def _hb_epoch_finding(value: Any, failure_code: str) -> str:
+    if failure_code == HB_EPOCH_NOT_SUPPLIED:
+        return "MISSING"
+    text = str(value) if isinstance(value, (int, str)) and not isinstance(value, bool) else None
+    if text is not None and text.isascii() and text.isdigit():
+        return "BELOW_HB32_ANCHOR"
+    return "MALFORMED"
+
+
+def hb_epoch_fail_closed(value: Any) -> dict[str, Any]:
+    """The orchestrate transition when ``hb_epoch`` fails the shared rule. Nothing is read or dispatched."""
+    failure = supplied_epoch_failure(value) or (HB_EPOCH_INVALID, "hb_epoch " + repr(value) + " was refused")
+    code, detail = failure
+    finding = _hb_epoch_finding(value, code)
+    return {
+        "disposition": "FAIL_CLOSED", "hb_epoch_finding": finding, "hb_epoch_detail": detail,
+        "supplied_hb_epoch": None if value is None else repr(value),
+        **non_allow_fields(
+            code, HB_EPOCH_PREDICATE,
+            detail + "; supply hb_epoch as ASCII [0-9]+ with value >= 32 (the HB32 anchor), not derived "
+            "from a clock; the org hop workflow and the organization-ledger writer take it as the "
+            "workflow_dispatch input hb_epoch",
+            lane_entrypoint("orchestrate"),
+            "re-dispatch the orchestrate workflow with a supplied hb_epoch >= 32"),
+        "derived_from_clock": False,
+        "consequence_committed": False, "dispatched": 0, "hops": [], "outcomes": {},
+        "hb_epoch": None, "time_constraint": TIME_CONSTRAINT, "receiver_wait": False,
+        "always_on_receiver_required": False,
+    }
+
+
+def hop_credential_fail_closed() -> dict[str, Any]:
+    """The orchestrate transition when no dispatch credential is present. Nothing is dispatched."""
+    return {
+        "disposition": "FAIL_CLOSED",
+        **non_allow_fields(
+            "HOP_DISPATCH_CREDENTIAL_ABSENT", "HOP_DISPATCH_CREDENTIAL_IS_PRESENT",
+            "a credential that dispatches " + HOP_WORKFLOW + " send in each sender organization; TV/TVC "
+            "issuance is the pending owner decision on StegVerse-Labs/.github#2897",
+            lane_entrypoint("orchestrate"),
+            "dispatch the orchestrate workflow once the credential decision lands"),
+        "consequence_committed": False, "dispatched": 0, "hops": [], "outcomes": {},
+        "hb_epoch": None, "time_constraint": TIME_CONSTRAINT, "receiver_wait": False,
+        "always_on_receiver_required": False,
+    }
+
+
+def hop_communication_id(sender: Mapping[str, Any], dest: Mapping[str, Any], epoch: int) -> str:
+    return "intr-hop:%s:%s:%d" % (sender["slug"], dest["slug"], epoch)
+
+
+def dispatch_send_hop(sender: Mapping[str, Any], dest: Mapping[str, Any], *, communication_id: str,
+                      hb_epoch: int, token: str, ref: str = "main",
+                      poster: Callable[..., Any] | None = None) -> tuple[bool, str]:
+    """Dispatch ``phase=send`` of the sender's hop workflow. The token is a header only."""
+    epoch = parse_hb_epoch(hb_epoch)
+    if epoch is None:
+        return False, "HB_EPOCH_INVALID"
+    repository = sender.get("repository") or (sender["organization"] + "/.github")
+    url = GITHUB_API + "/repos/" + repository + "/actions/workflows/" + HOP_WORKFLOW + "/dispatches"
+    body = {"ref": ref, "inputs": {
+        "phase": "send", "destination_slug": dest["slug"], "communication_id": communication_id,
+        "hb_epoch": str(epoch), "forward": "true",
+    }}
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "stegverse-intr-hop-lane",
+               "X-GitHub-Api-Version": "2022-11-28", "Authorization": "Bearer " + token}
+    try:
+        response = (poster or http_post)(url, json=body, headers=headers, timeout=30)
+    except HttpTransportError:
+        return False, "DISPATCH_TRANSPORT"
+    status = getattr(response, "status_code", None)
+    return (status == 204, "DISPATCHED" if status == 204 else "DISPATCH_HTTP_%s" % status)
+
+
+def run_orchestrate(peers: Sequence[Mapping[str, Any]], *, hb_epoch: int, token: str,
+                    ledger_state: Mapping[tuple[str, str], str] | None = None,
+                    dispatcher: Callable[..., tuple[bool, str]] | None = None) -> dict[str, Any]:
+    """Record one manifest-directed disposition per ordered pair. Never wait.
+
+    ``ledger_state[(sender_slug, destination_slug)]`` is what the readback
+    found (``pair_ledger_state``); a pair it does not name is ``UNSENT``. An
+    ``UNSENT`` pair whose organizations hold no open hop, and are not already
+    in a hop dispatched by this transition, is dispatched at the supplied
+    ``hb_epoch``. A dispatched or ``OPEN`` hop is ``DURABLE_QUEUE``; the
+    readback that follows a later transition evaluates whatever receipts exist
+    then. A peer whose advertisement was not read is not dispatched; its hops
+    are ``UNREACHABLE``.
+
+    An ``hb_epoch`` the shared rule refuses (missing, not ASCII ``[0-9]+``, or
+    below the HB32 anchor) resolves the whole transition to ``FAIL_CLOSED``
+    with the six fields, and nothing is dispatched. So does a missing dispatch
+    credential.
+    """
+    epoch = parse_hb_epoch(hb_epoch)
+    if epoch is None:
+        return hb_epoch_fail_closed(hb_epoch)
+    hb_epoch = epoch
+    token = _blank_to_none(token)
+    if token is None:
+        return hop_credential_fail_closed()
+    send = dispatcher or (lambda sender, dest, **kw: dispatch_send_hop(sender, dest, token=token, **kw))
+    states = dict(ledger_state or {})
+    readable = [peer for peer in peers if peer.get("advertisement_readable", True) is not False]
+    unread = sorted(peer["slug"] for peer in peers if peer.get("advertisement_readable", True) is False)
+    busy = {slug for (sender, dest), state in states.items() if state == "OPEN" for slug in (sender, dest)}
+    order = [pair for wave in hop_waves(readable) for pair in wave]
+    order += [(sender, dest) for sender, dest in ordered_pairs(peers)
+              if sender["slug"] in unread or dest["slug"] in unread]
+    hops: list[dict[str, Any]] = []
+    outcomes: dict[str, int] = {}
+    dispatched = 0
+    retry = ".github/workflows/intr-destination-hop.yml phase=send"
+    for sender, dest in order:
+        pair = (sender["slug"], dest["slug"])
+        state = "UNREACHABLE" if (pair[0] in unread or pair[1] in unread) else states.get(pair, "UNSENT")
+        hop: dict[str, Any] = {"sender_slug": pair[0], "destination_slug": pair[1], "ledger_state": state,
+                               "hb_epoch": None, "communication_id": None, "dispatch": None}
+        if state == "UNREACHABLE":
+            hop["outcome"] = "UNREACHABLE"
+            hop.update(non_allow_fields(
+                "INTR_HOP_ADVERTISEMENT_UNREADABLE", "SENDER_AND_DESTINATION_ADVERTISEMENTS_ARE_READABLE",
+                "a readable <org>/.github advertisement for: " + ", ".join(slug for slug in pair if slug in unread),
+                lane_entrypoint("orchestrate"),
+                "the next orchestrate transition dispatches it once the advertisement is read"))
+        elif state == "CLOSED":
+            hop["outcome"] = "CLOSED_IN_READ_LEDGERS"
+        elif state == "OPEN":
+            hop["outcome"] = DURABLE_QUEUE
+            hop.update(durable_queue_fields())
+        elif state == "REFUSED":
+            hop["outcome"] = "CLOSURE_REFUSED"
+            hop.update(non_allow_fields(
+                "INTR_HOP_CLOSURE_REFUSED_IN_SENDER_LEDGER", "SENDER_CLOSURE_VERIFIES_THE_DESTINATION_ACKNOWLEDGEMENT",
+                "the refused closure's findings repaired at the sender or destination; the refusal stays recorded",
+                retry + " at " + (sender.get("repository") or sender["organization"] + "/.github"),
+                "an owner-directed send with a new communication_id; orchestrate does not repeat a recorded refusal"))
+        elif pair[0] in busy or pair[1] in busy:
+            hop["outcome"] = "DEFERRED_ORGANIZATION_LEDGER_CONCURRENCY"
+            hop.update(non_allow_fields(
+                "ORGANIZATION_LEDGER_CONCURRENCY_GROUP_OCCUPIED",
+                "SENDER_AND_DESTINATION_HOLD_NO_OPEN_OR_DISPATCHED_HOP",
+                "no open hop at " + pair[0] + " or " + pair[1] + " in the read ledgers and none dispatched by this transition",
+                lane_entrypoint("orchestrate"),
+                "the next orchestrate transition, at a later supplied hb_epoch, selects it from ledger state"))
+        else:
+            communication_id = hop_communication_id(sender, dest, hb_epoch)
+            ok, detail = send(sender, dest, communication_id=communication_id, hb_epoch=hb_epoch)
+            hop.update(hb_epoch=hb_epoch, communication_id=communication_id, dispatch=detail)
+            if ok:
+                dispatched += 1
+                busy.update(pair)
+                hop["outcome"] = DURABLE_QUEUE
+                hop["send_transition_disposition"] = "ALLOW"
+                hop.update(durable_queue_fields())
+            else:
+                hop["outcome"] = "NOT_DISPATCHED"
+                hop.update(non_allow_fields(
+                    "INTR_HOP_SEND_DISPATCH_" + detail, "SEND_PHASE_DISPATCH_ACCEPTED",
+                    "an accepted workflow_dispatch of " + HOP_WORKFLOW + " phase=send at "
+                    + (sender.get("repository") or sender["organization"] + "/.github") + " (" + detail + ")",
+                    retry, "the next orchestrate transition dispatches it again at a later supplied hb_epoch"))
+        outcomes[hop["outcome"]] = outcomes.get(hop["outcome"], 0) + 1
+        hops.append(hop)
+    return {"hops": hops, "dispatched": dispatched, "outcomes": outcomes,
+            "not_dispatched_unread_advertisement": unread, "hb_epoch": hb_epoch,
+            "time_constraint": TIME_CONSTRAINT, "receiver_wait": False,
+            "always_on_receiver_required": False, "ledger_state_source": "LIVE_READBACK_BEFORE_DISPATCH"}
 
 
 def _request_packet(chain: Sequence[Mapping[str, Any]], communication_id: str) -> str | None:
@@ -1222,6 +2053,7 @@ def _public_hop(hop: Mapping[str, Any], *, status: str, findings: Sequence[str],
         "evidence_class": EVIDENCE_FABRICATED if mode == "fabricated" else EVIDENCE_LIVE,
         "authenticity_claimed": authentic,
         "authenticity_basis": (destination_ledger.get("location") if authentic else None),
+        **hop_outcome_fields(status, findings, unreachable, mode),
     }
 
 
@@ -1248,7 +2080,7 @@ def _public_peer(peer: Mapping[str, Any]) -> dict[str, Any]:
 
 def _report(peers: Sequence[Mapping[str, Any]], hops: Sequence[Mapping[str, Any]], *, mode: str,
             mesh_root: Path | None = None, ledger_home: Path | None = None) -> dict[str, Any]:
-    counts = {"PASS": 0, "FAIL": 0, "UNREACHABLE": 0}
+    counts = {"PASS": 0, "FAIL": 0, "UNREACHABLE": 0, DURABLE_QUEUE: 0}
     for hop in hops:
         counts[hop["status"]] = counts.get(hop["status"], 0) + 1
     return {
@@ -1296,9 +2128,9 @@ def render_markdown(report: Mapping[str, Any]) -> str:
         "- Mode: `" + report["mode"] + "`",
         "- Evidence class: `" + report["evidence_class"] + "`",
         "- Peer source: `" + str(report.get("peer_source")) + "`",
-        "- Hops: %d (PASS %d, FAIL %d, UNREACHABLE %d)" % (
+        "- Hops: %d (PASS %d, FAIL %d, UNREACHABLE %d, %s %d)" % (
             report["hop_count"], report["counts"].get("PASS", 0), report["counts"].get("FAIL", 0),
-            report["counts"].get("UNREACHABLE", 0)),
+            report["counts"].get("UNREACHABLE", 0), DURABLE_QUEUE, report["counts"].get(DURABLE_QUEUE, 0)),
     ]
     if report["mode"] == "fabricated":
         lines.append("- Far side: `" + FAR_SIDE + "`, labeled non-authentic. Temporary mesh and ledger roots.")
@@ -1309,7 +2141,8 @@ def render_markdown(report: Mapping[str, Any]) -> str:
             lines.append("- Organizations queried: " + ", ".join(queried))
         token_env = report.get("federation_read_token_env") or FEDERATION_READ_TOKEN_ENV
         token_state = "set" if report.get("federation_read_token_present") else "not set"
-        lines.append("- Optional token `%s` is %s. Public repositories are read without it." % (token_env, token_state))
+        lines.append("- Optional token `%s` is %s (reads fall back to `%s`). Public repositories are read without it." % (
+            token_env, token_state, report.get("federation_hop_token_env") or FEDERATION_HOP_TOKEN_ENV))
     unread = report.get("advertisements_not_readable") or []
     if unread:
         lines.append("- Advertisements not read (kept in the peer set; their hops are UNREACHABLE): " + ", ".join(
@@ -1336,13 +2169,48 @@ def render_markdown(report: Mapping[str, Any]) -> str:
             lines.append("- Authenticity basis: read back from the destination ledger ref above.")
         elif hop["status"] == "UNREACHABLE":
             lines.append("- Unreachable: `%s`" % json.dumps(hop.get("unreachable"), sort_keys=True))
+        elif hop["status"] == DURABLE_QUEUE:
+            lines.append("- Sent, not yet closed: `always_on_receiver_required: false`; the next readback evaluates it.")
         elif hop["findings"]:
             lines.append("- Findings: " + ", ".join("`%s`" % item for item in hop["findings"]))
+        if hop.get("failure_code"):
+            lines.append("- Non-ALLOW: `%s` / `%s`; repair: %s; retry: `%s`; goal: %s; next: %s" % (
+                hop["failure_code"], hop["failed_predicate"], hop["required_evidence_or_repair"],
+                hop["retry_entrypoint"], hop["owning_existing_goal"], hop["next_attempt"]))
         if hop.get("sender_ledger_head"):
             lines.append("- Sender head: `%s`" % hop["sender_ledger_head"])
         if hop.get("destination_ledger_head"):
             lines.append("- Destination head: `%s`" % hop["destination_ledger_head"])
         lines.append("")
+    integrity = report.get("ledger_integrity") or {}
+    if integrity:
+        lines.extend(["## Ledger integrity", ""])
+        for slug in sorted(integrity):
+            item = integrity[slug]
+            writer = item.get("writer_introduction") or {}
+            lines.append("### " + slug)
+            lines.append("")
+            lines.append("- Writer introduction: %s" % (
+                "`%s` at %s (%s)" % (writer.get("commit"), writer.get("committed_at_unix"), writer.get("source"))
+                if writer else "not found; no receipt is classified LEGACY"))
+            lines.append("- Receipts: %d, LEGACY: %d" % (item.get("receipt_count", 0), item.get("legacy_receipt_count", 0)))
+            counts: dict[str, int] = {}
+            for entry in item.get("reported") or []:
+                key = entry["finding"] + " (" + entry["classification"] + ")"
+                counts[key] = counts.get(key, 0) + 1
+            if counts:
+                lines.append("- Reported, not failing: " + ", ".join(
+                    "`%s` ×%d" % (key, value) for key, value in sorted(counts.items())))
+            if item.get("findings"):
+                lines.append("- Failing: " + ", ".join("`%s`" % finding for finding in item["findings"]))
+            lines.append("")
+    orchestration = report.get("orchestration")
+    if orchestration:
+        lines.extend(["## Orchestration", "",
+                      "- Supplied hb_epoch: %s, send transitions dispatched: %d (no receiver wait)" % (
+                          orchestration.get("hb_epoch"), orchestration.get("dispatched", 0)),
+                      "- Outcomes: " + ", ".join("%s %d" % (key, value) for key, value in sorted(
+                          (orchestration.get("outcomes") or {}).items())), ""])
     lines.append("Routing and governance are out of scope for this lane.")
     lines.append("")
     return "\n".join(lines)
@@ -1377,7 +2245,7 @@ def _roots_from_env_and_args(args: argparse.Namespace) -> list[Path]:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="InTr destination hop lane: integrity diagnostic for one-way hops and ledger receipts.")
-    parser.add_argument("--mode", choices=("fabricated", "live"), default="fabricated")
+    parser.add_argument("--mode", choices=("fabricated", "live", "orchestrate"), default="fabricated")
     parser.add_argument("--org-root", action="append", default=[], help="organization checkout to discover peers from")
     parser.add_argument("--org-dir", help="directory whose children are organization checkouts")
     parser.add_argument("--mesh-root", type=Path)
@@ -1392,7 +2260,44 @@ def main(argv: Sequence[str] | None = None) -> int:
                         help="GitHub organization whose .github advertisement live mode reads. "
                              "Defaults to the eight candidate organizations. An organization that "
                              "cannot be read stays in the hop matrix.")
+    parser.add_argument("--hb-epoch", default=None,
+                        help="orchestrate: supplied epoch of this transition's send dispatches "
+                             "(ASCII [0-9]+, value >= 32, the HB32 anchor)")
+    parser.add_argument("--writer-introduced", action="append", default=[],
+                        help="ORGANIZATION=<unix seconds or ISO 8601>: receipts added before it are LEGACY. "
+                             "Overrides the default-branch history lookup for that organization.")
+    parser.add_argument("--no-writer-lookup", action="store_true",
+                        help="live: do not look up writer introductions. A ledger with no override is then "
+                             "FAIL_CLOSED WRITER_INTRODUCTION_NOT_OBSERVED: never PASS, no authenticity")
     args = parser.parse_args(argv)
+    try:
+        return _run_main(args)
+    except ValueError as exc:
+        # An input the lane refuses (two peers on one address, no merged
+        # reference checkout, an unreadable --writer-introduced) is FAIL_CLOSED
+        # with the six fields, not a bare traceback. Nothing is dispatched.
+        refusal = lane_input_fail_closed(args.mode, str(exc))
+        args.out_dir.mkdir(parents=True, exist_ok=True)
+        (args.out_dir / "intr-destination-hop-lane.json").write_text(
+            json.dumps({"mode": args.mode, "refusal": refusal}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(json.dumps(refusal, sort_keys=True))
+        return 1
+
+
+def lane_input_fail_closed(mode: str, reason: str) -> dict[str, Any]:
+    """A lane input that cannot be resolved. Nothing is read further or dispatched."""
+    return {
+        "disposition": "FAIL_CLOSED", "mode": mode, "consequence_committed": False, "dispatched": 0,
+        **non_allow_fields(
+            "INTR_HOP_LANE_INPUT_REFUSED", "LANE_INPUTS_RESOLVE_ONE_ADDRESS_PER_PEER_AND_A_MERGED_REFERENCE",
+            "repair the refused input: " + reason[:800],
+            lane_entrypoint(mode),
+            "re-run " + lane_entrypoint(mode) + " once the named input is repaired"),
+    }
+
+
+def _run_main(args: argparse.Namespace) -> int:
+    overrides = parse_writer_overrides(args.writer_introduced)
     local_peers = discover_peers(_roots_from_env_and_args(args))
     if args.mode == "fabricated":
         peers = local_peers
@@ -1402,7 +2307,26 @@ def main(argv: Sequence[str] | None = None) -> int:
                                 reference_root=args.reference_root)
     else:
         names = list(args.organization) or list(CANDIDATE_ORGANIZATIONS)
-        token = _blank_to_none(os.environ.get(FEDERATION_READ_TOKEN_ENV))
+        hop_token = _blank_to_none(os.environ.get(FEDERATION_HOP_TOKEN_ENV))
+        token = _blank_to_none(os.environ.get(FEDERATION_READ_TOKEN_ENV)) or hop_token
+        if args.mode == "orchestrate":
+            if parse_hb_epoch(args.hb_epoch) is None:
+                # Resolved before any read or dispatch: nothing is sent.
+                refusal = hb_epoch_fail_closed(args.hb_epoch)
+                args.out_dir.mkdir(parents=True, exist_ok=True)
+                (args.out_dir / "intr-destination-hop-lane.json").write_text(
+                    json.dumps({"mode": "orchestrate", "orchestration": refusal}, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8")
+                print(json.dumps(refusal, sort_keys=True))
+                return 1
+            if hop_token is None:
+                refusal = hop_credential_fail_closed()
+                args.out_dir.mkdir(parents=True, exist_ok=True)
+                (args.out_dir / "intr-destination-hop-lane.json").write_text(
+                    json.dumps({"mode": "orchestrate", "orchestration": refusal}, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8")
+                print(json.dumps(refusal, sort_keys=True))
+                return 1
         peers, silent = discover_peers_from_github(names, token=token)
         by_slug = {peer["slug"]: peer for peer in local_peers}
         for peer in peers:
@@ -1411,14 +2335,42 @@ def main(argv: Sequence[str] | None = None) -> int:
                 peer["root"] = local["root"]
                 if not peer.get("repository_namespace"):
                     peer["repository_namespace"] = local.get("repository_namespace") or repository_namespace(Path(local["root"]))
-        report = run_live(peers, fetch=args.fetch_ledger_refs, token=token)
+
+        def introduction(peer: Mapping[str, Any]) -> Mapping[str, Any] | None:
+            if peer["organization"] in overrides:
+                return overrides[peer["organization"]]
+            if args.no_writer_lookup:
+                return None
+            if peer.get("root"):
+                local = writer_introduction_local(Path(peer["root"]))
+                if local:
+                    return local
+            repository = peer.get("repository") or (peer["organization"] + "/.github")
+            return writer_introduction_from_github(repository, token=token)
+
+        # The readback reads whatever receipts exist now. Orchestrate derives
+        # each pair's ledger state from it, then records its dispositions.
+        report = run_live(peers, fetch=args.fetch_ledger_refs or args.mode == "orchestrate", token=token,
+                          writer_introduction=introduction, writer_lookup_disabled=args.no_writer_lookup)
+        if args.mode == "orchestrate":
+            states = {(hop["sender_slug"], hop["destination_slug"]): hop.get("ledger_state", "UNSENT")
+                      for hop in report["hops"]}
+            report["mode"] = "orchestrate"
+            report["orchestration"] = run_orchestrate(peers, hb_epoch=parse_hb_epoch(args.hb_epoch), token=hop_token,
+                                                      ledger_state=states)
         report["organizations_queried"] = names
         report["organizations_read_without_intr_destination"] = silent
         report["peer_source"] = "GITHUB_API_ORG_DOTGITHUB_ADVERTISEMENT"
         report["federation_read_token_env"] = FEDERATION_READ_TOKEN_ENV
         report["federation_read_token_present"] = token is not None
+        report["federation_hop_token_env"] = FEDERATION_HOP_TOKEN_ENV
     write_report(report, args.out_dir)
     print(render_markdown(report))
+    if args.mode == "orchestrate":
+        outcomes = (report.get("orchestration") or {}).get("outcomes") or {}
+        failing = [hop for hop in report["hops"] if hop["status"] == "FAIL"
+                   and hop["findings"] not in ([NOT_SENT_FINDING], [LEGACY_ONLY_FINDING])]
+        return 1 if outcomes.get("NOT_DISPATCHED") or failing else 0
     if args.mode == "live":
         return 1 if report["counts"].get("FAIL") else 0
     if not peers:
