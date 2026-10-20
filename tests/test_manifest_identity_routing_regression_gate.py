@@ -84,6 +84,7 @@ _EXAMPLE_REQUESTS = {
     "remediation": "sdk-remediation-fork.processor-request.json",
     "organization_role_conformance": "sdk-organization-role-conformance.processor-request.json",
     "svg_governance_cycle": "sdk-svg-governance-cycle.processor-request.json",
+    "canonical_work": "sdk-canonical-work.processor-request.json",
     "purpose_bound_worker": "sdk-test1-purpose-worker.processor-request.json",
     "atomic_task_worker": "sdk-test2-atomic-task-worker.processor-request.json",
     "stegbrowser": "sdk-test5-stegbrowser-llm-profile.processor-request.json",
