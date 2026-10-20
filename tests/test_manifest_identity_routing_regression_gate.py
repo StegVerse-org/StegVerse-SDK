@@ -156,6 +156,28 @@ def build_route_manifest(route_id, request=None):
     if route_id == SHWP_SOVEREIGN_INFERENCE_ROUTE_ID:
         return shwp_manifest()  # published route without a Manifest Builder processor
     capability = PUBLISHED_ROUTES[route_id]["processor_capability"]
+    if capability == "canonical_work":
+        from stegverse.manifest_state_transition_adapters import (
+            CANONICAL_WORK_TASK_ID, CANONICAL_WORK_COSV, CANONICAL_WORK_REQUEST_REF,
+        )
+        manifest = build_manifest(
+            data=_builder_data(capability),
+            source_framework=_source_framework(capability),
+            source_output_id=_source_output_id(capability),
+            processor_request=request if request is not None else _processor_request(capability),
+            process=capability,
+            created_at=CREATED_AT,
+        )
+        manifest["extensions"]["stegverse_canonical_task"] = {
+            "task_id": CANONICAL_WORK_TASK_ID,
+            "correlation_id": CANONICAL_WORK_TASK_ID,
+            "cosv_task_vector": CANONICAL_WORK_COSV,
+            "registry_repository": "StegVerse-Labs/.github",
+            "observed_registry_generation": 22,
+            "canonical_request_ref": CANONICAL_WORK_REQUEST_REF,
+            "authority_effect": "NONE",
+        }
+        return manifest
     return build_manifest(
         data=_builder_data(capability),
         source_framework=_source_framework(capability),
