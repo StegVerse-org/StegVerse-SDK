@@ -1,0 +1,252 @@
+{
+  "ingress_interlock": {
+    "authority": {
+      "execution_authorized": false,
+      "interlock_transfers_authority": false,
+      "master_records_organization_record_claimed": false,
+      "participant_truth_assumed": false,
+      "sdk_authority": "NONE"
+    },
+    "boundary": {
+      "original_manifest_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "repaired_manifest_hash": null,
+      "state": "ACCEPT"
+    },
+    "connection": {
+      "class": "INTERLOCK",
+      "direction": "INGRESS",
+      "participant_binding_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "participant_boundary_receipt_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "participant_id": "reference-participant"
+    },
+    "governance": {
+      "mode": "DEFAULT_STEGVERSE",
+      "profiles": [
+        {
+          "issuer": "StegVerse",
+          "profile_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "profile_id": "stegverse.default.reference.v1",
+          "source": "STEGVERSE"
+        }
+      ]
+    },
+    "manifest": {
+      "canonicalization": "JCS_RFC8785_NFC",
+      "manifest_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "predecessor_receipts": [
+        {
+          "issuer": "reference-participant",
+          "receipt_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "receipt_id": "p:r1"
+        }
+      ],
+      "source_state_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    "manifold": {
+      "predecessors": [
+        {
+          "state_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "state_id": "p:s1"
+        }
+      ],
+      "relationships": [
+        {
+          "from_state_id": "p:s1",
+          "to_state_id": "sv:s2",
+          "type": "CAUSE"
+        }
+      ],
+      "successors": [
+        {
+          "state_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "state_id": "sv:s2"
+        }
+      ]
+    },
+    "package_id": "portable.verify.001",
+    "reconstruction": {
+      "linear_chain_is_special_case": true,
+      "replay_scope": "MATERIAL_CAUSAL_CLOSURE",
+      "required": true
+    },
+    "run_id": "run-portable-001",
+    "schema": "stegverse.interlock-transition.v1",
+    "transition_id": "portable.verify.001"
+  },
+  "interlock_return": null,
+  "package_id": "portable.verify.001",
+  "run_id": "run-portable-001",
+  "schema": "stegverse.portable-governance-verification-bundle.v1",
+  "spe_envelope": {
+    "authority": {
+      "execution_authority_requested": false,
+      "fresh_standing_determination_required": true,
+      "sdk_authorizing": false
+    },
+    "candidate": {
+      "action": "reference_action",
+      "actor": "actor:reference",
+      "authorizing": false,
+      "bounded_scope": {
+        "surface": "reference"
+      },
+      "candidate_hash": "d39d391c44e9433f88c4f7867938e0c4182849597d12266a014a560bead6cf17",
+      "candidate_type": "COMMITMENT_CANDIDATE",
+      "delegation_context": {
+        "refs": []
+      },
+      "evidence_refs": [
+        "evidence://reference/001"
+      ],
+      "execution_context": {
+        "mode": "evaluation_only"
+      },
+      "implies_standing": false,
+      "inherits_review_authority": false,
+      "package_id": "portable.verify.001",
+      "policy_context": {
+        "refs": [
+          "policy://reference/v1"
+        ]
+      },
+      "recoverability_profile": {
+        "reconstructable": true,
+        "rollback_supported": false
+      },
+      "requires_fresh_standing_determination": true,
+      "review_ref": "review://reference/001",
+      "run_id": "run-portable-001",
+      "source": {
+        "handoff_ref": "PORTABLE_GOVERNANCE_VERIFIER_MIRROR_HANDOFF.md",
+        "origin_manifest_id": "origin.sdk.run-portable-001",
+        "repository_ref": "StegVerse-org/StegVerse-SDK",
+        "task_ref": "task:portable-verifier"
+      },
+      "target": "target:reference",
+      "transition_id": "portable.verify.001",
+      "validity_window": {
+        "not_after": "2026-08-24T00:00:00+00:00",
+        "not_before": "2026-08-23T00:00:00+00:00"
+      }
+    },
+    "candidate_hash": "d39d391c44e9433f88c4f7867938e0c4182849597d12266a014a560bead6cf17",
+    "destination_repo": "StegVerse-Labs/Standing-Proof-Engine",
+    "envelope_hash": "5f60d797aa74f5f83c036ba7432566aca945c84e80fdd63820093f523d0c38d7",
+    "expected_result": [
+      "ALLOW",
+      "DENY",
+      "FAIL_CLOSED"
+    ],
+    "package_id": "portable.verify.001",
+    "receipt_required": true,
+    "route_purpose": "FRESH_STANDING_DETERMINATION",
+    "run_id": "run-portable-001",
+    "schema_version": "stegverse.sdk.spe_commitment_intake.v0.1",
+    "transition_id": "portable.verify.001"
+  },
+  "spe_receipt": {
+    "candidate_hash": "d39d391c44e9433f88c4f7867938e0c4182849597d12266a014a560bead6cf17",
+    "delegation_refs": [],
+    "destination_repo": "StegVerse-Labs/Standing-Proof-Engine",
+    "envelope_hash": "5f60d797aa74f5f83c036ba7432566aca945c84e80fdd63820093f523d0c38d7",
+    "evidence_refs": [
+      "evidence://reference/001"
+    ],
+    "execution_authorized": false,
+    "execution_performed": false,
+    "master_record_installed": false,
+    "next_boundary": "GOVERNED_EXECUTION_AUTHORITY",
+    "package_id": "portable.verify.001",
+    "policy_refs": [
+      "policy://reference/v1"
+    ],
+    "reasons": [
+      "reference standing satisfied"
+    ],
+    "receipt_hash": "2f6f07dd74fd4c3dacfc2e05c226c99822ca7a0e9812296cd9cab117b09a5801",
+    "receipt_type": "SPE_STANDING_DETERMINATION",
+    "run_id": "run-portable-001",
+    "schema_version": "stegverse.spe.sdk_commitment_intake.v0.1",
+    "source_repo": "StegVerse-org/StegVerse-SDK",
+    "standing_result": "ALLOW",
+    "transition_id": "portable.verify.001"
+  },
+  "stage": "PRE_STEGGATE",
+  "steggate_bridge": {
+    "admissibility_candidate": {
+      "decision": "PENDING",
+      "permission_contract": {
+        "contract_id": "PA-001",
+        "version": "1.0.0"
+      },
+      "permission_predicates": {
+        "authority_current": true,
+        "consent_or_standing_current": true,
+        "consent_or_standing_required": true,
+        "consequence_attributable": true,
+        "consequence_reconstructable": true,
+        "continuity_current": true,
+        "governing_conditions_current": true
+      },
+      "runtime_identity": "stegverse:steggate:canonical:three-layer:v1",
+      "three_layer_request": {
+        "action": "reference_action",
+        "execution_boundary": {
+          "actor_authority_current": true,
+          "affected_entity_conditions_represented": true,
+          "delegation_current": true,
+          "delegation_ref": "delegation://none",
+          "evidence_current": true,
+          "policy_current": true,
+          "policy_ref": "policy://reference/v1",
+          "recoverability_profile": "recoverable",
+          "validity_window_open": true
+        },
+        "judgment_conditions": {
+          "operator_recoverability": "available",
+          "refusal_available": true
+        },
+        "scope": "reference",
+        "signal_admission": {
+          "admitted_signal_refs": [
+            "evidence://reference/001"
+          ],
+          "expected_reference_state_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "missing_inputs": [],
+          "reconstruction_available": true,
+          "reference_state_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "transformation_provenance_complete": true,
+          "uncertainty_state": "bounded"
+        },
+        "target": "target:reference"
+      },
+      "three_layer_request_hash": "7b6aae7e11d6ec25b9a31ea3e407737dcb94a2b79ac5163d97c33cfaef0b2b6c"
+    },
+    "authority": {
+      "execution_authorized": false,
+      "master_records_organization_record_claimed": false,
+      "sdk_authority": "NONE",
+      "spe_execution_authority": "NONE",
+      "steggate_decision_authority": "CANONICAL_RUNTIME_ONLY"
+    },
+    "bridge_hash": "02d5982b63560f4b31697c3181b299a4907553b18a6bfcb36072f67f02c6bae9",
+    "interlock": {
+      "ingress_interlock_hash": "sha256:88bc025ef779014bdff9ea5b6b32d97946961c9512e2ad4f56f6cd19b0caa55b",
+      "participant_id": "reference-participant"
+    },
+    "package_id": "portable.verify.001",
+    "run_id": "run-portable-001",
+    "schema": "stegverse.sdk.spe-steggate-bridge.v1",
+    "standing_binding": {
+      "candidate_hash": "d39d391c44e9433f88c4f7867938e0c4182849597d12266a014a560bead6cf17",
+      "envelope_hash": "5f60d797aa74f5f83c036ba7432566aca945c84e80fdd63820093f523d0c38d7",
+      "execution_authorized": false,
+      "observed_at": "2026-08-23T12:00:00+00:00",
+      "receipt_hash": "2f6f07dd74fd4c3dacfc2e05c226c99822ca7a0e9812296cd9cab117b09a5801",
+      "standing_current": true,
+      "standing_result": "ALLOW"
+    },
+    "transition_id": "portable.verify.001"
+  },
+  "transition_id": "portable.verify.001"
+}
