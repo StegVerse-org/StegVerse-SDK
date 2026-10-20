@@ -344,6 +344,19 @@ class RouteSetTests(unittest.TestCase):
         for route_id in GOVERNED_ROUTES:
             self.assertEqual(PUBLISHED_ROUTES[route_id]["runtime_binding"], UNIVERSAL_RUNTIME_BINDING, route_id)
 
+    def test_canonical_work_unbound_0a_fails_closed(self):
+        from stegverse.route_resolution import CANONICAL_WORK_ROUTE_ID
+        manifest = build_manifest(
+            data=SHARED_SOURCE, source_framework="fixture-framework",
+            source_output_id="unbound-canonical-work",
+            processor_request=_processor_request("canonical_work"),
+            process="canonical_work", created_at=CREATED_AT,
+        )
+        from stegverse.manifest_state_transition_adapters import derive_canonical_work_state_graph
+        with self.assertRaisesRegex(ValueError, "CANONICAL_WORK_TASK_BINDING_REQUIRED"):
+            derive_canonical_work_state_graph(manifest)
+        self.assertEqual(manifest["processing"]["route_id"], CANONICAL_WORK_ROUTE_ID)
+
     def test_every_governed_route_has_an_admitted_manifest_in_this_gate(self):
         for route_id in GOVERNED_ROUTES:
             manifest = build_route_manifest(route_id)
