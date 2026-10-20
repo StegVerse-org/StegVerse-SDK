@@ -24,6 +24,7 @@ NATIVE_SOURCE_MATH_ROUTE_ID = "stegverse.route.source-native-math.v1"
 SHWP_SOVEREIGN_INFERENCE_ROUTE_ID = "stegverse.route.shwp-sovereign-inference.v1"
 SVG_GOVERNANCE_CYCLE_ROUTE_ID = "stegverse.route.svg-governance-cycle.v1"
 STEGBROWSER_ROUTE_ID = "stegverse.route.stegbrowser.v1"
+CANONICAL_WORK_ROUTE_ID = "stegverse.route.canonical-work.v1"
 ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID = "stegverse.route.organization-role-conformance.v1"
 
 _ROUTE_FIELDS = (
@@ -49,6 +50,18 @@ PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
         "sandbox_required": False,
         "external_consequence_enabled": False,
         "state_graph_adapter_binding": "stegverse.organization_role_conformance_processor.derive_state_graph",
+        "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
+        "runtime_installed": True,
+    },
+    CANONICAL_WORK_ROUTE_ID: {
+        "route_id": CANONICAL_WORK_ROUTE_ID,
+        "processor_capability": "canonical_work",
+        "lane_class": "MANIFEST_BOUND_CANONICAL_WORK",
+        "routing_surface": "EXISTING_UNIVERSAL_INTR",
+        "containment": "EXISTING_CANONICAL_COORDINATION_OWNER",
+        "sandbox_required": False,
+        "external_consequence_enabled": False,
+        "state_graph_adapter_binding": "stegverse.manifest_state_transition_adapters.derive_canonical_work_state_graph",
         "runtime_binding": "stegverse.manifest_state_transition_runtime.execute_manifest",
         "runtime_installed": True,
     },
