@@ -66,7 +66,7 @@ def _organization_batch_governance_binding(manifest: Mapping[str, Any]) -> dict[
     if binding.get("authority_effect") != "NONE":
         raise ValueError("ORGANIZATION_BATCH_TASK_BINDING_MUST_NOT_GRANT_AUTHORITY")
 
-    original = (extensions.get("stegverse_canonical_work_request") if isinstance(extensions, Mapping) else None)
+    original = manifest.get("payload")
     if not isinstance(original, Mapping):
         raise ValueError("ORGANIZATION_BATCH_UNCHANGED_CANONICAL_REQUEST_REQUIRED")
     for key, expected in ORGANIZATION_BATCH_REQUEST_REQUIRED.items():
@@ -289,7 +289,7 @@ def derive_canonical_work_state_graph(manifest: Mapping[str, Any]) -> dict[str, 
         raise ValueError("CANONICAL_WORK_REQUEST_REF_MISMATCH")
     if binding.get("authority_effect") != "NONE":
         raise ValueError("CANONICAL_WORK_BINDING_MUST_NOT_GRANT_AUTHORITY")
-    original = manifest.get("payload")
+    original = (extensions.get("stegverse_canonical_work_request") if isinstance(extensions, Mapping) else None)
     if not isinstance(original, Mapping):
         raise ValueError("CANONICAL_WORK_ORIGINAL_REQUEST_REQUIRED")
     for field, expected in CANONICAL_WORK_REQUEST_FIELDS.items():
