@@ -84,6 +84,7 @@ _EXAMPLE_REQUESTS = {
     "remediation": "sdk-remediation-fork.processor-request.json",
     "organization_role_conformance": "sdk-organization-role-conformance.processor-request.json",
     "svg_governance_cycle": "sdk-svg-governance-cycle.processor-request.json",
+    "canonical_work": "sdk-canonical-work.processor-request.json",
     "purpose_bound_worker": "sdk-test1-purpose-worker.processor-request.json",
     "atomic_task_worker": "sdk-test2-atomic-task-worker.processor-request.json",
     "stegbrowser": "sdk-test5-stegbrowser-llm-profile.processor-request.json",
@@ -155,6 +156,28 @@ def build_route_manifest(route_id, request=None):
     if route_id == SHWP_SOVEREIGN_INFERENCE_ROUTE_ID:
         return shwp_manifest()  # published route without a Manifest Builder processor
     capability = PUBLISHED_ROUTES[route_id]["processor_capability"]
+    if capability == "canonical_work":
+        from stegverse.manifest_state_transition_adapters import (
+            CANONICAL_WORK_TASK_ID, CANONICAL_WORK_COSV, CANONICAL_WORK_REQUEST_REF,
+        )
+        manifest = build_manifest(
+            data=_builder_data(capability),
+            source_framework=_source_framework(capability),
+            source_output_id=_source_output_id(capability),
+            processor_request=request if request is not None else _processor_request(capability),
+            process=capability,
+            created_at=CREATED_AT,
+        )
+        manifest["extensions"]["stegverse_canonical_task"] = {
+            "task_id": CANONICAL_WORK_TASK_ID,
+            "correlation_id": CANONICAL_WORK_TASK_ID,
+            "cosv_task_vector": CANONICAL_WORK_COSV,
+            "registry_repository": "StegVerse-Labs/.github",
+            "observed_registry_generation": 22,
+            "canonical_request_ref": CANONICAL_WORK_REQUEST_REF,
+            "authority_effect": "NONE",
+        }
+        return manifest
     return build_manifest(
         data=_builder_data(capability),
         source_framework=_source_framework(capability),
@@ -166,7 +189,10 @@ def build_route_manifest(route_id, request=None):
 
 
 def builder_routes():
-    return tuple(r for r in GOVERNED_ROUTES if PUBLISHED_ROUTES[r]["processor_capability"] in PROCESSOR_ROUTES)
+    # 0A cannot supply an authenticated canonical task binding. Canonical Work
+    # must fail closed on 0A; its fully bound fixture is exercised on 0B.
+    return tuple(r for r in GOVERNED_ROUTES if PUBLISHED_ROUTES[r]["processor_capability"] in PROCESSOR_ROUTES
+                 and PUBLISHED_ROUTES[r]["processor_capability"] != "canonical_work")
 
 
 def _fresh_evidence(manifest):
@@ -317,6 +343,19 @@ class RouteSetTests(unittest.TestCase):
         self.assertGreaterEqual(len(GOVERNED_ROUTES), 11)
         for route_id in GOVERNED_ROUTES:
             self.assertEqual(PUBLISHED_ROUTES[route_id]["runtime_binding"], UNIVERSAL_RUNTIME_BINDING, route_id)
+
+    def test_canonical_work_unbound_0a_fails_closed(self):
+        from stegverse.route_resolution import CANONICAL_WORK_ROUTE_ID
+        manifest = build_manifest(
+            data=SHARED_SOURCE, source_framework="fixture-framework",
+            source_output_id="unbound-canonical-work",
+            processor_request=_processor_request("canonical_work"),
+            process="canonical_work", created_at=CREATED_AT,
+        )
+        from stegverse.manifest_state_transition_adapters import derive_canonical_work_state_graph
+        with self.assertRaisesRegex(ValueError, "CANONICAL_WORK_TASK_BINDING_REQUIRED"):
+            derive_canonical_work_state_graph(manifest)
+        self.assertEqual(manifest["processing"]["route_id"], CANONICAL_WORK_ROUTE_ID)
 
     def test_every_governed_route_has_an_admitted_manifest_in_this_gate(self):
         for route_id in GOVERNED_ROUTES:
