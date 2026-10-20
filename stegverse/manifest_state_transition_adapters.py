@@ -239,4 +239,80 @@ __all__ = [
     "derive_ecosystem_diagnostic_state_graph",
     "derive_governance_state_graph",
     "derive_shwp_inference_state_graph",
+    "derive_canonical_work_state_graph",
 ]
+
+CANONICAL_WORK_TASK_ID = "STEGVERSE-CANONICAL-WORK-COORDINATION-001"
+CANONICAL_WORK_COSV = "10100000100000"
+CANONICAL_WORK_REQUEST_ID = "RESIDENT-EXEC-CANONICAL-WORK-COORDINATION-BOOTSTRAP-001"
+CANONICAL_WORK_REQUEST_REF = "control/resident-execution-request.d/canonical-work-coordination-bootstrap-001.json"
+CANONICAL_WORK_REQUEST_FIELDS = {
+    "schema": "stegverse.resident-execution-request/v1",
+    "request_id": CANONICAL_WORK_REQUEST_ID,
+    "state": "REQUESTED",
+    "task_id": CANONICAL_WORK_TASK_ID,
+    "mode": "CANONICAL_WORK_EVENT_BOOTSTRAP",
+    "entrypoint": "scripts/install_and_run_canonical_work_event_bootstrap.py",
+    "credential_authority": "TV/TVC",
+    "github_token_required": False,
+    "github_token_runtime_authority": "NONE",
+    "heartbeat_grants_execution_authority": False,
+    "oscillator_grants_execution_authority": False,
+    "second_machine_required": False,
+    "network_source_fetch_allowed": False,
+    "request_granted_authority": False,
+    "authority_effect": "NONE_REQUEST_ONLY",
+}
+
+
+def derive_canonical_work_state_graph(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """Derive request intent only; native InTr and WorkerCoordinator retain authority."""
+    from .route_resolution import CANONICAL_WORK_ROUTE_ID
+    canonical = validate_ingress_manifest(manifest)
+    route = route_from_manifest(canonical)
+    if route["route_id"] != CANONICAL_WORK_ROUTE_ID or route["processor_capability"] != "canonical_work":
+        raise ValueError("CANONICAL_WORK_ROUTE_CAPABILITY_MISMATCH")
+    extensions = canonical.get("extensions")
+    binding = extensions.get("stegverse_canonical_task") if isinstance(extensions, Mapping) else None
+    if not isinstance(binding, Mapping):
+        raise ValueError("CANONICAL_WORK_TASK_BINDING_REQUIRED")
+    if binding.get("task_id") != CANONICAL_WORK_TASK_ID or binding.get("correlation_id") != CANONICAL_WORK_TASK_ID:
+        raise ValueError("CANONICAL_WORK_TASK_CORRELATION_MISMATCH")
+    if binding.get("cosv_task_vector") != CANONICAL_WORK_COSV:
+        raise ValueError("CANONICAL_WORK_COSV_MISMATCH")
+    if binding.get("registry_repository") != "StegVerse-Labs/.github":
+        raise ValueError("CANONICAL_WORK_REGISTRY_MISMATCH")
+    generation = binding.get("observed_registry_generation")
+    if type(generation) is not int or generation < 1:
+        raise ValueError("CANONICAL_WORK_REGISTRY_GENERATION_REQUIRED")
+    if binding.get("canonical_request_ref") != CANONICAL_WORK_REQUEST_REF:
+        raise ValueError("CANONICAL_WORK_REQUEST_REF_MISMATCH")
+    if binding.get("authority_effect") != "NONE":
+        raise ValueError("CANONICAL_WORK_BINDING_MUST_NOT_GRANT_AUTHORITY")
+    original = manifest.get("payload")
+    if not isinstance(original, Mapping):
+        raise ValueError("CANONICAL_WORK_ORIGINAL_REQUEST_REQUIRED")
+    for field, expected in CANONICAL_WORK_REQUEST_FIELDS.items():
+        if original.get(field) != expected or type(original.get(field)) is not type(expected):
+            raise ValueError("CANONICAL_WORK_ORIGINAL_REQUEST_MISMATCH:" + field)
+    return {
+        "schema": "stegverse.sdk.installed-state-transition-graph/v1",
+        "graph_id": CANONICAL_WORK_TASK_ID + ":PARENT-CYCLE",
+        "canonical_task_id": CANONICAL_WORK_TASK_ID,
+        "processing_capability": "canonical_work",
+        "route_id": CANONICAL_WORK_ROUTE_ID,
+        "request": {
+            "original_request_id": CANONICAL_WORK_REQUEST_ID,
+            "original_request_sha256": canonical_sha256(dict(original)),
+            "observed_registry_generation": generation,
+            "cosv_task_vector": CANONICAL_WORK_COSV,
+            "source_request_ref": CANONICAL_WORK_REQUEST_REF,
+            "authority_effect": "NONE",
+        },
+        "ordered_transitions": [],
+        "ordered_transitions_source": "EXISTING_INTR_WORKERCOORDINATOR_ORGANIZATION_LEDGER",
+        "requires_workercoordinator_claim_fence": True,
+        "predecessor_closure_required": True,
+        "adapter_executes_lifecycle": False,
+        "authority_effect": "NONE_GRAPH_DERIVATION_ONLY",
+    }
