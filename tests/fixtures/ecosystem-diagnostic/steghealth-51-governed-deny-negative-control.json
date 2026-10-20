@@ -1,0 +1,52 @@
+{
+  "schema": "stegverse.mpdv-negative-control-fixture.v1",
+  "fixture_class": "SYNTHETIC_SOURCE_FIXTURE",
+  "owning_existing_goal": "SDK-ECOSYSTEM-DIAGNOSTIC-PROCESSOR-001",
+  "provenance": {
+    "origin_task": "STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001",
+    "origin_cosv": "10100000100000",
+    "origin_issue": "StegVerse-Labs/StegHealth#51",
+    "specification_comment": "https://github.com/StegVerse-Labs/StegHealth/issues/51#issuecomment-6227743074",
+    "coordination": "StegVerse-Labs/.github#3183",
+    "steghealth_obligation_created": false
+  },
+  "claims": {
+    "authentic_receipts": false,
+    "trial_executed": false,
+    "organization_ledger_readback": "NOT_OBSERVED",
+    "repository_ledger_readback": "NOT_OBSERVED",
+    "sdk_authenticated_return": "NOT_OBSERVED",
+    "steghealer_mapping": "NON_AUTHORIZING_DISTINCT_SUCCESSOR_ATTEMPT_ONLY"
+  },
+  "deliberate_unadmitted_capability": "steghealth.negative-control.unadmitted-capability",
+  "original_deny": {
+    "manifest_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000051",
+    "route_id": "stegverse.route.steghealth.negative-control.v1",
+    "component_id": "steghealth",
+    "predicate_id": "CAPABILITY_ADMITTED_ON_DESTINATION",
+    "policy_version": "fixture-v1",
+    "authority_binding": "owner",
+    "disposition": "DENY",
+    "evidence_refs": ["fixture:steghealth-51/original-deny"]
+  },
+  "original_fail_closed": {
+    "manifest_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000051",
+    "route_id": "stegverse.route.steghealth.negative-control.v1",
+    "component_id": "steghealth",
+    "predicate_id": "CAPABILITY_ADMISSION_EVIDENCE_PRESENT",
+    "policy_version": "fixture-v1",
+    "authority_binding": "owner",
+    "disposition": "FAIL_CLOSED",
+    "evidence_refs": ["fixture:steghealth-51/original-fail-closed"]
+  },
+  "diagnostic_replay": {
+    "manifest_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000051",
+    "route_id": "stegverse.route.steghealth.negative-control.v1",
+    "component_id": "steghealth",
+    "predicate_id": "CAPABILITY_ADMITTED_ON_DESTINATION",
+    "policy_version": "fixture-v1",
+    "authority_binding": "owner",
+    "disposition": "DENY",
+    "evidence_refs": ["fixture:steghealth-51/diagnostic-replay"]
+  }
+}
