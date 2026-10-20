@@ -95,7 +95,7 @@ def run_suite(target: str) -> tuple[set[str], int, str]:
     cannot be imported otherwise aborts the session before any test body runs,
     and the gate would then pass having exercised nothing.
     """
-    command = [*_pytest_command(), target, "-q", "--tb=no", "-p", "no:cacheprovider",
+    command = [*_pytest_command(), target, "-q", "--tb=short", "-p", "no:cacheprovider",
                "--continue-on-collection-errors"]
     completed = subprocess.run(command, capture_output=True, text=True, cwd=REPO_ROOT)
     failing = {
@@ -110,6 +110,13 @@ def run_suite(target: str) -> tuple[set[str], int, str]:
             "no pytest summary reporting passing tests was produced; "
             f"exit={completed.returncode} stderr={completed.stderr.strip()[:400]}"
         )
+    if completed.returncode and failing:
+        # Preserve the captured failure explanations in CI; the ratchet still
+        # compares only test identities against the existing baseline.
+        lines = completed.stdout.splitlines()
+        for index, line in enumerate(lines):
+            if line.startswith(("FAILED ", "ERROR ")):
+                print(f"{GATE}: PYTEST_DETAIL " + " | ".join(lines[max(0, index - 4):index + 1]))
     return failing, max(passed), " ".join(command)
 
 
