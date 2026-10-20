@@ -66,7 +66,7 @@ def _organization_batch_governance_binding(manifest: Mapping[str, Any]) -> dict[
     if binding.get("authority_effect") != "NONE":
         raise ValueError("ORGANIZATION_BATCH_TASK_BINDING_MUST_NOT_GRANT_AUTHORITY")
 
-    original = manifest.get("payload")
+    original = (extensions.get("stegverse_canonical_work_request") if isinstance(extensions, Mapping) else None)
     if not isinstance(original, Mapping):
         raise ValueError("ORGANIZATION_BATCH_UNCHANGED_CANONICAL_REQUEST_REQUIRED")
     for key, expected in ORGANIZATION_BATCH_REQUEST_REQUIRED.items():
