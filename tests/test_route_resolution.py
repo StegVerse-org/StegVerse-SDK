@@ -83,3 +83,25 @@ class Tests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CanonicalWorkPublishedRouteTests(unittest.TestCase):
+    def test_canonical_work_route_is_published_and_non_authorizing(self):
+        from stegverse.route_resolution import CANONICAL_WORK_ROUTE_ID, PUBLISHED_ROUTES
+        route = PUBLISHED_ROUTES[CANONICAL_WORK_ROUTE_ID]
+        self.assertEqual(route["processor_capability"], "canonical_work")
+        self.assertEqual(route["routing_surface"], "EXISTING_UNIVERSAL_INTR")
+        self.assertEqual(route["state_graph_adapter_binding"], "stegverse.manifest_state_transition_adapters.derive_canonical_work_state_graph")
+        self.assertFalse(route["external_consequence_enabled"])
+
+    def test_missing_route_fails_closed(self):
+        with self.assertRaises(ValueError):
+            resolve_route_declaration({"route_id": "stegverse.route.canonical-work.missing"})
+
+    def test_wrong_route_capability_fails_closed(self):
+        from stegverse.route_resolution import CANONICAL_WORK_ROUTE_ID, PUBLISHED_ROUTES
+        route = PUBLISHED_ROUTES[CANONICAL_WORK_ROUTE_ID]
+        declaration = {key: route[key] for key in ("route_id", "lane_class", "routing_surface", "containment", "sandbox_required", "external_consequence_enabled")}
+        declaration["containment"] = "UNAUTHORIZED_ALTERNATE"
+        with self.assertRaises(ValueError):
+            resolve_route_declaration(declaration)
