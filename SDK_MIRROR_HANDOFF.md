@@ -661,9 +661,11 @@ Coordination: `StegVerse-org/StegVerse-SDK#484`. Parent: `StegVerse-Labs/.github
 | Scope | Goal Task ID / COSV | Handoff |
 |---|---|---|
 | SDK-native structural validator (contract 1.7), T2 offline boundary, T6 envelope migration | `SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001` / `60200000013002` | `docs/SDK_VALIDATOR_T2_OFFLINE_BOUNDARY_MIRROR_HANDOFF.md`, `docs/SDK_T6_UNIVERSAL_ENTRY_VALIDATOR_MIRROR_HANDOFF.md`; Labs `docs/SDK_STRUCTURAL_VALIDATOR_CONSOLIDATION_TASK_REGISTRY_REGISTRATION_MIRROR_HANDOFF.md` |
-| Governance gate (free tier), tier pricing, cost-component registry | gate: the validator task above; pricing: `SDK-COST-DERIVED-TIER-PRICING-001` / `10300000011002` (Labs #3214, open) | `docs/SDK_GOVERNANCE_PRODUCT_MIRROR_HANDOFF.md` |
+| Governance gate (free tier), tier pricing, cost-component registry | gate: the validator task above; pricing: `SDK-COST-DERIVED-TIER-PRICING-001` / `10300000011002` (Labs #3214 merged at `60d90c48`, 2026-10-17 18:52:26Z; `SDK-COST-DERIVED-TIER-PRICING-001` ACTIVE, UNCLAIMED) | `docs/SDK_GOVERNANCE_PRODUCT_MIRROR_HANDOFF.md` |
 
-**Evidence classes:** source MERGED + CI_VALIDATED for the validator, T2, T6 and the gate. #538 (cost registry, MAX rule, pricing six-field dispositions) is CI_VALIDATED and open. The gate's disposition rework is #534 (draft). No runtime class has been reached.
+**Evidence classes:** source MERGED + CI_VALIDATED for the validator, T2, T6 and the gate. #538 (cost registry, MAX rule, pricing six-field dispositions) merged at `07a6a90a` (2026-10-17 16:21:47Z), with gate changes dropped in favour of #534. The gate's disposition rework is #534 (draft). No runtime class has been reached.
+
+SDK #540 merged at `ae4a2a12` (2026-10-17 19:10:51Z) and re-pointed the pricing `owning_existing_goal` to `SDK-COST-DERIVED-TIER-PRICING-001`.
 
 **Governed transitions:**
 - T6-001: DENY.
@@ -678,3 +680,16 @@ No external machine is awaited. Master Records is non-gating.
 - **Differential check:** agrees with the 2020-12 reference in both directions on the new corpus.
 - **Ecosystem fit:** StegVerse-Labs/.github schemas on main went from 55/75 to 64/75. The remaining blockers stay fail-closed by design: patterns outside the safe subset (8), non-local `$ref` (3), depth (1).
 - **T5 provenance:** the source identity was rebound. A successor T5 attempt must target the new blobs.
+
+### SDK #541 — owner-defined merge condition and skipped-job evidence (2026-10-17)
+
+**Owner instruction:** Merge is authorized **if the skipped checks are unintended**. This is a conditional authorization, not a blanket approval. Do not reinterpret it as requiring a separate unconditional merge authorization or as permitting a merge when its predicate is false.
+
+**Authenticated PR head:** `3acee8418d9d13d28cad381fe47e6399fcdf7723` (draft, one documentation file changed). Exact-head check-run inventory: eight SUCCESS, two SKIPPED, zero FAILURE.
+
+- `deploy`, check-run `117480345005`, workflow run `39061524920` (`sdk-public-developer-wiki-pages.yml`): SKIPPED by `if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release'`. This PR event does not meet the deployment condition; `validate` succeeded (`117480315194`).
+- `live`, check-run `117480316571`, workflow run `39061524985` (`intr-destination-hop-lane.yml`): SKIPPED by `if: github.event_name == 'workflow_dispatch' && inputs.mode == 'live'`. This PR event does not meet the live-read condition; fabricated CI succeeded (`117480315235`), and its evidence is NON_AUTHENTIC.
+
+The skips are **intentional by source condition**, so the owner's **if unintended** merge predicate is not satisfied. GitHub branch metadata reports `main` `protected:false`, required-status-check enforcement off and no contexts; the repository ruleset collection was empty, while the separate branch-protection endpoint returned 403. Those observations are not a sovereign governance authorization.
+
+**Disposition:** `DENY` for a merge under the specific owner-defined predicate (condition false); `MERGE_BLOCKED` for this draft PR. Do not change workflow conditions to trigger live reads or deployment on PR merely to manufacture green jobs. Do not claim a fresh CI rerun or runtime ALLOW. Keep this existing PR/branch as the sole handoff lane; no duplicate issue or PR. If the owner subsequently changes the merge condition, independently verify that instruction, current exact head, required checks and expected-head protection before any transition.
