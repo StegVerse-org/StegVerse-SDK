@@ -52,6 +52,7 @@ from stegverse.manifest_plan import (
     readiness_invocation_binding,
     require_ready_qualification,
 )
+from stegverse.remediation_fork import STEGHEALTH_FAILURE_REMEDIATION_TASK_ID
 from stegverse.route_resolution import (
     CANONICAL_PRODUCTION_ROUTE_ID,
     CUSTOMER_LOCAL_GOVERNANCE_ROUTE_ID,
@@ -65,7 +66,7 @@ KEY_ID = "steghealth-fixture-key"
 KEY = "11" * 32
 VERIFY = hmac_evidence_verifier({KEY_ID: KEY})
 ATTEMPT = "attempt-1"
-REMEDIATION = "STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001"
+REMEDIATION = STEGHEALTH_FAILURE_REMEDIATION_TASK_ID
 
 
 def _iso(moment):
