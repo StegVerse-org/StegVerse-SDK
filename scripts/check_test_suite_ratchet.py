@@ -116,7 +116,7 @@ def run_suite(target: str) -> tuple[set[str], int, str]:
         lines = completed.stdout.splitlines()
         for index, line in enumerate(lines):
             if line.startswith(("FAILED ", "ERROR ")):
-                print(f"{GATE}: PYTEST_DETAIL " + " | ".join(lines[max(0, index - 4):index + 1]))
+                print(f"{GATE}: PYTEST_DETAIL " + " | ".join(lines[max(0, index - 4):index + 1]), file=sys.stderr)
     return failing, max(passed), " ".join(command)
 
 
