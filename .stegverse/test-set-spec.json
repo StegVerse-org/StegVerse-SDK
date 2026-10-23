@@ -1,0 +1,34 @@
+{
+ "authority_effect": "NONE",
+ "core": {
+  "inputs": [],
+  "surfaces": [],
+  "tests": []
+ },
+ "extra_surfaces": {
+  "tests/test_governance_product_finish_point.py": [
+   ".github/workflows/governance-product-finish-point.yml",
+   "stegverse/portable_governance_verifier.py",
+   "stegverse/structural_validator_candidate.py"
+  ]
+ },
+ "extra_surfaces_why": {
+  "tests/test_governance_product_finish_point.py": "the runner workflow is the job that runs this test (Lane D adjacency ruling, finish_test_runners); stegverse/governance_gate.py loads structural_validator_candidate and portable_governance_verifier by name (importlib.import_module(f'stegverse.{name}'), which a static scan cannot follow); the test never calls run_gate, so they are reachable but not executed, and are surfaces so an edit to either is routed to this set rather than absorbed"
+ },
+ "finish_point_set": "tests/test_governance_product_finish_point.py",
+ "import_roots": [],
+ "inputs": {},
+ "manifest": ".stegverse/test-sets.json",
+ "module_inputs": {},
+ "purpose": "callable finish-point set for .github/workflows/governance-product-finish-point.yml: the set tests/test_governance_product_finish_point.py runs when a diff path is in its closure, and every set (so this one) runs when a path maps to no set, shapes selection, or the diff is unreadable. The other sets exist only so a path that another test verifies is mapped; this manifest drives the finish-point job alone (StegVerse-org/.github#166, reusing the pinned StegVerse-Labs selector)",
+ "repository": "StegVerse-org/StegVerse-SDK",
+ "runner": "unittest",
+ "schema": "stegverse.test-set-spec/v1",
+ "selects_all": [
+  ".stegverse/labs-tool-pin.json"
+ ],
+ "splits": [],
+ "test_globs": [
+  "tests/**"
+ ]
+}
