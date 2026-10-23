@@ -1,0 +1,36 @@
+name: Governance product finish point
+
+# Runs the GITHUB-UNIVERSAL-GOVERNANCE-PRODUCT-001 finish-point test with unittest only.
+# Read-only: no secrets, no token use, no writes, no installs. Everything the test runs is
+# loaded by file path from the checkout (the gate run step and stegverse/governance_gate.py at
+# their sha256 pin); pytest is not used because its entry module has a by-name load that a
+# static closure cannot resolve. Lowest mode E0: no clock, no network beyond the checkout.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  finish-point:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Finish point - a non-ALLOW disposition produces no effect (unittest, no skips)
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -o pipefail
+          python -m unittest tests.test_governance_product_finish_point -v 2>&1 | tee /tmp/finish-point.log
+          if grep -Eq 'skipped|expected failure' /tmp/finish-point.log; then
+            echo "::error::a finish-point test was skipped; skips are never accepted"; exit 1
+          fi
