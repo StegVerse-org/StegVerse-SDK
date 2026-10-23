@@ -3,7 +3,7 @@
  "generated_from": {
   "generator": "scripts/test_set_selection.py (StegVerse-Labs/.github)",
   "spec": ".stegverse/test-set-spec.json",
-  "spec_sha256": "99cdd4ef273184da5804521f80659de4c6a2b12d77943bc7d90fccc5bb83efe6"
+  "spec_sha256": "8174427ecdba0591c3b4a442aa7eb820550468bc220d9a1fae9bcb4a0eb21b30"
  },
  "inputs": {},
  "repository": "StegVerse-org/StegVerse-SDK",
@@ -1430,6 +1430,20 @@
   {
    "always": false,
    "exclude": [],
+   "id": "tests/test_finish_point_verdict.py",
+   "inputs": [],
+   "surfaces": [
+    ".github/workflows/governance-product-finish-point.yml",
+    ".stegverse/finish_point_verdict.py",
+    "tests/test_finish_point_verdict.py"
+   ],
+   "tests": [
+    "tests.test_finish_point_verdict"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
    "id": "tests/test_first_party_manifest30_reference.py",
    "inputs": [],
    "surfaces": [
@@ -1650,6 +1664,7 @@
    "inputs": [],
    "surfaces": [
     ".github/workflows/governance-product-finish-point.yml",
+    ".stegverse/finish_point_verdict.py",
     "stegverse/portable_governance_verifier.py",
     "stegverse/structural_validator_candidate.py",
     "tests/test_governance_product_finish_point.py"
@@ -4863,6 +4878,10 @@
   ],
   "tests/test_fanout_status.py": [
    "scripts/validate_sdk_core_node_parallel_fanout_activation_status.py"
+  ],
+  "tests/test_finish_point_verdict.py": [
+   ".stegverse/finish_point_verdict.py",
+   ".stegverse/test-set-spec.json"
   ],
   "tests/test_first_party_manifest30_reference.py": [
    "docs/deepwiki-review/FIRST_PARTY_MANIFEST_30_SOURCE_REFERENCE.md",

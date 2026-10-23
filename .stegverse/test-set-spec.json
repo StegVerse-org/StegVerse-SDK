@@ -6,14 +6,20 @@
   "tests": []
  },
  "extra_surfaces": {
+  "tests/test_finish_point_verdict.py": [
+   ".github/workflows/governance-product-finish-point.yml",
+   ".stegverse/finish_point_verdict.py"
+  ],
   "tests/test_governance_product_finish_point.py": [
    ".github/workflows/governance-product-finish-point.yml",
    "stegverse/portable_governance_verifier.py",
-   "stegverse/structural_validator_candidate.py"
+   "stegverse/structural_validator_candidate.py",
+   ".stegverse/finish_point_verdict.py"
   ]
  },
  "extra_surfaces_why": {
-  "tests/test_governance_product_finish_point.py": "the runner workflow is the job that runs this test (Lane D adjacency ruling, finish_test_runners); stegverse/governance_gate.py loads structural_validator_candidate and portable_governance_verifier by name (importlib.import_module(f'stegverse.{name}'), which a static scan cannot follow); the test never calls run_gate, so they are reachable but not executed, and are surfaces so an edit to either is routed to this set rather than absorbed"
+  "tests/test_finish_point_verdict.py": "tests both verdict paths: it loads .stegverse/finish_point_verdict.py by file path (not an import a static scan follows) and reads the runner workflow to assert no step carries an if:",
+  "tests/test_governance_product_finish_point.py": "the runner workflow is the job that runs this test (Lane D adjacency ruling, finish_test_runners); stegverse/governance_gate.py loads structural_validator_candidate and portable_governance_verifier by name (importlib.import_module(f'stegverse.{name}'), which a static scan cannot follow); the test never calls run_gate, so they are reachable but not executed, and are surfaces so an edit to either is routed to this set rather than absorbed; .stegverse/finish_point_verdict.py decides whether the finish step runs the test (SELECTED) or receipts NOT_SELECTED, so an edit to it is routed to this set"
  },
  "finish_point_set": "tests/test_governance_product_finish_point.py",
  "import_roots": [],
