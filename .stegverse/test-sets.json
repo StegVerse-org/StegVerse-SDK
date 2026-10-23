@@ -1,0 +1,5968 @@
+{
+ "authority_effect": "NONE",
+ "generated_from": {
+  "generator": "scripts/test_set_selection.py (StegVerse-Labs/.github)",
+  "spec": ".stegverse/test-set-spec.json",
+  "spec_sha256": "8174427ecdba0591c3b4a442aa7eb820550468bc220d9a1fae9bcb4a0eb21b30"
+ },
+ "inputs": {},
+ "repository": "StegVerse-org/StegVerse-SDK",
+ "runner": "unittest",
+ "schema": "stegverse.test-sets/v1",
+ "selects_all": [
+  ".stegverse/labs-tool-pin.json",
+  ".stegverse/test-set-spec.json",
+  ".stegverse/test-sets.json"
+ ],
+ "sets": [
+  {
+   "always": true,
+   "exclude": [],
+   "id": "core",
+   "inputs": [],
+   "surfaces": [],
+   "tests": []
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_000_governance_outcome_demo.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_000_governance_outcome_demo.py"
+   ],
+   "tests": [
+    "tests.test_000_governance_outcome_demo"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_active_probe_execution.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_active_probe_execution.py"
+   ],
+   "tests": [
+    "tests.test_active_probe_execution"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_adapter_origin_manifest_fixture.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_adapter_origin_manifest_fixture.py"
+   ],
+   "tests": [
+    "tests.test_adapter_origin_manifest_fixture"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_adapter_origin_system_boundary_fixture.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_adapter_origin_system_boundary_fixture.py"
+   ],
+   "tests": [
+    "tests.test_adapter_origin_system_boundary_fixture"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_adapter_system_boundary_fixture.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_adapter_system_boundary_fixture.py"
+   ],
+   "tests": [
+    "tests.test_adapter_system_boundary_fixture"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_adapter_system_boundary_fixture_provenance.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_adapter_system_boundary_fixture_provenance.py"
+   ],
+   "tests": [
+    "tests.test_adapter_system_boundary_fixture_provenance"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_admissibility_bundle.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_admissibility_bundle.py"
+   ],
+   "tests": [
+    "tests.test_admissibility_bundle"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_admissibility_composition.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_admissibility_composition.py"
+   ],
+   "tests": [
+    "tests.test_admissibility_composition"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_admissibility_exchange.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_admissibility_exchange.py"
+   ],
+   "tests": [
+    "tests.test_admissibility_exchange"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_admissibility_receipts.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_admissibility_receipts.py"
+   ],
+   "tests": [
+    "tests.test_admissibility_receipts"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_admissibility_replay.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_admissibility_replay.py"
+   ],
+   "tests": [
+    "tests.test_admissibility_replay"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_admissibility_schema_inventory.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_admissibility_schema_inventory.py"
+   ],
+   "tests": [
+    "tests.test_admissibility_schema_inventory"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_admittedcode_receipt.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_admittedcode_receipt.py"
+   ],
+   "tests": [
+    "tests.test_admittedcode_receipt"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_admittedcode_receipt_fixture.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_admittedcode_receipt_fixture.py"
+   ],
+   "tests": [
+    "tests.test_admittedcode_receipt_fixture"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ai_entry_receipt_capture.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ai_entry_receipt_capture.py"
+   ],
+   "tests": [
+    "tests.test_ai_entry_receipt_capture"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_alternate_entry_labelling.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_alternate_entry_labelling.py"
+   ],
+   "tests": [
+    "tests.test_alternate_entry_labelling"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_artifact_transport_receipt.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_artifact_transport_receipt.py"
+   ],
+   "tests": [
+    "tests.test_artifact_transport_receipt"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_assess_deepwiki_atomic_claims.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_assess_deepwiki_atomic_claims.py"
+   ],
+   "tests": [
+    "tests.test_assess_deepwiki_atomic_claims"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_atomic_task_worker_binding.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_atomic_task_worker_binding.py"
+   ],
+   "tests": [
+    "tests.test_atomic_task_worker_binding"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_authority_boundary_preservation_experiment.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_authority_boundary_preservation_experiment.py"
+   ],
+   "tests": [
+    "tests.test_authority_boundary_preservation_experiment"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_authority_boundary_sovereign_runner.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_authority_boundary_sovereign_runner.py"
+   ],
+   "tests": [
+    "tests.test_authority_boundary_sovereign_runner"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_bridge_registry.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_bridge_registry.py"
+   ],
+   "tests": [
+    "tests.test_bridge_registry"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_bridge_registry_payload.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_bridge_registry_payload.py"
+   ],
+   "tests": [
+    "tests.test_bridge_registry_payload"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_build_deepwiki_claim_review.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_build_deepwiki_claim_review.py"
+   ],
+   "tests": [
+    "tests.test_build_deepwiki_claim_review"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_bundle_export.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_bundle_export.py"
+   ],
+   "tests": [
+    "tests.test_bundle_export"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_canonical_source_conversation.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_canonical_source_conversation.py"
+   ],
+   "tests": [
+    "tests.test_canonical_source_conversation"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_capability_boundary_experiment_org_request.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_capability_boundary_experiment_org_request.py"
+   ],
+   "tests": [
+    "tests.test_capability_boundary_experiment_org_request"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_capability_graph.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_capability_graph.py"
+   ],
+   "tests": [
+    "tests.test_capability_graph"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_capability_inventory.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_capability_inventory.py"
+   ],
+   "tests": [
+    "tests.test_capability_inventory"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_capability_map_conformance.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_capability_map_conformance.py"
+   ],
+   "tests": [
+    "tests.test_capability_map_conformance"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_check_six_field_dispositions.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_check_six_field_dispositions.py"
+   ],
+   "tests": [
+    "tests.test_check_six_field_dispositions"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_cli.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_cli.py"
+   ],
+   "tests": [
+    "tests.test_cli"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_cli_canonical_manifest_convergence.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_cli_canonical_manifest_convergence.py"
+   ],
+   "tests": [
+    "tests.test_cli_canonical_manifest_convergence"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_cli_preformatted_manifest.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_cli_preformatted_manifest.py"
+   ],
+   "tests": [
+    "tests.test_cli_preformatted_manifest"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_cli_sdk_usage_observability.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_cli_sdk_usage_observability.py"
+   ],
+   "tests": [
+    "tests.test_cli_sdk_usage_observability"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_collab_ingress_routes.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_collab_ingress_routes.py"
+   ],
+   "tests": [
+    "tests.test_collab_ingress_routes"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_communication_edge_demo.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_communication_edge_demo.py"
+   ],
+   "tests": [
+    "tests.test_communication_edge_demo"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_compare_mir_leaf_v3_result.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_compare_mir_leaf_v3_result.py"
+   ],
+   "tests": [
+    "tests.test_compare_mir_leaf_v3_result"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_comparison_orchestrator.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_comparison_orchestrator.py"
+   ],
+   "tests": [
+    "tests.test_comparison_orchestrator"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_comparison_receipt_delta_scope.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_comparison_receipt_delta_scope.py"
+   ],
+   "tests": [
+    "tests.test_comparison_receipt_delta_scope"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_comparison_transport.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_comparison_transport.py"
+   ],
+   "tests": [
+    "tests.test_comparison_transport"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_component011_receipt_compatibility.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_component011_receipt_compatibility.py"
+   ],
+   "tests": [
+    "tests.test_component011_receipt_compatibility"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_connector_capability_overlay.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_connector_capability_overlay.py"
+   ],
+   "tests": [
+    "tests.test_connector_capability_overlay"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_console_execution_profiles.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_console_execution_profiles.py"
+   ],
+   "tests": [
+    "tests.test_console_execution_profiles"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_coordinate_navigation.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_coordinate_navigation.py"
+   ],
+   "tests": [
+    "tests.test_coordinate_navigation"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_cost_registry.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_cost_registry.py"
+   ],
+   "tests": [
+    "tests.test_cost_registry"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_cross_framework_current_basis_execution.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_cross_framework_current_basis_execution.py"
+   ],
+   "tests": [
+    "tests.test_cross_framework_current_basis_execution"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_cross_framework_current_basis_manifest.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_cross_framework_current_basis_manifest.py"
+   ],
+   "tests": [
+    "tests.test_cross_framework_current_basis_manifest"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_cross_framework_current_basis_result_packaging.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_cross_framework_current_basis_result_packaging.py"
+   ],
+   "tests": [
+    "tests.test_cross_framework_current_basis_result_packaging"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_curate_frozen_deepwiki_review.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_curate_frozen_deepwiki_review.py"
+   ],
+   "tests": [
+    "tests.test_curate_frozen_deepwiki_review"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_current_basis_sdk.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_current_basis_sdk.py"
+   ],
+   "tests": [
+    "tests.test_current_basis_sdk"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_customer_local_governance.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_customer_local_governance.py"
+   ],
+   "tests": [
+    "tests.test_customer_local_governance"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_deepwiki_atomic_worker10.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_deepwiki_atomic_worker10.py"
+   ],
+   "tests": [
+    "tests.test_deepwiki_atomic_worker10"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_deepwiki_cross_framework_19.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_deepwiki_cross_framework_19.py"
+   ],
+   "tests": [
+    "tests.test_deepwiki_cross_framework_19"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_deepwiki_eight_crossboundary.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_deepwiki_eight_crossboundary.py"
+   ],
+   "tests": [
+    "tests.test_deepwiki_eight_crossboundary"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_deepwiki_first_party_guide.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_deepwiki_first_party_guide.py"
+   ],
+   "tests": [
+    "tests.test_deepwiki_first_party_guide"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_deepwiki_first_party_verified_contracts.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_deepwiki_first_party_verified_contracts.py"
+   ],
+   "tests": [
+    "tests.test_deepwiki_first_party_verified_contracts"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_deepwiki_governance_six_diagrams.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_deepwiki_governance_six_diagrams.py"
+   ],
+   "tests": [
+    "tests.test_deepwiki_governance_six_diagrams"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_deepwiki_nav_evaluator_ci24.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_deepwiki_nav_evaluator_ci24.py"
+   ],
+   "tests": [
+    "tests.test_deepwiki_nav_evaluator_ci24"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_deepwiki_overview_13_context.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_deepwiki_overview_13_context.py"
+   ],
+   "tests": [
+    "tests.test_deepwiki_overview_13_context"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_deepwiki_purpose_worker14.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_deepwiki_purpose_worker14.py"
+   ],
+   "tests": [
+    "tests.test_deepwiki_purpose_worker14"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_deepwiki_source_drift.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_deepwiki_source_drift.py"
+   ],
+   "tests": [
+    "tests.test_deepwiki_source_drift"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_deepwiki_universal_interlock16.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_deepwiki_universal_interlock16.py"
+   ],
+   "tests": [
+    "tests.test_deepwiki_universal_interlock16"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_demo_terms.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_demo_terms.py"
+   ],
+   "tests": [
+    "tests.test_demo_terms"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_dynamic_admissibility.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_dynamic_admissibility.py"
+   ],
+   "tests": [
+    "tests.test_dynamic_admissibility"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_dynamic_admissibility_public_api.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_dynamic_admissibility_public_api.py"
+   ],
+   "tests": [
+    "tests.test_dynamic_admissibility_public_api"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_backend.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_backend.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_backend"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_bound_write_adapter.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_bound_write_adapter.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_bound_write_adapter"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_deployment_readiness.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_deployment_readiness.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_deployment_readiness"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_destination_binding.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_destination_binding.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_destination_binding"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_governed_ask.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_governed_ask.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_governed_ask"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_http_minimal.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_http_minimal.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_http_minimal"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_intake_minimal.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_intake_minimal.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_intake_minimal"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_issuer.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_issuer.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_issuer"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_local_issuer.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_local_issuer.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_local_issuer"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_local_write_adapter.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_local_write_adapter.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_local_write_adapter"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_persistence_plan.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_persistence_plan.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_persistence_plan"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_pipeline.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_pipeline.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_pipeline"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_pipeline_http.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_pipeline_http.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_pipeline_http"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_receipt_authority.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_receipt_authority.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_receipt_authority"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_receipt_engine.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_receipt_engine.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_receipt_engine"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_receipt_request.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_receipt_request.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_receipt_request"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_record_export.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_record_export.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_record_export"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_write_adapter.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_write_adapter.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_write_adapter"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_chat_wsgi.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_chat_wsgi.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_chat_wsgi"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ecosystem_diagnostic_processor.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ecosystem_diagnostic_processor.py"
+   ],
+   "tests": [
+    "tests.test_ecosystem_diagnostic_processor"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_edge_cell_consumer.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_edge_cell_consumer.py"
+   ],
+   "tests": [
+    "tests.test_edge_cell_consumer"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_elan_intr_bridge.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_elan_intr_bridge.py"
+   ],
+   "tests": [
+    "tests.test_elan_intr_bridge"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_elyria_framework_adapter.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_elyria_framework_adapter.py"
+   ],
+   "tests": [
+    "tests.test_elyria_framework_adapter"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_entity_economy_successor_manifest_binding.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_entity_economy_successor_manifest_binding.py"
+   ],
+   "tests": [
+    "tests.test_entity_economy_successor_manifest_binding"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_entry_point_parity.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_entry_point_parity.py"
+   ],
+   "tests": [
+    "tests.test_entry_point_parity"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_entry_point_roles.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_entry_point_roles.py"
+   ],
+   "tests": [
+    "tests.test_entry_point_roles"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluation_boundary_contract.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluation_boundary_contract.py"
+   ],
+   "tests": [
+    "tests.test_evaluation_boundary_contract"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluation_boundary_owner_packet.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluation_boundary_owner_packet.py"
+   ],
+   "tests": [
+    "tests.test_evaluation_boundary_owner_packet"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluation_boundary_r3_run_harness.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluation_boundary_r3_run_harness.py"
+   ],
+   "tests": [
+    "tests.test_evaluation_boundary_r3_run_harness"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluation_boundary_response_packet.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluation_boundary_response_packet.py"
+   ],
+   "tests": [
+    "tests.test_evaluation_boundary_response_packet"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluation_relationship.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluation_relationship.py"
+   ],
+   "tests": [
+    "tests.test_evaluation_relationship"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluator_atomic_task_worker_manifest.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluator_atomic_task_worker_manifest.py"
+   ],
+   "tests": [
+    "tests.test_evaluator_atomic_task_worker_manifest"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluator_authority_basis_bridge.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluator_authority_basis_bridge.py"
+   ],
+   "tests": [
+    "tests.test_evaluator_authority_basis_bridge"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluator_contract_console.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluator_contract_console.py"
+   ],
+   "tests": [
+    "tests.test_evaluator_contract_console"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluator_llm_entry.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluator_llm_entry.py"
+   ],
+   "tests": [
+    "tests.test_evaluator_llm_entry"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluator_manifest_builder.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluator_manifest_builder.py"
+   ],
+   "tests": [
+    "tests.test_evaluator_manifest_builder"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluator_manifest_multilane_noninterference.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluator_manifest_multilane_noninterference.py"
+   ],
+   "tests": [
+    "tests.test_evaluator_manifest_multilane_noninterference"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_evaluator_review_intr.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_evaluator_review_intr.py"
+   ],
+   "tests": [
+    "tests.test_evaluator_review_intr"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_execution_boundary.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_execution_boundary.py"
+   ],
+   "tests": [
+    "tests.test_execution_boundary"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_export_deepwiki_review.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_export_deepwiki_review.py"
+   ],
+   "tests": [
+    "tests.test_export_deepwiki_review"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_external_framework_manifest_first.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_external_framework_manifest_first.py"
+   ],
+   "tests": [
+    "tests.test_external_framework_manifest_first"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_external_framework_neutral_example.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_external_framework_neutral_example.py"
+   ],
+   "tests": [
+    "tests.test_external_framework_neutral_example"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_external_framework_posture_runtime.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_external_framework_posture_runtime.py"
+   ],
+   "tests": [
+    "tests.test_external_framework_posture_runtime"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_external_framework_runner.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_external_framework_runner.py"
+   ],
+   "tests": [
+    "tests.test_external_framework_runner"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_external_interaction_generation.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_external_interaction_generation.py"
+   ],
+   "tests": [
+    "tests.test_external_interaction_generation"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_external_interlock_bootstrap.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_external_interlock_bootstrap.py"
+   ],
+   "tests": [
+    "tests.test_external_interlock_bootstrap"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_external_interlock_ingress_binding.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_external_interlock_ingress_binding.py"
+   ],
+   "tests": [
+    "tests.test_external_interlock_ingress_binding"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_fanout_ci_evidence.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_fanout_ci_evidence.py"
+   ],
+   "tests": [
+    "tests.test_fanout_ci_evidence"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_fanout_handoff.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_fanout_handoff.py"
+   ],
+   "tests": [
+    "tests.test_fanout_handoff"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_fanout_run_log_template.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_fanout_run_log_template.py"
+   ],
+   "tests": [
+    "tests.test_fanout_run_log_template"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_fanout_status.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_fanout_status.py"
+   ],
+   "tests": [
+    "tests.test_fanout_status"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_finish_point_verdict.py",
+   "inputs": [],
+   "surfaces": [
+    ".github/workflows/governance-product-finish-point.yml",
+    ".stegverse/finish_point_verdict.py",
+    "tests/test_finish_point_verdict.py"
+   ],
+   "tests": [
+    "tests.test_finish_point_verdict"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_first_party_manifest30_reference.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_first_party_manifest30_reference.py"
+   ],
+   "tests": [
+    "tests.test_first_party_manifest30_reference"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_formal_testing_route_manifest.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_formal_testing_route_manifest.py"
+   ],
+   "tests": [
+    "tests.test_formal_testing_route_manifest"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_formal_testing_route_result_receipt.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_formal_testing_route_result_receipt.py"
+   ],
+   "tests": [
+    "tests.test_formal_testing_route_result_receipt"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_four_stage_manifest_experiment.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_four_stage_manifest_experiment.py"
+   ],
+   "tests": [
+    "tests.test_four_stage_manifest_experiment"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_framework_naming_guard.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_framework_naming_guard.py"
+   ],
+   "tests": [
+    "tests.test_framework_naming_guard"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_free_tier_metadata.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_free_tier_metadata.py"
+   ],
+   "tests": [
+    "tests.test_free_tier_metadata"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_generic_manifest_processing_contract.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_generic_manifest_processing_contract.py"
+   ],
+   "tests": [
+    "tests.test_generic_manifest_processing_contract"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_generic_publisher_exact_crossrepo.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_generic_publisher_exact_crossrepo.py"
+   ],
+   "tests": [
+    "tests.test_generic_publisher_exact_crossrepo"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_generic_worker_state_graph_adapter.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_generic_worker_state_graph_adapter.py"
+   ],
+   "tests": [
+    "tests.test_generic_worker_state_graph_adapter"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_github_fallback_boundary.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_github_fallback_boundary.py"
+   ],
+   "tests": [
+    "tests.test_github_fallback_boundary"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_github_repository_fetcher.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_github_repository_fetcher.py"
+   ],
+   "tests": [
+    "tests.test_github_repository_fetcher"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_goal3_activation.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_goal3_activation.py"
+   ],
+   "tests": [
+    "tests.test_goal3_activation"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_fallback.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governance_fallback.py"
+   ],
+   "tests": [
+    "tests.test_governance_fallback"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_fallback_cli.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governance_fallback_cli.py"
+   ],
+   "tests": [
+    "tests.test_governance_fallback_cli"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_gate.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governance_gate.py"
+   ],
+   "tests": [
+    "tests.test_governance_gate"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_gate_pin_reproduction.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governance_gate_pin_reproduction.py"
+   ],
+   "tests": [
+    "tests.test_governance_gate_pin_reproduction"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_ingress_runtime.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governance_ingress_runtime.py"
+   ],
+   "tests": [
+    "tests.test_governance_ingress_runtime"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_navigation.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governance_navigation.py"
+   ],
+   "tests": [
+    "tests.test_governance_navigation"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_product_finish_point.py",
+   "inputs": [],
+   "surfaces": [
+    ".github/workflows/governance-product-finish-point.yml",
+    ".stegverse/finish_point_verdict.py",
+    "stegverse/portable_governance_verifier.py",
+    "stegverse/structural_validator_candidate.py",
+    "tests/test_governance_product_finish_point.py"
+   ],
+   "tests": [
+    "tests.test_governance_product_finish_point"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_public_execution.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governance_public_execution.py"
+   ],
+   "tests": [
+    "tests.test_governance_public_execution"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_reference_graph.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governance_reference_graph.py"
+   ],
+   "tests": [
+    "tests.test_governance_reference_graph"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_reference_projection.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governance_reference_projection.py"
+   ],
+   "tests": [
+    "tests.test_governance_reference_projection"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_return_evidence.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governance_return_evidence.py"
+   ],
+   "tests": [
+    "tests.test_governance_return_evidence"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governance_tightness.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governance_tightness.py"
+   ],
+   "tests": [
+    "tests.test_governance_tightness"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_application_spine.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_application_spine.py"
+   ],
+   "tests": [
+    "tests.test_governed_application_spine"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_composite_response.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_composite_response.py"
+   ],
+   "tests": [
+    "tests.test_governed_composite_response"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_deny_negative_conformance.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_deny_negative_conformance.py"
+   ],
+   "tests": [
+    "tests.test_governed_deny_negative_conformance"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_llm.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_llm.py"
+   ],
+   "tests": [
+    "tests.test_governed_llm"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_llm_demo_packet.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_llm_demo_packet.py"
+   ],
+   "tests": [
+    "tests.test_governed_llm_demo_packet"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_llm_manifest.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_llm_manifest.py"
+   ],
+   "tests": [
+    "tests.test_governed_llm_manifest"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_llm_receipt.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_llm_receipt.py"
+   ],
+   "tests": [
+    "tests.test_governed_llm_receipt"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_llm_session.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_llm_session.py"
+   ],
+   "tests": [
+    "tests.test_governed_llm_session"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_llm_session_intake.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_llm_session_intake.py"
+   ],
+   "tests": [
+    "tests.test_governed_llm_session_intake"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_llm_system_boundary_binding.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_llm_system_boundary_binding.py"
+   ],
+   "tests": [
+    "tests.test_governed_llm_system_boundary_binding"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_operations.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_operations.py"
+   ],
+   "tests": [
+    "tests.test_governed_operations"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_governed_remediation.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_governed_remediation.py"
+   ],
+   "tests": [
+    "tests.test_governed_remediation"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_hps_sdk_route.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_hps_sdk_route.py"
+   ],
+   "tests": [
+    "tests.test_hps_sdk_route"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_ingest_testing_data_loop_status.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_ingest_testing_data_loop_status.py"
+   ],
+   "tests": [
+    "tests.test_ingest_testing_data_loop_status"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_inspect_remaining_deepwiki_citations.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_inspect_remaining_deepwiki_citations.py"
+   ],
+   "tests": [
+    "tests.test_inspect_remaining_deepwiki_citations"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_integration_config.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_integration_config.py"
+   ],
+   "tests": [
+    "tests.test_integration_config"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_interlock_return.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_interlock_return.py"
+   ],
+   "tests": [
+    "tests.test_interlock_return"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_interlock_transition.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_interlock_transition.py"
+   ],
+   "tests": [
+    "tests.test_interlock_transition"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_intr_destination_hop_lane.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_intr_destination_hop_lane.py"
+   ],
+   "tests": [
+    "tests.test_intr_destination_hop_lane"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_intr_epistemic_readiness_adapter.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_intr_epistemic_readiness_adapter.py"
+   ],
+   "tests": [
+    "tests.test_intr_epistemic_readiness_adapter"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_intr_hop_lane_all_legacy_negative.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_intr_hop_lane_all_legacy_negative.py"
+   ],
+   "tests": [
+    "tests.test_intr_hop_lane_all_legacy_negative"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_intr_posture_runtime_bridge.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_intr_posture_runtime_bridge.py"
+   ],
+   "tests": [
+    "tests.test_intr_posture_runtime_bridge"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_intr_posture_runtime_crossrepo.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_intr_posture_runtime_crossrepo.py"
+   ],
+   "tests": [
+    "tests.test_intr_posture_runtime_crossrepo"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_iw_cross_system_falsifier_suite.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_iw_cross_system_falsifier_suite.py"
+   ],
+   "tests": [
+    "tests.test_iw_cross_system_falsifier_suite"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_iw_matrix_falsifier.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_iw_matrix_falsifier.py"
+   ],
+   "tests": [
+    "tests.test_iw_matrix_falsifier"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_iw_matrix_sdk_integration.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_iw_matrix_sdk_integration.py"
+   ],
+   "tests": [
+    "tests.test_iw_matrix_sdk_integration"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_llm_adapter_quick.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_llm_adapter_quick.py"
+   ],
+   "tests": [
+    "tests.test_llm_adapter_quick"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_llm_admissibility.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_llm_admissibility.py"
+   ],
+   "tests": [
+    "tests.test_llm_admissibility"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_llm_connect_cli.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_llm_connect_cli.py"
+   ],
+   "tests": [
+    "tests.test_llm_connect_cli"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_llm_connection.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_llm_connection.py"
+   ],
+   "tests": [
+    "tests.test_llm_connection"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_llm_route_comparison.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_llm_route_comparison.py"
+   ],
+   "tests": [
+    "tests.test_llm_route_comparison"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_local_governance_boundary.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_local_governance_boundary.py"
+   ],
+   "tests": [
+    "tests.test_local_governance_boundary"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_local_run_record.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_local_run_record.py"
+   ],
+   "tests": [
+    "tests.test_local_run_record"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_locate_23_historical_deepwiki_sources.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_locate_23_historical_deepwiki_sources.py"
+   ],
+   "tests": [
+    "tests.test_locate_23_historical_deepwiki_sources"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_machine_contract.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_machine_contract.py"
+   ],
+   "tests": [
+    "tests.test_machine_contract"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifest_builder.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifest_builder.py"
+   ],
+   "tests": [
+    "tests.test_manifest_builder"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifest_capability_resolution.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifest_capability_resolution.py"
+   ],
+   "tests": [
+    "tests.test_manifest_capability_resolution"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifest_destination_binding.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifest_destination_binding.py"
+   ],
+   "tests": [
+    "tests.test_manifest_destination_binding"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifest_driven_purpose_worker.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifest_driven_purpose_worker.py"
+   ],
+   "tests": [
+    "tests.test_manifest_driven_purpose_worker"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifest_identity_routing_regression_gate.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifest_identity_routing_regression_gate.py"
+   ],
+   "tests": [
+    "tests.test_manifest_identity_routing_regression_gate"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifest_path_differential.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifest_path_differential.py"
+   ],
+   "tests": [
+    "tests.test_manifest_path_differential"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifest_plan.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifest_plan.py"
+   ],
+   "tests": [
+    "tests.test_manifest_plan"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifest_readiness_gate.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifest_readiness_gate.py"
+   ],
+   "tests": [
+    "tests.test_manifest_readiness_gate"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifest_readiness_gate_dispatch_paths.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifest_readiness_gate_dispatch_paths.py"
+   ],
+   "tests": [
+    "tests.test_manifest_readiness_gate_dispatch_paths"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifest_relational_invariant_concurrency.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifest_relational_invariant_concurrency.py"
+   ],
+   "tests": [
+    "tests.test_manifest_relational_invariant_concurrency"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifold_governance_sdk.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifold_governance_sdk.py"
+   ],
+   "tests": [
+    "tests.test_manifold_governance_sdk"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_manifold_governance_sdk_boundary.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_manifold_governance_sdk_boundary.py"
+   ],
+   "tests": [
+    "tests.test_manifold_governance_sdk_boundary"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_master_records_custody.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_master_records_custody.py"
+   ],
+   "tests": [
+    "tests.test_master_records_custody"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_master_records_http.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_master_records_http.py"
+   ],
+   "tests": [
+    "tests.test_master_records_http"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_master_records_organization_record.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_master_records_organization_record.py"
+   ],
+   "tests": [
+    "tests.test_master_records_organization_record"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_master_records_reconstruction_non_gating.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_master_records_reconstruction_non_gating.py"
+   ],
+   "tests": [
+    "tests.test_master_records_reconstruction_non_gating"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_master_records_role_audit.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_master_records_role_audit.py"
+   ],
+   "tests": [
+    "tests.test_master_records_role_audit"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_math_admissibility.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_math_admissibility.py"
+   ],
+   "tests": [
+    "tests.test_math_admissibility"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mcp_production_artifact.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mcp_production_artifact.py"
+   ],
+   "tests": [
+    "tests.test_mcp_production_artifact"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mcp_request_boundary.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mcp_request_boundary.py"
+   ],
+   "tests": [
+    "tests.test_mcp_request_boundary"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mhia_capability_graph.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mhia_capability_graph.py"
+   ],
+   "tests": [
+    "tests.test_mhia_capability_graph"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mhia_module_manifest_schema.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mhia_module_manifest_schema.py"
+   ],
+   "tests": [
+    "tests.test_mhia_module_manifest_schema"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mhia_procurement_gate.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mhia_procurement_gate.py"
+   ],
+   "tests": [
+    "tests.test_mhia_procurement_gate"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mhia_reference_firmware.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mhia_reference_firmware.py"
+   ],
+   "tests": [
+    "tests.test_mhia_reference_firmware"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mhia_reference_hal.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mhia_reference_hal.py"
+   ],
+   "tests": [
+    "tests.test_mhia_reference_hal"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_micro_node_adapter_fixture.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_micro_node_adapter_fixture.py"
+   ],
+   "tests": [
+    "tests.test_micro_node_adapter_fixture"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_micro_node_commit_time_experiment.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_micro_node_commit_time_experiment.py"
+   ],
+   "tests": [
+    "tests.test_micro_node_commit_time_experiment"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_micro_node_return_path.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_micro_node_return_path.py"
+   ],
+   "tests": [
+    "tests.test_micro_node_return_path"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mir_destination_profile_propagation.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mir_destination_profile_propagation.py"
+   ],
+   "tests": [
+    "tests.test_mir_destination_profile_propagation"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mir_historical_accounting_delta.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mir_historical_accounting_delta.py"
+   ],
+   "tests": [
+    "tests.test_mir_historical_accounting_delta"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mir_leaf_v3_conformance.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mir_leaf_v3_conformance.py"
+   ],
+   "tests": [
+    "tests.test_mir_leaf_v3_conformance"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mir_run2_replay_reconstruction.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mir_run2_replay_reconstruction.py"
+   ],
+   "tests": [
+    "tests.test_mir_run2_replay_reconstruction"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mir_sv_exp3_capability_documents.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mir_sv_exp3_capability_documents.py"
+   ],
+   "tests": [
+    "tests.test_mir_sv_exp3_capability_documents"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_mir_sv_exp3_manifest.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_mir_sv_exp3_manifest.py"
+   ],
+   "tests": [
+    "tests.test_mir_sv_exp3_manifest"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_native_source_math.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_native_source_math.py"
+   ],
+   "tests": [
+    "tests.test_native_source_math"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_no_github_token_release_authority.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_no_github_token_release_authority.py"
+   ],
+   "tests": [
+    "tests.test_no_github_token_release_authority"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_observe_sdk_public_wiki.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_observe_sdk_public_wiki.py"
+   ],
+   "tests": [
+    "tests.test_observe_sdk_public_wiki"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_oda3_r3_run_harness.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_oda3_r3_run_harness.py"
+   ],
+   "tests": [
+    "tests.test_oda3_r3_run_harness"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_oda3_response_packet.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_oda3_response_packet.py"
+   ],
+   "tests": [
+    "tests.test_oda3_response_packet"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_organization_batch_manifest_task_binding.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_organization_batch_manifest_task_binding.py"
+   ],
+   "tests": [
+    "tests.test_organization_batch_manifest_task_binding"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_organization_ledger_evidence.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_organization_ledger_evidence.py"
+   ],
+   "tests": [
+    "tests.test_organization_ledger_evidence"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_organization_record_migration.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_organization_record_migration.py"
+   ],
+   "tests": [
+    "tests.test_organization_record_migration"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_organization_role_conformance_route.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_organization_role_conformance_route.py"
+   ],
+   "tests": [
+    "tests.test_organization_role_conformance_route"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_output_boundary_proof.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_output_boundary_proof.py"
+   ],
+   "tests": [
+    "tests.test_output_boundary_proof"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_package_version_identity.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_package_version_identity.py"
+   ],
+   "tests": [
+    "tests.test_package_version_identity"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_pinned_organization_boundary.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_pinned_organization_boundary.py"
+   ],
+   "tests": [
+    "tests.test_pinned_organization_boundary"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_portable_dual_archive.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_portable_dual_archive.py"
+   ],
+   "tests": [
+    "tests.test_portable_dual_archive"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_portable_governance_exchange.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_portable_governance_exchange.py"
+   ],
+   "tests": [
+    "tests.test_portable_governance_exchange"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_portable_governance_verifier.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_portable_governance_verifier.py"
+   ],
+   "tests": [
+    "tests.test_portable_governance_verifier"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_portable_governance_verifier_cli.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_portable_governance_verifier_cli.py"
+   ],
+   "tests": [
+    "tests.test_portable_governance_verifier_cli"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_portable_packages.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_portable_packages.py"
+   ],
+   "tests": [
+    "tests.test_portable_packages"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_post_return_evidence.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_post_return_evidence.py"
+   ],
+   "tests": [
+    "tests.test_post_return_evidence"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_post_return_production_runner.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_post_return_production_runner.py"
+   ],
+   "tests": [
+    "tests.test_post_return_production_runner"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_principal_class_conformance.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_principal_class_conformance.py"
+   ],
+   "tests": [
+    "tests.test_principal_class_conformance"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_private_state_economy_publication_manifest.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_private_state_economy_publication_manifest.py"
+   ],
+   "tests": [
+    "tests.test_private_state_economy_publication_manifest"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_product_processing.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_product_processing.py"
+   ],
+   "tests": [
+    "tests.test_product_processing"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_production_release_set.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_production_release_set.py"
+   ],
+   "tests": [
+    "tests.test_production_release_set"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_proof_release_gate.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_proof_release_gate.py"
+   ],
+   "tests": [
+    "tests.test_proof_release_gate"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_provider_usage_ingest.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_provider_usage_ingest.py"
+   ],
+   "tests": [
+    "tests.test_provider_usage_ingest"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_public_inspection_governed_binding.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_public_inspection_governed_binding.py"
+   ],
+   "tests": [
+    "tests.test_public_inspection_governed_binding"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_public_inspection_processor_capability.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_public_inspection_processor_capability.py"
+   ],
+   "tests": [
+    "tests.test_public_inspection_processor_capability"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_public_inspection_request.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_public_inspection_request.py"
+   ],
+   "tests": [
+    "tests.test_public_inspection_request"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_public_inspection_runtime.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_public_inspection_runtime.py"
+   ],
+   "tests": [
+    "tests.test_public_inspection_runtime"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_publisher_paper_publication.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_publisher_paper_publication.py"
+   ],
+   "tests": [
+    "tests.test_publisher_paper_publication"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_publisher_return_binding.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_publisher_return_binding.py"
+   ],
+   "tests": [
+    "tests.test_publisher_return_binding"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_publisher_return_materialization.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_publisher_return_materialization.py"
+   ],
+   "tests": [
+    "tests.test_publisher_return_materialization"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_purpose_bound_worker_console.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_purpose_bound_worker_console.py"
+   ],
+   "tests": [
+    "tests.test_purpose_bound_worker_console"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_purpose_bound_worker_cost_demo.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_purpose_bound_worker_cost_demo.py"
+   ],
+   "tests": [
+    "tests.test_purpose_bound_worker_cost_demo"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_pypi_trusted_publishing_contract.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_pypi_trusted_publishing_contract.py"
+   ],
+   "tests": [
+    "tests.test_pypi_trusted_publishing_contract"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_readiness.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_readiness.py"
+   ],
+   "tests": [
+    "tests.test_readiness"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_receipts.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_receipts.py"
+   ],
+   "tests": [
+    "tests.test_receipts"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_reconcile_historical_deepwiki_literals.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_reconcile_historical_deepwiki_literals.py"
+   ],
+   "tests": [
+    "tests.test_reconcile_historical_deepwiki_literals"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_reference_bounded_consequence.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_reference_bounded_consequence.py"
+   ],
+   "tests": [
+    "tests.test_reference_bounded_consequence"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_reference_interlock_participant.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_reference_interlock_participant.py"
+   ],
+   "tests": [
+    "tests.test_reference_interlock_participant"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_release_dependency_alignment.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_release_dependency_alignment.py"
+   ],
+   "tests": [
+    "tests.test_release_dependency_alignment"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_release_index.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_release_index.py"
+   ],
+   "tests": [
+    "tests.test_release_index"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_remediation_fork.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_remediation_fork.py"
+   ],
+   "tests": [
+    "tests.test_remediation_fork"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_remediation_return.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_remediation_return.py"
+   ],
+   "tests": [
+    "tests.test_remediation_return"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_repo_standards_gate_record.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_repo_standards_gate_record.py"
+   ],
+   "tests": [
+    "tests.test_repo_standards_gate_record"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_repository_ledger_initialization.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_repository_ledger_initialization.py"
+   ],
+   "tests": [
+    "tests.test_repository_ledger_initialization"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_repository_source_activation.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_repository_source_activation.py"
+   ],
+   "tests": [
+    "tests.test_repository_source_activation"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_resolve_deepwiki_review_citations.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_resolve_deepwiki_review_citations.py"
+   ],
+   "tests": [
+    "tests.test_resolve_deepwiki_review_citations"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_review_authority.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_review_authority.py"
+   ],
+   "tests": [
+    "tests.test_review_authority"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_review_publisher_transfer.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_review_publisher_transfer.py"
+   ],
+   "tests": [
+    "tests.test_review_publisher_transfer"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_route_resolution.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_route_resolution.py"
+   ],
+   "tests": [
+    "tests.test_route_resolution"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_run_ecosystem_chat_service_bounded.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_run_ecosystem_chat_service_bounded.py"
+   ],
+   "tests": [
+    "tests.test_run_ecosystem_chat_service_bounded"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_s4_cost_benchmark.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_s4_cost_benchmark.py"
+   ],
+   "tests": [
+    "tests.test_s4_cost_benchmark"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_safety_stack_quick.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_safety_stack_quick.py"
+   ],
+   "tests": [
+    "tests.test_safety_stack_quick"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_sdk_15_unrelated_evaluator_evidence.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_sdk_15_unrelated_evaluator_evidence.py"
+   ],
+   "tests": [
+    "tests.test_sdk_15_unrelated_evaluator_evidence"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_sdk_core_node_fanout_goal.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_sdk_core_node_fanout_goal.py"
+   ],
+   "tests": [
+    "tests.test_sdk_core_node_fanout_goal"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_sdk_core_node_fanout_request.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_sdk_core_node_fanout_request.py"
+   ],
+   "tests": [
+    "tests.test_sdk_core_node_fanout_request"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_sdk_core_node_result.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_sdk_core_node_result.py"
+   ],
+   "tests": [
+    "tests.test_sdk_core_node_result"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_sdk_core_node_unified_comparison_receipt.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_sdk_core_node_unified_comparison_receipt.py"
+   ],
+   "tests": [
+    "tests.test_sdk_core_node_unified_comparison_receipt"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_sdk_public_developer_wiki.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_sdk_public_developer_wiki.py"
+   ],
+   "tests": [
+    "tests.test_sdk_public_developer_wiki"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_sdk_usage_observability.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_sdk_usage_observability.py"
+   ],
+   "tests": [
+    "tests.test_sdk_usage_observability"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_security_posture.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_security_posture.py"
+   ],
+   "tests": [
+    "tests.test_security_posture"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_security_posture_binding.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_security_posture_binding.py"
+   ],
+   "tests": [
+    "tests.test_security_posture_binding"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_security_posture_stack.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_security_posture_stack.py"
+   ],
+   "tests": [
+    "tests.test_security_posture_stack"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_self_characterization_lane.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_self_characterization_lane.py"
+   ],
+   "tests": [
+    "tests.test_self_characterization_lane"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_served_surface_assertion.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_served_surface_assertion.py"
+   ],
+   "tests": [
+    "tests.test_served_surface_assertion"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_session_consolidation_registry.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_session_consolidation_registry.py"
+   ],
+   "tests": [
+    "tests.test_session_consolidation_registry"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_session_usage_receipt.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_session_usage_receipt.py"
+   ],
+   "tests": [
+    "tests.test_session_usage_receipt"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_shared_docs_freeze.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_shared_docs_freeze.py"
+   ],
+   "tests": [
+    "tests.test_shared_docs_freeze"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_shared_docs_provider_freeze.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_shared_docs_provider_freeze.py"
+   ],
+   "tests": [
+    "tests.test_shared_docs_provider_freeze"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_shwp_manifest_task_binding.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_shwp_manifest_task_binding.py"
+   ],
+   "tests": [
+    "tests.test_shwp_manifest_task_binding"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_site_sdk_processing_handoff.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_site_sdk_processing_handoff.py"
+   ],
+   "tests": [
+    "tests.test_site_sdk_processing_handoff"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_source_evidence_packet.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_source_evidence_packet.py"
+   ],
+   "tests": [
+    "tests.test_source_evidence_packet"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_source_observation.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_source_observation.py"
+   ],
+   "tests": [
+    "tests.test_source_observation"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_spe_allow_consumer.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_spe_allow_consumer.py"
+   ],
+   "tests": [
+    "tests.test_spe_allow_consumer"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_spe_commitment_intake.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_spe_commitment_intake.py"
+   ],
+   "tests": [
+    "tests.test_spe_commitment_intake"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_spe_steggate_bridge.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_spe_steggate_bridge.py"
+   ],
+   "tests": [
+    "tests.test_spe_steggate_bridge"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_standing_execution_context.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_standing_execution_context.py"
+   ],
+   "tests": [
+    "tests.test_standing_execution_context"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_state_transition_evidence.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_state_transition_evidence.py"
+   ],
+   "tests": [
+    "tests.test_state_transition_evidence"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_stdlib_http.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_stdlib_http.py"
+   ],
+   "tests": [
+    "tests.test_stdlib_http"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_stegbrowser_journey_branches.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_stegbrowser_journey_branches.py"
+   ],
+   "tests": [
+    "tests.test_stegbrowser_journey_branches"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_stegbrowser_manifest_profile.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_stegbrowser_manifest_profile.py"
+   ],
+   "tests": [
+    "tests.test_stegbrowser_manifest_profile"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_structural_validator_candidate.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_structural_validator_candidate.py"
+   ],
+   "tests": [
+    "tests.test_structural_validator_candidate"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_sv_llm_intr_roundtrip.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_sv_llm_intr_roundtrip.py"
+   ],
+   "tests": [
+    "tests.test_sv_llm_intr_roundtrip"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_svg_governance_cycle_manifest_route.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_svg_governance_cycle_manifest_route.py"
+   ],
+   "tests": [
+    "tests.test_svg_governance_cycle_manifest_route"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_sync_system_boundary_evidence.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_sync_system_boundary_evidence.py"
+   ],
+   "tests": [
+    "tests.test_sync_system_boundary_evidence"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_system_boundary.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_system_boundary.py"
+   ],
+   "tests": [
+    "tests.test_system_boundary"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_system_boundary_activation.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_system_boundary_activation.py"
+   ],
+   "tests": [
+    "tests.test_system_boundary_activation"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_system_boundary_downstream_status.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_system_boundary_downstream_status.py"
+   ],
+   "tests": [
+    "tests.test_system_boundary_downstream_status"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_system_boundary_round_trip.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_system_boundary_round_trip.py"
+   ],
+   "tests": [
+    "tests.test_system_boundary_round_trip"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_system_boundary_workflow_evidence.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_system_boundary_workflow_evidence.py"
+   ],
+   "tests": [
+    "tests.test_system_boundary_workflow_evidence"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_t5_t6_source_boundary.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_t5_t6_source_boundary.py"
+   ],
+   "tests": [
+    "tests.test_t5_t6_source_boundary"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_t6_universal_entry_validator.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_t6_universal_entry_validator.py"
+   ],
+   "tests": [
+    "tests.test_t6_universal_entry_validator"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_testing_data_loop.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_testing_data_loop.py"
+   ],
+   "tests": [
+    "tests.test_testing_data_loop"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_testing_data_loop_handoff.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_testing_data_loop_handoff.py"
+   ],
+   "tests": [
+    "tests.test_testing_data_loop_handoff"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_testing_data_loop_status.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_testing_data_loop_status.py"
+   ],
+   "tests": [
+    "tests.test_testing_data_loop_status"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_tier_pricing.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_tier_pricing.py"
+   ],
+   "tests": [
+    "tests.test_tier_pricing"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_transition_candidate.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_transition_candidate.py"
+   ],
+   "tests": [
+    "tests.test_transition_candidate"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_transition_usage.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_transition_usage.py"
+   ],
+   "tests": [
+    "tests.test_transition_usage"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_triage_frozen_deepwiki_citations.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_triage_frozen_deepwiki_citations.py"
+   ],
+   "tests": [
+    "tests.test_triage_frozen_deepwiki_citations"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_tvc_provider_probe_bridge.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_tvc_provider_probe_bridge.py"
+   ],
+   "tests": [
+    "tests.test_tvc_provider_probe_bridge"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_entry.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_entry.py"
+   ],
+   "tests": [
+    "tests.test_universal_entry"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_entry_catalog_events.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_entry_catalog_events.py"
+   ],
+   "tests": [
+    "tests.test_universal_entry_catalog_events"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_entry_dispatch.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_entry_dispatch.py"
+   ],
+   "tests": [
+    "tests.test_universal_entry_dispatch"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_entry_handlers.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_entry_handlers.py"
+   ],
+   "tests": [
+    "tests.test_universal_entry_handlers"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_entry_integrations.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_entry_integrations.py"
+   ],
+   "tests": [
+    "tests.test_universal_entry_integrations"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_entry_parity.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_entry_parity.py"
+   ],
+   "tests": [
+    "tests.test_universal_entry_parity"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_entry_runtime_wrapper.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_entry_runtime_wrapper.py"
+   ],
+   "tests": [
+    "tests.test_universal_entry_runtime_wrapper"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_entry_server_runtime.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_entry_server_runtime.py"
+   ],
+   "tests": [
+    "tests.test_universal_entry_server_runtime"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_entry_transport_projection.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_entry_transport_projection.py"
+   ],
+   "tests": [
+    "tests.test_universal_entry_transport_projection"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_intr_route_installer.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_intr_route_installer.py"
+   ],
+   "tests": [
+    "tests.test_universal_intr_route_installer"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_manifest_state_transition_runtime.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_manifest_state_transition_runtime.py"
+   ],
+   "tests": [
+    "tests.test_universal_manifest_state_transition_runtime"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_universal_transition_table_intake.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_universal_transition_table_intake.py"
+   ],
+   "tests": [
+    "tests.test_universal_transition_table_intake"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_untrusted_dependency_review.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_untrusted_dependency_review.py"
+   ],
+   "tests": [
+    "tests.test_untrusted_dependency_review"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_verify_30_manifest_claims.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_verify_30_manifest_claims.py"
+   ],
+   "tests": [
+    "tests.test_verify_30_manifest_claims"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_verify_remaining32_deepwiki_priority.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_verify_remaining32_deepwiki_priority.py"
+   ],
+   "tests": [
+    "tests.test_verify_remaining32_deepwiki_priority"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_viewer_bound_operations.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_viewer_bound_operations.py"
+   ],
+   "tests": [
+    "tests.test_viewer_bound_operations"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_wiki_publication_transition.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_wiki_publication_transition.py"
+   ],
+   "tests": [
+    "tests.test_wiki_publication_transition"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_worker_cost_evidence.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_worker_cost_evidence.py"
+   ],
+   "tests": [
+    "tests.test_worker_cost_evidence"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_worker_lifecycle_qualifier.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_worker_lifecycle_qualifier.py"
+   ],
+   "tests": [
+    "tests.test_worker_lifecycle_qualifier"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_worker_participation_history.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_worker_participation_history.py"
+   ],
+   "tests": [
+    "tests.test_worker_participation_history"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_workflow_contracts.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_workflow_contracts.py"
+   ],
+   "tests": [
+    "tests.test_workflow_contracts"
+   ]
+  },
+  {
+   "always": false,
+   "exclude": [],
+   "id": "tests/test_workspace_resource_consumer.py",
+   "inputs": [],
+   "surfaces": [
+    "tests/test_workspace_resource_consumer.py"
+   ],
+   "tests": [
+    "tests.test_workspace_resource_consumer"
+   ]
+  }
+ ],
+ "surface_graph": {
+  ".stegverse/transition-ledger/emit.py": [
+   ".stegverse/transition-ledger/contract.json"
+  ],
+  "examples/list_dynamic_bridges.py": [
+   "stegverse/bridge_registry.py"
+  ],
+  "experiments/authority_boundary_preservation/run_sovereign_experiment.py": [
+   "stegverse/organization_record_names.py",
+   "stegverse/sovereign_validation_runtime.py"
+  ],
+  "scripts/assess_deepwiki_atomic_claims.py": [
+   ".github/workflows/**",
+   "README.md",
+   "pyproject.toml"
+  ],
+  "scripts/build_capability_boundary_experiment_org_request.py": [
+   "scripts/build_mir_sv_exp3_manifest.py",
+   "stegverse/manifest_state_transition_runtime.py"
+  ],
+  "scripts/build_entity_economy_successor_manifests.py": [
+   "stegverse/publisher_paper_publication.py",
+   "stegverse/security_posture_request.py"
+  ],
+  "scripts/build_evaluation_boundary_owner_packet.py": [
+   "stegverse/organization_record_names.py"
+  ],
+  "scripts/build_evaluation_boundary_response_packet.py": [
+   "docs/EVALUATION_BOUNDARY_LICENSE_ACCESS_NOTES.md",
+   "docs/EVALUATION_BOUNDARY_PACKET_README_REPRODUCE.md",
+   "stegverse/evaluation_boundary_verifier.py",
+   "stegverse/organization_ledger_evidence.py"
+  ],
+  "scripts/build_mir_sv_exp3_capability_documents.py": [
+   "inspection/examples/mir-sv-exp3/**",
+   "stegverse/ecosystem_diagnostic_runtime.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py"
+  ],
+  "scripts/build_mir_sv_exp3_manifest.py": [
+   "inspection/examples/**",
+   "inspection/examples/mir-sv-exp3/**",
+   "stegverse/ecosystem_diagnostic_runtime.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/route_resolution.py"
+  ],
+  "scripts/build_oda3_response_packet.py": [
+   "docs/ODA3_LICENSE_ACCESS_NOTES.md",
+   "docs/ODA3_PACKET_README_REPRODUCE.md",
+   "stegverse/evaluation_boundary_verifier.py",
+   "stegverse/organization_ledger_evidence.py"
+  ],
+  "scripts/build_private_state_economy_publication_manifest.py": [
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/publisher_paper_publication.py",
+   "stegverse/security_posture_request.py"
+  ],
+  "scripts/build_sdk_public_wiki.py": [
+   "README.md",
+   "SDK_MIRROR_HANDOFF.md",
+   "docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md",
+   "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
+   "inspection/examples/external-framework-generic-manifest.json",
+   "schemas/stegverse.ingress-manifest.v1.schema.json"
+  ],
+  "scripts/check_framework_naming.py": [
+   "data/framework-named-historical-baseline.json",
+   "stegverse/framework_naming_guard.py"
+  ],
+  "scripts/generate_sdk_core_node_unified_comparison_result.py": [
+   "examples/sdk_core_node_unified_comparison_receipt.sample.json",
+   "examples/sdk_core_node_unified_comparison_result.sample.md"
+  ],
+  "scripts/initialize_repository_ledger.py": [
+   ".stegverse/transition-ledger/contract.json",
+   ".stegverse/transition-ledger/emit.py"
+  ],
+  "scripts/locate_23_historical_deepwiki_sources.py": [
+   "stegverse/manifest_builder.py",
+   "stegverse/purpose_bound_worker_processor.py"
+  ],
+  "scripts/package_cross_framework_current_basis_results.py": [
+   "inspection/examples/cross-framework-current-basis-request.draft.json",
+   "stegverse/organization_ledger_evidence.py"
+  ],
+  "scripts/reconcile_historical_deepwiki_literals.py": [
+   "scripts/triage_frozen_deepwiki_citations.py"
+  ],
+  "scripts/reproduce_governance_gate_pins.py": [
+   ".github/workflows/governance-gate.yml",
+   "README.md",
+   "stegverse/governance_gate.py",
+   "tests/fixtures/**",
+   "tests/fixtures/governance-gate-pin/**",
+   "tests/fixtures/governance-gate-pin/valid-bundle.json"
+  ],
+  "scripts/run_cross_framework_current_basis_v04.py": [
+   "inspection/examples/cross-framework-current-basis-request.draft.json",
+   "stegverse/organization_ledger_evidence.py",
+   "stegverse/organization_record_names.py",
+   "stegverse/sovereign_validation_runtime.py"
+  ],
+  "scripts/run_ecosystem_chat_service.py": [
+   "stegverse/ecosystem_chat_pipeline_http.py"
+  ],
+  "scripts/run_evaluation_boundary_r3.py": [
+   "scripts/build_evaluation_boundary_response_packet.py",
+   "stegverse/evaluation_boundary_verifier.py",
+   "stegverse/organization_ledger_evidence.py",
+   "stegverse/organization_record_names.py",
+   "stegverse/public_inspection.py",
+   "stegverse/sovereign_validation_runtime.py"
+  ],
+  "scripts/run_iw_cross_system_falsifier_suite.py": [
+   "stegverse/iw_matrix_falsifier.py"
+  ],
+  "scripts/run_oda3_evaluation_boundary_r3.py": [
+   "scripts/build_oda3_response_packet.py",
+   "stegverse/evaluation_boundary_verifier.py",
+   "stegverse/organization_ledger_evidence.py",
+   "stegverse/organization_record_names.py",
+   "stegverse/public_inspection.py",
+   "stegverse/sovereign_validation_runtime.py"
+  ],
+  "scripts/sync_system_boundary_evidence.py": [
+   ".github/workflows/validate.yml",
+   "evidence/system-boundary-activation.v0.1.json",
+   "evidence/system-boundary-downstream-status.v0.1.json",
+   "evidence/system-boundary-workflow-evidence.adapter.v0.1.json",
+   "evidence/system-boundary-workflow-evidence.sdk.v0.1.json",
+   "stegverse/system_boundary_activation.py",
+   "stegverse/system_boundary_downstream_status.py"
+  ],
+  "scripts/validate_public_inspection_request.py": [
+   "stegverse/public_inspection.py"
+  ],
+  "scripts/validate_sdk_core_node_fanout_goal.py": [
+   "docs/SDK_CORE_NODE_PARALLEL_FANOUT_GOAL.json",
+   "examples/sdk_core_node_fanout_request.sample.json",
+   "schemas/sdk_core_node_fanout_request.schema.json",
+   "scripts/validate_sdk_core_node_fanout_request.py",
+   "tests/test_sdk_core_node_fanout_goal.py",
+   "tests/test_sdk_core_node_fanout_request.py"
+  ],
+  "scripts/validate_sdk_core_node_fanout_request.py": [
+   "examples/sdk_core_node_fanout_request.sample.json"
+  ],
+  "scripts/validate_sdk_core_node_parallel_fanout_activation_status.py": [
+   "docs/SDK_CORE_NODE_PARALLEL_FANOUT_ACTIVATION_STATUS.json",
+   "docs/SDK_CORE_NODE_PARALLEL_FANOUT_GOAL.json",
+   "examples/sdk_core_node_fanout_request.sample.json",
+   "examples/sdk_core_node_unified_comparison_receipt.sample.json",
+   "examples/sdk_core_node_unified_comparison_result.sample.md",
+   "schemas/sdk_core_node_fanout_request.schema.json",
+   "schemas/sdk_core_node_unified_comparison_receipt.schema.json",
+   "scripts/generate_sdk_core_node_unified_comparison_result.py",
+   "scripts/validate_sdk_core_node_fanout_goal.py",
+   "scripts/validate_sdk_core_node_fanout_request.py",
+   "scripts/validate_sdk_core_node_unified_comparison_receipt.py",
+   "scripts/validate_sdk_core_node_unified_comparison_result.py",
+   "tests/test_sdk_core_node_fanout_goal.py",
+   "tests/test_sdk_core_node_fanout_request.py",
+   "tests/test_sdk_core_node_result.py",
+   "tests/test_sdk_core_node_unified_comparison_receipt.py"
+  ],
+  "scripts/validate_sdk_core_node_parallel_fanout_ci_evidence.py": [
+   "docs/SDK_CORE_NODE_PARALLEL_FANOUT_CI_EVIDENCE.md"
+  ],
+  "scripts/validate_sdk_core_node_parallel_fanout_handoff.py": [
+   "docs/SDK_CORE_NODE_PARALLEL_FANOUT_ACTIVATION_STATUS.json",
+   "docs/SDK_CORE_NODE_PARALLEL_FANOUT_GOAL.json",
+   "docs/SDK_CORE_NODE_PARALLEL_FANOUT_HANDOFF.md"
+  ],
+  "scripts/validate_sdk_core_node_parallel_fanout_run_log_template.py": [
+   "docs/SDK_CORE_NODE_PARALLEL_FANOUT_ACTIVATION_STATUS.json",
+   "docs/SDK_CORE_NODE_PARALLEL_FANOUT_RUN_LOG_TEMPLATE.md"
+  ],
+  "scripts/validate_sdk_core_node_unified_comparison_receipt.py": [
+   "examples/sdk_core_node_unified_comparison_receipt.sample.json"
+  ],
+  "scripts/validate_sdk_core_node_unified_comparison_result.py": [
+   "examples/sdk_core_node_unified_comparison_result.sample.md",
+   "scripts/generate_sdk_core_node_unified_comparison_result.py"
+  ],
+  "scripts/validate_session_consolidation_registry.py": [
+   "task-registry/orli-judgment-system-boundary-2026-08-02.json"
+  ],
+  "scripts/verify_edge_cell_consumer.py": [
+   "examples/edge_cell_source_binding.json",
+   "stegverse/edge_cell_consumer.py"
+  ],
+  "scripts/verify_github_fallback_boundary.py": [
+   ".github/workflows/**"
+  ],
+  "scripts/verify_micro_node_adapter_fixture.py": [
+   "examples/micro_node_adapter_fixture/**"
+  ],
+  "scripts/verify_universal_entry_envelope.py": [
+   "examples/universal_entry/**",
+   "examples/universal_entry/site_chat_good_morning.json",
+   "schemas/universal-entry-envelope.schema.v0.1.json",
+   "stegverse/structural_validator_candidate.py"
+  ],
+  "stegverse/bridge_registry.py": [
+   "schemas/admissibility/dynamic-demo-result.schema.json",
+   "schemas/admissibility/llm-bridge-result.schema.json",
+   "schemas/admissibility/math-bridge-result.schema.json",
+   "schemas/admissibility/tester-output.schema.json"
+  ],
+  "stegverse/capability_map.py": [
+   "inspection/examples/**"
+  ],
+  "stegverse/demo_terms.py": [
+   "legal/demo/**",
+   "legal/demo/DEMO_TERMS_OF_SERVICE.md",
+   "legal/demo/DEMO_TERMS_OF_USE.md"
+  ],
+  "stegverse/intr_destination_hop_lane.py": [
+   ".github/workflows/intr-destination-hop-lane-live.yml",
+   ".github/workflows/intr-destination-hop-lane-orchestrate.yml",
+   ".github/workflows/intr-destination-hop-lane.yml",
+   ".stegverse/transition-ledger/**",
+   ".stegverse/transition-ledger/contract.json",
+   "stegverse/_stdlib_http.py"
+  ],
+  "stegverse/mhia_reference_hal.py": [
+   "stegverse/mhia_reference_firmware.py"
+  ],
+  "stegverse/mir_run2_replay_reconstruction.py": [
+   "stegverse/mir_historical_accounting_delta.py"
+  ],
+  "stegverse/s4_cost_benchmark.py": [
+   "stegverse/__init__.py",
+   "stegverse/cost_registry.py"
+  ],
+  "stegverse/sdk_surfaces.py": [
+   "docs/CONNECT_MY_LLM.md",
+   "docs/DYNAMIC_ADMISSIBILITY.md",
+   "docs/ENTRY_POINT_ROLES.md",
+   "docs/MCP_PRODUCTION_ARTIFACT_TESTS.md",
+   "docs/OUTPUT_BOUNDARY_PROOF.md",
+   "docs/PRODUCTION_MANIFOLD_GOVERNANCE_DEMO_MIRROR_HANDOFF.md",
+   "docs/SELF_CHARACTERIZATION_TRAJECTORY_LANE.md",
+   "examples/governed_llm_demo/admittedcode/admissibility_receipt.allow.json",
+   "examples/governed_llm_demo/admittedcode/admissibility_receipt.deny.json",
+   "inspection/examples/mcp-external-stdio-descriptor.example.json",
+   "inspection/examples/mcp-reference-inspect-state-arguments.json",
+   "inspection/examples/mcp-reference-write-bounded-arguments.json",
+   "inspection/examples/self-characterization-s0.example.json",
+   "stegverse/demo_data/manifold_governance_reviewable.json"
+  ],
+  "stegverse/system_boundary_activation.py": [
+   ".github/workflows/validate.yml"
+  ],
+  "stegverse/system_boundary_workflow_evidence.py": [
+   ".github/workflows/validate.yml"
+  ],
+  "stegverse/tier_pricing.py": [
+   "stegverse/__init__.py",
+   "stegverse/cost_registry.py"
+  ],
+  "stegverse/universal_intr_route_installer.py": [
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_000_governance_outcome_demo.py": [
+   "stegverse/governance_navigation.py"
+  ],
+  "tests/test_active_probe_execution.py": [
+   "stegverse/active_probe_execution.py",
+   "stegverse/workspace_resource_consumer.py",
+   "tests/test_workspace_resource_consumer.py"
+  ],
+  "tests/test_adapter_origin_manifest_fixture.py": [
+   "examples/adapter_governed_llm_session_packet.json",
+   "stegverse/governed_llm_manifest.py",
+   "stegverse/governed_llm_receipt.py"
+  ],
+  "tests/test_adapter_origin_system_boundary_fixture.py": [
+   "pytest/__init__.py",
+   "stegverse/__init__.py",
+   "stegverse/system_boundary_round_trip.py"
+  ],
+  "tests/test_adapter_system_boundary_fixture.py": [
+   "fixtures/adapter_system_boundary_sdk_packet.v0.1.json",
+   "stegverse/__init__.py"
+  ],
+  "tests/test_adapter_system_boundary_fixture_provenance.py": [
+   "tests/fixtures/adapter-system-boundary-session-packet.v1.json",
+   "tests/fixtures/adapter-system-boundary-session-packet.v1.provenance.json"
+  ],
+  "tests/test_admissibility_bundle.py": [
+   "pytest/__init__.py",
+   "stegverse/admissibility.py",
+   "stegverse/admissibility_bundle.py",
+   "stegverse/admissibility_receipts.py",
+   "stegverse/llm_admissibility.py",
+   "stegverse/math_admissibility.py"
+  ],
+  "tests/test_admissibility_composition.py": [
+   "stegverse/admissibility.py",
+   "stegverse/admissibility_composition.py",
+   "stegverse/joint_relation.py"
+  ],
+  "tests/test_admissibility_exchange.py": [
+   "pytest/__init__.py",
+   "stegverse/admissibility.py",
+   "stegverse/admissibility_bundle.py",
+   "stegverse/admissibility_exchange.py",
+   "stegverse/admissibility_receipts.py"
+  ],
+  "tests/test_admissibility_receipts.py": [
+   "stegverse/admissibility.py",
+   "stegverse/admissibility_receipts.py"
+  ],
+  "tests/test_admissibility_replay.py": [
+   "stegverse/admissibility.py",
+   "stegverse/admissibility_bundle.py",
+   "stegverse/admissibility_receipts.py",
+   "stegverse/admissibility_replay.py"
+  ],
+  "tests/test_admissibility_schema_inventory.py": [
+   "schemas/admissibility/**"
+  ],
+  "tests/test_admittedcode_receipt.py": [
+   "stegverse/admittedcode_receipt.py"
+  ],
+  "tests/test_admittedcode_receipt_fixture.py": [
+   "examples/governed_llm_demo/admittedcode/**",
+   "stegverse/admittedcode_receipt.py"
+  ],
+  "tests/test_ai_entry_receipt_capture.py": [
+   "stegverse/ai_entry_receipt_capture.py"
+  ],
+  "tests/test_alternate_entry_labelling.py": [
+   "stegverse/__init__.py",
+   "stegverse/cli.py",
+   "stegverse/ecosystem_diagnostic_cli.py",
+   "stegverse/ecosystem_diagnostic_runtime.py",
+   "stegverse/governance_ingress_cli.py",
+   "stegverse/manifest_builder.py",
+   "tests/test_ecosystem_diagnostic_processor.py",
+   "tests/test_organization_batch_manifest_task_binding.py"
+  ],
+  "tests/test_assess_deepwiki_atomic_claims.py": [
+   "scripts/assess_deepwiki_atomic_claims.py"
+  ],
+  "tests/test_atomic_task_worker_binding.py": [
+   "inspection/examples/**",
+   "inspection/examples/tt-atomic-task-worker-binding.example.json",
+   "stegverse/__init__.py",
+   "stegverse/atomic_task_worker_binding.py"
+  ],
+  "tests/test_authority_boundary_preservation_experiment.py": [
+   "experiments/authority_boundary_preservation/**",
+   "experiments/authority_boundary_preservation/validate_fixture.py"
+  ],
+  "tests/test_authority_boundary_sovereign_runner.py": [
+   "experiments/authority_boundary_preservation/**",
+   "experiments/authority_boundary_preservation/fixture.json",
+   "experiments/authority_boundary_preservation/run_sovereign_experiment.py"
+  ],
+  "tests/test_bridge_registry.py": [
+   "pytest/__init__.py",
+   "stegverse/bridge_registry.py"
+  ],
+  "tests/test_bridge_registry_payload.py": [
+   "examples/list_dynamic_bridges.py"
+  ],
+  "tests/test_build_deepwiki_claim_review.py": [
+   "scripts/build_deepwiki_claim_review.py"
+  ],
+  "tests/test_bundle_export.py": [
+   "tools/check_bundle_export.py"
+  ],
+  "tests/test_canonical_source_conversation.py": [
+   "pytest/__init__.py",
+   "stegverse/canonical_source_collector.py",
+   "stegverse/governed_conversation.py"
+  ],
+  "tests/test_capability_boundary_experiment_org_request.py": [
+   "scripts/build_capability_boundary_experiment_org_request.py",
+   "scripts/build_mir_sv_exp3_manifest.py",
+   "stegverse/manifest_state_transition_runtime.py"
+  ],
+  "tests/test_capability_graph.py": [
+   "pytest/__init__.py",
+   "stegverse/capability_graph.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_capability_inventory.py": [
+   "stegverse/capability_inventory.py"
+  ],
+  "tests/test_capability_map_conformance.py": [
+   "stegverse/capability_map.py",
+   "stegverse/manifest_builder.py"
+  ],
+  "tests/test_check_six_field_dispositions.py": [
+   ".github/workflows/**",
+   "pytest/__init__.py",
+   "scripts/check_six_field_dispositions.py"
+  ],
+  "tests/test_cli.py": [
+   "stegverse/__init__.py",
+   "stegverse/cli.py"
+  ],
+  "tests/test_cli_canonical_manifest_convergence.py": [
+   "stegverse/cli.py",
+   "stegverse/github_repository_fetcher.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/manifest_execution.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/route_resolution.py",
+   "tests/test_manifest_destination_binding.py",
+   "tests/test_manifest_readiness_gate.py",
+   "tests/test_organization_batch_manifest_task_binding.py"
+  ],
+  "tests/test_cli_preformatted_manifest.py": [
+   "stegverse/cli.py",
+   "tests/test_organization_batch_manifest_task_binding.py"
+  ],
+  "tests/test_cli_sdk_usage_observability.py": [
+   "stegverse/cli.py"
+  ],
+  "tests/test_collab_ingress_routes.py": [
+   "inspection/examples/**",
+   "stegverse/capability_map.py",
+   "stegverse/collab_ingress_processor.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_execution.py",
+   "stegverse/manifest_plan.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/route_resolution.py",
+   "tests/test_manifest_destination_binding.py"
+  ],
+  "tests/test_communication_edge_demo.py": [
+   "examples/communication_edge_demo.json",
+   "pytest/__init__.py",
+   "stegverse/communication_edge_demo.py"
+  ],
+  "tests/test_compare_mir_leaf_v3_result.py": [
+   "fixtures/mir_leaf_v3_conformance_expected_result_v1.json",
+   "tools/compare_mir_leaf_v3_result.py"
+  ],
+  "tests/test_comparison_orchestrator.py": [
+   "stegverse/comparison_orchestrator.py",
+   "stegverse/llm_route_comparison.py"
+  ],
+  "tests/test_comparison_receipt_delta_scope.py": [
+   "pytest/__init__.py",
+   "stegverse/llm_route_comparison.py"
+  ],
+  "tests/test_comparison_transport.py": [
+   "pytest/__init__.py",
+   "stegverse/comparison_transport.py",
+   "stegverse/llm_route_comparison.py"
+  ],
+  "tests/test_component011_receipt_compatibility.py": [
+   "pytest/__init__.py",
+   "stegverse/component011_receipt_compatibility.py"
+  ],
+  "tests/test_connector_capability_overlay.py": [
+   "data/universal-intr-connector-sdk-profiles.baseline.json",
+   "stegverse/connector_capability_overlay.py",
+   "stegverse/evaluator_review_intr.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/publisher_return_binding.py",
+   "stegverse/review_publisher_transfer.py"
+  ],
+  "tests/test_console_execution_profiles.py": [
+   "inspection/examples/**",
+   "stegverse/manifest_builder.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_coordinate_navigation.py": [
+   "stegverse/coordinate_navigation.py"
+  ],
+  "tests/test_cost_registry.py": [
+   "pricing/cost-component-registry.v1.json",
+   "pricing/rate-card.five-lane-declared.json",
+   "pytest/__init__.py",
+   "stegverse/__init__.py",
+   "stegverse/cost_registry.py"
+  ],
+  "tests/test_cross_framework_current_basis_execution.py": [
+   "inspection/examples/cross-framework-current-basis-request.draft.json",
+   "scripts/run_cross_framework_current_basis_v04.py"
+  ],
+  "tests/test_cross_framework_current_basis_manifest.py": [
+   "inspection/examples/cross-framework-current-basis-request.draft.json"
+  ],
+  "tests/test_cross_framework_current_basis_result_packaging.py": [
+   "inspection/examples/cross-framework-current-basis-request.draft.json",
+   "scripts/package_cross_framework_current_basis_results.py",
+   "tests/test_organization_ledger_evidence.py"
+  ],
+  "tests/test_curate_frozen_deepwiki_review.py": [
+   "scripts/curate_frozen_deepwiki_review.py"
+  ],
+  "tests/test_current_basis_sdk.py": [
+   "stegverse/current_basis.py"
+  ],
+  "tests/test_customer_local_governance.py": [
+   "inspection/examples/external-framework-generic-manifest.json",
+   "stegverse/customer_local_governance.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_deepwiki_atomic_worker10.py": [
+   "docs/deepwiki-review/ATOMIC_WORKER_10_SOURCE_DECISIONS.json",
+   "docs/deepwiki-review/FIRST_PARTY_ATOMIC_WORKER_10.md",
+   "scripts/build_sdk_public_wiki.py"
+  ],
+  "tests/test_deepwiki_cross_framework_19.py": [
+   "docs/deepwiki-review/CROSS_FRAMEWORK_19_SOURCE_DECISIONS.json",
+   "scripts/build_sdk_public_wiki.py"
+  ],
+  "tests/test_deepwiki_eight_crossboundary.py": [
+   "docs/deepwiki-review/EIGHT_CROSS_BOUNDARY_PRIORITY_CORRECTIONS.md",
+   "evidence/system-boundary-downstream-status.v0.1.json",
+   "scripts/build_sdk_public_wiki.py",
+   "stegverse/atomic_task_worker_processor.py",
+   "stegverse/manifest_builder.py"
+  ],
+  "tests/test_deepwiki_first_party_guide.py": [
+   "docs/deepwiki-review/FIRST_PARTY_SOURCE_GUIDE.md",
+   "pyproject.toml",
+   "stegverse/atomic_task_worker_processor.py",
+   "stegverse/ecosystem_chat_pipeline.py",
+   "stegverse/governance_reference_graph.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/purpose_bound_worker_processor.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_deepwiki_first_party_verified_contracts.py": [
+   "docs/deepwiki-review/FIRST_PARTY_VERIFIED_CONTRACTS.md",
+   "evidence/system-boundary-downstream-status.v0.1.json",
+   "pyproject.toml",
+   "scripts/build_sdk_public_wiki.py",
+   "stegverse/atomic_task_worker_processor.py",
+   "stegverse/ecosystem_chat_pipeline.py",
+   "stegverse/ecosystem_chat_pipeline_http.py",
+   "stegverse/governance_reference_graph.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/publisher_return_binding.py",
+   "stegverse/purpose_bound_worker_processor.py",
+   "stegverse/security_posture_request.py",
+   "stegverse/stage1_org_receipt_review.py",
+   "stegverse/universal_entry_dispatch.py"
+  ],
+  "tests/test_deepwiki_governance_six_diagrams.py": [
+   "docs/deepwiki-review/GOVERNANCE_SIX_PRIORITY_DIAGRAM_CORRECTIONS.md",
+   "scripts/build_sdk_public_wiki.py",
+   "stegverse/execution_boundary.py",
+   "stegverse/governance_ingress_cli.py"
+  ],
+  "tests/test_deepwiki_nav_evaluator_ci24.py": [
+   "docs/deepwiki-review/FIRST_PARTY_NAV_EVALUATOR_CI_24.md",
+   "docs/deepwiki-review/NAV_EVALUATOR_CI_24_SOURCE_DECISIONS.json",
+   "scripts/build_sdk_public_wiki.py"
+  ],
+  "tests/test_deepwiki_overview_13_context.py": [
+   "docs/deepwiki-review/OVERVIEW_13_CONTEXT_ADJUDICATION.md",
+   "scripts/build_sdk_public_wiki.py"
+  ],
+  "tests/test_deepwiki_purpose_worker14.py": [
+   "docs/deepwiki-review/PURPOSE_WORKER_14_SOURCE_DECISIONS.json",
+   "scripts/build_sdk_public_wiki.py",
+   "stegverse/purpose_bound_worker.py"
+  ],
+  "tests/test_deepwiki_source_drift.py": [
+   "docs/deepwiki-review/CURRENT_SOURCE_DRIFT_CORRECTIONS.md",
+   "stegverse/manifest_builder.py",
+   "tests/test_mir_sv_exp3_manifest.py"
+  ],
+  "tests/test_deepwiki_universal_interlock16.py": [
+   "docs/deepwiki-review/FIRST_PARTY_UNIVERSAL_INTERLOCK_16.md",
+   "docs/deepwiki-review/UNIVERSAL_INTERLOCK_16_SOURCE_DECISIONS.json",
+   "scripts/build_sdk_public_wiki.py"
+  ],
+  "tests/test_demo_terms.py": [
+   "stegverse/demo_terms.py"
+  ],
+  "tests/test_dynamic_admissibility.py": [
+   "pytest/__init__.py",
+   "stegverse/admissibility.py"
+  ],
+  "tests/test_dynamic_admissibility_public_api.py": [
+   "stegverse/__init__.py"
+  ],
+  "tests/test_ecosystem_chat_backend.py": [
+   "stegverse/ecosystem_chat_backend.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_bound_write_adapter.py": [
+   "stegverse/ecosystem_chat_bound_write_adapter.py",
+   "stegverse/ecosystem_chat_destination_binding.py",
+   "stegverse/ecosystem_chat_local_issuer.py",
+   "stegverse/ecosystem_chat_local_write_adapter.py",
+   "stegverse/ecosystem_chat_pipeline.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_deployment_readiness.py": [
+   "docs/ECOSYSTEM_CHAT_DEPLOYMENT_READINESS.md",
+   "scripts/run_ecosystem_chat_service.py"
+  ],
+  "tests/test_ecosystem_chat_destination_binding.py": [
+   "stegverse/ecosystem_chat_destination_binding.py"
+  ],
+  "tests/test_ecosystem_chat_governed_ask.py": [
+   "pytest/__init__.py",
+   "stegverse/capability_inventory.py",
+   "stegverse/ecosystem_chat_ask.py",
+   "stegverse/ecosystem_chat_entry.py",
+   "stegverse/ecosystem_chat_http.py",
+   "stegverse/ecosystem_chat_operations.py",
+   "stegverse/ecosystem_chat_pipeline_http.py",
+   "stegverse/governed_composite_response.py",
+   "stegverse/governed_llm_fan.py",
+   "stegverse/stegbrowser_processor.py",
+   "tests/test_manifest_readiness_gate.py"
+  ],
+  "tests/test_ecosystem_chat_http_minimal.py": [
+   "stegverse/ecosystem_chat_http.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_intake_minimal.py": [
+   "stegverse/ecosystem_chat_intake.py"
+  ],
+  "tests/test_ecosystem_chat_issuer.py": [
+   "stegverse/ecosystem_chat_issuer.py",
+   "stegverse/ecosystem_chat_receipt_engine.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_local_issuer.py": [
+   "stegverse/ecosystem_chat_local_issuer.py",
+   "stegverse/ecosystem_chat_pipeline.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_local_write_adapter.py": [
+   "stegverse/ecosystem_chat_local_issuer.py",
+   "stegverse/ecosystem_chat_local_write_adapter.py",
+   "stegverse/ecosystem_chat_pipeline.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_persistence_plan.py": [
+   "stegverse/ecosystem_chat_local_issuer.py",
+   "stegverse/ecosystem_chat_persistence_plan.py",
+   "stegverse/ecosystem_chat_pipeline.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_pipeline.py": [
+   "stegverse/ecosystem_chat_local_issuer.py",
+   "stegverse/ecosystem_chat_pipeline.py",
+   "stegverse/ecosystem_chat_write_adapter.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_pipeline_http.py": [
+   "stegverse/ecosystem_chat_pipeline_http.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_receipt_authority.py": [
+   "stegverse/ecosystem_chat_receipt_authority.py"
+  ],
+  "tests/test_ecosystem_chat_receipt_engine.py": [
+   "stegverse/ecosystem_chat_receipt_engine.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_receipt_request.py": [
+   "stegverse/ecosystem_chat_receipt_request.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_record_export.py": [
+   "stegverse/ecosystem_chat_record_export.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_write_adapter.py": [
+   "stegverse/ecosystem_chat_local_issuer.py",
+   "stegverse/ecosystem_chat_persistence_plan.py",
+   "stegverse/ecosystem_chat_pipeline.py",
+   "stegverse/ecosystem_chat_write_adapter.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_chat_wsgi.py": [
+   "stegverse/ecosystem_chat_wsgi.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_ecosystem_diagnostic_processor.py": [
+   "stegverse/ecosystem_diagnostic_runtime.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/manifest_execution.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_edge_cell_consumer.py": [
+   "examples/edge_cell_source_binding.json",
+   "scripts/verify_edge_cell_consumer.py",
+   "stegverse/edge_cell_consumer.py"
+  ],
+  "tests/test_elan_intr_bridge.py": [
+   "pytest/__init__.py",
+   "stegverse_sdk/elan_intr_bridge.py"
+  ],
+  "tests/test_elyria_framework_adapter.py": [
+   "pytest/__init__.py",
+   "stegverse/elyria_framework_adapter.py"
+  ],
+  "tests/test_entity_economy_successor_manifest_binding.py": [
+   "scripts/build_entity_economy_successor_manifests.py"
+  ],
+  "tests/test_entry_point_parity.py": [
+   "stegverse/ecosystem_chat_entry.py",
+   "stegverse/entry_point_parity.py",
+   "stegverse/security_posture.py"
+  ],
+  "tests/test_entry_point_roles.py": [
+   "stegverse/entry_point_roles.py"
+  ],
+  "tests/test_evaluation_boundary_contract.py": [
+   "stegverse/evaluation_boundary_verifier.py",
+   "stegverse/public_inspection.py",
+   "stegverse/sovereign_validation_runtime.py"
+  ],
+  "tests/test_evaluation_boundary_owner_packet.py": [
+   "scripts/build_evaluation_boundary_owner_packet.py"
+  ],
+  "tests/test_evaluation_boundary_r3_run_harness.py": [
+   "pytest/__init__.py",
+   "scripts/run_evaluation_boundary_r3.py",
+   "stegverse/evaluation_boundary_verifier.py",
+   "stegverse/organization_ledger_evidence.py",
+   "tests/test_organization_ledger_evidence.py"
+  ],
+  "tests/test_evaluation_boundary_response_packet.py": [
+   "pytest/__init__.py",
+   "scripts/build_evaluation_boundary_response_packet.py",
+   "stegverse/evaluation_boundary_verifier.py",
+   "tests/test_organization_ledger_evidence.py"
+  ],
+  "tests/test_evaluation_relationship.py": [
+   "stegverse/demo_terms.py",
+   "stegverse/evaluation_relationship.py"
+  ],
+  "tests/test_evaluator_atomic_task_worker_manifest.py": [
+   "stegverse/atomic_task_worker_processor.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_execution.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_evaluator_authority_basis_bridge.py": [
+   "pytest/__init__.py",
+   "stegverse/authority_basis_bridge.py",
+   "stegverse/evaluator_manifest_builder.py"
+  ],
+  "tests/test_evaluator_contract_console.py": [
+   "pytest/__init__.py",
+   "stegverse/__init__.py",
+   "stegverse/evaluator_console.py",
+   "stegverse/evaluator_contract.py",
+   "stegverse/governance_reference_graph.py"
+  ],
+  "tests/test_evaluator_llm_entry.py": [
+   "stegverse/demo_terms.py",
+   "stegverse/evaluation_relationship.py",
+   "stegverse/evaluator_llm_entry.py"
+  ],
+  "tests/test_evaluator_manifest_builder.py": [
+   "stegverse/evaluator_manifest_builder.py",
+   "stegverse/governance_navigation.py",
+   "stegverse/security_posture_request.py"
+  ],
+  "tests/test_evaluator_manifest_multilane_noninterference.py": [
+   "inspection/examples/multilane-noninterference-request.json",
+   "stegverse/public_inspection.py",
+   "tasks/SDK-EVALUATION-BOUNDARY-R3-RUN-002.json"
+  ],
+  "tests/test_evaluator_review_intr.py": [
+   "pytest/__init__.py",
+   "stegverse/evaluator_review_intr.py"
+  ],
+  "tests/test_execution_boundary.py": [
+   "stegverse/admissibility.py",
+   "stegverse/execution_boundary.py"
+  ],
+  "tests/test_export_deepwiki_review.py": [
+   "scripts/export_deepwiki_review.py"
+  ],
+  "tests/test_external_framework_manifest_first.py": [
+   "pytest/__init__.py",
+   "stegverse/capability_inventory.py",
+   "stegverse/external_framework_runner.py",
+   "tests/test_manifest_builder.py",
+   "tests/test_manifest_destination_binding.py",
+   "tests/test_manifest_readiness_gate.py"
+  ],
+  "tests/test_external_framework_neutral_example.py": [
+   "inspection/examples/**",
+   "stegverse/external_framework_runner.py",
+   "stegverse/manifest_builder.py",
+   "tests/test_manifest_readiness_gate.py"
+  ],
+  "tests/test_external_framework_posture_runtime.py": [
+   "stegverse/external_framework_runner.py",
+   "tests/test_intr_posture_runtime_bridge.py"
+  ],
+  "tests/test_external_framework_runner.py": [
+   "inspection/examples/elan-evaluation-declaration-test1.json",
+   "inspection/examples/elan-governance-request.example.json",
+   "inspection/examples/elan-relational-state-test1.json",
+   "stegverse/external_framework_runner.py",
+   "tests/test_manifest_destination_binding.py"
+  ],
+  "tests/test_external_interaction_generation.py": [
+   "pytest/__init__.py",
+   "stegverse/external_interlock_bootstrap.py"
+  ],
+  "tests/test_external_interlock_bootstrap.py": [
+   "pytest/__init__.py",
+   "stegverse/external_interlock_bootstrap.py"
+  ],
+  "tests/test_external_interlock_ingress_binding.py": [
+   "stegverse/external_interlock_ingress_binding.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/state_transition_evidence.py"
+  ],
+  "tests/test_fanout_ci_evidence.py": [
+   "scripts/validate_sdk_core_node_parallel_fanout_ci_evidence.py"
+  ],
+  "tests/test_fanout_handoff.py": [
+   "scripts/validate_sdk_core_node_parallel_fanout_handoff.py"
+  ],
+  "tests/test_fanout_run_log_template.py": [
+   "scripts/validate_sdk_core_node_parallel_fanout_run_log_template.py"
+  ],
+  "tests/test_fanout_status.py": [
+   "scripts/validate_sdk_core_node_parallel_fanout_activation_status.py"
+  ],
+  "tests/test_finish_point_verdict.py": [
+   ".stegverse/finish_point_verdict.py",
+   ".stegverse/test-set-spec.json"
+  ],
+  "tests/test_first_party_manifest30_reference.py": [
+   "docs/deepwiki-review/FIRST_PARTY_MANIFEST_30_SOURCE_REFERENCE.md",
+   "docs/deepwiki-review/MANIFEST_30_ATOMIC_SOURCE_DECISIONS.json",
+   "scripts/build_sdk_public_wiki.py"
+  ],
+  "tests/test_formal_testing_route_manifest.py": [
+   "examples/formal_testing_route_manifest.json",
+   "scripts/validate_formal_testing_route.py"
+  ],
+  "tests/test_formal_testing_route_result_receipt.py": [
+   "examples/formal_testing_route_result_receipt.json",
+   "scripts/validate_formal_testing_route.py"
+  ],
+  "tests/test_four_stage_manifest_experiment.py": [
+   "pytest/__init__.py",
+   "stegverse/__init__.py",
+   "stegverse/manifest_execution.py",
+   "stegverse/purpose_bound_worker_processor.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_framework_naming_guard.py": [
+   "docs/MIR_SDK_RETURN_MATERIALIZATION_MIRROR_HANDOFF.md",
+   "inspection/examples/elan-relational-state-test1.json",
+   "inspection/examples/hgai-governance-reference-graph.json",
+   "inspection/examples/sdk-test1-purpose-worker.processor-request.json",
+   "pytest/__init__.py",
+   "scripts/check_framework_naming.py",
+   "stegverse/capability_graph.py",
+   "stegverse/framework_naming_guard.py",
+   "stegverse/mir_leaf_v3.py"
+  ],
+  "tests/test_free_tier_metadata.py": [
+   "stegverse/free_tier_metadata.py"
+  ],
+  "tests/test_generic_manifest_processing_contract.py": [
+   "inspection/examples/**",
+   "inspection/examples/external-framework-generic-manifest.json",
+   "schemas/stegverse.ingress-manifest.v1.schema.json",
+   "stegverse/governance_ingress_runtime.py",
+   "stegverse/governance_navigation.py",
+   "stegverse/manifest_contract.py"
+  ],
+  "tests/test_generic_publisher_exact_crossrepo.py": [
+   "stegverse/publisher_return_binding.py",
+   "stegverse/review_publisher_transfer.py",
+   "tests/test_review_publisher_transfer.py"
+  ],
+  "tests/test_generic_worker_state_graph_adapter.py": [
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_state_transition_runtime.py"
+  ],
+  "tests/test_github_fallback_boundary.py": [
+   ".github/workflows/**",
+   "scripts/verify_github_fallback_boundary.py"
+  ],
+  "tests/test_github_repository_fetcher.py": [
+   "README.md",
+   "SDK_MIRROR_HANDOFF.md",
+   "pytest/__init__.py",
+   "stegverse/github_repository_fetcher.py",
+   "stegverse/repository_source_reader.py"
+  ],
+  "tests/test_goal3_activation.py": [
+   "tools/verify_goal3_activation.py"
+  ],
+  "tests/test_governance_fallback.py": [
+   "stegverse/governance_fallback.py"
+  ],
+  "tests/test_governance_fallback_cli.py": [
+   "stegverse/cli.py"
+  ],
+  "tests/test_governance_gate.py": [
+   ".github/workflows/**",
+   ".github/workflows/governance-gate.yml",
+   "stegverse/__init__.py",
+   "stegverse/governance_gate.py",
+   "tests/test_portable_governance_verifier.py"
+  ],
+  "tests/test_governance_gate_pin_reproduction.py": [
+   "evidence/cm-gov-1-governance-gate-pin-reproduction.json",
+   "pytest/__init__.py",
+   "scripts/reproduce_governance_gate_pins.py"
+  ],
+  "tests/test_governance_ingress_runtime.py": [
+   "stegverse/governance_ingress_runtime.py",
+   "stegverse/governance_navigation.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_governance_navigation.py": [
+   "stegverse/governance_navigation.py"
+  ],
+  "tests/test_governance_product_finish_point.py": [
+   ".github/workflows/governance-gate.yml",
+   "stegverse/governance_gate.py",
+   "stegverse/structural_validator_candidate.py"
+  ],
+  "tests/test_governance_public_execution.py": [
+   "stegverse/cli.py"
+  ],
+  "tests/test_governance_reference_graph.py": [
+   "inspection/examples/**",
+   "inspection/examples/hgai-governance-reference-graph.json",
+   "pytest/__init__.py",
+   "stegverse/evaluator_manifest_builder.py",
+   "stegverse/governance_reference_graph.py",
+   "stegverse/manifest_contract.py"
+  ],
+  "tests/test_governance_reference_projection.py": [
+   "stegverse/governance_reference_graph.py",
+   "stegverse/governance_reference_projection.py"
+  ],
+  "tests/test_governance_return_evidence.py": [
+   "stegverse/governance_return_evidence.py",
+   "stegverse/organization_ledger_evidence.py"
+  ],
+  "tests/test_governance_tightness.py": [
+   "pytest/__init__.py",
+   "stegverse/governance_tightness.py"
+  ],
+  "tests/test_governed_application_spine.py": [
+   "pytest/__init__.py",
+   "stegverse/governed_application_spine.py"
+  ],
+  "tests/test_governed_composite_response.py": [
+   "pytest/__init__.py",
+   "stegverse/ecosystem_chat_entry.py",
+   "stegverse/governed_composite_response.py",
+   "stegverse/joint_relation.py"
+  ],
+  "tests/test_governed_deny_negative_conformance.py": [
+   "scripts/build_mir_sv_exp3_manifest.py",
+   "stegverse/__init__.py",
+   "stegverse/ecosystem_diagnostic_runtime.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/negative_conformance.py",
+   "stegverse/organization_ledger_evidence.py",
+   "stegverse/route_resolution.py",
+   "tests/fixtures/**",
+   "tests/fixtures/conformance/**",
+   "tests/fixtures/conformance/governed_deny_experiment3.json"
+  ],
+  "tests/test_governed_llm.py": [
+   "stegverse/governed_llm.py"
+  ],
+  "tests/test_governed_llm_demo_packet.py": [
+   "examples/governed_llm_demo/**",
+   "examples/governed_llm_demo/session_packet.simple_query.json",
+   "scripts/verify_governed_llm_demo_packet.py"
+  ],
+  "tests/test_governed_llm_manifest.py": [
+   "stegverse/__init__.py"
+  ],
+  "tests/test_governed_llm_receipt.py": [
+   "stegverse/__init__.py"
+  ],
+  "tests/test_governed_llm_session.py": [
+   "pytest/__init__.py",
+   "stegverse/__init__.py"
+  ],
+  "tests/test_governed_llm_session_intake.py": [
+   "stegverse/__init__.py"
+  ],
+  "tests/test_governed_llm_system_boundary_binding.py": [
+   "pytest/__init__.py",
+   "stegverse/__init__.py"
+  ],
+  "tests/test_governed_operations.py": [
+   "pytest/__init__.py",
+   "stegverse/governed_operations.py"
+  ],
+  "tests/test_governed_remediation.py": [
+   "scripts/build_mir_sv_exp3_manifest.py",
+   "stegverse/governance_return_evidence.py",
+   "stegverse/governed_remediation.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/route_resolution.py",
+   "tests/test_governance_return_evidence.py",
+   "tests/test_mir_sv_exp3_manifest.py",
+   "tests/test_organization_batch_manifest_task_binding.py"
+  ],
+  "tests/test_ingest_testing_data_loop_status.py": [
+   "examples/testing_data_loop_status.json",
+   "examples/testing_data_loop_workflow_observations.json",
+   "scripts/ingest_testing_data_loop_status.py",
+   "scripts/validate_formal_testing_route.py"
+  ],
+  "tests/test_inspect_remaining_deepwiki_citations.py": [
+   ".github/workflows/**",
+   "scripts/inspect_remaining_deepwiki_citations.py"
+  ],
+  "tests/test_integration_config.py": [
+   "docs/UNIVERSAL_ENTRY_INTEGRATION_HANDOFF.md",
+   "pytest/__init__.py",
+   "stegverse/integration_config.py"
+  ],
+  "tests/test_interlock_return.py": [
+   "pytest/__init__.py",
+   "stegverse/interlock_return.py"
+  ],
+  "tests/test_interlock_transition.py": [
+   "pytest/__init__.py",
+   "stegverse/interlock_transition.py"
+  ],
+  "tests/test_intr_destination_hop_lane.py": [
+   ".github/workflows/**",
+   ".github/workflows/intr-destination-hop-lane-orchestrate.yml",
+   ".stegverse/transition-ledger/**",
+   ".stegverse/transition-ledger/contract.json",
+   "stegverse/intr_destination_hop_lane.py"
+  ],
+  "tests/test_intr_epistemic_readiness_adapter.py": [
+   "stegverse/intr_epistemic_readiness_adapter.py",
+   "stegverse/readiness.py"
+  ],
+  "tests/test_intr_hop_lane_all_legacy_negative.py": [
+   ".stegverse/transition-ledger/**",
+   ".stegverse/transition-ledger/contract.json",
+   "stegverse/intr_destination_hop_lane.py"
+  ],
+  "tests/test_intr_posture_runtime_bridge.py": [
+   "stegverse/evaluator_manifest_builder.py",
+   "stegverse/intr_posture_runtime_bridge.py",
+   "stegverse/security_posture_request.py"
+  ],
+  "tests/test_intr_posture_runtime_crossrepo.py": [
+   "stegverse/evaluator_manifest_builder.py",
+   "stegverse/governance_ingress_runtime.py",
+   "stegverse/intr_posture_runtime_bridge.py",
+   "stegverse/security_posture_request.py",
+   "tests/test_intr_posture_runtime_bridge.py"
+  ],
+  "tests/test_iw_cross_system_falsifier_suite.py": [
+   "inspection/examples/iw-cross-system-falsifier-suite-v0.1.json",
+   "scripts/run_iw_cross_system_falsifier_suite.py"
+  ],
+  "tests/test_iw_matrix_falsifier.py": [
+   "stegverse/iw_matrix_falsifier.py"
+  ],
+  "tests/test_iw_matrix_sdk_integration.py": [
+   "stegverse/admissibility.py",
+   "stegverse/admissibility_composition.py",
+   "stegverse/execution_boundary.py"
+  ],
+  "tests/test_llm_adapter_quick.py": [
+   "stegverse/llm_adapter_dual.py"
+  ],
+  "tests/test_llm_admissibility.py": [
+   "stegverse/llm_admissibility.py"
+  ],
+  "tests/test_llm_connect_cli.py": [
+   "stegverse/llm_connect_cli.py",
+   "stegverse/llm_connection.py"
+  ],
+  "tests/test_llm_connection.py": [
+   "stegverse/llm_connection.py"
+  ],
+  "tests/test_llm_route_comparison.py": [
+   "pytest/__init__.py",
+   "stegverse/llm_route_comparison.py"
+  ],
+  "tests/test_local_governance_boundary.py": [
+   "stegverse/evaluator_manifest_builder.py",
+   "stegverse/local_governance_boundary.py",
+   "tests/test_intr_posture_runtime_bridge.py"
+  ],
+  "tests/test_local_run_record.py": [
+   "inspection/examples/**",
+   "inspection/examples/governed-test-request.json",
+   "pyproject.toml",
+   "stegverse/__init__.py",
+   "stegverse/governance_fallback.py",
+   "stegverse/local_run_record.py",
+   "stegverse/sovereign_validation_runtime.py"
+  ],
+  "tests/test_locate_23_historical_deepwiki_sources.py": [
+   "scripts/locate_23_historical_deepwiki_sources.py"
+  ],
+  "tests/test_machine_contract.py": [
+   "pytest/__init__.py",
+   "stegverse/capability_inventory.py",
+   "stegverse/evaluator_console.py",
+   "stegverse/external_framework_runner.py",
+   "stegverse/machine_contract.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/manifest_execution.py",
+   "tests/test_manifest_builder.py",
+   "tests/test_manifest_destination_binding.py",
+   "tests/test_manifest_readiness_gate.py"
+  ],
+  "tests/test_manifest_builder.py": [
+   "stegverse/governance_navigation.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_manifest_capability_resolution.py": [
+   "stegverse/capability_resolution.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_manifest_destination_binding.py": [
+   "stegverse/__init__.py",
+   "stegverse/manifest_execution.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_manifest_driven_purpose_worker.py": [
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/manifest_execution.py",
+   "stegverse/purpose_bound_worker_processor.py",
+   "stegverse/route_resolution.py",
+   "tests/test_manifest_destination_binding.py"
+  ],
+  "tests/test_manifest_identity_routing_regression_gate.py": [
+   "inspection/examples/**",
+   "stegverse/cli.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/manifest_execution.py",
+   "stegverse/manifest_plan.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/route_resolution.py",
+   "tests/test_ecosystem_diagnostic_processor.py",
+   "tests/test_manifest_destination_binding.py",
+   "tests/test_manifest_readiness_gate.py",
+   "tests/test_organization_batch_manifest_task_binding.py",
+   "tests/test_shwp_manifest_task_binding.py",
+   "tests/test_universal_manifest_state_transition_runtime.py"
+  ],
+  "tests/test_manifest_path_differential.py": [
+   "stegverse/__init__.py",
+   "stegverse/manifest_path_differential.py",
+   "stegverse/negative_conformance.py",
+   "stegverse/organization_ledger_evidence.py"
+  ],
+  "tests/test_manifest_plan.py": [
+   "stegverse/manifest_plan.py"
+  ],
+  "tests/test_manifest_readiness_gate.py": [
+   "stegverse/capability_inventory.py",
+   "stegverse/cli.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/manifest_plan.py",
+   "stegverse/route_resolution.py",
+   "tests/test_organization_batch_manifest_task_binding.py"
+  ],
+  "tests/test_manifest_readiness_gate_dispatch_paths.py": [
+   "stegverse/__init__.py",
+   "stegverse/capability_inventory.py",
+   "stegverse/cli.py",
+   "stegverse/ecosystem_chat_ask.py",
+   "stegverse/ecosystem_chat_entry.py",
+   "stegverse/ecosystem_chat_http.py",
+   "stegverse/ecosystem_chat_pipeline_http.py",
+   "stegverse/external_framework_runner.py",
+   "stegverse/governed_llm_fan.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/manifest_execution.py",
+   "stegverse/manifest_plan.py",
+   "tests/test_manifest_builder.py",
+   "tests/test_manifest_destination_binding.py",
+   "tests/test_manifest_readiness_gate.py"
+  ],
+  "tests/test_manifest_relational_invariant_concurrency.py": [
+   "stegverse/governance_ingress_runtime.py",
+   "stegverse/governance_navigation.py",
+   "stegverse/manifest_builder.py"
+  ],
+  "tests/test_manifold_governance_sdk.py": [
+   "pytest/__init__.py",
+   "stegverse/cli.py",
+   "stegverse/demo_data/**",
+   "stegverse/demo_data/manifold_governance_reviewable.json",
+   "stegverse/manifold_governance.py"
+  ],
+  "tests/test_manifold_governance_sdk_boundary.py": [
+   "stegverse/demo_data/**",
+   "stegverse/demo_data/manifold_governance_reviewable.json",
+   "stegverse/manifold_governance.py"
+  ],
+  "tests/test_master_records_custody.py": [
+   "pytest/__init__.py",
+   "stegverse/__init__.py",
+   "stegverse/master_records_organization_record.py",
+   "stegverse/universal_entry_events.py"
+  ],
+  "tests/test_master_records_http.py": [
+   "pytest/__init__.py",
+   "stegverse/master_records_http.py"
+  ],
+  "tests/test_master_records_organization_record.py": [
+   "pytest/__init__.py",
+   "stegverse/master_records_organization_record.py",
+   "stegverse/universal_entry_events.py"
+  ],
+  "tests/test_master_records_reconstruction_non_gating.py": [
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/organization_record_names.py",
+   "tests/test_organization_batch_manifest_task_binding.py",
+   "tests/test_universal_manifest_state_transition_runtime.py"
+  ],
+  "tests/test_master_records_role_audit.py": [
+   "data/master-records-role-audit.json",
+   "pyproject.toml",
+   "stegverse/governance_fallback.py",
+   "stegverse/production_release_set.py",
+   "stegverse/sovereign_validation_runtime.py"
+  ],
+  "tests/test_math_admissibility.py": [
+   "stegverse/math_admissibility.py"
+  ],
+  "tests/test_mcp_production_artifact.py": [
+   "stegverse/mcp_governance.py",
+   "stegverse/mcp_navigation.py",
+   "stegverse/mcp_reference_server.py",
+   "stegverse/mcp_transport.py",
+   "stegverse/sdk_surfaces.py",
+   "stegverse/sovereign_validation_runtime.py"
+  ],
+  "tests/test_mcp_request_boundary.py": [
+   "stegverse/mcp_governance.py",
+   "stegverse/mcp_reference_server.py",
+   "stegverse/public_inspection.py"
+  ],
+  "tests/test_mhia_capability_graph.py": [
+   "examples/prototype-builds/**",
+   "pytest/__init__.py",
+   "stegverse/mhia_capability_graph.py"
+  ],
+  "tests/test_mhia_module_manifest_schema.py": [
+   "examples/prototype-builds/**",
+   "pytest/__init__.py",
+   "schemas/prototype-builds/**"
+  ],
+  "tests/test_mhia_procurement_gate.py": [
+   "examples/prototype-builds/**",
+   "examples/prototype-builds/mhia-procurement-candidate-bom.v0.json",
+   "pytest/__init__.py",
+   "stegverse/mhia_procurement_gate.py"
+  ],
+  "tests/test_mhia_reference_firmware.py": [
+   "pytest/__init__.py",
+   "stegverse/mhia_reference_firmware.py"
+  ],
+  "tests/test_mhia_reference_hal.py": [
+   "stegverse/mhia_reference_firmware.py",
+   "stegverse/mhia_reference_hal.py"
+  ],
+  "tests/test_micro_node_adapter_fixture.py": [
+   "scripts/verify_micro_node_adapter_fixture.py"
+  ],
+  "tests/test_micro_node_commit_time_experiment.py": [
+   "pytest/__init__.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/micro_node_commit_time_experiment.py",
+   "stegverse/purpose_bound_worker_processor.py",
+   "stegverse/stage1_capability_discovery.py",
+   "stegverse/stage1_org_receipt_review.py"
+  ],
+  "tests/test_micro_node_return_path.py": [
+   "examples/micro_node_return_path/**",
+   "stegverse/micro_node_return_path.py"
+  ],
+  "tests/test_mir_destination_profile_propagation.py": [
+   "pytest/__init__.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/publisher_return_binding.py"
+  ],
+  "tests/test_mir_historical_accounting_delta.py": [
+   "pytest/__init__.py",
+   "stegverse/mir_historical_accounting_delta.py"
+  ],
+  "tests/test_mir_leaf_v3_conformance.py": [
+   "fixtures/mir_leaf_v3_conformance_fixture_v1.json",
+   "stegverse/mir_leaf_v3.py",
+   "tools/mir_leaf_v3_neutral_reproducer.mjs"
+  ],
+  "tests/test_mir_run2_replay_reconstruction.py": [
+   "stegverse/mir_historical_accounting_delta.py",
+   "stegverse/mir_run2_replay_reconstruction.py"
+  ],
+  "tests/test_mir_sv_exp3_capability_documents.py": [
+   "scripts/build_mir_sv_exp3_capability_documents.py",
+   "scripts/build_mir_sv_exp3_manifest.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_mir_sv_exp3_manifest.py": [
+   "scripts/build_mir_sv_exp3_manifest.py",
+   "stegverse/ecosystem_diagnostic_runtime.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_native_source_math.py": [
+   "stegverse/governance_navigation.py",
+   "stegverse/manifest_execution.py",
+   "stegverse/native_source_math.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_no_github_token_release_authority.py": [
+   ".github/workflows/**"
+  ],
+  "tests/test_observe_sdk_public_wiki.py": [
+   "scripts/observe_sdk_public_wiki.py"
+  ],
+  "tests/test_oda3_r3_run_harness.py": [
+   "pytest/__init__.py",
+   "scripts/run_oda3_evaluation_boundary_r3.py",
+   "stegverse/evaluation_boundary_verifier.py",
+   "stegverse/organization_ledger_evidence.py",
+   "tests/test_organization_ledger_evidence.py"
+  ],
+  "tests/test_oda3_response_packet.py": [
+   "pytest/__init__.py",
+   "scripts/build_oda3_response_packet.py",
+   "stegverse/evaluation_boundary_verifier.py",
+   "tests/test_organization_ledger_evidence.py"
+  ],
+  "tests/test_organization_batch_manifest_task_binding.py": [
+   "stegverse/governance_navigation.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_organization_ledger_evidence.py": [
+   "pytest/__init__.py",
+   "stegverse/organization_ledger_evidence.py",
+   "stegverse/post_return_evidence.py",
+   "tests/organization_ledger_fixture.py",
+   "tests/test_portable_governance_verifier.py",
+   "tests/test_post_return_evidence.py"
+  ],
+  "tests/test_organization_record_migration.py": [
+   "stegverse/__init__.py",
+   "stegverse/evaluator_contract.py",
+   "stegverse/external_interlock_bootstrap.py",
+   "stegverse/governance_navigation.py",
+   "stegverse/organization_record_names.py",
+   "stegverse/production_validation_runtime.py",
+   "stegverse/public_inspection.py"
+  ],
+  "tests/test_organization_role_conformance_route.py": [
+   "inspection/examples/**",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/organization_role_conformance_processor.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_output_boundary_proof.py": [
+   "stegverse/output_boundary_proof.py"
+  ],
+  "tests/test_package_version_identity.py": [
+   "PRODUCTION_RELEASE_SET_MIRROR_HANDOFF.md",
+   "VERSION.json",
+   "pyproject.toml",
+   "setup.py",
+   "stegverse/__init__.py"
+  ],
+  "tests/test_pinned_organization_boundary.py": [
+   "pytest/__init__.py",
+   "stegverse/manifest_execution.py"
+  ],
+  "tests/test_portable_dual_archive.py": [
+   "stegverse/portable_packages.py"
+  ],
+  "tests/test_portable_governance_exchange.py": [
+   "pytest/__init__.py",
+   "stegverse/portable_governance_exchange.py",
+   "tests/test_portable_governance_verifier.py"
+  ],
+  "tests/test_portable_governance_verifier.py": [
+   "pytest/__init__.py",
+   "stegverse/interlock_transition.py",
+   "stegverse/portable_governance_verifier.py",
+   "stegverse/spe_commitment_intake.py",
+   "stegverse/spe_steggate_bridge.py",
+   "stegverse/transition_candidate.py"
+  ],
+  "tests/test_portable_governance_verifier_cli.py": [
+   "stegverse/portable_governance_verifier_cli.py"
+  ],
+  "tests/test_portable_packages.py": [
+   "pytest/__init__.py",
+   "stegverse/portable_packages.py"
+  ],
+  "tests/test_post_return_evidence.py": [
+   "pytest/__init__.py",
+   "stegverse/organization_ledger_evidence.py",
+   "stegverse/post_return_evidence.py",
+   "tests/organization_ledger_fixture.py",
+   "tests/test_portable_governance_verifier.py"
+  ],
+  "tests/test_post_return_production_runner.py": [
+   "pytest/__init__.py",
+   "stegverse/post_return_production_runner.py",
+   "stegverse/proof_release_gate.py",
+   "tests/test_portable_governance_verifier.py"
+  ],
+  "tests/test_principal_class_conformance.py": [
+   "stegverse/principal_class_conformance.py"
+  ],
+  "tests/test_private_state_economy_publication_manifest.py": [
+   "scripts/build_private_state_economy_publication_manifest.py"
+  ],
+  "tests/test_product_processing.py": [
+   "stegverse/product_processing.py"
+  ],
+  "tests/test_production_release_set.py": [
+   "stegverse/__init__.py",
+   "stegverse/production_release_set.py"
+  ],
+  "tests/test_proof_release_gate.py": [
+   "stegverse/proof_release_gate.py"
+  ],
+  "tests/test_provider_usage_ingest.py": [
+   "examples/provider_usage_event.json",
+   "pytest/__init__.py",
+   "stegverse/provider_usage_ingest.py",
+   "stegverse/transition_usage.py"
+  ],
+  "tests/test_public_inspection_governed_binding.py": [
+   "stegverse/public_inspection.py"
+  ],
+  "tests/test_public_inspection_processor_capability.py": [
+   "stegverse/public_inspection.py"
+  ],
+  "tests/test_public_inspection_request.py": [
+   "inspection/examples/example-request.json",
+   "inspection/examples/governed-test-request.json",
+   "scripts/validate_public_inspection_request.py",
+   "stegverse/public_inspection.py"
+  ],
+  "tests/test_public_inspection_runtime.py": [
+   "stegverse/production_validation_runtime.py"
+  ],
+  "tests/test_publisher_paper_publication.py": [
+   "stegverse/governance_navigation.py",
+   "stegverse/publisher_paper_publication.py",
+   "stegverse/security_posture_request.py",
+   "stegverse/wiki_publication_transition.py"
+  ],
+  "tests/test_publisher_return_binding.py": [
+   "stegverse/publisher_return_binding.py"
+  ],
+  "tests/test_publisher_return_materialization.py": [
+   "stegverse/publisher_return_binding.py",
+   "stegverse/publisher_return_materialization.py"
+  ],
+  "tests/test_purpose_bound_worker_console.py": [
+   "stegverse/__init__.py",
+   "stegverse/purpose_bound_worker.py"
+  ],
+  "tests/test_purpose_bound_worker_cost_demo.py": [
+   "inspection/examples/tt-purpose-worker-cost-demo.example.json",
+   "stegverse/__init__.py",
+   "stegverse/purpose_bound_worker.py",
+   "stegverse/purpose_bound_worker_cost_demo.py"
+  ],
+  "tests/test_pypi_trusted_publishing_contract.py": [
+   ".github/workflows/**",
+   ".github/workflows/release.yml",
+   "docs/PYPI_TRUSTED_PUBLISHING_MIRROR_HANDOFF.md"
+  ],
+  "tests/test_readiness.py": [
+   "stegverse/readiness.py"
+  ],
+  "tests/test_receipts.py": [
+   "stegverse/__init__.py",
+   "stegverse/admissibility.py",
+   "stegverse/admissibility_receipts.py"
+  ],
+  "tests/test_reconcile_historical_deepwiki_literals.py": [
+   "scripts/assess_deepwiki_atomic_claims.py",
+   "scripts/reconcile_historical_deepwiki_literals.py",
+   "tests/test_assess_deepwiki_atomic_claims.py"
+  ],
+  "tests/test_reference_bounded_consequence.py": [
+   "pytest/__init__.py",
+   "stegverse/reference_bounded_consequence.py"
+  ],
+  "tests/test_reference_interlock_participant.py": [
+   "stegverse/interlock_return.py",
+   "stegverse/interlock_transition.py",
+   "stegverse/reference_interlock_participant.py"
+  ],
+  "tests/test_release_dependency_alignment.py": [
+   "stegverse/release_dependency_alignment.py"
+  ],
+  "tests/test_release_index.py": [
+   "stegverse/__init__.py",
+   "stegverse/release_index.py"
+  ],
+  "tests/test_remediation_fork.py": [
+   "scripts/build_mir_sv_exp3_manifest.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/remediation_fork.py",
+   "stegverse/route_resolution.py",
+   "tests/test_governed_remediation.py"
+  ],
+  "tests/test_remediation_return.py": [
+   "stegverse/remediation_return.py"
+  ],
+  "tests/test_repo_standards_gate_record.py": [
+   "pytest/__init__.py",
+   "stegverse/__init__.py"
+  ],
+  "tests/test_repository_ledger_initialization.py": [
+   ".stegverse/transition-ledger/initialization-manifest.v1.json",
+   "scripts/initialize_repository_ledger.py"
+  ],
+  "tests/test_repository_source_activation.py": [
+   "pytest/__init__.py",
+   "stegverse/activation_evidence.py",
+   "stegverse/canonical_source_collector.py",
+   "stegverse/repository_source_reader.py"
+  ],
+  "tests/test_resolve_deepwiki_review_citations.py": [
+   "scripts/resolve_deepwiki_review_citations.py"
+  ],
+  "tests/test_review_authority.py": [
+   "pytest/__init__.py",
+   "stegverse/review_authority.py"
+  ],
+  "tests/test_review_publisher_transfer.py": [
+   "stegverse/manifest_builder.py",
+   "stegverse/review_publisher_transfer.py",
+   "tests/test_manifest_builder.py",
+   "tests/test_publisher_return_binding.py"
+  ],
+  "tests/test_route_resolution.py": [
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_run_ecosystem_chat_service_bounded.py": [
+   "scripts/run_ecosystem_chat_service.py",
+   "tests/test_ecosystem_chat_intake_minimal.py"
+  ],
+  "tests/test_s4_cost_benchmark.py": [
+   "pricing/cost-component-registry.v1.json",
+   "pricing/rate-card.five-lane-declared.json",
+   "stegverse/__init__.py",
+   "stegverse/s4_cost_benchmark.py"
+  ],
+  "tests/test_safety_stack_quick.py": [
+   "stegverse/safety_stack.py"
+  ],
+  "tests/test_sdk_15_unrelated_evaluator_evidence.py": [
+   "stegverse/capability_inventory.py",
+   "stegverse/manifest_plan.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_sdk_core_node_fanout_goal.py": [
+   "scripts/validate_sdk_core_node_fanout_goal.py"
+  ],
+  "tests/test_sdk_core_node_fanout_request.py": [
+   "examples/sdk_core_node_fanout_request.sample.json",
+   "scripts/validate_sdk_core_node_fanout_request.py"
+  ],
+  "tests/test_sdk_core_node_result.py": [
+   "scripts/validate_sdk_core_node_unified_comparison_result.py"
+  ],
+  "tests/test_sdk_core_node_unified_comparison_receipt.py": [
+   "examples/sdk_core_node_unified_comparison_receipt.sample.json",
+   "scripts/validate_sdk_core_node_unified_comparison_receipt.py"
+  ],
+  "tests/test_sdk_public_developer_wiki.py": [
+   "README.md",
+   "SDK_MIRROR_HANDOFF.md",
+   "docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md",
+   "docs/MANIFEST_RECEIPT_NAVIGATION_MIRROR_HANDOFF.md",
+   "inspection/examples/external-framework-generic-manifest.json",
+   "schemas/stegverse.ingress-manifest.v1.schema.json",
+   "scripts/build_sdk_public_wiki.py"
+  ],
+  "tests/test_sdk_usage_observability.py": [
+   "pytest/__init__.py",
+   "stegverse/sdk_usage_observability.py"
+  ],
+  "tests/test_security_posture.py": [
+   "pytest/__init__.py",
+   "stegverse/security_posture.py"
+  ],
+  "tests/test_security_posture_binding.py": [
+   "pytest/__init__.py",
+   "stegverse/security_posture.py",
+   "stegverse/security_posture_binding.py"
+  ],
+  "tests/test_security_posture_stack.py": [
+   "docs/FEDERAL_HEALTH_PII_EXCEEDANCE_HARDENING_MIRROR_HANDOFF.md",
+   "pytest/__init__.py",
+   "stegverse/security_posture.py",
+   "stegverse/security_posture_stack.py"
+  ],
+  "tests/test_self_characterization_lane.py": [
+   "stegverse/self_characterization_lane.py"
+  ],
+  "tests/test_served_surface_assertion.py": [
+   "stegverse/__init__.py",
+   "stegverse/served_surface_assertion.py"
+  ],
+  "tests/test_session_consolidation_registry.py": [
+   "scripts/validate_session_consolidation_registry.py",
+   "task-registry/orli-judgment-system-boundary-2026-08-02.json"
+  ],
+  "tests/test_session_usage_receipt.py": [
+   "stegverse/session_usage_receipt.py",
+   "stegverse/transition_usage.py"
+  ],
+  "tests/test_shared_docs_freeze.py": [
+   "stegverse/shared_docs_freeze.py"
+  ],
+  "tests/test_shared_docs_provider_freeze.py": [
+   "stegverse/shared_docs_freeze.py",
+   "stegverse/shared_docs_provider_freeze.py"
+  ],
+  "tests/test_shwp_manifest_task_binding.py": [
+   "stegverse/governance_navigation.py",
+   "stegverse/manifest_state_transition_adapters.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/route_resolution.py"
+  ],
+  "tests/test_site_sdk_processing_handoff.py": [
+   "stegverse/governance_navigation.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/site_sdk_processing_handoff.py"
+  ],
+  "tests/test_source_evidence_packet.py": [
+   "stegverse/organization_record_names.py",
+   "stegverse/source_evidence_packet.py"
+  ],
+  "tests/test_source_observation.py": [
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_contract.py",
+   "stegverse/source_observation.py"
+  ],
+  "tests/test_spe_allow_consumer.py": [
+   "pytest/__init__.py",
+   "stegverse/spe_allow_consumer.py"
+  ],
+  "tests/test_spe_commitment_intake.py": [
+   "SDK_MIRROR_HANDOFF.md",
+   "stegverse/spe_commitment_intake.py",
+   "stegverse/transition_candidate.py"
+  ],
+  "tests/test_spe_steggate_bridge.py": [
+   "pytest/__init__.py",
+   "stegverse/spe_steggate_bridge.py"
+  ],
+  "tests/test_standing_execution_context.py": [
+   "stegverse/interlock_transition.py",
+   "stegverse/sovereign_validation_runtime.py",
+   "stegverse/standing_execution_context.py",
+   "tests/test_portable_governance_verifier.py"
+  ],
+  "tests/test_state_transition_evidence.py": [
+   "stegverse/manifest_builder.py",
+   "stegverse/state_transition_evidence.py"
+  ],
+  "tests/test_stdlib_http.py": [
+   "pyproject.toml",
+   "stegverse/__init__.py",
+   "stegverse/_stdlib_http.py",
+   "stegverse/comparison_transport.py",
+   "tests/test_comparison_transport.py"
+  ],
+  "tests/test_stegbrowser_journey_branches.py": [
+   "pytest/__init__.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/stegbrowser_processor.py"
+  ],
+  "tests/test_stegbrowser_manifest_profile.py": [
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_execution.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/route_resolution.py",
+   "tests/test_manifest_destination_binding.py"
+  ],
+  "tests/test_structural_validator_candidate.py": [
+   "stegverse/structural_validator_candidate.py"
+  ],
+  "tests/test_sv_llm_intr_roundtrip.py": [
+   "stegverse/manifest_builder.py",
+   "stegverse/review_publisher_transfer.py",
+   "tests/test_manifest_builder.py"
+  ],
+  "tests/test_svg_governance_cycle_manifest_route.py": [
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/svg_governance_cycle_processor.py"
+  ],
+  "tests/test_sync_system_boundary_evidence.py": [
+   ".github/workflows/sdk-demo-test.yml",
+   "scripts/sync_system_boundary_evidence.py"
+  ],
+  "tests/test_system_boundary.py": [
+   "stegverse/system_boundary.py"
+  ],
+  "tests/test_system_boundary_activation.py": [
+   ".github/workflows/validate.yml",
+   "stegverse/system_boundary_activation.py"
+  ],
+  "tests/test_system_boundary_downstream_status.py": [
+   ".github/workflows/validate.yml",
+   "stegverse/system_boundary_downstream_status.py"
+  ],
+  "tests/test_system_boundary_round_trip.py": [
+   "stegverse/system_boundary_round_trip.py"
+  ],
+  "tests/test_system_boundary_workflow_evidence.py": [
+   "evidence/system-boundary-workflow-evidence.pending.v0.1.json",
+   "stegverse/system_boundary_workflow_evidence.py"
+  ],
+  "tests/test_t5_t6_source_boundary.py": [
+   "evidence/validator-source-provenance-candidate-2026-10-13.json",
+   "schemas/universal-entry-envelope.schema.v0.1.json",
+   "stegverse/structural_validator_candidate.py"
+  ],
+  "tests/test_t6_universal_entry_validator.py": [
+   "examples/universal_entry/site_chat_good_morning.json",
+   "pytest/__init__.py",
+   "scripts/verify_universal_entry_envelope.py"
+  ],
+  "tests/test_testing_data_loop.py": [
+   "examples/testing_data_loop.json",
+   "scripts/validate_formal_testing_route.py"
+  ],
+  "tests/test_testing_data_loop_handoff.py": [
+   "examples/testing_data_loop_handoff.json",
+   "scripts/validate_formal_testing_route.py"
+  ],
+  "tests/test_testing_data_loop_status.py": [
+   "examples/testing_data_loop_status.json",
+   "scripts/validate_formal_testing_route.py"
+  ],
+  "tests/test_tier_pricing.py": [
+   "pytest/__init__.py",
+   "stegverse/__init__.py",
+   "stegverse/tier_pricing.py"
+  ],
+  "tests/test_transition_candidate.py": [
+   "stegverse/transition_candidate.py"
+  ],
+  "tests/test_transition_usage.py": [
+   "stegverse/transition_usage.py"
+  ],
+  "tests/test_triage_frozen_deepwiki_citations.py": [
+   "scripts/triage_frozen_deepwiki_citations.py"
+  ],
+  "tests/test_tvc_provider_probe_bridge.py": [
+   "stegverse/active_probe_execution.py",
+   "stegverse/tvc_provider_probe_bridge.py",
+   "tests/test_workspace_resource_consumer.py"
+  ],
+  "tests/test_universal_entry.py": [
+   "stegverse/universal_entry.py"
+  ],
+  "tests/test_universal_entry_catalog_events.py": [
+   "pytest/__init__.py",
+   "stegverse/ecosystem_catalog.py",
+   "stegverse/universal_entry_events.py"
+  ],
+  "tests/test_universal_entry_dispatch.py": [
+   "stegverse/universal_entry.py",
+   "stegverse/universal_entry_dispatch.py"
+  ],
+  "tests/test_universal_entry_handlers.py": [
+   "stegverse/universal_entry_dispatch.py",
+   "stegverse/universal_entry_handlers.py"
+  ],
+  "tests/test_universal_entry_integrations.py": [
+   "pytest/__init__.py",
+   "stegverse/ecosystem_records.py",
+   "stegverse/llm_adapter_bridge.py",
+   "stegverse/organization_record_names.py",
+   "stegverse/universal_entry_dispatch.py",
+   "stegverse/universal_entry_handlers.py"
+  ],
+  "tests/test_universal_entry_parity.py": [
+   "examples/universal_entry/entry_point_parity.json",
+   "stegverse/universal_entry_dispatch.py",
+   "stegverse/universal_entry_handlers.py"
+  ],
+  "tests/test_universal_entry_runtime_wrapper.py": [
+   "stegverse/master_records_organization_record.py",
+   "stegverse/universal_entry_handlers.py",
+   "stegverse/universal_entry_runtime.py"
+  ],
+  "tests/test_universal_entry_server_runtime.py": [
+   "docs/UNIVERSAL_ENTRY_INTEGRATION_HANDOFF.md",
+   "stegverse/activation_evidence.py",
+   "stegverse/repository_source_reader.py",
+   "stegverse/universal_entry_server_runtime.py"
+  ],
+  "tests/test_universal_entry_transport_projection.py": [
+   "pytest/__init__.py",
+   "stegverse/ecosystem_projection.py",
+   "stegverse/http_transport.py"
+  ],
+  "tests/test_universal_intr_route_installer.py": [
+   "docs/UNIVERSAL_INTR_ROUTE_INSTALLER.md",
+   "stegverse/__init__.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/route_resolution.py",
+   "stegverse/universal_intr_route_installer.py"
+  ],
+  "tests/test_universal_manifest_state_transition_runtime.py": [
+   "scripts/build_mir_sv_exp3_manifest.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/manifest_state_transition_runtime.py",
+   "stegverse/organization_record_names.py",
+   "stegverse/purpose_bound_worker_processor.py"
+  ],
+  "tests/test_universal_transition_table_intake.py": [
+   "pytest/__init__.py",
+   "stegverse/universal_transition_table_cli.py",
+   "stegverse/universal_transition_table_intake.py"
+  ],
+  "tests/test_untrusted_dependency_review.py": [
+   "pytest/__init__.py",
+   "stegverse/governance_navigation.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/organization_record_names.py",
+   "stegverse/untrusted_dependency_review.py"
+  ],
+  "tests/test_verify_30_manifest_claims.py": [
+   "docs/deepwiki-review/MANIFEST_30_ATOMIC_SOURCE_DECISIONS.json",
+   "scripts/build_sdk_public_wiki.py"
+  ],
+  "tests/test_verify_remaining32_deepwiki_priority.py": [
+   "docs/deepwiki-review/REMAINING_32_PRIORITY_SOURCE_DECISIONS.json",
+   "scripts/build_sdk_public_wiki.py",
+   "scripts/verify_remaining32_deepwiki_priority.py"
+  ],
+  "tests/test_viewer_bound_operations.py": [
+   "stegverse/viewer_bound_operations.py"
+  ],
+  "tests/test_wiki_publication_transition.py": [
+   "stegverse/governance_navigation.py",
+   "stegverse/security_posture_request.py",
+   "stegverse/wiki_publication_transition.py"
+  ],
+  "tests/test_worker_cost_evidence.py": [
+   "pytest/__init__.py",
+   "stegverse/worker_cost_evidence.py"
+  ],
+  "tests/test_worker_lifecycle_qualifier.py": [
+   "stegverse/__init__.py",
+   "stegverse/worker_lifecycle_qualifier.py"
+  ],
+  "tests/test_worker_participation_history.py": [
+   "pytest/__init__.py",
+   "stegverse/worker_participation_history.py"
+  ],
+  "tests/test_workflow_contracts.py": [
+   ".github/workflows/**",
+   "pytest/__init__.py"
+  ],
+  "tests/test_workspace_resource_consumer.py": [
+   "stegverse/external_interlock_ingress_binding.py",
+   "stegverse/manifest_builder.py",
+   "stegverse/state_transition_evidence.py",
+   "stegverse/workspace_resource_consumer.py"
+  ],
+  "tools/check_bundle_export.py": [
+   "examples/universal_transition_table_intake/**"
+  ],
+  "tools/compare_mir_leaf_v3_result.py": [
+   "fixtures/mir_leaf_v3_conformance_expected_result_v1.json"
+  ],
+  "tools/verify_goal3_activation.py": [
+   "examples/universal_transition_table_intake/**"
+  ]
+ },
+ "surface_rule": "a set verifies its surfaces and everything they reach in surface_graph (a file's direct repository references: string-literal paths, path chains, local imports)"
+}

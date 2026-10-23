@@ -22,14 +22,78 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           persist-credentials: false
+          fetch-depth: 2
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.11'
+      - name: Finish-point verdict paths, NOT_SELECTED and SELECTED (unittest, no skips)
+        run: |
+          set -o pipefail
+          python -m unittest -v tests.test_finish_point_verdict 2>&1 | tee /tmp/finish-point-verdict.log
+          if grep -Eq 'skipped|expected failure' /tmp/finish-point-verdict.log; then
+            echo "::error::a finish-point verdict test was skipped; skips are never accepted"; exit 1
+          fi
+      - name: Callable test set - is the finish point selected by this change (pinned StegVerse-Labs selector)
+        id: select
+        # StegVerse-org/.github#166. The selector is StegVerse-Labs scripts/test_set_selection.py, reused (not forked):
+        # fetched anonymously at the commit in .stegverse/labs-tool-pin.json and run only after its sha256 matches.
+        # .stegverse/finish_point_verdict.py turns its sealed record into a sealed verdict. NOT_SELECTED only when the
+        # record is a sealed DIFF selection with the diff available and the finish set (spec finish_point_set) not
+        # selected; an unmapped or selection-shaping path, an unreadable diff, a stale manifest, a selector that was
+        # not fetched or does not match its pin, a push, or any error is SELECTED. This step never fails and no step
+        # here has an if: the finish step always runs and either receipts NOT_SELECTED or runs the test.
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set +e
+          LABS="$RUNNER_TEMP/labs-tool"
+          selector=""
+          if [ "$EVENT" = pull_request ]; then
+            pin=.stegverse/labs-tool-pin.json
+            if python3 - "$pin" "$LABS" <<'PY'
+          import hashlib, json, os, subprocess, sys
+          pin, dest = json.load(open(sys.argv[1])), sys.argv[2]
+          env = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
+          git = lambda *a: subprocess.run(["git", "-C", dest, *a], check=True, env=env, capture_output=True, text=True)
+          subprocess.run(["git", "init", "-q", dest], check=True, env=env)
+          git("-c", "http.https://github.com/.extraheader=", "fetch", "--no-tags", "--quiet", "--depth=1", pin["url"], pin["commit"])
+          git("checkout", "-q", "FETCH_HEAD")
+          assert git("rev-parse", "HEAD").stdout.strip() == pin["commit"], "fetched commit is not the pinned commit"
+          for path, want in sorted(pin["files"].items()):
+              got = hashlib.sha256(open(os.path.join(dest, path), "rb").read()).hexdigest()
+              print(path, got)
+              assert got == want, f"{path}: sha256 {got} is not the pinned {want}"
+          PY
+            then
+              selector="$LABS/scripts/test_set_selection.py"
+              python3 "$selector" select --root . \
+                --manifest .stegverse/test-sets.json --spec .stegverse/test-set-spec.json \
+                --base HEAD^1 --head HEAD --pr-head "$PR_HEAD" \
+                --retry-entrypoint "Governance product finish point / finish-point" \
+                --out "$RUNNER_TEMP/selection.json" || echo "::warning::selection is FAIL_CLOSED (see the record); the verdict decides"
+            else
+              echo "::warning::PINNED_LABS_TOOL_UNAVAILABLE: the pinned selector could not be fetched or verified; the finish point runs"
+            fi
+          fi
+          out=$(python3 .stegverse/finish_point_verdict.py decide --event "$EVENT" \
+            --spec .stegverse/test-set-spec.json --selection "$RUNNER_TEMP/selection.json" \
+            --selector "$selector" --head "$(git rev-parse HEAD)" --pr-head "$PR_HEAD" \
+            --out "$RUNNER_TEMP/finish-point-verdict.json")
+          if [ "$out" = run=false ]; then run=false; else run=true; fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "FINISH_POINT_SET verdict run=$run (event $EVENT); record finish-point-verdict.json" | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 0
       - name: Finish point - a non-ALLOW disposition produces no effect (unittest, no skips)
         env:
           PYTHONDONTWRITEBYTECODE: '1'
+          RUN: ${{ steps.select.outputs.run }}
         run: |
           set -o pipefail
+          if [ "$RUN" = false ] && python3 .stegverse/finish_point_verdict.py not-selected "$RUNNER_TEMP/finish-point-verdict.json" | tee -a "$GITHUB_STEP_SUMMARY"; then
+            echo "FINISH_POINT_SET NOT_SELECTED: the sealed verdict above shows no path of this change is in the set's closure; the step passes on it"
+            exit 0
+          fi
           python -m unittest tests.test_governance_product_finish_point -v 2>&1 | tee /tmp/finish-point.log
           if grep -Eq 'skipped|expected failure' /tmp/finish-point.log; then
             echo "::error::a finish-point test was skipped; skips are never accepted"; exit 1
