@@ -16,10 +16,17 @@ the receipt of its owner's verifier (.github/workflows/governance-gate-selftest.
 no structural-validator, validator-inventory, schema-migration, tier-pricing or cost-component-registry module. The
 last test checks that at run time: the disposition half imports no module of the stegverse package.
 
+Consumed source pin (Coordination class D ruling: SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001 is a consumes-dependency,
+not a fold). The two files this test reads and executes belong to that Goal. Before either is read or executed, each
+file's sha256 must equal its content at the pinned commit STRUCTURAL_PIN["commit"]; on a mismatch every test that
+uses them fails closed with the six fields and runs nothing. A change to either file is a STRUCTURAL-owned edit: it is
+routed to that Goal, and this pin moves only after that Goal publishes the new commit.
+
 Lowest supported mode: E0 (standard library, the committed workflow and module, bash; no clock, no network).
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -31,6 +38,39 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github/workflows/governance-gate.yml"
 GATE_MODULE = ROOT / "stegverse/governance_gate.py"
 CHECKER_MARKER = "status=$?"
+STRUCTURAL_GOAL = "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001"
+STRUCTURAL_PIN = {
+    "commit": "4c9dfac7b31c5dcd30a8bc9b13e6d11353a51328",  # last change to both files (StegVerse-org/StegVerse-SDK#534)
+    "files": {
+        ".github/workflows/governance-gate.yml": "1d14c9baf363e37a5b66a33016497869206a671a2a7d29596a95c23eedb82df0",
+        "stegverse/governance_gate.py": "3db3e83c97764e912919018dcb560c011d3b499ea550aef43e3f61e64a36ee4f",
+    },
+}
+
+
+def pin_refusal(root: Path = ROOT) -> dict | None:
+    """None if every consumed STRUCTURAL file matches its pinned sha256; otherwise the six-field FAIL_CLOSED."""
+    observed = {}
+    for rel in STRUCTURAL_PIN["files"]:
+        path = root / rel
+        observed[rel] = hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else "MISSING"
+    mismatched = {rel: {"pinned": STRUCTURAL_PIN["files"][rel], "observed": observed[rel]}
+                  for rel in STRUCTURAL_PIN["files"] if observed[rel] != STRUCTURAL_PIN["files"][rel]}
+    if not mismatched:
+        return None
+    return {
+        "disposition": "FAIL_CLOSED",
+        "failure_code": "STRUCTURAL_CONSUMED_SOURCE_PIN_MISMATCH",
+        "failed_predicate": "CONSUMED_STRUCTURAL_FILES_MATCH_SHA256_PIN",
+        "required_evidence_or_repair": (
+            f"these files differ from {STRUCTURAL_PIN['commit']}: {sorted(mismatched)}. A change to them is a "
+            f"STRUCTURAL-owned edit: land it through {STRUCTURAL_GOAL}, then move STRUCTURAL_PIN (commit and sha256s) "
+            "and the adjacency ruling's consumes_dependencies pin to that Goal's published commit"),
+        "retry_entrypoint": "python -m unittest tests.test_governance_product_finish_point",
+        "owning_existing_goal": STRUCTURAL_GOAL,
+        "next_attempt": "the next run of this finish-point test after the pin or the files are repaired",
+        "detail": mismatched,
+    }
 
 
 def gate_run_step() -> str:
@@ -76,7 +116,13 @@ def conformance_run(report: str | None, checker_status: int) -> tuple[bool, str]
 
 
 class GovernanceProductFinishPoint(unittest.TestCase):
+    def require_structural_pin(self) -> None:
+        refusal = pin_refusal()
+        if refusal is not None:
+            self.fail(json.dumps(refusal, sort_keys=True))
+
     def test_finish_point_verdict(self) -> None:
+        self.require_structural_pin()
         non_allow = {
             "fail_closed": ('{"disposition": "FAIL_CLOSED", "failure_code": "BUNDLE_VERIFICATION_FAILED"}\n', 1),
             "deny": ('{"disposition": "DENY"}\n', 1),
@@ -97,6 +143,7 @@ class GovernanceProductFinishPoint(unittest.TestCase):
         self.assertEqual(output, "disposition=ALLOW")
 
     def test_gate_job_is_read_only_and_exports_the_disposition(self) -> None:
+        self.require_structural_pin()
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("permissions:\n  contents: read\n", workflow)
         self.assertIn("value: ${{ jobs.gate.outputs.disposition }}", workflow)
@@ -105,6 +152,7 @@ class GovernanceProductFinishPoint(unittest.TestCase):
                       gate_run_step())
 
     def test_disposition_half_imports_no_stegverse_module(self) -> None:
+        self.require_structural_pin()
         probe = ("import importlib.util, json, sys\n"
                  "spec = importlib.util.spec_from_file_location('governance_gate', sys.argv[1])\n"
                  "module = importlib.util.module_from_spec(spec)\n"
@@ -118,6 +166,27 @@ class GovernanceProductFinishPoint(unittest.TestCase):
                                   capture_output=True, text=True, check=False)
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(json.loads(proc.stdout), [])
+
+
+    def test_structural_pin_mismatch_fails_closed_with_six_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for rel in STRUCTURAL_PIN["files"]:
+                (root / rel).parent.mkdir(parents=True, exist_ok=True)
+                (root / rel).write_bytes((ROOT / rel).read_bytes())
+            self.assertIsNone(pin_refusal(root))
+            first = next(iter(STRUCTURAL_PIN["files"]))
+            (root / first).write_bytes((root / first).read_bytes() + b"# edit\n")
+            refusal = pin_refusal(root)
+            self.assertIsNotNone(refusal)
+            self.assertEqual(refusal["disposition"], "FAIL_CLOSED")
+            for field in ("failure_code", "failed_predicate", "required_evidence_or_repair", "retry_entrypoint",
+                          "owning_existing_goal", "next_attempt"):
+                self.assertTrue(refusal[field], field)
+            self.assertEqual(refusal["owning_existing_goal"], STRUCTURAL_GOAL)
+            self.assertEqual(sorted(refusal["detail"]), [first])
+            (root / first).unlink()
+            self.assertEqual(pin_refusal(root)["detail"][first]["observed"], "MISSING")
 
 
 if __name__ == "__main__":
