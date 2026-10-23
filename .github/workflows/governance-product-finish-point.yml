@@ -5,6 +5,10 @@ name: Governance product finish point
 # loaded by file path from the checkout (the gate run step and stegverse/governance_gate.py at
 # their sha256 pin); pytest is not used because its entry module has a by-name load that a
 # static closure cannot resolve. Lowest mode E0: no clock, no network beyond the checkout.
+# Finish ref (LC-GOV-03/08): the ref comes from the TV/TVC release receipt named in
+# .stegverse/governance-product/release-manifest.v1.json, never from the PR head. When the receipt
+# exists the finish verdict is computed again in a read-only checkout of the receipt's commit; when
+# it is absent the six-field FAIL_CLOSED finish verdict is written to the step summary.
 on:
   pull_request:
     branches: [main]
@@ -34,3 +38,45 @@ jobs:
           if grep -Eq 'skipped|expected failure' /tmp/finish-point.log; then
             echo "::error::a finish-point test was skipped; skips are never accepted"; exit 1
           fi
+      - name: Finish ref from the TV/TVC release receipt
+        id: finish_ref
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          HEAD_COMMIT: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import importlib.util, json, os
+          spec = importlib.util.spec_from_file_location("gpf", "tools/governance_product_finish.py")
+          m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          binding = m.release_ref_binding(".", os.environ["HEAD_COMMIT"])
+          commit = binding.get("release_commit", "")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"release_commit={commit}\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("### Finish ref binding\n```json\n" + json.dumps(binding, indent=2, sort_keys=True) + "\n```\n")
+          print(json.dumps(binding, sort_keys=True))
+          PY
+      - name: Read-only checkout of the release receipt commit
+        if: steps.finish_ref.outputs.release_commit != ''
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          ref: ${{ steps.finish_ref.outputs.release_commit }}
+          path: release-ref
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Finish verdict (six-field FAIL_CLOSED until every receipt exists)
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          FINISH_ROOT: ${{ steps.finish_ref.outputs.release_commit != '' && 'release-ref' || '.' }}
+        run: |
+          python - <<'PY'
+          import importlib.util, json, os
+          spec = importlib.util.spec_from_file_location("gpf", "tools/governance_product_finish.py")
+          m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          verdict = m.finish_verdict(os.environ["FINISH_ROOT"])
+          keys = ("disposition", "predicates") + m.SIX
+          shown = {k: verdict.get(k) for k in keys}
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("### Finish verdict\n```json\n" + json.dumps(shown, indent=2, sort_keys=True) + "\n```\n")
+          print(json.dumps(shown, sort_keys=True))
+          PY

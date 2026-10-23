@@ -24,12 +24,21 @@ its content at the pinned commit STRUCTURAL_PIN["commit"]; on a mismatch every t
 the six fields and runs nothing. A change to any of them is a STRUCTURAL-owned edit: it is
 routed to that Goal, and this pin moves only after that Goal publishes the new commit.
 
-Lowest supported mode: E0 (standard library, the committed workflow and module, bash; no clock, no network).
+Finish verdict (Coordination class D rulings LC-GOV-01/03/08, 2026-10-23): test_finish_point_verdict also runs
+tools/governance_product_finish.py, which verifies every sealed predicate against the release manifest
+.stegverse/governance-product/release-manifest.v1.json and the receipts it names, binds the finish ref to the TV/TVC
+release receipt's commit, and emits the GOVERNANCE_PRODUCT_RELEASE organization-ledger receipt candidate (never
+appended here). Until the release receipt, the C-review receipt and the ledger readback exist, its verdict is a
+six-field FAIL_CLOSED; the fixture test shows the same code reaching ALLOW from receipts alone, with no code edit.
+
+Lowest supported mode: E0 (standard library, the committed workflow and module, bash, git; no clock, no network).
 """
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -40,6 +49,50 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github/workflows/governance-gate.yml"
 GATE_MODULE = ROOT / "stegverse/governance_gate.py"
 CHECKER_MARKER = "status=$?"
+FINISH_MODULE = ROOT / "tools/governance_product_finish.py"
+SIX_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair", "retry_entrypoint",
+              "owning_existing_goal", "next_attempt")
+SEALED_PREDICATES = (
+    "PRODUCT_CLAIM_LIMITED_TO_VERIFIABLE_RECEIPT_CHAIN_ON_CUSTOMER_SUPPLIED_MANIFEST_CONSTRAINTS",
+    "PACKAGE_VERSION_IDENTITY_CONSISTENT_ACROSS_PYPROJECT_INIT_VERSION_JSON",
+    "PINNED_REF_TREE_CONTAINS_GOVERNANCE_GATE_WORKFLOW_AND_MODULE",
+    "IMMUTABLE_TAG_AND_GITHUB_RELEASE_PUBLISHED_UNDER_TV_TVC_AUTHORITY",
+    "RELEASE_NOTES_SUPERSEDE_V1_0_1_SAFETY_STACK_OVERCLAIM",
+    "CUSTOMER_QUICKSTART_INSTALL_UNINSTALL_AND_NONCLAIMS_PUBLISHED",
+    "NO_NEW_RUNTIME_DEPENDENCY_INTRODUCED",
+    "NON_ALLOW_PRODUCES_NO_EFFECT_IN_CUSTOMER_CONFORMANCE_RUN",
+    "INDEPENDENT_RECEIPT_CHAIN_VERIFICATION_PASS_AND_TAMPER_FAIL",
+    "LICENSE_AND_TERMS_FILE_SHA256_MATCHES_RELEASE_MANIFEST",
+    "ROLLBACK_PROCEDURE_DOCUMENTED_WITHOUT_TAG_RETARGET",
+    "ORGANIZATION_RECEIPT_APPENDED_UNDER_LOCK:GOVERNANCE_PRODUCT_RELEASE",
+    "ENTITLEMENT_SEPARATE_FROM_DISPOSITION_CONSUMING_SDK_COST_DERIVED_TIER_PRICING_OUTPUT",
+)
+FIXTURE_FILES = (
+    ".stegverse/governance-product/release-manifest.v1.json", ".github/workflows/governance-gate.yml",
+    "stegverse/governance_gate.py", "stegverse/__init__.py", "pyproject.toml", "VERSION.json", "LICENSE",
+    "RELEASE_NOTES_1.3.0.md", "docs/GITHUB_GOVERNANCE_QUICKSTART.md", "docs/GOVERNANCE_PRODUCT_RELEASE_DEFAULTS.md",
+    "fixtures/governance_product_receipt_chain.json", "pricing/candidate-report.json",
+)
+
+
+def finish_module():
+    spec = importlib.util.spec_from_file_location("governance_product_finish", FINISH_MODULE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def git(root: Path, *args: str) -> str:
+    env = {"PATH": "/usr/bin:/bin", "GIT_CONFIG_NOSYSTEM": "1", "HOME": str(root),
+           "GIT_AUTHOR_DATE": "2000-01-01T00:00:00Z", "GIT_COMMITTER_DATE": "2000-01-01T00:00:00Z"}
+    return subprocess.run(["git", "-c", "user.name=fixture", "-c", "user.email=fixture@invalid", "-c",
+                           "commit.gpgsign=false", "-c", "tag.gpgsign=false", *args], cwd=root, env=env,
+                          capture_output=True, text=True, check=True).stdout.strip()
+
+
+def write_json(path: Path, value: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 STRUCTURAL_GOAL = "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001"
 STRUCTURAL_PIN = {
     "commit": "4c9dfac7b31c5dcd30a8bc9b13e6d11353a51328",  # last change to both files (StegVerse-org/StegVerse-SDK#534)
@@ -146,6 +199,23 @@ class GovernanceProductFinishPoint(unittest.TestCase):
         ran, output = conformance_run('{"disposition": "ALLOW"}\n', 0)
         self.assertTrue(ran, "ALLOW with checker status 0 must let the effect run")
         self.assertEqual(output, "disposition=ALLOW")
+        # the finish verdict over every sealed predicate, with this test's own predicate observed ALLOW above
+        verdict = finish_module().finish_verdict(ROOT, {
+            "disposition": "ALLOW", "predicate": "NON_ALLOW_PRODUCES_NO_EFFECT_IN_CUSTOMER_CONFORMANCE_RUN"})
+        print(json.dumps({k: verdict.get(k) for k in ("disposition", "predicates") + SIX_FIELDS}, sort_keys=True))
+        self.assertEqual(sorted(verdict["predicates"]), sorted(SEALED_PREDICATES))
+        self.assertIn(verdict["disposition"], ("ALLOW", "FAIL_CLOSED"))
+        self.assertFalse(verdict["clock_read"] or verdict["network_used"] or verdict["ledger_appended"])
+        for name, result in verdict["results"].items():
+            self.assertEqual(result["lowest_supported_mode"], "E0", name)
+            self.assertTrue(result["degraded_form"], name)
+            if result["disposition"] != "ALLOW":
+                self.assertEqual(result["disposition"], "FAIL_CLOSED", name)
+                for field in SIX_FIELDS:
+                    self.assertTrue(result[field], f"{name}: {field}")
+        if verdict["disposition"] != "ALLOW":
+            for field in SIX_FIELDS:
+                self.assertTrue(verdict[field], field)
 
     def test_gate_job_is_read_only_and_exports_the_disposition(self) -> None:
         self.require_structural_pin()
@@ -194,6 +264,92 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             self.assertEqual(sorted(refusal["detail"]), [first])
             (root / first).unlink()
             self.assertEqual(pin_refusal(root)["detail"][first]["observed"], "MISSING")
+
+    def release_fixture(self, tmp: str):
+        """A repository built from this commit's files, released by fixture receipts. Returns (root, module)."""
+        root = Path(tmp) / "repo"
+        for rel in FIXTURE_FILES:
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / rel, root / rel)
+        git(root, "init", "-q")
+        git(root, "add", "--", *FIXTURE_FILES)
+        git(root, "commit", "-q", "-m", "fixture release")
+        commit = git(root, "rev-parse", "HEAD")
+        module = finish_module()
+        manifest = module.load_manifest(root)
+        version = module.v_package_identity(root, manifest)["version"]
+        git(root, "tag", f"v{version}", commit)
+        lic = manifest["license"]
+        write_json(root / manifest["release_receipt"]["path"], {
+            "schema": manifest["release_receipt"]["schema"], "issuer": "TV/TVC",
+            "repository": manifest["release_receipt"]["repository"], "tag": f"v{version}", "commit": commit,
+            "allow_tag_update": False, "github_release": {"state": "PUBLISHED_VERIFIED"}})
+        write_json(root / lic["c_review_receipt"]["path"], {
+            "schema": lic["c_review_receipt"]["schema"], "license_sha256": lic["sha256"], "disposition": "ALLOW"})
+        write_json(root / manifest["organization_ledger"]["ledger_head"]["path"], {
+            "schema": manifest["organization_ledger"]["ledger_head"]["schema"], "head_sha256": "ab" * 32, "hb_epoch": 41})
+        return root, module, manifest, commit
+
+    def test_finish_verdict_reaches_allow_from_receipts_without_code_edit(self) -> None:
+        observed = {"disposition": "ALLOW", "predicate": "NON_ALLOW_PRODUCES_NO_EFFECT_IN_CUSTOMER_CONFORMANCE_RUN"}
+        with tempfile.TemporaryDirectory() as tmp:
+            root, module, manifest, commit = self.release_fixture(tmp)
+            before = module.finish_verdict(root, observed)
+            self.assertEqual(before["disposition"], "FAIL_CLOSED")
+            self.assertEqual(before["failed_predicate"], "ORGANIZATION_RECEIPT_APPENDED_UNDER_LOCK:GOVERNANCE_PRODUCT_RELEASE")
+            candidate = before["ledger_receipt_candidate"]
+            self.assertEqual(candidate["schema"], "stegverse.canonical-state-transition-receipt/v1")
+            self.assertEqual((candidate["hb_epoch"], candidate["prior_state_ref_or_hash"]), (41, "ab" * 32))
+            self.assertFalse(candidate["append_performed"])
+            write_json(root / manifest["organization_ledger"]["readback"]["path"], {
+                "schema": manifest["organization_ledger"]["readback"]["schema"], "ledger_lock": "ORGANIZATION_LEDGER_LOCK",
+                "source_receipt_sha256": module.sha256_hex(module.canonical(candidate)), "org_receipt_sha256": "cd" * 32})
+            after = module.finish_verdict(root, observed)
+            self.assertEqual(after["disposition"], "ALLOW", json.dumps(after["results"], sort_keys=True))
+            self.assertEqual(set(after["predicates"].values()), {"ALLOW"})
+            self.assertEqual(module.release_ref_binding(root, commit)["disposition"], "ALLOW")
+
+    def test_finish_verdict_tamper_cases_fail_closed_with_six_fields(self) -> None:
+        observed = {"disposition": "ALLOW", "predicate": "NON_ALLOW_PRODUCES_NO_EFFECT_IN_CUSTOMER_CONFORMANCE_RUN"}
+        with tempfile.TemporaryDirectory() as tmp:
+            root, module, manifest, commit = self.release_fixture(tmp)
+            def check(result, code):
+                self.assertEqual(result["disposition"], "FAIL_CLOSED")
+                self.assertEqual(result["failure_code"], code)
+                for field in SIX_FIELDS:
+                    self.assertTrue(result[field], field)
+            check(module.release_ref_binding(root, "0" * 40), "FINISH_REF_NOT_RELEASE_RECEIPT_COMMIT")
+            lic = root / "LICENSE"
+            original = lic.read_bytes()
+            lic.write_bytes(original + b"\n")
+            check(module.v_license(root, manifest), "LICENSE_FILE_HASH_MISMATCH")
+            lic.write_bytes(original)
+            (root / manifest["license"]["c_review_receipt"]["path"]).unlink()
+            check(module.v_license(root, manifest), "C_REVIEW_RECEIPT_PENDING")
+            py = root / "pyproject.toml"
+            text = py.read_text(encoding="utf-8")
+            py.write_text(text.replace("dependencies = [", 'dependencies = [\n  "requests",', 1), encoding="utf-8")
+            check(module.v_no_new_dependency(root, manifest), "RUNTIME_DEPENDENCY_CHANGED")
+            py.write_text(text, encoding="utf-8")
+            other = git(root, "commit-tree", "-m", "another commit", commit + "^{tree}")
+            git(root, "tag", "-f", "v" + module.v_package_identity(root, manifest)["version"], other)
+            check(module.v_immutable_tag(root, manifest), "RELEASE_TAG_NOT_AT_RECEIPT_COMMIT")
+            (root / manifest["organization_ledger"]["ledger_head"]["path"]).unlink()
+            verdict = module.finish_verdict(root, observed)
+            check(verdict["ledger_receipt_refusal"], "ORGANIZATION_LEDGER_HEAD_UNSEALED")
+            (root / manifest["release_receipt"]["path"]).unlink()
+            check(module.v_pinned_tree(root, manifest), "RELEASE_RECEIPT_ABSENT")
+            chain = json.loads((root / manifest["receipt_chain"]["fixture"]).read_text(encoding="utf-8"))
+            chain[0]["transition_outcome"] = "TAMPERED"
+            self.assertFalse(module.verify_chain(chain)[0])
+            (root / module.MANIFEST).unlink()
+            check(module.finish_verdict(root, observed), "RELEASE_MANIFEST_ABSENT_OR_MALFORMED")
+
+    def test_finish_module_reads_no_clock_root_path_or_stegverse_module(self) -> None:
+        source = FINISH_MODULE.read_text(encoding="utf-8")
+        for forbidden in ("datetime", "time.time", "import time", "/var/lib", "urllib", "socket", "import stegverse",
+                          "from stegverse"):
+            self.assertNotIn(forbidden, source, forbidden)
 
 
 if __name__ == "__main__":
