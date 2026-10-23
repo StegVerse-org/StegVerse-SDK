@@ -17,9 +17,11 @@ no structural-validator, validator-inventory, schema-migration, tier-pricing or 
 last test checks that at run time: the disposition half imports no module of the stegverse package.
 
 Consumed source pin (Coordination class D ruling: SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001 is a consumes-dependency,
-not a fold). The two files this test reads and executes belong to that Goal. Before either is read or executed, each
-file's sha256 must equal its content at the pinned commit STRUCTURAL_PIN["commit"]; on a mismatch every test that
-uses them fails closed with the six fields and runs nothing. A change to either file is a STRUCTURAL-owned edit: it is
+not a fold). The gate workflow and governance_gate.py, which this test reads and executes, belong to that Goal, and so
+does structural_validator_candidate.py, which governance_gate.run_gate loads by name. This test never calls run_gate,
+so the validator is reachable but not executed. Before any of them is read or executed, each file's sha256 must equal
+its content at the pinned commit STRUCTURAL_PIN["commit"]; on a mismatch every test that uses them fails closed with
+the six fields and runs nothing. A change to any of them is a STRUCTURAL-owned edit: it is
 routed to that Goal, and this pin moves only after that Goal publishes the new commit.
 
 Lowest supported mode: E0 (standard library, the committed workflow and module, bash; no clock, no network).
@@ -44,6 +46,9 @@ STRUCTURAL_PIN = {
     "files": {
         ".github/workflows/governance-gate.yml": "1d14c9baf363e37a5b66a33016497869206a671a2a7d29596a95c23eedb82df0",
         "stegverse/governance_gate.py": "3db3e83c97764e912919018dcb560c011d3b499ea550aef43e3f61e64a36ee4f",
+        # never executed here (only governance_gate.run_gate loads it, by name); pinned because the gate module
+        # this test executes can reach it, so a STRUCTURAL change to it is routed, not absorbed
+        "stegverse/structural_validator_candidate.py": "574b017a927acc9e4ef15ef90e0f71ddbdbd854dd1575ffa43bfbc1f1533bef7",
     },
 }
 
@@ -98,7 +103,7 @@ def conformance_run(report: str | None, checker_status: int) -> tuple[bool, str]
     """(effect ran, disposition output) for one customer run with the given report and checker status."""
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
-        sdk = work / ".stegverse-sdk" / "stegverse"
+        sdk = work / ".stegverse-sdk" / GATE_MODULE.parent.name
         sdk.mkdir(parents=True)
         (sdk / "governance_gate.py").write_bytes(GATE_MODULE.read_bytes())
         if report is not None:
@@ -153,12 +158,14 @@ class GovernanceProductFinishPoint(unittest.TestCase):
 
     def test_disposition_half_imports_no_stegverse_module(self) -> None:
         self.require_structural_pin()
-        probe = ("import importlib.util, json, sys\n"
+        probe = ("import importlib.util, json, os, sys\n"
                  "spec = importlib.util.spec_from_file_location('governance_gate', sys.argv[1])\n"
                  "module = importlib.util.module_from_spec(spec)\n"
                  "spec.loader.exec_module(module)\n"
                  "module.read_workflow_disposition(sys.argv[2])\n"
-                 "print(json.dumps(sorted(m for m in sys.modules if m.split('.')[0] == 'stegverse')))\n")
+                 "pkg = os.path.realpath(os.path.dirname(sys.argv[1]))\n"
+                 "print(json.dumps(sorted(n for n, m in list(sys.modules.items()) if n != 'governance_gate'\n"
+                 "    and os.path.realpath(getattr(m, '__file__', None) or '').startswith(pkg + os.sep))))\n")
         with tempfile.TemporaryDirectory() as tmp:
             report = Path(tmp) / "report.json"
             report.write_text('{"disposition": "FAIL_CLOSED"}\n', encoding="utf-8")
