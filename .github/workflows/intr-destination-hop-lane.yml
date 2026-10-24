@@ -10,6 +10,10 @@ name: InTr Destination Hop Lane
 # refs/stegverse/organization-ledger. It does not append. An organization
 # whose advertisement or ledger ref cannot be read stays in the matrix as
 # UNREACHABLE. It is not dropped because a checkout failed.
+#
+# Orchestrate mode is workflow_dispatch only and lives in
+# intr-destination-hop-lane-orchestrate.yml (hb_epoch input), so it is not a
+# skipped pull-request check either. Pull requests never dispatch a hop.
 
 on:
   pull_request:

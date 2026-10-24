@@ -20,7 +20,7 @@ repro = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(repro)
 
 RECORDED = json.loads(EVIDENCE.read_text(encoding="utf-8"))
-OLD, NEW = RECORDED["refs"]
+OLD, NEW, SELF_DEFAULT = RECORDED["refs"]
 
 
 def _without_digests(scenarios):
@@ -60,6 +60,21 @@ def test_pr534_workflow_with_its_default_sdk_ref_fails_closed_even_on_a_valid_bu
     assert set(NEW["workflow_with_default_sdk_ref"]) == {"empty", "valid", "tampered", "not_object"}
     assert all(step == {"disposition_output": "FAIL_CLOSED", "job_exit_status": 1}
                for step in NEW["workflow_with_default_sdk_ref"].values())
+
+
+def test_pr534_job_workflow_sha_default_allows_a_valid_bundle_and_fails_closed_otherwise():
+    # The repair for the finding above: an empty sdk_ref resolves to job.workflow_sha, so a caller that
+    # keeps the default runs the checker of the very commit it pinned. Recorded at an ancestor commit.
+    assert SELF_DEFAULT["ref"] == repro.DEFAULT_REFS[2]
+    assert SELF_DEFAULT["workflow_sdk_ref_default"] == repro.SELF_REF_DEFAULT == "job.workflow_sha"
+    assert SELF_DEFAULT["gate_blob"] == NEW["gate_blob"]
+    assert SELF_DEFAULT["actions_pinned_by_sha"]
+    defaulted = SELF_DEFAULT["workflow_with_default_sdk_ref"]
+    assert defaulted["valid"] == {"disposition_output": "ALLOW", "job_exit_status": 0}
+    for name in ("empty", "tampered", "not_object"):
+        assert defaulted[name] == {"disposition_output": "FAIL_CLOSED", "job_exit_status": 1}
+        assert SELF_DEFAULT["scenarios"][name]["checker"]["six_fields_present"] == list(repro.SIX_FIELDS)
+    assert defaulted == {name: s["workflow_step"] for name, s in SELF_DEFAULT["scenarios"].items()}
 
 
 def test_both_pins_install_and_roll_back_without_touching_the_caller():

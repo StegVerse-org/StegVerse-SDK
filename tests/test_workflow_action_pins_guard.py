@@ -2,9 +2,8 @@
 
 A tag or branch (`@v4`, `@main`, `@release/v1`) lets an external repository change what runs
 here without a change in this repository. Every `uses:` must name a 40-hex commit or a local
-`./` path. governance-gate.yml is the one listed exception: SDK#534 already pins its actions and
-the gate bytes are bound by CM-GOV-1 evidence, so pinning it here would collide with that
-owner-gated merge. A floating reference anywhere else fails closed with the six fields.
+`./` path. There are no exceptions: governance-gate.yml was the one exception until SDK#534
+merged and pinned it. A floating reference fails closed with the six fields.
 """
 from __future__ import annotations
 
@@ -16,9 +15,7 @@ WORKFLOWS = ROOT / ".github" / "workflows"
 USES = re.compile(r"^\s*(?:-\s*)?uses:\s*(\S+)")
 PINNED = re.compile(r"^[\w.-]+/[\w.-]+(?:/[\w./-]+)?@[0-9a-f]{40}$")
 # file -> (floating references allowed, why)
-EXCEPTIONS = {
-    "governance-gate.yml": (3, "SDK#534 pins these actions; CM-GOV-1 evidence binds the gate workflow blob"),
-}
+EXCEPTIONS = {}
 SIX_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair",
               "retry_entrypoint", "owning_existing_goal", "next_attempt")
 

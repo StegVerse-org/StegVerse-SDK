@@ -1,0 +1,30 @@
+name: S4_COST benchmark evaluator validation
+on:
+  pull_request:
+    paths:
+      - 'stegverse/s4_cost_benchmark.py'
+      - 'stegverse/cost_registry.py'
+      - 'tests/test_s4_cost_benchmark.py'
+      - 'pricing/cost-component-registry.v1.json'
+      - 'pricing/rate-card.five-lane-declared.json'
+      - '.github/workflows/s4-cost-benchmark-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'stegverse/s4_cost_benchmark.py'
+      - 'stegverse/cost_registry.py'
+      - 'tests/test_s4_cost_benchmark.py'
+      - '.github/workflows/s4-cost-benchmark-validation.yml'
+permissions: {}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: S4_COST evaluator tests (stdlib unittest, synthetic non-authoritative inputs)
+        run: python3 -m unittest -v tests.test_s4_cost_benchmark
+      - name: Authority boundary
+        run: |
+          echo 'EVIDENCE_CLASS=CI_VALIDATED_SOURCE'
+          echo 'BENCHMARK_COMPLETION_GRANTED=false'
+          echo 'REALISM_OWNER_ACCEPTED=false'

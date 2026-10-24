@@ -30,6 +30,29 @@ FREE_TIER_LIMITS = {"bundles": 25, "schemas": 200}
 DEFAULT_BUNDLE_GLOBS = (".stegverse/governance/**/*.json",)
 SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "__pycache__"}
 PACKAGE_DIR = Path(__file__).resolve().parent
+DISPOSITIONS = {"ALLOW", "DENY", "FAIL_CLOSED"}
+OWNING_EXISTING_GOAL = "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001"
+RETRY_ENTRYPOINT = "stegverse/governance_gate.py::run_gate"
+_NON_ALLOW = {
+    "NO_GOVERNANCE_BUNDLES_FOUND": (
+        "AT_LEAST_ONE_PORTABLE_GOVERNANCE_BUNDLE",
+        "Commit at least one stegverse.portable-governance-verification-bundle.v1 object "
+        "matching the bundle glob. The manifest constraint lives inside that bundle.",
+        "Rerun this checker after the bundle is in the repository. An empty glob is not a verification.",
+    ),
+    "FREE_TIER_LIMIT_EXCEEDED": (
+        "BUNDLE_AND_SCHEMA_COUNTS_WITHIN_RECORDED_LIMITS",
+        "Select at most 25 bundles and 200 classified schemas. The recorded limits are "
+        "FREE_TIER_LIMITS in stegverse/governance_gate.py.",
+        "Rerun this checker on a selection inside those limits.",
+    ),
+    "BUNDLE_VERIFICATION_FAILED": (
+        "EVERY_SELECTED_BUNDLE_RECOMPUTES",
+        "Repair each bundle whose status is not ALLOW so its manifest hashes, predecessor "
+        "receipt references, and identity fields match. The bundle error is on this report.",
+        "Rerun this checker on the repaired bundles. Do not retry a bundle whose hashes do not match.",
+    ),
+}
 
 
 def _sdk_module(name: str):
@@ -71,7 +94,7 @@ def verify_bundles(root: Path, patterns: Sequence[str]) -> list[dict]:
             if not isinstance(document, dict):
                 raise ValueError("bundle JSON root must be an object")
             report = verifier.verify_portable_governance_bundle(document)
-            results.append({"path": rel, "status": report.get("status", "UNKNOWN"),
+            results.append({"path": rel, "status": _gate_status(report.get("status", "FAIL_CLOSED")),
                             "report_sha256": hashlib.sha256(json.dumps(report, sort_keys=True).encode()).hexdigest()})
         except (OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
             results.append({"path": rel, "status": "FAIL_CLOSED", "error": f"{type(exc).__name__}: {exc}"})
@@ -104,22 +127,60 @@ def _encodable(validator, document) -> bool:
         return False
 
 
+def _gate_status(status: object) -> str:
+    """Map a verifier status onto ALLOW, DENY, or FAIL_CLOSED."""
+    if status == "PASS":
+        status = "ALLOW"
+    if status not in DISPOSITIONS:
+        return "FAIL_CLOSED"
+    return str(status)
+
+
+def _non_allow(reason: str) -> dict:
+    failed_predicate, repair, next_attempt = _NON_ALLOW[reason]
+    return {
+        "failure_code": reason,
+        "failed_predicate": failed_predicate,
+        "required_evidence_or_repair": repair,
+        "retry_entrypoint": RETRY_ENTRYPOINT,
+        "owning_existing_goal": OWNING_EXISTING_GOAL,
+        "next_attempt": next_attempt,
+    }
+
+
+def read_workflow_disposition(path: str | Path) -> str:
+    """Return the report disposition, or FAIL_CLOSED when the file is missing or unparsable."""
+    try:
+        report = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeError):
+        return "FAIL_CLOSED"
+    if not isinstance(report, dict):
+        return "FAIL_CLOSED"
+    value = report.get("disposition")
+    if value not in DISPOSITIONS:
+        return "FAIL_CLOSED"
+    return str(value)
+
+
 def run_gate(root: Path, bundle_globs: Sequence[str] = DEFAULT_BUNDLE_GLOBS, check_schemas: bool = True) -> dict:
     bundles = verify_bundles(root, bundle_globs)
     schemas = classify_schemas(root) if check_schemas else []
     over_limit = {name: count for name, count in (("bundles", len(bundles)), ("schemas", len(schemas)))
                   if count > FREE_TIER_LIMITS[name]}
-    failed = [b for b in bundles if b["status"] != "PASS"]
+    failed = [b for b in bundles if b["status"] != "ALLOW"]
     if over_limit:
         disposition = "FAIL_CLOSED"
         reason = "FREE_TIER_LIMIT_EXCEEDED"
+    elif not bundles:
+        disposition = "FAIL_CLOSED"
+        reason = "NO_GOVERNANCE_BUNDLES_FOUND"
     elif failed:
         disposition = "FAIL_CLOSED"
         reason = "BUNDLE_VERIFICATION_FAILED"
     else:
-        disposition = "PASS"
-        reason = "ALL_BUNDLES_VERIFIED" if bundles else "NO_GOVERNANCE_BUNDLES_FOUND"
-    return {
+        disposition = "ALLOW"
+        reason = "ALL_BUNDLES_VERIFIED"
+    report = {
         "schema": REPORT_SCHEMA,
         "tier": TIER,
         "disposition": disposition,
@@ -133,6 +194,9 @@ def run_gate(root: Path, bundle_globs: Sequence[str] = DEFAULT_BUNDLE_GLOBS, che
         "authority": {"verification_authority": "NONE", "execution_authorized": False, "standing_minted": False,
                       "admissibility_decided": False, "custody_claimed": False, "credential_issued": False},
     }
+    if disposition != "ALLOW":
+        report.update(_non_allow(reason))
+    return report
 
 
 def _summary(report: dict) -> str:
@@ -164,7 +228,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.summary:
         with open(args.summary, "a", encoding="utf-8") as handle:
             handle.write(_summary(report))
-    return 0 if report["disposition"] == "PASS" else 1
+    return 0 if report["disposition"] == "ALLOW" else 1
 
 
 if __name__ == "__main__":

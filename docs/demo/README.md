@@ -54,7 +54,7 @@ Exit status is 0 only when every hop is `PASS`.
 - `GET https://api.github.com/repos/<org>/.github/contents/org-runtime/interlock-intr.json`
 - `GET https://api.github.com/repos/<org>/.github/contents/org-boundary/registry/services.json`
 
-Public repositories are read with no credential. When `FEDERATION_READ_TOKEN` is set, that value is sent as a bearer token so a private `<org>/.github` can be read. The token is optional. It is not written into the report. The workflow passes the repository secret `FEDERATION_READ_TOKEN` into the live job; leave the secret unset to read public repositories only.
+Public repositories are read with no credential. When `FEDERATION_READ_TOKEN` is set, that value is sent as a bearer token so a private `<org>/.github` can be read. When it is unset, reads fall back to `FEDERATION_HOP_TOKEN`. The token is optional. It is not written into the report. The workflow passes the repository secret `FEDERATION_READ_TOKEN` into the live job; leave the secret unset to read public repositories only.
 
 For each organization whose advertisement was read, the lane then reads `refs/stegverse/organization-ledger` (and the repository-ledger namespace named by that organization's contract, when the contract was read). A local `--org-root` whose slug matches a read advertisement is used as that ledger checkout. Otherwise `--fetch-ledger-refs` fetches the ref from `https://github.com/<org>/.github`.
 
@@ -78,9 +78,54 @@ FEDERATION_READ_TOKEN="$FEDERATION_READ_TOKEN" \
 | `PASS` | Both ledgers were read, the chains verify, and this ordered pair has one correlated egress emission, closure, and destination ingress for the same `communication_id`. Authenticity is claimed only for that read-back. |
 | `FAIL` | A ledger was read and the chain or the correlation does not hold. |
 | `UNREACHABLE` | An advertisement could not be read, or a ledger ref could not be read, or the ref has no head. The hop stays in the matrix and the lane continues. |
+| `DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION` | The sender recorded the emission and no closure is in the read ledgers yet. `always_on_receiver_required: false`; not a failure. |
+
+`FAIL` and `UNREACHABLE` carry the six non-ALLOW fields.
+
+### Ledger integrity: LEGACY and duplicates
+
+History is not rewritten. Each organization's ledger is classified against its **writer introduction**: the earliest default-branch commit whose `.github/workflows/organization-ledger-transition.yml` takes `hb_epoch` as a dispatch input and runs the self-closure. It is read from the local checkout's history, or from the GitHub API (`commits?path=` and `contents?ref=`). `--writer-introduced ORG=<unix seconds | ISO 8601>` overrides it, and `--no-writer-lookup` turns the lookup off. A read ledger whose writer introduction is not observed (not found, unreadable, or the lookup turned off with no override) cannot have any receipt classed LEGACY, so every hop on it is `FAIL_CLOSED` `WRITER_INTRODUCTION_NOT_OBSERVED` with the six fields (owning goal `INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001`): never `PASS`, no authenticity claimed, no communication id read back as live.
+
+A receipt is `LEGACY` when the ledger-ref commit that added it is older than the writer introduction. The full ref history is fetched so that commit can be found. These findings on legacy receipts are reported under **Ledger integrity**, and they do not fail the lane:
+
+- orphan
+- duplicate
+- source mismatch
+- clock-derived time
+- authority-effect
+
+Repository receipts that repeat one `transition_id` with identical evidence are reported as `IDENTICAL_DUPLICATE_REPOSITORY_RECEIPT`. Divergent duplicates fail unless every copy is legacy. An organization receipt that names no source receipt is reported, and is not compared against a source copy. Chain-shape findings always fail: missing receipts, broken links, and bodies that do not verify.
+
+## Orchestrate mode
+
+`workflow_dispatch` only, and run only on Rigel's go. It needs `FEDERATION_HOP_TOKEN`, and it needs `intr-destination-hop.yml` on `main` in all eight organizations.
+
+```bash
+FEDERATION_HOP_TOKEN="$FEDERATION_HOP_TOKEN" \
+  python -m stegverse.intr_destination_hop_lane \
+  --mode orchestrate \
+  --hb-epoch 40000 \
+  --out-dir /tmp/intr-hop-lane-orchestrate
+```
+
+**Manifest-directed, no waiting.** One orchestrate run is one transition. It first reads every organization ledger (the live readback) and derives each ordered pair's ledger state: `CLOSED`, `REFUSED`, `OPEN` (sent, not yet closed) or `UNSENT`. It then records one disposition per pair. An `UNSENT` pair whose sender and destination hold no open hop, and are not already in a hop dispatched by this run, is dispatched. Every ledger writer in an organization shares the `organization-ledger` concurrency group, and GitHub cancels a second pending run in a group, so no organization appears in two dispatched hops. A later run, at a later supplied `--hb-epoch`, selects the next hops from ledger state.
+
+**`hb_epoch`.** Every send dispatch passes `hb_epoch` to the organization's `intr-destination-hop.yml` as a `workflow_dispatch` string of ASCII decimal digits, the same input name and form the organization-ledger writer takes (StegVerse-Labs/.github#3205). `hb_epoch` is checked by the shared supplied-epoch rule `supplied_epoch_failure` (copied unchanged from org-kernel `kernel.py`): ASCII `[0-9]+` with value at least 32 (the HB32 anchor), `derived_from_clock` false. An absent `hb_epoch` is `HB_EPOCH_NOT_SUPPLIED`; a blank, signed, spaced, fractional, exponent, underscore or non-ASCII-digit value, or one below 32 (`0`, `31`), is `HB_EPOCH_INVALID`. Either resolves the run to `FAIL_CLOSED` with `failed_predicate` `SUBMISSION_CARRIES_THE_SUPPLIED_HB_EPOCH` and the other four fields, before any ledger read or dispatch. Nothing is dispatched. A missing dispatch credential is `FAIL_CLOSED` `HOP_DISPATCH_CREDENTIAL_ABSENT` with the six fields.
+
+**LEGACY-only correlation.** Receipts added to a ledger ref before the supplied-epoch writer's introduction are LEGACY. They are reported, never live-mesh evidence: they do not correlate a live hop, they do not make a pair `CLOSED`, `OPEN` or `REFUSED` for orchestrate, and only the declared `LEGACY_REPORTABLE` findings on them are reported instead of failing. A pair correlated only by LEGACY receipts is `CORRELATED_RECEIPTS_ARE_LEGACY_ONLY` (`failure_code` `INTR_HOP_CORRELATED_ONLY_BY_LEGACY_RECEIPTS`, with the six fields), and orchestrate sends it again.
+
+**One hop.** A hop dispatched at epoch `E` has communication id `intr-hop:<sender>:<destination>:<E>`:
+
+1. The lane dispatches the sender's `phase=send`. It records `ORGANIZATION_EGRESS_EMITTED` at `E`.
+2. The destination's own `intr-destination` ingress records `ORGANIZATION_INTR_DESTINATION_INGRESS` at `E+1`.
+3. The sender records `ORGANIZATION_EGRESS_CLOSED` at `E+2`, only for the responded request class.
+
+**Dispositions.** A dispatched or `OPEN` hop is `DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION` with `always_on_receiver_required: false`: the destination's receive and the sender's close materialize from the dispatched events, and they are observed later only as organization-ledger receipts, in whatever readback runs next. It carries the six fields with `failure_code: DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION`; it is not a blocker. Nothing polls, sleeps or times out. Every non-ALLOW outcome (`UNREACHABLE`, `NOT_DISPATCHED`, `FAIL`, `CLOSURE_REFUSED`, `DEFERRED_ORGANIZATION_LEDGER_CONCURRENCY`) carries `failure_code`, `failed_predicate`, `required_evidence_or_repair`, `retry_entrypoint`, `owning_existing_goal` (StegVerse-Labs/.github#2897 / StegVerse-org/.github#162 P0-runtime-and-custody) and `next_attempt`. Exit status is 1 when a dispatch was not accepted, or a hop is `FAIL` for a reason other than not yet being sent.
+
+The credential path is a pending owner decision: TV/TVC least-privilege issuance per StegVerse-Labs/.github#2897.
 
 Exit status is 0 when no hop is `FAIL`. `UNREACHABLE` is a reported gap, not a crash, and not a reason to remove the organization from the peer set. A missing advertisement or ledger is not described as a verified receipt.
 
 ## CI
 
-`.github/workflows/intr-destination-hop-lane.yml` runs fabricated mode on pull requests. That job uses the organization checkouts it was given. Live mode is the separate `workflow_dispatch`-only workflow `.github/workflows/intr-destination-hop-lane-live.yml` and is not run by pull requests. The live job queries all eight organizations through the GitHub API and passes `FEDERATION_READ_TOKEN` when that secret is configured.
+`.github/workflows/intr-destination-hop-lane.yml` runs fabricated mode on pull requests. That job uses the organization checkouts it was given. Live mode is the separate `workflow_dispatch`-only workflow `.github/workflows/intr-destination-hop-lane-live.yml` and is not run by pull requests. The live job queries all eight organizations through the GitHub API and passes `FEDERATION_READ_TOKEN` when that secret is configured. Orchestrate mode is the separate `workflow_dispatch`-only workflow `.github/workflows/intr-destination-hop-lane-orchestrate.yml` (input `hb_epoch`), and it fails closed without `FEDERATION_HOP_TOKEN`. Pull requests never dispatch a hop.

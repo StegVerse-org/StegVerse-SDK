@@ -20,7 +20,7 @@ Pricing dispositions name `SDK-COST-DERIVED-TIER-PRICING-001` as `owning_existin
   - Adoption outside the SDK: `StegVerse-org/LLM-adapter#420` was merged by the owner. CI_VALIDATED there: PASS / `NO_GOVERNANCE_BUNDLES_FOUND`, with 17 of 21 schemas compatible with contract 1.6.
   - Not runtime-observed.
 - **Tier pricing.** SDK #527 is MERGED at `376512c`.
-- **Gate disposition rework.** Open draft SDK #534 (head `4f3916a`) carries it:
+- **Gate disposition rework.** Open draft SDK #534 (independently verified head `3dd6c80b54828821f83834e76a90b62ccd0237f0`) carries it:
   - `ALLOW` replaces `PASS`;
   - an empty bundle glob becomes `FAIL_CLOSED`;
   - the six disposition fields are emitted on every `FAIL_CLOSED`;
@@ -33,6 +33,7 @@ Pricing dispositions name `SDK-COST-DERIVED-TIER-PRICING-001` as `owning_existin
   - Old pin `ba5bbf42` (identical to main's gate) emits `PASS`/`FAIL_CLOSED` with no six fields. An empty glob is `PASS`, exit 0.
   - #534 head `3dd6c80b` emits `ALLOW`/`FAIL_CLOSED`. Every `FAIL_CLOSED` carries the six fields, and an empty glob is `FAIL_CLOSED`, exit 1.
   - #534's workflow keeps `sdk_ref` defaulting to `ba5bbf42`. With that default, the job fails closed on every input, including a valid bundle. This is safe, but the gate is unusable until the pin follow-up retargets `sdk_ref`.
+  - Repair on #534 at `4c9dfac7` (third recorded ref): `sdk_ref` defaults to empty and resolves to `job.workflow_sha`, the commit the caller pinned in `uses:`. With the default, a valid bundle is `ALLOW` (exit 0) and empty, tampered and non-object callers are `FAIL_CLOSED` (exit 1) with the six fields. No commit names its own hash. The remaining step is a docs-only follow-up that replaces `<534-merge-commit>` once #534 is on main via TVC#519 MERGE_ADMITTED_PULL_REQUEST.
   - Install and rollback at both pins leave the caller tree unchanged. The gate runs under `python3 -I -S` (no site-packages). Re-running the old pin after #534 reproduces it exactly.
 - **Six-field check.** `scripts/check_six_field_dispositions.py` (docs: `docs/SIX_FIELD_DISPOSITION_CHECK.md`) is a stdlib CI check for refusals that lack any of the six fields.
 
@@ -79,4 +80,4 @@ Cost calculation, commercial price and execution authority are separate:
 | Compute-unit definition, 75% margin, tier composition, final rate | Owner | Approve once there is validated cost coverage. A GitHub runner-minute is a cited costing proxy only. |
 | Network egress rate and market comparables | Owner (sources) | Cited `https` sources with `observed_at`. The Organization tier stays `UNKNOWN_RATE_NOT_SOURCED` until then. |
 | Gate and pricing invoked directly by CI, not selected by a manifest | Review query (#3183 acknowledgement) | Neither changes state. Expose them as manifest capabilities if the review requires it. |
-| Merge order | Owner | Owner approves merges (#3183). Lane C's suggested order was #539, #536, #534, #538, pin follow-up, #535. #538 merged at `07a6a90a` without the gate files (those stayed with #534). `StegVerse-Labs/.github` #3214 merged at `60d90c48`. |
+| Merge order | Owner | Owner approves merges (#3183). Earlier proposed order was #539, #536, #534, #538, pin follow-up, #535; this is superseded because #538, #542 and #539 have already merged. Remaining #536/#534, immutable pin follow-up and #535 require fresh exact-head owner-governed admission. #538 merged at `07a6a90a` without the gate files (those stayed with #534). `StegVerse-Labs/.github` #3214 merged at `60d90c48`. |
