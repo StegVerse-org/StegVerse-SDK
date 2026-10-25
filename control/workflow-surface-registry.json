@@ -607,22 +607,6 @@
    "verbatim_sha256": "d58c8234714b7e249074c42c71c55325d84007c226ad8417d8af231d799db5ff"
   },
   {
-   "workflow": ".github/workflows/intr-destination-hop-lane.yml",
-   "name": "InTr Destination Hop Lane",
-   "triggers_before": [
-    "pull_request",
-    "push",
-    "workflow_dispatch"
-   ],
-   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
-   "status": "DONE",
-   "catalog_groups": [
-    "intr-destination-hop-lane.fabricated"
-   ],
-   "verbatim_record": "tools/tasks/folded/intr-destination-hop-lane.yml",
-   "verbatim_sha256": "8c08e2ffc67550fbdca8d7387dd57f1646f18ef9b0cdc307d97e45ee55336ee1"
-  },
-  {
    "workflow": ".github/workflows/iw-matrix-falsifier-validation.yml",
    "name": "IW Matrix Falsifier Validation",
    "triggers_before": [
@@ -793,35 +777,6 @@
    ],
    "verbatim_record": "tools/tasks/folded/package-artifact-validation.yml",
    "verbatim_sha256": "b03d1e07d3a6918bb85b2a876f78914614f9b89539574f115a5f5a49b9acd762"
-  },
-  {
-   "workflow": ".github/workflows/portable-package-source-validation.yml",
-   "name": "Portable Package Source Validation - No Credential Authority",
-   "triggers_before": [
-    "push",
-    "pull_request"
-   ],
-   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
-   "status": "DONE",
-   "catalog_groups": [
-    "portable-package-source-validation.portable-package-source-validation"
-   ],
-   "verbatim_record": "tools/tasks/folded/portable-package-source-validation.yml",
-   "verbatim_sha256": "ff4a7b20fcaeb464dbb779ac4da832171931f9e4b153d6678f1fedfeee8d9160"
-  },
-  {
-   "workflow": ".github/workflows/portable-release-index-validation.yml",
-   "name": "Portable Release Index - No Credential Authority",
-   "triggers_before": [
-    "pull_request"
-   ],
-   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
-   "status": "DONE",
-   "catalog_groups": [
-    "portable-release-index-validation.release-index-validation"
-   ],
-   "verbatim_record": "tools/tasks/folded/portable-release-index-validation.yml",
-   "verbatim_sha256": "9a4dd0899c9149494d439cdbe0715ff50485af7e9e4cdc6e387c4cd0237984e9"
   },
   {
    "workflow": ".github/workflows/post-return-production-proof-validation.yml",
@@ -1037,22 +992,6 @@
    "verbatim_sha256": "8dbbe03422f8164a14b162fcc66f7c25cd27cdf8bbca4de5071aca0f325b0a16"
   },
   {
-   "workflow": ".github/workflows/sv-llm-intr-roundtrip.yml",
-   "name": "SV-LLM InTr Round Trip Conformance (Non-Authorizing)",
-   "triggers_before": [
-    "pull_request",
-    "push",
-    "workflow_dispatch"
-   ],
-   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
-   "status": "DONE",
-   "catalog_groups": [
-    "sv-llm-intr-roundtrip.roundtrip"
-   ],
-   "verbatim_record": "tools/tasks/folded/sv-llm-intr-roundtrip.yml",
-   "verbatim_sha256": "10d69951abd6a67a7e5873b408068cdcba219714f547cdd10457d718848e236d"
-  },
-  {
    "workflow": ".github/workflows/svg-governance-cycle-manifest-route.yml",
    "name": "SVG governance-cycle manifest route",
    "triggers_before": [
@@ -1170,7 +1109,7 @@
    "dispatcher_jobs": [
     "ratchet"
    ],
-   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance). Their path filters are dropped: they now run on every pull request and push to main.",
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
    "verbatim_record": "tools/tasks/folded/test-suite-ratchet.yml",
    "verbatim_sha256": "49d0310e72d7605a4757eecfa574b33d1741c829164029a9558ad3fc83d4838d"
   },
@@ -1187,7 +1126,7 @@
     "self",
     "self-default-sdk-ref"
    ],
-   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance). Their path filters are dropped: they now run on every pull request and push to main.",
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
    "verbatim_record": "tools/tasks/folded/governance-gate-selftest.yml",
    "verbatim_sha256": "3052fbaefd7190077ea053e18556d44522daf31f74906d0d28ce0b168a834c0c"
   },
@@ -1203,7 +1142,7 @@
    "dispatcher_jobs": [
     "review-only-export"
    ],
-   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance). Their path filters are dropped: they now run on every pull request and push to main.",
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
    "verbatim_record": "tools/tasks/folded/deepwiki-readonly-review.yml",
    "verbatim_sha256": "1ba15ade0978e3c2f67a9c7a1492182817de9d2341af08f6b4e906156c22ce03"
   },
@@ -1219,9 +1158,74 @@
    "dispatcher_jobs": [
     "conformance"
    ],
-   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance). Their path filters are dropped: they now run on every pull request and push to main.",
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
    "verbatim_record": "tools/tasks/folded/mir-leaf-v3-conformance.yml",
    "verbatim_sha256": "d3dcdb5b28bcbc8b44ccc3f7a3f57b7ddab5c528823942b0c52b22bf49a8e1c3"
+  },
+  {
+   "workflow": ".github/workflows/intr-destination-hop-lane.yml",
+   "name": "InTr Destination Hop Lane",
+   "triggers_before": [
+    "pull_request",
+    "push",
+    "workflow_dispatch"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "fabricated"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/intr-destination-hop-lane.yml",
+   "verbatim_sha256": "8c08e2ffc67550fbdca8d7387dd57f1646f18ef9b0cdc307d97e45ee55336ee1"
+  },
+  {
+   "workflow": ".github/workflows/sv-llm-intr-roundtrip.yml",
+   "name": "SV-LLM InTr Round Trip Conformance (Non-Authorizing)",
+   "triggers_before": [
+    "pull_request",
+    "push",
+    "workflow_dispatch"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "roundtrip"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/sv-llm-intr-roundtrip.yml",
+   "verbatim_sha256": "10d69951abd6a67a7e5873b408068cdcba219714f547cdd10457d718848e236d"
+  },
+  {
+   "workflow": ".github/workflows/portable-package-source-validation.yml",
+   "name": "Portable Package Source Validation - No Credential Authority",
+   "triggers_before": [
+    "push",
+    "pull_request"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "portable-package-source-validation"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/portable-package-source-validation.yml",
+   "verbatim_sha256": "ff4a7b20fcaeb464dbb779ac4da832171931f9e4b153d6678f1fedfeee8d9160"
+  },
+  {
+   "workflow": ".github/workflows/portable-release-index-validation.yml",
+   "name": "Portable Release Index - No Credential Authority",
+   "triggers_before": [
+    "pull_request"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "release-index-validation"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/portable-release-index-validation.yml",
+   "verbatim_sha256": "9a4dd0899c9149494d439cdbe0715ff50485af7e9e4cdc6e387c4cd0237984e9"
   }
  ],
  "g17_ceiling": {

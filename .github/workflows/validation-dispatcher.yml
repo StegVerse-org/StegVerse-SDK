@@ -425,3 +425,293 @@ jobs:
         run: node tools/mir_leaf_v3_neutral_reproducer.mjs fixtures/mir_leaf_v3_conformance_fixture_v1.json > /tmp/neutral-result.json
       - name: Compare neutral result to frozen expected vector
         run: python tools/compare_mir_leaf_v3_result.py /tmp/neutral-result.json
+
+  # ---- carried verbatim from tools/tasks/folded/intr-destination-hop-lane.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  fabricated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: StegVerse-org/.github
+          ref: 6e0f1e216f0e2cf1407be7f3f32338080cb8d2c4
+          path: _orgs/StegVerse-org
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: StegVerse-Labs/.github
+          ref: 6880847e223b32edfb1a10204048d38d4e4adf09
+          path: _orgs/StegVerse-Labs
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: SV-LLM/.github
+          ref: c0e46aa39f7e4040cf70cd8b8655d1f8d22465ad
+          path: _orgs/SV-LLM
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Admissible-Existence/.github
+          ref: b6d499be6d15a73630be99fbdc4156403a978ebd
+          path: _orgs/Admissible-Existence
+          persist-credentials: false
+
+      # Optional checkouts for fabricated mode only. A clone that fails is
+      # ignored here. Live mode, not this job, queries all eight organizations
+      # and keeps an unreadable advertisement in the hop matrix.
+      - name: Try the remaining organization checkouts
+        run: |
+          set +e
+          mkdir -p _orgs
+          for spec in \
+            "SV-011|_orgs/SV-011" \
+            "GCAT-BCAT-Engine|_orgs/GCAT-BCAT-Engine" \
+            "StegVerse-002|_orgs/StegVerse-002" \
+            "StegGhost|_orgs/StegGhost"
+          do
+            org="${spec%%|*}"
+            dest="${spec##*|}"
+            git clone --quiet --depth 1 "https://github.com/${org}/.github.git" "$dest"
+            if [ ! -f "$dest/org-runtime/interlock-intr.json" ]; then
+              rm -rf "$dest"
+            fi
+          done
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install the SDK
+        run: python -m pip install -q -e .
+
+      - name: Lane unit tests
+        run: python -m unittest tests.test_intr_destination_hop_lane -v
+
+      - name: Fabricated hop matrix from advertised capabilities
+        env:
+          INTR_HOP_ORG_ROOTS: ${{ github.workspace }}/_orgs/StegVerse-org:${{ github.workspace }}/_orgs/StegVerse-Labs:${{ github.workspace }}/_orgs/SV-LLM:${{ github.workspace }}/_orgs/Admissible-Existence
+        run: |
+          set -eu
+          python -m unittest tests.test_intr_destination_hop_lane.FabricatedCheckoutTests -v
+          args=()
+          for root in _orgs/SV-011 _orgs/GCAT-BCAT-Engine _orgs/StegVerse-002 _orgs/StegGhost; do
+            if [ -d "$root" ]; then
+              args+=(--org-root "$root")
+            fi
+          done
+          python -m stegverse.intr_destination_hop_lane \
+            --mode fabricated \
+            --reference-root "$GITHUB_WORKSPACE/_orgs/StegVerse-org" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/StegVerse-org" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/StegVerse-Labs" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/SV-LLM" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/Admissible-Existence" \
+            "${args[@]}" \
+            --mesh-root "$RUNNER_TEMP/intr-hop-mesh" \
+            --ledger-home "$RUNNER_TEMP/intr-hop-ledgers" \
+            --out-dir "$RUNNER_TEMP/intr-hop-lane"
+          python - <<'PY'
+          import json, os
+          report = json.load(open(os.environ["RUNNER_TEMP"] + "/intr-hop-lane/intr-destination-hop-lane.json", encoding="utf-8"))
+          assert report["evidence_class"] == "FABRICATED_NON_AUTHENTIC", report["evidence_class"]
+          assert report["far_side_authentic"] is False
+          assert report["authenticity_claimed"] is False
+          assert report["federation_json_is_a_peer_source"] is False
+          assert report["counts"]["FAIL"] == 0, report["counts"]
+          assert report["counts"]["PASS"] == report["hop_count"] > 0
+          print("INTR_DESTINATION_HOP_LANE_FABRICATED_PASS hops=%d" % report["hop_count"])
+          PY
+
+      - name: Publish the matrix report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intr-destination-hop-lane
+          path: ${{ runner.temp }}/intr-hop-lane
+          if-no-files-found: warn
+
+  # ---- carried verbatim from tools/tasks/folded/sv-llm-intr-roundtrip.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  roundtrip:
+    env:
+      STEGVERSE_ORG_DOTGITHUB_SHA: "893e921677cbed1a24e90c98771e77c9ed3cec16"
+      SV_LLM_DOTGITHUB_SHA: "29227a4bab57a2a4453fa8b8a86ada953d6cc4cc"
+      PUBLISHER_SHA: "1b3fc65c1bcab5c835985b878508e7b848d13025"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Materialize StegVerse-org/.github at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: StegVerse-org/.github
+          ref: ${{ env.STEGVERSE_ORG_DOTGITHUB_SHA }}
+          path: _orgs/stegverse-org
+          persist-credentials: false
+      - name: Materialize SV-LLM/.github at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: SV-LLM/.github
+          ref: ${{ env.SV_LLM_DOTGITHUB_SHA }}
+          path: _orgs/sv-llm
+          persist-credentials: false
+      - name: Materialize GCAT-BCAT-Engine/Publisher at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: GCAT-BCAT-Engine/Publisher
+          ref: ${{ env.PUBLISHER_SHA }}
+          path: _orgs/publisher
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the SDK and its declared dependencies
+        run: python -m pip install -q -e .
+      - name: Round trip and boundary cases
+        env:
+          STEGVERSE_ORG_DOTGITHUB_ROOT: ${{ github.workspace }}/_orgs/stegverse-org
+          SV_LLM_DOTGITHUB_ROOT: ${{ github.workspace }}/_orgs/sv-llm
+          GCAT_BCAT_PUBLISHER_ROOT: ${{ github.workspace }}/_orgs/publisher
+          SV_LLM_ROUNDTRIP_REPORT: ${{ runner.temp }}/sv-llm-intr-roundtrip-run.json
+          SV_LLM_ROUNDTRIP_PUBLISHER_DIR: ${{ runner.temp }}/publisher-return
+        run: |
+          set -eu
+          python -B -m unittest tests.test_sv_llm_intr_roundtrip -v 2>&1 | tee "$RUNNER_TEMP/roundtrip.log"
+          # The positive path must have run, not skipped.
+          test -s "$SV_LLM_ROUNDTRIP_REPORT"
+          python - <<'PY'
+          import json, os
+          report = json.load(open(os.environ["SV_LLM_ROUNDTRIP_REPORT"], encoding="utf-8"))
+          assert report["all_legs_allow"] is True, report
+          assert report["evidence_class"] == "SAME_HOST_SCRATCH_CODE_PATH_CONFORMANCE_ONLY", report
+          pub = report["publisher_return"]
+          assert pub["sdk_return_binding_observed"] is True, pub
+          out = os.environ["SV_LLM_ROUNDTRIP_PUBLISHER_DIR"]
+          assert open(os.path.join(out, pub["pdf"]["path"]), "rb").read(5) == b"%PDF-", pub
+          print("SV_LLM_INTR_ROUNDTRIP_CONFORMANCE_PASS legs=%d" % len(report["legs"]))
+          PY
+      - name: Publish run report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sv-llm-intr-roundtrip-run
+          path: |
+            ${{ runner.temp }}/sv-llm-intr-roundtrip-run.json
+            ${{ runner.temp }}/publisher-return
+            ${{ runner.temp }}/roundtrip.log
+          if-no-files-found: warn
+
+  # ---- carried verbatim from tools/tasks/folded/portable-package-source-validation.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  portable-package-source-validation:
+    permissions: {}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert no runtime credential authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+
+      - name: Materialize exact public source anonymously
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/StegVerse-org/StegVerse-SDK.git
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            SOURCE_REF="refs/pull/${PR_NUMBER}/merge"
+          else
+            SOURCE_REF="${GITHUB_SHA}"
+          fi
+          env -u GITHUB_TOKEN -u GH_TOKEN git fetch --depth=1 origin "${SOURCE_REF}"
+          git checkout --detach FETCH_HEAD
+          test -z "$(git config --local --get-regexp 'extraheader|credential' || true)"
+
+      - name: Install focused test dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install pytest
+
+      - name: Run portable package tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest tests/test_portable_packages.py tests/test_portable_dual_archive.py -q
+
+      - name: Prove console is non-authorizing and single-host sovereign
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m stegverse.portable_packages inspect --deployment-class NS > /tmp/ns.json
+          python - <<'PY'
+          import json
+          data = json.load(open('/tmp/ns.json', encoding='utf-8'))
+          assert data['deployment_class'] == 'NS'
+          assert data['required_archive_formats'] == ['zip', 'tar.gz']
+          assert data['installation_creates_node_membership'] is False
+          assert data['authority_effect'] == 'NONE'
+          assert data['download_active'] is False
+          sovereignty = data['single_host_sovereignty']
+          assert sovereignty['physical_host_topology'] == 'ONE_SOVEREIGN_PHYSICAL_HOST'
+          assert sovereignty['additional_physical_machine_required'] is False
+          assert sovereignty['third_party_machine_required'] is False
+          assert sovereignty['third_party_process_host_required'] is False
+          assert sovereignty['third_party_scheduler_required'] is False
+          assert sovereignty['third_party_state_host_required'] is False
+          assert sovereignty['third_party_control_plane_executor_required'] is False
+          assert sovereignty['independent_validation_mechanism'] == 'SAME_HOST_ISOLATED_LOGICAL_BOUNDARIES'
+          assert sovereignty['credential_authority'] == 'TV/TVC'
+          assert sovereignty['non_tv_tvc_secret_or_token_allowed'] is False
+          PY
+          if python -m stegverse.portable_packages download --deployment-class NS --format tar.gz --output /tmp/ns.tar.gz; then
+            echo 'download unexpectedly succeeded without governed artifact' >&2
+            exit 1
+          fi
+
+  # ---- carried verbatim from tools/tasks/folded/portable-release-index-validation.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  release-index-validation:
+    permissions: {}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert no credential authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+
+      - name: Materialize exact public PR source anonymously
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          git config --global --unset-all http.https://github.com/.extraheader || true
+          git init .
+          git remote add origin https://github.com/StegVerse-org/StegVerse-SDK.git
+          env -u GITHUB_TOKEN -u GH_TOKEN git fetch --depth=1 origin "refs/pull/${PR_NUMBER}/merge"
+          git checkout --detach FETCH_HEAD
+
+      - name: Install focused test dependency
+        shell: bash
+        run: python -m pip install pytest
+
+      - name: Run release index tests
+        shell: bash
+        run: python -m pytest tests/test_release_index.py -q
+
+      - name: Prove public release discovery carries no authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from stegverse.release_index import RELEASE_API
+          assert RELEASE_API.startswith('https://api.github.com/repos/StegVerse-Labs/StegCore/releases')
+          PY

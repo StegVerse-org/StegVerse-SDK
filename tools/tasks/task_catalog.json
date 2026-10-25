@@ -11,7 +11,7 @@
  "repairs": [
   "Step bodies that read their own workflow file read its verbatim record under tools/tasks/folded/ instead; the assertions are unchanged.",
   "Single-axis Python matrices (communication-edge-demo-validation, iw-matrix-falsifier-validation) are one catalog group per cell, recorded under source.matrix_cell.",
-  "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance). Their path filters are dropped: they now run on every pull request and push to main."
+  "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main."
  ],
  "folded_from_commit": "daca828a51d954f2817df4ca9f4fa25807248aa0",
  "groups": [
@@ -1458,75 +1458,6 @@
    }
   },
   {
-   "id": "intr-destination-hop-lane.fabricated",
-   "source": {
-    "workflow": ".github/workflows/intr-destination-hop-lane.yml",
-    "workflow_name": "InTr Destination Hop Lane",
-    "job": "fabricated",
-    "job_name": null,
-    "commit": "daca828",
-    "triggers_before": [
-     "pull_request",
-     "push",
-     "workflow_dispatch"
-    ],
-    "permissions_before": {
-     "contents": "read"
-    }
-   },
-   "events": [
-    "pull_request",
-    "push"
-   ],
-   "env": {},
-   "steps": [
-    {
-     "name": "Try the remaining organization checkouts",
-     "run_file": "tools/tasks/steps/intr-destination-hop-lane.fabricated/01-try-the-remaining-organization-checkouts.sh",
-     "run_sha256": "66c13ee5316ab06f21b28fcdf25b24e7691f3d7a233ae91666a69dada25d3087"
-    },
-    {
-     "name": "Install the SDK",
-     "run_file": "tools/tasks/steps/intr-destination-hop-lane.fabricated/02-install-the-sdk.sh",
-     "run_sha256": "e56b05d9c776959daa3ca37ccf16f3964dd0dba21f31f5138c19a7fc26413d41"
-    },
-    {
-     "name": "Lane unit tests",
-     "run_file": "tools/tasks/steps/intr-destination-hop-lane.fabricated/03-lane-unit-tests.sh",
-     "run_sha256": "321f8dab07002a710c2e04a6510e4e2abd47a7f5678f16b6a03be2a994a1d43a"
-    },
-    {
-     "name": "Fabricated hop matrix from advertised capabilities",
-     "run_file": "tools/tasks/steps/intr-destination-hop-lane.fabricated/04-fabricated-hop-matrix-from-advertised-capabilities.sh",
-     "run_sha256": "925972f37d8eb045a9b1bca68db78c310449a68298fe6e55886af66279855dc6",
-     "env": {
-      "INTR_HOP_ORG_ROOTS": "${{ github.workspace }}/_orgs/StegVerse-org:${{ github.workspace }}/_orgs/StegVerse-Labs:${{ github.workspace }}/_orgs/SV-LLM:${{ github.workspace }}/_orgs/Admissible-Existence"
-     }
-    }
-   ],
-   "artifacts": [
-    {
-     "name": "intr-destination-hop-lane",
-     "path": "${{ runner.temp }}/intr-hop-lane",
-     "if_no_files_found": "warn",
-     "if": "always()"
-    }
-   ],
-   "runner": {
-    "fetch_depth": "1",
-    "persist_credentials": "true",
-    "timeout_minutes": 20,
-    "x_repository": "Admissible-Existence/.github",
-    "x_ref": "b6d499be6d15a73630be99fbdc4156403a978ebd",
-    "x_path": "_orgs/Admissible-Existence",
-    "x_fetch_depth": "1",
-    "x_persist_credentials": "false",
-    "python_version": "3.11",
-    "artifact_name": "intr-destination-hop-lane",
-    "artifact_if_no_files_found": "warn"
-   }
-  },
-  {
    "id": "iw-matrix-falsifier-validation.validate-python3.9",
    "source": {
     "workflow": ".github/workflows/iw-matrix-falsifier-validation.yml",
@@ -2178,127 +2109,6 @@
      "name": "Record non-authorizing boundary",
      "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/12-record-non-authorizing-boundary.sh",
      "run_sha256": "b8556d79be82cae160c40a1925d1086fdf7b461565790638f2316c681dc39367"
-    }
-   ],
-   "artifacts": [],
-   "runner": {
-    "fetch_depth": "1",
-    "persist_credentials": "true",
-    "timeout_minutes": 30
-   }
-  },
-  {
-   "id": "portable-package-source-validation.portable-package-source-validation",
-   "source": {
-    "workflow": ".github/workflows/portable-package-source-validation.yml",
-    "workflow_name": "Portable Package Source Validation - No Credential Authority",
-    "job": "portable-package-source-validation",
-    "job_name": null,
-    "commit": "daca828",
-    "triggers_before": [
-     "push",
-     "pull_request"
-    ],
-    "permissions_before": {}
-   },
-   "events": [
-    "pull_request",
-    "push"
-   ],
-   "env": {},
-   "steps": [
-    {
-     "name": "Assert no runtime credential authority",
-     "run_file": "tools/tasks/steps/portable-package-source-validation.portable-package-source-validation/01-assert-no-runtime-credential-authority.sh",
-     "run_sha256": "bf1037c0ec9c9da3a3d05f18db72bb2d4f46201f30178fda2b9d24bc6d07736d",
-     "shell": "bash"
-    },
-    {
-     "name": "Materialize exact public source anonymously",
-     "run_file": "tools/tasks/steps/portable-package-source-validation.portable-package-source-validation/02-materialize-exact-public-source-anonymously.sh",
-     "run_sha256": "33aed769bdd239f9ea58537fb63a034c8b2e715cec71a2662ddc799938dff253",
-     "shell": "bash",
-     "env": {
-      "PR_NUMBER": "${{ github.event.pull_request.number }}"
-     }
-    },
-    {
-     "name": "Install focused test dependency",
-     "run_file": "tools/tasks/steps/portable-package-source-validation.portable-package-source-validation/03-install-focused-test-dependency.sh",
-     "run_sha256": "c6dd9db6eb2eb15aab7368125d4f96e32862a4da479f0d2c56d4fbfe12e6e111",
-     "shell": "bash"
-    },
-    {
-     "name": "Run portable package tests",
-     "run_file": "tools/tasks/steps/portable-package-source-validation.portable-package-source-validation/04-run-portable-package-tests.sh",
-     "run_sha256": "482e1a7f88d6b438d379ea6f56f5704d16495692df163ac1659459bab2f27bf0",
-     "shell": "bash"
-    },
-    {
-     "name": "Prove console is non-authorizing and single-host sovereign",
-     "run_file": "tools/tasks/steps/portable-package-source-validation.portable-package-source-validation/05-prove-console-is-non-authorizing-and-single-host-sovereign.sh",
-     "run_sha256": "3c9bed384bf8bbdd87077d5fcf964dd8375119d8a0e5380b41b986c75b0adcd0",
-     "shell": "bash"
-    }
-   ],
-   "artifacts": [],
-   "runner": {
-    "fetch_depth": "1",
-    "persist_credentials": "true",
-    "timeout_minutes": 30
-   }
-  },
-  {
-   "id": "portable-release-index-validation.release-index-validation",
-   "source": {
-    "workflow": ".github/workflows/portable-release-index-validation.yml",
-    "workflow_name": "Portable Release Index - No Credential Authority",
-    "job": "release-index-validation",
-    "job_name": null,
-    "commit": "daca828",
-    "triggers_before": [
-     "pull_request"
-    ],
-    "permissions_before": {}
-   },
-   "events": [
-    "pull_request",
-    "push"
-   ],
-   "env": {},
-   "steps": [
-    {
-     "name": "Assert no credential authority",
-     "run_file": "tools/tasks/steps/portable-release-index-validation.release-index-validation/01-assert-no-credential-authority.sh",
-     "run_sha256": "bf1037c0ec9c9da3a3d05f18db72bb2d4f46201f30178fda2b9d24bc6d07736d",
-     "shell": "bash"
-    },
-    {
-     "name": "Materialize exact public PR source anonymously",
-     "run_file": "tools/tasks/steps/portable-release-index-validation.release-index-validation/02-materialize-exact-public-pr-source-anonymously.sh",
-     "run_sha256": "f418ddceb5135879f3a3ee4b68396e9d3069cfc189a7d91dbaecd9402272849a",
-     "shell": "bash",
-     "env": {
-      "PR_NUMBER": "${{ github.event.pull_request.number }}"
-     }
-    },
-    {
-     "name": "Install focused test dependency",
-     "run_file": "tools/tasks/steps/portable-release-index-validation.release-index-validation/03-install-focused-test-dependency.sh",
-     "run_sha256": "d5cf1ea8dcdee09f04f8232a17689623c901ff0221f86fc8dbad251f8475d96a",
-     "shell": "bash"
-    },
-    {
-     "name": "Run release index tests",
-     "run_file": "tools/tasks/steps/portable-release-index-validation.release-index-validation/04-run-release-index-tests.sh",
-     "run_sha256": "b3e9e4db82a25b1a11cec7e73885d19a7855c6940e479f38b4fa4d1d1de7fdbc",
-     "shell": "bash"
-    },
-    {
-     "name": "Prove public release discovery carries no authority",
-     "run_file": "tools/tasks/steps/portable-release-index-validation.release-index-validation/05-prove-public-release-discovery-carries-no-authority.sh",
-     "run_sha256": "f0891f0402b2d95354524d3fc49bda5edfe31a4fddb430cd88ce3650afb24f32",
-     "shell": "bash"
     }
    ],
    "artifacts": [],
@@ -3029,73 +2839,6 @@
     "fetch_depth": "1",
     "persist_credentials": "true",
     "timeout_minutes": 30
-   }
-  },
-  {
-   "id": "sv-llm-intr-roundtrip.roundtrip",
-   "source": {
-    "workflow": ".github/workflows/sv-llm-intr-roundtrip.yml",
-    "workflow_name": "SV-LLM InTr Round Trip Conformance (Non-Authorizing)",
-    "job": "roundtrip",
-    "job_name": null,
-    "commit": "daca828",
-    "triggers_before": [
-     "pull_request",
-     "push",
-     "workflow_dispatch"
-    ],
-    "permissions_before": {
-     "contents": "read"
-    }
-   },
-   "events": [
-    "pull_request",
-    "push"
-   ],
-   "env": {
-    "STEGVERSE_ORG_DOTGITHUB_SHA": "893e921677cbed1a24e90c98771e77c9ed3cec16",
-    "SV_LLM_DOTGITHUB_SHA": "29227a4bab57a2a4453fa8b8a86ada953d6cc4cc",
-    "PUBLISHER_SHA": "1b3fc65c1bcab5c835985b878508e7b848d13025"
-   },
-   "steps": [
-    {
-     "name": "Install the SDK and its declared dependencies",
-     "run_file": "tools/tasks/steps/sv-llm-intr-roundtrip.roundtrip/01-install-the-sdk-and-its-declared-dependencies.sh",
-     "run_sha256": "e56b05d9c776959daa3ca37ccf16f3964dd0dba21f31f5138c19a7fc26413d41"
-    },
-    {
-     "name": "Round trip and boundary cases",
-     "run_file": "tools/tasks/steps/sv-llm-intr-roundtrip.roundtrip/02-round-trip-and-boundary-cases.sh",
-     "run_sha256": "78ef4ecbfcc40557b9db948d1cab44d18d044cb5920d366127276a37c5463a7d",
-     "env": {
-      "STEGVERSE_ORG_DOTGITHUB_ROOT": "${{ github.workspace }}/_orgs/stegverse-org",
-      "SV_LLM_DOTGITHUB_ROOT": "${{ github.workspace }}/_orgs/sv-llm",
-      "GCAT_BCAT_PUBLISHER_ROOT": "${{ github.workspace }}/_orgs/publisher",
-      "SV_LLM_ROUNDTRIP_REPORT": "${{ runner.temp }}/sv-llm-intr-roundtrip-run.json",
-      "SV_LLM_ROUNDTRIP_PUBLISHER_DIR": "${{ runner.temp }}/publisher-return"
-     }
-    }
-   ],
-   "artifacts": [
-    {
-     "name": "sv-llm-intr-roundtrip-run",
-     "path": "${{ runner.temp }}/sv-llm-intr-roundtrip-run.json\n${{ runner.temp }}/publisher-return\n${{ runner.temp }}/roundtrip.log\n",
-     "if_no_files_found": "warn",
-     "if": "always()"
-    }
-   ],
-   "runner": {
-    "fetch_depth": "1",
-    "persist_credentials": "true",
-    "timeout_minutes": 30,
-    "x_repository": "GCAT-BCAT-Engine/Publisher",
-    "x_ref": "${{ env.PUBLISHER_SHA }}",
-    "x_path": "_orgs/publisher",
-    "x_fetch_depth": "1",
-    "x_persist_credentials": "false",
-    "python_version": "3.11",
-    "artifact_name": "sv-llm-intr-roundtrip-run",
-    "artifact_if_no_files_found": "warn"
    }
   },
   {
