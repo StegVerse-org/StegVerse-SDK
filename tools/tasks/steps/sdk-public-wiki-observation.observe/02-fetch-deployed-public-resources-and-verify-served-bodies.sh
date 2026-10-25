@@ -1,0 +1,1 @@
+python scripts/observe_sdk_public_wiki.py

@@ -25,6 +25,10 @@ class NavEvaluatorCI24Tests(unittest.TestCase):
         for x in rows:
             with self.subTest(index=x["index"]):
                 path=(ROOT/x["witness_path"]).resolve()
+                if not path.is_file() and x["witness_path"].startswith(".github/workflows/"):
+                    # G17 (StegVerse-org/.github#166): folded workflows keep their verbatim
+                    # record under tools/tasks/folded/; the exact literal is asserted there.
+                    path=(ROOT/"tools/tasks/folded"/Path(x["witness_path"]).name).resolve()
                 self.assertTrue(path.is_relative_to(ROOT.resolve()))
                 self.assertTrue(path.is_file(),x["witness_path"])
                 self.assertIn(x["exact_literal"],path.read_text(encoding="utf-8"))

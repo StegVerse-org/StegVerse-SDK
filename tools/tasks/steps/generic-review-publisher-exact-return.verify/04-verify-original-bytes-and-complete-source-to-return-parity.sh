@@ -1,0 +1,1 @@
+python -m unittest tests.test_generic_publisher_exact_crossrepo -v

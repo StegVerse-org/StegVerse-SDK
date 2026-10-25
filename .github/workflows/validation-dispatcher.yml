@@ -1,0 +1,717 @@
+name: Stable validator dispatcher
+
+# G17-WORKFLOW-SURFACE-MINIMIZATION (StegVerse-Labs/.github#167/#168), enforced
+# retroactively under Rigel's 2026-10-24 direction (StegVerse-org/.github#166).
+# This is StegVerse-org/StegVerse-SDK's stable validation surface (80 -> 6 workflow files). It runs
+# the manifest tools/tasks/task_catalog.json: one matrix job per catalog group, each
+# group being one job of a workflow folded here (verbatim records under
+# tools/tasks/folded/), its steps the original run blocks byte for byte, pinned by
+# sha256 and refused by `run_catalog.py verify` on any drift. Same file as
+# StegVerse-Labs/StegDB .github/workflows/validation-dispatcher.yml @ eab2e773
+# below this header. A new check is a catalog entry, never a new workflow file;
+# control/workflow-surface-registry.json fails closed on an unregistered workflow.
+# Actions are pinned by full commit SHA.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validation-dispatcher-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: The catalog matches its pinned step bodies
+        run: python3 tools/tasks/run_catalog.py verify
+      - name: Select the catalog groups this event runs
+        id: select
+        run: echo "matrix=$(python3 tools/tasks/run_catalog.py matrix --event "$GITHUB_EVENT_NAME")" >> "$GITHUB_OUTPUT"
+
+  check:
+    needs: plan
+    name: ${{ matrix.group }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ matrix.timeout_minutes }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      CATALOG_EVENT_BEFORE: ${{ github.event.before }}
+      CATALOG_EVENT_AFTER: ${{ github.event.after }}
+      CATALOG_PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      CATALOG_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      CATALOG_PR_NUMBER: ${{ github.event.pull_request.number }}
+      CATALOG_PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+      CATALOG_PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      CATALOG_PR_TITLE: ${{ github.event.pull_request.title }}
+      CATALOG_PR_BODY: ${{ github.event.pull_request.body }}
+      CATALOG_PR_HTML_URL: ${{ github.event.pull_request.html_url }}
+      CATALOG_PR_MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      CATALOG_RELEASE_TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ matrix.ref }}
+          fetch-depth: ${{ matrix.fetch_depth }}
+          persist-credentials: ${{ matrix.persist_credentials }}
+      - name: Second checkout the folded job made
+        if: matrix.x_repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: ${{ matrix.x_repository }}
+          ref: ${{ matrix.x_ref }}
+          path: ${{ matrix.x_path }}
+          fetch-depth: ${{ matrix.x_fetch_depth }}
+          persist-credentials: ${{ matrix.x_persist_credentials }}
+      - name: Python the folded job set up
+        if: matrix.python_version
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "${{ matrix.python_version }}"
+      - name: Run the catalog group
+        run: python3 tools/tasks/run_catalog.py run --group "${{ matrix.group }}"
+      - name: Retain the artifact the folded job uploaded
+        if: always() && matrix.artifact_name
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ${{ matrix.artifact_name }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/catalog-artifacts
+          if-no-files-found: ${{ matrix.artifact_if_no_files_found }}
+
+  # ---- carried verbatim from tools/tasks/folded/test-suite-ratchet.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  ratchet:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # secrets is not an available context in a step-level `if`; env is, and a
+      # job-level env may read a secret. Referencing secrets directly in the
+      # step condition made this workflow invalid, so it failed to load and the
+      # gate silently stopped running -- which is the exact failure it exists to
+      # prevent.
+      OWNER_TOKEN: ${{ secrets.STEGBROWSER_READ_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      # The package's own dependencies, not just pytest. `requests` alone is
+      # imported by 208 test modules; installing pytest by itself collects them
+      # as errors and the gate then reads a failure set for an environment the
+      # suite cannot run in. `-e '.[dev]'` is this repository's own convention.
+      - run: python -m pip install -e '.[dev]'
+
+      # The StegBrowser owner performs each branch's LLM interaction, and the
+      # tests that verify against the real owner skip without it. It cannot be
+      # pip-installed: the repository carries no packaging metadata and imports
+      # as src.stegbrowser from its own root. It is also private, so
+      # GITHUB_TOKEN cannot read it. This step therefore checks it out only when
+      # a token secret exists, and no-ops otherwise rather than failing the gate
+      # for everyone. Set STEGBROWSER_READ_TOKEN to close that coverage gap.
+      - name: Check out the StegBrowser owner when a token is available
+        id: owner
+        if: env.OWNER_TOKEN != ''
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: StegVerse-Labs/StegBrowser
+          path: _stegbrowser_owner
+          token: ${{ env.OWNER_TOKEN }}
+
+      # continue-on-error above keeps a missing secret from failing the gate for
+      # everyone, but it would also swallow a real checkout failure: the owner
+      # tests would skip and this job would still go green, reporting less
+      # coverage than a reader expects. So when the token IS set, the owner must
+      # actually be there. A secret that does not work is a loud failure, not a
+      # quiet reduction in what the gate covers.
+      - name: A supplied owner token must actually produce the owner
+        if: env.OWNER_TOKEN != ''
+        run: |
+          profile=_stegbrowser_owner/src/stegbrowser/llm_profile.py
+          if [ ! -f "$profile" ]; then
+            echo "STEGBROWSER_READ_TOKEN is set but $profile is absent."
+            echo "The owner checkout did not succeed, so the tests that verify"
+            echo "against the real owner would skip while this gate stayed green."
+            echo "Check the token's read access to StegVerse-Labs/StegBrowser."
+            exit 1
+          fi
+          echo "OWNER_PRESENT $profile"
+
+      # SDK-MANIFEST-IDENTITY-ROUTING-REGRESSION-GATE-001 (SDK#368): a hard
+      # gate, not a ratchet entry. No baseline failure may be held against it.
+      - name: Manifest identity and routing regression gate
+        run: python -m pytest tests/test_manifest_identity_routing_regression_gate.py -q -p no:cacheprovider
+
+      # The reference validator comes from the existing [dev] extra installed above;
+      # requiring it turns a missing reference into a failure instead of a skip.
+      - name: Structural validator candidate deterministic and differential tests
+        env:
+          STEGVERSE_REQUIRE_REFERENCE_VALIDATOR: "1"
+        run: |
+          python -c "import jsonschema; print('REFERENCE_VALIDATOR jsonschema', jsonschema.__version__)"
+          python -m pytest tests/test_structural_validator_candidate.py -q -rs -p no:cacheprovider
+
+      - name: No change may add a test failure the baseline does not hold
+        run: python scripts/check_test_suite_ratchet.py
+
+      - name: Publish the run as structured findings
+        if: always()
+        run: |
+          python scripts/check_test_suite_ratchet.py --findings > /tmp/test-suite-ratchet.json || true
+          python - <<'PY'
+          import json
+          report = json.load(open("/tmp/test-suite-ratchet.json", encoding="utf-8"))
+          print(f"TEST_SUITE_RATCHET findings={report['finding_count']}")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-suite-ratchet
+          path: /tmp/test-suite-ratchet.json
+          if-no-files-found: warn
+
+  # ---- carried verbatim from tools/tasks/folded/governance-gate-selftest.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  self:
+    uses: ./.github/workflows/governance-gate.yml
+    with:
+      sdk_ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      # Synthetic bundle so this job is not an empty-glob run. The empty glob
+      # is FAIL_CLOSED and is covered by tests/test_governance_gate.py.
+      bundle_glob: tests/fixtures/governance-gate/*.json
+  self-default-sdk-ref:
+    # No sdk_ref: the gate resolves job.workflow_sha, the commit this run is
+    # at, so the default path is exercised on every gate change.
+    uses: ./.github/workflows/governance-gate.yml
+    with:
+      bundle_glob: tests/fixtures/governance-gate/*.json
+
+  # ---- carried verbatim from tools/tasks/folded/deepwiki-readonly-review.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  review-only-export:
+    permissions:
+      contents: read
+      actions: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Test fail-closed parser and review-only export
+        run: python -m unittest tests.test_export_deepwiki_review -v
+      - name: Test source-pinned citation candidate resolver
+        run: python -m unittest tests.test_resolve_deepwiki_review_citations -v
+      - name: Test non-authorizing claim-inspection packet
+        run: python -m unittest tests.test_build_deepwiki_claim_review -v
+      - name: Test unresolved-citation source probes
+        run: python -m unittest tests.test_inspect_remaining_deepwiki_citations -v
+      - name: Test frozen priority/defect review classification
+        run: python -m unittest tests.test_triage_frozen_deepwiki_citations -v
+      - name: Validate first-party guide exact source anchors
+        run: python -m unittest tests.test_deepwiki_first_party_guide -v
+      - name: Test complete conservative frozen-citation review
+        run: python -m unittest tests.test_curate_frozen_deepwiki_review -v
+      - name: Verify first-party current-source drift corrections
+        run: python -m unittest tests.test_deepwiki_source_drift -v
+      - name: Test atomic source-claim evidence and predecessor partition
+        run: python -m unittest tests.test_assess_deepwiki_atomic_claims -v
+      - name: Validate newly authored first-party SDK contract corrections
+        run: python -m unittest tests.test_deepwiki_first_party_verified_contracts -v
+      - name: Test predecessor-linked historical literal revalidation
+        run: python -m unittest tests.test_reconcile_historical_deepwiki_literals -v
+      - name: Validate independently reviewed Overview citation contexts
+        run: python -m unittest tests.test_deepwiki_overview_13_context -v
+      - name: Test exact-current 23-source locators and six governance diagram corrections
+        run: python -m unittest tests.test_locate_23_historical_deepwiki_sources tests.test_deepwiki_governance_six_diagrams -v
+      - name: Test eight source-level cross-boundary priority decisions
+        run: python -m unittest tests.test_deepwiki_eight_crossboundary -v
+      - name: Test all 32 remaining priority source witnesses without semantic authorization
+        run: python -m unittest tests.test_verify_remaining32_deepwiki_priority -v
+      - name: Validate 30 exact-source manifest candidate judgments
+        run: python -m unittest tests.test_verify_30_manifest_claims -v
+      - name: Verify first-party 30-case manifest technical guide
+        run: python -m unittest tests.test_first_party_manifest30_reference -v
+      - name: Test twenty-four independently authored navigation evaluator CI facts
+        run: python -m unittest tests.test_deepwiki_nav_evaluator_ci24 -v
+      - name: Validate nineteen current cross-framework witnesses without generated page import
+        run: python -m unittest tests.test_deepwiki_cross_framework_19 -v
+      - name: Test fourteen current purpose-worker source predicates without external page import
+        run: python -m unittest tests.test_deepwiki_purpose_worker14 -v
+      - name: Test ten current atomic-worker source witnesses
+        run: python -m unittest tests.test_deepwiki_atomic_worker10 -v
+      - name: Test sixteen universal-entry/interlock exact-source findings
+        run: python -m unittest tests.test_deepwiki_universal_interlock16 -v
+      - name: Capture public indexed wiki from official read-only MCP
+        run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
+      - name: Produce nonpublishing citation candidates against checked-out exact source
+        run: |
+          python scripts/resolve_deepwiki_review_citations.py \
+            --input deepwiki-review-export/read_wiki_contents.md \
+            --root . \
+            --revision "$(git rev-parse HEAD)" \
+            --out deepwiki-review-export
+      - name: Assemble full source/claim review packet without semantic certification
+        run: |
+          python scripts/build_deepwiki_claim_review.py \
+            --input deepwiki-review-export/read_wiki_contents.md \
+            --report deepwiki-review-export/citation-review-report.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Verify unambiguous unresolved source suggestions; retain malformed cases
+        run: |
+          python scripts/inspect_remaining_deepwiki_citations.py \
+            --input deepwiki-review-export/read_wiki_contents.md \
+            --report deepwiki-review-export/citation-review-report.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Retrieve exact original 38-page source-review snapshot
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 36175208212
+          name: deepwiki-sdk-review-only-de615ea3b7e9a1c7c118afb74b4db69b821272f7
+          github-token: ${{ github.token }}
+          path: frozen-deepwiki-review
+      - name: Verify original immutable capture before review
+        run: |
+          echo 'a729d9b0f487f785b0e8f92006f303e8520e3593b6eb6c4c5de43273daa72087  frozen-deepwiki-review/read_wiki_contents.md' | sha256sum -c -
+      - name: Export 75 priority and 46 unresolved frozen review registers
+        run: |
+          python scripts/triage_frozen_deepwiki_citations.py \
+            --raw frozen-deepwiki-review/read_wiki_contents.md \
+            --claims frozen-deepwiki-review/source-claim-inspection-UNREVIEWED.json \
+            --unresolved frozen-deepwiki-review/remaining-citation-proposals-UNREVIEWED.json \
+            --out deepwiki-review-export
+      - name: Retrieve prior exact 75-case frozen and 613-case inspection packet
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 36183020371
+          name: deepwiki-sdk-review-only-05abad329e8dd27159a75e203ec5532206510697
+          github-token: ${{ github.token }}
+          path: frozen-adjudication-input
+      - name: Produce quarantine-only review of all 659 citation targets
+        run: |
+          python scripts/curate_frozen_deepwiki_review.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --prior frozen-adjudication-input/citation-review-report.json \
+            --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --unresolved frozen-adjudication-input/remaining-citation-proposals-UNREVIEWED.json \
+            --priority frozen-adjudication-input/priority-75-REVIEW-NOT-PUBLICATION.csv \
+            --out deepwiki-review-export
+      - name: Reassess 613 source candidates and original 75 priority references
+        run: |
+          python scripts/assess_deepwiki_atomic_claims.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --curation deepwiki-review-export/613-CLAIM_AND_46-DEFECT_DISPOSITIONS.json \
+            --priority frozen-adjudication-input/priority-75-REVIEW-NOT-PUBLICATION.csv \
+            --report frozen-adjudication-input/citation-review-report.json \
+            --out deepwiki-review-export
+      - name: Revalidate 27 priority literals at their exact earlier source revision
+        run: |
+          python scripts/reconcile_historical_deepwiki_literals.py \
+            --historical frozen-deepwiki-review/source-claim-inspection-UNREVIEWED.json \
+            --later frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --atomic deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
+            --out deepwiki-review-export
+      - name: Recheck 23 historical-only literals in exact checked-out SDK source
+        run: |
+          python scripts/locate_23_historical_deepwiki_sources.py \
+            --historical deepwiki-review-export/27-HISTORICAL_NARROW_RECONCILIATIONS.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Verify all 32 remaining broader-priority contexts against frozen predecessor and current source
+        run: |
+          python scripts/verify_remaining32_deepwiki_priority.py \
+            --raw frozen-deepwiki-review/read_wiki_contents.md \
+            --original-priority frozen-adjudication-input/priority-75-REVIEW-NOT-PUBLICATION.csv \
+            --claims frozen-deepwiki-review/source-claim-inspection-UNREVIEWED.json \
+            --decisions docs/deepwiki-review/REMAINING_32_PRIORITY_SOURCE_DECISIONS.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Reconcile 30 nonpriority manifested claim/source pairs against original 640 predecessor rows
+        run: |
+          python scripts/verify_30_manifest_claims.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --predecessor deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
+            --decisions docs/deepwiki-review/MANIFEST_30_ATOMIC_SOURCE_DECISIONS.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Preserve 24 original citation predecessor identities against exact current code
+        run: |
+          python scripts/verify_24_nav_evaluator_ci_claims.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --original frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --predecessor deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
+            --judgments docs/deepwiki-review/NAV_EVALUATOR_CI_24_SOURCE_DECISIONS.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Reconcile nineteen original cross-framework citations to predecessor and current source
+        run: |
+          python scripts/verify_19_cross_framework_claims.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --predecessor deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
+            --decisions docs/deepwiki-review/CROSS_FRAMEWORK_19_SOURCE_DECISIONS.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Preserve fourteen original worker citation predecessors and current-source witnesses
+        run: |
+          python scripts/verify_14_purpose_worker_claims.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --predecessor deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
+            --decisions docs/deepwiki-review/PURPOSE_WORKER_14_SOURCE_DECISIONS.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Reconcile ten original atomic-worker citations against exact current source
+        run: |
+          python scripts/verify_10_atomic_worker_claims.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --claims frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --predecessors deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
+            --decisions docs/deepwiki-review/ATOMIC_WORKER_10_SOURCE_DECISIONS.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Reconcile sixteen original universal-entry and portable-interlock citations
+        run: |
+          python scripts/verify_16_universal_interlock_claims.py \
+            --raw frozen-adjudication-input/read_wiki_contents.md \
+            --original frozen-adjudication-input/source-claim-inspection-UNREVIEWED.json \
+            --predecessor deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
+            --judgments docs/deepwiki-review/UNIVERSAL_INTERLOCK_16_SOURCE_DECISIONS.json \
+            --root . \
+            --out deepwiki-review-export
+      - name: Upload unreviewed documentation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepwiki-sdk-review-only-${{ github.sha }}
+          path: deepwiki-review-export/
+          retention-days: 90
+          if-no-files-found: warn
+
+  # ---- carried verbatim from tools/tasks/folded/mir-leaf-v3-conformance.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install SDK dependencies
+        run: python -m pip install -e .
+      - name: Run conformance and counterpart-comparison tests
+        run: python -m unittest tests.test_mir_leaf_v3_conformance tests.test_compare_mir_leaf_v3_result
+      - name: Emit neutral result
+        run: node tools/mir_leaf_v3_neutral_reproducer.mjs fixtures/mir_leaf_v3_conformance_fixture_v1.json > /tmp/neutral-result.json
+      - name: Compare neutral result to frozen expected vector
+        run: python tools/compare_mir_leaf_v3_result.py /tmp/neutral-result.json
+
+  # ---- carried verbatim from tools/tasks/folded/intr-destination-hop-lane.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  fabricated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: StegVerse-org/.github
+          ref: 6e0f1e216f0e2cf1407be7f3f32338080cb8d2c4
+          path: _orgs/StegVerse-org
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: StegVerse-Labs/.github
+          ref: 6880847e223b32edfb1a10204048d38d4e4adf09
+          path: _orgs/StegVerse-Labs
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: SV-LLM/.github
+          ref: c0e46aa39f7e4040cf70cd8b8655d1f8d22465ad
+          path: _orgs/SV-LLM
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Admissible-Existence/.github
+          ref: b6d499be6d15a73630be99fbdc4156403a978ebd
+          path: _orgs/Admissible-Existence
+          persist-credentials: false
+
+      # Optional checkouts for fabricated mode only. A clone that fails is
+      # ignored here. Live mode, not this job, queries all eight organizations
+      # and keeps an unreadable advertisement in the hop matrix.
+      - name: Try the remaining organization checkouts
+        run: |
+          set +e
+          mkdir -p _orgs
+          for spec in \
+            "SV-011|_orgs/SV-011" \
+            "GCAT-BCAT-Engine|_orgs/GCAT-BCAT-Engine" \
+            "StegVerse-002|_orgs/StegVerse-002" \
+            "StegGhost|_orgs/StegGhost"
+          do
+            org="${spec%%|*}"
+            dest="${spec##*|}"
+            git clone --quiet --depth 1 "https://github.com/${org}/.github.git" "$dest"
+            if [ ! -f "$dest/org-runtime/interlock-intr.json" ]; then
+              rm -rf "$dest"
+            fi
+          done
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install the SDK
+        run: python -m pip install -q -e .
+
+      - name: Lane unit tests
+        run: python -m unittest tests.test_intr_destination_hop_lane -v
+
+      - name: Fabricated hop matrix from advertised capabilities
+        env:
+          INTR_HOP_ORG_ROOTS: ${{ github.workspace }}/_orgs/StegVerse-org:${{ github.workspace }}/_orgs/StegVerse-Labs:${{ github.workspace }}/_orgs/SV-LLM:${{ github.workspace }}/_orgs/Admissible-Existence
+        run: |
+          set -eu
+          python -m unittest tests.test_intr_destination_hop_lane.FabricatedCheckoutTests -v
+          args=()
+          for root in _orgs/SV-011 _orgs/GCAT-BCAT-Engine _orgs/StegVerse-002 _orgs/StegGhost; do
+            if [ -d "$root" ]; then
+              args+=(--org-root "$root")
+            fi
+          done
+          python -m stegverse.intr_destination_hop_lane \
+            --mode fabricated \
+            --reference-root "$GITHUB_WORKSPACE/_orgs/StegVerse-org" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/StegVerse-org" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/StegVerse-Labs" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/SV-LLM" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/Admissible-Existence" \
+            "${args[@]}" \
+            --mesh-root "$RUNNER_TEMP/intr-hop-mesh" \
+            --ledger-home "$RUNNER_TEMP/intr-hop-ledgers" \
+            --out-dir "$RUNNER_TEMP/intr-hop-lane"
+          python - <<'PY'
+          import json, os
+          report = json.load(open(os.environ["RUNNER_TEMP"] + "/intr-hop-lane/intr-destination-hop-lane.json", encoding="utf-8"))
+          assert report["evidence_class"] == "FABRICATED_NON_AUTHENTIC", report["evidence_class"]
+          assert report["far_side_authentic"] is False
+          assert report["authenticity_claimed"] is False
+          assert report["federation_json_is_a_peer_source"] is False
+          assert report["counts"]["FAIL"] == 0, report["counts"]
+          assert report["counts"]["PASS"] == report["hop_count"] > 0
+          print("INTR_DESTINATION_HOP_LANE_FABRICATED_PASS hops=%d" % report["hop_count"])
+          PY
+
+      - name: Publish the matrix report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intr-destination-hop-lane
+          path: ${{ runner.temp }}/intr-hop-lane
+          if-no-files-found: warn
+
+  # ---- carried verbatim from tools/tasks/folded/sv-llm-intr-roundtrip.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  roundtrip:
+    env:
+      STEGVERSE_ORG_DOTGITHUB_SHA: "893e921677cbed1a24e90c98771e77c9ed3cec16"
+      SV_LLM_DOTGITHUB_SHA: "29227a4bab57a2a4453fa8b8a86ada953d6cc4cc"
+      PUBLISHER_SHA: "1b3fc65c1bcab5c835985b878508e7b848d13025"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Materialize StegVerse-org/.github at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: StegVerse-org/.github
+          ref: ${{ env.STEGVERSE_ORG_DOTGITHUB_SHA }}
+          path: _orgs/stegverse-org
+          persist-credentials: false
+      - name: Materialize SV-LLM/.github at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: SV-LLM/.github
+          ref: ${{ env.SV_LLM_DOTGITHUB_SHA }}
+          path: _orgs/sv-llm
+          persist-credentials: false
+      - name: Materialize GCAT-BCAT-Engine/Publisher at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: GCAT-BCAT-Engine/Publisher
+          ref: ${{ env.PUBLISHER_SHA }}
+          path: _orgs/publisher
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the SDK and its declared dependencies
+        run: python -m pip install -q -e .
+      - name: Round trip and boundary cases
+        env:
+          STEGVERSE_ORG_DOTGITHUB_ROOT: ${{ github.workspace }}/_orgs/stegverse-org
+          SV_LLM_DOTGITHUB_ROOT: ${{ github.workspace }}/_orgs/sv-llm
+          GCAT_BCAT_PUBLISHER_ROOT: ${{ github.workspace }}/_orgs/publisher
+          SV_LLM_ROUNDTRIP_REPORT: ${{ runner.temp }}/sv-llm-intr-roundtrip-run.json
+          SV_LLM_ROUNDTRIP_PUBLISHER_DIR: ${{ runner.temp }}/publisher-return
+        run: |
+          set -eu
+          python -B -m unittest tests.test_sv_llm_intr_roundtrip -v 2>&1 | tee "$RUNNER_TEMP/roundtrip.log"
+          # The positive path must have run, not skipped.
+          test -s "$SV_LLM_ROUNDTRIP_REPORT"
+          python - <<'PY'
+          import json, os
+          report = json.load(open(os.environ["SV_LLM_ROUNDTRIP_REPORT"], encoding="utf-8"))
+          assert report["all_legs_allow"] is True, report
+          assert report["evidence_class"] == "SAME_HOST_SCRATCH_CODE_PATH_CONFORMANCE_ONLY", report
+          pub = report["publisher_return"]
+          assert pub["sdk_return_binding_observed"] is True, pub
+          out = os.environ["SV_LLM_ROUNDTRIP_PUBLISHER_DIR"]
+          assert open(os.path.join(out, pub["pdf"]["path"]), "rb").read(5) == b"%PDF-", pub
+          print("SV_LLM_INTR_ROUNDTRIP_CONFORMANCE_PASS legs=%d" % len(report["legs"]))
+          PY
+      - name: Publish run report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sv-llm-intr-roundtrip-run
+          path: |
+            ${{ runner.temp }}/sv-llm-intr-roundtrip-run.json
+            ${{ runner.temp }}/publisher-return
+            ${{ runner.temp }}/roundtrip.log
+          if-no-files-found: warn
+
+  # ---- carried verbatim from tools/tasks/folded/portable-package-source-validation.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  portable-package-source-validation:
+    permissions: {}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert no runtime credential authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+
+      - name: Materialize exact public source anonymously
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/StegVerse-org/StegVerse-SDK.git
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            SOURCE_REF="refs/pull/${PR_NUMBER}/merge"
+          else
+            SOURCE_REF="${GITHUB_SHA}"
+          fi
+          env -u GITHUB_TOKEN -u GH_TOKEN git fetch --depth=1 origin "${SOURCE_REF}"
+          git checkout --detach FETCH_HEAD
+          test -z "$(git config --local --get-regexp 'extraheader|credential' || true)"
+
+      - name: Install focused test dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install pytest
+
+      - name: Run portable package tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest tests/test_portable_packages.py tests/test_portable_dual_archive.py -q
+
+      - name: Prove console is non-authorizing and single-host sovereign
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m stegverse.portable_packages inspect --deployment-class NS > /tmp/ns.json
+          python - <<'PY'
+          import json
+          data = json.load(open('/tmp/ns.json', encoding='utf-8'))
+          assert data['deployment_class'] == 'NS'
+          assert data['required_archive_formats'] == ['zip', 'tar.gz']
+          assert data['installation_creates_node_membership'] is False
+          assert data['authority_effect'] == 'NONE'
+          assert data['download_active'] is False
+          sovereignty = data['single_host_sovereignty']
+          assert sovereignty['physical_host_topology'] == 'ONE_SOVEREIGN_PHYSICAL_HOST'
+          assert sovereignty['additional_physical_machine_required'] is False
+          assert sovereignty['third_party_machine_required'] is False
+          assert sovereignty['third_party_process_host_required'] is False
+          assert sovereignty['third_party_scheduler_required'] is False
+          assert sovereignty['third_party_state_host_required'] is False
+          assert sovereignty['third_party_control_plane_executor_required'] is False
+          assert sovereignty['independent_validation_mechanism'] == 'SAME_HOST_ISOLATED_LOGICAL_BOUNDARIES'
+          assert sovereignty['credential_authority'] == 'TV/TVC'
+          assert sovereignty['non_tv_tvc_secret_or_token_allowed'] is False
+          PY
+          if python -m stegverse.portable_packages download --deployment-class NS --format tar.gz --output /tmp/ns.tar.gz; then
+            echo 'download unexpectedly succeeded without governed artifact' >&2
+            exit 1
+          fi
+
+  # ---- carried verbatim from tools/tasks/folded/portable-release-index-validation.yml (CARRIED_AS_DISPATCHER_JOB) ----
+  release-index-validation:
+    permissions: {}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert no credential authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+
+      - name: Materialize exact public PR source anonymously
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          git config --global --unset-all http.https://github.com/.extraheader || true
+          git init .
+          git remote add origin https://github.com/StegVerse-org/StegVerse-SDK.git
+          env -u GITHUB_TOKEN -u GH_TOKEN git fetch --depth=1 origin "refs/pull/${PR_NUMBER}/merge"
+          git checkout --detach FETCH_HEAD
+
+      - name: Install focused test dependency
+        shell: bash
+        run: python -m pip install pytest
+
+      - name: Run release index tests
+        shell: bash
+        run: python -m pytest tests/test_release_index.py -q
+
+      - name: Prove public release discovery carries no authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from stegverse.release_index import RELEASE_API
+          assert RELEASE_API.startswith('https://api.github.com/repos/StegVerse-Labs/StegCore/releases')
+          PY
