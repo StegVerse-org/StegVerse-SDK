@@ -67,28 +67,28 @@
    "text": "master_records_organization_record_status: RECORDED"
   },
   {
-   "path": ".github/workflows/authority-boundary-source-validation.yml",
+   "path": "tools/tasks/folded/authority-boundary-source-validation.yml",
    "line": 49,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "echo 'It does not claim SOVEREIGN_LOCAL execution, a Master Records production organization record, TV/TVC ROUTE_ADMITTED, or governed activation.'"
   },
   {
-   "path": ".github/workflows/cross-framework-result-artifact-publication.yml",
+   "path": "tools/tasks/folded/cross-framework-result-artifact-publication.yml",
    "line": 53,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "echo 'It does not execute governance, create runtime authority, mint receipts, or substitute for the Master Records organization record.'"
   },
   {
-   "path": ".github/workflows/mcp-production-artifact-test.yml",
+   "path": "tools/tasks/folded/mcp-production-artifact-test.yml",
    "line": 68,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
    "text": "echo 'The hosted runner must not receive a GitHub/private-repository token merely to materialize the private Master Records production package.'"
   },
   {
-   "path": ".github/workflows/mir-sv-exp3-sdk-manifest.yml",
+   "path": "tools/tasks/folded/mir-sv-exp3-sdk-manifest.yml",
    "line": 91,
    "classification": "PROPER",
    "reason": "non-gating downstream recording/reconstruction, a negation/non-claim, or neutral reference",
@@ -9068,37 +9068,37 @@
    "classification": "NAMING_ONLY"
   },
   {
-   "path": ".github/workflows/authority-boundary-source-validation.yml",
+   "path": "tools/tasks/folded/authority-boundary-source-validation.yml",
    "line": 49,
    "classification": "PROPER"
   },
   {
-   "path": ".github/workflows/cross-framework-result-artifact-publication.yml",
+   "path": "tools/tasks/folded/cross-framework-result-artifact-publication.yml",
    "line": 53,
    "classification": "PROPER"
   },
   {
-   "path": ".github/workflows/mcp-production-artifact-test.yml",
+   "path": "tools/tasks/folded/mcp-production-artifact-test.yml",
    "line": 68,
    "classification": "PROPER"
   },
   {
-   "path": ".github/workflows/mir-sv-exp3-sdk-manifest.yml",
+   "path": "tools/tasks/folded/mir-sv-exp3-sdk-manifest.yml",
    "line": 88,
    "classification": "PROPER"
   },
   {
-   "path": ".github/workflows/release-dependency-alignment-validation.yml",
+   "path": "tools/tasks/folded/release-dependency-alignment-validation.yml",
    "line": 57,
    "classification": "NAMING_ONLY"
   },
   {
-   "path": ".github/workflows/release-dependency-alignment-validation.yml",
+   "path": "tools/tasks/folded/release-dependency-alignment-validation.yml",
    "line": 64,
    "classification": "NAMING_ONLY"
   },
   {
-   "path": ".github/workflows/release-dependency-alignment-validation.yml",
+   "path": "tools/tasks/folded/release-dependency-alignment-validation.yml",
    "line": 72,
    "classification": "NAMING_ONLY"
   },

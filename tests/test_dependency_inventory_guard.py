@@ -69,7 +69,7 @@ def test_guard_flags_an_unguarded_third_party_import(tmp_path):
 
 # SDK#484 V-P4. Every git pin in an extra, by (extra, package). StegCore carries two values and
 # cannot carry one yet: governed-test is bound to the SDK 1.2.0 final TVC release receipt
-# (tests/test_release_dependency_alignment.py, release-dependency-alignment-validation.yml), and
+# (tests/test_release_dependency_alignment.py, the folded release-dependency-alignment step), and
 # manifold-test needs stegcore.manifold_governance, added six commits later. The manifold pin
 # descends from the release pin (git merge-base --is-ancestor, StegCore clone, 2026-10-19), so
 # the single pin is 9939739 once a successor release receipt names it; that rebind is the
@@ -119,7 +119,7 @@ def test_stegcore_has_at_most_the_release_pin_and_its_descendant():
     values = {ref for (_, package), (_, ref) in DECLARED_GIT_PINS.items() if package == "stegcore"}
     assert values <= {STEGCORE_RELEASE_PIN, STEGCORE_SINGLE_PIN}
     release = (ROOT / "tests" / "test_release_dependency_alignment.py").read_text(encoding="utf-8")
-    workflow = (ROOT / ".github" / "workflows" / "release-dependency-alignment-validation.yml").read_text(encoding="utf-8")
+    workflow = (ROOT / "tools/tasks/steps/release-dependency-alignment-validation.validate/06-verify-installed-wheel-metadata-aligns-to-final-tvc-source-p.sh").read_text(encoding="utf-8")
     assert f'STEGCORE_TVC_SOURCE_PARENT = "{STEGCORE_RELEASE_PIN}"' in release
     assert f"'source_parent_commit': '{STEGCORE_RELEASE_PIN}'" in workflow
 

@@ -1,0 +1,1 @@
+pytest -q tests/test_manifest_capability_resolution.py tests/test_capability_graph.py tests/test_manifest_builder.py tests/test_stegbrowser_manifest_profile.py

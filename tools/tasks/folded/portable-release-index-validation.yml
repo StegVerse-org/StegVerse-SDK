@@ -1,0 +1,51 @@
+name: Portable Release Index - No Credential Authority
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/release_index.py'
+      - 'tests/test_release_index.py'
+      - 'pyproject.toml'
+      - '.github/workflows/portable-release-index-validation.yml'
+
+permissions: {}
+
+jobs:
+  release-index-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert no credential authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+
+      - name: Materialize exact public PR source anonymously
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          git config --global --unset-all http.https://github.com/.extraheader || true
+          git init .
+          git remote add origin https://github.com/StegVerse-org/StegVerse-SDK.git
+          env -u GITHUB_TOKEN -u GH_TOKEN git fetch --depth=1 origin "refs/pull/${PR_NUMBER}/merge"
+          git checkout --detach FETCH_HEAD
+
+      - name: Install focused test dependency
+        shell: bash
+        run: python -m pip install pytest
+
+      - name: Run release index tests
+        shell: bash
+        run: python -m pytest tests/test_release_index.py -q
+
+      - name: Prove public release discovery carries no authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from stegverse.release_index import RELEASE_API
+          assert RELEASE_API.startswith('https://api.github.com/repos/StegVerse-Labs/StegCore/releases')
+          PY

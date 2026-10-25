@@ -1,0 +1,44 @@
+name: WorkSpace Active Probe Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'stegverse/active_probe_execution.py'
+      - 'stegverse/workspace_resource_consumer.py'
+      - 'tests/test_active_probe_execution.py'
+      - 'README.md'
+      - 'docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md'
+      - '.github/workflows/workspace-active-probe-validation.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate-active-probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install SDK test surface
+        run: python -m pip install -e .
+
+      - name: Validate active probe execution and WorkSpace gating
+        run: |
+          python -m unittest tests.test_workspace_resource_consumer tests.test_active_probe_execution -v
+
+      - name: Assert active probe remains non-authorizing
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('stegverse/active_probe_execution.py').read_text()
+          assert 'authority_effect' in text
+          assert 'NONE' in text
+          consumer = Path('stegverse/workspace_resource_consumer.py').read_text()
+          assert 'readiness_before_probe' in consumer
+          assert 'active_probe_evidence' in consumer
+          assert 'intr_receipt_minted' in consumer
+          print('WORKSPACE_ACTIVE_PROBE=PASS')
+          PY

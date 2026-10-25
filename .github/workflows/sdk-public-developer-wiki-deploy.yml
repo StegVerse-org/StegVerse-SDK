@@ -21,7 +21,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@v4
       - name: Validate SDK public wiki
         run: python -m unittest tests.test_sdk_public_developer_wiki -v
       - name: Build exact-source wiki projection
@@ -38,7 +38,7 @@ jobs:
           assert len(m['sources']) >= 6
           assert Path('_site/CNAME').read_text().strip()=='sdk.stegverse.org'
           PY
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@v4
         with:
           name: sdk-public-developer-wiki-preview
           path: _site
@@ -56,10 +56,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+      - uses: actions/configure-pages@v5
       - name: Build exact-source wiki projection
         run: python scripts/build_sdk_public_wiki.py
       - name: Verify release/source binding
@@ -74,9 +74,9 @@ jobs:
           tag_sha = subprocess.check_output(['git', 'rev-list', '-n', '1', os.environ['RELEASE_TAG']], text=True).strip()
           assert manifest['source_revision'] == tag_sha, 'Wiki revision does not match release tag'
           PY
-      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        uses: actions/deploy-pages@v4

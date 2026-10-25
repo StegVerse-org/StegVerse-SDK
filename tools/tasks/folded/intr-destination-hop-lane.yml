@@ -1,0 +1,134 @@
+name: InTr Destination Hop Lane
+
+# Fabricated mode is the CI default: temporary mesh and ledger roots, far side
+# kernel.receipt/build_control_response, labeled non-authentic.
+# Live mode is workflow_dispatch only and lives in
+# intr-destination-hop-lane-live.yml, so it is never reported as a skipped
+# pull-request check. It reads each candidate organization's
+# <org>/.github advertisement from the GitHub API (optional secret
+# FEDERATION_READ_TOKEN for private repositories) and then reads
+# refs/stegverse/organization-ledger. It does not append. An organization
+# whose advertisement or ledger ref cannot be read stays in the matrix as
+# UNREACHABLE. It is not dropped because a checkout failed.
+#
+# Orchestrate mode is workflow_dispatch only and lives in
+# intr-destination-hop-lane-orchestrate.yml (hb_epoch input), so it is not a
+# skipped pull-request check either. Pull requests never dispatch a hop.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fabricated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: StegVerse-org/.github
+          ref: 6e0f1e216f0e2cf1407be7f3f32338080cb8d2c4
+          path: _orgs/StegVerse-org
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: StegVerse-Labs/.github
+          ref: 6880847e223b32edfb1a10204048d38d4e4adf09
+          path: _orgs/StegVerse-Labs
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: SV-LLM/.github
+          ref: c0e46aa39f7e4040cf70cd8b8655d1f8d22465ad
+          path: _orgs/SV-LLM
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Admissible-Existence/.github
+          ref: b6d499be6d15a73630be99fbdc4156403a978ebd
+          path: _orgs/Admissible-Existence
+          persist-credentials: false
+
+      # Optional checkouts for fabricated mode only. A clone that fails is
+      # ignored here. Live mode, not this job, queries all eight organizations
+      # and keeps an unreadable advertisement in the hop matrix.
+      - name: Try the remaining organization checkouts
+        run: |
+          set +e
+          mkdir -p _orgs
+          for spec in \
+            "SV-011|_orgs/SV-011" \
+            "GCAT-BCAT-Engine|_orgs/GCAT-BCAT-Engine" \
+            "StegVerse-002|_orgs/StegVerse-002" \
+            "StegGhost|_orgs/StegGhost"
+          do
+            org="${spec%%|*}"
+            dest="${spec##*|}"
+            git clone --quiet --depth 1 "https://github.com/${org}/.github.git" "$dest"
+            if [ ! -f "$dest/org-runtime/interlock-intr.json" ]; then
+              rm -rf "$dest"
+            fi
+          done
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install the SDK
+        run: python -m pip install -q -e .
+
+      - name: Lane unit tests
+        run: python -m unittest tests.test_intr_destination_hop_lane -v
+
+      - name: Fabricated hop matrix from advertised capabilities
+        env:
+          INTR_HOP_ORG_ROOTS: ${{ github.workspace }}/_orgs/StegVerse-org:${{ github.workspace }}/_orgs/StegVerse-Labs:${{ github.workspace }}/_orgs/SV-LLM:${{ github.workspace }}/_orgs/Admissible-Existence
+        run: |
+          set -eu
+          python -m unittest tests.test_intr_destination_hop_lane.FabricatedCheckoutTests -v
+          args=()
+          for root in _orgs/SV-011 _orgs/GCAT-BCAT-Engine _orgs/StegVerse-002 _orgs/StegGhost; do
+            if [ -d "$root" ]; then
+              args+=(--org-root "$root")
+            fi
+          done
+          python -m stegverse.intr_destination_hop_lane \
+            --mode fabricated \
+            --reference-root "$GITHUB_WORKSPACE/_orgs/StegVerse-org" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/StegVerse-org" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/StegVerse-Labs" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/SV-LLM" \
+            --org-root "$GITHUB_WORKSPACE/_orgs/Admissible-Existence" \
+            "${args[@]}" \
+            --mesh-root "$RUNNER_TEMP/intr-hop-mesh" \
+            --ledger-home "$RUNNER_TEMP/intr-hop-ledgers" \
+            --out-dir "$RUNNER_TEMP/intr-hop-lane"
+          python - <<'PY'
+          import json, os
+          report = json.load(open(os.environ["RUNNER_TEMP"] + "/intr-hop-lane/intr-destination-hop-lane.json", encoding="utf-8"))
+          assert report["evidence_class"] == "FABRICATED_NON_AUTHENTIC", report["evidence_class"]
+          assert report["far_side_authentic"] is False
+          assert report["authenticity_claimed"] is False
+          assert report["federation_json_is_a_peer_source"] is False
+          assert report["counts"]["FAIL"] == 0, report["counts"]
+          assert report["counts"]["PASS"] == report["hop_count"] > 0
+          print("INTR_DESTINATION_HOP_LANE_FABRICATED_PASS hops=%d" % report["hop_count"])
+          PY
+
+      - name: Publish the matrix report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intr-destination-hop-lane
+          path: ${{ runner.temp }}/intr-hop-lane
+          if-no-files-found: warn

@@ -2,8 +2,11 @@
 
 A tag or branch (`@v4`, `@main`, `@release/v1`) lets an external repository change what runs
 here without a change in this repository. Every `uses:` must name a 40-hex commit or a local
-`./` path. There are no exceptions: governance-gate.yml was the one exception until SDK#534
-merged and pinned it. A floating reference fails closed with the six fields.
+`./` path. A floating reference fails closed with the six fields. The only exceptions are the
+kept surfaces whose bytes the G17 registry (control/workflow-surface-registry.json, SDK#560)
+pins by verbatim_sha256, and validation-dispatcher.yml, whose carried jobs must equal their
+folded records line for line: pinning their actions changes those bytes, so the registry owner
+(StegVerse-org/.github#163) re-pins them together.
 """
 from __future__ import annotations
 
@@ -15,7 +18,14 @@ WORKFLOWS = ROOT / ".github" / "workflows"
 USES = re.compile(r"^\s*(?:-\s*)?uses:\s*(\S+)")
 PINNED = re.compile(r"^[\w.-]+/[\w.-]+(?:/[\w./-]+)?@[0-9a-f]{40}$")
 # file -> (floating references allowed, why)
-EXCEPTIONS = {}
+_G17 = "bytes pinned by verbatim_sha256 in control/workflow-surface-registry.json (SDK#560); re-pin with #163"
+EXCEPTIONS = {
+    "build-private-state-economy-publication-manifest.yml": (2, _G17),
+    "release.yml": (3, _G17),
+    "sdk-public-developer-wiki-deploy.yml": (6, _G17),
+    "validation-dispatcher.yml": (24, "carried jobs must equal their folded verbatim records line for line "
+                                      "(tests/test_workflow_surface_registry.py, SDK#560); re-pin with #163"),
+}
 SIX_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair",
               "retry_entrypoint", "owning_existing_goal", "next_attempt")
 

@@ -34,7 +34,7 @@
   "rewrites": [
     {"path": "pyproject.toml", "context": "governed-test stegcore git pin"},
     {"path": "tests/test_release_dependency_alignment.py", "context": "STEGCORE_TVC_SOURCE_PARENT"},
-    {"path": ".github/workflows/release-dependency-alignment-validation.yml", "context": "final_receipt StegCore source_parent_commit"},
+    {"path": "tools/tasks/steps/release-dependency-alignment-validation.validate/06-verify-installed-wheel-metadata-aligns-to-final-tvc-source-p.sh", "context": "final_receipt StegCore source_parent_commit (folded by SDK#560; also re-pin its sha256 in tools/tasks/task_catalog.json)"},
     {"path": "tests/test_dependency_inventory_guard.py", "context": "STEGCORE_RELEASE_PIN"}
   ],
   "command": "python3 scripts/apply_release_pin_rebind.py --request .github/release-requests/stegcore-pin-rebind-9939739.json --receipt <successor receipt JSON>",

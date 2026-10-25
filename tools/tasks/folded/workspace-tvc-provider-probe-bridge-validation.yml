@@ -1,0 +1,42 @@
+name: WorkSpace TVC Provider Probe Bridge Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'stegverse/tvc_provider_probe_bridge.py'
+      - 'tests/test_tvc_provider_probe_bridge.py'
+      - 'docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md'
+      - '.github/workflows/workspace-tvc-provider-probe-bridge-validation.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate-tvc-probe-bridge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install SDK test surface
+        run: python -m pip install -e .
+
+      - name: Validate TVC evidence bridge and canonical probe composition
+        run: python -m unittest tests.test_tvc_provider_probe_bridge tests.test_active_probe_execution -v
+
+      - name: Assert no provider credential or lease authority enters SDK
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('stegverse/tvc_provider_probe_bridge.py').read_text()
+          assert 'credential_authority' in text
+          assert 'TV/TVC' in text
+          assert 'provider_operation_authority_transferred' in text
+          assert 'authority_effect' in text
+          assert 'NONE' in text
+          assert 'issue(' not in text
+          assert 'oauth' in text.lower()
+          print('WORKSPACE_TVC_PROVIDER_PROBE_BRIDGE=PASS')
+          PY

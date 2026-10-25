@@ -1,0 +1,1 @@
+pytest -q tests/test_stegbrowser_manifest_profile.py

@@ -1,0 +1,1 @@
+python -m pytest -q tests/test_iw_matrix_falsifier.py tests/test_iw_matrix_sdk_integration.py tests/test_iw_cross_system_falsifier_suite.py

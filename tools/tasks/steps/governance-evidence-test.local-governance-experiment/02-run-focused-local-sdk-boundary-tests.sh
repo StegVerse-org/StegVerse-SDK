@@ -1,0 +1,1 @@
+python -m pytest -q tests/test_local_governance_boundary.py tests/test_intr_posture_runtime_bridge.py tests/test_evaluator_manifest_builder.py

@@ -1,0 +1,35 @@
+name: Evaluator Governance Runtime Binding Validation
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/intr_posture_runtime_bridge.py'
+      - 'stegverse/evaluator_governance_runtime.py'
+      - 'stegverse/external_framework_runner.py'
+      - 'tests/test_intr_posture_runtime_bridge.py'
+      - 'tests/test_intr_posture_runtime_crossrepo.py'
+      - 'tests/test_external_framework_posture_runtime.py'
+      - 'tests/fixtures/stegos_intr_security_posture_resolution_84ddc96e.py'
+      - 'docs/SDK_EVALUATOR_GOVERNANCE_RUNTIME_BINDING_MIRROR_HANDOFF.md'
+      - '.github/workflows/evaluator-governance-runtime-binding.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install SDK
+        run: python -m pip install -e .
+      - name: Run SDK runtime bridge tests
+        run: python -m unittest tests.test_intr_posture_runtime_bridge tests.test_external_framework_posture_runtime -v
+      - name: Run exact StegOS InTr compatibility snapshot test
+        run: python -m unittest tests.test_intr_posture_runtime_crossrepo -v
+      - name: Run evaluator manifest and builder regressions
+        run: python -m unittest tests.test_evaluator_manifest_builder tests.test_manifest_builder -v

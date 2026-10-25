@@ -5,7 +5,9 @@ Python line (3.9 below the marker, 3.10+ above it). Each workflow that runs pip 
 PIP_CONSTRAINT to that file at the path its source tree is materialized to, so nothing a
 workflow installs floats, including the setuptools/wheel build backend pip installs in
 isolation. A floating line, an uncovered top-level install or a workflow without the
-constraint fails closed with the six fields.
+constraint fails closed with the six fields. The surfaces the G17 registry freezes byte for byte
+(control/workflow-surface-registry.json, SDK#560) cannot take the PIP_CONSTRAINT line until the
+registry owner (StegVerse-org/.github#163) re-pins them; their installs are still checked.
 """
 from __future__ import annotations
 
@@ -19,6 +21,8 @@ MARKERS = {None, 'python_version < "3.10"', 'python_version >= "3.10"'}
 LINE = re.compile(r"^([a-z0-9][a-z0-9._-]*)==([0-9][0-9A-Za-z.+!-]*)(?:\s*;\s*(.+))?$")
 # What the workflows install by name, beside the SDK itself (".", ".[dev]", dist/*.whl).
 TOP_LEVEL = {"pytest", "build", "twine", "wheel", "pip", "setuptools"}
+# Frozen by verbatim_sha256 (or carried verbatim from folded records) in the G17 registry.
+G17_FROZEN = {"release.yml", "validation-dispatcher.yml"}
 SIX_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair",
               "retry_entrypoint", "owning_existing_goal", "next_attempt")
 
@@ -71,7 +75,7 @@ def workflow_refusals() -> list:
         tar = "archive/" in text and "/tmp/source" in text
         expected = ("/tmp/source/constraints/sdk-install.txt" if tar
                     else "${{ github.workspace }}/constraints/sdk-install.txt")
-        if f"PIP_CONSTRAINT: {expected}" not in text:
+        if f"PIP_CONSTRAINT: {expected}" not in text and path.name not in G17_FROZEN:
             refusals.append(refusal("WORKFLOW_INSTALL_UNCONSTRAINED", "EVERY_WORKFLOW_PIP_INSTALL_USES_SDK_CONSTRAINTS",
                                     f"{path.name} lacks PIP_CONSTRAINT: {expected}"))
         for command in re.findall(r"pip install([^\n|&;]*)", text):

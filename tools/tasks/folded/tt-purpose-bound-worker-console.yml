@@ -1,0 +1,92 @@
+name: TT Evaluator Test 1 Manifest Runtime (Non-Authorizing)
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/purpose_bound_worker.py'
+      - 'stegverse/purpose_bound_worker_processor.py'
+      - 'stegverse/manifest_state_transition_runtime.py'
+      - 'stegverse/manifest_builder.py'
+      - 'stegverse/route_resolution.py'
+      - 'tests/test_manifest_driven_purpose_worker.py'
+      - 'tests/test_universal_manifest_state_transition_runtime.py'
+      - 'inspection/examples/sdk-tt-shared-source.json'
+      - 'inspection/examples/sdk-test1-purpose-worker.processor-request.json'
+      - '.github/workflows/tt-purpose-bound-worker-console.yml'
+  workflow_dispatch:
+
+jobs:
+  evaluator-test-one:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+
+      - name: Validate Test 1 manifest derivation and working processor route
+        run: |
+          python -m unittest tests.test_manifest_driven_purpose_worker -v
+
+      - name: Test 1 - build manifest exactly as evaluator
+        run: |
+          stegverse manifest build \
+            --input inspection/examples/sdk-tt-shared-source.json \
+            --processor-request inspection/examples/sdk-test1-purpose-worker.processor-request.json \
+            --source-framework external_evaluator \
+            --source-output-id sdk-test-one-001 \
+            --process purpose_bound_worker \
+            --return-depth full-trace \
+            --created-at 2026-09-19T19:45:00Z \
+            --output /tmp/sdk-test1.manifest.json
+
+      # SDK#368: run-manifest dispatches only a READY draft. This is signed fixture
+      # evidence bound to the Test 1 manifest's invocation (the repo's own
+      # stdlib-HMAC test helper); it is not a live readiness observation.
+      - name: Test 1 - bind signed fixture readiness evidence to the manifest
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timedelta, timezone
+          from tests.test_manifest_readiness_gate import ATTEMPT, KEY, KEY_ID, _all_ready
+          manifest = json.load(open('/tmp/sdk-test1.manifest.json', encoding='utf-8'))
+          evidence = _all_ready(manifest, at=datetime.now(timezone.utc) - timedelta(seconds=5))
+          json.dump(evidence, open('/tmp/sdk-test1.readiness-evidence.json', 'w'), indent=2, sort_keys=True)
+          json.dump({KEY_ID: KEY}, open('/tmp/readiness-keys.json', 'w'))
+          open('/tmp/readiness-attempt.txt', 'w').write(ATTEMPT)
+          print('FIXTURE_READINESS_EVIDENCE_SIGNED_NOT_LIVE_OBSERVATION')
+          PY
+
+      - name: Test 1 - run through run-manifest and require assembled lifecycle result
+        run: |
+          stegverse run-manifest \
+            --manifest /tmp/sdk-test1.manifest.json \
+            --attempt-id "$(cat /tmp/readiness-attempt.txt)" \
+            --readiness-evidence /tmp/sdk-test1.readiness-evidence.json \
+            --readiness-keys /tmp/readiness-keys.json \
+            --output /tmp/sdk-test1.result.json
+          python - <<'PY'
+          import json
+          result = json.load(open("/tmp/sdk-test1.result.json", encoding="utf-8"))
+          assert result["schema"] == "stegverse.sdk.manifest-transition-handoff/v1"
+          assert result["disposition"] == "ALLOW"
+          assert result["evaluation_boundary"] == "SDK_MANIFEST_HANDOFF"
+          assert result["destination_resolution_source"] == "CANONICAL_CONNECTOR_CAPABILITY_OVERLAY"
+          assert result["transport_performed_by_sdk"] is False
+          assert result["receiver_contacted"] is False
+          assert result["intr_admission_observed"] is False
+          assert result["far_side_transition_observed"] is False
+          assert result["consequence_committed"] is False
+          print("TEST1_RUN_MANIFEST_REACHED_GOVERNED_HANDOFF_BOUNDARY")
+          PY
+
+      - name: Retain Test 1 manifest and runtime evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-evaluator-test1-runtime-evidence
+          path: |
+            /tmp/sdk-test1.manifest.json
+            /tmp/sdk-test1.readiness-evidence.json
+            /tmp/sdk-test1.result.json
+          if-no-files-found: warn

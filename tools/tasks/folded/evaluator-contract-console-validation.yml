@@ -1,0 +1,122 @@
+name: Evaluator Contract Console Validation
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/evaluator_contract.py'
+      - 'stegverse/evaluator_console.py'
+      - 'stegverse/governance_reference_graph.py'
+      - 'stegverse/governance_reference_projection.py'
+      - 'stegverse/test_procedure.py'
+      - 'stegverse/production_release_set.py'
+      - 'stegverse/versioned_sovereign_runtime.py'
+      - 'stegverse/public_inspection_runtime.py'
+      - 'stegverse/__main__.py'
+      - 'pyproject.toml'
+      - 'README.md'
+      - 'tests/test_evaluator_contract_console.py'
+      - 'tests/test_governance_reference_graph.py'
+      - 'tests/test_governance_reference_projection.py'
+      - 'validation/governance_reference_graph_console.py'
+      - 'tests/test_production_release_set.py'
+      - '.github/workflows/evaluator-contract-console-validation.yml'
+      - 'validation/EVALUATOR_CONTRACT_CONSOLE_VALIDATION_TRIGGER_2026-08-16.md'
+  push:
+    branches: [main]
+    paths:
+      - 'stegverse/evaluator_contract.py'
+      - 'stegverse/evaluator_console.py'
+      - 'stegverse/governance_reference_graph.py'
+      - 'stegverse/governance_reference_projection.py'
+      - 'stegverse/test_procedure.py'
+      - 'stegverse/production_release_set.py'
+      - 'stegverse/versioned_sovereign_runtime.py'
+      - 'stegverse/public_inspection_runtime.py'
+      - 'stegverse/__main__.py'
+      - 'pyproject.toml'
+      - 'README.md'
+      - 'tests/test_evaluator_contract_console.py'
+      - 'tests/test_governance_reference_graph.py'
+      - 'tests/test_governance_reference_projection.py'
+      - 'validation/governance_reference_graph_console.py'
+      - 'tests/test_production_release_set.py'
+      - '.github/workflows/evaluator-contract-console-validation.yml'
+      - 'validation/EVALUATOR_CONTRACT_CONSOLE_VALIDATION_TRIGGER_2026-08-16.md'
+
+permissions: {}
+
+jobs:
+  contract-console:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Install public SDK test dependencies
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m pip install -e '.[dev]'
+      - name: Validate evaluator contract and release-set console
+        run: |
+          set -eu
+          cd /tmp/source
+          pytest -q tests/test_evaluator_contract_console.py tests/test_governance_reference_projection.py tests/test_production_release_set.py
+          stegverse contract > /tmp/contract-summary.json
+          stegverse contract --schema > /tmp/contract-schema.json
+          stegverse contract --example > /tmp/contract-example.json
+          stegverse governance-graph > /tmp/governance-graph-summary.json
+          stegverse governance-graph --schema > /tmp/governance-graph-schema.json
+          stegverse governance-graph --example > /tmp/governance-graph-example.json
+          stegverse governance-graph --all > /tmp/governance-graph-all.json
+          python -m stegverse governance-graph --all > /tmp/governance-graph-module-all.json
+          python validation/governance_reference_graph_console.py > /tmp/governance-graph-integration.json
+          stegverse test-procedure --offline > /tmp/test-procedure.json
+          stegverse production-releases installed > /tmp/installed-release-set.json
+          python -m stegverse contract --all > /tmp/contract-all.json
+          python - <<'PY'
+          import json
+          summary = json.load(open('/tmp/contract-summary.json'))
+          schema = json.load(open('/tmp/contract-schema.json'))
+          example = json.load(open('/tmp/contract-example.json'))
+          procedure = json.load(open('/tmp/test-procedure.json'))
+          release_set = json.load(open('/tmp/installed-release-set.json'))
+          all_payload = json.load(open('/tmp/contract-all.json'))
+          graph_summary = json.load(open('/tmp/governance-graph-summary.json'))
+          graph_schema = json.load(open('/tmp/governance-graph-schema.json'))
+          graph_example = json.load(open('/tmp/governance-graph-example.json'))
+          graph_all = json.load(open('/tmp/governance-graph-all.json'))
+          graph_module_all = json.load(open('/tmp/governance-graph-module-all.json'))
+          graph_integration = json.load(open('/tmp/governance-graph-integration.json'))
+          assert summary['contract'] == 'stegverse.public-inspection-request.v1'
+          assert schema['title'] == 'StegVerse Public Inspection Request'
+          assert example['authority_claim'] is False
+          assert procedure['historical_run_release_set_is_retained'] is True
+          assert procedure['replay_compares_original_and_current_release_sets'] is True
+          assert release_set['schema'] == 'stegverse.production-release-set.v2'
+          assert [c['role'] for c in release_set['components']][-1] == 'downstream_run_evidence'
+          assert all_payload['summary']['submission'] == 'stegverse governance --select 0 --input <request.json>'
+          assert graph_summary['contract'] == 'stegverse.governance-reference-graph.v1'
+          assert graph_summary['authority_effect'] == 'NONE_REPRESENTATION_ONLY'
+          assert graph_summary['unknown_relations_grant_authority'] is False
+          assert graph_schema['title'] == 'StegVerse Governance Reference Graph'
+          assert graph_example['metadata']['example_projection'] == 'HITL'
+          assert graph_example['authority_boundary']['hierarchy_grants_authority'] is False
+          assert graph_all['summary']['sdk_resolves_governance'] is False
+          assert graph_module_all == graph_all
+          assert graph_integration['status'] == 'GOVERNANCE_REFERENCE_GRAPH_CONSOLE_PASS'
+          assert graph_integration['hierarchy_grants_authority'] is False
+          assert graph_integration['sdk_resolves_governance'] is False
+          assert graph_integration['actor_authority_current'] is None
+          assert graph_integration['delegation_current'] is None
+          assert graph_integration['external_manifest_grants_authority'] is False
+          print('EVALUATOR_CONTRACT_RELEASE_SET_VALIDATION_PASS')
+          PY

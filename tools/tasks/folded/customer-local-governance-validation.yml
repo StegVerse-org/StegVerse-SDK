@@ -1,0 +1,25 @@
+name: Customer-local governance source validation (non-authorizing)
+on:
+  pull_request:
+    paths:
+      - 'stegverse/route_resolution.py'
+      - 'stegverse/customer_local_governance.py'
+      - 'tests/test_customer_local_governance.py'
+      - '.github/workflows/customer-local-governance-validation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  local-route-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install SDK from exact PR head without optional governed-test extras
+        run: python -m pip install .
+      - name: General customer-local route tests (no credential authority)
+        run: python -m unittest -v tests.test_customer_local_governance
+      - name: Existing generic manifest and route regression
+        run: python -m unittest -v tests.test_generic_manifest_processing_contract

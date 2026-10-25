@@ -28,7 +28,7 @@ DEFAULT_ARTIFACTS = (
     "tests/test_public_inspection_governed_binding.py",
     "tests/test_public_inspection_runtime.py",
     "tests/test_evaluation_boundary_contract.py",
-    ".github/workflows/evaluator-manifest-source-validation.yml",
+    "tools/tasks/folded/evaluator-manifest-source-validation.yml",
     "EVALUATOR_MANIFEST_NON_INTERFERENCE_MIRROR_HANDOFF.md",
     "scripts/build_evaluation_boundary_response_packet.py",
     "scripts/run_evaluation_boundary_r3.py",

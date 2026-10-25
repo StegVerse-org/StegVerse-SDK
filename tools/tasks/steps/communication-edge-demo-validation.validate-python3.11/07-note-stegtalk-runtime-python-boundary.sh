@@ -1,0 +1,1 @@
+echo "SDK demo supports Python 3.9; current StegTalk runtime source declares Python >=3.11, so live-source ST-031/ST-032 proof is intentionally skipped on 3.9."

@@ -1,0 +1,137 @@
+name: External Framework Public Submission Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - stegverse/external_framework_runner.py
+      - stegverse/manifest_builder.py
+      - stegverse/evaluator_console.py
+      - inspection/examples/elan-relational-state-test1.json
+      - inspection/examples/elan-governance-request.example.json
+      - inspection/examples/elan-evaluation-declaration-test1.json
+      - tests/test_external_framework_runner.py
+      - pyproject.toml
+      - .github/workflows/external-framework-e2e-validation.yml
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  external-framework-public-submission:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Materialize exact public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+
+      - name: Install public SDK package surface
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m pip install -e ".[dev]"
+
+      # SDK#368: external-run hands off only a READY draft. This is signed fixture
+      # evidence bound to exactly the draft the CLI builds below (same inputs and
+      # created_at), produced with the repo's own stdlib-HMAC test helper; it is
+      # not a live readiness observation.
+      - name: Bind signed fixture readiness evidence to the ELAN draft
+        run: |
+          set -eu
+          cd /tmp/source
+          python - <<'PY'
+          import json
+          from datetime import datetime, timedelta, timezone
+          from stegverse.external_framework_runner import prepare_external_framework_manifest
+          from tests.test_manifest_readiness_gate import ATTEMPT, KEY, KEY_ID, _all_ready
+          load = lambda path: json.load(open(path, encoding='utf-8'))
+          draft = prepare_external_framework_manifest(
+              data=load('inspection/examples/elan-relational-state-test1.json'),
+              source_framework='ELAN',
+              source_output_id='elan-emotional-ambiguity-silence-test-001',
+              processor_request=load('inspection/examples/elan-governance-request.example.json'),
+              evaluation_declaration=load('inspection/examples/elan-evaluation-declaration-test1.json'),
+              data_class='elan.relational-state.v1',
+              return_depth='full-trace',
+              created_at='2026-10-10T00:00:00Z',
+          )
+          evidence = _all_ready(draft, at=datetime.now(timezone.utc) - timedelta(seconds=5))
+          json.dump(evidence, open('/tmp/elan-readiness-evidence.json', 'w'), indent=2, sort_keys=True)
+          json.dump({KEY_ID: KEY}, open('/tmp/readiness-keys.json', 'w'))
+          open('/tmp/readiness-attempt.txt', 'w').write(ATTEMPT)
+          print('FIXTURE_READINESS_EVIDENCE_SIGNED_NOT_LIVE_OBSERVATION')
+          PY
+
+      - name: Manifest ELAN submission without private runtime dependencies
+        run: |
+          set -eu
+          cd /tmp/source
+          stegverse external-run \
+            --input inspection/examples/elan-relational-state-test1.json \
+            --governance-request inspection/examples/elan-governance-request.example.json \
+            --evaluation-declaration inspection/examples/elan-evaluation-declaration-test1.json \
+            --source-framework ELAN \
+            --source-output-id elan-emotional-ambiguity-silence-test-001 \
+            --data-class elan.relational-state.v1 \
+            --return-depth full-trace \
+            --created-at 2026-10-10T00:00:00Z \
+            --attempt-id "$(cat /tmp/readiness-attempt.txt)" \
+            --readiness-evidence /tmp/elan-readiness-evidence.json \
+            --readiness-keys /tmp/readiness-keys.json \
+            --output /tmp/elan-sdk-submission.json
+
+      - name: Verify portable submission and preregistration isolation
+        run: |
+          set -eu
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(Path('/tmp/elan-sdk-submission.json').read_text())
+          assert result['schema'] == 'stegverse.sdk.external-framework-submission.v1'
+          assert result['status'] == 'SUBMISSION_READY'
+          assert result['execution_performed'] is False
+          assert result['manifest_receipt_id'] is None
+          manifest = result['manifest']
+          assert manifest['payload']['test_id'] == 'elan-emotional-ambiguity-silence-test-001'
+          assert manifest['extensions']['source_data_class'] == 'elan.relational-state.v1'
+          assert manifest['extensions']['evaluation_declaration']
+          assert 'evaluation_declaration' not in manifest['extensions']['stegverse_governance_request']
+          assert manifest['processing']['capability'] == 'governance'
+          assert manifest['processing']['route_id'] == 'stegverse.route.canonical-governed.v1'
+          assert manifest['return_projection']['mode'] == 'ALL'
+
+          # Current canonical source resolves the existing organization boundary.
+          # This remains SDK-local handoff evidence and does not prove receiver observation.
+          assert result['evidence_class'] == 'SDK_LOCAL_MANIFEST_HANDOFF'
+          # SDK#368: the handoff exists only because the draft qualified READY on
+          # supplied invocation-bound evidence; readiness never claims runtime ALLOW.
+          assert result['executable'] is True
+          assert result['readiness_qualification']['qualification'] == 'READY'
+          assert result['readiness_qualification']['runtime_allow_claimed'] is False
+          handoff = result['handoff']
+          assert handoff['state'] == 'MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF'
+          assert handoff['disposition'] == 'ALLOW'
+          assert handoff['evaluation_boundary'] == 'SDK_MANIFEST_HANDOFF'
+          assert handoff['destination_resolution_source'] == 'CANONICAL_CONNECTOR_CAPABILITY_OVERLAY'
+          assert result['manifest_declared_destination']['profile_id'] == 'sdk-manifest-ingress'
+          assert handoff['receiver_availability_required'] is False
+          assert handoff['awaits_external_machine'] is False
+          assert handoff['receiver_contacted'] is False
+          assert handoff['organization_receipt_observed'] is False
+          print('EXTERNAL_FRAMEWORK_PUBLIC_SUBMISSION_VALIDATION_PASS')
+          PY
+
+      - name: Public boundary
+        run: |
+          echo 'External testers can manifest a submission and hand it to Interlock/InTr with the public SDK only.'
+          echo 'Canonical governed execution remains a separate StegVerse runtime step and is not falsely claimed by this public validation lane.'

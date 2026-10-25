@@ -1,0 +1,1 @@
+python -m py_compile stegverse/authority_basis_bridge.py stegverse/evaluator_manifest_builder.py

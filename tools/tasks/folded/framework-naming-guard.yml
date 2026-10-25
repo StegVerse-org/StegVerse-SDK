@@ -1,0 +1,33 @@
+name: Framework Naming Guard
+
+# No path filter: any new file anywhere can name itself after a framework, so
+# there is no subset of paths it is safe to skip. Runs on the default branch as
+# well as pull requests - a guard that never runs against the branch it guards
+# cannot report a violation that arrives by merge.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  framework-naming:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      # Deliberately installs nothing. The guard reads source text and loads its
+      # module by file path, so it cannot go red because a runtime dependency of
+      # the SDK is missing - which is how its own first CI run failed.
+      - name: Artifacts are named by capability, not by originating framework
+        run: python scripts/check_framework_naming.py --strict
+      - name: Guard tests
+        run: |
+          python -m pip install --disable-pip-version-check -q pytest
+          pytest -q tests/test_framework_naming_guard.py

@@ -1,0 +1,1 @@
+python -m py_compile stegverse/communication_edge_demo.py stegverse/communication_edge_cli.py scripts/run_communication_edge_demo.py scripts/run_pinned_communication_source_integration.py tests/test_communication_edge_demo.py

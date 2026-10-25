@@ -1,0 +1,174 @@
+name: Manifest Builder Source Validation (Non-Authorizing)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - stegverse/manifest_builder.py
+      - stegverse/review_publisher_transfer.py
+      - tests/test_review_publisher_transfer.py
+      - stegverse/governance_reference_graph.py
+      - stegverse/governance_reference_projection.py
+      - stegverse/evaluator_manifest_builder.py
+      - stegverse/__init__.py
+      - tests/test_governance_reference_graph.py
+      - tests/test_governance_reference_projection.py
+      - validation/governance_reference_graph_console.py
+      - docs/GOVERNANCE_REFERENCE_GRAPH.md
+      - SDK_EVALUATOR_GOVERNANCE_POSTURE_MANIFEST_MIRROR_HANDOFF.md
+      - stegverse/external_framework_runner.py
+      - stegverse/manifest_contract.py
+      - stegverse/state_transition_evidence.py
+      - stegverse/external_interlock_ingress_binding.py
+      - stegverse/workspace_resource_consumer.py
+      - stegverse/route_resolution.py
+      - stegverse/evaluator_console.py
+      - stegverse/machine_contract.py
+      - tests/test_machine_contract.py
+      - tests/test_external_framework_manifest_first.py
+      - schemas/stegverse.ingress-manifest.v1.schema.json
+      - tests/test_manifest_builder.py
+      - tests/test_governance_reference_graph.py
+      - tests/test_state_transition_evidence.py
+      - tests/test_external_interlock_ingress_binding.py
+      - tests/test_workspace_resource_consumer.py
+      - tests/test_external_framework_runner.py
+      - tests/test_generic_manifest_processing_contract.py
+      - inspection/examples/elan-relational-state-test1.json
+      - inspection/examples/elan-governance-request.example.json
+      - inspection/examples/elan-evaluation-declaration-test1.json
+      - docs/ELAN_TEST1_RUNBOOK.md
+      - docs/SDK_COMPLETION_GATE_137.md
+      - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
+      - docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md
+      - README.md
+      - stegverse/worker_participation_history.py
+      - tests/test_worker_participation_history.py
+      - stegverse/micro_node_commit_time_experiment.py
+      - tests/test_micro_node_commit_time_experiment.py
+      - stegverse/untrusted_dependency_review.py
+      - tests/test_untrusted_dependency_review.py
+      - stegverse/component011_receipt_compatibility.py
+      - tests/test_component011_receipt_compatibility.py
+      - MANIFEST_BUILDER_MIRROR_HANDOFF.md
+      - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
+      - SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md
+      - .github/workflows/manifest-builder-source-validation.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - stegverse/manifest_builder.py
+      - stegverse/review_publisher_transfer.py
+      - tests/test_review_publisher_transfer.py
+      - stegverse/governance_reference_graph.py
+      - stegverse/governance_reference_projection.py
+      - stegverse/evaluator_manifest_builder.py
+      - stegverse/__init__.py
+      - tests/test_governance_reference_graph.py
+      - tests/test_governance_reference_projection.py
+      - validation/governance_reference_graph_console.py
+      - docs/GOVERNANCE_REFERENCE_GRAPH.md
+      - SDK_EVALUATOR_GOVERNANCE_POSTURE_MANIFEST_MIRROR_HANDOFF.md
+      - stegverse/external_framework_runner.py
+      - stegverse/manifest_contract.py
+      - stegverse/state_transition_evidence.py
+      - stegverse/external_interlock_ingress_binding.py
+      - stegverse/workspace_resource_consumer.py
+      - stegverse/route_resolution.py
+      - stegverse/evaluator_console.py
+      - stegverse/machine_contract.py
+      - tests/test_machine_contract.py
+      - tests/test_external_framework_manifest_first.py
+      - schemas/stegverse.ingress-manifest.v1.schema.json
+      - tests/test_manifest_builder.py
+      - tests/test_governance_reference_graph.py
+      - tests/test_state_transition_evidence.py
+      - tests/test_external_interlock_ingress_binding.py
+      - tests/test_workspace_resource_consumer.py
+      - tests/test_external_framework_runner.py
+      - tests/test_generic_manifest_processing_contract.py
+      - inspection/examples/elan-relational-state-test1.json
+      - inspection/examples/elan-governance-request.example.json
+      - inspection/examples/elan-evaluation-declaration-test1.json
+      - docs/ELAN_TEST1_RUNBOOK.md
+      - docs/SDK_COMPLETION_GATE_137.md
+      - docs/GENERIC_MANIFEST_PROCESSING_CONTRACT.md
+      - docs/SHARED_DOCS_EPHEMERAL_MANIFEST_WORKSPACE_MIRROR_HANDOFF.md
+      - README.md
+      - stegverse/worker_participation_history.py
+      - tests/test_worker_participation_history.py
+      - stegverse/micro_node_commit_time_experiment.py
+      - tests/test_micro_node_commit_time_experiment.py
+      - stegverse/untrusted_dependency_review.py
+      - tests/test_untrusted_dependency_review.py
+      - stegverse/component011_receipt_compatibility.py
+      - tests/test_component011_receipt_compatibility.py
+      - MANIFEST_BUILDER_MIRROR_HANDOFF.md
+      - GENERIC_MANIFEST_PROCESSING_MIRROR_HANDOFF.md
+      - SDK_GENERIC_MANIFEST_DOWNSTREAM_PROPAGATION_MIRROR_HANDOFF.md
+      - .github/workflows/manifest-builder-source-validation.yml
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize public source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+
+      - name: Validate Manifest Builder and canonical ingress compatibility
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m pip install -q pytest
+          python -m unittest tests.test_manifest_builder tests.test_review_publisher_transfer -v
+          python -m pytest -q tests/test_governance_reference_graph.py
+          python -m pytest -q tests/test_governance_reference_projection.py
+          python -m pytest -q tests/test_worker_participation_history.py
+          python -m pytest -q tests/test_micro_node_commit_time_experiment.py
+          python -m pytest -q tests/test_untrusted_dependency_review.py
+          python -m pytest -q tests/test_component011_receipt_compatibility.py
+          PYTHONPATH=. python validation/governance_reference_graph_console.py
+          python -m unittest tests.test_state_transition_evidence
+          python -m unittest tests.test_external_interlock_ingress_binding
+          python -m unittest tests.test_workspace_resource_consumer
+          python -m pytest -q tests/test_machine_contract.py tests/test_external_framework_manifest_first.py
+          python -m unittest tests.test_external_framework_runner
+          python -m unittest tests.test_generic_manifest_processing_contract
+          python -m unittest tests.test_governance_navigation
+          python -m unittest tests.test_governance_ingress_runtime
+          python -m unittest tests.test_route_resolution
+          python -m unittest tests.test_cli_preformatted_manifest
+          python -m py_compile \
+            stegverse/worker_participation_history.py \
+            stegverse/micro_node_commit_time_experiment.py \
+            stegverse/untrusted_dependency_review.py \
+            stegverse/component011_receipt_compatibility.py \
+            stegverse/manifest_builder.py \
+            stegverse/governance_reference_graph.py \
+            stegverse/governance_reference_projection.py \
+            stegverse/evaluator_manifest_builder.py \
+            stegverse/external_framework_runner.py \
+            stegverse/manifest_contract.py \
+            stegverse/state_transition_evidence.py \
+            stegverse/external_interlock_ingress_binding.py \
+            stegverse/workspace_resource_consumer.py \
+            stegverse/route_resolution.py \
+            stegverse/governance_ingress_runtime.py \
+            stegverse/evaluator_console.py
+
+      - name: Verify authority boundary
+        run: |
+          echo 'MANIFEST_BUILDER_SOURCE_VALIDATION_PASS'
+          echo 'Builder/external runner/state-transition evidence/Interlock binding/WorkSpace consumer construction and validation grant no governance, execution, transport, credential, release, or custody authority.'

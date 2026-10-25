@@ -1,0 +1,121 @@
+name: Execution Boundary Evidence Validation
+
+on:
+  pull_request:
+    paths:
+      - 'stegverse/admissibility.py'
+      - 'stegverse/execution_boundary.py'
+      - 'stegverse/__init__.py'
+      - 'tests/test_execution_boundary.py'
+      - 'EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md'
+      - 'tasks/SDK-EXECUTION-BOUNDARY-EVIDENCE-003.json'
+      - '.github/workflows/execution-boundary-validation.yml'
+  push:
+    branches:
+      - 'feat/execution-boundary-evidence-003'
+    paths:
+      - 'stegverse/admissibility.py'
+      - 'stegverse/execution_boundary.py'
+      - 'stegverse/__init__.py'
+      - 'tests/test_execution_boundary.py'
+      - 'EXECUTION_BOUNDARY_EVIDENCE_MIRROR_HANDOFF.md'
+      - 'tasks/SDK-EXECUTION-BOUNDARY-EVIDENCE-003.json'
+      - '.github/workflows/execution-boundary-validation.yml'
+
+permissions: {}
+
+jobs:
+  execution-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prove non-authorizing credential-clean validation boundary
+        run: |
+          set -eu
+          test -z "${GITHUB_TOKEN:-}"
+          test -z "${GH_TOKEN:-}"
+          test -z "${TV_IDENTITY_KEY:-}"
+          test -z "${TVC_SECRET:-}"
+          echo 'EXECUTION_BOUNDARY_CREDENTIAL_BOUNDARY_PASS'
+      - name: Materialize public SDK source anonymously
+        env:
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          curl -fsSL "https://github.com/${SOURCE_REPO}/archive/${SOURCE_SHA}.tar.gz" -o /tmp/source.tgz
+          mkdir /tmp/source
+          tar -xzf /tmp/source.tgz -C /tmp/source --strip-components=1
+      - name: Install SDK validation dependencies
+        run: |
+          set -eu
+          cd /tmp/source
+          python -m pip install -e '.[dev]'
+      - name: Validate minimum n=1 consequential boundary
+        run: |
+          set -eu
+          cd /tmp/source
+          pytest -q \
+            tests/test_execution_boundary.py \
+            tests/test_dynamic_admissibility.py \
+            tests/test_admissibility_composition.py
+          python - <<'PY'
+          from stegverse import EXECUTION_BOUNDARY_CASE_SCHEMA, evaluate_admissibility_packet, evaluate_execution_boundary_case
+
+          def point(high=False):
+              return evaluate_admissibility_packet({
+                  'schema': 'stegverse.governed_admissibility.tester_output.v1',
+                  'tester': {
+                      'name_or_role': 'execution-boundary-ci',
+                      'discipline_id': 'robotics_autonomy' if high else 'education_learning',
+                      'domain_review_required': high,
+                  },
+                  'test_object': {
+                      'object_id': 'T-CANDIDATE',
+                      'object_type': 'candidate_transition',
+                      'summary': 'n=1 consequential boundary CI fixture.',
+                  },
+                  'route': {
+                      'recommended_route': ['transition_admissibility', 'receipt_replay', 'fail_closed'],
+                      'tests_run': ['transition_admissibility'],
+                      'route_deviation_reason': None,
+                  },
+                  'classification': {
+                      'declared_intent': 'motion' if high else 'research_summary',
+                      'authority_source': 'AUTH-001',
+                      'evidence_posture': 'receipt_backed',
+                      'replay_posture': 'receipt_backed',
+                      'consequence_level': 'critical' if high else 'low',
+                      'claim_limit': 'n=1 boundary CI fixture.',
+                  },
+                  'boundary': {
+                      'does_not_certify_domain_correctness': True,
+                      'does_not_replace_domain_review': True,
+                      'does_not_create_proof_authority': True,
+                  },
+              }, strict=True)
+
+          case = {
+              'schema': EXECUTION_BOUNDARY_CASE_SCHEMA,
+              'case_id': 'CI-N1-001',
+              'candidate_transition': {'transition_id': 'T-CANDIDATE'},
+              'initial_admissibility': point(False),
+              'intervening_transitions': [{
+                  'transition_id': 'ENV-1',
+                  'from_state_hash': 'sha256:state-0',
+                  'to_state_hash': 'sha256:state-1',
+                  'materially_relevant': True,
+                  'observed': True,
+                  'observed_at': '2026-08-21T12:00:00Z',
+              }],
+              'boundary_admissibility': point(True),
+              'consequence': {'status': 'prevented', 'alterable_at_boundary': True},
+          }
+          result = evaluate_execution_boundary_case(case)
+          assert result['historical_authorization']['held_constant'] is True
+          assert result['historical_authorization']['establishes_current_admissibility_by_itself'] is False
+          assert result['classification']['decision'] == 'PREVENT_CONSEQUENCE'
+          assert result['falsification']['outcome'] == 'PASS_MINIMUM_N1_BOUNDARY_CASE'
+          assert result['evidence_standard']['independently_reconstructable'] is True
+          assert result['boundary']['does_not_grant_execution_authority'] is True
+          print('EXECUTION_BOUNDARY_N1_FALSIFICATION_PASS')
+          PY
