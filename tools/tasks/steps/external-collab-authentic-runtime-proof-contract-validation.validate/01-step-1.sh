@@ -1,0 +1,1 @@
+python scripts/check_external_collab_authentic_runtime_proof_contract.py

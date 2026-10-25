@@ -1,0 +1,1 @@
+python -m unittest tests.test_publisher_return_binding tests.test_review_publisher_transfer -v

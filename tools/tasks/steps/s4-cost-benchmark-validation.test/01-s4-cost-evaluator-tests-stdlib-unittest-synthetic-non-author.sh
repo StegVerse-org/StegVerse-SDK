@@ -1,0 +1,1 @@
+python3 -m unittest -v tests.test_s4_cost_benchmark

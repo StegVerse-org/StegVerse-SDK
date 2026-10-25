@@ -22,6 +22,10 @@ import pytest
 yaml = pytest.importorskip("yaml")
 
 WORKFLOWS = sorted((Path(__file__).resolve().parents[1] / ".github/workflows").glob("*.y*ml"))
+# G17 (StegVerse-org/.github#166): folded and carried workflows keep their verbatim records
+# under tools/tasks/folded/ (the ratchet job runs from validation-dispatcher.yml, checked
+# line for line against its record by tests/test_workflow_surface_registry.py).
+WORKFLOWS = sorted(WORKFLOWS + sorted((Path(__file__).resolve().parents[1] / "tools/tasks/folded").glob("*.y*ml")))
 RATCHET = "test-suite-ratchet.yml"
 
 #: Contexts GitHub does not make available to a step-level `if`. Referencing one

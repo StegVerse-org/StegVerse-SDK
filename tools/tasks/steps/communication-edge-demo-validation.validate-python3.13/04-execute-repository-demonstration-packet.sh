@@ -1,0 +1,1 @@
+python scripts/run_communication_edge_demo.py examples/communication_edge_demo.json > /tmp/communication-edge-demo.json

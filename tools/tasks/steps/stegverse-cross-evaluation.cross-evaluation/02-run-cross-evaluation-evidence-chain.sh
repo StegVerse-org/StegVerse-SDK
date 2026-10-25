@@ -1,0 +1,1 @@
+python scripts/run_elan_stegverse_cross_evaluation.py

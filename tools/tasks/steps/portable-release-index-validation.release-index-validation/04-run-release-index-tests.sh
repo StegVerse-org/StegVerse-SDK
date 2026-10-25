@@ -1,0 +1,1 @@
+python -m pytest tests/test_release_index.py -q

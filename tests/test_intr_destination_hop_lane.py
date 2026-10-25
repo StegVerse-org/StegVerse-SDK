@@ -819,7 +819,7 @@ class OrchestrationTests(unittest.TestCase):
         source = Path(lane.__file__).read_text(encoding="utf-8")
         for waiting in ("time.sleep", "sleep(", "monotonic", "wave_timeout", "poll_seconds", '"TIMEOUT"'):
             self.assertNotIn(waiting, source)
-        workflows = Path(__file__).resolve().parents[1] / ".github/workflows"
+        workflows = Path(__file__).resolve().parents[1] / "tools/tasks/folded"  # G17 (StegVerse-org/.github#166): verbatim records
         workflow = "\n".join((workflows / name).read_text(encoding="utf-8") for name in (
             "intr-destination-hop-lane.yml", "intr-destination-hop-lane-live.yml",
             "intr-destination-hop-lane-orchestrate.yml"))
@@ -939,7 +939,7 @@ class OrchestrationTests(unittest.TestCase):
                     os.environ[name] = value
 
     def test_the_orchestrate_workflow_carries_hb_epoch_and_resolves_it_first(self):
-        workflows = Path(__file__).resolve().parents[1] / ".github/workflows"
+        workflows = Path(__file__).resolve().parents[1] / "tools/tasks/folded"  # G17 (StegVerse-org/.github#166): verbatim records
         workflow = (workflows / "intr-destination-hop-lane-orchestrate.yml").read_text(encoding="utf-8")
         # SDK#543: the pull-request lane has no `mode` input and no dispatch-only job.
         pr_lane = (workflows / "intr-destination-hop-lane.yml").read_text(encoding="utf-8")

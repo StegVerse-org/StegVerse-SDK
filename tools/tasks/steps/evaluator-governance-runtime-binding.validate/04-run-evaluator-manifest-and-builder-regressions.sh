@@ -1,0 +1,1 @@
+python -m unittest tests.test_evaluator_manifest_builder tests.test_manifest_builder -v

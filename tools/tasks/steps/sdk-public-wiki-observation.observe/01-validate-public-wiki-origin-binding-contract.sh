@@ -1,0 +1,1 @@
+python -m unittest tests.test_observe_sdk_public_wiki -v

@@ -1,0 +1,3489 @@
+{
+ "schema": "stegverse.task-catalog/v1",
+ "repository": "StegVerse-org/StegVerse-SDK",
+ "goal_id": "G17-WORKFLOW-SURFACE-MINIMIZATION",
+ "authority": "Rigel 2026-10-24 retroactive G17 enforcement (StegVerse-org/.github#166); pattern StegVerse-Labs/StegDB#60 (eab2e773)",
+ "dispatcher": ".github/workflows/validation-dispatcher.yml",
+ "runner": "tools/tasks/run_catalog.py",
+ "runner_source": "StegVerse-Labs/StegDB tools/tasks/run_catalog.py @ eab2e773271f3e63466a710f1b4555f677882848 (sha256 f741f30557888fd8e4852a52adfc65736a08898d49ade7519f6bcc2672921e9b), copied unmodified",
+ "rule": "Every check a folded workflow job ran is one group here; its step bodies are the original run blocks byte for byte, pinned by sha256, except the repairs listed. A new check is a new group (or a step in one), never a new workflow file.",
+ "path_filters": "Dropped: every group runs on every pull_request and push to main (a superset of the original path-filtered runs). workflow_dispatch/schedule triggers are not carried (no manual dispatch, no cron).",
+ "repairs": [
+  "Step bodies that read their own workflow file read its verbatim record under tools/tasks/folded/ instead; the assertions are unchanged.",
+  "Single-axis Python matrices (communication-edge-demo-validation, iw-matrix-falsifier-validation) are one catalog group per cell, recorded under source.matrix_cell.",
+  "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance). Their path filters are dropped: they now run on every pull request and push to main."
+ ],
+ "folded_from_commit": "daca828a51d954f2817df4ca9f4fa25807248aa0",
+ "groups": [
+  {
+   "id": "admissibility-composition-validation.composition",
+   "source": {
+    "workflow": ".github/workflows/admissibility-composition-validation.yml",
+    "workflow_name": "Admissibility Composition Validation",
+    "job": "composition",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Prove non-authorizing credential-clean validation boundary",
+     "run_file": "tools/tasks/steps/admissibility-composition-validation.composition/01-prove-non-authorizing-credential-clean-validation-boundary.sh",
+     "run_sha256": "87c1dd2a08f97cbdd95334de6454da1df3b9d38db206596cc962e4d146618448"
+    },
+    {
+     "name": "Materialize public SDK source anonymously",
+     "run_file": "tools/tasks/steps/admissibility-composition-validation.composition/02-materialize-public-sdk-source-anonymously.sh",
+     "run_sha256": "691f1799c84c42bd512ddb2645faf1a2b73f50946436970b182aa8a3bea961fc",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.sha }}"
+     }
+    },
+    {
+     "name": "Install SDK validation dependencies",
+     "run_file": "tools/tasks/steps/admissibility-composition-validation.composition/03-install-sdk-validation-dependencies.sh",
+     "run_sha256": "028cba15f6bde6f3346a9ad60c715eee65312a8533cf281c56a8e5875889fc5b"
+    },
+    {
+     "name": "Validate n greater than one composition boundary",
+     "run_file": "tools/tasks/steps/admissibility-composition-validation.composition/04-validate-n-greater-than-one-composition-boundary.sh",
+     "run_sha256": "9dc0e24cd750ccd983c7984136ebc2231d99130332e06bad2145ce9a05331fed"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "admissibility-matrix-maturity-validation.matrix-maturity",
+   "source": {
+    "workflow": ".github/workflows/admissibility-matrix-maturity-validation.yml",
+    "workflow_name": "Admissibility Matrix Maturity Validation",
+    "job": "matrix-maturity",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Prove non-authorizing credential-clean validation boundary",
+     "run_file": "tools/tasks/steps/admissibility-matrix-maturity-validation.matrix-maturity/01-prove-non-authorizing-credential-clean-validation-boundary.sh",
+     "run_sha256": "155bc48c57f1a935f3c1c1402e6793f192fb22a4e243af5468f9f9228193a489"
+    },
+    {
+     "name": "Materialize public SDK source anonymously",
+     "run_file": "tools/tasks/steps/admissibility-matrix-maturity-validation.matrix-maturity/02-materialize-public-sdk-source-anonymously.sh",
+     "run_sha256": "691f1799c84c42bd512ddb2645faf1a2b73f50946436970b182aa8a3bea961fc",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.sha }}"
+     }
+    },
+    {
+     "name": "Install SDK validation dependencies",
+     "run_file": "tools/tasks/steps/admissibility-matrix-maturity-validation.matrix-maturity/03-install-sdk-validation-dependencies.sh",
+     "run_sha256": "028cba15f6bde6f3346a9ad60c715eee65312a8533cf281c56a8e5875889fc5b"
+    },
+    {
+     "name": "Validate matrix maturity and admissibility compatibility",
+     "run_file": "tools/tasks/steps/admissibility-matrix-maturity-validation.matrix-maturity/04-validate-matrix-maturity-and-admissibility-compatibility.sh",
+     "run_sha256": "649ff6aaf03255c2e87f7654e69edcc96c53ce4ec17e2e63b8e48790191b2b2e"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "authority-boundary-source-validation.source-validation",
+   "source": {
+    "workflow": ".github/workflows/authority-boundary-source-validation.yml",
+    "workflow_name": "Authority Boundary Source Validation (Non-Authorizing)",
+    "job": "source-validation",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Prove no repository credential is exposed to validation process",
+     "run_file": "tools/tasks/steps/authority-boundary-source-validation.source-validation/01-prove-no-repository-credential-is-exposed-to-validation-proc.sh",
+     "run_sha256": "6842052271523cab7afbd55a76faef4320f44ae26b56fa4328e0f8c0a84f6a87"
+    },
+    {
+     "name": "Materialize public source anonymously",
+     "run_file": "tools/tasks/steps/authority-boundary-source-validation.source-validation/02-materialize-public-source-anonymously.sh",
+     "run_sha256": "691f1799c84c42bd512ddb2645faf1a2b73f50946436970b182aa8a3bea961fc",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.sha }}"
+     }
+    },
+    {
+     "name": "Run participant-neutral fixture and runner contract tests",
+     "run_file": "tools/tasks/steps/authority-boundary-source-validation.source-validation/03-run-participant-neutral-fixture-and-runner-contract-tests.sh",
+     "run_sha256": "9ae7b7608cd58e9a0e942d6cfeacc23f4849adc8b581860b7e7c4a7c30b0479f"
+    },
+    {
+     "name": "Reassert validation-only boundary",
+     "run_file": "tools/tasks/steps/authority-boundary-source-validation.source-validation/04-reassert-validation-only-boundary.sh",
+     "run_sha256": "7f188ea9ce3c41774683bf100772cf289bd70c9a03abdd28add1a4e9db12e9da"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "capability-map-conformance.capability-map",
+   "source": {
+    "workflow": ".github/workflows/capability-map-conformance.yml",
+    "workflow_name": "SDK capability map conformance",
+    "job": "capability-map",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": null
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "step 1",
+     "run_file": "tools/tasks/steps/capability-map-conformance.capability-map/01-step-1.sh",
+     "run_sha256": "29845d986c9d802a5694464194c33d3f14b85b20e9565d2b312709fa00b664e0"
+    },
+    {
+     "name": "Every installed route is invocable or carries a declared exemption",
+     "run_file": "tools/tasks/steps/capability-map-conformance.capability-map/02-every-installed-route-is-invocable-or-carries-a-declared-exe.sh",
+     "run_sha256": "32fe4a82da476f64715fbaa23f1002a268ce447502786e905cff7610aadc328c"
+    },
+    {
+     "name": "Every registered SDK capability is bound, and no SDK subsystem is undeclared",
+     "run_file": "tools/tasks/steps/capability-map-conformance.capability-map/03-every-registered-sdk-capability-is-bound-and-no-sdk-subsyste.sh",
+     "run_sha256": "f695b81f952e151b9d60b4c0f54ca94c2c4894416466eb8653e094bb077c0b22"
+    },
+    {
+     "name": "Publish the reconciled capability map",
+     "run_file": "tools/tasks/steps/capability-map-conformance.capability-map/04-publish-the-reconciled-capability-map.sh",
+     "run_sha256": "16ddcab21358a98d92bbd0723758ec104e2c8350a898c7c92d42594c201c1202"
+    },
+    {
+     "name": "Publish the connector capability overlay",
+     "run_file": "tools/tasks/steps/capability-map-conformance.capability-map/05-publish-the-connector-capability-overlay.sh",
+     "run_sha256": "fe5bde6c0cfcc6db7364b04e152651d233da1cb3c876738f49cd5c908959c18d"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "sdk-connector-capability-overlay",
+     "path": "/tmp/connector-capability-overlay.json",
+     "if_no_files_found": "warn",
+     "if": "always()"
+    },
+    {
+     "name": "sdk-capability-map",
+     "path": "/tmp/capability-map.json",
+     "if_no_files_found": "warn",
+     "if": "always()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.11",
+    "artifact_name": "sdk-connector-capability-overlay",
+    "artifact_if_no_files_found": "warn"
+   }
+  },
+  {
+   "id": "communication-edge-demo-validation.validate-python3.9",
+   "source": {
+    "workflow": ".github/workflows/communication-edge-demo-validation.yml",
+    "workflow_name": "Communication Edge SDK Demo Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    },
+    "matrix_cell": {
+     "python-version": "3.9"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK test requirements",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.9/01-install-sdk-test-requirements.sh",
+     "run_sha256": "87b5da70402dca8834032346e6fda7cf4d47041959d78aba3986d4a8fdf50af4"
+    },
+    {
+     "name": "Compile communication-edge demo",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.9/02-compile-communication-edge-demo.sh",
+     "run_sha256": "b2966fbc5732e5793dafbf2dfc1bf5216c8a95be41a82c84f5baf1b6477f1f52"
+    },
+    {
+     "name": "Run communication-edge conformance tests",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.9/03-run-communication-edge-conformance-tests.sh",
+     "run_sha256": "12ee8db8bafe32281a3999cfccfa9949d4cc310a541697445cf3cacc0ffbac4a"
+    },
+    {
+     "name": "Execute repository demonstration packet",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.9/04-execute-repository-demonstration-packet.sh",
+     "run_sha256": "2e71c47c226a0790467ec968d439bc1531c97cc97668ec49d698b8c9006d684e"
+    },
+    {
+     "name": "Execute installed SDK command",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.9/05-execute-installed-sdk-command.sh",
+     "run_sha256": "90f43ee4844e9ba1e4afcf605c27b7e626f34d563a703b088793cafb51aba12d"
+    },
+    {
+     "name": "Verify installed command matches repository demo and remains non-authorizing",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.9/06-verify-installed-command-matches-repository-demo-and-remains.sh",
+     "run_sha256": "539688b7f336f9e6214ed2164a0c851d227a882811e21fe7e82186f82835128d"
+    },
+    {
+     "name": "Note StegTalk runtime Python boundary",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.9/07-note-stegtalk-runtime-python-boundary.sh",
+     "run_sha256": "8ebd7236a921060eae8861a20ba31a8984ac8556987b337a9a42c72e4441b0da",
+     "if": "matrix.python-version == '3.9'"
+    },
+    {
+     "name": "Checkout pinned current StegTalk source without credentials",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.9/08-checkout-pinned-current-stegtalk-source-without-credentials.sh",
+     "run_sha256": "b8caeb2baf81f045823cb9e760b78a34731a7284b663f660a60f9d0790cf5cf1",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Checkout pinned KnowledgeVault runtime journal source without credentials",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.9/09-checkout-pinned-knowledgevault-runtime-journal-source-withou.sh",
+     "run_sha256": "880720f0c6d8961ac9b62ff6633037e4f1f4d47941d34da49c763a2aaf7a1436",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Execute pinned ST-031/ST-032 + native KV runtime journal proof",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.9/10-execute-pinned-st-031-st-032-native-kv-runtime-journal-proof.sh",
+     "run_sha256": "2dfdfeba324cee736438131c8b170ad3033c4f019a40bed7ce5566d50b90fd42",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Verify pinned native KV runtime journal proof",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.9/11-verify-pinned-native-kv-runtime-journal-proof.sh",
+     "run_sha256": "5bce95926ab1b2ec7632a7948f07498cf9a4027ddbf49f52122127d67b7e6d65",
+     "if": "matrix.python-version != '3.9'"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 10,
+    "python_version": "3.9"
+   }
+  },
+  {
+   "id": "communication-edge-demo-validation.validate-python3.11",
+   "source": {
+    "workflow": ".github/workflows/communication-edge-demo-validation.yml",
+    "workflow_name": "Communication Edge SDK Demo Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    },
+    "matrix_cell": {
+     "python-version": "3.11"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK test requirements",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.11/01-install-sdk-test-requirements.sh",
+     "run_sha256": "87b5da70402dca8834032346e6fda7cf4d47041959d78aba3986d4a8fdf50af4"
+    },
+    {
+     "name": "Compile communication-edge demo",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.11/02-compile-communication-edge-demo.sh",
+     "run_sha256": "b2966fbc5732e5793dafbf2dfc1bf5216c8a95be41a82c84f5baf1b6477f1f52"
+    },
+    {
+     "name": "Run communication-edge conformance tests",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.11/03-run-communication-edge-conformance-tests.sh",
+     "run_sha256": "12ee8db8bafe32281a3999cfccfa9949d4cc310a541697445cf3cacc0ffbac4a"
+    },
+    {
+     "name": "Execute repository demonstration packet",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.11/04-execute-repository-demonstration-packet.sh",
+     "run_sha256": "2e71c47c226a0790467ec968d439bc1531c97cc97668ec49d698b8c9006d684e"
+    },
+    {
+     "name": "Execute installed SDK command",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.11/05-execute-installed-sdk-command.sh",
+     "run_sha256": "90f43ee4844e9ba1e4afcf605c27b7e626f34d563a703b088793cafb51aba12d"
+    },
+    {
+     "name": "Verify installed command matches repository demo and remains non-authorizing",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.11/06-verify-installed-command-matches-repository-demo-and-remains.sh",
+     "run_sha256": "539688b7f336f9e6214ed2164a0c851d227a882811e21fe7e82186f82835128d"
+    },
+    {
+     "name": "Note StegTalk runtime Python boundary",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.11/07-note-stegtalk-runtime-python-boundary.sh",
+     "run_sha256": "8ebd7236a921060eae8861a20ba31a8984ac8556987b337a9a42c72e4441b0da",
+     "if": "matrix.python-version == '3.9'"
+    },
+    {
+     "name": "Checkout pinned current StegTalk source without credentials",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.11/08-checkout-pinned-current-stegtalk-source-without-credentials.sh",
+     "run_sha256": "b8caeb2baf81f045823cb9e760b78a34731a7284b663f660a60f9d0790cf5cf1",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Checkout pinned KnowledgeVault runtime journal source without credentials",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.11/09-checkout-pinned-knowledgevault-runtime-journal-source-withou.sh",
+     "run_sha256": "880720f0c6d8961ac9b62ff6633037e4f1f4d47941d34da49c763a2aaf7a1436",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Execute pinned ST-031/ST-032 + native KV runtime journal proof",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.11/10-execute-pinned-st-031-st-032-native-kv-runtime-journal-proof.sh",
+     "run_sha256": "2dfdfeba324cee736438131c8b170ad3033c4f019a40bed7ce5566d50b90fd42",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Verify pinned native KV runtime journal proof",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.11/11-verify-pinned-native-kv-runtime-journal-proof.sh",
+     "run_sha256": "5bce95926ab1b2ec7632a7948f07498cf9a4027ddbf49f52122127d67b7e6d65",
+     "if": "matrix.python-version != '3.9'"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 10,
+    "python_version": "3.11"
+   }
+  },
+  {
+   "id": "communication-edge-demo-validation.validate-python3.12",
+   "source": {
+    "workflow": ".github/workflows/communication-edge-demo-validation.yml",
+    "workflow_name": "Communication Edge SDK Demo Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    },
+    "matrix_cell": {
+     "python-version": "3.12"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK test requirements",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.12/01-install-sdk-test-requirements.sh",
+     "run_sha256": "87b5da70402dca8834032346e6fda7cf4d47041959d78aba3986d4a8fdf50af4"
+    },
+    {
+     "name": "Compile communication-edge demo",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.12/02-compile-communication-edge-demo.sh",
+     "run_sha256": "b2966fbc5732e5793dafbf2dfc1bf5216c8a95be41a82c84f5baf1b6477f1f52"
+    },
+    {
+     "name": "Run communication-edge conformance tests",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.12/03-run-communication-edge-conformance-tests.sh",
+     "run_sha256": "12ee8db8bafe32281a3999cfccfa9949d4cc310a541697445cf3cacc0ffbac4a"
+    },
+    {
+     "name": "Execute repository demonstration packet",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.12/04-execute-repository-demonstration-packet.sh",
+     "run_sha256": "2e71c47c226a0790467ec968d439bc1531c97cc97668ec49d698b8c9006d684e"
+    },
+    {
+     "name": "Execute installed SDK command",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.12/05-execute-installed-sdk-command.sh",
+     "run_sha256": "90f43ee4844e9ba1e4afcf605c27b7e626f34d563a703b088793cafb51aba12d"
+    },
+    {
+     "name": "Verify installed command matches repository demo and remains non-authorizing",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.12/06-verify-installed-command-matches-repository-demo-and-remains.sh",
+     "run_sha256": "539688b7f336f9e6214ed2164a0c851d227a882811e21fe7e82186f82835128d"
+    },
+    {
+     "name": "Note StegTalk runtime Python boundary",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.12/07-note-stegtalk-runtime-python-boundary.sh",
+     "run_sha256": "8ebd7236a921060eae8861a20ba31a8984ac8556987b337a9a42c72e4441b0da",
+     "if": "matrix.python-version == '3.9'"
+    },
+    {
+     "name": "Checkout pinned current StegTalk source without credentials",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.12/08-checkout-pinned-current-stegtalk-source-without-credentials.sh",
+     "run_sha256": "b8caeb2baf81f045823cb9e760b78a34731a7284b663f660a60f9d0790cf5cf1",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Checkout pinned KnowledgeVault runtime journal source without credentials",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.12/09-checkout-pinned-knowledgevault-runtime-journal-source-withou.sh",
+     "run_sha256": "880720f0c6d8961ac9b62ff6633037e4f1f4d47941d34da49c763a2aaf7a1436",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Execute pinned ST-031/ST-032 + native KV runtime journal proof",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.12/10-execute-pinned-st-031-st-032-native-kv-runtime-journal-proof.sh",
+     "run_sha256": "2dfdfeba324cee736438131c8b170ad3033c4f019a40bed7ce5566d50b90fd42",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Verify pinned native KV runtime journal proof",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.12/11-verify-pinned-native-kv-runtime-journal-proof.sh",
+     "run_sha256": "5bce95926ab1b2ec7632a7948f07498cf9a4027ddbf49f52122127d67b7e6d65",
+     "if": "matrix.python-version != '3.9'"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 10,
+    "python_version": "3.12"
+   }
+  },
+  {
+   "id": "communication-edge-demo-validation.validate-python3.13",
+   "source": {
+    "workflow": ".github/workflows/communication-edge-demo-validation.yml",
+    "workflow_name": "Communication Edge SDK Demo Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    },
+    "matrix_cell": {
+     "python-version": "3.13"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK test requirements",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.13/01-install-sdk-test-requirements.sh",
+     "run_sha256": "87b5da70402dca8834032346e6fda7cf4d47041959d78aba3986d4a8fdf50af4"
+    },
+    {
+     "name": "Compile communication-edge demo",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.13/02-compile-communication-edge-demo.sh",
+     "run_sha256": "b2966fbc5732e5793dafbf2dfc1bf5216c8a95be41a82c84f5baf1b6477f1f52"
+    },
+    {
+     "name": "Run communication-edge conformance tests",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.13/03-run-communication-edge-conformance-tests.sh",
+     "run_sha256": "12ee8db8bafe32281a3999cfccfa9949d4cc310a541697445cf3cacc0ffbac4a"
+    },
+    {
+     "name": "Execute repository demonstration packet",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.13/04-execute-repository-demonstration-packet.sh",
+     "run_sha256": "2e71c47c226a0790467ec968d439bc1531c97cc97668ec49d698b8c9006d684e"
+    },
+    {
+     "name": "Execute installed SDK command",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.13/05-execute-installed-sdk-command.sh",
+     "run_sha256": "90f43ee4844e9ba1e4afcf605c27b7e626f34d563a703b088793cafb51aba12d"
+    },
+    {
+     "name": "Verify installed command matches repository demo and remains non-authorizing",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.13/06-verify-installed-command-matches-repository-demo-and-remains.sh",
+     "run_sha256": "539688b7f336f9e6214ed2164a0c851d227a882811e21fe7e82186f82835128d"
+    },
+    {
+     "name": "Note StegTalk runtime Python boundary",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.13/07-note-stegtalk-runtime-python-boundary.sh",
+     "run_sha256": "8ebd7236a921060eae8861a20ba31a8984ac8556987b337a9a42c72e4441b0da",
+     "if": "matrix.python-version == '3.9'"
+    },
+    {
+     "name": "Checkout pinned current StegTalk source without credentials",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.13/08-checkout-pinned-current-stegtalk-source-without-credentials.sh",
+     "run_sha256": "b8caeb2baf81f045823cb9e760b78a34731a7284b663f660a60f9d0790cf5cf1",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Checkout pinned KnowledgeVault runtime journal source without credentials",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.13/09-checkout-pinned-knowledgevault-runtime-journal-source-withou.sh",
+     "run_sha256": "880720f0c6d8961ac9b62ff6633037e4f1f4d47941d34da49c763a2aaf7a1436",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Execute pinned ST-031/ST-032 + native KV runtime journal proof",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.13/10-execute-pinned-st-031-st-032-native-kv-runtime-journal-proof.sh",
+     "run_sha256": "2dfdfeba324cee736438131c8b170ad3033c4f019a40bed7ce5566d50b90fd42",
+     "if": "matrix.python-version != '3.9'"
+    },
+    {
+     "name": "Verify pinned native KV runtime journal proof",
+     "run_file": "tools/tasks/steps/communication-edge-demo-validation.validate-python3.13/11-verify-pinned-native-kv-runtime-journal-proof.sh",
+     "run_sha256": "5bce95926ab1b2ec7632a7948f07498cf9a4027ddbf49f52122127d67b7e6d65",
+     "if": "matrix.python-version != '3.9'"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 10,
+    "python_version": "3.13"
+   }
+  },
+  {
+   "id": "connect-llm-source-validation.credential-free-connect-llm",
+   "source": {
+    "workflow": ".github/workflows/connect-llm-source-validation.yml",
+    "workflow_name": "Connect my LLM Source Validation",
+    "job": "credential-free-connect-llm",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Assert validation receives no credential",
+     "run_file": "tools/tasks/steps/connect-llm-source-validation.credential-free-connect-llm/01-assert-validation-receives-no-credential.sh",
+     "run_sha256": "2b36cc5b40ad9adc4003e1c11cf05df8ab54d9f8095b24e40c15067d672b3304"
+    },
+    {
+     "name": "Materialize exact public source anonymously",
+     "run_file": "tools/tasks/steps/connect-llm-source-validation.credential-free-connect-llm/02-materialize-exact-public-source-anonymously.sh",
+     "run_sha256": "691f1799c84c42bd512ddb2645faf1a2b73f50946436970b182aa8a3bea961fc",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.sha }}"
+     }
+    },
+    {
+     "name": "Compile connector source",
+     "run_file": "tools/tasks/steps/connect-llm-source-validation.credential-free-connect-llm/03-compile-connector-source.sh",
+     "run_sha256": "a5a43d6b269f38674c197127ce1d12e622d187d2727a64f32ce369be368fc391"
+    },
+    {
+     "name": "Run focused connector tests and help binding check",
+     "run_file": "tools/tasks/steps/connect-llm-source-validation.credential-free-connect-llm/04-run-focused-connector-tests-and-help-binding-check.sh",
+     "run_sha256": "2dd62a8b2492505304f8739f719e926849319d95365a2a3a75b3ed2f3b38cb96"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 10
+   }
+  },
+  {
+   "id": "cross-framework-result-artifact-publication.mirror-verified-result-packet",
+   "source": {
+    "workflow": ".github/workflows/cross-framework-result-artifact-publication.yml",
+    "workflow_name": "Optional GitHub Mirror of Cross-Framework Result Packet",
+    "job": "mirror-verified-result-packet",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "workflow_dispatch",
+     "push",
+     "pull_request"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Verify and package completed authentic result",
+     "run_file": "tools/tasks/steps/cross-framework-result-artifact-publication.mirror-verified-result-packet/01-verify-and-package-completed-authentic-result.sh",
+     "run_sha256": "7e718b0654e8d094a8ac768bde42ecadaa32937e043b8625f1ea4a4c859e309c"
+    },
+    {
+     "name": "Build packet archive and hashes",
+     "run_file": "tools/tasks/steps/cross-framework-result-artifact-publication.mirror-verified-result-packet/02-build-packet-archive-and-hashes.sh",
+     "run_sha256": "58f4474795be0ffa6e18508ac87cc9b4cb98f6ad9ac21bf7caf010a93f796845"
+    },
+    {
+     "name": "Record authority boundary",
+     "run_file": "tools/tasks/steps/cross-framework-result-artifact-publication.mirror-verified-result-packet/03-record-authority-boundary.sh",
+     "run_sha256": "582ce4780274dca6e73177c81dd943e2a65800a8c783898af23ed96997a16b0b"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "cross-framework-current-basis-v0.4-results",
+     "path": "/tmp/cross-framework-current-basis-v0.4-packet/**\n/tmp/cross-framework-current-basis-v0.4-results.tar.gz\n/tmp/cross-framework-current-basis-v0.4-results.tar.gz.sha256\n",
+     "if_no_files_found": "error",
+     "if": "success()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "artifact_name": "cross-framework-current-basis-v0.4-results",
+    "artifact_if_no_files_found": "warn"
+   },
+   "select_when": {
+    "paths_present": [
+     "evidence/evaluator/cross-framework-current-basis-v0.4-result/RUN_COMPLETE.json"
+    ],
+    "reason": "the original ran only on changes under evidence/evaluator/cross-framework-current-basis-v0.4-result/** and its packaging step requires RUN_COMPLETE.json there; absent, the group records NOT_SELECTED (a run, not a skip)"
+   },
+   "repair": "artifact if-no-files-found error -> warn: when NOT_SELECTED nothing is packaged; when selected, the packaging step itself fails unless the packet and tarball exist."
+  },
+  {
+   "id": "customer-local-governance-validation.local-route-source",
+   "source": {
+    "workflow": ".github/workflows/customer-local-governance-validation.yml",
+    "workflow_name": "Customer-local governance source validation (non-authorizing)",
+    "job": "local-route-source",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK from exact PR head without optional governed-test extras",
+     "run_file": "tools/tasks/steps/customer-local-governance-validation.local-route-source/01-install-sdk-from-exact-pr-head-without-optional-governed-tes.sh",
+     "run_sha256": "bd89108080b338a93fb66024d4393bbc0f18a0f09b7c3a424fa9991e728ae491"
+    },
+    {
+     "name": "General customer-local route tests (no credential authority)",
+     "run_file": "tools/tasks/steps/customer-local-governance-validation.local-route-source/02-general-customer-local-route-tests-no-credential-authority.sh",
+     "run_sha256": "f41a867b3f18d633560b3049b522b399e2533202656844465e49b9e256d1eb58"
+    },
+    {
+     "name": "Existing generic manifest and route regression",
+     "run_file": "tools/tasks/steps/customer-local-governance-validation.local-route-source/03-existing-generic-manifest-and-route-regression.sh",
+     "run_sha256": "83d4f5ca89ff34f23ed042ea3c79d4ef1056038bc2fcbfa76c87ee3a27b5e667"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.12"
+   }
+  },
+  {
+   "id": "governance-evidence-test.local-governance-experiment",
+   "source": {
+    "workflow": ".github/workflows/elan-governance-evidence-test.yml",
+    "workflow_name": "ELAN Local SDK Governance Experiment",
+    "job": "local-governance-experiment",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install current SDK source only",
+     "run_file": "tools/tasks/steps/governance-evidence-test.local-governance-experiment/01-install-current-sdk-source-only.sh",
+     "run_sha256": "87b5da70402dca8834032346e6fda7cf4d47041959d78aba3986d4a8fdf50af4"
+    },
+    {
+     "name": "Run focused local SDK boundary tests",
+     "run_file": "tools/tasks/steps/governance-evidence-test.local-governance-experiment/02-run-focused-local-sdk-boundary-tests.sh",
+     "run_sha256": "ef57185f03f0a47a1fec47de9bd30ce3dbf95e07e1be3f80540d28df5991b7d5",
+     "env": {
+      "PYTHONPATH": "."
+     }
+    },
+    {
+     "name": "Run baseline ELAN local SDK governance experiment",
+     "run_file": "tools/tasks/steps/governance-evidence-test.local-governance-experiment/03-run-baseline-local-sdk-governance-experiment.sh",
+     "run_sha256": "95339b8446b1bb76a9a0bef7874a048334ed528166e9139b4c0e244ddeaae590",
+     "env": {
+      "PYTHONPATH": "."
+     }
+    },
+    {
+     "name": "Assert baseline missing-input evidence",
+     "run_file": "tools/tasks/steps/governance-evidence-test.local-governance-experiment/04-assert-baseline-missing-input-evidence.sh",
+     "run_sha256": "6a912cac19bdd5057ee2948b3aec15892c909667cc388ba72912705aa951fb0c"
+    },
+    {
+     "name": "Run observed-silence ELAN local SDK governance experiment",
+     "run_file": "tools/tasks/steps/governance-evidence-test.local-governance-experiment/05-run-observed-silence-local-sdk-governance-experiment.sh",
+     "run_sha256": "077e89c3384b78053c498ac8a7cff702b4e02f4aea841bf83140e49adb43b390",
+     "env": {
+      "PYTHONPATH": "."
+     }
+    },
+    {
+     "name": "Assert observed silence is admitted as state",
+     "run_file": "tools/tasks/steps/governance-evidence-test.local-governance-experiment/06-assert-observed-silence-is-admitted-as-state.sh",
+     "run_sha256": "1cc49e2c8407ff66cb7738965bcc10b69cc73b6a792872473a6c8065edf3890d"
+    },
+    {
+     "name": "Run compiled-state Event 3 matrix",
+     "run_file": "tools/tasks/steps/governance-evidence-test.local-governance-experiment/07-run-compiled-state-event-3-matrix.sh",
+     "run_sha256": "d130693e7616a47387570a881f8eb757d7e7eb9c411dad2076ed77e976162704",
+     "env": {
+      "PYTHONPATH": "."
+     }
+    },
+    {
+     "name": "Assert compiled-state terminal distinction",
+     "run_file": "tools/tasks/steps/governance-evidence-test.local-governance-experiment/08-assert-compiled-state-terminal-distinction.sh",
+     "run_sha256": "fe7845bf35cf8f8f5622a61a398727f99ef8687ff759c3685514b5660cb9850b"
+    },
+    {
+     "name": "Assert controlled comparison",
+     "run_file": "tools/tasks/steps/governance-evidence-test.local-governance-experiment/09-assert-controlled-comparison.sh",
+     "run_sha256": "34ca73660330825b44e8c04f0a666dd3668b41ec51e21459e17494ac23b7916c"
+    },
+    {
+     "name": "Inventory evidence artifacts",
+     "run_file": "tools/tasks/steps/governance-evidence-test.local-governance-experiment/10-inventory-evidence-artifacts.sh",
+     "run_sha256": "7f71b2b6fcc6e4530e4570889c745826336aeb7e014881cbf3e0b28c4beb4906"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "elan-local-sdk-governance-baseline",
+     "path": "evidence/elan/2026-09-10-governance-test/",
+     "if_no_files_found": "error",
+     "if": "success()"
+    },
+    {
+     "name": "elan-local-sdk-governance-observed-silence",
+     "path": "evidence/elan/2026-09-11-observed-silence-test/",
+     "if_no_files_found": "error",
+     "if": "success()"
+    },
+    {
+     "name": "elan-compiled-state-governance-matrix",
+     "path": "evidence/elan/2026-09-11-compiled-state-governance-matrix/",
+     "if_no_files_found": "error",
+     "if": "success()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.12",
+    "artifact_name": "elan-local-sdk-governance-baseline",
+    "artifact_if_no_files_found": "error"
+   }
+  },
+  {
+   "id": "stegverse-cross-evaluation.cross-evaluation",
+   "source": {
+    "workflow": ".github/workflows/elan-stegverse-cross-evaluation.yml",
+    "workflow_name": "ELAN StegVerse Cross Evaluation",
+    "job": "cross-evaluation",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install current SDK source only",
+     "run_file": "tools/tasks/steps/stegverse-cross-evaluation.cross-evaluation/01-install-current-sdk-source-only.sh",
+     "run_sha256": "87b5da70402dca8834032346e6fda7cf4d47041959d78aba3986d4a8fdf50af4"
+    },
+    {
+     "name": "Run cross-evaluation evidence chain",
+     "run_file": "tools/tasks/steps/stegverse-cross-evaluation.cross-evaluation/02-run-cross-evaluation-evidence-chain.sh",
+     "run_sha256": "70482ead85e50b9cdf7677730a84e913c2dddd0473ac197a0576519f0c9b6c1c",
+     "env": {
+      "PYTHONPATH": "."
+     }
+    },
+    {
+     "name": "Assert preserved transition resolution and evidence chain",
+     "run_file": "tools/tasks/steps/stegverse-cross-evaluation.cross-evaluation/03-assert-preserved-transition-resolution-and-evidence-chain.sh",
+     "run_sha256": "b2725b208b6ca9b5ab50ca9e1ca81ae6f7aa61bece39464b237f074b4dec6fe7"
+    },
+    {
+     "name": "Inventory cross-evaluation evidence",
+     "run_file": "tools/tasks/steps/stegverse-cross-evaluation.cross-evaluation/04-inventory-cross-evaluation-evidence.sh",
+     "run_sha256": "fce9f70f8e6714805ca29a1b45f770c5f06a26c07260bd8298f4c33b6c6aebb0"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "elan-stegverse-cross-evaluation",
+     "path": "evidence/elan/2026-09-16-cross-evaluation/",
+     "if_no_files_found": "error",
+     "if": "success()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.12",
+    "artifact_name": "elan-stegverse-cross-evaluation",
+    "artifact_if_no_files_found": "error"
+   }
+  },
+  {
+   "id": "evaluator-contract-console-validation.contract-console",
+   "source": {
+    "workflow": ".github/workflows/evaluator-contract-console-validation.yml",
+    "workflow_name": "Evaluator Contract Console Validation",
+    "job": "contract-console",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Materialize public source anonymously",
+     "run_file": "tools/tasks/steps/evaluator-contract-console-validation.contract-console/01-materialize-public-source-anonymously.sh",
+     "run_sha256": "d9fa8b32d380ca64d661e045d7a639015ac3f7d390c63ede71803daad5e167a9",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.sha }}"
+     }
+    },
+    {
+     "name": "Install public SDK test dependencies",
+     "run_file": "tools/tasks/steps/evaluator-contract-console-validation.contract-console/02-install-public-sdk-test-dependencies.sh",
+     "run_sha256": "028cba15f6bde6f3346a9ad60c715eee65312a8533cf281c56a8e5875889fc5b"
+    },
+    {
+     "name": "Validate evaluator contract and release-set console",
+     "run_file": "tools/tasks/steps/evaluator-contract-console-validation.contract-console/03-validate-evaluator-contract-and-release-set-console.sh",
+     "run_sha256": "3ee7ec1f98463113f7f2aa235d2c2735c00c62398e3f597b5de47978d5f72f26"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "evaluator-governance-posture-manifest.validate",
+   "source": {
+    "workflow": ".github/workflows/evaluator-governance-posture-manifest.yml",
+    "workflow_name": "Evaluator Governance Posture Manifest Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK runtime dependencies",
+     "run_file": "tools/tasks/steps/evaluator-governance-posture-manifest.validate/01-install-sdk-runtime-dependencies.sh",
+     "run_sha256": "29845d986c9d802a5694464194c33d3f14b85b20e9565d2b312709fa00b664e0"
+    },
+    {
+     "name": "Run evaluator manifest integration tests",
+     "run_file": "tools/tasks/steps/evaluator-governance-posture-manifest.validate/02-run-evaluator-manifest-integration-tests.sh",
+     "run_sha256": "294e9d8aa3c670fd1331c723d4e7295f99c0b42040bf43d142bc3bf21656a285"
+    },
+    {
+     "name": "Run existing manifest builder regression tests",
+     "run_file": "tools/tasks/steps/evaluator-governance-posture-manifest.validate/03-run-existing-manifest-builder-regression-tests.sh",
+     "run_sha256": "9efa328eead13de9ce27c7e6d9fc0a8834c0c53a6ade4b70bbc64f56c4192c92"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.12"
+   }
+  },
+  {
+   "id": "evaluator-governance-runtime-binding.validate",
+   "source": {
+    "workflow": ".github/workflows/evaluator-governance-runtime-binding.yml",
+    "workflow_name": "Evaluator Governance Runtime Binding Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK",
+     "run_file": "tools/tasks/steps/evaluator-governance-runtime-binding.validate/01-install-sdk.sh",
+     "run_sha256": "29845d986c9d802a5694464194c33d3f14b85b20e9565d2b312709fa00b664e0"
+    },
+    {
+     "name": "Run SDK runtime bridge tests",
+     "run_file": "tools/tasks/steps/evaluator-governance-runtime-binding.validate/02-run-sdk-runtime-bridge-tests.sh",
+     "run_sha256": "846ca016ceaffaf268d835ed088658e585076c5ee9f77bbc4d4856d1c7b92932"
+    },
+    {
+     "name": "Run exact StegOS InTr compatibility snapshot test",
+     "run_file": "tools/tasks/steps/evaluator-governance-runtime-binding.validate/03-run-exact-stegos-intr-compatibility-snapshot-test.sh",
+     "run_sha256": "289ee65b9a683dcaf2a7fcfc2cc80d2b85f76bd6942e0fc88153c90d45eeb446"
+    },
+    {
+     "name": "Run evaluator manifest and builder regressions",
+     "run_file": "tools/tasks/steps/evaluator-governance-runtime-binding.validate/04-run-evaluator-manifest-and-builder-regressions.sh",
+     "run_sha256": "c12ab44f56564563aaf40f46798f32d52b190373df3d4a99077ff28abe5553f0"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.12"
+   }
+  },
+  {
+   "id": "evaluator-manifest-source-validation.validate-source",
+   "source": {
+    "workflow": ".github/workflows/evaluator-manifest-source-validation.yml",
+    "workflow_name": "Evaluator Manifest Source Validation (Non-Authorizing)",
+    "job": "validate-source",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Materialize public source anonymously",
+     "run_file": "tools/tasks/steps/evaluator-manifest-source-validation.validate-source/01-materialize-public-source-anonymously.sh",
+     "run_sha256": "f2ae818deade43f55302c908dd910f879d06ca52db628c5ecfe0262dde1d31ee",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Validate public inspection, generic manifest ingress, builder, and evaluator-neutral response tooling",
+     "run_file": "tools/tasks/steps/evaluator-manifest-source-validation.validate-source/02-validate-public-inspection-generic-manifest-ingress-builder.sh",
+     "run_sha256": "423b062a9e2cb75d68ce4e18a8ffc310df0c25efca66e976a236488872ad08c3"
+    },
+    {
+     "name": "Compile evaluator-boundary, ingress, processor, packet, and run-harness modules",
+     "run_file": "tools/tasks/steps/evaluator-manifest-source-validation.validate-source/03-compile-evaluator-boundary-ingress-processor-packet-and-run.sh",
+     "run_sha256": "18dea55cdbed02e1fd90b7985329c065c4eeec18213bf1988d6c5973337cd464"
+    },
+    {
+     "name": "Build exact-commit artifact manifest",
+     "run_file": "tools/tasks/steps/evaluator-manifest-source-validation.validate-source/04-build-exact-commit-artifact-manifest.sh",
+     "run_sha256": "8ffe8ab52817715f2c9ff00499f9851c691b27ec88fd1c82b2ac12f8eca01989",
+     "env": {
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}",
+      "SOURCE_REF": "${{ github.head_ref || github.ref_name }}"
+     }
+    },
+    {
+     "name": "Record source-only boundary",
+     "run_file": "tools/tasks/steps/evaluator-manifest-source-validation.validate-source/05-record-source-only-boundary.sh",
+     "run_sha256": "f56cc0f83e54e7d45782b13d34bc5baff9a54f08dc29d060ee11528a5422361d"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "execution-boundary-validation.execution-boundary",
+   "source": {
+    "workflow": ".github/workflows/execution-boundary-validation.yml",
+    "workflow_name": "Execution Boundary Evidence Validation",
+    "job": "execution-boundary",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Prove non-authorizing credential-clean validation boundary",
+     "run_file": "tools/tasks/steps/execution-boundary-validation.execution-boundary/01-prove-non-authorizing-credential-clean-validation-boundary.sh",
+     "run_sha256": "55cf30efb72859a50ecbe3b36a67e73c723598a16c733587c2275f4c84fa4289"
+    },
+    {
+     "name": "Materialize public SDK source anonymously",
+     "run_file": "tools/tasks/steps/execution-boundary-validation.execution-boundary/02-materialize-public-sdk-source-anonymously.sh",
+     "run_sha256": "691f1799c84c42bd512ddb2645faf1a2b73f50946436970b182aa8a3bea961fc",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.sha }}"
+     }
+    },
+    {
+     "name": "Install SDK validation dependencies",
+     "run_file": "tools/tasks/steps/execution-boundary-validation.execution-boundary/03-install-sdk-validation-dependencies.sh",
+     "run_sha256": "028cba15f6bde6f3346a9ad60c715eee65312a8533cf281c56a8e5875889fc5b"
+    },
+    {
+     "name": "Validate minimum n=1 consequential boundary",
+     "run_file": "tools/tasks/steps/execution-boundary-validation.execution-boundary/04-validate-minimum-n-1-consequential-boundary.sh",
+     "run_sha256": "571460da637db084fccaacb3fb31e2142a83eb06f9587d3bd215032cbc89cb25"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "external-collab-authentic-runtime-proof-contract-validation.validate",
+   "source": {
+    "workflow": ".github/workflows/external-collab-authentic-runtime-proof-contract-validation.yml",
+    "workflow_name": "External Collaboration Authentic Runtime Proof Contract Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "step 1",
+     "run_file": "tools/tasks/steps/external-collab-authentic-runtime-proof-contract-validation.validate/01-step-1.sh",
+     "run_sha256": "63fda2b5a72cd4193564ffffe7e759705e44812763b4691a05121f3564fcbd66"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.12"
+   }
+  },
+  {
+   "id": "external-framework-e2e-validation.external-framework-public-submission",
+   "source": {
+    "workflow": ".github/workflows/external-framework-e2e-validation.yml",
+    "workflow_name": "External Framework Public Submission Validation",
+    "job": "external-framework-public-submission",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Materialize exact public source anonymously",
+     "run_file": "tools/tasks/steps/external-framework-e2e-validation.external-framework-public-submission/01-materialize-exact-public-source-anonymously.sh",
+     "run_sha256": "d9fa8b32d380ca64d661e045d7a639015ac3f7d390c63ede71803daad5e167a9",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Install public SDK package surface",
+     "run_file": "tools/tasks/steps/external-framework-e2e-validation.external-framework-public-submission/02-install-public-sdk-package-surface.sh",
+     "run_sha256": "85a1cc3ed0be39890df608600b72349d82c1a33935496968070e5d6e070964e0"
+    },
+    {
+     "name": "Bind signed fixture readiness evidence to the ELAN draft",
+     "run_file": "tools/tasks/steps/external-framework-e2e-validation.external-framework-public-submission/03-bind-signed-fixture-readiness-evidence-to-the-draft.sh",
+     "run_sha256": "4a0329ab3c00dff3e54bfaac0b9fbd1b75aa2cd7e1e496561dbac2bf028dc9f6"
+    },
+    {
+     "name": "Manifest ELAN submission without private runtime dependencies",
+     "run_file": "tools/tasks/steps/external-framework-e2e-validation.external-framework-public-submission/04-manifest-submission-without-private-runtime-dependencie.sh",
+     "run_sha256": "859809b4c210d94edfbd6f7f574d75b070a23bf7cdef27a35929166b52621395"
+    },
+    {
+     "name": "Verify portable submission and preregistration isolation",
+     "run_file": "tools/tasks/steps/external-framework-e2e-validation.external-framework-public-submission/05-verify-portable-submission-and-preregistration-isolation.sh",
+     "run_sha256": "909d731767efd0e3272922183f9c78ff7a89335fe1e32515655f1f10043ed5e9"
+    },
+    {
+     "name": "Public boundary",
+     "run_file": "tools/tasks/steps/external-framework-e2e-validation.external-framework-public-submission/06-public-boundary.sh",
+     "run_sha256": "7aa5ab83b60e46f4629dfd16c5bcf6eb684a0adf44997b219d61f2bf386d85fc"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 10
+   }
+  },
+  {
+   "id": "framework-naming-guard.framework-naming",
+   "source": {
+    "workflow": ".github/workflows/framework-naming-guard.yml",
+    "workflow_name": "Framework Naming Guard",
+    "job": "framework-naming",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Artifacts are named by capability, not by originating framework",
+     "run_file": "tools/tasks/steps/framework-naming-guard.framework-naming/01-artifacts-are-named-by-capability-not-by-originating-framewo.sh",
+     "run_sha256": "0d54db17b5114d050d1f787c890298876e1ba6eb410670f3f2109fedc9ab2e81"
+    },
+    {
+     "name": "Guard tests",
+     "run_file": "tools/tasks/steps/framework-naming-guard.framework-naming/02-guard-tests.sh",
+     "run_sha256": "c7dc871fd855c5d5c39ec4d08cbbcf036680bf011bf6841e8ebb8f7e2703c2b6"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 10,
+    "python_version": "3.11"
+   }
+  },
+  {
+   "id": "generic-manifest-downstream-contract-validation.contract-validation",
+   "source": {
+    "workflow": ".github/workflows/generic-manifest-downstream-contract-validation.yml",
+    "workflow_name": "Generic Manifest Downstream Contract Validation (Non-Authorizing)",
+    "job": "contract-validation",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Prove validation has no runtime authority",
+     "run_file": "tools/tasks/steps/generic-manifest-downstream-contract-validation.contract-validation/01-prove-validation-has-no-runtime-authority.sh",
+     "run_sha256": "52d0bc16a44595eae07dbbd1489cdee85b8ef5c7dbfc1c0e6e9f020396e49995"
+    },
+    {
+     "name": "Materialize exact source anonymously",
+     "run_file": "tools/tasks/steps/generic-manifest-downstream-contract-validation.contract-validation/02-materialize-exact-source-anonymously.sh",
+     "run_sha256": "691f1799c84c42bd512ddb2645faf1a2b73f50946436970b182aa8a3bea961fc",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Validate downstream propagation contract",
+     "run_file": "tools/tasks/steps/generic-manifest-downstream-contract-validation.contract-validation/03-validate-downstream-propagation-contract.sh",
+     "run_sha256": "dc94fd922c9ca0f41f326eeb79f229f713ffb176e5a4016e45ce916bcc292e20"
+    },
+    {
+     "name": "Reassert bounded result",
+     "run_file": "tools/tasks/steps/generic-manifest-downstream-contract-validation.contract-validation/04-reassert-bounded-result.sh",
+     "run_sha256": "025f3561537d7946633e690aaa055c0dd09cebb872064360f71931aef197347f"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "generic-review-publisher-exact-return.verify",
+   "source": {
+    "workflow": ".github/workflows/generic-review-publisher-exact-return.yml",
+    "workflow_name": "Generic SDK Reviewer Publisher Exact Return (Non-Authorizing)",
+    "job": "verify",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "step 1",
+     "run_file": "tools/tasks/steps/generic-review-publisher-exact-return.verify/01-step-1.sh",
+     "run_sha256": "0ee47e238f1102c7e5ecad27ba3b38255f6973b8fd5ccc31a0000208c5917a0c"
+    },
+    {
+     "name": "step 2",
+     "run_file": "tools/tasks/steps/generic-review-publisher-exact-return.verify/02-step-2.sh",
+     "run_sha256": "0452fd174b8988d6256171b148b39656ba1511a24795125bdf0198b6ffe25fba"
+    },
+    {
+     "name": "Materialize exact existing Publisher contract",
+     "run_file": "tools/tasks/steps/generic-review-publisher-exact-return.verify/03-materialize-exact-existing-publisher-contract.sh",
+     "run_sha256": "3f103048fc8daebf86d43d54ff8b94c6900b63c85b35573aa6aeaa088fc99693",
+     "env": {
+      "SOURCE_SHA": "33511ff7e605c2c32ab8d6a9c572da3b02990503"
+     }
+    },
+    {
+     "name": "Verify original bytes and complete source-to-return parity",
+     "run_file": "tools/tasks/steps/generic-review-publisher-exact-return.verify/04-verify-original-bytes-and-complete-source-to-return-parity.sh",
+     "run_sha256": "d2e522894e706d4c4920e951b0fe8a4ced3ddcf4db9b94f122b76447e271684e",
+     "env": {
+      "PYTHONPATH": ".:/tmp/publisher"
+     }
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.12"
+   }
+  },
+  {
+   "id": "intr-destination-hop-lane.fabricated",
+   "source": {
+    "workflow": ".github/workflows/intr-destination-hop-lane.yml",
+    "workflow_name": "InTr Destination Hop Lane",
+    "job": "fabricated",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Try the remaining organization checkouts",
+     "run_file": "tools/tasks/steps/intr-destination-hop-lane.fabricated/01-try-the-remaining-organization-checkouts.sh",
+     "run_sha256": "66c13ee5316ab06f21b28fcdf25b24e7691f3d7a233ae91666a69dada25d3087"
+    },
+    {
+     "name": "Install the SDK",
+     "run_file": "tools/tasks/steps/intr-destination-hop-lane.fabricated/02-install-the-sdk.sh",
+     "run_sha256": "e56b05d9c776959daa3ca37ccf16f3964dd0dba21f31f5138c19a7fc26413d41"
+    },
+    {
+     "name": "Lane unit tests",
+     "run_file": "tools/tasks/steps/intr-destination-hop-lane.fabricated/03-lane-unit-tests.sh",
+     "run_sha256": "321f8dab07002a710c2e04a6510e4e2abd47a7f5678f16b6a03be2a994a1d43a"
+    },
+    {
+     "name": "Fabricated hop matrix from advertised capabilities",
+     "run_file": "tools/tasks/steps/intr-destination-hop-lane.fabricated/04-fabricated-hop-matrix-from-advertised-capabilities.sh",
+     "run_sha256": "925972f37d8eb045a9b1bca68db78c310449a68298fe6e55886af66279855dc6",
+     "env": {
+      "INTR_HOP_ORG_ROOTS": "${{ github.workspace }}/_orgs/StegVerse-org:${{ github.workspace }}/_orgs/StegVerse-Labs:${{ github.workspace }}/_orgs/SV-LLM:${{ github.workspace }}/_orgs/Admissible-Existence"
+     }
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "intr-destination-hop-lane",
+     "path": "${{ runner.temp }}/intr-hop-lane",
+     "if_no_files_found": "warn",
+     "if": "always()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 20,
+    "x_repository": "Admissible-Existence/.github",
+    "x_ref": "b6d499be6d15a73630be99fbdc4156403a978ebd",
+    "x_path": "_orgs/Admissible-Existence",
+    "x_fetch_depth": "1",
+    "x_persist_credentials": "false",
+    "python_version": "3.11",
+    "artifact_name": "intr-destination-hop-lane",
+    "artifact_if_no_files_found": "warn"
+   }
+  },
+  {
+   "id": "iw-matrix-falsifier-validation.validate-python3.9",
+   "source": {
+    "workflow": ".github/workflows/iw-matrix-falsifier-validation.yml",
+    "workflow_name": "IW Matrix Falsifier Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    },
+    "matrix_cell": {
+     "python-version": "3.9"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install package and test dependency",
+     "run_file": "tools/tasks/steps/iw-matrix-falsifier-validation.validate-python3.9/01-install-package-and-test-dependency.sh",
+     "run_sha256": "9d1fad65958cade335c0170689c66239daec9b945c784e59fa2eb7eaa959a37a"
+    },
+    {
+     "name": "Run IW matrix falsifiers",
+     "run_file": "tools/tasks/steps/iw-matrix-falsifier-validation.validate-python3.9/02-run-iw-matrix-falsifiers.sh",
+     "run_sha256": "873475656f97b5f9d8c27b29bfba1f6bd7d47ce1d3711162fbad5068db1351e4"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.9"
+   }
+  },
+  {
+   "id": "iw-matrix-falsifier-validation.validate-python3.11",
+   "source": {
+    "workflow": ".github/workflows/iw-matrix-falsifier-validation.yml",
+    "workflow_name": "IW Matrix Falsifier Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    },
+    "matrix_cell": {
+     "python-version": "3.11"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install package and test dependency",
+     "run_file": "tools/tasks/steps/iw-matrix-falsifier-validation.validate-python3.11/01-install-package-and-test-dependency.sh",
+     "run_sha256": "9d1fad65958cade335c0170689c66239daec9b945c784e59fa2eb7eaa959a37a"
+    },
+    {
+     "name": "Run IW matrix falsifiers",
+     "run_file": "tools/tasks/steps/iw-matrix-falsifier-validation.validate-python3.11/02-run-iw-matrix-falsifiers.sh",
+     "run_sha256": "873475656f97b5f9d8c27b29bfba1f6bd7d47ce1d3711162fbad5068db1351e4"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.11"
+   }
+  },
+  {
+   "id": "iw-matrix-falsifier-validation.validate-python3.12",
+   "source": {
+    "workflow": ".github/workflows/iw-matrix-falsifier-validation.yml",
+    "workflow_name": "IW Matrix Falsifier Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    },
+    "matrix_cell": {
+     "python-version": "3.12"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install package and test dependency",
+     "run_file": "tools/tasks/steps/iw-matrix-falsifier-validation.validate-python3.12/01-install-package-and-test-dependency.sh",
+     "run_sha256": "9d1fad65958cade335c0170689c66239daec9b945c784e59fa2eb7eaa959a37a"
+    },
+    {
+     "name": "Run IW matrix falsifiers",
+     "run_file": "tools/tasks/steps/iw-matrix-falsifier-validation.validate-python3.12/02-run-iw-matrix-falsifiers.sh",
+     "run_sha256": "873475656f97b5f9d8c27b29bfba1f6bd7d47ce1d3711162fbad5068db1351e4"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.12"
+   }
+  },
+  {
+   "id": "manifest-builder-source-validation.validate-source",
+   "source": {
+    "workflow": ".github/workflows/manifest-builder-source-validation.yml",
+    "workflow_name": "Manifest Builder Source Validation (Non-Authorizing)",
+    "job": "validate-source",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Materialize public source anonymously",
+     "run_file": "tools/tasks/steps/manifest-builder-source-validation.validate-source/01-materialize-public-source-anonymously.sh",
+     "run_sha256": "d9fa8b32d380ca64d661e045d7a639015ac3f7d390c63ede71803daad5e167a9",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Validate Manifest Builder and canonical ingress compatibility",
+     "run_file": "tools/tasks/steps/manifest-builder-source-validation.validate-source/02-validate-manifest-builder-and-canonical-ingress-compatibilit.sh",
+     "run_sha256": "2af4c1e5570326d318363bb7a1c8622338e82c369d43b8ada93f3538199d8740"
+    },
+    {
+     "name": "Verify authority boundary",
+     "run_file": "tools/tasks/steps/manifest-builder-source-validation.validate-source/03-verify-authority-boundary.sh",
+     "run_sha256": "50372219e93029171f16d9ccc91f463690b9e6643e83ba57686b8e75c7ba8590"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "manifest-capability-resolution.validate",
+   "source": {
+    "workflow": ".github/workflows/manifest-capability-resolution.yml",
+    "workflow_name": "Manifest Capability Resolution",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request"
+    ],
+    "permissions_before": null
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "step 1",
+     "run_file": "tools/tasks/steps/manifest-capability-resolution.validate/01-step-1.sh",
+     "run_sha256": "ae73e34563cb1615cce077a49541fd1be889f4341ff9455ef585ae4387d81c6b"
+    },
+    {
+     "name": "step 2",
+     "run_file": "tools/tasks/steps/manifest-capability-resolution.validate/02-step-2.sh",
+     "run_sha256": "00237d11bd07244507e3ec5262d3cfeaa210cef388e41203fec05f04ad521488"
+    },
+    {
+     "name": "step 3",
+     "run_file": "tools/tasks/steps/manifest-capability-resolution.validate/03-step-3.sh",
+     "run_sha256": "9e8edc143ffbe168b0a5b885e4646dc39a623153378cbf45fb180c31fbe59f1a"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.12"
+   }
+  },
+  {
+   "id": "manifest-relational-invariant-concurrency.validate",
+   "source": {
+    "workflow": ".github/workflows/manifest-relational-invariant-concurrency.yml",
+    "workflow_name": "Manifest Relational Invariant Concurrency Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK",
+     "run_file": "tools/tasks/steps/manifest-relational-invariant-concurrency.validate/01-install-sdk.sh",
+     "run_sha256": "29845d986c9d802a5694464194c33d3f14b85b20e9565d2b312709fa00b664e0"
+    },
+    {
+     "name": "Validate manifest source and relationship invariants under concurrent fan-in",
+     "run_file": "tools/tasks/steps/manifest-relational-invariant-concurrency.validate/02-validate-manifest-source-and-relationship-invariants-under-c.sh",
+     "run_sha256": "594e12d125e82c7286382900c414f25966d810fbcd06dfc230b99784d691a136"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.12"
+   }
+  },
+  {
+   "id": "manifold-governance-sdk.validate-sdk-boundary",
+   "source": {
+    "workflow": ".github/workflows/manifold-governance-sdk.yml",
+    "workflow_name": "SDK Production Manifold Governance Validation (Non-Authorizing)",
+    "job": "validate-sdk-boundary",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK validation dependencies",
+     "run_file": "tools/tasks/steps/manifold-governance-sdk.validate-sdk-boundary/01-install-sdk-validation-dependencies.sh",
+     "run_sha256": "fda307caa01201e7e989e82f13c750b2bd885ffa81a4ababe8cc90d314d6cb28"
+    },
+    {
+     "name": "Prove SDK delegates and has no fallback evaluator",
+     "run_file": "tools/tasks/steps/manifold-governance-sdk.validate-sdk-boundary/02-prove-sdk-delegates-and-has-no-fallback-evaluator.sh",
+     "run_sha256": "18fc65493165f0ea535cf9eddc9ca0b3db779d5410e266462233c690c9b10347"
+    },
+    {
+     "name": "Record upstream production proof binding",
+     "run_file": "tools/tasks/steps/manifold-governance-sdk.validate-sdk-boundary/03-record-upstream-production-proof-binding.sh",
+     "run_sha256": "aea11d429f705b7312e4787034e6603bf7e649dd35f7f39f1c533f82450f3645"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "false",
+    "timeout_minutes": 30,
+    "python_version": "3.12"
+   }
+  },
+  {
+   "id": "mcp-production-artifact-test.validate-mcp-source",
+   "source": {
+    "workflow": ".github/workflows/mcp-production-artifact-test.yml",
+    "workflow_name": "MCP Source Validation (Non-Authorizing)",
+    "job": "validate-mcp-source",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Materialize public source anonymously",
+     "run_file": "tools/tasks/steps/mcp-production-artifact-test.validate-mcp-source/01-materialize-public-source-anonymously.sh",
+     "run_sha256": "f2ae818deade43f55302c908dd910f879d06ca52db628c5ecfe0262dde1d31ee",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Compile MCP source",
+     "run_file": "tools/tasks/steps/mcp-production-artifact-test.validate-mcp-source/02-compile-mcp-source.sh",
+     "run_sha256": "cdf75158519dd78af420c06480d6277cd465302f3effa7973b7e88f45f603ed5"
+    },
+    {
+     "name": "Run credential-free MCP unit tests",
+     "run_file": "tools/tasks/steps/mcp-production-artifact-test.validate-mcp-source/03-run-credential-free-mcp-unit-tests.sh",
+     "run_sha256": "640010a42348c375fd3862ea5a9c791c2919aa854e9aa7d3083388d574a95f1e"
+    },
+    {
+     "name": "Preserve sovereign integration boundary",
+     "run_file": "tools/tasks/steps/mcp-production-artifact-test.validate-mcp-source/04-preserve-sovereign-integration-boundary.sh",
+     "run_sha256": "9189be807023561e376494a19e86f4100fea8892c2670477eae540752a24e893"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "mhia-schema-validation.validate-mhia-source",
+   "source": {
+    "workflow": ".github/workflows/mhia-schema-validation.yml",
+    "workflow_name": "MHIA Source Validation (Non-Authorizing)",
+    "job": "validate-mhia-source",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Materialize public source anonymously",
+     "run_file": "tools/tasks/steps/mhia-schema-validation.validate-mhia-source/01-materialize-public-source-anonymously.sh",
+     "run_sha256": "d9fa8b32d380ca64d661e045d7a639015ac3f7d390c63ede71803daad5e167a9",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.sha }}"
+     }
+    },
+    {
+     "name": "Install validation-only dependencies",
+     "run_file": "tools/tasks/steps/mhia-schema-validation.validate-mhia-source/02-install-validation-only-dependencies.sh",
+     "run_sha256": "6979dc4cab656d9fa5d29dec7fe4556dc2d300fe0c2d217e9b681c33f98f3f25"
+    },
+    {
+     "name": "Validate MHIA contracts, capability composition, reference firmware, HAL, and procurement gate",
+     "run_file": "tools/tasks/steps/mhia-schema-validation.validate-mhia-source/03-validate-mhia-contracts-capability-composition-reference-fir.sh",
+     "run_sha256": "2502d493497642642ffaf8e3009f9179e0121729c0183b428855819c5c3bcb17"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "exp3-commit-time-capability-docs.source-documents",
+   "source": {
+    "workflow": ".github/workflows/mir-exp3-commit-time-capability-docs.yml",
+    "workflow_name": "MIR Exp3 Commit-Time Capability Documents (Non-Authorizing)",
+    "job": "source-documents",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Validate exact versioned SDK manifests and frozen original",
+     "run_file": "tools/tasks/steps/exp3-commit-time-capability-docs.source-documents/01-validate-exact-versioned-sdk-manifests-and-frozen-original.sh",
+     "run_sha256": "27306e372354278ef0757756c779c6f2af7e38aba27fc85f7df982370d6f3dd3"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "mir-exp3-commit-time-capability-and-ingress-egress",
+     "path": "/tmp/mir-exp3-documents/",
+     "if_no_files_found": "error",
+     "if": "success()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "false",
+    "timeout_minutes": 30,
+    "artifact_name": "mir-exp3-commit-time-capability-and-ingress-egress",
+    "artifact_if_no_files_found": "error"
+   }
+  },
+  {
+   "id": "sv-exp3-sdk-manifest.sdk-manifest",
+   "source": {
+    "workflow": ".github/workflows/mir-sv-exp3-sdk-manifest.yml",
+    "workflow_name": "MIR SV Exp3 SDK Manifest Evidence (Non-Authorizing)",
+    "job": "sdk-manifest",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Materialize exact public source without credentials",
+     "run_file": "tools/tasks/steps/sv-exp3-sdk-manifest.sdk-manifest/01-materialize-exact-public-source-without-credentials.sh",
+     "run_sha256": "d9fa8b32d380ca64d661e045d7a639015ac3f7d390c63ede71803daad5e167a9",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Build exact SDK manifest and read-only diagnostic artifact",
+     "run_file": "tools/tasks/steps/sv-exp3-sdk-manifest.sdk-manifest/02-build-exact-sdk-manifest-and-read-only-diagnostic-artifact.sh",
+     "run_sha256": "594e5286cf4f2e96d66b04f402a966e870bc150031bee29f5a74b46b8c80b910"
+    },
+    {
+     "name": "Evaluate frozen original against existing central SDK profile (source-only)",
+     "run_file": "tools/tasks/steps/sv-exp3-sdk-manifest.sdk-manifest/03-evaluate-frozen-original-against-existing-central-sdk-profil.sh",
+     "run_sha256": "da9780b91f467428f3a789a697eee71332b91657b7491e940ad688e911dd5a69"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "mir-sv-exp3-sdk-manifest-and-diagnostic",
+     "path": "/tmp/mir-sv-exp3.manifest.json\n/tmp/mir-sv-exp3.diagnostic-result.json\n/tmp/mir-sv-exp3.frozen-original.json\n/tmp/mir-sv-exp3.sdk-request.json\n/tmp/mir-sv-exp3.source-profile-deny.json\n/tmp/mir-sv-exp3-org-request/.stegverse/transition-requests/MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003-001.json\n",
+     "if_no_files_found": "error",
+     "if": "success()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "artifact_name": "mir-sv-exp3-sdk-manifest-and-diagnostic",
+    "artifact_if_no_files_found": "error"
+   }
+  },
+  {
+   "id": "output-boundary-proof.validate-output-proof",
+   "source": {
+    "workflow": ".github/workflows/output-boundary-proof.yml",
+    "workflow_name": "SDK Output-Boundary Proof Validation",
+    "job": "validate-output-proof",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Materialize public source anonymously",
+     "run_file": "tools/tasks/steps/output-boundary-proof.validate-output-proof/01-materialize-public-source-anonymously.sh",
+     "run_sha256": "d9fa8b32d380ca64d661e045d7a639015ac3f7d390c63ede71803daad5e167a9",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Reject provider credential dependencies",
+     "run_file": "tools/tasks/steps/output-boundary-proof.validate-output-proof/02-reject-provider-credential-dependencies.sh",
+     "run_sha256": "cc907b8d06f65f78f4d5865287987314a618d2b39e0195cc8a545f0baf47229f"
+    },
+    {
+     "name": "Compile proof surface",
+     "run_file": "tools/tasks/steps/output-boundary-proof.validate-output-proof/03-compile-proof-surface.sh",
+     "run_sha256": "a3e8942ee39d26b3a0b21ed531b32acdb6f3a89b41f46583604426593e18c926"
+    },
+    {
+     "name": "Run focused proof tests",
+     "run_file": "tools/tasks/steps/output-boundary-proof.validate-output-proof/04-run-focused-proof-tests.sh",
+     "run_sha256": "b62c8a61b9b8b837fe988edf31d22ce374528d2307a5499cc7572db939c275a4"
+    },
+    {
+     "name": "Verify CLI registration",
+     "run_file": "tools/tasks/steps/output-boundary-proof.validate-output-proof/05-verify-cli-registration.sh",
+     "run_sha256": "af4cbd752d208a1c24566d7198aaa3a5a3df498884381804dc9c9ef091a30ff4"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "package-artifact-validation.package-artifact",
+   "source": {
+    "workflow": ".github/workflows/package-artifact-validation.yml",
+    "workflow_name": "SDK Package Artifact Validation (Non-Authorizing)",
+    "job": "package-artifact",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Assert no release credential authority",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/01-assert-no-release-credential-authority.sh",
+     "run_sha256": "a41835f65ef111821e6ae3b34dcbde8229378d780551afdcba64aaf0211c618d"
+    },
+    {
+     "name": "Materialize exact public source anonymously",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/02-materialize-exact-public-source-anonymously.sh",
+     "run_sha256": "691f1799c84c42bd512ddb2645faf1a2b73f50946436970b182aa8a3bea961fc",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Install build and inspection tooling",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/03-install-build-and-inspection-tooling.sh",
+     "run_sha256": "72a8695c6a917251e0ae1d72b1610628353282f6ddf7c89a8718d380d5ea22fe"
+    },
+    {
+     "name": "Validate package version and Trusted Publisher contracts",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/04-validate-package-version-and-trusted-publisher-contracts.sh",
+     "run_sha256": "8c701449caaa3200fe4b41629db5799fa053f51cc630fb91265abfd34ac7406e"
+    },
+    {
+     "name": "Validate portable governance, exchange, consequence, and release coherence",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/05-validate-portable-governance-exchange-consequence-and-releas.sh",
+     "run_sha256": "471a18db79ae73f5cc0c4231b1c3e748cdab185f3bef6a5dd95ead460b162524"
+    },
+    {
+     "name": "Validate Elyria framework-side translation binding",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/06-validate-elyria-framework-side-translation-binding.sh",
+     "run_sha256": "da07bf1014bcbd546c570bca7ef1b5aaae836a7f58962c6565458638d6c29e1f"
+    },
+    {
+     "name": "Validate self-characterization trajectory receipt contract",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/07-validate-self-characterization-trajectory-receipt-contract.sh",
+     "run_sha256": "4268cd16174f2dcdd704846ca73124e74a9fd850d8bd5f084083d8b23d5c7f14"
+    },
+    {
+     "name": "Build wheel and source distribution",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/08-build-wheel-and-source-distribution.sh",
+     "run_sha256": "3e769f1ebb0eb98443239754b903c2af9dea34f7ce4f21702acea22631756c73"
+    },
+    {
+     "name": "Verify canonical wheel metadata from pyproject",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/09-verify-canonical-wheel-metadata-from-pyproject.sh",
+     "run_sha256": "084dfd35ac95ea887e3142ae3bb0c5074f574893c3086aa4ecd0a227dc61dc52"
+    },
+    {
+     "name": "Verify legacy setuptools invocation resolves canonical metadata",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/10-verify-legacy-setuptools-invocation-resolves-canonical-metad.sh",
+     "run_sha256": "2fa26693985ebf561f2a857692d7ab01c112cb7c9cda92dcf21f9dde0fe94411"
+    },
+    {
+     "name": "Install exact wheel into isolated environment and smoke test",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/11-install-exact-wheel-into-isolated-environment-and-smoke-test.sh",
+     "run_sha256": "ea89c26444bfe610f0ee8fcf7a2111251fd42da8ad28959bdf47af6f280cf4ff"
+    },
+    {
+     "name": "Record non-authorizing boundary",
+     "run_file": "tools/tasks/steps/package-artifact-validation.package-artifact/12-record-non-authorizing-boundary.sh",
+     "run_sha256": "b8556d79be82cae160c40a1925d1086fdf7b461565790638f2316c681dc39367"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "portable-package-source-validation.portable-package-source-validation",
+   "source": {
+    "workflow": ".github/workflows/portable-package-source-validation.yml",
+    "workflow_name": "Portable Package Source Validation - No Credential Authority",
+    "job": "portable-package-source-validation",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Assert no runtime credential authority",
+     "run_file": "tools/tasks/steps/portable-package-source-validation.portable-package-source-validation/01-assert-no-runtime-credential-authority.sh",
+     "run_sha256": "bf1037c0ec9c9da3a3d05f18db72bb2d4f46201f30178fda2b9d24bc6d07736d",
+     "shell": "bash"
+    },
+    {
+     "name": "Materialize exact public source anonymously",
+     "run_file": "tools/tasks/steps/portable-package-source-validation.portable-package-source-validation/02-materialize-exact-public-source-anonymously.sh",
+     "run_sha256": "33aed769bdd239f9ea58537fb63a034c8b2e715cec71a2662ddc799938dff253",
+     "shell": "bash",
+     "env": {
+      "PR_NUMBER": "${{ github.event.pull_request.number }}"
+     }
+    },
+    {
+     "name": "Install focused test dependency",
+     "run_file": "tools/tasks/steps/portable-package-source-validation.portable-package-source-validation/03-install-focused-test-dependency.sh",
+     "run_sha256": "c6dd9db6eb2eb15aab7368125d4f96e32862a4da479f0d2c56d4fbfe12e6e111",
+     "shell": "bash"
+    },
+    {
+     "name": "Run portable package tests",
+     "run_file": "tools/tasks/steps/portable-package-source-validation.portable-package-source-validation/04-run-portable-package-tests.sh",
+     "run_sha256": "482e1a7f88d6b438d379ea6f56f5704d16495692df163ac1659459bab2f27bf0",
+     "shell": "bash"
+    },
+    {
+     "name": "Prove console is non-authorizing and single-host sovereign",
+     "run_file": "tools/tasks/steps/portable-package-source-validation.portable-package-source-validation/05-prove-console-is-non-authorizing-and-single-host-sovereign.sh",
+     "run_sha256": "3c9bed384bf8bbdd87077d5fcf964dd8375119d8a0e5380b41b986c75b0adcd0",
+     "shell": "bash"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "portable-release-index-validation.release-index-validation",
+   "source": {
+    "workflow": ".github/workflows/portable-release-index-validation.yml",
+    "workflow_name": "Portable Release Index - No Credential Authority",
+    "job": "release-index-validation",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Assert no credential authority",
+     "run_file": "tools/tasks/steps/portable-release-index-validation.release-index-validation/01-assert-no-credential-authority.sh",
+     "run_sha256": "bf1037c0ec9c9da3a3d05f18db72bb2d4f46201f30178fda2b9d24bc6d07736d",
+     "shell": "bash"
+    },
+    {
+     "name": "Materialize exact public PR source anonymously",
+     "run_file": "tools/tasks/steps/portable-release-index-validation.release-index-validation/02-materialize-exact-public-pr-source-anonymously.sh",
+     "run_sha256": "f418ddceb5135879f3a3ee4b68396e9d3069cfc189a7d91dbaecd9402272849a",
+     "shell": "bash",
+     "env": {
+      "PR_NUMBER": "${{ github.event.pull_request.number }}"
+     }
+    },
+    {
+     "name": "Install focused test dependency",
+     "run_file": "tools/tasks/steps/portable-release-index-validation.release-index-validation/03-install-focused-test-dependency.sh",
+     "run_sha256": "d5cf1ea8dcdee09f04f8232a17689623c901ff0221f86fc8dbad251f8475d96a",
+     "shell": "bash"
+    },
+    {
+     "name": "Run release index tests",
+     "run_file": "tools/tasks/steps/portable-release-index-validation.release-index-validation/04-run-release-index-tests.sh",
+     "run_sha256": "b3e9e4db82a25b1a11cec7e73885d19a7855c6940e479f38b4fa4d1d1de7fdbc",
+     "shell": "bash"
+    },
+    {
+     "name": "Prove public release discovery carries no authority",
+     "run_file": "tools/tasks/steps/portable-release-index-validation.release-index-validation/05-prove-public-release-discovery-carries-no-authority.sh",
+     "run_sha256": "f0891f0402b2d95354524d3fc49bda5edfe31a4fddb430cd88ce3650afb24f32",
+     "shell": "bash"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "post-return-production-proof-validation.validate",
+   "source": {
+    "workflow": ".github/workflows/post-return-production-proof-validation.yml",
+    "workflow_name": "POST_RETURN Production Proof Runner Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Assert non-authorizing environment",
+     "run_file": "tools/tasks/steps/post-return-production-proof-validation.validate/01-assert-non-authorizing-environment.sh",
+     "run_sha256": "07655f8fbde51072790bda7010b4fb2aba55ba74695bf5265f5f88a2b8f7dc42"
+    },
+    {
+     "name": "Materialize exact public source anonymously",
+     "run_file": "tools/tasks/steps/post-return-production-proof-validation.validate/02-materialize-exact-public-source-anonymously.sh",
+     "run_sha256": "63263260892f0cf6c83c644bcc80834e29a67ff7d2dd5a1358efc46d83368418",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Execute proof-runner regression suite",
+     "run_file": "tools/tasks/steps/post-return-production-proof-validation.validate/03-execute-proof-runner-regression-suite.sh",
+     "run_sha256": "2bf5874aeee037acb2258cbc558da6528a560fa71a8e9f67fd322dd3739548b8"
+    },
+    {
+     "name": "Compile runner surfaces",
+     "run_file": "tools/tasks/steps/post-return-production-proof-validation.validate/04-compile-runner-surfaces.sh",
+     "run_sha256": "555a56850b1a6aac290210ea368b518abde2f7d813fa886a84e65900000a5a6a"
+    },
+    {
+     "name": "Prove source cannot consume release or generic GitHub credentials",
+     "run_file": "tools/tasks/steps/post-return-production-proof-validation.validate/05-prove-source-cannot-consume-release-or-generic-github-creden.sh",
+     "run_sha256": "2a9acf0eb0db57b3b9ead55e18f814295ab6d1142c140c4e9dcac64f21e87207"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "principal-class-conformance.principal-class-conformance",
+   "source": {
+    "workflow": ".github/workflows/principal-class-conformance.yml",
+    "workflow_name": "Principal class conformance",
+    "job": "principal-class-conformance",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "A substitute principal is refused, not run",
+     "run_file": "tools/tasks/steps/principal-class-conformance.principal-class-conformance/01-a-substitute-principal-is-refused-not-run.sh",
+     "run_sha256": "874ca24da4a20503daa70b041d5fd4ff5427c026c918631bd9da2e6115676d45"
+    },
+    {
+     "name": "The declared class down with an alternate up withholds execution",
+     "run_file": "tools/tasks/steps/principal-class-conformance.principal-class-conformance/02-the-declared-class-down-with-an-alternate-up-withholds-execu.sh",
+     "run_sha256": "7ec64491cff5723d67c469eeded39a6f586686010e409376f9e3a2a7e62d324a"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "sdk-principal-class-conformance",
+     "path": "/tmp/principal-class-conformance.json",
+     "if_no_files_found": "warn",
+     "if": "always()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 10,
+    "python_version": "3.11",
+    "artifact_name": "sdk-principal-class-conformance",
+    "artifact_if_no_files_found": "warn"
+   }
+  },
+  {
+   "id": "publisher-sdk-return-binding-validation.validate",
+   "source": {
+    "workflow": ".github/workflows/publisher-sdk-return-binding-validation.yml",
+    "workflow_name": "Publisher SDK Return Binding Validation (Non-Authorizing)",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Assert validation-only authority boundary",
+     "run_file": "tools/tasks/steps/publisher-sdk-return-binding-validation.validate/01-assert-validation-only-authority-boundary.sh",
+     "run_sha256": "ca89d561ef7ce3a9da1e44fa5fcb1398144209b61b4c7a0b9eed1389ad925abc"
+    },
+    {
+     "name": "Materialize exact public source anonymously",
+     "run_file": "tools/tasks/steps/publisher-sdk-return-binding-validation.validate/02-materialize-exact-public-source-anonymously.sh",
+     "run_sha256": "691f1799c84c42bd512ddb2645faf1a2b73f50946436970b182aa8a3bea961fc",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Validate Publisher to SDK exact-return binding and materialization",
+     "run_file": "tools/tasks/steps/publisher-sdk-return-binding-validation.validate/03-validate-publisher-to-sdk-exact-return-binding-and-materiali.sh",
+     "run_sha256": "f766aa816cc6618fa5239591215ce173cdd6da8c71015cad84da45bce31d49c4"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "release-dependency-alignment-validation.validate",
+   "source": {
+    "workflow": ".github/workflows/release-dependency-alignment-validation.yml",
+    "workflow_name": "Release Dependency Alignment Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Assert non-authorizing environment",
+     "run_file": "tools/tasks/steps/release-dependency-alignment-validation.validate/01-assert-non-authorizing-environment.sh",
+     "run_sha256": "4fe0471660f2a7d9298dd73c60b8db6b6b5a6b15d36c0c3574abc6187edca7cf"
+    },
+    {
+     "name": "Materialize exact public source anonymously",
+     "run_file": "tools/tasks/steps/release-dependency-alignment-validation.validate/02-materialize-exact-public-source-anonymously.sh",
+     "run_sha256": "691f1799c84c42bd512ddb2645faf1a2b73f50946436970b182aa8a3bea961fc",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Install build tooling",
+     "run_file": "tools/tasks/steps/release-dependency-alignment-validation.validate/03-install-build-tooling.sh",
+     "run_sha256": "8aa44f4475a20c8ab2229993dc2d8f4e180a2fb895eceede6de4a8d75667b404"
+    },
+    {
+     "name": "Run source alignment tests",
+     "run_file": "tools/tasks/steps/release-dependency-alignment-validation.validate/04-run-source-alignment-tests.sh",
+     "run_sha256": "3c4b18733f7c79edb560438b31803631a56f9e42866803b2e1c205ac3f9e2c45"
+    },
+    {
+     "name": "Build and install exact wheel",
+     "run_file": "tools/tasks/steps/release-dependency-alignment-validation.validate/05-build-and-install-exact-wheel.sh",
+     "run_sha256": "405cce45706ebe5b0ee1326a56a0de91f7d28ad8b5faf23cce4ee31a5fd2c8b2"
+    },
+    {
+     "name": "Verify installed wheel metadata aligns to final TVC source-parent coordinates",
+     "run_file": "tools/tasks/steps/release-dependency-alignment-validation.validate/06-verify-installed-wheel-metadata-aligns-to-final-tvc-source-p.sh",
+     "run_sha256": "e39ced3f222c2500c91158cdf0544b10719671884cb0568b78db216ae783af80"
+    },
+    {
+     "name": "Compile canonical command and verifier",
+     "run_file": "tools/tasks/steps/release-dependency-alignment-validation.validate/07-compile-canonical-command-and-verifier.sh",
+     "run_sha256": "2b44cba1b94fdc15e934ffee8f60f746be534447c9142a18ac7e39ab0d193647"
+    },
+    {
+     "name": "Record authority boundary",
+     "run_file": "tools/tasks/steps/release-dependency-alignment-validation.validate/08-record-authority-boundary.sh",
+     "run_sha256": "91644888597d5049d4f0f81022b58bfc8c2509efe281e051e592dcd3e8240291"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "repository-ledger-initialization-validation.validate",
+   "source": {
+    "workflow": ".github/workflows/repository-ledger-initialization-validation.yml",
+    "workflow_name": "SDK Repository Ledger Initialization - Validation Only / No Ledger Write",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Compile",
+     "run_file": "tools/tasks/steps/repository-ledger-initialization-validation.validate/01-compile.sh",
+     "run_sha256": "592cb06e741f387e3d1ccffb64d0fc31ff5192214ebfac8af43c9d01995bb557"
+    },
+    {
+     "name": "Run deterministic tests (stdlib only, no token, no network)",
+     "run_file": "tools/tasks/steps/repository-ledger-initialization-validation.validate/02-run-deterministic-tests-stdlib-only-no-token-no-network.sh",
+     "run_sha256": "3d310c4cd691acc38759f9923b74385c4446307b1c494fbb3437fd8ef6040182",
+     "env": {
+      "GITHUB_TOKEN": "",
+      "GH_TOKEN": "",
+      "TVC_EPHEMERAL_GITHUB_TOKEN": ""
+     }
+    },
+    {
+     "name": "Plan against the committed manifest with a temporary ledger",
+     "run_file": "tools/tasks/steps/repository-ledger-initialization-validation.validate/03-plan-against-the-committed-manifest-with-a-temporary-ledger.sh",
+     "run_sha256": "c5edd58622725561313d612b9f50316af3d3faeb2903b2a15dda8fd05f29afe4"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "false",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "s4-cost-benchmark-validation.test",
+   "source": {
+    "workflow": ".github/workflows/s4-cost-benchmark-validation.yml",
+    "workflow_name": "S4_COST benchmark evaluator validation",
+    "job": "test",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "S4_COST evaluator tests (stdlib unittest, synthetic non-authoritative inputs)",
+     "run_file": "tools/tasks/steps/s4-cost-benchmark-validation.test/01-s4-cost-evaluator-tests-stdlib-unittest-synthetic-non-author.sh",
+     "run_sha256": "d38bec3860c5e559d878633258c8e0077b756cf88096b219c7ff39557af99186"
+    },
+    {
+     "name": "Authority boundary",
+     "run_file": "tools/tasks/steps/s4-cost-benchmark-validation.test/02-authority-boundary.sh",
+     "run_sha256": "1f4b750cb8ee2d79146ff6b6fda6a92aea3fba36c864a69a66d1e79e6a343a01"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "sdk-public-developer-wiki-pages.validate",
+   "source": {
+    "workflow": ".github/workflows/sdk-public-developer-wiki-pages.yml",
+    "workflow_name": "Publish SDK Developer Wiki",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Validate SDK public wiki",
+     "run_file": "tools/tasks/steps/sdk-public-developer-wiki-pages.validate/01-validate-sdk-public-wiki.sh",
+     "run_sha256": "40b84cc6f07e2e05f55e1534592e7e5b5c87fb9e511aecb53bde7c219244b7cd"
+    },
+    {
+     "name": "Build exact-source wiki projection",
+     "run_file": "tools/tasks/steps/sdk-public-developer-wiki-pages.validate/02-build-exact-source-wiki-projection.sh",
+     "run_sha256": "ff96a18bd2b41db22f67216d3db08afd99dc6f5c23cf7311d8b6cd16eab96a88"
+    },
+    {
+     "name": "Validate generated provenance",
+     "run_file": "tools/tasks/steps/sdk-public-developer-wiki-pages.validate/03-validate-generated-provenance.sh",
+     "run_sha256": "75dd10aae21a0acc96994f8212b9238dbb4b5f82b99e25bdcbbebe34f4be18e4"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "sdk-public-developer-wiki-preview",
+     "path": "_site",
+     "if_no_files_found": "error",
+     "if": "success()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "artifact_name": "sdk-public-developer-wiki-preview",
+    "artifact_if_no_files_found": "error"
+   }
+  },
+  {
+   "id": "sdk-public-wiki-observation.observe",
+   "source": {
+    "workflow": ".github/workflows/sdk-public-wiki-observation.yml",
+    "workflow_name": "Observe SDK Public Wiki",
+    "job": "observe",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch",
+     "workflow_run"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    },
+    "job_needs_if_before": {
+     "needs": null,
+     "if": "github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Validate public wiki origin binding contract",
+     "run_file": "tools/tasks/steps/sdk-public-wiki-observation.observe/01-validate-public-wiki-origin-binding-contract.sh",
+     "run_sha256": "74930112d06f8e1e5b123a58f4d00980dd7369a6dc6c84750570d1d1bbfc36ba"
+    },
+    {
+     "name": "Fetch deployed public resources and verify served bodies",
+     "run_file": "tools/tasks/steps/sdk-public-wiki-observation.observe/02-fetch-deployed-public-resources-and-verify-served-bodies.sh",
+     "run_sha256": "3048f6fe2ade9a4b9088d24e74dcd596fcbc050f50438325e170c1c1481635dd"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "sdk-public-wiki-observation",
+     "path": "artifacts/sdk-public-wiki-observation.json",
+     "if_no_files_found": "error",
+     "if": "always()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "artifact_name": "sdk-public-wiki-observation",
+    "artifact_if_no_files_found": "error"
+   }
+  },
+  {
+   "id": "sdk-structured-authority-basis.validate",
+   "source": {
+    "workflow": ".github/workflows/sdk-structured-authority-basis.yml",
+    "workflow_name": "SDK Structured Authority Basis Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK source",
+     "run_file": "tools/tasks/steps/sdk-structured-authority-basis.validate/01-install-sdk-source.sh",
+     "run_sha256": "87b5da70402dca8834032346e6fda7cf4d47041959d78aba3986d4a8fdf50af4"
+    },
+    {
+     "name": "Run structured authority bridge tests",
+     "run_file": "tools/tasks/steps/sdk-structured-authority-basis.validate/02-run-structured-authority-bridge-tests.sh",
+     "run_sha256": "96aad289f235233891c262aeaee32939120c25be23bcaa65812a625994b9b884"
+    },
+    {
+     "name": "Compile authority bridge",
+     "run_file": "tools/tasks/steps/sdk-structured-authority-basis.validate/03-compile-authority-bridge.sh",
+     "run_sha256": "7bb9b4b209f2216616b7b703e5b518e3ad71b65e8894c300d554eaa981690c86"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.11"
+   }
+  },
+  {
+   "id": "sdk-usage-observability.validate",
+   "source": {
+    "workflow": ".github/workflows/sdk-usage-observability.yml",
+    "workflow_name": "SDK Usage Observability Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Materialize public source anonymously",
+     "run_file": "tools/tasks/steps/sdk-usage-observability.validate/01-materialize-public-source-anonymously.sh",
+     "run_sha256": "e0d15f723b7de63405a700bf504675eabf25232b0fce4548e3a027e8ad1be25b",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "PR_HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
+      "DISPATCH_SHA": "${{ github.sha }}"
+     }
+    },
+    {
+     "name": "Run usage observability tests",
+     "run_file": "tools/tasks/steps/sdk-usage-observability.validate/02-run-usage-observability-tests.sh",
+     "run_sha256": "c1c7e6b5d30592526f64b7eb38de23eac979bc76b60ed290714bbae362bac0ce"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "served-surface-assertion.served-surface-assertion",
+   "source": {
+    "workflow": ".github/workflows/served-surface-assertion.yml",
+    "workflow_name": "Served surface assertion",
+    "job": "served-surface-assertion",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "A served surface that diverges from its frozen declaration fails closed",
+     "run_file": "tools/tasks/steps/served-surface-assertion.served-surface-assertion/01-a-served-surface-that-diverges-from-its-frozen-declaration-f.sh",
+     "run_sha256": "4716477edfab184bd09d420c3570520de78adbc897dcf50f722d1a4f59084796"
+    },
+    {
+     "name": "An injected resource withholds evidence",
+     "run_file": "tools/tasks/steps/served-surface-assertion.served-surface-assertion/02-an-injected-resource-withholds-evidence.sh",
+     "run_sha256": "e81fb492b3327e4922fa0eed0c28c13231f8b1d50417c13f35babbc5e8574d95"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "sdk-served-surface-assertion",
+     "path": "/tmp/served-surface-assertion.json",
+     "if_no_files_found": "warn",
+     "if": "always()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 10,
+    "python_version": "3.11",
+    "artifact_name": "sdk-served-surface-assertion",
+    "artifact_if_no_files_found": "warn"
+   }
+  },
+  {
+   "id": "shared-docs-multiparty-freeze-validation.validate",
+   "source": {
+    "workflow": ".github/workflows/shared-docs-multiparty-freeze-validation.yml",
+    "workflow_name": "Shared Docs Multiparty Freeze Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK runtime dependencies",
+     "run_file": "tools/tasks/steps/shared-docs-multiparty-freeze-validation.validate/01-install-sdk-runtime-dependencies.sh",
+     "run_sha256": "29845d986c9d802a5694464194c33d3f14b85b20e9565d2b312709fa00b664e0"
+    },
+    {
+     "name": "Validate deterministic Shared Docs freeze state machine",
+     "run_file": "tools/tasks/steps/shared-docs-multiparty-freeze-validation.validate/02-validate-deterministic-shared-docs-freeze-state-machine.sh",
+     "run_sha256": "e347aae4776bb2f2de767136592b4445753a7a74583c0ce88138f80700dacecb"
+    },
+    {
+     "name": "Record non-authorizing validation boundary",
+     "run_file": "tools/tasks/steps/shared-docs-multiparty-freeze-validation.validate/03-record-non-authorizing-validation-boundary.sh",
+     "run_sha256": "2c6bd755344aa99905962e12498c65beb650634cb2e52ee731d2656b2ba0e1ad"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.11"
+   }
+  },
+  {
+   "id": "shared-docs-provider-freeze-validation.validate",
+   "source": {
+    "workflow": ".github/workflows/shared-docs-provider-freeze-validation.yml",
+    "workflow_name": "Shared Docs Provider Freeze Integration Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK runtime dependencies",
+     "run_file": "tools/tasks/steps/shared-docs-provider-freeze-validation.validate/01-install-sdk-runtime-dependencies.sh",
+     "run_sha256": "29845d986c9d802a5694464194c33d3f14b85b20e9565d2b312709fa00b664e0"
+    },
+    {
+     "name": "Validate provider freeze binding",
+     "run_file": "tools/tasks/steps/shared-docs-provider-freeze-validation.validate/02-validate-provider-freeze-binding.sh",
+     "run_sha256": "6183de50c1eeea9785a35b6025d47b52561beb76000cc3a92df9f3d3ca06fe54"
+    },
+    {
+     "name": "Validate TVC provider evidence bridge",
+     "run_file": "tools/tasks/steps/shared-docs-provider-freeze-validation.validate/03-validate-tvc-provider-evidence-bridge.sh",
+     "run_sha256": "dd1c7a3b99973bba0b992a1055bca2b72466e3b5ad91849f8dba5555d18396c8"
+    },
+    {
+     "name": "Revalidate base Shared Docs freeze state machine",
+     "run_file": "tools/tasks/steps/shared-docs-provider-freeze-validation.validate/04-revalidate-base-shared-docs-freeze-state-machine.sh",
+     "run_sha256": "e347aae4776bb2f2de767136592b4445753a7a74583c0ce88138f80700dacecb"
+    },
+    {
+     "name": "Record non-authorizing validation boundary",
+     "run_file": "tools/tasks/steps/shared-docs-provider-freeze-validation.validate/05-record-non-authorizing-validation-boundary.sh",
+     "run_sha256": "b89eb279d6e25d7eb4bd0c11e28dd0e7e4782fb58779c395999df88e5711f440"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.11"
+   }
+  },
+  {
+   "id": "sovereign-standing-context-validation.validate",
+   "source": {
+    "workflow": ".github/workflows/sovereign-standing-context-validation.yml",
+    "workflow_name": "Sovereign Standing Context Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Assert non-authorizing environment",
+     "run_file": "tools/tasks/steps/sovereign-standing-context-validation.validate/01-assert-non-authorizing-environment.sh",
+     "run_sha256": "41bcc48e03db293463bb003396c192173786bb0c66f184c0b8054144990b7139"
+    },
+    {
+     "name": "Materialize exact source anonymously",
+     "run_file": "tools/tasks/steps/sovereign-standing-context-validation.validate/02-materialize-exact-source-anonymously.sh",
+     "run_sha256": "63263260892f0cf6c83c644bcc80834e29a67ff7d2dd5a1358efc46d83368418",
+     "env": {
+      "SOURCE_REPO": "${{ github.repository }}",
+      "SOURCE_SHA": "${{ github.event.pull_request.head.sha || github.sha }}"
+     }
+    },
+    {
+     "name": "Install pytest",
+     "run_file": "tools/tasks/steps/sovereign-standing-context-validation.validate/03-install-pytest.sh",
+     "run_sha256": "e3de1889984bed38334d633eae8749a7624cd8b2a253e7fd39ba0df0023b7106"
+    },
+    {
+     "name": "Execute standing context tests",
+     "run_file": "tools/tasks/steps/sovereign-standing-context-validation.validate/04-execute-standing-context-tests.sh",
+     "run_sha256": "7a8f275fe9506afe3efb488eda017ef4c4fc22b5ef349dee4d038a335e20ff95"
+    },
+    {
+     "name": "Compile changed runtime surfaces",
+     "run_file": "tools/tasks/steps/sovereign-standing-context-validation.validate/05-compile-changed-runtime-surfaces.sh",
+     "run_sha256": "f0f2ad9ae032b9e0f8a0cafba0d98591a6c9e6a770addc7e3130e2a08cb7213a"
+    },
+    {
+     "name": "Prove no credential authority introduced",
+     "run_file": "tools/tasks/steps/sovereign-standing-context-validation.validate/06-prove-no-credential-authority-introduced.sh",
+     "run_sha256": "65b490485857ae2d56117330ec4345e0be75aec6fad49a5f8c7fa158318fa5f4"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "sv-llm-intr-roundtrip.roundtrip",
+   "source": {
+    "workflow": ".github/workflows/sv-llm-intr-roundtrip.yml",
+    "workflow_name": "SV-LLM InTr Round Trip Conformance (Non-Authorizing)",
+    "job": "roundtrip",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "push",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {
+    "STEGVERSE_ORG_DOTGITHUB_SHA": "893e921677cbed1a24e90c98771e77c9ed3cec16",
+    "SV_LLM_DOTGITHUB_SHA": "29227a4bab57a2a4453fa8b8a86ada953d6cc4cc",
+    "PUBLISHER_SHA": "1b3fc65c1bcab5c835985b878508e7b848d13025"
+   },
+   "steps": [
+    {
+     "name": "Install the SDK and its declared dependencies",
+     "run_file": "tools/tasks/steps/sv-llm-intr-roundtrip.roundtrip/01-install-the-sdk-and-its-declared-dependencies.sh",
+     "run_sha256": "e56b05d9c776959daa3ca37ccf16f3964dd0dba21f31f5138c19a7fc26413d41"
+    },
+    {
+     "name": "Round trip and boundary cases",
+     "run_file": "tools/tasks/steps/sv-llm-intr-roundtrip.roundtrip/02-round-trip-and-boundary-cases.sh",
+     "run_sha256": "78ef4ecbfcc40557b9db948d1cab44d18d044cb5920d366127276a37c5463a7d",
+     "env": {
+      "STEGVERSE_ORG_DOTGITHUB_ROOT": "${{ github.workspace }}/_orgs/stegverse-org",
+      "SV_LLM_DOTGITHUB_ROOT": "${{ github.workspace }}/_orgs/sv-llm",
+      "GCAT_BCAT_PUBLISHER_ROOT": "${{ github.workspace }}/_orgs/publisher",
+      "SV_LLM_ROUNDTRIP_REPORT": "${{ runner.temp }}/sv-llm-intr-roundtrip-run.json",
+      "SV_LLM_ROUNDTRIP_PUBLISHER_DIR": "${{ runner.temp }}/publisher-return"
+     }
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "sv-llm-intr-roundtrip-run",
+     "path": "${{ runner.temp }}/sv-llm-intr-roundtrip-run.json\n${{ runner.temp }}/publisher-return\n${{ runner.temp }}/roundtrip.log\n",
+     "if_no_files_found": "warn",
+     "if": "always()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "x_repository": "GCAT-BCAT-Engine/Publisher",
+    "x_ref": "${{ env.PUBLISHER_SHA }}",
+    "x_path": "_orgs/publisher",
+    "x_fetch_depth": "1",
+    "x_persist_credentials": "false",
+    "python_version": "3.11",
+    "artifact_name": "sv-llm-intr-roundtrip-run",
+    "artifact_if_no_files_found": "warn"
+   }
+  },
+  {
+   "id": "svg-governance-cycle-manifest-route.svg-manifest-route",
+   "source": {
+    "workflow": ".github/workflows/svg-governance-cycle-manifest-route.yml",
+    "workflow_name": "SVG governance-cycle manifest route",
+    "job": "svg-manifest-route",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": null
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK",
+     "run_file": "tools/tasks/steps/svg-governance-cycle-manifest-route.svg-manifest-route/01-install-sdk.sh",
+     "run_sha256": "29845d986c9d802a5694464194c33d3f14b85b20e9565d2b312709fa00b664e0"
+    },
+    {
+     "name": "Test SVG manifest route",
+     "run_file": "tools/tasks/steps/svg-governance-cycle-manifest-route.svg-manifest-route/02-test-svg-manifest-route.sh",
+     "run_sha256": "65a1276dcaa60f52177ae657581a32bda832d15a92967b1064520f63103ec926"
+    },
+    {
+     "name": "Test universal manifest transition runtime",
+     "run_file": "tools/tasks/steps/svg-governance-cycle-manifest-route.svg-manifest-route/03-test-universal-manifest-transition-runtime.sh",
+     "run_sha256": "61c3800b43e9aa70abd7e4317fde05127f0ae071e9fe8aaea95bf4766e485388"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.11"
+   }
+  },
+  {
+   "id": "test5-stegbrowser-manifest-validation.validate",
+   "source": {
+    "workflow": ".github/workflows/test5-stegbrowser-manifest-validation.yml",
+    "workflow_name": "Test 5 StegBrowser Manifest Validation",
+    "job": "validate",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "push",
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {
+     "contents": "read"
+    }
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "step 1",
+     "run_file": "tools/tasks/steps/test5-stegbrowser-manifest-validation.validate/01-step-1.sh",
+     "run_sha256": "ae73e34563cb1615cce077a49541fd1be889f4341ff9455ef585ae4387d81c6b"
+    },
+    {
+     "name": "step 2",
+     "run_file": "tools/tasks/steps/test5-stegbrowser-manifest-validation.validate/02-step-2.sh",
+     "run_sha256": "3ec23a9b789244a61792947f6c022960901de9d244620f9503dc932fe873addd"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.12"
+   }
+  },
+  {
+   "id": "tt-atomic-task-worker-binding.manifest-only-experiment",
+   "source": {
+    "workflow": ".github/workflows/tt-atomic-task-worker-binding.yml",
+    "workflow_name": "SDK Four-Stage Manifest-Only Experiment",
+    "job": "manifest-only-experiment",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": null
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Freeze exact SDK source identity",
+     "run_file": "tools/tasks/steps/tt-atomic-task-worker-binding.manifest-only-experiment/01-freeze-exact-sdk-source-identity.sh",
+     "run_sha256": "a273ecf981f2b610f2930ea53b57963b60c32d7b1bc26eb86de1b6a5887e07d1"
+    },
+    {
+     "name": "step 2",
+     "run_file": "tools/tasks/steps/tt-atomic-task-worker-binding.manifest-only-experiment/02-step-2.sh",
+     "run_sha256": "9c77d1a9aff9a0971d666a0115981fdb3c55a613b166332ef3b2ae5ef3480566"
+    },
+    {
+     "name": "Materialize Task 4 generic group processor request",
+     "run_file": "tools/tasks/steps/tt-atomic-task-worker-binding.manifest-only-experiment/03-materialize-task-4-generic-group-processor-request.sh",
+     "run_sha256": "e29d4059f17aa25e5fc6d3f9c0f3f1d77dea7c6f23f24a779238b100eea1f273"
+    },
+    {
+     "name": "Build all four manifests before execution",
+     "run_file": "tools/tasks/steps/tt-atomic-task-worker-binding.manifest-only-experiment/04-build-all-four-manifests-before-execution.sh",
+     "run_sha256": "757051c3cf8419c017aeebe0c192957c98532fde64807548bba7d8ffa0ebf4f4"
+    },
+    {
+     "name": "Bind signed fixture readiness evidence to each manifest",
+     "run_file": "tools/tasks/steps/tt-atomic-task-worker-binding.manifest-only-experiment/05-bind-signed-fixture-readiness-evidence-to-each-manifest.sh",
+     "run_sha256": "aa60f3a19aeb107b4de341fbc86ea2ba9d5ee8d956621f58273666708f15e51c"
+    },
+    {
+     "name": "Execute Test 1 from manifest only",
+     "run_file": "tools/tasks/steps/tt-atomic-task-worker-binding.manifest-only-experiment/06-execute-test-1-from-manifest-only.sh",
+     "run_sha256": "f8892a1d179185dccc573700aafb63fcc5dd0cf82c3fc5da11ff7685875e653c"
+    },
+    {
+     "name": "Execute Test 2 from manifest only",
+     "run_file": "tools/tasks/steps/tt-atomic-task-worker-binding.manifest-only-experiment/07-execute-test-2-from-manifest-only.sh",
+     "run_sha256": "9d51d742688f236f7c3d3013824b0fa5f28c9df322ee08cc62905a07ebecbbf4"
+    },
+    {
+     "name": "Execute Test 3 from manifest only",
+     "run_file": "tools/tasks/steps/tt-atomic-task-worker-binding.manifest-only-experiment/08-execute-test-3-from-manifest-only.sh",
+     "run_sha256": "97f423dd247a5c2a3275d348aaf300a2259764b37622cb99146371a6f09e1de9"
+    },
+    {
+     "name": "Execute Task 4 from manifest only",
+     "run_file": "tools/tasks/steps/tt-atomic-task-worker-binding.manifest-only-experiment/09-execute-task-4-from-manifest-only.sh",
+     "run_sha256": "099e1ebde6b9b7d979820d9293966c23662d06a2530e9c710befe59f84b24f28"
+    },
+    {
+     "name": "Verify all four manifests reached the same governed handoff boundary",
+     "run_file": "tools/tasks/steps/tt-atomic-task-worker-binding.manifest-only-experiment/10-verify-all-four-manifests-reached-the-same-governed-handoff.sh",
+     "run_sha256": "a0cf5286c451a8058f794e83041cd3ed5afd88ac3226df7998c68b3e300be168"
+    },
+    {
+     "name": "Prove SDK source remained unchanged throughout experiment",
+     "run_file": "tools/tasks/steps/tt-atomic-task-worker-binding.manifest-only-experiment/11-prove-sdk-source-remained-unchanged-throughout-experiment.sh",
+     "run_sha256": "101522c2e52831f45a16a644b2ce7d5bd80d627652274242c841f0dc46fc8eaf"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "sdk-four-stage-manifest-only-experiment",
+     "path": "/tmp/sdk-frozen-head.txt\n/tmp/sdk-source-index.txt\n/tmp/sdk-source-index.sha256\n/tmp/experiment-metadata.json\n/tmp/pip-freeze.txt\n/tmp/experiment-stage-results.log\n/tmp/sdk-task4-group.processor-request.json\n/tmp/test1.manifest.json\n/tmp/test2.manifest.json\n/tmp/test3.manifest.json\n/tmp/task4.manifest.json\n/tmp/test1.result.json\n/tmp/test2.result.json\n/tmp/test3.result.json\n/tmp/task4.result.json\n/tmp/test1.readiness-evidence.json\n/tmp/test2.readiness-evidence.json\n/tmp/test3.readiness-evidence.json\n/tmp/task4.readiness-evidence.json\n/tmp/experiment-sha256.txt\n",
+     "if_no_files_found": "warn",
+     "if": "success()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "0",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.11",
+    "artifact_name": "sdk-four-stage-manifest-only-experiment",
+    "artifact_if_no_files_found": "warn"
+   },
+   "fold_notes": [
+    "checkout ref '${{ github.event.pull_request.head.sha || github.sha }}' -> the dispatcher's default ref for the event"
+   ]
+  },
+  {
+   "id": "tt-purpose-bound-worker-console.evaluator-test-one",
+   "source": {
+    "workflow": ".github/workflows/tt-purpose-bound-worker-console.yml",
+    "workflow_name": "TT Evaluator Test 1 Manifest Runtime (Non-Authorizing)",
+    "job": "evaluator-test-one",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": null
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "step 1",
+     "run_file": "tools/tasks/steps/tt-purpose-bound-worker-console.evaluator-test-one/01-step-1.sh",
+     "run_sha256": "a33a5c948b9be49d085895c800dd6de07b65e55d888475e472096cf8df2d58ad"
+    },
+    {
+     "name": "Validate Test 1 manifest derivation and working processor route",
+     "run_file": "tools/tasks/steps/tt-purpose-bound-worker-console.evaluator-test-one/02-validate-test-1-manifest-derivation-and-working-processor-ro.sh",
+     "run_sha256": "79132417b2458de7b5344bda7a091d4aa3579ab516c1fad4f7d003625557783e"
+    },
+    {
+     "name": "Test 1 - build manifest exactly as evaluator",
+     "run_file": "tools/tasks/steps/tt-purpose-bound-worker-console.evaluator-test-one/03-test-1-build-manifest-exactly-as-evaluator.sh",
+     "run_sha256": "67eacdf40ec6f235a2907c4923a4fdb4db5a635d7907fb7185af131582924f02"
+    },
+    {
+     "name": "Test 1 - bind signed fixture readiness evidence to the manifest",
+     "run_file": "tools/tasks/steps/tt-purpose-bound-worker-console.evaluator-test-one/04-test-1-bind-signed-fixture-readiness-evidence-to-the-manifes.sh",
+     "run_sha256": "3a3806cce2e8865eb6f6d8242909b7da65532d42df5f4c05ddd7a6ef01878e97"
+    },
+    {
+     "name": "Test 1 - run through run-manifest and require assembled lifecycle result",
+     "run_file": "tools/tasks/steps/tt-purpose-bound-worker-console.evaluator-test-one/05-test-1-run-through-run-manifest-and-require-assembled-lifecy.sh",
+     "run_sha256": "6ace97fd625a37a128c7187750e8a1d9479a192ef08c5074d57786cb182c848d"
+    }
+   ],
+   "artifacts": [
+    {
+     "name": "sdk-evaluator-test1-runtime-evidence",
+     "path": "/tmp/sdk-test1.manifest.json\n/tmp/sdk-test1.readiness-evidence.json\n/tmp/sdk-test1.result.json\n",
+     "if_no_files_found": "warn",
+     "if": "success()"
+    }
+   ],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30,
+    "python_version": "3.11",
+    "artifact_name": "sdk-evaluator-test1-runtime-evidence",
+    "artifact_if_no_files_found": "warn"
+   }
+  },
+  {
+   "id": "validate-economic-publisher-paper-manifest.test",
+   "source": {
+    "workflow": ".github/workflows/validate-economic-publisher-paper-manifest.yml",
+    "workflow_name": "Economic Paper Manifest Check",
+    "job": "test",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request"
+    ],
+    "permissions_before": null
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "step 1",
+     "run_file": "tools/tasks/steps/validate-economic-publisher-paper-manifest.test/01-step-1.sh",
+     "run_sha256": "29779758d7b9fb1e87da835e2d2714ffe1eb510bfada71f019d01ca748403e23"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "true",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "workspace-active-probe-validation.validate-active-probe",
+   "source": {
+    "workflow": ".github/workflows/workspace-active-probe-validation.yml",
+    "workflow_name": "WorkSpace Active Probe Validation",
+    "job": "validate-active-probe",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK test surface",
+     "run_file": "tools/tasks/steps/workspace-active-probe-validation.validate-active-probe/01-install-sdk-test-surface.sh",
+     "run_sha256": "29845d986c9d802a5694464194c33d3f14b85b20e9565d2b312709fa00b664e0"
+    },
+    {
+     "name": "Validate active probe execution and WorkSpace gating",
+     "run_file": "tools/tasks/steps/workspace-active-probe-validation.validate-active-probe/02-validate-active-probe-execution-and-workspace-gating.sh",
+     "run_sha256": "ef572b28df5aea860a855f81f002a310f129e7564301ea9766f85bfcbdfe038c"
+    },
+    {
+     "name": "Assert active probe remains non-authorizing",
+     "run_file": "tools/tasks/steps/workspace-active-probe-validation.validate-active-probe/03-assert-active-probe-remains-non-authorizing.sh",
+     "run_sha256": "7c3544f6a77734b50791bbeb4f6ff54de27a23928c1f3cb1f13f81e81cc2dc20"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "false",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "workspace-tvc-provider-probe-bridge-validation.validate-tvc-probe-bridge",
+   "source": {
+    "workflow": ".github/workflows/workspace-tvc-provider-probe-bridge-validation.yml",
+    "workflow_name": "WorkSpace TVC Provider Probe Bridge Validation",
+    "job": "validate-tvc-probe-bridge",
+    "job_name": null,
+    "commit": "daca828",
+    "triggers_before": [
+     "pull_request",
+     "workflow_dispatch"
+    ],
+    "permissions_before": {}
+   },
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Install SDK test surface",
+     "run_file": "tools/tasks/steps/workspace-tvc-provider-probe-bridge-validation.validate-tvc-probe-bridge/01-install-sdk-test-surface.sh",
+     "run_sha256": "29845d986c9d802a5694464194c33d3f14b85b20e9565d2b312709fa00b664e0"
+    },
+    {
+     "name": "Validate TVC evidence bridge and canonical probe composition",
+     "run_file": "tools/tasks/steps/workspace-tvc-provider-probe-bridge-validation.validate-tvc-probe-bridge/02-validate-tvc-evidence-bridge-and-canonical-probe-composition.sh",
+     "run_sha256": "619024623862ef5c7f35fbf65246195b04b7e2369f0b7e39bcd652a7db5c65c0"
+    },
+    {
+     "name": "Assert no provider credential or lease authority enters SDK",
+     "run_file": "tools/tasks/steps/workspace-tvc-provider-probe-bridge-validation.validate-tvc-probe-bridge/03-assert-no-provider-credential-or-lease-authority-enters-sdk.sh",
+     "run_sha256": "c6bf92baf838519cb8fd21ddc25295f56d66676edaae9e822f15666410359698"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "false",
+    "timeout_minutes": 30
+   }
+  },
+  {
+   "id": "workflow-surface-registry.validate",
+   "catalog_addition": "G17 registry gate (no folded source workflow)",
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "env": {},
+   "steps": [
+    {
+     "name": "Workflow files equal the registered surfaces; catalog verifies ALLOW",
+     "run_file": "tools/tasks/steps/workflow-surface-registry.validate/01-registry.sh",
+     "run_sha256": "811824e88664923006be2eeb35632d710f5504145967f61632ad9e8fbdcb35ca"
+    }
+   ],
+   "artifacts": [],
+   "runner": {
+    "fetch_depth": "1",
+    "persist_credentials": "false",
+    "timeout_minutes": 10,
+    "python_version": "3.11"
+   }
+  }
+ ]
+}
