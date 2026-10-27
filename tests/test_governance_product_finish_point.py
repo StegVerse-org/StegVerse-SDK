@@ -290,24 +290,73 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             "schema": manifest["organization_ledger"]["ledger_head"]["schema"], "head_sha256": "ab" * 32, "hb_epoch": 41})
         return root, module, manifest, commit
 
-    def test_finish_verdict_reaches_allow_from_receipts_without_code_edit(self) -> None:
-        observed = {"disposition": "ALLOW", "predicate": "NON_ALLOW_PRODUCES_NO_EFFECT_IN_CUSTOMER_CONFORMANCE_RUN"}
+    LEDGER = "ORGANIZATION_RECEIPT_APPENDED_UNDER_LOCK:GOVERNANCE_PRODUCT_RELEASE"
+    NON_ALLOW = "NON_ALLOW_PRODUCES_NO_EFFECT_IN_CUSTOMER_CONFORMANCE_RUN"
+
+    def write_readback(self, root, module, manifest, candidate, **fields) -> None:
+        body = {"schema": manifest["organization_ledger"]["readback"]["schema"], "ledger_lock": "ORGANIZATION_LEDGER_LOCK",
+                "source_receipt_sha256": module.sha256_hex(module.canonical(candidate))}
+        body.update(fields)
+        write_json(root / manifest["organization_ledger"]["readback"]["path"], body)
+
+    def assert_six_field_refusal(self, result, code) -> None:
+        self.assertEqual(result["disposition"], "FAIL_CLOSED")
+        self.assertEqual(result["failure_code"], code)
+        for field in SIX_FIELDS:
+            self.assertTrue(result[field], field)
+
+    def test_finish_verdict_refuses_unverified_receipts(self) -> None:
+        # Synthetic receipts satisfy every file-bound predicate, but a committed ledger readback and a caller-supplied
+        # customer result are claims, so the verdict stays FAIL_CLOSED on exactly those two predicates.
+        observed = {"disposition": "ALLOW", "predicate": self.NON_ALLOW}
         with tempfile.TemporaryDirectory() as tmp:
             root, module, manifest, commit = self.release_fixture(tmp)
             before = module.finish_verdict(root, observed)
             self.assertEqual(before["disposition"], "FAIL_CLOSED")
-            self.assertEqual(before["failed_predicate"], "ORGANIZATION_RECEIPT_APPENDED_UNDER_LOCK:GOVERNANCE_PRODUCT_RELEASE")
             candidate = before["ledger_receipt_candidate"]
             self.assertEqual(candidate["schema"], "stegverse.canonical-state-transition-receipt/v1")
             self.assertEqual((candidate["hb_epoch"], candidate["prior_state_ref_or_hash"]), (41, "ab" * 32))
             self.assertFalse(candidate["append_performed"])
-            write_json(root / manifest["organization_ledger"]["readback"]["path"], {
-                "schema": manifest["organization_ledger"]["readback"]["schema"], "ledger_lock": "ORGANIZATION_LEDGER_LOCK",
-                "source_receipt_sha256": module.sha256_hex(module.canonical(candidate)), "org_receipt_sha256": "cd" * 32})
+            self.write_readback(root, module, manifest, candidate, org_receipt_sha256="cd" * 32)
             after = module.finish_verdict(root, observed)
-            self.assertEqual(after["disposition"], "ALLOW", json.dumps(after["results"], sort_keys=True))
-            self.assertEqual(set(after["predicates"].values()), {"ALLOW"})
+            self.assertEqual(after["disposition"], "FAIL_CLOSED", json.dumps(after["predicates"], sort_keys=True))
+            blocked = {k for k, v in after["predicates"].items() if v != "ALLOW"}
+            self.assertEqual(blocked, {self.LEDGER, self.NON_ALLOW})
+            self.assert_six_field_refusal(after["results"][self.NON_ALLOW], "CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED")
+            self.assert_six_field_refusal(after["results"][self.LEDGER], "ORGANIZATION_LEDGER_PROVENANCE_UNVERIFIED")
+            self.assertEqual(after["failure_code"], "CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED")
             self.assertEqual(module.release_ref_binding(root, commit)["disposition"], "ALLOW")
+
+    def test_untrusted_local_ledger_readbacks_never_admit_release(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root, module, manifest, _ = self.release_fixture(tmp)
+            candidate = module.finish_verdict(root, None)["ledger_receipt_candidate"]
+            cases = {
+                "absent": ({}, "ORGANIZATION_LEDGER_RECEIPT_HASH_INVALID"),
+                "null": ({"org_receipt_sha256": None}, "ORGANIZATION_LEDGER_RECEIPT_HASH_INVALID"),
+                "not_hex": ({"org_receipt_sha256": "zz" * 32}, "ORGANIZATION_LEDGER_RECEIPT_HASH_INVALID"),
+                "upper_hex": ({"org_receipt_sha256": "CD" * 32}, "ORGANIZATION_LEDGER_RECEIPT_HASH_INVALID"),
+                "short": ({"org_receipt_sha256": "cd" * 31}, "ORGANIZATION_LEDGER_RECEIPT_HASH_INVALID"),
+                "non_string": ({"org_receipt_sha256": 7}, "ORGANIZATION_LEDGER_RECEIPT_HASH_INVALID"),
+                "plausible_forged": ({"org_receipt_sha256": "cd" * 32}, "ORGANIZATION_LEDGER_PROVENANCE_UNVERIFIED"),
+            }
+            for name, (fields, code) in cases.items():
+                with self.subTest(case=name):
+                    self.write_readback(root, module, manifest, candidate, **fields)
+                    self.assert_six_field_refusal(module.v_ledger(root, manifest, candidate), code)
+            self.write_readback(root, module, manifest, {"forged": "candidate"}, org_receipt_sha256="cd" * 32)
+            self.assert_six_field_refusal(module.v_ledger(root, manifest, candidate), "ORGANIZATION_LEDGER_READBACK_MISMATCH")
+
+    def test_caller_supplied_allow_is_not_authenticated_customer_execution(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root, module, _, _ = self.release_fixture(tmp)
+            for claim in ({"disposition": "ALLOW", "predicate": self.NON_ALLOW}, {"disposition": "ALLOW"},
+                          {"disposition": "DENY"}, {}):
+                with self.subTest(claim=claim):
+                    result = module.finish_verdict(root, claim)["results"][self.NON_ALLOW]
+                    self.assert_six_field_refusal(result, "CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED")
+            self.assert_six_field_refusal(module.finish_verdict(root, None)["results"][self.NON_ALLOW],
+                                          "FINISH_TEST_RESULT_NOT_SUPPLIED")
 
     def test_finish_verdict_tamper_cases_fail_closed_with_six_fields(self) -> None:
         observed = {"disposition": "ALLOW", "predicate": "NON_ALLOW_PRODUCES_NO_EFFECT_IN_CUSTOMER_CONFORMANCE_RUN"}

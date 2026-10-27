@@ -323,7 +323,17 @@ def v_ledger(root: Path, man: dict[str, Any], candidate: dict[str, Any] | None =
     if candidate is None or rb.get("source_receipt_sha256") != want or rb.get("ledger_lock") != "ORGANIZATION_LEDGER_LOCK":
         return refuse(p, "ORGANIZATION_LEDGER_READBACK_MISMATCH", f"the readback must name source_receipt_sha256 {want} "
                       "and ledger_lock ORGANIZATION_LEDGER_LOCK", nxt)
-    return allow(p, source_receipt_sha256=want, org_receipt_sha256=rb.get("org_receipt_sha256"))
+    # A committed local JSON readback is a claim about the ledger, not a read of it. Until this verifier reads
+    # refs/stegverse/organization-ledger itself (the anonymous public-ledger route, E0, no credential) and checks the
+    # receipt's digest, ancestry, issuer and lock there, the predicate fails closed whatever the JSON says.
+    receipt_hash = rb.get("org_receipt_sha256")
+    if not isinstance(receipt_hash, str) or HEX64.fullmatch(receipt_hash) is None:
+        return refuse(p, "ORGANIZATION_LEDGER_RECEIPT_HASH_INVALID", "a 64-hex org_receipt_sha256 read back from "
+                      "refs/stegverse/organization-ledger", nxt)
+    return refuse(p, "ORGANIZATION_LEDGER_PROVENANCE_UNVERIFIED", "read refs/stegverse/organization-ledger itself "
+                  "(anonymous public-ledger read, E0) and verify the receipt's digest, ancestry from the sealed head, "
+                  "issuer and append under ORGANIZATION_LEDGER_LOCK; a committed local readback is not evidence", nxt,
+                  source_receipt_sha256=want, claimed_org_receipt_sha256=receipt_hash)
 
 
 VERIFIERS: dict[str, Callable[[Path, dict[str, Any]], dict[str, Any]]] = {
@@ -395,9 +405,18 @@ def finish_verdict(root: Path, non_allow_result: dict[str, Any] | None = None) -
                    "stegverse.governance-product-release-manifest/v1", "on the next push that adds the manifest")
         return dict(r, predicates={}, lowest_supported_mode="E0", degraded_form=DEGRADED_FORM)
     results = {name: _guard(fn, name, root, man) for name, fn in VERIFIERS.items()}
-    results[NON_ALLOW_PREDICATE] = dict(non_allow_result) if isinstance(non_allow_result, dict) else refuse(
-        NON_ALLOW_PREDICATE, "FINISH_TEST_RESULT_NOT_SUPPLIED", "run tests.test_governance_product_finish_point."
-        "GovernanceProductFinishPoint.test_finish_point_verdict and pass its result", "on the next finish-point run")
+    # A caller-supplied dict is an assertion about a customer run, not an observed customer run: it never becomes this
+    # predicate's ALLOW. The predicate turns ALLOW only through a receipt-bound customer conformance run (not yet built).
+    if isinstance(non_allow_result, dict):
+        results[NON_ALLOW_PREDICATE] = refuse(
+            NON_ALLOW_PREDICATE, "CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED", "a customer conformance run of the pinned "
+            "workflow bound to its run identity, immutable source and no-effect evidence through a receipt; a "
+            "caller-supplied result is not that run", "on the receipt-bound customer conformance run",
+            claimed_disposition=non_allow_result.get("disposition"))
+    else:
+        results[NON_ALLOW_PREDICATE] = refuse(
+            NON_ALLOW_PREDICATE, "FINISH_TEST_RESULT_NOT_SUPPLIED", "run tests.test_governance_product_finish_point."
+            "GovernanceProductFinishPoint.test_finish_point_verdict and pass its result", "on the next finish-point run")
     results[NON_ALLOW_PREDICATE].setdefault("lowest_supported_mode", "E0")
     results[NON_ALLOW_PREDICATE].setdefault("degraded_form", DEGRADED_FORM)
     pre = {"disposition": "ALLOW" if all(r["disposition"] == "ALLOW" for r in results.values()) else "FAIL_CLOSED",
