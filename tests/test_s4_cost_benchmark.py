@@ -22,6 +22,10 @@ from stegverse import s4_cost_benchmark as s4  # noqa: E402
 REGISTRY = json.loads((ROOT / "pricing" / "cost-component-registry.v1.json").read_text(encoding="utf-8"))
 CARD = json.loads((ROOT / "pricing" / "rate-card.five-lane-declared.json").read_text(encoding="utf-8"))
 REV = "0" * 40
+# Raw billing-sample bytes the observation is bound to (synthetic; proves nothing about real costs).
+SAMPLE = b"SYNTHETIC NON-AUTHORITATIVE billing sample\n"
+SAMPLE_REF = f"StegVerse-org/StegVerse-SDK:synthetic/billing_sample.json@{REV}"
+SAMPLE_SHA = hashlib.sha256(SAMPLE).hexdigest()
 
 
 def context():
@@ -36,7 +40,7 @@ def observation(amount="0.007"):
     return {"schema": "stegverse.cost-observation.v1", "scope_id": "SV-RECON-001", "currency": "USD",
             "unit": "successful equivalent admissible outcome", "cost_basis_version": REGISTRY["registry_version"],
             "amount": amount, "observation_class": "EXACT_USAGE_PLUS_BOUND_VERSIONED_RATE_CARD",
-            "evidence_ref": "SYNTHETIC-NON-AUTHORITATIVE", "evidence_sha256": "b" * 64}
+            "evidence_ref": SAMPLE_REF, "evidence_sha256": SAMPLE_SHA}
 
 
 def policy(**overrides):
@@ -47,7 +51,7 @@ def policy(**overrides):
     return value
 
 
-def bundle(**docs):
+def bundle(billing_sample=SAMPLE, **docs):
     values = {"cost_component_registry": REGISTRY, "rate_card": CARD, "execution_context": context(),
               "cost_observation": observation(), "economics_policy": policy()}
     values.update(docs)
@@ -55,6 +59,9 @@ def bundle(**docs):
     manifest = {"schema": s4.MANIFEST_SCHEMA, "benchmark_id": "S4_COST", "inputs": {
         name: {"ref": f"StegVerse-org/StegVerse-SDK:synthetic/{name}.json@{REV}",
                "sha256": hashlib.sha256(data).hexdigest()} for name, data in supplied.items()}}
+    if billing_sample is not None:
+        supplied["billing_sample"] = billing_sample
+        manifest["inputs"]["billing_sample"] = {"ref": SAMPLE_REF, "sha256": hashlib.sha256(billing_sample).hexdigest()}
     return manifest, supplied
 
 
@@ -144,6 +151,46 @@ class S4CostBenchmarkTests(unittest.TestCase):
         self.assertEqual(s4.evaluate(*bundle(economics_policy=policy(users_per_period="1000",
                                                                      actions_per_user_per_period="2.5")))["disposition"],
                          "ALLOW")
+
+    def test_self_asserted_observation_is_not_an_authenticated_sample(self):
+        # Review of #554 at aba57fb: an observation naming any 64-hex digest made the sample predicate hold.
+        cases = {
+            "no billing sample declared": ((None,), {}, "AUTHENTICATED_BILLING_SAMPLE_NOT_SUPPLIED"),
+            "digest not backed by the sample": ((SAMPLE,), {"cost_observation": {**observation(), "evidence_sha256": "b" * 64}},
+                                                "OBSERVATION_NOT_BOUND_TO_BILLING_SAMPLE"),
+            "ref not the sample's ref": ((SAMPLE,), {"cost_observation": {**observation(), "evidence_ref": "SYNTHETIC-NON-AUTHORITATIVE"}},
+                                         "OBSERVATION_NOT_BOUND_TO_BILLING_SAMPLE"),
+        }
+        for name, ((sample,), docs, reason) in cases.items():
+            with self.subTest(case=name):
+                out = s4.evaluate(*bundle(billing_sample=sample, **docs))
+                self.assertEqual((out["disposition"], out["failed_predicate"]), ("DENY", "AUTHENTICATED_OPERATING_COST_SAMPLE"))
+                self.assertEqual(out["predicates"]["AUTHENTICATED_OPERATING_COST_SAMPLE"]["billing_sample"]["reason"], reason)
+        manifest, supplied = bundle()
+        supplied["billing_sample"] = SAMPLE + b"tampered"
+        with self.assertRaises(s4.Refused) as raised:
+            s4.evaluate(manifest, supplied)
+        self.assertEqual((raised.exception.result["failure_code"], raised.exception.result["evidence"]["input"]),
+                         ("INPUT_DIGEST_MISMATCH", "billing_sample"))
+        manifest, supplied = bundle()
+        del supplied["billing_sample"]
+        out = s4.evaluate(manifest, supplied)
+        self.assertEqual(out["predicates"]["AUTHENTICATED_OPERATING_COST_SAMPLE"]["billing_sample"]["reason"],
+                         "AUTHENTICATED_BILLING_SAMPLE_NOT_SUPPLIED")
+
+    def test_prices_are_labelled_provisional(self):
+        out = s4.evaluate(*bundle())
+        self.assertEqual((out["disposition"], out["price_status"]), ("ALLOW", "PROVISIONAL_SCENARIO_ONLY"))
+        self.assertTrue(out["predicates"]["AUTHENTICATED_OPERATING_COST_SAMPLE"]["billing_sample"]["bound"])
+
+    def test_oversized_observed_amount_is_refused_not_a_hang(self):
+        # Review of #554: the cost basis was unbounded ("1e5000" raised ValueError, "1e99999999" hung).
+        for amount in ("1e5000", "1e99999999"):
+            with self.subTest(amount=amount):
+                with self.assertRaises(s4.Refused) as raised:
+                    s4.evaluate(*bundle(cost_observation=observation(amount=amount)))
+                self.assertEqual((raised.exception.result["failure_code"], raised.exception.result["evidence"]["field"]),
+                                 ("INPUT_VALUE_INVALID", "pricing_basis.c_pricing"))
 
     def test_text_is_exact(self):
         F = s4.Fraction

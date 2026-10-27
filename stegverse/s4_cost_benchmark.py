@@ -16,7 +16,10 @@ Required inputs: ``cost_component_registry``, ``rate_card``, ``execution_context
 Predicates, all evaluated on exact fractions:
 
 * ``AUTHENTICATED_OPERATING_COST_SAMPLE``: the pricing basis is ``COMPLETE_BASIS``, i.e. an
-  authentic observation was supplied and is comparable with the estimate;
+  authentic observation was supplied and is comparable with the estimate, AND the observation is
+  bound to billing-sample bytes the caller supplies: the optional input ``billing_sample`` is
+  declared with ``ref == observation.evidence_ref`` and ``sha256 == observation.evidence_sha256``.
+  An observation that only names a digest is a claim, not a sample;
 * ``FREE_TO_PAID_SENSITIVITY``: for every declared conversion rate, period revenue and
   cost are computed; at least one declared rate reaches break-even;
 * ``CONTINGENCY_RESERVE``: the declared available reserve covers ``reserve_periods`` of
@@ -50,6 +53,8 @@ GOAL = "ECOSYSTEM-ECONOMIC-WHITEPAPER-GATED-ROADMAP-001"
 PRICING_GOAL = "SDK-COST-DERIVED-TIER-PRICING-001"
 RETRY = "python3 -m stegverse.s4_cost_benchmark <manifest.json> --input NAME=PATH ..."
 REQUIRED_INPUTS = ("cost_component_registry", "rate_card", "execution_context", "cost_observation", "economics_policy")
+BILLING_SAMPLE = "billing_sample"  # optional; required only for AUTHENTICATED_OPERATING_COST_SAMPLE to hold
+PRICE_STATUS = "PROVISIONAL_SCENARIO_ONLY"
 PREDICATES = ("AUTHENTICATED_OPERATING_COST_SAMPLE", "FREE_TO_PAID_SENSITIVITY", "CONTINGENCY_RESERVE")
 _REF = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+:[^@\s]+@[0-9a-f]{40}$")
 _SHA = re.compile(r"^[0-9a-f]{64}$")
@@ -161,6 +166,27 @@ def _text(fraction: Fraction) -> str:
     return ("-" if fraction < 0 else "") + digits[:-places] + "." + digits[-places:]
 
 
+def billing_sample_binding(manifest: Mapping[str, Any], supplied: Mapping[str, bytes],
+                           observed: Mapping[str, Any]) -> dict[str, Any]:
+    """Whether the observation's evidence_ref/evidence_sha256 are backed by supplied billing-sample bytes."""
+    entry = (manifest.get("inputs") or {}).get(BILLING_SAMPLE)
+    if not isinstance(entry, Mapping):
+        return {"bound": False, "reason": "AUTHENTICATED_BILLING_SAMPLE_NOT_SUPPLIED"}
+    ref, digest = entry.get("ref"), entry.get("sha256")
+    if not (isinstance(ref, str) and _REF.match(ref) and isinstance(digest, str) and _SHA.match(digest)):
+        raise _fail("INPUT_REFERENCE_MALFORMED", f"{BILLING_SAMPLE} is owner/repo:path@<40-hex revision> with a 64-hex sha256",
+                    f"pin {BILLING_SAMPLE} to an exact revision and digest", input=BILLING_SAMPLE)
+    if BILLING_SAMPLE not in supplied:
+        return {"bound": False, "reason": "AUTHENTICATED_BILLING_SAMPLE_NOT_SUPPLIED", "ref": ref}
+    actual = hashlib.sha256(supplied[BILLING_SAMPLE]).hexdigest()
+    if actual != digest:
+        raise _fail("INPUT_DIGEST_MISMATCH", f"sha256({BILLING_SAMPLE}) == declared {digest}",
+                    f"supply the exact bytes of {ref}", input=BILLING_SAMPLE, actual_sha256=actual)
+    if observed.get("evidence_ref") != ref or observed.get("evidence_sha256") != digest:
+        return {"bound": False, "reason": "OBSERVATION_NOT_BOUND_TO_BILLING_SAMPLE", "ref": ref, "sha256": digest}
+    return {"bound": True, "ref": ref, "sha256": digest}
+
+
 def evaluate(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, Any]:
     inputs = verified_inputs(manifest, supplied)
     cr = _cost_registry()
@@ -187,13 +213,17 @@ def evaluate(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, Any]:
     conversions = [_fraction(r, "conversion_rates[]", upper=Fraction(1)) for r in rates]
 
     checks: dict[str, Any] = {}
-    sample_ok = basis.get("status") == "COMPLETE_BASIS"
+    binding = (billing_sample_binding(manifest, supplied, basis.get("observed") or {})
+               if basis.get("status") == "COMPLETE_BASIS" else {"bound": False, "reason": "PRICING_BASIS_NOT_COMPLETE"})
+    sample_ok = basis.get("status") == "COMPLETE_BASIS" and binding["bound"]
     checks["AUTHENTICATED_OPERATING_COST_SAMPLE"] = {"holds": sample_ok, "pricing_basis_status": basis.get("status"),
-                                                     "selected_basis": basis.get("selected_basis")}
+                                                     "selected_basis": basis.get("selected_basis"),
+                                                     "billing_sample": binding}
     if basis.get("c_pricing") is None:
         unit_cost = None
     else:
-        unit_cost = Fraction(Decimal(basis["c_pricing"]))
+        # Bounded like every policy number, so an oversized observed amount is a refusal, not a hang or a raise.
+        unit_cost = _fraction(basis["c_pricing"], "pricing_basis.c_pricing")
         if unit_cost == 0:
             # A zero cost basis makes sensitivity and reserve hold vacuously; it is not an operating cost.
             raise _fail("INPUT_OUT_OF_RANGE", "pricing_basis.c_pricing > 0",
@@ -217,7 +247,7 @@ def evaluate(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, Any]:
                                           "scenarios": sensitivity}
     failed = [name for name in PREDICATES if not checks[name]["holds"]]
     body = {"pricing_goal": PRICING_GOAL, "pricing_basis": basis, "predicates": checks,
-            "evidence_class": "SOURCE_IMPLEMENTED", "realism_owner_accepted": False,
+            "evidence_class": "SOURCE_IMPLEMENTED", "realism_owner_accepted": False, "price_status": PRICE_STATUS,
             "inputs": {name: dict(manifest["inputs"][name]) for name in REQUIRED_INPUTS}}
     if failed:
         result = _six("DENY", f"S4_COST_{failed[0]}_NOT_MET", failed[0],
@@ -241,8 +271,8 @@ def main(argv: list[str] | None = None) -> int:
             name, sep, path = item.partition("=")
             if not sep:
                 raise _fail("INPUT_ARGUMENT_MALFORMED", "--input is NAME=PATH", "pass --input NAME=PATH", value=item)
-            if name not in REQUIRED_INPUTS:
-                raise _fail("INPUT_ARGUMENT_MALFORMED", f"--input NAME is one of {', '.join(REQUIRED_INPUTS)}",
+            if name not in REQUIRED_INPUTS + (BILLING_SAMPLE,):
+                raise _fail("INPUT_ARGUMENT_MALFORMED", f"--input NAME is one of {', '.join(REQUIRED_INPUTS + (BILLING_SAMPLE,))}",
                             "pass only declared input names", input=name)
             supplied[name] = Path(path).read_bytes()
         result = evaluate(json.loads(args.manifest.read_text(encoding="utf-8")), supplied)
