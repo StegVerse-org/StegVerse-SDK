@@ -28,7 +28,10 @@ from .manifest_state_transition_runtime import (
     derive_execution_request,
     validate_runtime_result,
 )
-from .remediation_fork import original_wire_manifest_sha256 as _wire_manifest_sha256
+from .remediation_fork import (
+    STEGHEALTH_FAILURE_REMEDIATION_TASK_ID,
+    original_wire_manifest_sha256 as _wire_manifest_sha256,
+)
 from .route_resolution import canonical_sha256
 
 SCHEMA = "stegverse.sdk.governed-remediation-attempt/v1"
@@ -95,7 +98,8 @@ def remediation_candidate(
 
 
 PREFLIGHT_SCHEMA = "stegverse.organization.remediation-return-preflight/v1"
-REMEDIATION_TASK = "STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001"
+# Same task id. Kept so existing readers of this module attribute still resolve.
+REMEDIATION_TASK = STEGHEALTH_FAILURE_REMEDIATION_TASK_ID
 REMEDIATION_GOVERNANCE_REQUEST_SCHEMA = "stegverse.remediation-governance-request/v1"
 
 
@@ -135,7 +139,7 @@ def remediation_governance_manifest(
     payload = {
         "schema": REMEDIATION_GOVERNANCE_REQUEST_SCHEMA,
         "request_id": "REMEDIATION-" + canonical_sha256(candidate)[:24],
-        "task_id": REMEDIATION_TASK,
+        "task_id": STEGHEALTH_FAILURE_REMEDIATION_TASK_ID,
         "original_request_sha256": original_request["request_sha256"],
         "original_non_allow_sha256": candidate["parameters"]["original_non_allow_sha256"],
         "healer_classification_sha256": candidate["parameters"]["healer_classification_sha256"],
@@ -158,7 +162,7 @@ def remediation_governance_manifest(
         "execution": {"actor_authority_current": False, "policy_current": True, "delegation_current": False,
                       "evidence_current": True, "affected_entity_conditions_represented": True,
                       "recoverability_profile": "recoverable", "validity_window_open": True,
-                      "policy_ref": "canonical-task-registry:" + REMEDIATION_TASK,
+                      "policy_ref": "canonical-task-registry:" + STEGHEALTH_FAILURE_REMEDIATION_TASK_ID,
                       "delegation_ref": None, "evidence_refs": refs},
         "capability": {"allowed": True},
         "continuity": {"required": True},
@@ -172,7 +176,7 @@ def remediation_governance_manifest(
         created_at=(original_request.get("canonical_manifest") or {}).get("created_at"),
         declared_intent="Decide the mapped remediation of a retained non-ALLOW.",
         requested_consequence="On a read-back ALLOW only, the SDK performs the mapped RESUBMIT or RE-MANIFEST as a new governed attempt.",
-        publisher_required=False, initiator_class="canonical_task", initiator_ref=REMEDIATION_TASK)
+        publisher_required=False, initiator_class="canonical_task", initiator_ref=STEGHEALTH_FAILURE_REMEDIATION_TASK_ID)
 
 
 def perform_governed_remediation(
@@ -241,7 +245,7 @@ def perform_governed_remediation(
                     "retain the governance refusal and obtain a separately admitted successor decision",
                 "retry_entrypoint": decision.get("retry_entrypoint") or
                     "stegverse/governed_remediation.py::perform_governed_remediation",
-                "owning_existing_goal": decision.get("owning_existing_goal") or REMEDIATION_TASK,
+                "owning_existing_goal": decision.get("owning_existing_goal") or STEGHEALTH_FAILURE_REMEDIATION_TASK_ID,
                 "next_attempt": decision.get("next_attempt") or
                     "submit a separately governed successor; do not retry this refused attempt",
                 "handoff": None, "remediated_request": None}
@@ -298,4 +302,7 @@ def perform_governed_remediation(
     }
 
 
-__all__ = ["perform_governed_remediation", "remediation_candidate", "remediation_governance_manifest", "SCHEMA"]
+__all__ = [
+    "REMEDIATION_TASK", "perform_governed_remediation", "remediation_candidate",
+    "remediation_governance_manifest", "SCHEMA",
+]

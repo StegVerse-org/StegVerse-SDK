@@ -19,6 +19,7 @@ from .capability_inventory import (
     qualify_requirements,
     utc_now,
 )
+from .remediation_fork import STEGHEALTH_FAILURE_REMEDIATION_TASK_ID
 from .route_resolution import (
     DECLARED_ALTERNATIVE_ROUTES,
     PUBLISHED_ROUTES,
@@ -104,7 +105,9 @@ VERIFIED_WORKAROUND_AVAILABLE = "VERIFIED_WORKAROUND_AVAILABLE"
 INCIDENT_NOTIFICATION_ROUTE_EXTENSION = "stegverse_incident_notification_route"
 INCIDENT_NOTIFICATION_CAPABILITY = "incident_notification"
 STEGHEALTH_REMEDIATION = {
-    "owner_task": "STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001",
+    # Historical record field. The value is the StegHealth task id. Renaming
+    # this key would change incident record_sha256.
+    "owner_task": STEGHEALTH_FAILURE_REMEDIATION_TASK_ID,
     "repository": "StegVerse-Labs/StegHealth",
     "issue": "StegVerse-Labs/StegHealth#51",
     "intake": "EXISTING_STEGHEALTH_FAILURE_MAP_INTAKE",
