@@ -6,8 +6,8 @@ Status (2026-10-17): MERGED + CI_VALIDATED source (#505, squash `aa069b2`, 30/30
 
 ## Repair
 - Replaces the live GitHub boundary read in `stegverse/manifest_execution.py` with an SDK-installed immutable JSON snapshot.
-- Canonical origin: `StegVerse-Labs/.github:org-runtime/interlock-intr.json@aa2f89ac877e6a84bedb81a8b4efb30f4910d5f4`.
-- Expected Git blob SHA-1: `a1f61d82a38a817a1dd2749505d8802dd09a22f8`. Check the blob header and content at every load; mismatch yields non-ALLOW.
+- Canonical origin: `StegVerse-Labs/.github:org-runtime/interlock-intr.json@<merge commit of the binding-owner fix, pending>`.
+- Expected Git blob SHA-1: `609707d5ecd3e09f5b97cd98a2e665a59659fce8`. Check the blob header and content at every load; mismatch yields non-ALLOW.
 - Wheel/sdist package data includes `stegverse/pinned_sources/*.json`.
 - No added dependencies. No remote machine, network, hosted endpoint, receiver liveness or observer gate.
 - Existing `canonical_source_fetcher` argument retained for call compatibility, but cannot substitute runtime source.
@@ -26,7 +26,7 @@ At T2 PR #505 head `4544ba4922d2d9a40fb2292a0ef6552d6a23cd70`, 30 of 30 GitHub A
 
 ## Latest source and integration evidence — 2026-10-13
 - Current PR #505 head before this documentation update: `0931a710de89b544179da78049dbe26c9614838a`. All 30 observed GitHub Actions workflow runs completed SUCCESS, including Test suite ratchet.
-- Canonical pinned-source cross-check: SDK-installed `stegverse/pinned_sources/interlock-intr.json` matches `StegVerse-Labs/.github:org-runtime/interlock-intr.json@aa2f89ac877e6a84bedb81a8b4efb30f4910d5f4` byte-for-byte (11,878 bytes), Git blob `a1f61d82a38a817a1dd2749505d8802dd09a22f8`.
+- Canonical pinned-source cross-check: SDK-installed `stegverse/pinned_sources/interlock-intr.json` matches `StegVerse-Labs/.github:org-runtime/interlock-intr.json@<merge commit of the binding-owner fix, pending>` byte-for-byte (15,116 bytes), Git blob `609707d5ecd3e09f5b97cd98a2e665a59659fce8`.
 - Reconciled three `main` remediation-fork files into the existing branch: `stegverse/remediation_fork.py`, `tests/test_remediation_fork.py`, and `inspection/examples/sdk-remediation-fork.processor-request.json`. Git ancestry is still diverged (16 commits ahead, 2 behind `main`), so content reconciliation must not be described as a merge of `main`.
 - Canonical Task Registry generation 313 read from Git blob `9808985b92315b9e6ef8a50ac744e3d574864722` does not authorize assigning the validator-consolidation scope to any existing SDK task vector. T1 remains unresolved; T5 authenticated TV/TVC provenance and sovereign Organization ledger runtime readback remain unobserved.
 - Disposition: `SOURCE_CI_VALIDATED` for the preceding exact head; `FAIL_CLOSED` for runtime/governed transitions. This documentation change creates a new head requiring fresh exact-head checks. No source merge, runtime ALLOW, or owner approval is asserted.
