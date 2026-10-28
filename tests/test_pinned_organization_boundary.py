@@ -1,6 +1,7 @@
 """T2 offline installed organization boundary identity regression."""
 import hashlib
 from importlib import resources
+from unittest import mock
 
 from stegverse.manifest_execution import _canonical_organization_boundary
 
@@ -18,30 +19,39 @@ def test_installed_boundary_is_pinned_and_never_fetches():
     assert boundary["organization"] == "StegVerse-Labs"
 
 
-def test_tampered_installed_boundary_fails_closed(monkeypatch):
-    import pytest
-    class FakePackage:
-        def joinpath(self, *parts):
-            class FakeResource:
-                def read_bytes(self):
-                    return b'{"schema":"stegverse.organization-interlock-intr-boundary/v1","organization":"attacker"}'
-            return FakeResource()
+class _FakePackage:
+    """Stand-in for importlib.resources.files("stegverse") returning fixed bytes or an error."""
 
-    monkeypatch.setattr("stegverse.manifest_execution.resources.files", lambda name: FakePackage())
-    with pytest.raises(ValueError, match="CANONICAL_ORGANIZATION_BOUNDARY_PIN_MISMATCH"):
-        _canonical_organization_boundary()
+    def __init__(self, payload=None, error=None):
+        self.payload, self.error = payload, error
+
+    def joinpath(self, *parts):
+        outer = self
+
+        class _FakeResource:
+            def read_bytes(self):
+                if outer.error is not None:
+                    raise outer.error
+                return outer.payload
+
+        return _FakeResource()
 
 
-def test_missing_installed_boundary_fails_closed(monkeypatch):
-    import pytest
+def _refusal(package):
+    """Run the loader against a fake package and return the ValueError it must raise."""
+    with mock.patch("stegverse.manifest_execution.resources.files", lambda name: package):
+        try:
+            _canonical_organization_boundary()
+        except ValueError as exc:
+            return str(exc)
+    raise AssertionError("tampered or missing boundary was accepted")
 
-    class FakePackage:
-        def joinpath(self, *parts):
-            class FakeResource:
-                def read_bytes(self):
-                    raise FileNotFoundError("pinned source absent")
-            return FakeResource()
 
-    monkeypatch.setattr("stegverse.manifest_execution.resources.files", lambda name: FakePackage())
-    with pytest.raises(ValueError, match="CANONICAL_ORGANIZATION_BOUNDARY_INSTALLED_SOURCE_REQUIRED"):
-        _canonical_organization_boundary()
+def test_tampered_installed_boundary_fails_closed():
+    payload = b'{"schema":"stegverse.organization-interlock-intr-boundary/v1","organization":"attacker"}'
+    assert "CANONICAL_ORGANIZATION_BOUNDARY_PIN_MISMATCH" in _refusal(_FakePackage(payload=payload))
+
+
+def test_missing_installed_boundary_fails_closed():
+    error = FileNotFoundError("pinned source absent")
+    assert "CANONICAL_ORGANIZATION_BOUNDARY_INSTALLED_SOURCE_REQUIRED" in _refusal(_FakePackage(error=error))
