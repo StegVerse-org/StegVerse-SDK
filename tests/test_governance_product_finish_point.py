@@ -442,8 +442,11 @@ class GovernanceProductFinishPoint(unittest.TestCase):
         base.update(fields)
         return base
 
-    def released_ledger(self, tmp, *, order="after", cls="GOVERNANCE_PRODUCT_RELEASE", retain=True, tamper=False):
-        """Fixture release whose candidate is consumed on a synthetic ledger. Returns (root, module, manifest, git_dir)."""
+    def released_ledger(self, tmp, *, order="after", cls="GOVERNANCE_PRODUCT_RELEASE", retain=True, tamper=False,
+                        observed=True, duplicate=False):
+        """Fixture release whose candidate is consumed on a synthetic ledger. Returns (root, module, manifest, git_dir,
+        candidate). The fixture's own finish verdict is FAIL_CLOSED, so its candidate is REFUSED; ``observed`` marks it
+        as an OBSERVED release so the later checks are reached. ``duplicate`` appends a second consuming receipt."""
         root, module, manifest, _ = self.release_fixture(tmp)
         genesis = self.org_receipt(chain_genesis=True)
         sealed_digest = "sha256:" + module.sha256_hex(module.canonical(dict(genesis, previous_receipt_sha256=None)))
@@ -451,10 +454,15 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             "schema": manifest["organization_ledger"]["ledger_head"]["schema"],
             "head_sha256": sealed_digest.split(":")[1], "hb_epoch": 41})
         candidate = module.finish_verdict(root, None)["ledger_receipt_candidate"]
+        self.assertEqual(candidate["transition_outcome"], "REFUSED")
+        if observed:
+            candidate = dict(candidate, transition_outcome="OBSERVED")
         want = "sha256:" + module.sha256_hex(module.canonical(candidate))
         release = self.org_receipt(cls, canonical_state_transition_receipt_sha256=want, source_transition_sha256=want,
                                    source_receipt_schema=candidate["schema"])
         pairs = [(genesis, None), (release, candidate if retain else None)]
+        if duplicate:
+            pairs.append((dict(release, note="replayed"), candidate))
         if order == "before":
             # the release receipt precedes the head the candidate was sealed on
             other = self.org_receipt(chain_genesis=True, note="other genesis")
@@ -479,6 +487,11 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             self.assert_six_field_refusal(result, "ORGANIZATION_LEDGER_COPY_PROVENANCE_UNBOUND")
             self.assertTrue(result["chain_internally_consistent"])
             self.assertEqual(result["chain_length"], 2)
+            self.assertIsNone(result["ledger_oid"])
+            oid = git(git_dir.parent, "rev-parse", module.LEDGER_REF)
+            pinned = module.v_ledger(root, manifest, candidate, git_dir, oid)
+            self.assert_six_field_refusal(pinned, "ORGANIZATION_LEDGER_COPY_PROVENANCE_UNBOUND")
+            self.assertEqual(pinned["ledger_oid"], oid)
             verdict = module.finish_verdict(root, {"disposition": "ALLOW"}, ledger_copy=git_dir)
             self.assertEqual(verdict["predicates"][self.LEDGER], "FAIL_CLOSED")
             self.assertEqual(verdict["disposition"], "FAIL_CLOSED")
@@ -508,20 +521,54 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             "source not retained": ({"retain": False}, "ORGANIZATION_LEDGER_RECEIPT_NOT_BOUND_TO_CANDIDATE"),
             "before sealed head": ({"order": "before"}, "ORGANIZATION_LEDGER_RECEIPT_NOT_AFTER_SEALED_HEAD"),
             "tampered receipt": ({"tamper": True}, "ORGANIZATION_LEDGER_CHAIN_INVALID"),
+            "refused release candidate": ({"observed": False}, "ORGANIZATION_LEDGER_CANDIDATE_NOT_OBSERVED"),
+            "candidate consumed twice": ({"duplicate": True}, "ORGANIZATION_LEDGER_RECEIPT_DUPLICATED"),
         }
         for name, (kw, code) in cases.items():
             with self.subTest(case=name), tempfile.TemporaryDirectory() as tmp:
                 root, module, manifest, git_dir, candidate = self.released_ledger(tmp, **kw)
                 self.assert_six_field_refusal(module.v_ledger(root, manifest, candidate, git_dir), code)
         with tempfile.TemporaryDirectory() as tmp:
+            # pinning: reads are made at the given commit, so a ledger ref moved after the pin is not read
+            root, module, manifest, git_dir, candidate = self.released_ledger(tmp)
+            work = git_dir.parent
+            oid = git(work, "rev-parse", module.LEDGER_REF)
+            self.assert_six_field_refusal(module.v_ledger(root, manifest, candidate, git_dir, "0" * 40),
+                                          "ORGANIZATION_LEDGER_COPY_OID_MISMATCH")
+            for bad in ("not-an-oid", oid + "\n", oid.upper(), "-" + oid[1:], 123):
+                self.assert_six_field_refusal(module.v_ledger(root, manifest, candidate, git_dir, bad),
+                                              "ORGANIZATION_LEDGER_OID_MALFORMED")
+            pinned = module.finish_verdict(root, None, ledger_copy=git_dir, ledger_oid="0" * 40)
+            self.assertEqual(pinned["results"][self.LEDGER]["failure_code"], "ORGANIZATION_LEDGER_COPY_OID_MISMATCH")
+            git(work, "commit", "-q", "--allow-empty", "-m", "later")
+            git(work, "update-ref", module.LEDGER_REF, "HEAD")
+            moved = module.v_ledger(root, manifest, candidate, git_dir, oid)
+            self.assert_six_field_refusal(moved, "ORGANIZATION_LEDGER_COPY_OID_MISMATCH")
+            self.assertEqual(moved["copy_oid"], git(work, "rev-parse", "HEAD"))
+            self.assertEqual(module.read_ledger_chain(git_dir, oid)[0], module.read_ledger_chain(git_dir)[0])
+            git(work, "rm", "-q", "HEAD.json")
+            git(work, "commit", "-q", "-m", "drop head")
+            git(work, "update-ref", module.LEDGER_REF, "HEAD")
+            self.assertIsNotNone(module.read_ledger_chain(git_dir, oid)[0])
+            self.assertIsNone(module.read_ledger_chain(git_dir)[0])
+            # the ref moves between the OID check and the reads: every read stays at the pinned commit
+            real = module._ledger_ref_oid
+            module._ledger_ref_oid = lambda _git_dir: oid
+            try:
+                raced = module.v_ledger(root, manifest, candidate, git_dir, oid)
+            finally:
+                module._ledger_ref_oid = real
+            self.assert_six_field_refusal(raced, "ORGANIZATION_LEDGER_COPY_PROVENANCE_UNBOUND")
+            self.assertEqual(raced["ledger_oid"], oid)
+        with tempfile.TemporaryDirectory() as tmp:
             root, module, manifest, _ = self.release_fixture(tmp)
-            candidate = module.finish_verdict(root, None)["ledger_receipt_candidate"]
+            candidate = dict(module.finish_verdict(root, None)["ledger_receipt_candidate"], transition_outcome="OBSERVED")
             git_dir, _ = self.build_ledger(tmp, module, [(self.org_receipt(chain_genesis=True), None)])
             self.assert_six_field_refusal(module.v_ledger(root, manifest, candidate, git_dir),
                                           "ORGANIZATION_LEDGER_RECEIPT_NOT_FOUND")
             self.assert_six_field_refusal(module.v_ledger(root, manifest, candidate, Path(tmp) / "absent"),
                                           "ORGANIZATION_LEDGER_CHAIN_INVALID")
-            self.assert_six_field_refusal(module.v_ledger(root, manifest, {"forged": "candidate"}, git_dir),
+            self.assert_six_field_refusal(module.v_ledger(root, manifest, {"forged": "candidate", "transition_outcome": "OBSERVED"}, git_dir),
                                           "ORGANIZATION_LEDGER_RECEIPT_NOT_FOUND")
 
     def test_finish_module_reads_no_clock_root_path_or_stegverse_module(self) -> None:
