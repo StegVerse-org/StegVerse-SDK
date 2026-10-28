@@ -1,0 +1,252 @@
+{
+  "schema": "stegverse.protocol-v1-conformance-profile/v1",
+  "profile_id": "PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-PROFILE-001",
+  "profile_version": "1.0.0-draft",
+  "origin_issue": "StegVerse-Labs/.github#3369",
+  "parent_issue": "StegVerse-Labs/.github#3368",
+  "owner_lane": "GITHUB-UNIVERSAL-GOVERNANCE-PRODUCT-001 (landed on main via StegVerse-org/StegVerse-SDK#567; Goal StegVerse-org/.github#164)",
+  "authority_effect": "NONE",
+  "scope": "TEST_REFERENCE_INVENTORY_NOT_RUNTIME_CONFORMANCE",
+  "evidence_boundary": "This profile names existing tests at exact sources. It is not a runtime receipt, not CI evidence, not admission and not an ALLOW. Each reference keeps its own evidence class; classes are never collapsed.",
+  "execution_surface": "COMMITTED_TRANSITION_CYCLE (StegVerse-Labs/.github#3338, B-P40)",
+  "bounded_effect": {
+    "proposal": "P1-prime",
+    "status": "PROPOSED_PENDING_LLM_CONSENSUS",
+    "effect": "ORGANIZATION_LEDGER_APPEND_WITH_INDEPENDENT_READBACK",
+    "allow_proof": "receipt consuming the candidate is present in the verified ledger chain after the sealed head",
+    "non_allow_proof": "no transition in the ledger chain plus a refusal receipt",
+    "deferred": "write to a customer-owned repository; requires SKAP Vault (KV) runtime credential custody, not yet activated, and closure of the TVC credential-model consistency incident",
+    "coordination_ref": "StegVerse-org/StegVerse-SDK#556 comment 6468342963"
+  },
+  "external_sources": {
+    "labs": {
+      "repository": "StegVerse-Labs/.github",
+      "commit": "1f72f20467a1ae79584b0f475fc9fa177e1e7dbf"
+    }
+  },
+  "acceptance": [
+    {
+      "item": "NON_ALLOW_PRODUCES_NO_EFFECT",
+      "refs": [
+        {
+          "source": "sdk",
+          "node": "tests/test_governance_product_finish_point.py::GovernanceProductFinishPoint::test_finish_point_verdict"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_universal_manifest_state_transition_runtime.py::UniversalManifestRuntimeTests::test_source_profile_deny_cannot_be_laundered_into_authentic_intr_result"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_customer_local_governance.py::CustomerLocalRouteSourceTests::test_post_allow_precommit_refusal_never_masquerades_as_final_allow"
+        }
+      ]
+    },
+    {
+      "item": "AUTHENTIC_ALLOW_WITH_BOUNDED_EFFECT",
+      "refs": [
+        {
+          "source": "sdk",
+          "node": "tests/test_organization_ledger_evidence.py::test_allow_for_admitted_receipt_in_chain_bound_to_manifest"
+        },
+        {
+          "source": "labs",
+          "node": "tests/test_organization_role_conformance_ingress.py::AuthenticBoundaryAdmissionTests::test_declared_issuer_is_admitted_from_the_durable_queue_and_committed_allow",
+          "line": 595,
+          "blob": "f0bb8fb4a9b2b204ce1b8d6813cf25963877aa23"
+        }
+      ],
+      "open": "A receipt-bound customer conformance run (CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED) is still open; the ledger-copy predicate stays non-ALLOW (ORGANIZATION_LEDGER_COPY_PROVENANCE_UNBOUND, #567) until the copy's tip is bound to an origin the caller does not control."
+    },
+    {
+      "item": "PAYLOAD_TAMPER",
+      "refs": [
+        {
+          "source": "sdk",
+          "node": "tests/test_admissibility_replay.py::test_replay_admissibility_bundle_detects_mutated_packet"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_governance_product_finish_point.py::GovernanceProductFinishPoint::test_finish_verdict_tamper_cases_fail_closed_with_six_fields"
+        }
+      ]
+    },
+    {
+      "item": "REPLAY",
+      "refs": [
+        {
+          "source": "labs",
+          "node": "tests/test_manifest_ingress_idempotent.py::IdempotentReceiveTests::test_replay_of_the_same_delivery_returns_the_recorded_receipts",
+          "line": 132,
+          "blob": "f787404b595de88c01e5db3bc4ea29419f21f3dd"
+        },
+        {
+          "source": "labs",
+          "node": "tests/test_manifest_ingress_idempotent.py::IdempotentReceiveTests::test_replay_after_the_organization_append_failed_completes_the_chain_once",
+          "line": 234,
+          "blob": "f787404b595de88c01e5db3bc4ea29419f21f3dd"
+        },
+        {
+          "source": "labs",
+          "node": "tests/test_manifest_ingress_idempotent.py::IdempotentReceiveTests::test_replay_of_one_transition_id_over_another_manifest_refuses",
+          "line": 260,
+          "blob": "f787404b595de88c01e5db3bc4ea29419f21f3dd"
+        }
+      ],
+      "open": "Ledger-copy verifier inspects only the first matching receipt; refusing duplicates (and requiring an OBSERVED candidate) becomes load-bearing once ledger-copy provenance is bound."
+    },
+    {
+      "item": "FORGED_IDENTITY",
+      "refs": [
+        {
+          "source": "labs",
+          "node": "tests/test_organization_role_conformance_ingress.py::DispositionTests::test_unauthorized_issuer_has_no_declared_standing_and_is_denied_by_the_adapter",
+          "line": 264,
+          "blob": "f0bb8fb4a9b2b204ce1b8d6813cf25963877aa23"
+        },
+        {
+          "source": "labs",
+          "node": "tests/test_organization_role_conformance_ingress.py::AuthenticBoundaryAdmissionTests::test_an_undeclared_issuer_or_owner_task_is_denied_for_standing",
+          "line": 634,
+          "blob": "f0bb8fb4a9b2b204ce1b8d6813cf25963877aa23"
+        },
+        {
+          "source": "labs",
+          "node": "tests/test_organization_role_conformance_ingress.py::AuthenticBoundaryAdmissionTests::test_standing_supplied_by_the_issuer_or_consumer_is_denied",
+          "line": 645,
+          "blob": "f0bb8fb4a9b2b204ce1b8d6813cf25963877aa23"
+        },
+        {
+          "source": "labs",
+          "node": "tests/test_manifest_ingress_idempotent.py::DeliveryIdentityCollisionTests::test_identity_changed_authority_collides_at_both_levels",
+          "line": 377,
+          "blob": "f787404b595de88c01e5db3bc4ea29419f21f3dd"
+        }
+      ]
+    },
+    {
+      "item": "STALE_HEAD_OR_FENCE",
+      "refs": [
+        {
+          "source": "labs",
+          "node": "tests/test_org_claim_custody.py::OrgClaimCustodyTests::test_ledger_head_unknown_cannot_issue_next_fence",
+          "line": 258,
+          "blob": "777ebff929a6576538459623e0a54f5938f9fa3a"
+        },
+        {
+          "source": "labs",
+          "node": "tests/test_org_claim_custody.py::OrgClaimCustodyTests::test_no_duplicate_fence_across_ephemeral_rematerialization_and_retry",
+          "line": 233,
+          "blob": "777ebff929a6576538459623e0a54f5938f9fa3a"
+        },
+        {
+          "source": "labs",
+          "node": "tests/test_org_claim_custody.py::OrgClaimCustodyTests::test_claim_receipt_binds_exact_task_cosv_scope_and_org_head",
+          "line": 492,
+          "blob": "777ebff929a6576538459623e0a54f5938f9fa3a"
+        }
+      ]
+    },
+    {
+      "item": "WRONG_ROUTE",
+      "refs": [
+        {
+          "source": "labs",
+          "node": "tests/test_organization_role_conformance_ingress.py::DispositionTests::test_wrong_destination_is_deny",
+          "line": 275,
+          "blob": "f0bb8fb4a9b2b204ce1b8d6813cf25963877aa23"
+        },
+        {
+          "source": "labs",
+          "node": "tests/test_manifest_ingress_idempotent.py::DeliveryIdentityCollisionTests::test_identity_changed_destination_service_collides",
+          "line": 335,
+          "blob": "f787404b595de88c01e5db3bc4ea29419f21f3dd"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_organization_ledger_evidence.py::test_wrong_manifest_fails_closed"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_customer_local_governance.py::CustomerLocalRouteSourceTests::test_local_route_requires_exact_declaration_and_no_remote_completion"
+        }
+      ]
+    },
+    {
+      "item": "MISSING_AUTHORITY",
+      "refs": [
+        {
+          "source": "labs",
+          "node": "tests/test_org_claim_custody.py::OrgClaimCustodyTests::test_attempted_claim_missing_authenticated_evidence_is_fail_closed_not_wait",
+          "line": 1173,
+          "blob": "777ebff929a6576538459623e0a54f5938f9fa3a"
+        },
+        {
+          "source": "labs",
+          "node": "tests/test_org_claim_custody.py::OrgClaimCustodyTests::test_missing_or_conflicting_predecessor_claim_evidence_fails_closed",
+          "line": 593,
+          "blob": "777ebff929a6576538459623e0a54f5938f9fa3a"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_governance_product_finish_point.py::GovernanceProductFinishPoint::test_caller_supplied_allow_is_not_authenticated_customer_execution"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_customer_local_governance.py::CustomerLocalRouteSourceTests::test_missing_or_rejected_customer_verifier_cannot_invoke_executor"
+        }
+      ]
+    },
+    {
+      "item": "MISSING_OR_INVALID_RECEIPTS",
+      "refs": [
+        {
+          "source": "sdk",
+          "node": "tests/test_organization_ledger_evidence.py::test_missing_readback_fails_closed_with_six_fields"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_organization_ledger_evidence.py::test_wrong_expected_receipt_fails_closed"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_organization_ledger_evidence.py::test_refused_receipt_is_not_completion"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_interlock_transition.py::test_interlock_requires_participant_terminal_receipt"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_governance_product_finish_point.py::GovernanceProductFinishPoint::test_untrusted_local_ledger_readbacks_never_admit_release"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_governance_product_finish_point.py::GovernanceProductFinishPoint::test_ledger_copy_negatives_fail_closed_with_six_fields"
+        },
+        {
+          "source": "sdk",
+          "node": "tests/test_governance_product_finish_point.py::GovernanceProductFinishPoint::test_self_consistent_ledger_copy_is_not_proof_of_origin"
+        }
+      ]
+    },
+    {
+      "item": "RECONSTRUCTION_FAILURE_NON_GATING",
+      "refs": [
+        {
+          "source": "sdk",
+          "node": "tests/test_universal_manifest_state_transition_runtime.py::UniversalManifestRuntimeTests::test_reconstruction_digest_mismatch_is_evidence_not_admission_gate"
+        }
+      ]
+    }
+  ],
+  "not_covered_by_tests": [
+    "Canonical Goal/COSV, owner scope, WorkerCoordinator claim/fence and expected head (Registry admission; StegVerse-Labs/.github#3358 / #3195)",
+    "Exact-head CI run of the Labs references with the pinned SDK installed",
+    "Authentic organization-ledger append and readback for the selected transition (runtime evidence, not test evidence)"
+  ],
+  "related_lanes": {
+    "customer_local_route": "StegVerse-org/StegVerse-SDK#345 (draft) and stegverse/customer_local_governance.py; Gate 1 of StegVerse-Labs/.github#3368",
+    "stegcore_fixture": "StegVerse-Labs/StegCore#229 (closed; fixture-only verifier; not production evidence)"
+  }
+}
