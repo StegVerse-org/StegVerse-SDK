@@ -3,7 +3,7 @@
   "status": "CANDIDATE_PENDING_LLM_CONSENSUS (P4-A, SDK#484 comment 6473874825)",
   "unit": "one fixed-scope engagement = one action (candidate mapping)",
   "selection_rule": "A price published in USD on the vendor's own page for a fixed-scope AI governance, risk or readiness assessment of a small organization that delivers a written inventory or gap analysis plus a prioritized plan. Excluded: self-serve questionnaires and automated reports; single-workflow briefs and single sessions; prices shown only as a reference or 'typical' value; non-USD prices (no cited FX rate is in scope); enterprise programs at $12,500 or more.",
-  "price_basis_note": "The engine's market median ignores price_basis: a STARTING_AT figure is used as a point price, so it can understate the market. Accepted while the tier stays PROVISIONAL_SCENARIO.",
+  "price_basis_note": "The engine reads a STARTING_AT price p as a lower bound (the true price is at least p): the market median is reported as a range, a STARTING_AT figure never counts as an exact match, and it never caps a quote.",
   "citation_check": "Each source page was fetched and its price, scope and duration checked by hand on observed_at. The guard test checks only citation form.",
   "comparables": [
     {

@@ -137,19 +137,36 @@ def action_cost(record: Any, rates: Mapping[str, Decimal]) -> dict[str, Any]:
     }
 
 
-def market_median(market: Any) -> Decimal | None:
+PRICE_BASES = ("FLAT", "STARTING_AT")
+
+
+def market_median(market: Any) -> dict[str, Any] | None:
+    """Bounds on the market median. A STARTING_AT price p means the true price is at least p.
+
+    at_least is the median with every STARTING_AT price at its bound, at_most the median with
+    every bound unbounded above (None when that median is unbounded); exact only when they agree.
+    """
     if market is None:
         return None
     comparables = _schema(market, MARKET_SCHEMA).get("comparables")
     if not isinstance(comparables, list):
         raise PricingInputError("comparables list required")
-    prices = []
+    low, high = [], []
     for index, entry in enumerate(comparables):
         if not isinstance(entry, Mapping):
             raise PricingInputError(f"comparables[{index}]: object required")
         _cited(entry, f"comparables[{index}]")
-        prices.append(_decimal(entry.get("usd_per_action"), f"comparables[{index}].usd_per_action"))
-    return statistics.median(prices) if prices else None
+        price = _decimal(entry.get("usd_per_action"), f"comparables[{index}].usd_per_action")
+        basis = entry.get("price_basis", "FLAT")
+        if basis not in PRICE_BASES:
+            raise PricingInputError(f"comparables[{index}].price_basis must be one of {list(PRICE_BASES)}")
+        low.append(price)
+        high.append(Decimal("Infinity") if basis == "STARTING_AT" else price)
+    if not low:
+        return None
+    at_least, at_most = statistics.median(low), statistics.median(high)
+    return {"at_least": at_least, "at_most": None if at_most.is_infinite() else at_most,
+            "exact": at_least == at_most}
 
 
 def _cents_up(value: Decimal) -> str:
@@ -223,12 +240,17 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
         unit_cost = max(Decimal(costs[c]["pricing_basis"]["c_pricing"]) for c in classes)
         complete = all(costs[c]["pricing_basis"]["status"] == "COMPLETE_BASIS" for c in classes)
         floor = unit_cost / (1 - margin)
+        # A lower-bound median is never an exact match, and never caps the quote: the floor is
+        # above the market only when it exceeds the median's upper bound.
         if median is None:
             price, position = floor, "NO_MARKET_EVIDENCE"
-        elif median >= floor:
-            price, position = median, "AT_MARKET_MEDIAN"
-        else:
+        elif median["at_least"] >= floor:
+            price = median["at_least"]
+            position = "AT_MARKET_MEDIAN" if median["exact"] else "AT_MARKET_MEDIAN_LOWER_BOUND"
+        elif median["at_most"] is not None and median["at_most"] < floor:
             price, position = floor, "ABOVE_MARKET_COST_BOUND"
+        else:
+            price, position = floor, "WITHIN_MARKET_MEDIAN_RANGE"
         tier.update(status="PRICED" if complete else "PROVISIONAL_SCENARIO", unit_cost_usd=str(unit_cost), cost_floor_usd_per_action=str(floor),
                     usd_per_action=str(price), usd_per_period=_cents_up(price * included),
                     market_position=position,
@@ -262,7 +284,11 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
         "cost_basis_version": version,
         "compute_unit_definition": rate_card["compute_unit_definition"],
         "target_gross_margin": str(margin),
-        "market_median_usd_per_action": None if median is None else str(median),
+        "market_median_usd_per_action": str(median["at_least"]) if median and median["exact"] else None,
+        "market_median_range_usd_per_action": None if median is None else {
+            "at_least": str(median["at_least"]),
+            "at_most": None if median["at_most"] is None else str(median["at_most"]),
+            "exact": median["exact"]},
         "action_costs": [costs[k] for k in sorted(costs)],
         "tiers": tiers,
         "authority": {"final_price_approved": False, "entitlement_issued": False, "credential_issued": False,

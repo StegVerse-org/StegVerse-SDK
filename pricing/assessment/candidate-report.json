@@ -48,7 +48,12 @@
   },
   "compute_unit_definition": "CANDIDATE: one GitHub-hosted Linux 2-core (x64) runner-minute. The ecosystem cost basis does not define compute_units; this definition is pending owner decision on StegVerse-org/StegVerse-SDK#484.",
   "cost_basis_version": "SV-COST-COMPONENTS-2026-10-17",
-  "market_median_usd_per_action": "1995",
+  "market_median_range_usd_per_action": {
+    "at_least": "1995",
+    "at_most": "9750",
+    "exact": false
+  },
+  "market_median_usd_per_action": null,
   "schema": "stegverse.tier-pricing-candidate.v1",
   "status": "PROVISIONAL",
   "target_gross_margin": "0.75",
@@ -57,7 +62,7 @@
       "cost_floor_usd_per_action": "3.7048576",
       "evidence": "PROVISIONAL_ESTIMATE",
       "included_actions": "1",
-      "market_position": "AT_MARKET_MEDIAN",
+      "market_position": "AT_MARKET_MEDIAN_LOWER_BOUND",
       "name": "Assessment (1 engagement = 1 action)",
       "status": "PROVISIONAL_SCENARIO",
       "task_classes": [
