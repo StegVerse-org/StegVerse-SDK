@@ -8,15 +8,16 @@ StegAgents, or Master Records directly.
 
 The SDK's job is to *manifest*. Outbound organization routing is not selected by
 ``completion.egress``: that block describes requester-facing completion/return
-semantics. The organization destination is resolved only from the installed,
-blob-pinned organization boundary (``stegverse/pinned_sources/interlock-intr.json``,
-verified in ``manifest_execution._canonical_organization_boundary``), whose
-``sdk-manifest-ingress / SDK:ManifestIngress`` binding names the owning
-organization's ``.github`` receiving operation. ``execute_manifest`` receives that
-boundary and resolves it with ``canonical_organization_destination``. When no
-boundary is supplied (pin missing or mismatched), run-manifest fails closed
-rather than treating LLM-adapter, Publisher, or any caller-authored completion
-surface as the organization destination.
+semantics. The organization destination is resolved only from a supplied
+organization boundary. ``manifest_execution.execute_manifest`` supplies the
+installed, blob-pinned boundary (``stegverse/pinned_sources/interlock-intr.json``),
+whose ``sdk-manifest-ingress / SDK:ManifestIngress`` binding names the owning
+organization's ``.github`` receiving operation, and this runtime resolves it with
+``canonical_organization_destination``. When no boundary is supplied (for example
+the pinned source is missing, unreadable or fails its pin check, or a caller
+invokes this runtime directly without one), the handoff fails closed rather than
+treating LLM-adapter, Publisher, or any caller-authored completion surface as the
+organization destination. A supplied boundary that does not resolve raises.
 
 The return leg is ``admit_runtime_result``: results arrive after the receiving
 Interlock runtime has transported and admitted them, exactly as
@@ -94,8 +95,8 @@ def canonical_organization_destination(organization_boundary: Mapping[str, Any])
 def manifest_declared_destination(canonical: Mapping[str, Any]) -> None:
     """Fallback used only when no organization boundary is supplied.
 
-    The canonical destination comes from the pinned organization boundary via
-    ``canonical_organization_destination``. Without that boundary no outbound
+    The canonical destination comes from a supplied organization boundary via
+    ``canonical_organization_destination``. Without a boundary no outbound
     destination may be synthesized from completion.egress (which is not outbound
     organization routing), so this returns None and the request fails closed.
     """
@@ -658,8 +659,10 @@ def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any
 def _destination_not_declared(request: Mapping[str, Any]) -> dict[str, Any]:
     """No organization boundary was supplied, so the ingress endpoint is unresolved.
 
-    Reached only when the pinned organization boundary is missing or fails its
-    blob-pin check; with the boundary present the destination always resolves.
+    Reached whenever a request was derived with no organization boundary: the
+    pinned source was missing, unreadable or failed its pin check, or the caller
+    invoked this runtime (or remediation/re-derivation) without one. A supplied
+    boundary that does not resolve raises instead of reaching this disposition.
     """
     result = {
         "schema": "stegverse.sdk.manifest-handoff-disposition/v1",
