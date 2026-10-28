@@ -291,6 +291,7 @@ class GovernanceProductFinishPoint(unittest.TestCase):
         return root, module, manifest, commit
 
     LEDGER = "ORGANIZATION_RECEIPT_APPENDED_UNDER_LOCK:GOVERNANCE_PRODUCT_RELEASE"
+    LICENSE = "LICENSE_AND_TERMS_FILE_SHA256_MATCHES_RELEASE_MANIFEST"
     NON_ALLOW = "NON_ALLOW_PRODUCES_NO_EFFECT_IN_CUSTOMER_CONFORMANCE_RUN"
 
     def write_readback(self, root, module, manifest, candidate, **fields) -> None:
@@ -321,11 +322,19 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             after = module.finish_verdict(root, observed)
             self.assertEqual(after["disposition"], "FAIL_CLOSED", json.dumps(after["predicates"], sort_keys=True))
             blocked = {k for k, v in after["predicates"].items() if v != "ALLOW"}
-            self.assertEqual(blocked, {self.LEDGER, self.NON_ALLOW})
+            self.assertEqual(blocked, {self.LEDGER, self.NON_ALLOW, self.LICENSE})
             self.assert_six_field_refusal(after["results"][self.NON_ALLOW], "CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED")
             self.assert_six_field_refusal(after["results"][self.LEDGER], "ORGANIZATION_LEDGER_PROVENANCE_UNVERIFIED")
-            self.assertEqual(after["failure_code"], "CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED")
+            self.assertEqual(after["failure_code"], "C_REVIEW_PROVENANCE_UNVERIFIED")  # first refusal in predicate order
             self.assertEqual(module.release_ref_binding(root, commit)["disposition"], "ALLOW")
+
+    def test_committed_c_review_file_is_not_reviewer_evidence(self) -> None:
+        # GPT-6 (#556, 6369045329): v_license accepted a local C-review JSON by schema, hash and disposition.
+        with tempfile.TemporaryDirectory() as tmp:
+            root, module, manifest, _ = self.release_fixture(tmp)
+            self.assert_six_field_refusal(module.v_license(root, manifest), "C_REVIEW_PROVENANCE_UNVERIFIED")
+            (root / manifest["license"]["c_review_receipt"]["path"]).unlink()
+            self.assert_six_field_refusal(module.v_license(root, manifest), "C_REVIEW_RECEIPT_PENDING")
 
     def test_untrusted_local_ledger_readbacks_never_admit_release(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -461,7 +470,7 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             verdict = module.finish_verdict(root, {"disposition": "ALLOW"}, ledger_copy=git_dir)
             self.assertEqual(verdict["predicates"][self.LEDGER], "ALLOW")
             self.assertEqual(verdict["disposition"], "FAIL_CLOSED")
-            self.assertEqual(verdict["failure_code"], "CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED")
+            self.assertEqual(verdict["results"][self.NON_ALLOW]["failure_code"], "CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED")
 
     def test_ledger_copy_negatives_fail_closed_with_six_fields(self) -> None:
         cases = {

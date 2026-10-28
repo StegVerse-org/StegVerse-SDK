@@ -277,7 +277,14 @@ def v_license(root: Path, man: dict[str, Any]) -> dict[str, Any]:
         return refuse(p, "C_REVIEW_RECEIPT_PENDING", f"class C decision, provisional at E1: a C-review receipt at "
                       f"{cr.get('path')} ({cr.get('schema')}) with license_sha256 {seen} and disposition ALLOW",
                       "on the C-review receipt event", provisional_mode="E1", license_sha256=seen)
-    return allow(p, sha256=seen)
+    # A committed C-review JSON is a claim that the review happened, not evidence of who reviewed: it never becomes
+    # this predicate's ALLOW. The authenticating route (a TV/TVC-issued review receipt, an organization-ledger receipt,
+    # or another the owner names) is an open decision on StegVerse-org/StegVerse-SDK#556; until one is bound here the
+    # predicate fails closed whatever the JSON says.
+    return refuse(p, "C_REVIEW_PROVENANCE_UNVERIFIED", "bind the C-review receipt to an authenticated issuer (route open "
+                  "on StegVerse-org/StegVerse-SDK#556: TV/TVC review receipt, organization-ledger receipt, or owner-named); "
+                  "a committed local review file is not evidence of the reviewer", "on the decision naming the route",
+                  provisional_mode="E1", license_sha256=seen)
 
 
 def v_rollback(root: Path, man: dict[str, Any]) -> dict[str, Any]:
