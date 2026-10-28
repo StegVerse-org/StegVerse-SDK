@@ -310,11 +310,146 @@ def v_entitlement(root: Path, man: dict[str, Any]) -> dict[str, Any]:
     return allow(p, pricing_output=spec["pricing_output"], pricing_output_sha256=sha256_hex(canonical(out)))
 
 
-def v_ledger(root: Path, man: dict[str, Any], candidate: dict[str, Any] | None = None) -> dict[str, Any]:
+LEDGER_REF = "refs/stegverse/organization-ledger"
+LEDGER_DIGEST = re.compile(r"^sha256:[0-9a-f]{64}$")
+LEDGER_MAX_RECEIPTS = 100000
+GIT_OID = re.compile(r"^[0-9a-f]{40}$")
+
+
+def _ledger_ref_oid(git_dir: Path) -> str | None:
+    """The commit the ledger ref of a local git copy points at, or None. git only; no network."""
+    try:
+        p = subprocess.run(["git", "--git-dir", str(git_dir), "rev-parse", "--verify", "--quiet",
+                            LEDGER_REF + "^{commit}"], capture_output=True, check=False, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    oid = p.stdout.decode("ascii", "replace").strip() if p.returncode == 0 else ""
+    return oid if GIT_OID.match(oid) else None
+
+
+def _ledger_doc(git_dir: Path, path: str, rev: str = LEDGER_REF) -> Any:
+    """One JSON document from a revision of a local git copy (the ledger ref by default), or None. git only; no
+    network."""
+    try:
+        p = subprocess.run(["git", "--git-dir", str(git_dir), "show", f"{rev}:{path}"], capture_output=True,
+                           check=False, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if p.returncode != 0:
+        return None
+    try:
+        return json.loads(p.stdout.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
+        return None
+
+
+def _ledger_sha(value: Any) -> str:
+    # The organization ledger's own digest form (StegVerse-org/.github resident-runtime/aggregate_repo_transition.py
+    # sha): "sha256:" + sha256 of the same canonical JSON this module uses.
+    return "sha256:" + sha256_hex(canonical(value))
+
+
+def read_ledger_chain(git_dir: Path, rev: str = LEDGER_REF) -> tuple[list[dict[str, Any]] | None, tuple[str, str] | None]:
+    """Walk refs/stegverse/organization-ledger in a local copy from HEAD to genesis, the way the organization's own
+    readback (resident-runtime/organization_ledger_readback.py) does: every receipt verifies against its own body and
+    the chain has no gap, cycle or fork. Returns (chain oldest first, None) or (None, (failed check, detail))."""
+    head = _ledger_doc(git_dir, "HEAD.json", rev)
+    if not isinstance(head, dict):
+        return None, ("ORGANIZATION_LEDGER_HEAD_PRESENT", f"no readable HEAD.json on {LEDGER_REF} in {git_dir}")
+    chain: list[dict[str, Any]] = []
+    cursor, seen = head.get("receipt_sha256"), set()
+    while cursor is not None:
+        if not (isinstance(cursor, str) and LEDGER_DIGEST.match(cursor)):
+            return None, ("ORGANIZATION_LEDGER_DIGEST_WELL_FORMED", str(cursor))
+        if cursor in seen or len(seen) >= LEDGER_MAX_RECEIPTS:
+            return None, ("ORGANIZATION_LEDGER_CHAIN_IS_ACYCLIC", cursor)
+        seen.add(cursor)
+        receipt = _ledger_doc(git_dir, "receipts/" + cursor.split(":", 1)[1] + ".json", rev)
+        if not isinstance(receipt, dict):
+            return None, ("ORGANIZATION_LEDGER_CHAIN_IS_COMPLETE", "missing " + cursor)
+        body = {k: v for k, v in receipt.items() if k != "receipt_sha256"}
+        if receipt.get("receipt_sha256") != cursor or _ledger_sha(body) != cursor:
+            return None, ("ORGANIZATION_RECEIPT_VERIFIES_AGAINST_ITS_BODY", cursor)
+        chain.append(receipt)
+        cursor = receipt.get("previous_receipt_sha256")
+    chain.reverse()
+    return chain, None
+
+
+def _v_ledger_copy(man: dict[str, Any], candidate: dict[str, Any], ledger_copy: Path, nxt: str,
+                   ledger_oid: str | None = None) -> dict[str, Any]:
+    """The predicate observed in a local copy of the organization ledger rather than a committed claim about it.
+
+    A local copy is only as good as its anchor: any git dir with self-consistent hashes would otherwise pass. The copy's
+    ledger ref must resolve to ``ledger_oid``, the commit the fetch step observed on the organization's remote, and
+    every read is made at that commit. The consumed candidate must record an OBSERVED release, and exactly one receipt
+    may consume it."""
+    p = LEDGER_PREDICATE
+    spec = man.get("organization_ledger") or {}
+    if not (isinstance(ledger_oid, str) and GIT_OID.match(ledger_oid)):
+        return refuse(p, "ORGANIZATION_LEDGER_COPY_UNANCHORED", f"the 40-hex commit of {LEDGER_REF} observed on the "
+                      "organization remote by the fetch step (finish_verdict(..., ledger_oid=OID) / --ledger-oid); an "
+                      "unanchored local copy is a claim, not an observation", nxt, ledger_copy=str(ledger_copy))
+    observed_oid = _ledger_ref_oid(Path(ledger_copy))
+    if observed_oid != ledger_oid:
+        return refuse(p, "ORGANIZATION_LEDGER_COPY_OID_MISMATCH", f"a local copy whose {LEDGER_REF} is exactly "
+                      f"{ledger_oid}", nxt, expected_oid=ledger_oid, copy_oid=observed_oid)
+    if candidate.get("transition_outcome") != "OBSERVED":
+        return refuse(p, "ORGANIZATION_LEDGER_CANDIDATE_NOT_OBSERVED", "a release candidate whose transition_outcome is "
+                      "OBSERVED; appending a refused release records the refusal, it does not release", nxt,
+                      candidate_outcome=candidate.get("transition_outcome"))
+    chain, bad = read_ledger_chain(Path(ledger_copy), ledger_oid)
+    if bad:
+        return refuse(p, "ORGANIZATION_LEDGER_CHAIN_INVALID", f"a local copy of StegVerse-org/.github {LEDGER_REF} whose "
+                      f"chain verifies from HEAD to genesis (failed check {bad[0]}: {bad[1]})", nxt,
+                      failed_check=bad[0], ledger_copy=str(ledger_copy))
+    want = _ledger_sha(candidate)
+    found = [i for i, r in enumerate(chain) if r.get("canonical_state_transition_receipt_sha256") == want]
+    if not found:
+        return refuse(p, "ORGANIZATION_LEDGER_RECEIPT_NOT_FOUND", f"an organization receipt consuming the emitted "
+                      f"candidate {want} on {LEDGER_REF}", nxt, candidate_sha256=want, chain_length=len(chain))
+    if len(found) > 1:
+        return refuse(p, "ORGANIZATION_LEDGER_RECEIPT_DUPLICATED", f"exactly one organization receipt consuming {want}",
+                      nxt, candidate_sha256=want, consuming_receipts=len(found))
+    at = found[0]
+    rec = chain[at]
+    source = _ledger_doc(Path(ledger_copy), "source-receipts/" + want.split(":", 1)[1] + ".json", ledger_oid)
+    mismatched = [name for name, ok in (
+        ("source_transition_sha256", rec.get("source_transition_sha256") == want),
+        ("source_receipt_schema", rec.get("source_receipt_schema") == candidate.get("schema")),
+        ("org_transition_class", rec.get("org_transition_class") == spec.get("transition_class")),
+        ("retained_source_receipt", isinstance(source, dict) and _ledger_sha(source) == want)) if not ok]
+    if mismatched:
+        return refuse(p, "ORGANIZATION_LEDGER_RECEIPT_NOT_BOUND_TO_CANDIDATE", f"the receipt consuming {want} must name "
+                      f"it as its source, keep its schema and class {spec.get('transition_class')}, and retain its bytes",
+                      nxt, mismatched=mismatched, org_receipt_sha256=rec.get("receipt_sha256"))
+    prior = "sha256:" + str(candidate.get("prior_state_ref_or_hash"))
+    if prior not in [r.get("receipt_sha256") for r in chain[:at]]:
+        return refuse(p, "ORGANIZATION_LEDGER_RECEIPT_NOT_AFTER_SEALED_HEAD", f"the release receipt must follow the sealed "
+                      f"head {prior} the candidate was built on", nxt, org_receipt_sha256=rec.get("receipt_sha256"))
+    # Every consistency check passed, but the anchor is still the caller's: whoever supplies the copy can supply its
+    # OID. Until the OID comes from a step the caller does not control (a separate remote observation of the ref) or the
+    # receipts carry a verifiable signature, this stays non-ALLOW and reports what was verified.
+    return refuse(p, "ORGANIZATION_LEDGER_COPY_ANCHOR_UNVERIFIED", f"an anchor for {LEDGER_REF} that the caller does not "
+                  "control: the ref's commit observed on the organization remote by an independent step, or signed "
+                  "receipts checked against a pinned key; a caller-supplied OID only fixes which state was checked",
+                  nxt, consistency_checks="PASSED", source_receipt_sha256=want.split(":", 1)[1],
+                  org_receipt_sha256=rec["receipt_sha256"], sealed_head=prior, chain_length=len(chain),
+                  ledger_oid=ledger_oid, observed_in=f"local copy of {LEDGER_REF} at {ledger_oid}")
+
+
+def v_ledger(root: Path, man: dict[str, Any], candidate: dict[str, Any] | None = None,
+             ledger_copy: Path | None = None, ledger_oid: str | None = None) -> dict[str, Any]:
     p = LEDGER_PREDICATE
     spec = (man.get("organization_ledger") or {}).get("readback") or {}
     rb = _json(root, spec.get("path", ""))
     nxt = "after the organization ledger writer appends the emitted receipt and its readback is committed"
+    if ledger_copy is not None:
+        if candidate is None:
+            return refuse(p, "ORGANIZATION_LEDGER_READBACK_MISMATCH", "a ledger receipt candidate to look for", nxt)
+        return _v_ledger_copy(man, candidate, Path(ledger_copy), "after the organization ledger writer appends the "
+                              "emitted receipt; then re-run with a fresh local copy of the ledger ref and its observed "
+                              "commit", ledger_oid)
     if not isinstance(rb, dict) or rb.get("schema") != spec.get("schema"):
         return refuse(p, "ORGANIZATION_LEDGER_READBACK_ABSENT", f"a readback {spec.get('path')} ({spec.get('schema')}) "
                       "of refs/stegverse/organization-ledger showing the GOVERNANCE_PRODUCT_RELEASE receipt under "
@@ -330,9 +465,10 @@ def v_ledger(root: Path, man: dict[str, Any], candidate: dict[str, Any] | None =
     if not isinstance(receipt_hash, str) or HEX64.fullmatch(receipt_hash) is None:
         return refuse(p, "ORGANIZATION_LEDGER_RECEIPT_HASH_INVALID", "a 64-hex org_receipt_sha256 read back from "
                       "refs/stegverse/organization-ledger", nxt)
-    return refuse(p, "ORGANIZATION_LEDGER_PROVENANCE_UNVERIFIED", "read refs/stegverse/organization-ledger itself "
-                  "(anonymous public-ledger read, E0) and verify the receipt's digest, ancestry from the sealed head, "
-                  "issuer and append under ORGANIZATION_LEDGER_LOCK; a committed local readback is not evidence", nxt,
+    return refuse(p, "ORGANIZATION_LEDGER_PROVENANCE_UNVERIFIED", "pass a local copy of refs/stegverse/organization-ledger "
+                  "(finish_verdict(..., ledger_copy=DIR), e.g. fetched anonymously from StegVerse-org/.github) so the "
+                  "receipt's digest, chain and ancestry from the sealed head are verified on the ledger itself; a "
+                  "committed local readback is not evidence", nxt,
                   source_receipt_sha256=want, claimed_org_receipt_sha256=receipt_hash)
 
 
@@ -395,7 +531,8 @@ def ledger_receipt_candidate(root: Path, man: dict[str, Any], verdict: dict[str,
             "appended_by": spec.get("appender"), "append_performed": False}
 
 
-def finish_verdict(root: Path, non_allow_result: dict[str, Any] | None = None) -> dict[str, Any]:
+def finish_verdict(root: Path, non_allow_result: dict[str, Any] | None = None,
+                   ledger_copy: Path | None = None, ledger_oid: str | None = None) -> dict[str, Any]:
     """Every sealed predicate's verifier, the release-receipt binding and the ledger receipt candidate. ALLOW only when
     all thirteen predicates are ALLOW; otherwise the first refusal's six fields. Never raises."""
     root = Path(root)
@@ -423,7 +560,8 @@ def finish_verdict(root: Path, non_allow_result: dict[str, Any] | None = None) -
            "predicates": {k: r["disposition"] for k, r in results.items()}}
     candidate = _guard(ledger_receipt_candidate, LEDGER_PREDICATE, root, man, pre)
     is_candidate = candidate.get("schema") == "stegverse.canonical-state-transition-receipt/v1"
-    results[LEDGER_PREDICATE] = _guard(v_ledger, LEDGER_PREDICATE, root, man, candidate if is_candidate else None)
+    results[LEDGER_PREDICATE] = _guard(v_ledger, LEDGER_PREDICATE, root, man, candidate if is_candidate else None,
+                                       ledger_copy, ledger_oid)
     order = list(VERIFIERS) + [NON_ALLOW_PREDICATE, LEDGER_PREDICATE]
     failing = [results[k] for k in order if results[k]["disposition"] != "ALLOW"]
     doc = {"schema": "stegverse.governance-product-finish-verdict/v1", "task_id": "GITHUB-UNIVERSAL-GOVERNANCE-PRODUCT-001",
@@ -456,5 +594,12 @@ def release_ref_binding(root: Path, head_commit: str) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    import sys
-    print(json.dumps(finish_verdict(Path(sys.argv[1]) if len(sys.argv) > 1 else Path(".")), indent=2, sort_keys=True))
+    import argparse
+    ap = argparse.ArgumentParser(description="GITHUB-UNIVERSAL-GOVERNANCE-PRODUCT-001 finish verdict (E0)")
+    ap.add_argument("root", nargs="?", default=".")
+    ap.add_argument("--ledger-copy", default=None, help=f"local git copy holding {LEDGER_REF}")
+    ap.add_argument("--ledger-oid", default=None, help=f"commit of {LEDGER_REF} observed on the organization remote")
+    a = ap.parse_args()
+    print(json.dumps(finish_verdict(Path(a.root), ledger_copy=Path(a.ledger_copy) if a.ledger_copy else None,
+                                    ledger_oid=a.ledger_oid),
+                     indent=2, sort_keys=True))
