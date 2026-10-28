@@ -19,7 +19,9 @@ Predicates, all evaluated on exact fractions:
   authentic observation was supplied and is comparable with the estimate, AND the observation is
   bound to billing-sample bytes the caller supplies: the optional input ``billing_sample`` is
   declared with ``ref == observation.evidence_ref`` and ``sha256 == observation.evidence_sha256``.
-  An observation that only names a digest is a claim, not a sample;
+  An observation that only names a digest is a claim, not a sample. Even a bound sample is bytes the
+  caller chose: until an authenticated issuer route for billing samples is bound, the predicate does
+  not hold (``BILLING_SAMPLE_ISSUER_UNAUTHENTICATED``) and the binding is reported as evidence only;
 * ``FREE_TO_PAID_SENSITIVITY``: for every declared conversion rate, period revenue and
   cost are computed; at least one declared rate reaches break-even;
 * ``CONTINGENCY_RESERVE``: the declared available reserve covers ``reserve_periods`` of
@@ -178,13 +180,21 @@ def billing_sample_binding(manifest: Mapping[str, Any], supplied: Mapping[str, b
                     f"pin {BILLING_SAMPLE} to an exact revision and digest", input=BILLING_SAMPLE)
     if BILLING_SAMPLE not in supplied:
         return {"bound": False, "reason": "AUTHENTICATED_BILLING_SAMPLE_NOT_SUPPLIED", "ref": ref}
+    if not isinstance(supplied[BILLING_SAMPLE], (bytes, bytearray)):
+        raise _fail("INPUT_VALUE_INVALID", f"{BILLING_SAMPLE} is supplied as bytes", f"pass the bytes of {ref}",
+                    input=BILLING_SAMPLE)
     actual = hashlib.sha256(supplied[BILLING_SAMPLE]).hexdigest()
     if actual != digest:
         raise _fail("INPUT_DIGEST_MISMATCH", f"sha256({BILLING_SAMPLE}) == declared {digest}",
                     f"supply the exact bytes of {ref}", input=BILLING_SAMPLE, actual_sha256=actual)
     if observed.get("evidence_ref") != ref or observed.get("evidence_sha256") != digest:
         return {"bound": False, "reason": "OBSERVATION_NOT_BOUND_TO_BILLING_SAMPLE", "ref": ref, "sha256": digest}
-    return {"bound": True, "ref": ref, "sha256": digest}
+    reused = sorted(name for name in REQUIRED_INPUTS
+                    if isinstance((manifest.get("inputs") or {}).get(name), Mapping) and manifest["inputs"][name].get("sha256") == digest)
+    if reused:
+        return {"bound": False, "reason": "BILLING_SAMPLE_REUSES_A_REQUIRED_INPUT", "ref": ref, "sha256": digest, "reused": reused}
+    # Bound, but the bytes are still the caller's: binding is evidence, not authentication.
+    return {"bound": True, "authenticated": False, "reason": "BILLING_SAMPLE_ISSUER_UNAUTHENTICATED", "ref": ref, "sha256": digest}
 
 
 def evaluate(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, Any]:
@@ -215,10 +225,13 @@ def evaluate(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, Any]:
     checks: dict[str, Any] = {}
     binding = (billing_sample_binding(manifest, supplied, basis.get("observed") or {})
                if basis.get("status") == "COMPLETE_BASIS" else {"bound": False, "reason": "PRICING_BASIS_NOT_COMPLETE"})
-    sample_ok = basis.get("status") == "COMPLETE_BASIS" and binding["bound"]
+    sample_ok = basis.get("status") == "COMPLETE_BASIS" and binding["bound"] and binding.get("authenticated") is True
     checks["AUTHENTICATED_OPERATING_COST_SAMPLE"] = {"holds": sample_ok, "pricing_basis_status": basis.get("status"),
                                                      "selected_basis": basis.get("selected_basis"),
                                                      "billing_sample": binding}
+    observed_amount = (basis.get("observed") or {}).get("amount")
+    if isinstance(observed_amount, str) and observed_amount != "UNKNOWN":
+        _fraction(observed_amount, "pricing_basis.observed.amount")  # bounded like every input number
     if basis.get("c_pricing") is None:
         unit_cost = None
     else:
@@ -248,7 +261,8 @@ def evaluate(manifest: Any, supplied: Mapping[str, bytes]) -> dict[str, Any]:
     failed = [name for name in PREDICATES if not checks[name]["holds"]]
     body = {"pricing_goal": PRICING_GOAL, "pricing_basis": basis, "predicates": checks,
             "evidence_class": "SOURCE_IMPLEMENTED", "realism_owner_accepted": False, "price_status": PRICE_STATUS,
-            "inputs": {name: dict(manifest["inputs"][name]) for name in REQUIRED_INPUTS}}
+            "inputs": {name: dict(manifest["inputs"][name]) for name in REQUIRED_INPUTS
+                       + ((BILLING_SAMPLE,) if isinstance(manifest["inputs"].get(BILLING_SAMPLE), Mapping) else ())}}
     if failed:
         result = _six("DENY", f"S4_COST_{failed[0]}_NOT_MET", failed[0],
                       "supply inputs under which the named predicate holds; the evaluator never relaxes a predicate",

@@ -66,9 +66,12 @@ def bundle(billing_sample=SAMPLE, **docs):
 
 
 class S4CostBenchmarkTests(unittest.TestCase):
-    def test_allow_with_exact_sensitivity_and_reserve(self):
+    def test_exact_sensitivity_and_reserve_with_unauthenticated_sample(self):
+        # Review of #563: caller-supplied sample bytes never authenticate, so the best case is DENY on the sample
+        # predicate alone, with sensitivity and reserve still computed exactly.
         out = s4.evaluate(*bundle())
-        self.assertEqual(out["disposition"], "ALLOW")
+        self.assertEqual((out["disposition"], out["failed_predicate"]), ("DENY", "AUTHENTICATED_OPERATING_COST_SAMPLE"))
+        self.assertEqual(out["evidence"]["failed_predicates"], ["AUTHENTICATED_OPERATING_COST_SAMPLE"])
         self.assertEqual(out["pricing_basis"]["status"], "COMPLETE_BASIS")
         self.assertEqual(out["pricing_basis"]["c_pricing"], "0.007")  # max(0.006875, 0.007)
         sens = out["predicates"]["FREE_TO_PAID_SENSITIVITY"]
@@ -87,7 +90,8 @@ class S4CostBenchmarkTests(unittest.TestCase):
         for predicate, docs in cases.items():
             with self.subTest(predicate=predicate):
                 out = s4.evaluate(*bundle(**docs))
-                self.assertEqual((out["disposition"], out["failed_predicate"]), ("DENY", predicate))
+                self.assertEqual(out["disposition"], "DENY")
+                self.assertIn(predicate, out["evidence"]["failed_predicates"])
                 for field in ("failure_code", "required_evidence_or_repair", "retry_entrypoint",
                               "owning_existing_goal", "next_attempt"):
                     self.assertTrue(out[field])
@@ -148,9 +152,8 @@ class S4CostBenchmarkTests(unittest.TestCase):
                 with self.assertRaises(s4.Refused) as raised:
                     s4.evaluate(*bundle(economics_policy=policy(**{field: value})))
                 self.assertEqual(raised.exception.result["failure_code"], "INPUT_VALUE_INVALID")
-        self.assertEqual(s4.evaluate(*bundle(economics_policy=policy(users_per_period="1000",
-                                                                     actions_per_user_per_period="2.5")))["disposition"],
-                         "ALLOW")
+        out = s4.evaluate(*bundle(economics_policy=policy(users_per_period="1000", actions_per_user_per_period="2.5")))
+        self.assertEqual(out["evidence"]["failed_predicates"], ["AUTHENTICATED_OPERATING_COST_SAMPLE"])
 
     def test_self_asserted_observation_is_not_an_authenticated_sample(self):
         # Review of #554 at aba57fb: an observation naming any 64-hex digest made the sample predicate hold.
@@ -180,8 +183,32 @@ class S4CostBenchmarkTests(unittest.TestCase):
 
     def test_prices_are_labelled_provisional(self):
         out = s4.evaluate(*bundle())
-        self.assertEqual((out["disposition"], out["price_status"]), ("ALLOW", "PROVISIONAL_SCENARIO_ONLY"))
-        self.assertTrue(out["predicates"]["AUTHENTICATED_OPERATING_COST_SAMPLE"]["billing_sample"]["bound"])
+        self.assertEqual(out["price_status"], "PROVISIONAL_SCENARIO_ONLY")
+        binding = out["predicates"]["AUTHENTICATED_OPERATING_COST_SAMPLE"]["billing_sample"]
+        self.assertEqual((binding["bound"], binding["authenticated"], binding["reason"]),
+                         (True, False, "BILLING_SAMPLE_ISSUER_UNAUTHENTICATED"))
+        self.assertIn("billing_sample", out["inputs"])
+
+    def test_any_caller_bytes_never_authenticate_the_sample(self):
+        # Review of #563: b"x", empty bytes and a reused required input each produced ALLOW with bound: True.
+        for name, sample in (("one byte", b"x"), ("empty", b""), ("synthetic", SAMPLE)):
+            with self.subTest(sample=name):
+                manifest, supplied = bundle(billing_sample=sample,
+                                            cost_observation={**observation(), "evidence_sha256": hashlib.sha256(sample).hexdigest()})
+                out = s4.evaluate(manifest, supplied)
+                self.assertNotEqual(out["disposition"], "ALLOW")
+                self.assertFalse(out["predicates"]["AUTHENTICATED_OPERATING_COST_SAMPLE"]["holds"])
+        card = json.dumps(CARD, sort_keys=True).encode("utf-8")
+        manifest, supplied = bundle(billing_sample=card,
+                                    cost_observation={**observation(), "evidence_sha256": hashlib.sha256(card).hexdigest()})
+        out = s4.evaluate(manifest, supplied)
+        self.assertEqual(out["predicates"]["AUTHENTICATED_OPERATING_COST_SAMPLE"]["billing_sample"]["reason"],
+                         "BILLING_SAMPLE_REUSES_A_REQUIRED_INPUT")
+        manifest, supplied = bundle()
+        supplied["billing_sample"] = "not bytes"
+        with self.assertRaises(s4.Refused) as raised:
+            s4.evaluate(manifest, supplied)
+        self.assertEqual(raised.exception.result["failure_code"], "INPUT_VALUE_INVALID")
 
     def test_oversized_observed_amount_is_refused_not_a_hang(self):
         # Review of #554: the cost basis was unbounded ("1e5000" raised ValueError, "1e99999999" hung).
@@ -190,7 +217,9 @@ class S4CostBenchmarkTests(unittest.TestCase):
                 with self.assertRaises(s4.Refused) as raised:
                     s4.evaluate(*bundle(cost_observation=observation(amount=amount)))
                 self.assertEqual((raised.exception.result["failure_code"], raised.exception.result["evidence"]["field"]),
-                                 ("INPUT_VALUE_INVALID", "pricing_basis.c_pricing"))
+                                 ("INPUT_VALUE_INVALID", "pricing_basis.observed.amount"))
+        with self.assertRaises(s4.Refused):  # tiny magnitudes are bounded too (reported echo stays small)
+            s4.evaluate(*bundle(cost_observation=observation(amount="1e-99999999")))
 
     def test_text_is_exact(self):
         F = s4.Fraction
@@ -257,7 +286,7 @@ class S4CostBenchmarkTests(unittest.TestCase):
     def test_cli_exit_codes(self):
         with tempfile.TemporaryDirectory() as directory:
             d = Path(directory)
-            for docs, missing, code in (({}, None, 0), ({"economics_policy": policy(reserve_available="0")}, None, 2),
+            for docs, missing, code in (({}, None, 2), ({"economics_policy": policy(reserve_available="0")}, None, 2),
                                         ({}, "cost_observation", 1)):
                 manifest, supplied = bundle(**docs)
                 (d / "m.json").write_text(json.dumps(manifest), encoding="utf-8")
