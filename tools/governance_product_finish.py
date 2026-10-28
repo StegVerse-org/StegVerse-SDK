@@ -337,7 +337,7 @@ def _ledger_ref_oid(git_dir: Path) -> str | None:
     except (OSError, subprocess.SubprocessError):
         return None
     oid = p.stdout.decode("ascii", "replace").strip() if p.returncode == 0 else ""
-    return oid if GIT_OID.match(oid) else None
+    return oid if GIT_OID.fullmatch(oid) else None
 
 
 def _ledger_doc(git_dir: Path, path: str, rev: str = LEDGER_REF) -> Any:
@@ -401,7 +401,7 @@ def _v_ledger_copy(man: dict[str, Any], candidate: dict[str, Any], ledger_copy: 
     spec = man.get("organization_ledger") or {}
     rev = LEDGER_REF
     if ledger_oid is not None:
-        if not (isinstance(ledger_oid, str) and GIT_OID.match(ledger_oid)):
+        if not (isinstance(ledger_oid, str) and GIT_OID.fullmatch(ledger_oid)):
             return refuse(p, "ORGANIZATION_LEDGER_OID_MALFORMED", f"a 40-hex commit id for {LEDGER_REF}", nxt,
                           ledger_oid=str(ledger_oid))
         copy_oid = _ledger_ref_oid(Path(ledger_copy))

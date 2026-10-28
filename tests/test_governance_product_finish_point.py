@@ -535,8 +535,11 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             oid = git(work, "rev-parse", module.LEDGER_REF)
             self.assert_six_field_refusal(module.v_ledger(root, manifest, candidate, git_dir, "0" * 40),
                                           "ORGANIZATION_LEDGER_COPY_OID_MISMATCH")
-            self.assert_six_field_refusal(module.v_ledger(root, manifest, candidate, git_dir, "not-an-oid"),
-                                          "ORGANIZATION_LEDGER_OID_MALFORMED")
+            for bad in ("not-an-oid", oid + "\n", oid.upper(), "-" + oid[1:], 123):
+                self.assert_six_field_refusal(module.v_ledger(root, manifest, candidate, git_dir, bad),
+                                              "ORGANIZATION_LEDGER_OID_MALFORMED")
+            pinned = module.finish_verdict(root, None, ledger_copy=git_dir, ledger_oid="0" * 40)
+            self.assertEqual(pinned["results"][self.LEDGER]["failure_code"], "ORGANIZATION_LEDGER_COPY_OID_MISMATCH")
             git(work, "commit", "-q", "--allow-empty", "-m", "later")
             git(work, "update-ref", module.LEDGER_REF, "HEAD")
             moved = module.v_ledger(root, manifest, candidate, git_dir, oid)
