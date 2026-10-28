@@ -65,7 +65,7 @@ def _json(root: Path, rel: str) -> Any:
         return None
     try:
         return json.loads(t)
-    except ValueError:
+    except (ValueError, RecursionError):
         return ValueError("malformed")
 
 
@@ -186,7 +186,13 @@ def v_immutable_tag(root: Path, man: dict[str, Any]) -> dict[str, Any]:
     if rc != 0 or peeled != rec["commit"]:
         return refuse(p, "RELEASE_TAG_NOT_AT_RECEIPT_COMMIT", f"refs/tags/{rec['tag']} must peel to {rec['commit']} "
                       f"(observed {peeled or 'absent'}; degraded E0: fetch tags read-only)", "on the next TV/TVC release receipt event")
-    return allow(p, tag=rec["tag"], commit=rec["commit"])
+    # The tag is observed in git; the TV/TVC issuance and the published GitHub release are claims in a committed file.
+    # A committed receipt is not evidence that TV/TVC issued it, so the authority half fails closed until an
+    # authenticated issuer route is bound (the same open decision as the C-review receipt, #556 6466819899).
+    return refuse(p, "RELEASE_RECEIPT_PROVENANCE_UNVERIFIED", "bind the TV/TVC release receipt to an authenticated "
+                  "issuer; the tag is observed but a committed receipt file does not prove TV/TVC issuance or the "
+                  "GitHub release state", "on the decision naming the issuer route", tag=rec["tag"], commit=rec["commit"],
+                  tag_observed_at_commit=True)
 
 
 def v_release_notes(root: Path, man: dict[str, Any]) -> dict[str, Any]:
@@ -400,9 +406,14 @@ def _v_ledger_copy(man: dict[str, Any], candidate: dict[str, Any], ledger_copy: 
     if prior not in [r.get("receipt_sha256") for r in chain[:at]]:
         return refuse(p, "ORGANIZATION_LEDGER_RECEIPT_NOT_AFTER_SEALED_HEAD", f"the release receipt must follow the sealed "
                       f"head {prior} the candidate was built on", nxt, org_receipt_sha256=rec.get("receipt_sha256"))
-    return allow(p, source_receipt_sha256=want.split(":", 1)[1], org_receipt_sha256=rec["receipt_sha256"],
-                 sealed_head=prior, chain_length=len(chain), observed_in="caller-supplied local copy of " + LEDGER_REF,
-                 copy_provenance="the fetch step that produced the copy (this module performs no network read)")
+    # Every check above holds, but only against the copy itself: a fork or a re-hashed, re-chained copy passes them
+    # too. Nothing here binds the copy's tip to StegVerse-org/.github, so the predicate fails closed with the
+    # verified chain as evidence until an authenticated anchor for the ledger tip is bound.
+    return refuse(p, "ORGANIZATION_LEDGER_COPY_PROVENANCE_UNBOUND", "bind the local copy's ledger tip to an "
+                  "authenticated anchor for StegVerse-org/.github refs/stegverse/organization-ledger; a self-consistent "
+                  "chain is not proof of origin", nxt, chain_internally_consistent=True,
+                  source_receipt_sha256=want.split(":", 1)[1], org_receipt_sha256=rec["receipt_sha256"],
+                  sealed_head=prior, chain_length=len(chain))
 
 
 def v_ledger(root: Path, man: dict[str, Any], candidate: dict[str, Any] | None = None,
@@ -543,8 +554,15 @@ def finish_verdict(root: Path, non_allow_result: dict[str, Any] | None = None,
 
 
 def release_ref_binding(root: Path, head_commit: str) -> dict[str, Any]:
-    """Which commit the finish point must run at: the TV/TVC release receipt's commit. Six-field FAIL_CLOSED when the
-    receipt is absent or names another commit than the checkout."""
+    """Bind the finish run to the TV/TVC release receipt's commit. Never raises."""
+    return _guard(_release_ref_binding, "FINISH_POINT_RUNS_AT_RELEASE_RECEIPT_REF", root, head_commit)
+
+
+def _release_ref_binding(root: Path, head_commit: str) -> dict[str, Any]:
+    """The receipt is committed after the release, so it can never sit in the commit it names. The finish point runs at
+    the checkout holding the receipt and requires: the receipt's commit is that checkout or its ancestor, and every
+    path changed since the receipt's commit is release evidence under the receipt's own directory. Then every file the
+    verifiers read is the release commit's. Six-field FAIL_CLOSED otherwise (git history must be present)."""
     p = "FINISH_POINT_RUNS_AT_RELEASE_RECEIPT_REF"
     man = load_manifest(Path(root))
     if not isinstance(man, dict):
@@ -552,10 +570,21 @@ def release_ref_binding(root: Path, head_commit: str) -> dict[str, Any]:
     rec, bad = _release_receipt(Path(root), man, p)
     if bad:
         return bad
+    root = Path(root)
     if rec["commit"] != head_commit:
-        return refuse(p, "FINISH_REF_NOT_RELEASE_RECEIPT_COMMIT", f"run the finish point checked out at {rec['commit']} "
-                      f"(the release receipt's commit), not {head_commit}", "on the finish run at the receipt commit",
-                      release_commit=rec["commit"])
+        rc, _ = _git(root, "merge-base", "--is-ancestor", rec["commit"], head_commit)
+        if rc != 0:
+            return refuse(p, "FINISH_REF_NOT_DESCENDANT_OF_RELEASE_COMMIT", f"run the finish point at {rec['commit']} or a "
+                          f"descendant of it (checkout {head_commit}); full history must be fetched",
+                          "on the finish run at a descendant of the receipt commit", release_commit=rec["commit"])
+        rc, out = _git(root, "diff", "--name-only", rec["commit"], head_commit)
+        evidence_dir = str(Path((man.get("release_receipt") or {}).get("path", "")).parent) + "/"
+        changed = [x for x in out.splitlines() if x]
+        drift = [x for x in changed if not x.startswith(evidence_dir)]
+        if rc != 0 or drift:
+            return refuse(p, "RELEASE_TREE_CHANGED_SINCE_RELEASE_COMMIT", f"only release evidence under {evidence_dir} may "
+                          f"change after {rec['commit']}; changed: {drift[:20]}", "on a finish run whose tree equals the "
+                          "release commit outside the evidence directory", release_commit=rec["commit"], drift=drift[:50])
     return allow(p, release_commit=rec["commit"], tag=rec["tag"])
 
 

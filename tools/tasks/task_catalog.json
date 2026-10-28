@@ -12,7 +12,7 @@
   "Step bodies that read their own workflow file read its verbatim record under tools/tasks/folded/ instead; the assertions are unchanged.",
   "Single-axis Python matrices (communication-edge-demo-validation, iw-matrix-falsifier-validation) are one catalog group per cell, recorded under source.matrix_cell.",
   "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
-  "governance-product-finish-point.finish-point: the folded job's second actions/checkout of the release receipt commit is step 03 (git fetch of that commit into a detached worktree release-ref/, run only when the receipt names a commit), and FINISH_ROOT reads that step's root output in place of the && || expression the runner does not evaluate; the other three step bodies are the original run blocks byte for byte."
+  "governance-product-finish-point.finish-point: the folded job's second actions/checkout of the release-receipt commit into release-ref/ is dropped. The receipt is committed after the release, so the finish point runs at the checkout holding it; release_ref_binding (step 02) requires the receipt commit to be an ancestor with only release evidence changed since, so every file the verifiers read is the release commit's. The group checks out full history (fetch_depth 0, which also fetches the tag) and FINISH_ROOT is '.', in place of the && || expression the runner does not evaluate. The three remaining step bodies are the original run blocks byte for byte."
  ],
  "folded_from_commit": "daca828a51d954f2817df4ca9f4fa25807248aa0",
  "groups": [
@@ -3270,28 +3270,18 @@
      "id": "finish_ref"
     },
     {
-     "name": "Read-only checkout of the release receipt commit (repair: git fetch + worktree)",
-     "run_file": "tools/tasks/steps/governance-product-finish-point.finish-point/03-read-only-fetch-of-the-release-receipt-commit.sh",
-     "run_sha256": "b20e5cab53585ab22ff07fa4c9921fe712041c508e6f0c5bf20fcfa819663aee",
-     "env": {
-      "RELEASE_COMMIT": "${{ steps.finish_ref.outputs.release_commit }}"
-     },
-     "id": "release_checkout",
-     "if": "steps.finish_ref.outputs.release_commit != ''"
-    },
-    {
      "name": "Finish verdict (six-field FAIL_CLOSED until every receipt exists)",
      "run_file": "tools/tasks/steps/governance-product-finish-point.finish-point/04-finish-verdict-six-field-fail-closed-until-every-receipt-exists.sh",
      "run_sha256": "4868ce04716f0d5c0e95a416dcedbce9ba7543c654fea6fdd6aec23f6fd74478",
      "env": {
       "PYTHONDONTWRITEBYTECODE": "1",
-      "FINISH_ROOT": "${{ steps.release_checkout.outputs.root || '.' }}"
+      "FINISH_ROOT": "."
      }
     }
    ],
    "artifacts": [],
    "runner": {
-    "fetch_depth": "1",
+    "fetch_depth": "0",
     "persist_credentials": "false",
     "timeout_minutes": 10,
     "python_version": "3.11"

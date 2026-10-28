@@ -29,7 +29,8 @@ tools/governance_product_finish.py, which verifies every sealed predicate agains
 .stegverse/governance-product/release-manifest.v1.json and the receipts it names, binds the finish ref to the TV/TVC
 release receipt's commit, and emits the GOVERNANCE_PRODUCT_RELEASE organization-ledger receipt candidate (never
 appended here). Until the release receipt, the C-review receipt and the ledger readback exist, its verdict is a
-six-field FAIL_CLOSED; the fixture test shows the same code reaching ALLOW from receipts alone, with no code edit.
+six-field FAIL_CLOSED. Receipts alone never reach ALLOW: a committed receipt, review, readback or ledger copy is a claim,
+and each such predicate fails closed until an authenticated issuer or anchor route is bound.
 
 Lowest supported mode: E0 (standard library, the committed workflow and module, bash, git; no clock, no network).
 """
@@ -204,7 +205,14 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             "disposition": "ALLOW", "predicate": "NON_ALLOW_PRODUCES_NO_EFFECT_IN_CUSTOMER_CONFORMANCE_RUN"})
         print(json.dumps({k: verdict.get(k) for k in ("disposition", "predicates") + SIX_FIELDS}, sort_keys=True))
         self.assertEqual(sorted(verdict["predicates"]), sorted(SEALED_PREDICATES))
-        self.assertIn(verdict["disposition"], ("ALLOW", "FAIL_CLOSED"))
+        # Review of #567: pin the exact verdict at this commit instead of accepting either disposition.
+        self.assertEqual(verdict["disposition"], "FAIL_CLOSED")
+        self.assertEqual({k: r.get("failure_code") for k, r in verdict["results"].items() if r["disposition"] != "ALLOW"}, {
+            "IMMUTABLE_TAG_AND_GITHUB_RELEASE_PUBLISHED_UNDER_TV_TVC_AUTHORITY": "RELEASE_RECEIPT_ABSENT",
+            "LICENSE_AND_TERMS_FILE_SHA256_MATCHES_RELEASE_MANIFEST": "C_REVIEW_RECEIPT_PENDING",
+            "NON_ALLOW_PRODUCES_NO_EFFECT_IN_CUSTOMER_CONFORMANCE_RUN": "CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED",
+            "ORGANIZATION_RECEIPT_APPENDED_UNDER_LOCK:GOVERNANCE_PRODUCT_RELEASE": "ORGANIZATION_LEDGER_READBACK_ABSENT",
+            "PINNED_REF_TREE_CONTAINS_GOVERNANCE_GATE_WORKFLOW_AND_MODULE": "RELEASE_RECEIPT_ABSENT"})
         self.assertFalse(verdict["clock_read"] or verdict["network_used"] or verdict["ledger_appended"])
         for name, result in verdict["results"].items():
             self.assertEqual(result["lowest_supported_mode"], "E0", name)
@@ -292,6 +300,7 @@ class GovernanceProductFinishPoint(unittest.TestCase):
 
     LEDGER = "ORGANIZATION_RECEIPT_APPENDED_UNDER_LOCK:GOVERNANCE_PRODUCT_RELEASE"
     LICENSE = "LICENSE_AND_TERMS_FILE_SHA256_MATCHES_RELEASE_MANIFEST"
+    TAG = "IMMUTABLE_TAG_AND_GITHUB_RELEASE_PUBLISHED_UNDER_TV_TVC_AUTHORITY"
     NON_ALLOW = "NON_ALLOW_PRODUCES_NO_EFFECT_IN_CUSTOMER_CONFORMANCE_RUN"
 
     def write_readback(self, root, module, manifest, candidate, **fields) -> None:
@@ -322,10 +331,11 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             after = module.finish_verdict(root, observed)
             self.assertEqual(after["disposition"], "FAIL_CLOSED", json.dumps(after["predicates"], sort_keys=True))
             blocked = {k for k, v in after["predicates"].items() if v != "ALLOW"}
-            self.assertEqual(blocked, {self.LEDGER, self.NON_ALLOW, self.LICENSE})
+            self.assertEqual(blocked, {self.LEDGER, self.NON_ALLOW, self.LICENSE, self.TAG})
+            self.assert_six_field_refusal(after["results"][self.TAG], "RELEASE_RECEIPT_PROVENANCE_UNVERIFIED")
             self.assert_six_field_refusal(after["results"][self.NON_ALLOW], "CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED")
             self.assert_six_field_refusal(after["results"][self.LEDGER], "ORGANIZATION_LEDGER_PROVENANCE_UNVERIFIED")
-            self.assertEqual(after["failure_code"], "C_REVIEW_PROVENANCE_UNVERIFIED")  # first refusal in predicate order
+            self.assertEqual(after["failure_code"], "RELEASE_RECEIPT_PROVENANCE_UNVERIFIED")  # first refusal in predicate order
             self.assertEqual(module.release_ref_binding(root, commit)["disposition"], "ALLOW")
 
     def test_committed_c_review_file_is_not_reviewer_evidence(self) -> None:
@@ -376,7 +386,7 @@ class GovernanceProductFinishPoint(unittest.TestCase):
                 self.assertEqual(result["failure_code"], code)
                 for field in SIX_FIELDS:
                     self.assertTrue(result[field], field)
-            check(module.release_ref_binding(root, "0" * 40), "FINISH_REF_NOT_RELEASE_RECEIPT_COMMIT")
+            check(module.release_ref_binding(root, "0" * 40), "FINISH_REF_NOT_DESCENDANT_OF_RELEASE_COMMIT")
             lic = root / "LICENSE"
             original = lic.read_bytes()
             lic.write_bytes(original + b"\n")
@@ -460,17 +470,37 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             git(work, "update-ref", module.LEDGER_REF, "HEAD")
         return root, module, manifest, git_dir, candidate
 
-    def test_ledger_copy_with_consuming_receipt_admits_only_the_ledger_predicate(self) -> None:
+    def test_self_consistent_ledger_copy_is_not_proof_of_origin(self) -> None:
+        # Review of #567: a ledger built from scratch (this fixture) passes every internal check, as would a fork or a
+        # re-hashed, re-chained copy of the real ledger. The predicate stays FAIL_CLOSED until the tip is anchored.
         with tempfile.TemporaryDirectory() as tmp:
             root, module, manifest, git_dir, candidate = self.released_ledger(tmp)
             result = module.v_ledger(root, manifest, candidate, git_dir)
-            self.assertEqual(result["disposition"], "ALLOW", json.dumps(result, sort_keys=True))
+            self.assert_six_field_refusal(result, "ORGANIZATION_LEDGER_COPY_PROVENANCE_UNBOUND")
+            self.assertTrue(result["chain_internally_consistent"])
             self.assertEqual(result["chain_length"], 2)
-            # the overall verdict still refuses: a caller-supplied customer result never becomes ALLOW
             verdict = module.finish_verdict(root, {"disposition": "ALLOW"}, ledger_copy=git_dir)
-            self.assertEqual(verdict["predicates"][self.LEDGER], "ALLOW")
+            self.assertEqual(verdict["predicates"][self.LEDGER], "FAIL_CLOSED")
             self.assertEqual(verdict["disposition"], "FAIL_CLOSED")
             self.assertEqual(verdict["results"][self.NON_ALLOW]["failure_code"], "CUSTOMER_CONFORMANCE_ORIGIN_UNVERIFIED")
+
+    def test_receipt_committed_after_release_binds_only_without_tree_drift(self) -> None:
+        # Review of #567: the receipt is committed after the release, so the finish ref is a descendant of the
+        # receipt's commit; only release evidence may change in between.
+        with tempfile.TemporaryDirectory() as tmp:
+            root, module, manifest, commit = self.release_fixture(tmp)
+            git(root, "add", "-A")
+            git(root, "commit", "-q", "-m", "release evidence")
+            head = git(root, "rev-parse", "HEAD")
+            self.assertNotEqual(head, commit)
+            self.assertEqual(module.release_ref_binding(root, head)["disposition"], "ALLOW")
+            (root / "LICENSE").write_bytes((root / "LICENSE").read_bytes() + b"\n")
+            git(root, "commit", "-q", "-am", "drift")
+            drifted = module.release_ref_binding(root, git(root, "rev-parse", "HEAD"))
+            self.assert_six_field_refusal(drifted, "RELEASE_TREE_CHANGED_SINCE_RELEASE_COMMIT")
+            self.assertIn("LICENSE", drifted["drift"])
+            (root / module.MANIFEST).write_text("[" * 200000 + "]" * 200000, encoding="utf-8")
+            self.assertEqual(module.release_ref_binding(root, head)["failure_code"], "RELEASE_MANIFEST_ABSENT_OR_MALFORMED")
 
     def test_ledger_copy_negatives_fail_closed_with_six_fields(self) -> None:
         cases = {
