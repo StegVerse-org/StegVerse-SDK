@@ -38,6 +38,9 @@ class AssessmentPricingCandidateTests(unittest.TestCase):
         self.assertIn("CANDIDATE", self.market["status"])
 
     def test_every_comparable_is_cited(self):
+        # Form only: whether each page shows the cited price is checked by hand
+        # on observed_at (see the file's citation_check); this cannot catch a miscitation.
+        self.assertGreaterEqual(len(self.market["comparables"]), 3)
         for entry in self.market["comparables"]:
             self.assertTrue(entry["source"].startswith("https://"), entry)
             self.assertRegex(entry["observed_at"], r"^\d{4}-\d{2}-\d{2}$")
