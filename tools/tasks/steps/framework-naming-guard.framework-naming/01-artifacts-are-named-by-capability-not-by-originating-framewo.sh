@@ -1,0 +1,1 @@
+python scripts/check_framework_naming.py --strict

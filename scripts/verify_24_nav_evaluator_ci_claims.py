@@ -60,6 +60,10 @@ def reconcile(raw: bytes, original: dict, predecessor: list[dict],
         if fact != (judgment["disposition"] == ATOMIC_PASS):
             raise ValueError(f"DENY:ATOMIC_PREDICATE_CLASSIFICATION_CONFLICT:{idx}")
         path = (root / judgment["witness_path"]).resolve()
+        if not path.is_file() and judgment["witness_path"].startswith(".github/workflows/"):
+            # G17 (StegVerse-org/.github#166): folded workflows keep their verbatim
+            # record under tools/tasks/folded/; the exact literal is still required there.
+            path = (root / "tools/tasks/folded" / Path(judgment["witness_path"]).name).resolve()
         if not path.is_relative_to(root) or not path.is_file():
             raise ValueError(f"DENY:EXACT_SOURCE_FILE_UNAVAILABLE:{idx}")
         content = path.read_text(encoding="utf-8")

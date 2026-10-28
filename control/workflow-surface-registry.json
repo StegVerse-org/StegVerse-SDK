@@ -1,0 +1,1243 @@
+{
+ "schema": "stegverse.workflow-surface-registry/v1",
+ "goal_id": "G17-WORKFLOW-SURFACE-MINIMIZATION",
+ "repository": "StegVerse-org/StegVerse-SDK",
+ "policy_issue": "StegVerse-Labs/.github#167, #168; StegVerse-org/.github#166",
+ "preferred_repository_workflow_count_max": 2,
+ "exception_repository_workflow_count_max": 3,
+ "credential_authority": "the SKAP Vault inside KV is the only PII and credential store for every user, including the StegVerse ecosystem's own; no secret or token is referenced, introduced or moved by this fold",
+ "invariants": [
+  "Every workflow file is registered in surfaces[]; an unregistered or changed one fails closed (tests/test_workflow_surface_registry.py).",
+  "A new check is a group in tools/tasks/task_catalog.json, never a new workflow file.",
+  "The stable dispatcher carries no workflow_dispatch, schedule, repository_dispatch, issues or workflow_run trigger; a kept surface is pinned by sha256 and unchanged by the fold.",
+  "universal-intr-route-installation.yml is kept and not sha256-pinned while #550-#552 edit it; it must keep permissions: {} and reference no secret.",
+  "Every kept surface other than the dispatcher carries an exception record with its lifecycle; a count above 3 is only accepted while g17_ceiling.status is FAIL_CLOSED with the six fields."
+ ],
+ "unregistered_workflow_outcome": {
+  "disposition": "FAIL_CLOSED",
+  "failure_code": "UNREGISTERED_WORKFLOW_SURFACE",
+  "failed_predicate": "EVERY_WORKFLOW_FILE_IS_REGISTERED",
+  "required_evidence_or_repair": "register the file in control/workflow-surface-registry.json surfaces[] or fold it into tools/tasks/task_catalog.json",
+  "retry_entrypoint": "tests/test_workflow_surface_registry.py",
+  "owning_existing_goal": "G17-WORKFLOW-SURFACE-MINIMIZATION (StegVerse-Labs/.github#167/#168); StegVerse-org/.github#166",
+  "next_attempt": "the next pull request touching .github/workflows/"
+ },
+ "surfaces": [
+  {
+   "path": ".github/workflows/validation-dispatcher.yml",
+   "classification": "KEEP_STABLE_DISPATCHER",
+   "triggers": [
+    "pull_request",
+    "push"
+   ],
+   "permissions": {
+    "contents": "read"
+   }
+  },
+  {
+   "path": ".github/workflows/release.yml",
+   "classification": "KEEP_EXISTING_SURFACE_UNCHANGED",
+   "triggers": [
+    "release",
+    "workflow_call"
+   ],
+   "permissions": {},
+   "reason": "KEEP_EXISTING_SURFACE_UNCHANGED (documented exception, publication lifecycle): PyPI Trusted Publishing for project stegverse-sdk is bound to the workflow filename .github/workflows/release.yml and the GitHub environment pypi (docs: PyPI trusted workflow line asserted by tests/test_pypi_trusted_publishing_contract.py). It runs only on release: published (no push, no dispatch, asserted by that test) and is the only file holding id-token: write for PyPI. Renaming or folding it would break the publisher binding, an external configuration change outside this lane.",
+   "verbatim_sha256": "7378b17b718da1c2cd59e85a77cddb5232de2c49f43950726ec9e9985e58c4d6",
+   "exception": {
+    "lifecycle": "publication",
+    "justification": "KEEP_EXISTING_SURFACE_UNCHANGED (documented exception, publication lifecycle): PyPI Trusted Publishing for project stegverse-sdk is bound to the workflow filename .github/workflows/release.yml and the GitHub environment pypi (docs: PyPI trusted workflow line asserted by tests/test_pypi_trusted_publishing_contract.py). It runs only on release: published (no push, no dispatch, asserted by that test) and is the only file holding id-token: write for PyPI. Renaming or folding it would break the publisher binding, an external configuration change outside this lane.",
+    "within_exception_ceiling": true
+   }
+  },
+  {
+   "path": ".github/workflows/governance-gate.yml",
+   "classification": "KEEP_EXISTING_SURFACE_UNCHANGED",
+   "triggers": [
+    "workflow_call"
+   ],
+   "permissions": {
+    "contents": "read"
+   },
+   "reason": "KEEP_REUSABLE_API (documented exception, published API lifecycle): workflow_call-only reusable gate. Callers pin it by path and commit (StegVerse-org/LLM-adapter validation-dispatcher job stegverse-governance @1126f80e); a run block cannot call a reusable workflow, so it cannot live in the catalog. It has no trigger of its own and runs only when called.",
+   "verbatim_sha256": "1d14c9baf363e37a5b66a33016497869206a671a2a7d29596a95c23eedb82df0",
+   "exception": {
+    "lifecycle": "published_reusable_api",
+    "justification": "KEEP_REUSABLE_API (documented exception, published API lifecycle): workflow_call-only reusable gate. Callers pin it by path and commit (StegVerse-org/LLM-adapter validation-dispatcher job stegverse-governance @1126f80e); a run block cannot call a reusable workflow, so it cannot live in the catalog. It has no trigger of its own and runs only when called.",
+    "within_exception_ceiling": true
+   }
+  },
+  {
+   "path": ".github/workflows/universal-intr-route-installation.yml",
+   "classification": "KEEP_EXISTING_SURFACE_UNCHANGED",
+   "triggers": [
+    "workflow_call"
+   ],
+   "permissions": {},
+   "reason": "KEEP_REUSABLE_API (documented exception, published API lifecycle): workflow_call-only reusable installer (Fix 4, StegVerse-org/.github#162); organizations reference it by path and SDK commit. No trigger of its own. Not sha256-pinned while open PRs #550/#551/#552 edit it; the registry test instead asserts permissions: {} and no secret reference.",
+   "verbatim_sha256": null,
+   "sha256_pinned": false,
+   "exception": {
+    "lifecycle": "published_reusable_api",
+    "justification": "KEEP_REUSABLE_API (documented exception, published API lifecycle): workflow_call-only reusable installer (Fix 4, StegVerse-org/.github#162); organizations reference it by path and SDK commit. No trigger of its own. Not sha256-pinned while open PRs #550/#551/#552 edit it; the registry test instead asserts permissions: {} and no secret reference.",
+    "within_exception_ceiling": true
+   }
+  },
+  {
+   "path": ".github/workflows/sdk-public-developer-wiki-deploy.yml",
+   "classification": "KEEP_EXISTING_SURFACE_UNCHANGED",
+   "triggers": [
+    "push",
+    "release"
+   ],
+   "permissions": {
+    "contents": "read"
+   },
+   "reason": "KEEP_EXISTING_SURFACE_UNCHANGED (over the exception ceiling, FAIL_CLOSED SDK_G17_PUBLICATION_SURFACES_EXCEED_EXCEPTION_CEILING): GitHub Pages publisher for the public developer wiki (push to main and release; pages: write, id-token: write, environment github-pages). It cannot join the dispatcher without a skipped job on every pull request, and cannot join release.yml without a second id-token: write job and a push trigger, both refused by tests/test_pypi_trusted_publishing_contract.py.",
+   "verbatim_sha256": "acdf6601c14d8c9a064cb2292a1f24f967574da31083669e9adda98cfeb629b5",
+   "exception": {
+    "lifecycle": "publication",
+    "justification": "KEEP_EXISTING_SURFACE_UNCHANGED (over the exception ceiling, FAIL_CLOSED SDK_G17_PUBLICATION_SURFACES_EXCEED_EXCEPTION_CEILING): GitHub Pages publisher for the public developer wiki (push to main and release; pages: write, id-token: write, environment github-pages). It cannot join the dispatcher without a skipped job on every pull request, and cannot join release.yml without a second id-token: write job and a push trigger, both refused by tests/test_pypi_trusted_publishing_contract.py.",
+    "within_exception_ceiling": false
+   }
+  },
+  {
+   "path": ".github/workflows/build-private-state-economy-publication-manifest.yml",
+   "classification": "KEEP_EXISTING_SURFACE_UNCHANGED",
+   "triggers": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "permissions": null,
+   "reason": "KEEP_EXISTING_SURFACE_UNCHANGED (over the exception ceiling, FAIL_CLOSED SDK_PRIVATE_STATE_ECONOMY_MANIFEST_FREEZE_DRIFT): path-filtered pull_request check (scripts/build_private_state_economy_publication_manifest.py, its test, this file). Its step 3 asserts the frozen canonical_manifest_sha256 ba615d6e... ('The manifest freeze. Unchanged, and the thing that must not move.') and has failed on every run since 2026-10-10 (last success 2026-10-02 at d8d90867): the manifest now carries the route catalog (compatible_routes, automatic_route_substitution_permitted) and the non-gating Master Records consequence text. Folding it would run that red assertion on every pull request and push; re-freezing the hash is a manifest-freeze decision outside this lane. Kept byte for byte so it runs exactly when it did before.",
+   "verbatim_sha256": "5d0e4f0c34e7ea890c13cdb3fa4587449cdf725794eb2eabd458745a06e33de2",
+   "exception": {
+    "lifecycle": "path_filtered_check_fail_closed",
+    "justification": "KEEP_EXISTING_SURFACE_UNCHANGED (over the exception ceiling, FAIL_CLOSED SDK_PRIVATE_STATE_ECONOMY_MANIFEST_FREEZE_DRIFT): path-filtered pull_request check (scripts/build_private_state_economy_publication_manifest.py, its test, this file). Its step 3 asserts the frozen canonical_manifest_sha256 ba615d6e... ('The manifest freeze. Unchanged, and the thing that must not move.') and has failed on every run since 2026-10-10 (last success 2026-10-02 at d8d90867): the manifest now carries the route catalog (compatible_routes, automatic_route_substitution_permitted) and the non-gating Master Records consequence text. Folding it would run that red assertion on every pull request and push; re-freezing the hash is a manifest-freeze decision outside this lane. Kept byte for byte so it runs exactly when it did before.",
+    "within_exception_ceiling": false
+   }
+  }
+ ],
+ "folded": [
+  {
+   "workflow": ".github/workflows/architecture-guard.yml",
+   "name": "Architecture Guard (Optional Hosted Validation)",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/architecture-guard.yml",
+   "verbatim_sha256": "6c12889c9a3041cc7b95410b7bb26c8373dd8cc291c09f2aeed071e6061b8575"
+  },
+  {
+   "workflow": ".github/workflows/caller-example.yml",
+   "name": "Validate Release Candidate Example",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/caller-example.yml",
+   "verbatim_sha256": "4ba9b64f138f4d2de4302641e6d5e54e37a49ba8da6169dcb6903bd8112b2855"
+  },
+  {
+   "workflow": ".github/workflows/diagnose-python39-public-imports.yml",
+   "name": "Public Import Diagnostic (Optional Hosted)",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/diagnose-python39-public-imports.yml",
+   "verbatim_sha256": "7d102af80a5746e8bedc6587b59a0f7193bad9156c0677ede91e4f21ba399843"
+  },
+  {
+   "workflow": ".github/workflows/goal7-review-authority-validation.yml",
+   "name": "Goal 7 Review Authority Validation (Optional Hosted)",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/goal7-review-authority-validation.yml",
+   "verbatim_sha256": "33c36c0804d314fa9c9ab7bb43645d1c0bcd9ef6d6ba41c45e897f8da5038605"
+  },
+  {
+   "workflow": ".github/workflows/headless-release.yml",
+   "name": "Headless Release Boundary Validation",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/headless-release.yml",
+   "verbatim_sha256": "f22eda9c52741d94691f7d76766dfca43a59db55d1688d9ad53213824633a318"
+  },
+  {
+   "workflow": ".github/workflows/intr-destination-hop-lane-live.yml",
+   "name": "InTr Destination Hop Lane (live read)",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/intr-destination-hop-lane-live.yml",
+   "verbatim_sha256": "6ff53be9acc148636899576582291e0c6a9dc77be21cf83493dbff83d526729d"
+  },
+  {
+   "workflow": ".github/workflows/intr-destination-hop-lane-orchestrate.yml",
+   "name": "InTr Destination Hop Lane (orchestrate)",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/intr-destination-hop-lane-orchestrate.yml",
+   "verbatim_sha256": "b7033b22d6397e33c9e4a0d8f0186079ceda1f3ac1046ae2cf6214a8aa6ba13c"
+  },
+  {
+   "workflow": ".github/workflows/public-sdk-surface.yml",
+   "name": "Public SDK Surface Readiness (Optional Hosted Validation)",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/public-sdk-surface.yml",
+   "verbatim_sha256": "2d47553bcd6cb97322f8065dd06c030150fa8af53247b36eaecf76cf4a02faa2"
+  },
+  {
+   "workflow": ".github/workflows/sdk-demo-test.yml",
+   "name": "StegVerse SDK Validation (Optional Hosted)",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/sdk-demo-test.yml",
+   "verbatim_sha256": "091888b8694bd96d67e99cebc6b9a127402d42e9eca6341c8a3f1b737233293c"
+  },
+  {
+   "workflow": ".github/workflows/system-boundary-evidence-sync.yml",
+   "name": "System Boundary Evidence Validation (Optional Hosted)",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/system-boundary-evidence-sync.yml",
+   "verbatim_sha256": "029e129b9a967b6acce014a1128db21198918a8047c00f7e69e9a3443bca9e1e"
+  },
+  {
+   "workflow": ".github/workflows/validate-provider-usage-ingest.yml",
+   "name": "Validate Provider Usage Ingestion (Optional Hosted)",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/validate-provider-usage-ingest.yml",
+   "verbatim_sha256": "5276e706fb525d08ed1e19c15843441592cdce66d935b7e78f9159d4d6284cec"
+  },
+  {
+   "workflow": ".github/workflows/validate.yml",
+   "name": "SDK Validation Diagnostic (Optional Hosted)",
+   "triggers_before": [
+    "workflow_dispatch"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: its only trigger is workflow_dispatch; manual dispatch is not run by the maintenance lane (no dispatch is added). Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/validate.yml",
+   "verbatim_sha256": "5f351ab5aaee8a1a47cb689b5d694a4ff4dff18481a1aa5da187bd3328418480"
+  },
+  {
+   "workflow": ".github/workflows/reusable-release.yml",
+   "name": "Reusable Release Boundary Validation",
+   "triggers_before": [
+    "workflow_call"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: workflow_call-only, and its only caller was caller-example.yml (dispatch-only, eliminated here). It references a repository secret; nothing is changed about that secret. Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/reusable-release.yml",
+   "verbatim_sha256": "f29e4691946cbcf7b4fc66ba8550454b438ca787906a8544ed094d3136a08690"
+  },
+  {
+   "workflow": ".github/workflows/publish-v1.3.0.yml",
+   "name": "SDK v1.3.0 release transition disposition",
+   "triggers_before": [
+    "push"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: push to main only, path-filtered on .github/release-requests/v1.3.0.json, and its single step prints the registered FAIL_CLOSED release-transition disposition (owning goal StegVerse-org/StegVerse-SDK#165) and exits 1 by design. In the dispatcher it would fail every push to main. The disposition text is retained byte for byte in the verbatim record; no consequence was ever committed by it.",
+   "verbatim_record": "tools/tasks/folded/publish-v1.3.0.yml",
+   "verbatim_sha256": "9cd80be0a2f9b045481085437126b61c46698d20ac1061a272642a613b602fc9"
+  },
+  {
+   "workflow": ".github/workflows/tvc-ephemeral.yml",
+   "name": "TVC Boundary Validation",
+   "triggers_before": [
+    "workflow_call"
+   ],
+   "classification": "ELIMINATE",
+   "status": "DONE",
+   "reason": "ELIMINATE: workflow_call-only with no caller found in the repository or by code search across the ecosystem orgs. Restorable from the verbatim record.",
+   "verbatim_record": "tools/tasks/folded/tvc-ephemeral.yml",
+   "verbatim_sha256": "0f08c85c2032a929bc60c6e3470b5dd8930b38f2a68be03f36ca8daffcbed1cb"
+  },
+  {
+   "workflow": ".github/workflows/admissibility-composition-validation.yml",
+   "name": "Admissibility Composition Validation",
+   "triggers_before": [
+    "pull_request",
+    "push"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "admissibility-composition-validation.composition"
+   ],
+   "verbatim_record": "tools/tasks/folded/admissibility-composition-validation.yml",
+   "verbatim_sha256": "54454a9656ff13e391fdd177bcd36ba50fdf8d99a5b4002af76c9ea7d2f4e7d4"
+  },
+  {
+   "workflow": ".github/workflows/admissibility-matrix-maturity-validation.yml",
+   "name": "Admissibility Matrix Maturity Validation",
+   "triggers_before": [
+    "pull_request",
+    "push"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "admissibility-matrix-maturity-validation.matrix-maturity"
+   ],
+   "verbatim_record": "tools/tasks/folded/admissibility-matrix-maturity-validation.yml",
+   "verbatim_sha256": "d48a4dc1b430ba6d53ca4e4f7779616044eff83e6d4f97d06ef65408a9922f56"
+  },
+  {
+   "workflow": ".github/workflows/authority-boundary-source-validation.yml",
+   "name": "Authority Boundary Source Validation (Non-Authorizing)",
+   "triggers_before": [
+    "push",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "authority-boundary-source-validation.source-validation"
+   ],
+   "verbatim_record": "tools/tasks/folded/authority-boundary-source-validation.yml",
+   "verbatim_sha256": "bde3aeb139ac7fbe7039ba787124ef83e0469b7c341ffbcb1d4ed5a3b8b1b66c"
+  },
+  {
+   "workflow": ".github/workflows/capability-map-conformance.yml",
+   "name": "SDK capability map conformance",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "capability-map-conformance.capability-map"
+   ],
+   "verbatim_record": "tools/tasks/folded/capability-map-conformance.yml",
+   "verbatim_sha256": "2a43c4327b9c633cb4b31786ef35e5e948fb0d838ca51fc74338af20fe43a19b"
+  },
+  {
+   "workflow": ".github/workflows/communication-edge-demo-validation.yml",
+   "name": "Communication Edge SDK Demo Validation",
+   "triggers_before": [
+    "push",
+    "pull_request"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "communication-edge-demo-validation.validate-python3.9",
+    "communication-edge-demo-validation.validate-python3.11",
+    "communication-edge-demo-validation.validate-python3.12",
+    "communication-edge-demo-validation.validate-python3.13"
+   ],
+   "verbatim_record": "tools/tasks/folded/communication-edge-demo-validation.yml",
+   "verbatim_sha256": "5b18bb20d9a94835409034dd165c755e0adafcca5cbed574e12f8b98b94bbb96"
+  },
+  {
+   "workflow": ".github/workflows/connect-llm-source-validation.yml",
+   "name": "Connect my LLM Source Validation",
+   "triggers_before": [
+    "push",
+    "pull_request"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "connect-llm-source-validation.credential-free-connect-llm"
+   ],
+   "verbatim_record": "tools/tasks/folded/connect-llm-source-validation.yml",
+   "verbatim_sha256": "17121966c7caebb67d786484adb7f1008da74f02e6118a50926ff56b8656e5f2"
+  },
+  {
+   "workflow": ".github/workflows/cross-framework-result-artifact-publication.yml",
+   "name": "Optional GitHub Mirror of Cross-Framework Result Packet",
+   "triggers_before": [
+    "workflow_dispatch",
+    "push",
+    "pull_request"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "cross-framework-result-artifact-publication.mirror-verified-result-packet"
+   ],
+   "verbatim_record": "tools/tasks/folded/cross-framework-result-artifact-publication.yml",
+   "verbatim_sha256": "7db9d44706792470103c62ed5137b092fd4768687ba32bdbaa3caf15d66d99de"
+  },
+  {
+   "workflow": ".github/workflows/customer-local-governance-validation.yml",
+   "name": "Customer-local governance source validation (non-authorizing)",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "customer-local-governance-validation.local-route-source"
+   ],
+   "verbatim_record": "tools/tasks/folded/customer-local-governance-validation.yml",
+   "verbatim_sha256": "0452d2a7b08b55999457c787840f78a4f3e4809dd1265202de96a6e7b13c7b7c"
+  },
+  {
+   "workflow": ".github/workflows/elan-governance-evidence-test.yml",
+   "name": "ELAN Local SDK Governance Experiment",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "governance-evidence-test.local-governance-experiment"
+   ],
+   "verbatim_record": "tools/tasks/folded/elan-governance-evidence-test.yml",
+   "verbatim_sha256": "1bf2cee437cd45e9b1250b42e3004306b9debf7722b693bbc7c2588068bb2d50"
+  },
+  {
+   "workflow": ".github/workflows/elan-stegverse-cross-evaluation.yml",
+   "name": "ELAN StegVerse Cross Evaluation",
+   "triggers_before": [
+    "push",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "stegverse-cross-evaluation.cross-evaluation"
+   ],
+   "verbatim_record": "tools/tasks/folded/elan-stegverse-cross-evaluation.yml",
+   "verbatim_sha256": "f63477685f1a974bef9f3085da231f5ab74984a727e1af833a8e9759b83d3b97"
+  },
+  {
+   "workflow": ".github/workflows/evaluator-contract-console-validation.yml",
+   "name": "Evaluator Contract Console Validation",
+   "triggers_before": [
+    "pull_request",
+    "push"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "evaluator-contract-console-validation.contract-console"
+   ],
+   "verbatim_record": "tools/tasks/folded/evaluator-contract-console-validation.yml",
+   "verbatim_sha256": "97e76e7d15b763f519490b54f5ddd0dcc461b553b049f37d471bbf87a58469e1"
+  },
+  {
+   "workflow": ".github/workflows/evaluator-governance-posture-manifest.yml",
+   "name": "Evaluator Governance Posture Manifest Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "evaluator-governance-posture-manifest.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/evaluator-governance-posture-manifest.yml",
+   "verbatim_sha256": "1a2983ff387e39f7ca4e5152bca5252eec26bd29b091a5a6ddee1c40a0cb594d"
+  },
+  {
+   "workflow": ".github/workflows/evaluator-governance-runtime-binding.yml",
+   "name": "Evaluator Governance Runtime Binding Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "evaluator-governance-runtime-binding.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/evaluator-governance-runtime-binding.yml",
+   "verbatim_sha256": "c175440b1c7ff25433f33829f324ca6d2fa5e9c478a868b75750ba60aa184e60"
+  },
+  {
+   "workflow": ".github/workflows/evaluator-manifest-source-validation.yml",
+   "name": "Evaluator Manifest Source Validation (Non-Authorizing)",
+   "triggers_before": [
+    "push",
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "evaluator-manifest-source-validation.validate-source"
+   ],
+   "verbatim_record": "tools/tasks/folded/evaluator-manifest-source-validation.yml",
+   "verbatim_sha256": "6466d50658dbed594f1c79b8759933c381c16a4fc986e1cab78d2eb5ad627af7"
+  },
+  {
+   "workflow": ".github/workflows/execution-boundary-validation.yml",
+   "name": "Execution Boundary Evidence Validation",
+   "triggers_before": [
+    "pull_request",
+    "push"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "execution-boundary-validation.execution-boundary"
+   ],
+   "verbatim_record": "tools/tasks/folded/execution-boundary-validation.yml",
+   "verbatim_sha256": "b87be70b4c81b41508e350d8d4103e557c9a04877ab1f34a58d3dca3280d6bb2"
+  },
+  {
+   "workflow": ".github/workflows/external-collab-authentic-runtime-proof-contract-validation.yml",
+   "name": "External Collaboration Authentic Runtime Proof Contract Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "external-collab-authentic-runtime-proof-contract-validation.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/external-collab-authentic-runtime-proof-contract-validation.yml",
+   "verbatim_sha256": "fcd4e050b70b0b2d97fc90c342be55821f9d7aad2c10baed3607869ae5f8a234"
+  },
+  {
+   "workflow": ".github/workflows/external-framework-e2e-validation.yml",
+   "name": "External Framework Public Submission Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "external-framework-e2e-validation.external-framework-public-submission"
+   ],
+   "verbatim_record": "tools/tasks/folded/external-framework-e2e-validation.yml",
+   "verbatim_sha256": "321a6dc8002376969e919d35ac8e993bfa56380e1559d26b624a37e318db4ad7"
+  },
+  {
+   "workflow": ".github/workflows/framework-naming-guard.yml",
+   "name": "Framework Naming Guard",
+   "triggers_before": [
+    "pull_request",
+    "push",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "framework-naming-guard.framework-naming"
+   ],
+   "verbatim_record": "tools/tasks/folded/framework-naming-guard.yml",
+   "verbatim_sha256": "773d833a3a811a4166519dce9f3f0ca76a4596c5837c58b79a0a44f2ed78d5b2"
+  },
+  {
+   "workflow": ".github/workflows/generic-manifest-downstream-contract-validation.yml",
+   "name": "Generic Manifest Downstream Contract Validation (Non-Authorizing)",
+   "triggers_before": [
+    "pull_request",
+    "push",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "generic-manifest-downstream-contract-validation.contract-validation"
+   ],
+   "verbatim_record": "tools/tasks/folded/generic-manifest-downstream-contract-validation.yml",
+   "verbatim_sha256": "e6dc5609558ff4c5cc931ad24497bb5e59a02937b51b3bab1fa0d7d46390c8fd"
+  },
+  {
+   "workflow": ".github/workflows/generic-review-publisher-exact-return.yml",
+   "name": "Generic SDK Reviewer Publisher Exact Return (Non-Authorizing)",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "generic-review-publisher-exact-return.verify"
+   ],
+   "verbatim_record": "tools/tasks/folded/generic-review-publisher-exact-return.yml",
+   "verbatim_sha256": "d58c8234714b7e249074c42c71c55325d84007c226ad8417d8af231d799db5ff"
+  },
+  {
+   "workflow": ".github/workflows/iw-matrix-falsifier-validation.yml",
+   "name": "IW Matrix Falsifier Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "iw-matrix-falsifier-validation.validate-python3.9",
+    "iw-matrix-falsifier-validation.validate-python3.11",
+    "iw-matrix-falsifier-validation.validate-python3.12"
+   ],
+   "verbatim_record": "tools/tasks/folded/iw-matrix-falsifier-validation.yml",
+   "verbatim_sha256": "70e34b5732dec3d0af6f9569e694749595accfc1f7b63faf15d4af1c65d46092"
+  },
+  {
+   "workflow": ".github/workflows/manifest-builder-source-validation.yml",
+   "name": "Manifest Builder Source Validation (Non-Authorizing)",
+   "triggers_before": [
+    "push",
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "manifest-builder-source-validation.validate-source"
+   ],
+   "verbatim_record": "tools/tasks/folded/manifest-builder-source-validation.yml",
+   "verbatim_sha256": "75fd9594d913681b81787782d9a096c0ee1535a972100dd53bd135361db9468e"
+  },
+  {
+   "workflow": ".github/workflows/manifest-capability-resolution.yml",
+   "name": "Manifest Capability Resolution",
+   "triggers_before": [
+    "push",
+    "pull_request"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "manifest-capability-resolution.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/manifest-capability-resolution.yml",
+   "verbatim_sha256": "e6628762d83d9d2d8cb62333796c92a7174f2e1ec245106389568045d5f9e5a0"
+  },
+  {
+   "workflow": ".github/workflows/manifest-relational-invariant-concurrency.yml",
+   "name": "Manifest Relational Invariant Concurrency Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "manifest-relational-invariant-concurrency.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/manifest-relational-invariant-concurrency.yml",
+   "verbatim_sha256": "dbc1c52ce83985ed6d09e81354e9f6f9d3f5e79667d5d5e2308595905d0d9b0b"
+  },
+  {
+   "workflow": ".github/workflows/manifold-governance-sdk.yml",
+   "name": "SDK Production Manifold Governance Validation (Non-Authorizing)",
+   "triggers_before": [
+    "pull_request",
+    "push",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "manifold-governance-sdk.validate-sdk-boundary"
+   ],
+   "verbatim_record": "tools/tasks/folded/manifold-governance-sdk.yml",
+   "verbatim_sha256": "a0ec2af8788805274db01529edc951a5e3dc97facea4d4beb7b8b1e6377f70c6"
+  },
+  {
+   "workflow": ".github/workflows/mcp-production-artifact-test.yml",
+   "name": "MCP Source Validation (Non-Authorizing)",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "mcp-production-artifact-test.validate-mcp-source"
+   ],
+   "verbatim_record": "tools/tasks/folded/mcp-production-artifact-test.yml",
+   "verbatim_sha256": "4ae9a1155a5940a2dca53cf9268794725f316b803615fafa244c77d170dceadc"
+  },
+  {
+   "workflow": ".github/workflows/mhia-schema-validation.yml",
+   "name": "MHIA Source Validation (Non-Authorizing)",
+   "triggers_before": [
+    "push",
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "mhia-schema-validation.validate-mhia-source"
+   ],
+   "verbatim_record": "tools/tasks/folded/mhia-schema-validation.yml",
+   "verbatim_sha256": "ab0cf351f136fd76fb0260e1304315e6705f8d49573bcd1013c66831f2bf820a"
+  },
+  {
+   "workflow": ".github/workflows/mir-exp3-commit-time-capability-docs.yml",
+   "name": "MIR Exp3 Commit-Time Capability Documents (Non-Authorizing)",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "exp3-commit-time-capability-docs.source-documents"
+   ],
+   "verbatim_record": "tools/tasks/folded/mir-exp3-commit-time-capability-docs.yml",
+   "verbatim_sha256": "62b31e6c3cdbf3f84534d16aaa00a87e05b1b4bf58f74c050747167b256bc09e"
+  },
+  {
+   "workflow": ".github/workflows/mir-sv-exp3-sdk-manifest.yml",
+   "name": "MIR SV Exp3 SDK Manifest Evidence (Non-Authorizing)",
+   "triggers_before": [
+    "push",
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "sv-exp3-sdk-manifest.sdk-manifest"
+   ],
+   "verbatim_record": "tools/tasks/folded/mir-sv-exp3-sdk-manifest.yml",
+   "verbatim_sha256": "38480f3130e7e75c642c8734d8fdf9e1237fefa2d3fb88705381e60a745ef38f"
+  },
+  {
+   "workflow": ".github/workflows/output-boundary-proof.yml",
+   "name": "SDK Output-Boundary Proof Validation",
+   "triggers_before": [
+    "push",
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "output-boundary-proof.validate-output-proof"
+   ],
+   "verbatim_record": "tools/tasks/folded/output-boundary-proof.yml",
+   "verbatim_sha256": "5857a17d3e5889ed811087d09a507f76e2881550a888f45959fbfa50c68f023a"
+  },
+  {
+   "workflow": ".github/workflows/package-artifact-validation.yml",
+   "name": "SDK Package Artifact Validation (Non-Authorizing)",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "package-artifact-validation.package-artifact"
+   ],
+   "verbatim_record": "tools/tasks/folded/package-artifact-validation.yml",
+   "verbatim_sha256": "b03d1e07d3a6918bb85b2a876f78914614f9b89539574f115a5f5a49b9acd762"
+  },
+  {
+   "workflow": ".github/workflows/post-return-production-proof-validation.yml",
+   "name": "POST_RETURN Production Proof Runner Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "post-return-production-proof-validation.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/post-return-production-proof-validation.yml",
+   "verbatim_sha256": "4d2271a1dc0d3d793e6f06f27042a69a5bb30270a655407d0b613492ef466a88"
+  },
+  {
+   "workflow": ".github/workflows/principal-class-conformance.yml",
+   "name": "Principal class conformance",
+   "triggers_before": [
+    "pull_request",
+    "push",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "principal-class-conformance.principal-class-conformance"
+   ],
+   "verbatim_record": "tools/tasks/folded/principal-class-conformance.yml",
+   "verbatim_sha256": "29c174c9947314c31de531f828ca168a111fc318b93c5060771cfe6de9366c5b"
+  },
+  {
+   "workflow": ".github/workflows/publisher-sdk-return-binding-validation.yml",
+   "name": "Publisher SDK Return Binding Validation (Non-Authorizing)",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "publisher-sdk-return-binding-validation.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/publisher-sdk-return-binding-validation.yml",
+   "verbatim_sha256": "cbc43fe044d8bdbbc105000d10b937dd438c962edf28afa00e964716a5c55c09"
+  },
+  {
+   "workflow": ".github/workflows/release-dependency-alignment-validation.yml",
+   "name": "Release Dependency Alignment Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "release-dependency-alignment-validation.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/release-dependency-alignment-validation.yml",
+   "verbatim_sha256": "d4495ebb16c99ca14e4cbc68b9b06fd2535587e6d63392951c728cc3726e11e1"
+  },
+  {
+   "workflow": ".github/workflows/repository-ledger-initialization-validation.yml",
+   "name": "SDK Repository Ledger Initialization - Validation Only / No Ledger Write",
+   "triggers_before": [
+    "pull_request",
+    "push"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "repository-ledger-initialization-validation.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/repository-ledger-initialization-validation.yml",
+   "verbatim_sha256": "09fe9c554d924671fe1c899788af9565ad8db7da5daecf07b089e4d4be2239ec"
+  },
+  {
+   "workflow": ".github/workflows/s4-cost-benchmark-validation.yml",
+   "name": "S4_COST benchmark evaluator validation",
+   "triggers_before": [
+    "pull_request",
+    "push"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "s4-cost-benchmark-validation.test"
+   ],
+   "verbatim_record": "tools/tasks/folded/s4-cost-benchmark-validation.yml",
+   "verbatim_sha256": "154bde55a6c153f96967a3f0bfb91e568821bfbd524ff24aa3e7001b269ecd14"
+  },
+  {
+   "workflow": ".github/workflows/sdk-public-developer-wiki-pages.yml",
+   "name": "Publish SDK Developer Wiki",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "sdk-public-developer-wiki-pages.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/sdk-public-developer-wiki-pages.yml",
+   "verbatim_sha256": "d17a142ab1b213719298b31f3eee69e80ff725911fde7e06bc09b3481c5a7ac7"
+  },
+  {
+   "workflow": ".github/workflows/sdk-public-wiki-observation.yml",
+   "name": "Observe SDK Public Wiki",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch",
+    "workflow_run"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "sdk-public-wiki-observation.observe"
+   ],
+   "verbatim_record": "tools/tasks/folded/sdk-public-wiki-observation.yml",
+   "verbatim_sha256": "b58409d4ed3855f942eee7ea1ee87c5b188b1b0badecbce03a9a8d950528959d"
+  },
+  {
+   "workflow": ".github/workflows/sdk-structured-authority-basis.yml",
+   "name": "SDK Structured Authority Basis Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "sdk-structured-authority-basis.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/sdk-structured-authority-basis.yml",
+   "verbatim_sha256": "874a9e98066192401e1db16083b3d0043a2d99120054fda3af496ededabf3a4f"
+  },
+  {
+   "workflow": ".github/workflows/sdk-usage-observability.yml",
+   "name": "SDK Usage Observability Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "sdk-usage-observability.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/sdk-usage-observability.yml",
+   "verbatim_sha256": "e9b8bc4c6ebf31ae06046cf343554ff0f79ab6e0cea1670a288c09b7c2c295fa"
+  },
+  {
+   "workflow": ".github/workflows/served-surface-assertion.yml",
+   "name": "Served surface assertion",
+   "triggers_before": [
+    "pull_request",
+    "push",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "served-surface-assertion.served-surface-assertion"
+   ],
+   "verbatim_record": "tools/tasks/folded/served-surface-assertion.yml",
+   "verbatim_sha256": "a168b1f8e68bc19a9fb1931719005caeaf3294d419dcdac38b210e748ef9f702"
+  },
+  {
+   "workflow": ".github/workflows/shared-docs-multiparty-freeze-validation.yml",
+   "name": "Shared Docs Multiparty Freeze Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "shared-docs-multiparty-freeze-validation.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/shared-docs-multiparty-freeze-validation.yml",
+   "verbatim_sha256": "d6dc5f45a6b004d1fbe83872c9fd63640cffdc78c005dcd5f62e851c1a2d2046"
+  },
+  {
+   "workflow": ".github/workflows/shared-docs-provider-freeze-validation.yml",
+   "name": "Shared Docs Provider Freeze Integration Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "shared-docs-provider-freeze-validation.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/shared-docs-provider-freeze-validation.yml",
+   "verbatim_sha256": "d34e603ffeaa5efb7e6f28f072298346837d025751ac56c37b70e9b43a4832e1"
+  },
+  {
+   "workflow": ".github/workflows/sovereign-standing-context-validation.yml",
+   "name": "Sovereign Standing Context Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "sovereign-standing-context-validation.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/sovereign-standing-context-validation.yml",
+   "verbatim_sha256": "8dbbe03422f8164a14b162fcc66f7c25cd27cdf8bbca4de5071aca0f325b0a16"
+  },
+  {
+   "workflow": ".github/workflows/svg-governance-cycle-manifest-route.yml",
+   "name": "SVG governance-cycle manifest route",
+   "triggers_before": [
+    "push",
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "svg-governance-cycle-manifest-route.svg-manifest-route"
+   ],
+   "verbatim_record": "tools/tasks/folded/svg-governance-cycle-manifest-route.yml",
+   "verbatim_sha256": "d24103890f77a0a8fd5c839e4efac75305e28fa1974388b3f78187d924d67a65"
+  },
+  {
+   "workflow": ".github/workflows/test5-stegbrowser-manifest-validation.yml",
+   "name": "Test 5 StegBrowser Manifest Validation",
+   "triggers_before": [
+    "push",
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "test5-stegbrowser-manifest-validation.validate"
+   ],
+   "verbatim_record": "tools/tasks/folded/test5-stegbrowser-manifest-validation.yml",
+   "verbatim_sha256": "933fef7b0fb7f7a02dd231f3a2b5fa6cba7db5ff2d537befb84f41ecbd32c065"
+  },
+  {
+   "workflow": ".github/workflows/tt-atomic-task-worker-binding.yml",
+   "name": "SDK Four-Stage Manifest-Only Experiment",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "tt-atomic-task-worker-binding.manifest-only-experiment"
+   ],
+   "verbatim_record": "tools/tasks/folded/tt-atomic-task-worker-binding.yml",
+   "verbatim_sha256": "fc2f93a1b32a791fc3921811bcda9e36cc519c7bf4e8ebc1621644c3545bc8af"
+  },
+  {
+   "workflow": ".github/workflows/tt-purpose-bound-worker-console.yml",
+   "name": "TT Evaluator Test 1 Manifest Runtime (Non-Authorizing)",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "tt-purpose-bound-worker-console.evaluator-test-one"
+   ],
+   "verbatim_record": "tools/tasks/folded/tt-purpose-bound-worker-console.yml",
+   "verbatim_sha256": "1be9df0cc8ae6bbbaf86525e8c7820cddc2491e7ebc33ce3086a750b3cacea8c"
+  },
+  {
+   "workflow": ".github/workflows/validate-economic-publisher-paper-manifest.yml",
+   "name": "Economic Paper Manifest Check",
+   "triggers_before": [
+    "pull_request"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "validate-economic-publisher-paper-manifest.test"
+   ],
+   "verbatim_record": "tools/tasks/folded/validate-economic-publisher-paper-manifest.yml",
+   "verbatim_sha256": "2f3b4a91fbb79d9ad323d8aeb7ce8f5d51f199a4072d981042ccb893daf58fea"
+  },
+  {
+   "workflow": ".github/workflows/workspace-active-probe-validation.yml",
+   "name": "WorkSpace Active Probe Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "workspace-active-probe-validation.validate-active-probe"
+   ],
+   "verbatim_record": "tools/tasks/folded/workspace-active-probe-validation.yml",
+   "verbatim_sha256": "68870ada413ff71432a66a458e6c681dc9434fb64799d973b8c9abe50e6939b9"
+  },
+  {
+   "workflow": ".github/workflows/workspace-tvc-provider-probe-bridge-validation.yml",
+   "name": "WorkSpace TVC Provider Probe Bridge Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "workspace-tvc-provider-probe-bridge-validation.validate-tvc-probe-bridge"
+   ],
+   "verbatim_record": "tools/tasks/folded/workspace-tvc-provider-probe-bridge-validation.yml",
+   "verbatim_sha256": "ddcbe638b171cf66f23e6911144f429054ad4f6bfacf75426c411f82934b941c"
+  },
+  {
+   "workflow": ".github/workflows/test-suite-ratchet.yml",
+   "name": "Test suite ratchet",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "ratchet"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/test-suite-ratchet.yml",
+   "verbatim_sha256": "49d0310e72d7605a4757eecfa574b33d1741c829164029a9558ad3fc83d4838d"
+  },
+  {
+   "workflow": ".github/workflows/governance-gate-selftest.yml",
+   "name": "Governance Gate Self-Test",
+   "triggers_before": [
+    "pull_request",
+    "push"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "self",
+    "self-default-sdk-ref"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/governance-gate-selftest.yml",
+   "verbatim_sha256": "3052fbaefd7190077ea053e18556d44522daf31f74906d0d28ce0b168a834c0c"
+  },
+  {
+   "workflow": ".github/workflows/deepwiki-readonly-review.yml",
+   "name": "Capture public DeepWiki SDK docs for review",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "review-only-export"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/deepwiki-readonly-review.yml",
+   "verbatim_sha256": "1ba15ade0978e3c2f67a9c7a1492182817de9d2341af08f6b4e906156c22ce03"
+  },
+  {
+   "workflow": ".github/workflows/mir-leaf-v3-conformance.yml",
+   "name": "MIR Leaf v3 Conformance Validation",
+   "triggers_before": [
+    "pull_request",
+    "workflow_dispatch"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "conformance"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/mir-leaf-v3-conformance.yml",
+   "verbatim_sha256": "d3dcdb5b28bcbc8b44ccc3f7a3f57b7ddab5c528823942b0c52b22bf49a8e1c3"
+  },
+  {
+   "workflow": ".github/workflows/intr-destination-hop-lane.yml",
+   "name": "InTr Destination Hop Lane",
+   "triggers_before": [
+    "pull_request",
+    "push",
+    "workflow_dispatch"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "fabricated"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/intr-destination-hop-lane.yml",
+   "verbatim_sha256": "8c08e2ffc67550fbdca8d7387dd57f1646f18ef9b0cdc307d97e45ee55336ee1"
+  },
+  {
+   "workflow": ".github/workflows/sv-llm-intr-roundtrip.yml",
+   "name": "SV-LLM InTr Round Trip Conformance (Non-Authorizing)",
+   "triggers_before": [
+    "pull_request",
+    "push",
+    "workflow_dispatch"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "roundtrip"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/sv-llm-intr-roundtrip.yml",
+   "verbatim_sha256": "10d69951abd6a67a7e5873b408068cdcba219714f547cdd10457d718848e236d"
+  },
+  {
+   "workflow": ".github/workflows/portable-package-source-validation.yml",
+   "name": "Portable Package Source Validation - No Credential Authority",
+   "triggers_before": [
+    "push",
+    "pull_request"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "portable-package-source-validation"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/portable-package-source-validation.yml",
+   "verbatim_sha256": "ff4a7b20fcaeb464dbb779ac4da832171931f9e4b153d6678f1fedfeee8d9160"
+  },
+  {
+   "workflow": ".github/workflows/portable-release-index-validation.yml",
+   "name": "Portable Release Index - No Credential Authority",
+   "triggers_before": [
+    "pull_request"
+   ],
+   "classification": "CARRIED_AS_DISPATCHER_JOB",
+   "status": "DONE",
+   "dispatcher_jobs": [
+    "release-index-validation"
+   ],
+   "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
+   "verbatim_record": "tools/tasks/folded/portable-release-index-validation.yml",
+   "verbatim_sha256": "9a4dd0899c9149494d439cdbe0715ff50485af7e9e4cdc6e387c4cd0237984e9"
+  }
+ ],
+ "g17_ceiling": {
+  "status": "FAIL_CLOSED",
+  "workflow_count": 6,
+  "preferred_max": 2,
+  "exception_max": 3,
+  "failure_code": "SDK_G17_PUBLICATION_SURFACES_EXCEED_EXCEPTION_CEILING",
+  "failed_predicate": "repository workflow count <= 3 (G17 documented exception)",
+  "required_evidence_or_repair": "one of: (a) PyPI trusted publisher re-bound to a filename that also carries the Pages deploy, with tests/test_pypi_trusted_publishing_contract.py re-baselined under its owning goal; (b) a G17 exception record covering published reusable APIs (workflow_call-only, no own trigger) separately from the repository ceiling; (c) the wiki deploy moved to release-only publication by its owning goal; and, for build-private-state-economy-publication-manifest.yml (SDK_PRIVATE_STATE_ECONOMY_MANIFEST_FREEZE_DRIFT), a manifest-freeze decision that either restores the frozen manifest ba615d6e... or re-freezes it, after which it folds into the dispatcher",
+  "retry_entrypoint": "tests/test_workflow_surface_registry.py",
+  "owning_existing_goal": "StegVerse-org/.github#166 (G17 enforcement); SDK handover StegVerse-org/.github#163",
+  "next_attempt": "after any of the repairs lands, drop the surface and lower workflow_count"
+ }
+}

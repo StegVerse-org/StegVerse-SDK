@@ -1,0 +1,51 @@
+set -eu
+mkdir /tmp/exp3-historical-source /tmp/exp3-central
+curl -fsSL "https://github.com/StegVerse-org/StegVerse-SDK/archive/2508068f5475364ed4b47db6f6349e9b91fdb290.tar.gz" -o /tmp/exp3-historical.tgz
+tar -xzf /tmp/exp3-historical.tgz -C /tmp/exp3-historical-source --strip-components=1
+cd /tmp/exp3-historical-source
+python -m scripts.build_mir_sv_exp3_manifest --manifest /tmp/mir-sv-exp3.frozen-original.json
+cd /tmp/source
+python - <<'PY'
+import hashlib, json
+from pathlib import Path
+from stegverse.manifest_state_transition_runtime import derive_execution_request
+archived=Path('/tmp/mir-sv-exp3.frozen-original.json').read_bytes()
+assert hashlib.sha256(archived).hexdigest() == 'e1b05a082ce19d3d254e3cde1dced03019174a94287724959672c9e65510c8f3', 'HISTORICAL_FILE_DIGEST_MISMATCH'
+historical=json.loads(archived)
+current=json.loads(Path('/tmp/mir-sv-exp3.manifest.json').read_bytes())
+assert current == historical, 'CURRENT_BUILDER_DID_NOT_PRESERVE_FROZEN_EXPERIMENT_3'
+request=derive_execution_request(historical)
+assert request['wire_manifest_sha256']=='ad9b8b8aab2beeea04bff2aac34fd2e7bfa5915133bcaef9209c16de7d9bea68'
+assert request['canonical_task_id'] is None and request['requires_workercoordinator_claim_fence'] is False
+assert historical['completion']['publisher']['required'] is True
+Path('/tmp/mir-sv-exp3.sdk-request.json').write_text(json.dumps(request,sort_keys=True,indent=2)+'\n')
+PY
+curl -fsSL "https://github.com/StegVerse-Labs/.github/archive/adf312bb4f9c2f071e8f65653fb80405e8b75218.tar.gz" -o /tmp/exp3-central.tgz
+tar -xzf /tmp/exp3-central.tgz -C /tmp/exp3-central --strip-components=1
+PYTHONPATH=/tmp/exp3-central:/tmp/source python - <<'PY'
+import copy,json
+from pathlib import Path
+from workers import manifest_state_transition_intr_ingress as central
+from stegverse.manifest_state_transition_runtime import validate_runtime_result
+from stegverse.organization_record_names import LEGACY_ORGANIZATION_RECORD_OBSERVED_FIELD, ORGANIZATION_RECORD_OBSERVED_FIELD, read_field
+request=json.loads(Path('/tmp/mir-sv-exp3.sdk-request.json').read_text())
+root=Path('/tmp/exp3-profile-evaluation')
+result=central.execute(root, request)
+assert result['disposition']=='DENY'
+# adf312b routes the non-worker diagnostic to its admitted consumer, which
+# refuses without an Organization-ledger-read-back event-ephemeral binding.
+assert result['reason_code']=='AUTHENTIC_EVENT_EPHEMERAL_BINDING_LOCATOR_REQUIRED', result['reason_code']
+assert request['custody_replay_reconstruction_authority']=='ORGANIZATION_LEDGER'
+assert result['authentic_intr_disposition_observed'] is False
+assert read_field(result, ORGANIZATION_RECORD_OBSERVED_FIELD, LEGACY_ORGANIZATION_RECORD_OBSERVED_FIELD) is False
+assert validate_runtime_result(result,request)['disposition']=='DENY'
+exact=Path(result['source_disposition_ref'])
+assert exact.is_file(), 'SOURCE_DENY_RETENTION_REQUIRED'
+for field,invalid in [('request_sha256','0'*64),('authentic_intr_disposition_observed',True)]:
+    altered=copy.deepcopy(result);altered[field]=invalid
+    try: validate_runtime_result(altered,request)
+    except ValueError: pass
+    else: raise AssertionError('TAMPER_ACCEPTED:'+field)
+Path('/tmp/mir-sv-exp3.source-profile-deny.json').write_bytes(exact.read_bytes())
+print('SOURCE_ONLY_DENY_VALIDATED; no sovereign ingress or Master Records execution claimed')
+PY

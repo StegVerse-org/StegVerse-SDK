@@ -1,0 +1,7 @@
+echo 'source_validation=PASS'
+echo 'provider_version_projection_validated=true'
+echo 'provider_content_digest_required_for_freeze_binding=true'
+echo 'provider_observation_claimed=false'
+echo 'provider_mutation_claimed=false'
+echo 'runtime_execution_claimed=false'
+echo 'authority_effect=NONE'

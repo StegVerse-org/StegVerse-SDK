@@ -1,0 +1,1 @@
+python -m unittest tests.test_shared_docs_provider_freeze

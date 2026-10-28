@@ -1,0 +1,1 @@
+python scripts/run_compiled_state_governance_matrix_test.py

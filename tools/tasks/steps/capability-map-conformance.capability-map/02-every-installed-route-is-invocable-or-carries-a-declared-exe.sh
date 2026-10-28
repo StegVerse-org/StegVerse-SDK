@@ -1,0 +1,1 @@
+python -m unittest tests.test_capability_map_conformance -v
