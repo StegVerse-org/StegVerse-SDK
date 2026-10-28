@@ -1,0 +1,1 @@
+python3 -m py_compile scripts/initialize_repository_ledger.py tests/test_repository_ledger_initialization.py

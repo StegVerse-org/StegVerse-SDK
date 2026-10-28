@@ -1,0 +1,33 @@
+name: Governance Gate Self-Test
+
+on:
+  pull_request:
+    paths:
+      - stegverse/governance_gate.py
+      - stegverse/portable_governance_verifier.py
+      - stegverse/structural_validator_candidate.py
+      - .github/workflows/governance-gate.yml
+      - .github/workflows/governance-gate-selftest.yml
+  push:
+    branches: [main]
+    paths:
+      - stegverse/governance_gate.py
+      - .github/workflows/governance-gate.yml
+
+permissions:
+  contents: read
+
+jobs:
+  self:
+    uses: ./.github/workflows/governance-gate.yml
+    with:
+      sdk_ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      # Synthetic bundle so this job is not an empty-glob run. The empty glob
+      # is FAIL_CLOSED and is covered by tests/test_governance_gate.py.
+      bundle_glob: tests/fixtures/governance-gate/*.json
+  self-default-sdk-ref:
+    # No sdk_ref: the gate resolves job.workflow_sha, the commit this run is
+    # at, so the default path is exercised on every gate change.
+    uses: ./.github/workflows/governance-gate.yml
+    with:
+      bundle_glob: tests/fixtures/governance-gate/*.json

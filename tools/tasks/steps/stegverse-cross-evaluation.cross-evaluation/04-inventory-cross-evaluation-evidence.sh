@@ -1,0 +1,1 @@
+find evidence/elan/2026-09-16-cross-evaluation -maxdepth 1 -type f -print -exec sha256sum {} \;

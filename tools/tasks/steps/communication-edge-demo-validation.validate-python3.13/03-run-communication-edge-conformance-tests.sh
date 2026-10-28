@@ -1,0 +1,1 @@
+python -m pytest tests/test_communication_edge_demo.py -q

@@ -1,0 +1,78 @@
+name: Universal InTr route installation (reusable, evaluation only)
+
+# Fix 4 (StegVerse-org/.github#162). An organization references the SDK-hosted
+# installer by parameters instead of carrying its own install_*_universal_intr_route.py:
+#
+#   jobs:
+#     evaluate:
+#       uses: StegVerse-org/StegVerse-SDK/.github/workflows/universal-intr-route-installation.yml@<sdk commit>
+#       with:
+#         request_path: <committed stegverse.universal-intr-route-installation-request/v1 file>
+#         sdk_ref: <the same sdk commit>
+#
+# The request (consumer, published route, router predecessor digest, supplied
+# hb_epoch) is a committed file, so the installation is bound by manifest. This
+# evaluates it and prints ALLOW / DENY / FAIL_CLOSED with the six fields. It
+# writes no source, binds no socket, carries no credential, appends no ledger
+# entry and reads no clock. Source is read anonymously from public archives.
+
+on:
+  workflow_call:
+    inputs:
+      request_path:
+        description: Path, in the calling repository, of the committed installation request
+        required: true
+        type: string
+      sdk_ref:
+        description: StegVerse-SDK commit that hosts the installer
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Materialize caller and SDK source anonymously
+        env:
+          CALLER_REPO: ${{ github.repository }}
+          CALLER_SHA: ${{ github.sha }}
+          SDK_REF: ${{ inputs.sdk_ref }}
+        run: |
+          set -eu
+          # Every refusal here prints one six-field disposition line and exits non-zero.
+          # Arguments: failure_code failed_predicate required_evidence_or_repair next_attempt
+          refuse() {
+            printf '{"disposition":"FAIL_CLOSED","failure_code":"%s","failed_predicate":"%s","required_evidence_or_repair":"%s","retry_entrypoint":"%s","owning_existing_goal":"%s","next_attempt":"%s"}\n' \
+              "$1" "$2" "$3" \
+              "StegVerse-org/StegVerse-SDK/.github/workflows/universal-intr-route-installation.yml (workflow_call from the caller workflow)" \
+              "INTERLOCK-INTR-RUNTIME-INDEPENDENT-PROTOCOL-001" \
+              "$4"
+            exit 2
+          }
+          if [ -n "${GITHUB_TOKEN:-}" ] || [ -n "${GH_TOKEN:-}" ]; then
+            refuse "INSTALLER_CREDENTIAL_PRESENT" \
+              "NO_GITHUB_TOKEN_OR_GH_TOKEN_IN_INSTALLER_ENVIRONMENT" \
+              "Remove GITHUB_TOKEN and GH_TOKEN from the caller job environment; the installer reads source anonymously from public archives and carries no credential." \
+              "Re-run the caller workflow without GITHUB_TOKEN or GH_TOKEN set for this job."
+          fi
+          case "$SDK_REF" in
+            *[!0-9a-f]*|'')
+              refuse "SDK_REF_NOT_A_COMMIT" \
+                "SDK_REF_IS_LOWERCASE_HEX_COMMIT" \
+                "Pass with.sdk_ref as the lowercase hex StegVerse-SDK commit SHA that hosts the installer, the same commit pinned in uses: ...@<sdk commit>." \
+                "Re-run the caller workflow with sdk_ref set to the pinned StegVerse-SDK commit SHA."
+              ;;
+          esac
+          mkdir -p /tmp/caller /tmp/sdk
+          curl -fsSL "https://github.com/${CALLER_REPO}/archive/${CALLER_SHA}.tar.gz" | tar -xz -C /tmp/caller --strip-components=1
+          curl -fsSL "https://github.com/StegVerse-org/StegVerse-SDK/archive/${SDK_REF}.tar.gz" | tar -xz -C /tmp/sdk --strip-components=1
+      - name: Evaluate the installation request
+        env:
+          REQUEST_PATH: ${{ inputs.request_path }}
+        run: |
+          set -eu
+          cd /tmp/sdk
+          python3 -P -c 'import sys; sys.path.insert(0, "."); from stegverse.universal_intr_route_installer import main; sys.exit(main())' \
+            evaluate-installation --request "/tmp/caller/${REQUEST_PATH}" --organization-root /tmp/caller

@@ -1,4 +1,6 @@
-**Use StegVerse governance in any GitHub repository:** call the free-tier reusable workflow `StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@main`. It verifies portable governance evidence bundles and classifies your JSON Schemas, using the standard library only and granting no authority. See [docs/GOVERNANCE_GATE.md](docs/GOVERNANCE_GATE.md).
+**Use StegVerse governance in any GitHub repository:** the customer job calls `.github/workflows/governance-gate.yml` in StegVerse-org/StegVerse-SDK. Commit `ba5bbf42eabec6a6ae3b0efdff7c683967a79083` is the pre-#534 workflow and checker: that workflow's `sdk_ref` default is moving `main`, its actions are pinned to tags such as `@v4`, and that checker emits `PASS` and passes an empty bundle glob. Do not adopt that commit for the behavior described in [docs/GITHUB_GOVERNANCE_QUICKSTART.md](docs/GITHUB_GOVERNANCE_QUICKSTART.md). `sdk_ref` defaults to empty, which checks out `job.workflow_sha`, the exact commit the caller pinned in `uses:`, so the checker always comes from the same commit as the workflow. The `uses:` pin names this behavior only once #534 is on main (admitted through TVC#519 MERGE_ADMITTED_PULL_REQUEST); a docs follow-up then replaces `<534-merge-commit>` with that merge commit. The check reads customer-supplied portable governance bundles and writes a verification report.
+
+**Cost-derived pricing:** `stegverse/tier_pricing.py` prices paid tiers from the versioned cost-component registry (`stegverse/cost_registry.py`) under the owner invariant `C_pricing = max(C_estimated, C_authentically_observed)`. No price is presumed; see [docs/TIER_PRICING.md](docs/TIER_PRICING.md).
 
 ## SDK public wiki observer maintenance (2026-09-27)
 
@@ -932,6 +934,7 @@ Implementation:
 scripts/build_sdk_public_wiki.py
 tests/test_sdk_public_developer_wiki.py
 .github/workflows/sdk-public-developer-wiki-pages.yml
+.github/workflows/sdk-public-developer-wiki-deploy.yml
 docs/SDK_PUBLIC_DEVELOPER_WIKI_MIRROR_HANDOFF.md
 ```
 

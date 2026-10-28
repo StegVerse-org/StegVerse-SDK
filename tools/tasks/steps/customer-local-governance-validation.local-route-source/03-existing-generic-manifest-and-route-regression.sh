@@ -1,0 +1,1 @@
+python -m unittest -v tests.test_generic_manifest_processing_contract

@@ -1,0 +1,1 @@
+stegverse-comm-demo > /tmp/communication-edge-installed.json

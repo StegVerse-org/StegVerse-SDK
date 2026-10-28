@@ -1,0 +1,1 @@
+python scripts/build_sdk_public_wiki.py

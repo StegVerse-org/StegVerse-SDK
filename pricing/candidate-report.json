@@ -1,49 +1,179 @@
 {
   "action_costs": [
     {
-      "evidence": "OBSERVED",
+      "evidence": "SAMPLED_COST_BASIS",
       "missing_rates": [],
+      "pricing_basis": {
+        "authority": {
+          "entitlement_issued": false,
+          "execution_authorized": false,
+          "final_price_approved": false
+        },
+        "c_pricing": "0.01806553600",
+        "estimated": {
+          "amount": "0.01806553600",
+          "cost_basis_version": "SV-COST-COMPONENTS-2026-10-17",
+          "currency": "USD",
+          "scope_id": "governance_sovereign_task_observation",
+          "unit": "action"
+        },
+        "final": false,
+        "invariant": "C_pricing = max(C_estimated, C_authentically_observed)",
+        "observed": {
+          "amount": "UNKNOWN",
+          "reason": "no observation supplied"
+        },
+        "schema": "stegverse.pricing-cost-basis.v1",
+        "selected_basis": "ESTIMATED_ONLY",
+        "status": "PROVISIONAL_SCENARIO"
+      },
       "status": "PRICED",
       "task_class": "governance_sovereign_task_observation",
       "usd_per_action": "0.01806553600"
     },
     {
-      "evidence": "OBSERVED",
+      "evidence": "SAMPLED_COST_BASIS",
       "missing_rates": [],
+      "pricing_basis": {
+        "authority": {
+          "entitlement_issued": false,
+          "execution_authorized": false,
+          "final_price_approved": false
+        },
+        "c_pricing": "0.00600102400",
+        "estimated": {
+          "amount": "0.00600102400",
+          "cost_basis_version": "SV-COST-COMPONENTS-2026-10-17",
+          "currency": "USD",
+          "scope_id": "host_runtime_self_attest",
+          "unit": "action"
+        },
+        "final": false,
+        "invariant": "C_pricing = max(C_estimated, C_authentically_observed)",
+        "observed": {
+          "amount": "UNKNOWN",
+          "reason": "no observation supplied"
+        },
+        "schema": "stegverse.pricing-cost-basis.v1",
+        "selected_basis": "ESTIMATED_ONLY",
+        "status": "PROVISIONAL_SCENARIO"
+      },
       "status": "PRICED",
       "task_class": "host_runtime_self_attest",
       "usd_per_action": "0.00600102400"
     },
     {
-      "evidence": "OBSERVED",
+      "evidence": "SAMPLED_COST_BASIS",
       "missing_rates": [],
+      "pricing_basis": {
+        "authority": {
+          "entitlement_issued": false,
+          "execution_authorized": false,
+          "final_price_approved": false
+        },
+        "c_pricing": "0.01201638400",
+        "estimated": {
+          "amount": "0.01201638400",
+          "cost_basis_version": "SV-COST-COMPONENTS-2026-10-17",
+          "currency": "USD",
+          "scope_id": "organization_federation_readiness",
+          "unit": "action"
+        },
+        "final": false,
+        "invariant": "C_pricing = max(C_estimated, C_authentically_observed)",
+        "observed": {
+          "amount": "UNKNOWN",
+          "reason": "no observation supplied"
+        },
+        "schema": "stegverse.pricing-cost-basis.v1",
+        "selected_basis": "ESTIMATED_ONLY",
+        "status": "PROVISIONAL_SCENARIO"
+      },
       "status": "PRICED",
       "task_class": "organization_federation_readiness",
       "usd_per_action": "0.01201638400"
     },
     {
-      "evidence": "OBSERVED",
+      "evidence": "SAMPLED_COST_BASIS",
       "missing_rates": [],
+      "pricing_basis": {
+        "authority": {
+          "entitlement_issued": false,
+          "execution_authorized": false,
+          "final_price_approved": false
+        },
+        "c_pricing": "0.02426214400",
+        "estimated": {
+          "amount": "0.02426214400",
+          "cost_basis_version": "SV-COST-COMPONENTS-2026-10-17",
+          "currency": "USD",
+          "scope_id": "sdk_mcp_canonical_validation",
+          "unit": "action"
+        },
+        "final": false,
+        "invariant": "C_pricing = max(C_estimated, C_authentically_observed)",
+        "observed": {
+          "amount": "UNKNOWN",
+          "reason": "no observation supplied"
+        },
+        "schema": "stegverse.pricing-cost-basis.v1",
+        "selected_basis": "ESTIMATED_ONLY",
+        "status": "PROVISIONAL_SCENARIO"
+      },
       "status": "PRICED",
       "task_class": "sdk_mcp_canonical_validation",
       "usd_per_action": "0.02426214400"
     },
     {
-      "evidence": "OBSERVED",
+      "evidence": "SAMPLED_COST_BASIS",
       "missing_rates": [
         "network_gb"
       ],
+      "pricing_basis": {
+        "authority": {
+          "entitlement_issued": false,
+          "execution_authorized": false,
+          "final_price_approved": false
+        },
+        "c_pricing": null,
+        "estimated": {
+          "amount": "UNKNOWN",
+          "cost_basis_version": "SV-COST-COMPONENTS-2026-10-17",
+          "currency": "USD",
+          "scope_id": "steggate_stable_rendezvous",
+          "unit": "action"
+        },
+        "final": false,
+        "invariant": "C_pricing = max(C_estimated, C_authentically_observed)",
+        "observed": {
+          "amount": "UNKNOWN",
+          "reason": "no observation supplied"
+        },
+        "schema": "stegverse.pricing-cost-basis.v1",
+        "selected_basis": null,
+        "status": "INCOMPLETE"
+      },
       "status": "UNKNOWN_RATE_NOT_SOURCED",
       "task_class": "steggate_stable_rendezvous",
       "usd_per_action": null
     }
   ],
+  "actionable_disposition": {
+    "failed_predicate": "tiers ['Organization'] lack a cited rate ['network_gb'], a cost basis [] or a comparable observation",
+    "failure_code": "PRICING_INCOMPLETE",
+    "next_attempt": "re-run with the corrected inputs; no price or tier is presumed until then",
+    "owning_existing_goal": "SDK-COST-DERIVED-TIER-PRICING-001",
+    "required_evidence_or_repair": "add a cited rate card entry for each missing rate, a cost-basis record for each absent task class, or an observation in the same cost_basis_version",
+    "retry_entrypoint": "stegverse/tier_pricing.py::main"
+  },
   "authority": {
     "credential_issued": false,
     "entitlement_issued": false,
-    "execution_authorized": false
+    "execution_authorized": false,
+    "final_price_approved": false
   },
   "compute_unit_definition": "CANDIDATE: one GitHub-hosted Linux 2-core (x64) runner-minute. The ecosystem cost basis does not define compute_units; this definition is pending owner decision on StegVerse-org/StegVerse-SDK#484.",
+  "cost_basis_version": "SV-COST-COMPONENTS-2026-10-17",
   "market_median_usd_per_action": null,
   "schema": "stegverse.tier-pricing-candidate.v1",
   "status": "INCOMPLETE",
@@ -51,11 +181,11 @@
   "tiers": [
     {
       "cost_floor_usd_per_action": "0.072262144",
-      "evidence": "OBSERVED",
+      "evidence": "SAMPLED_COST_BASIS",
       "included_actions": "1000",
       "market_position": "NO_MARKET_EVIDENCE",
       "name": "Team",
-      "status": "PRICED",
+      "status": "PROVISIONAL_SCENARIO",
       "task_classes": [
         "governance_sovereign_task_observation",
         "host_runtime_self_attest",

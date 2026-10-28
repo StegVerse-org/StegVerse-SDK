@@ -1,0 +1,1 @@
+python -m pytest -q tests/test_evaluator_authority_basis_bridge.py tests/test_evaluator_manifest_builder.py

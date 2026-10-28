@@ -1,0 +1,201 @@
+{
+  "schema": "stegverse.sdk.governed-deny-negative-conformance-fixture/v1",
+  "fixture_id": "SDK-GOVERNED-DENY-EXPERIMENT-3-NEGATIVE-CONFORMANCE-001",
+  "owning_existing_goal": "SDK-ECOSYSTEM-DIAGNOSTIC-PROCESSOR-001",
+  "cosv": "71000000101000",
+  "assignment_ref": "StegVerse-Labs/.github#3183 Workstream A",
+  "diagnostic_class": "SDK_MESH_DESTINATION_MAP_INTR_FULL_MESH_NEGATIVE_CONFORMANCE",
+  "authority_effect": "NONE_DIAGNOSTIC_ONLY",
+  "provenance": {
+    "originating_owner_task_id": "STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001",
+    "originating_cosv": "10100000100000",
+    "originating_issue": "StegVerse-Labs/StegHealth#51",
+    "directive_date": "2026-10-16",
+    "directive_ref": "https://github.com/StegVerse-Labs/StegHealth/issues/51#issuecomment-6227743074",
+    "experiment_task_id": "MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003",
+    "experiment_cosv": "50000000100000",
+    "experiment_owner_issue": "StegVerse-Labs/.github#2682",
+    "reuse": "SDK_NEGATIVE_CONFORMANCE_DIAGNOSTIC_NOT_A_NEW_STEGHEALTH_REMEDIATION",
+    "new_steghealth_remediation_created": false,
+    "authenticated_trial_executed": false,
+    "note": "The 2026-10-16 directive records that no authenticated trial was executed and no receipts are claimed. Every receipt below is the original source/record bytes, bound by sha256; none is a resident organization-ledger receipt, because none was appended."
+  },
+  "bound_receipts": [
+    {
+      "receipt_id": "sdk-exp3-assessment-input",
+      "repository": "StegVerse-org/StegVerse-SDK",
+      "commit": "ae4a2a12fb3261e5d9fbee1dae1b4195bcf69fc9",
+      "path": "inspection/examples/mir-sv-exp3/assessment-input.json",
+      "sha256": "3af4eb2aac36e01c0b60aaa2fca99b6ab88d19cab3ffe84027dee5293a39f3fa",
+      "role": "Frozen Experiment 3 manifest payload input"
+    },
+    {
+      "receipt_id": "sdk-exp3-diagnostic-request",
+      "repository": "StegVerse-org/StegVerse-SDK",
+      "commit": "ae4a2a12fb3261e5d9fbee1dae1b4195bcf69fc9",
+      "path": "inspection/examples/mir-sv-exp3/diagnostic-request.json",
+      "sha256": "0e35daff69ca8c97c815692fcdf51a82512e4ba1f928de2121074719d3808081",
+      "role": "Frozen Experiment 3 ecosystem_diagnostic processor request"
+    },
+    {
+      "receipt_id": "sdk-labs-interlock-intr-boundary",
+      "repository": "StegVerse-org/StegVerse-SDK",
+      "commit": "ae4a2a12fb3261e5d9fbee1dae1b4195bcf69fc9",
+      "path": "tests/fixtures/stegverse-labs-interlock-intr-boundary.aa2f89ac.json",
+      "sha256": "dd7129f974cc2fc6588b49cab82ac3b9ed3d55b35af449dca682256f0a6aa6f7",
+      "role": "StegVerse-Labs Interlock/InTr organization boundary the SDK handoff resolves through"
+    },
+    {
+      "receipt_id": "labs-exp3-canonical-task-record",
+      "repository": "StegVerse-Labs/.github",
+      "commit": "bfcf031811caaa65bc44a48c894fce19800b5d90",
+      "path": "data/canonical-task-records/MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003.json",
+      "sha256": "51375f27f8be158d1581ded24170c4144cda929f1524c08fcb26a5370b234b0d",
+      "role": "Canonical Experiment 3 record; current_truth.exact_original_manifest_root_check is the recorded six-field FAIL_CLOSED"
+    },
+    {
+      "receipt_id": "labs-exp3-mirror-handoff",
+      "repository": "StegVerse-Labs/.github",
+      "commit": "bfcf031811caaa65bc44a48c894fce19800b5d90",
+      "path": "docs/MIR_SV_CAPABILITY_BOUNDARY_EXPERIMENT_003_MIRROR_HANDOFF.md",
+      "sha256": "2e5b9d87eb04f07bc94afd8bc3581d7f5914244c6149b9e1f461c965ce02cfcf",
+      "role": "Experiment 3 owner handoff: original private resident evidence is UNKNOWN_NOT_AUTHENTICALLY_OBSERVED"
+    },
+    {
+      "receipt_id": "labs-organization-manifest-ingress",
+      "repository": "StegVerse-Labs/.github",
+      "commit": "bfcf031811caaa65bc44a48c894fce19800b5d90",
+      "path": "resident-runtime/organization_manifest_ingress.py",
+      "sha256": "f7e215b55ca0d354cc7a0e0bde4523e8c909a9bf20de0855112fb133d55928c4",
+      "role": "Receiving operation: defines the ORGANIZATION_RECEIPT_APPENDED_UNDER_LOCK predicate and its retry entrypoint"
+    },
+    {
+      "receipt_id": "labs-task-registry-global-invariants",
+      "repository": "StegVerse-Labs/.github",
+      "commit": "bfcf031811caaa65bc44a48c894fce19800b5d90",
+      "path": "data/task-registry-global-invariants.json",
+      "sha256": "dfc0a53de9a11f0214bdef0f07708628e1176c86bf99b94829d71e4c227a8176",
+      "role": "Task Registry global invariants (external_machine_awaiting_allowed, destination_liveness_is_transition_predicate)"
+    },
+    {
+      "receipt_id": "steghealth-transition-disposition-routing",
+      "repository": "StegVerse-Labs/StegHealth",
+      "commit": "61e85056d50eca05f89dafc0807d4eaa4d3f76da",
+      "path": "docs/remediation/TRANSITION_DISPOSITION_ROUTING.md",
+      "sha256": "71d7f1cae694819140e015d836206f5e5e56536f594bb53b3936b02a9d464526",
+      "role": "StegHealth-originated Experiment 3 DENY routing contract (FAIL_CLOSED terminates the attempt, never auto-retried)"
+    },
+    {
+      "receipt_id": "steghealth-transition-disposition-routing-test",
+      "repository": "StegVerse-Labs/StegHealth",
+      "commit": "61e85056d50eca05f89dafc0807d4eaa4d3f76da",
+      "path": "tests/test_transition_disposition_routing.py",
+      "sha256": "3ca2133ffeea22445f45a8088b3a1d2650228cca73c9ee13a5ac2d150dc6ea5a",
+      "role": "StegHealth Experiment 3 producer-level source DENY regression"
+    },
+    {
+      "receipt_id": "steghealth-remediation-task",
+      "repository": "StegVerse-Labs/StegHealth",
+      "commit": "61e85056d50eca05f89dafc0807d4eaa4d3f76da",
+      "path": "tasks/STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001.json",
+      "sha256": "38a83e34b6cc423cb70bb3836c80cc69eb61bfcd2a19014053927e3dc1f7c56b",
+      "role": "Originating StegHealth owner task, COSV 10100000100000"
+    }
+  ],
+  "frozen_original": {
+    "builder": "scripts.build_mir_sv_exp3_manifest.build_exp3_manifest",
+    "serialization": "json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False) + newline, UTF-8",
+    "manifest_file_sha256": "e1b05a082ce19d3d254e3cde1dced03019174a94287724959672c9e65510c8f3",
+    "wire_manifest_sha256": "ad9b8b8aab2beeea04bff2aac34fd2e7bfa5915133bcaef9209c16de7d9bea68",
+    "historical_build_commit": "2508068f5475364ed4b47db6f6349e9b91fdb290"
+  },
+  "sdk_handoff": {
+    "entrypoint": "stegverse.manifest_state_transition_runtime.execute_manifest",
+    "organization_boundary_receipt_id": "sdk-labs-interlock-intr-boundary",
+    "source_receipt_ids": ["sdk-labs-interlock-intr-boundary", "sdk-exp3-assessment-input", "sdk-exp3-diagnostic-request"],
+    "expected": {
+      "state": "MANIFESTED_FOR_INTERLOCK_INTR_HANDOFF",
+      "disposition": "ALLOW",
+      "evaluation_boundary": "SDK_MANIFEST_HANDOFF",
+      "awaits_external_machine": false,
+      "receiver_availability_required": false,
+      "return_entrypoint": "stegverse.manifest_state_transition_runtime.admit_runtime_result",
+      "intr_admission_observed": false,
+      "organization_receipt_observed": false,
+      "consequence_committed": false,
+      "wire_manifest_sha256": "ad9b8b8aab2beeea04bff2aac34fd2e7bfa5915133bcaef9209c16de7d9bea68",
+      "request_sha256": "8180a0ebfa41cdebbc8ae5bc469bda05308a05abd5dbf1bd4c8491d9c398d2f5",
+      "handoff_sha256": "8e1629281d3e77f6d1993e8c5d6d78d3e012cae47bb948e1cb9b005db16d5df5"
+    },
+    "note": "The SDK handoff ALLOW is not admission; the governance disposition below is the organization-side FAIL_CLOSED."
+  },
+  "registry_invariants": {
+    "source_receipt_id": "labs-task-registry-global-invariants",
+    "external_machine_awaiting_allowed": false,
+    "destination_liveness_is_transition_predicate": false
+  },
+  "governance_disposition": "FAIL_CLOSED",
+  "experiment_outcome": "NOT_FAILED",
+  "experiment_outcome_basis": "A deliberate governed-DENY trial is a negative control: a correct refusal is the trial working. FAIL_CLOSED is the governance disposition, recorded only because no organization receipt was appended for the original request; it is not evidence that Experiment 3 failed.",
+  "expected_classification": "NEGATIVE_CONFORMANCE_PASS_CORRECT_REFUSAL",
+  "non_allow_entries": [
+    {
+      "entry_id": "exp3-organization-receipt-not-appended",
+      "status": "CURRENT",
+      "disposition": "FAIL_CLOSED",
+      "failure_code": "ORGANIZATION_RECEIPT_NOT_APPENDED",
+      "failed_predicate": "ORGANIZATION_RECEIPT_APPENDED_UNDER_LOCK",
+      "required_evidence_or_repair": "An organization receipt for the Experiment 3 original SDK request (request_sha256 8180a0ebfa41cdebbc8ae5bc469bda05308a05abd5dbf1bd4c8491d9c398d2f5, wire ad9b8b8aab2beeea04bff2aac34fd2e7bfa5915133bcaef9209c16de7d9bea68) appended under the StegVerse-Labs organization ledger lock and read back. None is retained in any reachable repository.",
+      "retry_entrypoint": "StegVerse-Labs/.github:resident-runtime/organization_manifest_ingress.py::receive",
+      "owning_existing_goal": "MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003",
+      "next_attempt": {
+        "entrypoint": "StegVerse-Labs/.github:resident-runtime/organization_manifest_ingress.py::receive",
+        "resubmit": "THE_SAME_FROZEN_MANIFEST",
+        "returns_via": "stegverse.manifest_state_transition_runtime.admit_runtime_result",
+        "automatic_retry": false,
+        "awaits_an_external_machine": false
+      },
+      "evidence_class": "SDK_HANDOFF_RECORDS_ORGANIZATION_RECEIPT_UNOBSERVED_NO_RECEIPT_INSTANCE",
+      "source_receipt_ids": ["labs-organization-manifest-ingress", "labs-exp3-mirror-handoff", "sdk-labs-interlock-intr-boundary"]
+    },
+    {
+      "entry_id": "exp3-frozen-original-root-drift-2026-09-30",
+      "status": "HISTORICAL_SUPERSEDED",
+      "superseded_by": "The current builder regenerates the frozen original file bytes exactly (manifest_file_sha256 above); the canonical record still carries this FAIL_CLOSED and has not been reconciled.",
+      "disposition": "FAIL_CLOSED",
+      "failure_code": "FROZEN_EXP3_ORIGINAL_MANIFEST_ROOT_DRIFT",
+      "failed_predicate": "EXACT_ORIGINAL_MANIFEST_ROOT_CHECKS_SOURCE_VALIDATED",
+      "required_evidence_or_repair": "Frozen-artifact owner decides between two repairs. (a) Extend the builder-metadata exclusion in scripts/build_mir_sv_exp3_manifest.py to extensions.capability_resolution and extensions.manifest_builder.capability_status, which is the same compensation already applied there to external_review_requested and publisher_required_by_review_default. (b) Deliberately re-freeze original_root and the workflow's wire_manifest_sha256 assertion, recording the reason. Re-freezing without recording the reason would erase the only evidence this guard exists to preserve.",
+      "retry_entrypoint": "StegVerse-org/StegVerse-SDK .github/workflows/mir-sv-exp3-sdk-manifest.yml via workflow_dispatch",
+      "owning_existing_goal": "MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003",
+      "next_attempt": "Rebuild the manifest at StegVerse-org/StegVerse-SDK@2508068f5475364ed4b47db6f6349e9b91fdb290 and at current main, diff the two field by field, and confirm the difference is still additive-only before selecting a repair.",
+      "evidence_class": "SOURCE_VALIDATION",
+      "record_pointer": "/current_truth/exact_original_manifest_root_check",
+      "source_receipt_ids": ["labs-exp3-canonical-task-record"]
+    }
+  ],
+  "unobserved_effects": [
+    {
+      "effect": "ORGANIZATION_RECEIPT_APPENDED_UNDER_LOCK",
+      "consequence_observation": "NOT_AUTHENTICALLY_OBSERVED",
+      "reconciliation_entrypoint": "StegVerse-Labs/.github:resident-runtime/organization_manifest_ingress.py::receive"
+    },
+    {
+      "effect": "INTERLOCK_INTR_ADMISSION",
+      "consequence_observation": "NOT_AUTHENTICALLY_OBSERVED",
+      "reconciliation_entrypoint": "stegverse.manifest_state_transition_runtime.admit_runtime_result"
+    },
+    {
+      "effect": "MASTER_RECORDS_ORGANIZATION_RECORD",
+      "consequence_observation": "NOT_AUTHENTICALLY_OBSERVED",
+      "reconciliation_entrypoint": "stegverse.manifest_state_transition_runtime.admit_runtime_result"
+    }
+  ],
+  "claims_not_made": [
+    "authentic InTr DENY or FAIL_CLOSED verdict",
+    "organization or repository ledger receipt for Experiment 3",
+    "Master Records organization record",
+    "Experiment 3 completion, failure or Publisher delivery",
+    "new StegHealth remediation task"
+  ]
+}

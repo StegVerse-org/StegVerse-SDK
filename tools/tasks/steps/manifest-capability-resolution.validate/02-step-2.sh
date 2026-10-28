@@ -1,0 +1,1 @@
+python -m py_compile stegverse/capability_resolution.py stegverse/capability_graph.py stegverse/manifest_builder.py

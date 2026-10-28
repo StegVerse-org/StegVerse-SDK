@@ -1,23 +1,39 @@
 name: StegVerse Governance Gate
 
-# Reusable workflow any GitHub repository can call (free tier):
+# Reusable workflow any GitHub repository can call (free tier).
 #
-#   jobs:
-#     stegverse-governance:
-#       uses: StegVerse-org/StegVerse-SDK/.github/workflows/governance-gate.yml@main
+# ba5bbf42eabec6a6ae3b0efdff7c683967a79083 is the pre-#534 workflow and
+# checker already on main. That commit's workflow defaults sdk_ref to moving
+# main, pins actions to tags such as @v4, and its checker emits PASS and
+# passes an empty bundle glob. It does not contain this file's checker.
+# Do not adopt that commit for the behavior described here.
 #
-# It verifies portable governance evidence bundles and classifies JSON Schemas
-# against the SDK structural validator contract. Standard library only: no
-# package installation, no credentials, no repository mutation. The report is
-# evidence only and grants no execution, admissibility, standing or custody.
+# sdk_ref defaults to empty, which checks out the exact StegVerse-SDK commit
+# this reusable workflow was called at (job.workflow_sha). The checker and
+# this run step therefore always come from one commit, and no commit has to
+# name its own hash. A caller pins one thing: the uses: ref. That ref is a
+# valid pin for this behavior only once #534 is on main (merged through TVC#519
+# MERGE_ADMITTED_PULL_REQUEST); the docs follow-up then names the merge commit.
+#
+# This checker compares customer-supplied portable governance bundles with
+# the manifest constraints inside those bundles. Standard library only: no
+# package installation, no credentials, no repository mutation. Disposition
+# is ALLOW or FAIL_CLOSED. A non-ALLOW report carries failure_code,
+# failed_predicate, required_evidence_or_repair, retry_entrypoint,
+# owning_existing_goal, and next_attempt. The report records no execution,
+# admissibility, standing, custody, or credential.
 
 on:
   workflow_call:
     inputs:
       sdk_ref:
-        description: StegVerse-SDK ref that supplies the gate
+        description: >
+          Optional override: a 40-hex StegVerse-SDK commit to check out for
+          the checker. Empty (the default) checks out job.workflow_sha, the
+          exact commit this reusable workflow was called at. Any other value,
+          or an empty job.workflow_sha, fails closed before checkout.
         type: string
-        default: main
+        default: ''
       bundle_glob:
         description: Glob for portable governance bundles, relative to the caller repository
         type: string
@@ -28,7 +44,7 @@ on:
         default: true
     outputs:
       disposition:
-        description: PASS or FAIL_CLOSED
+        description: ALLOW or FAIL_CLOSED
         value: ${{ jobs.gate.outputs.disposition }}
 
 permissions:
@@ -40,14 +56,33 @@ jobs:
     outputs:
       disposition: ${{ steps.run.outputs.disposition }}
     steps:
-      - uses: actions/checkout@v4
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           path: caller
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - id: sdk_ref
+        env:
+          SDK_REF_INPUT: ${{ inputs.sdk_ref }}
+          JOB_WORKFLOW_SHA: ${{ job.workflow_sha }}
+          JOB_WORKFLOW_REPOSITORY: ${{ job.workflow_repository }}
+        run: |
+          set -eu
+          if [ -n "$SDK_REF_INPUT" ]; then ref="$SDK_REF_INPUT"; source_of_ref=input
+          elif [ "$JOB_WORKFLOW_REPOSITORY" = "StegVerse-org/StegVerse-SDK" ]; then ref="$JOB_WORKFLOW_SHA"; source_of_ref=job.workflow_sha
+          else ref=""; source_of_ref=none
+          fi
+          if ! printf '%s' "$ref" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::FAIL_CLOSED failure_code=SDK_REF_NOT_RESOLVED_TO_COMMIT failed_predicate=SDK_REF_IS_40_HEX_COMMIT_FROM_INPUT_OR_JOB_WORKFLOW_SHA required_evidence_or_repair=pass_sdk_ref_as_a_40_hex_StegVerse-SDK_commit_or_call_this_workflow_from_StegVerse-org/StegVerse-SDK_at_a_commit retry_entrypoint=.github/workflows/governance-gate.yml owning_existing_goal=SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001 next_attempt=rerun_with_a_pinned_uses_ref_or_sdk_ref"
+            exit 1
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "sdk_ref resolved from $source_of_ref: $ref"
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: StegVerse-org/StegVerse-SDK
-          ref: ${{ inputs.sdk_ref }}
+          ref: ${{ steps.sdk_ref.outputs.ref }}
           path: .stegverse-sdk
           persist-credentials: false
           sparse-checkout: stegverse
@@ -61,10 +96,21 @@ jobs:
           if [ "$CHECK_SCHEMAS" != "true" ]; then flags+=(--no-schemas); fi
           python3 -I .stegverse-sdk/stegverse/governance_gate.py caller "${flags[@]}"
           status=$?
-          python3 -c 'import json; print("disposition=" + json.load(open("stegverse-governance-report.json"))["disposition"])' >> "$GITHUB_OUTPUT"
-          exit $status
+          disposition=$(python3 -I -c 'import importlib.util
+          disposition = "FAIL_CLOSED"
+          try:
+              spec = importlib.util.spec_from_file_location("governance_gate", ".stegverse-sdk/stegverse/governance_gate.py")
+              module = importlib.util.module_from_spec(spec)
+              spec.loader.exec_module(module)
+              disposition = module.read_workflow_disposition("stegverse-governance-report.json")
+          except Exception:
+              disposition = "FAIL_CLOSED"
+          print(disposition)')
+          echo "disposition=$disposition" >> "$GITHUB_OUTPUT"
+          if [ "$status" -eq 0 ] && [ "$disposition" = "ALLOW" ]; then exit 0; else exit 1; fi
+      # actions/upload-artifact v4.6.2
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: stegverse-governance-report
           path: stegverse-governance-report.json

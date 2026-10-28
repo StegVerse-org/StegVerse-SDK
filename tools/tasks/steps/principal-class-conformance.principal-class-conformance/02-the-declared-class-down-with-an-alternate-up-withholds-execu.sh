@@ -1,0 +1,46 @@
+python - <<'PY' | tee /tmp/principal-class-conformance.json
+import importlib.util, json
+spec = importlib.util.spec_from_file_location(
+    "principal_class_conformance", "stegverse/principal_class_conformance.py")
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+
+declaration = module.declare_required_principal_class(
+    declaration_id="CI-REQUIRED-PRINCIPAL-CLASS-001",
+    required_class="CI_DECLARED_PRINCIPAL",
+    prerequisites=["CI_ENDPOINT_ESTABLISHED", "CI_IDENTITY_BOUND"],
+    recognized_classes=["CI_DECLARED_PRINCIPAL", "CI_ALTERNATE_PRINCIPAL"])
+
+executed = []
+refused = module.execute_under_principal_class_conformance(
+    declaration,
+    [{"principal_class": "CI_DECLARED_PRINCIPAL", "available": False},
+     {"principal_class": "CI_ALTERNATE_PRINCIPAL", "available": True,
+      "runtime_ref": "ci-alternate-runtime"}],
+    owning_existing_goal="SDK-PRINCIPAL-CLASS-CONFORMANCE-001",
+    principal_executor=executed.append)
+
+assert executed == [], "a substitute principal was executed"
+assert refused["disposition"] == "FAIL_CLOSED", refused
+assert refused["principal_executed"] is False, refused
+assert refused["execution_state"] == module.EXECUTION_WITHHELD, refused
+assert refused["refused_substitute_classes"] == ["CI_ALTERNATE_PRINCIPAL"], refused
+assert refused["missing_prerequisites"] == [
+    "CI_ENDPOINT_ESTABLISHED", "CI_IDENTITY_BOUND"], refused
+assert refused["receipt_schema"] == module.RECEIPT_SCHEMA, refused
+assert refused["receipt_sha256"].startswith("sha256:"), refused
+assert refused["authority_effect"] == "NONE_CLASS_RESOLUTION_ONLY"
+
+conforming = module.execute_under_principal_class_conformance(
+    declaration,
+    [{"principal_class": "CI_DECLARED_PRINCIPAL", "available": True,
+      "established_prerequisites": ["CI_ENDPOINT_ESTABLISHED",
+                                    "CI_IDENTITY_BOUND"]}],
+    owning_existing_goal="SDK-PRINCIPAL-CLASS-CONFORMANCE-001",
+    principal_executor=lambda resolution: "CI-PRINCIPAL-REF")
+assert conforming["disposition"] == "ALLOW", conforming
+assert conforming["principal_executed"] is True, conforming
+
+print(json.dumps({"refused": refused, "conforming": conforming},
+                 indent=2, sort_keys=True))
+PY
