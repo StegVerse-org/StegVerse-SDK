@@ -1,0 +1,15 @@
+{
+  "schema": "stegverse.tier-pricing-policy.v1",
+  "status": "CANDIDATE_PENDING_LLM_CONSENSUS: one engagement = one action; margin 0.75 inherited from pricing/policy.candidate.json (SDK#484)",
+  "target_gross_margin": "0.75",
+  "plans": [
+    {
+      "name": "Assessment (1 engagement = 1 action)",
+      "included_actions": 1,
+      "task_classes": [
+        "governance_assessment_engagement"
+      ]
+    }
+  ],
+  "cost_basis_version": "SV-COST-COMPONENTS-2026-10-17"
+}

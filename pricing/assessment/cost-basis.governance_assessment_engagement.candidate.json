@@ -1,0 +1,30 @@
+{
+  "schema": "stegverse.worker-runtime-cost-basis/v0.1",
+  "task_class": "governance_assessment_engagement",
+  "sample_count": 0,
+  "hb_estimate": {
+    "expected_completion_beats": null,
+    "expected_idle_beats": null,
+    "expiry_candidate_beats": null,
+    "confidence": "LOW_UNTIL_FIRST_ENGAGEMENT"
+  },
+  "cost_estimate": {
+    "compute_units": 120,
+    "token_units": 2000000,
+    "storage_bytes": 104857600,
+    "network_bytes": null,
+    "operator_seconds": 72000,
+    "external_cost_usd": 0,
+    "latency_ms": null,
+    "failure_recovery_units": 30
+  },
+  "evidence_refs": [
+    "StegVerse-Labs/.github:docs/GOVERNANCE_ASSESSMENT_SHARE_PACKET.md",
+    "StegVerse-Labs/.github:docs/GOVERNANCE_ASSESSMENT_PRICING_FORMULA_READBACK.md"
+  ],
+  "notes": [
+    "CANDIDATE estimator-declared quantities for one engagement (intake, workflow map, authority/evidence inventory, 5-risk matrix, 30-day plan, review meeting).",
+    "Canonical cost-basis home is StegVerse-Labs/.github:cost-basis/worker-runtime/; this is the candidate input until that lane adopts it.",
+    "token_units and operator_seconds are recorded but unpriced by stegverse/tier_pricing.py COMPONENTS; the market median carries labor and LLM cost (P4-A)."
+  ]
+}

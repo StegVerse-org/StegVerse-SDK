@@ -1,0 +1,43 @@
+{
+  "schema": "stegverse.market-comparables.v1",
+  "status": "CANDIDATE_PENDING_LLM_CONSENSUS (P4-A, SDK#484 comment 6473874825)",
+  "unit": "one fixed-scope engagement = one action (candidate mapping)",
+  "selection_rule": "Published prices on the vendor's own page for a fixed-scope small-business AI governance/risk/readiness assessment of comparable scope (workflow/risk inventory, prioritized plan, findings review). Excluded: single sessions and idea sprints under one week ($49, $75, $225 Contra listings) and enterprise programs ($12,500+).",
+  "comparables": [
+    {
+      "name": "Continuous \u2014 AI Risk & Readiness Assessment (NIST AI RMF; flat one-time fee; 1-2 weeks)",
+      "usd_per_action": "1995",
+      "price_basis": "FLAT",
+      "source": "https://www.continuous.net/ai-risk-readiness-assessment",
+      "observed_at": "2026-10-28"
+    },
+    {
+      "name": "Contra listing \u2014 Practical AI workflow audit for small businesses (risk & control-gap assessment, remediation plan; 1-2 weeks)",
+      "usd_per_action": "1500",
+      "price_basis": "STARTING_AT",
+      "source": "https://contra.com/s/BNmlgM3g-practical-ai-workflow-audit-for-small-businesses",
+      "observed_at": "2026-10-28"
+    },
+    {
+      "name": "BlueShore.AI \u2014 AI Readiness Assessment (risk & opportunity matrix, roadmap, readout; 2-3 days)",
+      "usd_per_action": "1499",
+      "price_basis": "STARTING_AT",
+      "source": "https://blueshore.ai/ai-readiness-assessment/",
+      "observed_at": "2026-10-28"
+    },
+    {
+      "name": "Earley Information Science \u2014 AI Readiness Quick Check (first report)",
+      "usd_per_action": "2500",
+      "price_basis": "FLAT",
+      "source": "https://www.earley.com/services/ai-readiness",
+      "observed_at": "2026-10-28"
+    },
+    {
+      "name": "Netrix Global \u2014 AI readiness assessment (stated typical engagement value; 2-3 weeks)",
+      "usd_per_action": "2500",
+      "price_basis": "TYPICAL_VALUE",
+      "source": "https://www.netrixglobal.com/expertise/artificial-intelligence/ai-readiness-assessment",
+      "observed_at": "2026-10-28"
+    }
+  ]
+}
