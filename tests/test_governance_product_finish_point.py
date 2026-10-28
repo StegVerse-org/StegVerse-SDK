@@ -460,11 +460,13 @@ class GovernanceProductFinishPoint(unittest.TestCase):
             git(work, "update-ref", module.LEDGER_REF, "HEAD")
         return root, module, manifest, git_dir, candidate, module._ledger_ref_oid(git_dir)
 
-    def test_ledger_copy_with_consuming_receipt_admits_only_the_ledger_predicate(self) -> None:
+    def test_ledger_copy_with_consuming_receipt_passes_checks_but_stays_unanchored(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root, module, manifest, git_dir, candidate, oid = self.released_ledger(tmp)
             result = module.v_ledger(root, manifest, candidate, git_dir, oid)
-            self.assertEqual(result["disposition"], "ALLOW", json.dumps(result, sort_keys=True))
+            # every consistency check passes, yet the anchor is the caller's own, so the predicate stays non-ALLOW
+            self.assert_six_field_refusal(result, "ORGANIZATION_LEDGER_COPY_ANCHOR_UNVERIFIED")
+            self.assertEqual(result["consistency_checks"], "PASSED")
             self.assertEqual(result["chain_length"], 2)
             self.assertEqual(result["ledger_oid"], oid)
             # end to end, the finish point's own candidate is a REFUSED release (its verdict is FAIL_CLOSED), so the

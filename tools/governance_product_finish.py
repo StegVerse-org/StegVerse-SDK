@@ -427,10 +427,15 @@ def _v_ledger_copy(man: dict[str, Any], candidate: dict[str, Any], ledger_copy: 
     if prior not in [r.get("receipt_sha256") for r in chain[:at]]:
         return refuse(p, "ORGANIZATION_LEDGER_RECEIPT_NOT_AFTER_SEALED_HEAD", f"the release receipt must follow the sealed "
                       f"head {prior} the candidate was built on", nxt, org_receipt_sha256=rec.get("receipt_sha256"))
-    return allow(p, source_receipt_sha256=want.split(":", 1)[1], org_receipt_sha256=rec["receipt_sha256"],
-                 sealed_head=prior, chain_length=len(chain), ledger_oid=ledger_oid,
-                 observed_in=f"local copy of {LEDGER_REF} anchored at {ledger_oid}",
-                 copy_provenance="the fetch step that produced the copy (this module performs no network read)")
+    # Every consistency check passed, but the anchor is still the caller's: whoever supplies the copy can supply its
+    # OID. Until the OID comes from a step the caller does not control (a separate remote observation of the ref) or the
+    # receipts carry a verifiable signature, this stays non-ALLOW and reports what was verified.
+    return refuse(p, "ORGANIZATION_LEDGER_COPY_ANCHOR_UNVERIFIED", f"an anchor for {LEDGER_REF} that the caller does not "
+                  "control: the ref's commit observed on the organization remote by an independent step, or signed "
+                  "receipts checked against a pinned key; a caller-supplied OID only fixes which state was checked",
+                  nxt, consistency_checks="PASSED", source_receipt_sha256=want.split(":", 1)[1],
+                  org_receipt_sha256=rec["receipt_sha256"], sealed_head=prior, chain_length=len(chain),
+                  ledger_oid=ledger_oid, observed_in=f"local copy of {LEDGER_REF} at {ledger_oid}")
 
 
 def v_ledger(root: Path, man: dict[str, Any], candidate: dict[str, Any] | None = None,
