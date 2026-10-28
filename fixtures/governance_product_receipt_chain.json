@@ -1,0 +1,32 @@
+[
+  {
+    "prior_state_ref_or_hash": "GENESIS",
+    "receipt_sha256": "f2fcf3b9bd450210a6d5de7671dc215d5dc29fee778031e364398e2e231b807a",
+    "required_evidence_manifest": [],
+    "schema": "stegverse.canonical-state-transition-receipt/v1",
+    "subject_or_correlation_id": "FIXTURE-CUSTOMER-BUNDLE",
+    "transition_id": "FIXTURE:CUSTOMER_MANIFEST_SUBMITTED",
+    "transition_outcome": "OBSERVED",
+    "transition_sequence": 1
+  },
+  {
+    "prior_state_ref_or_hash": "d0f0901c1d4067c8dddee44668b3744e767a2019f57101bad45bcd224a0a3c95",
+    "receipt_sha256": "fac275279d6f96a4ed9c62918f9dc765748ac990a2c4c94c95a84f22bd3c5e7b",
+    "required_evidence_manifest": [],
+    "schema": "stegverse.canonical-state-transition-receipt/v1",
+    "subject_or_correlation_id": "FIXTURE-CUSTOMER-BUNDLE",
+    "transition_id": "FIXTURE:SPE_HASH_RECOMPUTED",
+    "transition_outcome": "OBSERVED",
+    "transition_sequence": 2
+  },
+  {
+    "prior_state_ref_or_hash": "79c5e5ede503c67e5920afae9e8f5455f7bded2143d7675671624a39aa357cc4",
+    "receipt_sha256": "1abcf9c815d2cf4650bf2398ffa02615ceed410e9c840fd1aec87c9c859fe062",
+    "required_evidence_manifest": [],
+    "schema": "stegverse.canonical-state-transition-receipt/v1",
+    "subject_or_correlation_id": "FIXTURE-CUSTOMER-BUNDLE",
+    "transition_id": "FIXTURE:BRIDGE_HASH_RECOMPUTED",
+    "transition_outcome": "OBSERVED",
+    "transition_sequence": 3
+  }
+]

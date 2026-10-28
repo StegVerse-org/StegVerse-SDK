@@ -30,7 +30,7 @@ ECOSYSTEM_CHAT_ROUTE_ID = "stegverse.route.ecosystem-chat.v1"
 VA_SCOPED_CHAT_ROUTE_ID = "stegverse.route.va-scoped-chat.v1"
 HIL_INTAKE_ROUTE_ID = "stegverse.route.hil-intake.v1"
 # The remediation fork every non-ALLOW carries (NODE_INGRESS_SETTLED_SPECIFICATION §8;
-# owner STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001).
+# task STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001).
 GOVERNED_REMEDIATION_ROUTE_ID = "stegverse.route.governed-remediation.v1"
 
 _ROUTE_FIELDS = (
@@ -45,8 +45,8 @@ _ROUTE_MATCH_FIELDS = tuple(field for field in _ROUTE_FIELDS if field != "route_
 
 PUBLISHED_ROUTES: dict[str, dict[str, Any]] = {
     # The remediation lane of a non-ALLOW. The receiving organization resolves the
-    # declared capability to StegHealer through its own capability bindings;
-    # StegHealer classifies, non-authorizing. Nothing here classifies or decides.
+    # declared capability to StegHealer through its own capability bindings.
+    # StegHealer maps the error or failure. Nothing here maps or decides.
     GOVERNED_REMEDIATION_ROUTE_ID: {
         "route_id": GOVERNED_REMEDIATION_ROUTE_ID,
         "processor_capability": "remediation",

@@ -9,13 +9,17 @@ comment 6134521366; SDK#493.
 from __future__ import annotations
 
 import copy
+import json
 import unittest
+import warnings
+from pathlib import Path
 
 from scripts.build_mir_sv_exp3_manifest import build_exp3_manifest
 from stegverse.manifest_state_transition_runtime import admit_runtime_result, derive_execution_request
 from stegverse.remediation_fork import (
-    REMEDIATION_CAPABILITY, REQUEST_EXTENSION, STEGHEALER, build_remediation_fork, fork_request,
-    remediation_route, validate_remediation_fork_request,
+    ERROR_OR_FAILURE_MAP, REMEDIATION_CAPABILITY, REQUEST_EXTENSION, STEGHEALER,
+    STEGHEALTH_FAILURE_REMEDIATION_TASK_ID, build_remediation_fork, derive_state_graph,
+    fork_refusal, fork_request, remediation_route, validate_remediation_fork_request,
 )
 from stegverse.route_resolution import GOVERNED_REMEDIATION_ROUTE_ID, canonical_sha256
 from tests.test_governed_remediation import BOUNDARY, _source_profile_deny
@@ -273,6 +277,61 @@ class RemediationRouteTests(unittest.TestCase):
             build_remediation_fork(self.request, elsewhere, BOUNDARY)
         fork = build_remediation_fork(self.request, self.deny, BOUNDARY)
         self.assertEqual(fork["remediation_route"]["entry_organization"], self.destination["organization"])
+
+    def test_route_sha256_matches_the_pinned_existing_routes(self):
+        """Existing routes keep the historical classifier key, so the hash is unchanged."""
+        example_path = Path(__file__).resolve().parents[1] / "inspection" / "examples" / "sdk-remediation-fork.processor-request.json"
+        example = json.loads(example_path.read_text(encoding="utf-8"))
+        published = example["remediation_route"]
+        body = {key: value for key, value in published.items() if key != "route_sha256"}
+        self.assertEqual(canonical_sha256(body), "0fd58371815991e5a6b2144831c69ff9a58d064c8d6e1688215b4d90d4f20663")
+        self.assertEqual(published["route_sha256"], "0fd58371815991e5a6b2144831c69ff9a58d064c8d6e1688215b4d90d4f20663")
+        recalculated = remediation_route(
+            example["non_allow"],
+            original_route_id=example["original_route_id"],
+            original_processing_capability=example["original_processing_capability"],
+            original_destination=example["original_destination"],
+        )
+        self.assertEqual(recalculated, published)
+        self.assertEqual(recalculated["steghealer"], {
+            "organization": "StegVerse-Labs",
+            "service_id": "stegverse-labs.remediation",
+            "repository": "StegVerse-Labs/StegVerse-Healer",
+            "classifier": ERROR_OR_FAILURE_MAP,
+        })
+        self.assertNotIn("error_or_failure_map", recalculated["steghealer"])
+
+        sdk = self._route(self.deny)
+        self.assertEqual(sdk["route_sha256"], "6583b8f54f0210aa8840d7728fbd378099daf575f20284ffd78a53cf515257ed")
+        organization = self._route(dict(self.deny, evaluation_boundary="ORGANIZATION_INGRESS", organization="StegVerse-org"))
+        self.assertEqual(organization["route_sha256"], "628aa3544645fa061d36a0cd61b791b47b8ccd409a9d5ef985b3be666eb95889")
+        inside = self._route(dict(self.deny, evaluation_boundary="ORGANIZATION_INGRESS", organization=STEGHEALER["organization"]))
+        self.assertEqual(inside["route_sha256"], "5b590d304cc5ef419a0a3d7679e39ffb75dcd2b5515f6b11ba04b21d8b2fbc08")
+        for route in (sdk, organization, inside):
+            self.assertEqual(route["steghealer"]["classifier"], ERROR_OR_FAILURE_MAP)
+            self.assertNotIn("error_or_failure_map", route["steghealer"])
+
+    def test_primary_names_alias_the_historical_ones(self):
+        self.assertEqual(STEGHEALER["error_or_failure_map"], ERROR_OR_FAILURE_MAP)
+        self.assertEqual(dict(STEGHEALER)["error_or_failure_map"], ERROR_OR_FAILURE_MAP)
+        self.assertEqual(dict(STEGHEALER)["classifier"], ERROR_OR_FAILURE_MAP)
+        self.assertNotIn("error_or_failure_map", STEGHEALER.route_record())
+        self.assertEqual(STEGHEALER.route_record()["classifier"], ERROR_OR_FAILURE_MAP)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always", DeprecationWarning)
+            self.assertEqual(STEGHEALER["classifier"], ERROR_OR_FAILURE_MAP)
+            self.assertEqual(STEGHEALER.get("classifier"), ERROR_OR_FAILURE_MAP)
+            self.assertIn("classifier", STEGHEALER)
+            import stegverse.remediation_fork as fork_module
+            self.assertEqual(fork_module.OWNER_TASK_ID, STEGHEALTH_FAILURE_REMEDIATION_TASK_ID)
+        self.assertTrue(any(item.category is DeprecationWarning and "classifier" in str(item.message) for item in caught))
+        self.assertTrue(any(item.category is DeprecationWarning and "OWNER_TASK_ID" in str(item.message) for item in caught))
+
+        fork = build_remediation_fork(self.request, self.deny, BOUNDARY)
+        graph = derive_state_graph(fork["remediation_manifest"])
+        self.assertEqual(graph["owner_task_id"], STEGHEALTH_FAILURE_REMEDIATION_TASK_ID)
+        self.assertTrue(graph["graph_id"].startswith(STEGHEALTH_FAILURE_REMEDIATION_TASK_ID + ":REMEDIATION:"))
+        self.assertEqual(fork_refusal("missing field")["owning_existing_goal"], STEGHEALTH_FAILURE_REMEDIATION_TASK_ID)
 
 
 if __name__ == "__main__":
