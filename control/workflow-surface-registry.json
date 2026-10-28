@@ -1111,7 +1111,12 @@
    ],
    "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
    "verbatim_record": "tools/tasks/folded/test-suite-ratchet.yml",
-   "verbatim_sha256": "49d0310e72d7605a4757eecfa574b33d1741c829164029a9558ad3fc83d4838d"
+   "verbatim_sha256": "e1b6bdaf76d40636cc6085debc4cd6e581876efb21263596ad0cf00e0fb0a2ac",
+   "repin": {
+    "before": "49d0310e72d7605a4757eecfa574b33d1741c829164029a9558ad3fc83d4838d",
+    "after": "e1b6bdaf76d40636cc6085debc4cd6e581876efb21263596ad0cf00e0fb0a2ac",
+    "authority": "owner decision StegVerse-org/StegVerse-SDK#552 comment 6461143651"
+   }
   },
   {
    "workflow": ".github/workflows/governance-gate-selftest.yml",
