@@ -16,11 +16,17 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+from .destination_refusal import destination_unavailable
 from .repository_source_reader import RepositorySourceBinding
 
 
 class GitHubRepositoryFetcherError(RuntimeError):
-    """Raised when a public GitHub source retrieval cannot be verified."""
+    """Raised when a public GitHub source retrieval cannot be verified.
+
+    An unreachable API carries the six-field record as ``.disposition`` (SDK#484 V-P7).
+    """
+
+    disposition = None
 
 
 def _canonical(value: Any) -> str:
@@ -44,9 +50,9 @@ def _default_http_executor(request: Request, timeout_seconds: float) -> Mapping[
             f"public GitHub contents request failed with HTTP {exc.code}: {detail[:300]}"
         ) from exc
     except URLError as exc:
-        raise GitHubRepositoryFetcherError(
-            f"public GitHub contents request failed: {exc.reason}"
-        ) from exc
+        error = GitHubRepositoryFetcherError(f"public GitHub contents request failed: {exc.reason}")
+        error.disposition = destination_unavailable(request.full_url, exc, "stegverse.github_repository_fetcher")
+        raise error from exc
     try:
         decoded = json.loads(payload)
     except json.JSONDecodeError as exc:

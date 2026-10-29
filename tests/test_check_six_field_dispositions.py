@@ -323,3 +323,9 @@ def test_cli_exit_codes_and_output(tmp_path):
 def test_cli_default_path_is_cwd(tmp_path):
     _write(tmp_path / "r.json", {"disposition": "ALLOW"})
     assert _cli(cwd=tmp_path).returncode == 0
+
+
+def test_this_repositorys_workflows_carry_the_six_fields():
+    # Runs under the test-suite ratchet, so no workflow of its own is needed.
+    report = _run(SCRIPT.parents[1] / ".github" / "workflows")
+    assert report["disposition"] == "ALLOW", report["findings"]

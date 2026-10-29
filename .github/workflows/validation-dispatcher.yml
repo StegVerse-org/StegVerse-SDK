@@ -157,13 +157,13 @@ jobs:
       - name: Manifest identity and routing regression gate
         run: python -m pytest tests/test_manifest_identity_routing_regression_gate.py -q -p no:cacheprovider
 
-      # The reference validator comes from the existing [dev] extra installed above;
-      # requiring it turns a missing reference into a failure instead of a skip.
+      # The reference verdicts come from the frozen fixture (tests/reference_oracle.py),
+      # not from jsonschema; requiring it turns a missing fixture into a failure instead of a skip.
       - name: Structural validator candidate deterministic and differential tests
         env:
           STEGVERSE_REQUIRE_REFERENCE_VALIDATOR: "1"
         run: |
-          python -c "import jsonschema; print('REFERENCE_VALIDATOR jsonschema', jsonschema.__version__)"
+          python -c "from tests import reference_oracle as r; ok, why = r.fixture_status(); print('REFERENCE_VERDICTS', ok, why); raise SystemExit(0 if ok else 1)"
           python -m pytest tests/test_structural_validator_candidate.py -q -rs -p no:cacheprovider
 
       - name: No change may add a test failure the baseline does not hold

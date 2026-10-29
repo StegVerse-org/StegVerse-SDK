@@ -1,12 +1,20 @@
 import copy
+import hashlib
 import json
 
-import jsonschema
 import pytest
 
 from stegverse import evaluator_console
 from stegverse.evaluator_contract import evaluator_contract_example, evaluator_contract_schema
 from stegverse.governance_reference_graph import validate_governance_reference_graph
+from stegverse.structural_validator_candidate import canonical_bytes, check_schema, validate
+
+
+def _sdk_verdict(schema, instance):
+    # SDK-native, stdlib-only structural validator (contract 1.7); the schema is inside it.
+    digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
+    assert check_schema(schema, digest)["errors"] == []
+    return validate(instance, schema, digest)
 
 
 def test_contract_schema_matches_public_request_version():
@@ -22,15 +30,15 @@ def test_contract_example_is_non_authorizing_and_schema_valid():
     assert example["authority_claim"] is False
     assert example["execution_provenance"]["external_consequence_enabled"] is False
     assert "steggate_request" in example["input"]
-    jsonschema.Draft202012Validator(schema).validate(example)
+    result = _sdk_verdict(schema, example)
+    assert result["valid"], result["errors"]
 
 
 def test_contract_schema_rejects_cross_lane_provenance():
     schema = evaluator_contract_schema()
     invalid = copy.deepcopy(evaluator_contract_example())
     invalid["execution_provenance"]["routing_surface"] = "DEMO_TEST_REPOSITORY"
-    with pytest.raises(jsonschema.ValidationError):
-        jsonschema.Draft202012Validator(schema).validate(invalid)
+    assert _sdk_verdict(schema, invalid)["valid"] is False
 
 
 def test_console_contract_summary(capsys):
@@ -68,7 +76,8 @@ def test_console_governance_graph_schema_and_example(capsys):
 
     assert evaluator_console.main(["governance-graph", "--example"]) == 0
     example = json.loads(capsys.readouterr().out)
-    jsonschema.Draft202012Validator(schema).validate(example)
+    result = _sdk_verdict(schema, example)
+    assert result["valid"], result["errors"]
     validate_governance_reference_graph(example)
     assert example["metadata"]["example_projection"] == "HITL"
     assert example["metadata"]["example_projection_is_canonical_schema"] is False

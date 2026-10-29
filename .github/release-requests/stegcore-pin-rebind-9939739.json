@@ -1,0 +1,55 @@
+{
+  "schema": "stegverse.sdk.release-pin-rebind-request.v1",
+  "request_id": "SDK-STEGCORE-PIN-REBIND-9939739",
+  "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001",
+  "issue_ref": "StegVerse-org/StegVerse-SDK#484 V-P4(a), V-P7",
+  "package": "stegcore",
+  "repository": "StegVerse-Labs/StegCore",
+  "old_pin": "ef38410505b0ef3e84148892b1d6e3cdef20f300",
+  "new_pin": "99397392462b8e39a510ec6d9e543551270bd402",
+  "ancestry": {
+    "old_pin_is_ancestor_of_new_pin": true,
+    "commits_between": 6,
+    "change_between": "adds src/stegcore/manifold_governance.py and its tests; deletes nothing",
+    "observed": "git merge-base --is-ancestor on a StegCore clone, 2026-10-19"
+  },
+  "current_receipt": {
+    "repository": "StegVerse-Labs/tvc",
+    "path": "config/post_return_successor_release_candidate.json",
+    "observed_at_commit": "5920219",
+    "release_set_id": "POST-RETURN-SOVEREIGN-PROOF-R1",
+    "stegcore_component": {
+      "tag": "v0.3.0",
+      "release_commit_sha": "58445bb14642c1889cf9802666c15bd48c6d2e39",
+      "source_parent_commit_sha": "ef38410505b0ef3e84148892b1d6e3cdef20f300"
+    }
+  },
+  "required_successor_receipt": {
+    "issued_by": "TV/TVC",
+    "components": {
+      "StegVerse-Labs/StegCore": {"source_parent_commit": "99397392462b8e39a510ec6d9e543551270bd402"},
+      "Data-Continuation/core-lite": {"source_parent_commit": "72bdb0f110031ccc2cd98b8ebb7c22b1ab7326f8"}
+    }
+  },
+  "rewrites": [
+    {"path": "pyproject.toml", "context": "governed-test stegcore git pin"},
+    {"path": "tests/test_release_dependency_alignment.py", "context": "STEGCORE_TVC_SOURCE_PARENT"},
+    {"path": "tools/tasks/steps/release-dependency-alignment-validation.validate/06-verify-installed-wheel-metadata-aligns-to-final-tvc-source-p.sh", "context": "final_receipt StegCore source_parent_commit (folded by SDK#560; also re-pin its sha256 in tools/tasks/task_catalog.json)"},
+    {"path": "tests/test_dependency_inventory_guard.py", "context": "STEGCORE_RELEASE_PIN"}
+  ],
+  "command": "python3 scripts/apply_release_pin_rebind.py --request .github/release-requests/stegcore-pin-rebind-9939739.json --receipt <successor receipt JSON>",
+  "unbound_disposition": {
+    "disposition": "FAIL_CLOSED",
+    "failure_code": "STEGCORE_SINGLE_PIN_REQUIRES_RELEASE_REBIND",
+    "failed_predicate": "SUCCESSOR_RECEIPT_BINDS_STEGCORE_SOURCE_PARENT_9939739",
+    "required_evidence_or_repair": "a TV/TVC successor release receipt whose StegVerse-Labs/StegCore component has source_parent_commit 99397392462b8e39a510ec6d9e543551270bd402 and whose core-lite component is unchanged",
+    "retry_entrypoint": "python3 scripts/apply_release_pin_rebind.py --request .github/release-requests/stegcore-pin-rebind-9939739.json --receipt <successor receipt JSON>",
+    "owning_existing_goal": "SDK-STRUCTURAL-VALIDATOR-CONSOLIDATION-001",
+    "next_attempt": "the owner runs the command once the successor receipt exists; it rewrites the four files and verifies the receipt chain in one transition"
+  },
+  "authority": {
+    "executes": "owner",
+    "receipt_authority": "TV/TVC",
+    "this_request_authorizes_nothing": true
+  }
+}

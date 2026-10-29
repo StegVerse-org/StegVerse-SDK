@@ -14,11 +14,22 @@ from typing import Any, Mapping, Optional
 from urllib import error as urlerror
 from urllib import request as urlrequest
 
+from .destination_refusal import destination_unavailable
+
 MAX_RESPONSE_BYTES = 16 * 1024 * 1024
 
 
 class HttpTransportError(OSError):
-    """The request did not reach a server, or the response could not be read."""
+    """The request did not reach a server, or the response could not be read.
+
+    ``.disposition`` is the six-field record when the destination is known (SDK#484 V-P7).
+    """
+
+    def __init__(self, message: str, destination: Optional[str] = None,
+                 failure_code: str = "DESTINATION_DID_NOT_ANSWER") -> None:
+        super().__init__(message)
+        self.disposition = (destination_unavailable(destination, message, "the caller's manifest-bound transition",
+                                                    failure_code) if destination else None)
 
 
 class Response:
@@ -50,7 +61,7 @@ def request(method: str, url: str, *, headers: Optional[Mapping[str, str]] = Non
     except urlerror.HTTPError as exc:
         return Response(exc.code, exc.read(MAX_RESPONSE_BYTES))
     except (urlerror.URLError, OSError, ValueError) as exc:
-        raise HttpTransportError(str(exc)) from exc
+        raise HttpTransportError(str(exc), destination=url) from exc
 
 
 def post(url: str, *, json: Any = None, headers: Optional[Mapping[str, str]] = None,  # noqa: A002

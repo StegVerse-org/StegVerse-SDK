@@ -31,6 +31,7 @@ from typing import Any, Callable, Dict, List, Mapping, Optional
 from urllib.parse import urlsplit
 
 from .stegbrowser_processor import derive_state_graph
+from .optional_package_refusal import optional_package_unavailable, render
 
 FAN_RESULT_SCHEMA = "stegverse.governed-llm-fan-result/v1"
 LEASE_SCHEMA = "stegbrowser.ecosystem-ephemeral-lease.v1"
@@ -60,7 +61,11 @@ EXECUTOR_REPAIR = (
 
 
 class GovernedLlmFanError(RuntimeError):
-    """Raised when a fan cannot be attempted at all."""
+    """Raised when a fan cannot be attempted at all; .disposition holds the six fields."""
+
+    def __init__(self, message: str, disposition: Optional[Mapping[str, Any]] = None):
+        super().__init__(message)
+        self.disposition = dict(disposition) if disposition is not None else None
 
 
 def _canonical(value: Any) -> str:
@@ -168,7 +173,11 @@ def _resolve_executor(executor: Optional[BranchExecutor]) -> BranchExecutor:
             execute_manifested_llm_browser_operation,
         )
     except ImportError as exc:
-        raise GovernedLlmFanError(f"{FAILURE_EXECUTOR_UNAVAILABLE}: {EXECUTOR_REPAIR}") from exc
+        record = optional_package_unavailable(
+            FAILURE_EXECUTOR_UNAVAILABLE, "stegbrowser.llm_browser_execution", EXECUTOR_REPAIR,
+            "stegverse.governed_llm_fan.run_governed_llm_fan(executor=...)")
+        raise GovernedLlmFanError(f"{FAILURE_EXECUTOR_UNAVAILABLE}: {EXECUTOR_REPAIR}: {render(record)}",
+                                  record) from exc
     return execute_manifested_llm_browser_operation
 
 

@@ -27,6 +27,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+from .destination_refusal import destination_unavailable
+
 SCHEMA_V1 = "stegverse.production-release-set.v1"
 SCHEMA_V2 = "stegverse.production-release-set.v2"
 SCHEMA = SCHEMA_V2
@@ -241,6 +243,7 @@ def public_release_catalog(*, timeout: int = 15) -> dict[str, Any]:
                 "repository": repo,
                 "state": "UNAVAILABLE_NON_AUTHORIZING",
                 "error": type(exc).__name__,
+                **destination_unavailable(api, exc, "stegverse.production_release_set.public_release_catalog"),
                 "latest_release": None,
                 "release_count": 0,
                 "releases": [],

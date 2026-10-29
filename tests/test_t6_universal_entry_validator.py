@@ -158,18 +158,14 @@ def _envelope_mutations(good):
 
 
 def test_sdk_validator_agrees_with_reference_on_envelope_mutations():
-    # The script no longer needs jsonschema; the reference is only the differential oracle.
+    # The reference is frozen verdicts (tests/reference_oracle.py); no jsonschema at test time.
     import hashlib
-    import os
 
     import pytest
 
-    try:
-        from jsonschema import Draft202012Validator
-    except ImportError:
-        if os.environ.get("STEGVERSE_REQUIRE_REFERENCE_VALIDATOR") == "1":
-            pytest.fail("reference validator required but jsonschema is not installed")
-        pytest.skip("reference validator not installed")
+    from tests import reference_oracle
+
+    Draft202012Validator = reference_oracle.reference_validator(pytest.fail, pytest.skip)
     from scripts.verify_universal_entry_envelope import DEFAULT_SCHEMA, structural
 
     schema = json.loads(DEFAULT_SCHEMA.read_text(encoding="utf-8"))

@@ -24,6 +24,8 @@ from typing import Any, Mapping
 from urllib.request import urlopen
 import zipfile
 
+from .destination_refusal import destination_unavailable, disposition_of
+
 CATALOG_SCHEMA = "stegverse.sdk.portable-console-catalog.v1"
 INSTALL_RECEIPT_SCHEMA = "stegverse.sdk.portable-installation-receipt.v2"
 PACKAGE_RECEIPT_SCHEMAS = {"stegverse.sdk.portable-package-receipt.v3"}
@@ -378,8 +380,13 @@ def download_package(deployment_class: str, output: Path, archive_format: str | 
     if not url or not expected_hash:
         raise PortablePackageError("NO_GOVERNED_RELEASE_ARTIFACT")
     output.parent.mkdir(parents=True, exist_ok=True)
-    with urlopen(str(url), timeout=30) as response:  # nosec B310 - governed catalog only
-        data = response.read()
+    try:
+        with urlopen(str(url), timeout=30) as response:  # nosec B310 - governed catalog only
+            data = response.read()
+    except OSError as exc:  # URLError and HTTPError are OSErrors
+        error = PortablePackageError(f"governed release artifact did not answer: {exc}")
+        error.disposition = destination_unavailable(str(url), exc, f"stegverse-portable download {deployment_class}")
+        raise error from exc
     observed_hash = _sha256_bytes(data)
     if observed_hash != expected_hash:
         raise PortablePackageError("download_archive_hash_mismatch")
@@ -430,7 +437,9 @@ def main(argv: list[str] | None = None) -> int:
         else:
             return 2
     except (OSError, PortablePackageError, ValueError) as exc:
-        print(json.dumps({"state": "FAIL_CLOSED", "error": str(exc), "authority_effect": "NONE"}, indent=2, sort_keys=True))
+        record = {"state": "FAIL_CLOSED", "error": str(exc), "authority_effect": "NONE"}
+        record.update({k: v for k, v in (disposition_of(exc) or {}).items() if k != "disposition"})
+        print(json.dumps(record, indent=2, sort_keys=True))
         return 2
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0

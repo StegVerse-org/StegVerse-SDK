@@ -1,23 +1,19 @@
 """Deterministic structural validator differential and negative tests."""
 import hashlib
 import json
-import os
 import unittest
 from stegverse.structural_validator_candidate import CONTRACT, MAX_INSTANCE_DEPTH, SUPPORTED, canonical_bytes, check_schema, validate
 
-# CI sets this so the differential gate cannot pass by skipping its reference.
-REQUIRE_REFERENCE = os.environ.get("STEGVERSE_REQUIRE_REFERENCE_VALIDATOR") == "1"
+from tests import reference_oracle
 
 
 def reference_validator(test):
-    """Return Draft202012Validator from the existing [dev] extra, or skip (fail when required)."""
-    try:
-        from jsonschema import Draft202012Validator
-    except ImportError:
-        if REQUIRE_REFERENCE:
-            test.fail("reference validator required (STEGVERSE_REQUIRE_REFERENCE_VALIDATOR=1) but jsonschema is not installed")
-        test.skipTest("Reference validator not installed; differential verification unavailable")
-    return Draft202012Validator
+    """Return the frozen reference (tests/reference_oracle.py), or skip (fail when required).
+
+    CI sets STEGVERSE_REQUIRE_REFERENCE_VALIDATOR=1 so the differential gate cannot pass
+    by skipping its reference: the verdict fixture must exist and match its pinned digest.
+    """
+    return reference_oracle.reference_validator(test.fail, test.skipTest)
 
 class StructuralValidatorCandidateTests(unittest.TestCase):
     def check_case(self, instance, schema, expected):
@@ -189,7 +185,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
 
     def test_schema_differential_never_admits_what_reference_metaschema_rejects(self):
         Draft202012Validator = reference_validator(self)
-        from jsonschema.exceptions import SchemaError
+        SchemaError = reference_oracle.SchemaError
         candidates = [
             {"type": "string"}, {"type": ["string", "null"]}, {"type": []}, {"type": "imaginary"},
             {"required": ["a", "a"]}, {"required": "a"}, {"required": [1]}, {"enum": []}, {"enum": 1},
@@ -440,7 +436,7 @@ class StructuralValidatorCandidateTests(unittest.TestCase):
 
     def test_contract_1_4_format_date_agrees_with_reference_format_checker(self):
         Draft202012Validator = reference_validator(self)
-        from jsonschema import FormatChecker
+        FormatChecker = reference_oracle.FormatChecker
         schema = {"type": "string", "format": "date"}
         digest = hashlib.sha256(canonical_bytes(schema)).hexdigest()
         reference = Draft202012Validator(schema, format_checker=FormatChecker())
