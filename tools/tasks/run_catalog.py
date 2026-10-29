@@ -565,17 +565,35 @@ def matrix(event, files=None):
     return {"include": include}
 
 
+def carried(event, files=None):
+    """Which carried dispatcher jobs the original workflow would have started on this event.
+    The job always runs; an unselected job records NOT_SELECTED and its other steps are gated by a
+    step-level `if`, so no job or check is skipped."""
+    out = {}
+    for job, spec in sorted((load().get("carried_job_selection") or {}).items()):
+        if event not in spec["events"]:
+            out[job] = False
+        else:
+            out[job] = filter_selects((spec.get("path_filters") or {}).get(event), files)
+    return out
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="cmd", required=True)
     m = sub.add_parser("matrix")
     m.add_argument("--event", required=True)
+    c = sub.add_parser("carried")
+    c.add_argument("--event", required=True)
     r = sub.add_parser("run")
     r.add_argument("--group", required=True)
     sub.add_parser("verify")
     args = parser.parse_args(argv)
     if args.cmd == "matrix":
         print(json.dumps(matrix(args.event, changed_files(args.event)), separators=(",", ":")))
+        return 0
+    if args.cmd == "carried":
+        print(json.dumps(carried(args.event, changed_files(args.event)), separators=(",", ":")))
         return 0
     if args.cmd == "run":
         return run_group(args.group)
