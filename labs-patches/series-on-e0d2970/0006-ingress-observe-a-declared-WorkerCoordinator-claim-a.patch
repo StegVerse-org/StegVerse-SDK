@@ -1,4 +1,4 @@
-From ab6c62d58ce97be91f944d908d155adda832212d Mon Sep 17 00:00:00 2001
+From 63479dd542e8f2c549a56747b6b305b01c55cc5b Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Thu, 29 Oct 2026 10:27:39 -0500
 Subject: [PATCH] ingress: observe a declared WorkerCoordinator claim against
@@ -9,9 +9,14 @@ design/INGRESS_GAP_OPTIONS_3369.md. #3369 assigns claim/fence to the
 Registry/WorkerCoordinator owner; ingress observes that state and mints
 nothing.
 
-A manifest may declare `worker_claim: {"claim_id": "<id>-G<fence>",
-"fencing_token": <fence>}`. receive() now checks it before cross() against the
-committed WorkerCoordinator truth, control/worker-registry.json (the registry
+A manifest may declare `extensions.stegverse_workercoordinator_claim:
+{"claim_id": "<id>-G<fence>", "fencing_token": <fence>}`. It lives under
+`extensions` because the pinned SDK's validate_ingress_manifest refuses any
+other top-level field as unknown before this operation sees the manifest
+(tests/test_organization_ingress_worker_claim.py::SdkValidatorTests proves both
+halves against the SDK's own example manifest). receive() checks the
+declaration before cross() against the committed WorkerCoordinator truth,
+control/worker-registry.json (the registry
 heartbeat_runtime/coordination_ledger.py validates claim coverage from), with
 the shape rule of heartbeat_runtime/process_adapter.py:
 - malformed declaration, unreadable or other-schema registry, no task or two
@@ -24,16 +29,32 @@ the shape rule of heartbeat_runtime/process_adapter.py:
   VERIFIED_AGAINST_COMMITTED_WORKERCOORDINATOR_REGISTRY.
 Predicate DECLARED_FENCE_IS_THE_CURRENT_WORKERCOORDINATOR_FENCE; every refusal
 carries the six fields and is recorded at both ledger levels through _refused.
-Receipt bytes are unchanged; the state is reported on the result only.
+
+Redelivery (I-10): a declared claim that no longer verifies is not refused when
+this repository's ledger already records the admission of the exact request;
+the replay path answers it as the recorded transition and the result reports
+RECORDED_ADMISSION_REPLAYED_FENCE_NOT_RECHECKED. Without that, a fence that
+moved after an admission would mint a DENY refusal beside a recorded ALLOW for
+the same request.
+
+The result also reports the SDK derivation's own
+requires_workercoordinator_claim_fence for the route
+(workercoordinator_claim_fence_required_by_route). A required-but-undeclared
+claim is still admitted as UNVERIFIED; turning that into a refusal is the route
+owner's call and is not made here. Receipt bytes are unchanged: the state is
+reported on the result only (asserted), on the plain, role-conformance and
+governance returns alike.
 
 tests/test_organization_ingress_worker_claim.py drives the real receive(),
 crossing and process_boundary.py against temporary ledger roots and a temporary
-checkout holding the registry (20 tests, 13 subtests), and checks that every
-BOUND claim in the committed registry verifies at its own fence and at no other.
-n4's spec_gap now records the fence half as implemented
-(COVERED_WITH_SPEC_GAP); the remaining gap is the head half, option 2A
-(ORGANIZATION-BATCH-CUSTODY-REPLAY-001 readback of the declared predecessor).
-Ingress-related modules: 0 newly failing versus the series head.
+checkout holding the registry (25 tests, 13 subtests): malformed and unheld
+declarations, stale and released fences, redelivery after the fence moved,
+receipt bytes, ordering after the authority-effect check, the pinned SDK
+validator, and that every BOUND claim in the committed registry verifies at
+its own fence and at no other. n4's spec_gap now records the fence half as
+implemented (COVERED_WITH_SPEC_GAP); the remaining gap is the head half,
+option 2A (ORGANIZATION-BATCH-CUSTODY-REPLAY-001 readback of the declared
+predecessor).
 
 Refs StegVerse-Labs/.github#3369, #3195
 
@@ -42,9 +63,9 @@ Claude-Session: https://claude.ai/code/session_0143inaAUDHET9NXg3wZr3Y7
 ---
  .stegverse/test-sets.json                     |  17 +
  .../cases/n4-generation-not-successor.json    |  12 +-
- .../organization_manifest_ingress.py          | 129 ++++++-
- .../test_organization_ingress_worker_claim.py | 330 ++++++++++++++++++
- 4 files changed, 481 insertions(+), 7 deletions(-)
+ .../organization_manifest_ingress.py          | 185 +++++++-
+ .../test_organization_ingress_worker_claim.py | 410 ++++++++++++++++++
+ 4 files changed, 615 insertions(+), 9 deletions(-)
  create mode 100644 tests/test_organization_ingress_worker_claim.py
 
 diff --git a/.stegverse/test-sets.json b/.stegverse/test-sets.json
@@ -90,7 +111,7 @@ index 2ac43ce..7998f64 100644
     ".github/workflows/organization-ledger-component-validation.yml",
     "data/reusable-task-components/RTC-EVIDENCE-CUSTODY-004.json",
 diff --git a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n4-generation-not-successor.json b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n4-generation-not-successor.json
-index 5544a9e..eee7cd3 100644
+index 5544a9e..a8497af 100644
 --- a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n4-generation-not-successor.json
 +++ b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n4-generation-not-successor.json
 @@ -1,6 +1,6 @@
@@ -123,12 +144,12 @@ index 5544a9e..eee7cd3 100644
 +    "next_attempt": "ORGANIZATION-BATCH-CUSTODY-REPLAY-001's readback (resident-runtime/organization_ledger_readback.py) confirms, for VERIFY_EXISTING, that the declared predecessor.result_sha256 / manifest_sha256 is a receipt in this organization ledger and that no later receipt for the same node_ref names the same predecessor (DECLARED_PREDECESSOR_NOT_RECORDED fails closed, DECLARED_PREDECESSOR_SUPERSEDED denies); then add a case declaring a superseded predecessor and assert its refusal",
      "owning_existing_goal": "Registry/WorkerCoordinator owner per StegVerse-Labs/.github#3369 (claim/fence and expected head); organization ledger readback: ORGANIZATION-BATCH-CUSTODY-REPLAY-001",
 -    "required_evidence_or_repair": "node_standing.require checks the predecessor's shape and generation-successor arithmetic only (declared_predecessor_lineage_recomputed false); nothing on the receive() path compares a declared predecessor with a current head or checks a claim/fence token. The ledgers chain each append to their own HEAD, which is not a sender's head. This case covers the successor arithmetic instead",
-+    "required_evidence_or_repair": "The fence half is implemented: receive() observes a declared worker_claim {claim_id: <id>-G<fence>, fencing_token} against the committed WorkerCoordinator registry (control/worker-registry.json) before the crossing -- DECLARED_FENCE_IS_THE_CURRENT_WORKERCOORDINATOR_FENCE; FENCE_DECLARED_NOT_VERIFIED fails closed, FENCE_STALE_OR_RELEASED denies, an absent declaration is admitted as worker_claim_state UNVERIFIED (tests/test_organization_ingress_worker_claim.py) -- and mints nothing. What remains is the head half: node_standing.require checks the predecessor's shape and generation-successor arithmetic only (declared_predecessor_lineage_recomputed false); nothing on the receive() path reads the organization ledger to confirm a VERIFY_EXISTING predecessor is a recorded receipt that no later receipt for the same node_ref supersedes. The ledgers chain each append to their own HEAD, which is not a sender's head. This case covers the successor arithmetic instead",
++    "required_evidence_or_repair": "The fence half is implemented: receive() observes a declared extensions.stegverse_workercoordinator_claim {claim_id: <id>-G<fence>, fencing_token} against the committed WorkerCoordinator registry (control/worker-registry.json) before the crossing -- DECLARED_FENCE_IS_THE_CURRENT_WORKERCOORDINATOR_FENCE; FENCE_DECLARED_NOT_VERIFIED fails closed, FENCE_STALE_OR_RELEASED denies, an absent declaration is admitted as worker_claim_state UNVERIFIED (tests/test_organization_ingress_worker_claim.py) -- and mints nothing. What remains is the head half: node_standing.require checks the predecessor's shape and generation-successor arithmetic only (declared_predecessor_lineage_recomputed false); nothing on the receive() path reads the organization ledger to confirm a VERIFY_EXISTING predecessor is a recorded receipt that no later receipt for the same node_ref supersedes. The ledgers chain each append to their own HEAD, which is not a sender's head. This case covers the successor arithmetic instead; a redelivery of a recorded admission is answered as that admission even after the fence moved (I-10); the derived request's requires_workercoordinator_claim_fence is reported beside the observed state, and a required-but-undeclared claim is still admitted as UNVERIFIED (turning that into a refusal is the route owner's call)",
      "retry_entrypoint": "org-boundary/runtime/node_standing.py::require"
    }
  }
 diff --git a/resident-runtime/organization_manifest_ingress.py b/resident-runtime/organization_manifest_ingress.py
-index 87a6f99..97640f2 100644
+index 87a6f99..754c4ee 100644
 --- a/resident-runtime/organization_manifest_ingress.py
 +++ b/resident-runtime/organization_manifest_ingress.py
 @@ -50,7 +50,7 @@ action, not only a successful one: a submission that arrived and was refused is
@@ -140,13 +161,16 @@ index 87a6f99..97640f2 100644
  appends a repository receipt and the organization receipt that consumes it,
  under `ORGANIZATION_SDK_MANIFEST_INGRESS_REFUSED`. Before this they returned a
  refusal and wrote nothing, which made a held or retried submission
-@@ -154,6 +154,27 @@ AUTHORITY_OWNING_GOAL = "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001"
+@@ -154,6 +154,32 @@ AUTHORITY_OWNING_GOAL = "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001"
  #: The only declared effect this operation admits. An absent `transition`, or
  #: one with no `authority_effect`, is the same NONE the crossing reads it as.
  NONE_AUTHORITY_EFFECT = "NONE"
 +#: Gap 2 of StegVerse-Labs/.github#3369 (stale head / fence). A submission may
 +#: declare the WorkerCoordinator claim it runs under as
-+#: `worker_claim: {"claim_id": "<id>-G<fence>", "fencing_token": <fence>}`. The
++#: `extensions.stegverse_workercoordinator_claim: {"claim_id": "<id>-G<fence>",
++#: "fencing_token": <fence>}` -- under `extensions`, the namespace the SDK's
++#: `validate_ingress_manifest` admits (a top-level field is refused by the SDK
++#: as unknown before this operation sees it). The
 +#: declaration is observed against the committed WorkerCoordinator truth
 +#: (`control/worker-registry.json`, the registry `coordination_ledger.py`
 +#: validates claim coverage from) and nothing is minted: a declared claim that
@@ -155,7 +179,8 @@ index 87a6f99..97640f2 100644
 +#: `worker_claim_state: UNVERIFIED`, as the boundary admits and records an
 +#: unattested crossing, because most manifests this operation receives are not
 +#: task-bound.
-+WORKER_CLAIM_FIELD = "worker_claim"
++WORKER_CLAIM_EXTENSION = "stegverse_workercoordinator_claim"
++WORKER_CLAIM_FIELD = "extensions." + WORKER_CLAIM_EXTENSION
 +WORKER_REGISTRY_REF = "control/worker-registry.json"
 +WORKER_REGISTRY_SCHEMA = "stegverse.heartbeat-worker-registry/v0.1"
 +WORKER_CLAIM_TERMINAL_STATES = frozenset({"COMPLETED", "FAILED_TERMINAL"})
@@ -165,10 +190,11 @@ index 87a6f99..97640f2 100644
 +FENCE_OWNING_GOAL = "StegVerse-Labs/.github#3369"
 +WORKER_CLAIM_UNVERIFIED = "UNVERIFIED"
 +WORKER_CLAIM_VERIFIED = "VERIFIED_AGAINST_COMMITTED_WORKERCOORDINATOR_REGISTRY"
++WORKER_CLAIM_REPLAYED = "RECORDED_ADMISSION_REPLAYED_FENCE_NOT_RECHECKED"
  
  
  def recomputation_rule_ref(environ: Mapping[str, str] | None = None,
-@@ -670,6 +691,83 @@ def declared_authority_effect_failure(manifest: Any) -> str | None:
+@@ -670,6 +696,113 @@ def declared_authority_effect_failure(manifest: Any) -> str | None:
              + json.dumps(effect, sort_keys=True))
  
  
@@ -197,6 +223,36 @@ index 87a6f99..97640f2 100644
 +    return None
 +
 +
++def declares_worker_claim(manifest: Any) -> bool:
++    """Whether the manifest carries `extensions.stegverse_workercoordinator_claim` at all."""
++    if not isinstance(manifest, Mapping):
++        return False
++    extensions = manifest.get("extensions")
++    return isinstance(extensions, Mapping) and WORKER_CLAIM_EXTENSION in extensions
++
++
++def recorded_admission_for_request(request_sha256: str) -> Mapping[str, Any] | None:
++    """The repository receipt that already admits this exact request, or None.
++
++    Walks this repository's ledger from HEAD, verified, as `recorded` does, and
++    matches on the transition class of an admitted ingress and the request
++    digest in its evidence. A broken or absent chain answers None: nothing is
++    assumed recorded.
++    """
++    try:
++        store = repository_ledger.ledger_store.PosixLedgerStore(repository_ledger.lr())
++        head = store.get(repository_ledger.ledger_store.HEAD_KEY)
++        if not head:
++            return None
++        for receipt in repository_ledger.chain(store, head):
++            if (receipt.get("transition_class") == OPERATION_ID
++                    and (receipt.get("evidence") or {}).get("request_sha256") == request_sha256):
++                return receipt
++    except Exception:  # noqa: BLE001 - a chain this cannot read records nothing for us
++        return None
++    return None
++
++
 +def declared_worker_claim_failure(manifest: Any, *, worker_registry: Mapping[str, Any] | None = None,
 +                                  root: Path | None = None) -> tuple[str, str] | None:
 +    """Why the submission's declared WorkerCoordinator claim is not verified, or None.
@@ -210,9 +266,9 @@ index 87a6f99..97640f2 100644
 +    as UNVERIFIED. The shape rule is `heartbeat_runtime/process_adapter.py`'s:
 +    a non-empty claim id ending in `-G<fence>` with a positive integer fence.
 +    """
-+    if not isinstance(manifest, Mapping) or WORKER_CLAIM_FIELD not in manifest:
++    if not declares_worker_claim(manifest):
 +        return None
-+    claim = manifest.get(WORKER_CLAIM_FIELD)
++    claim = manifest["extensions"][WORKER_CLAIM_EXTENSION]
 +    if not isinstance(claim, Mapping):
 +        return FENCE_NOT_VERIFIED, f"{WORKER_CLAIM_FIELD} is not an object"
 +    claim_id = claim.get("claim_id")
@@ -252,7 +308,7 @@ index 87a6f99..97640f2 100644
  #: The fields of a crossing that name the packets carrying one delivery. They are
  #: transport: a redelivery of the same manifest is carried by other packets, and
  #: that does not make it another transition.
-@@ -1136,6 +1234,30 @@ def receive(manifest: Mapping[str, Any], *, registry: Mapping[str, Any], standin
+@@ -1136,6 +1269,42 @@ def receive(manifest: Mapping[str, Any], *, registry: Mapping[str, Any], standin
                            "awaits_an_external_machine": False},
              request_sha256=request["request_sha256"])
  
@@ -260,6 +316,15 @@ index 87a6f99..97640f2 100644
 +    # registry before the crossing; ingress mints no claim and no fence. An
 +    # absent declaration is admitted and reported as UNVERIFIED.
 +    fence_failure = declared_worker_claim_failure(manifest)
++    if fence_failure is not None and recorded_admission_for_request(request["request_sha256"]) is not None:
++        # An exact redelivery of an admission this ledger already records is
++        # the same transition (I-10): the fence it ran under was verified when
++        # it was recorded, and a fence that moved since does not turn a recorded
++        # ALLOW into a refusal. The replay path below answers it.
++        fence_failure = None
++        worker_claim_state = WORKER_CLAIM_REPLAYED
++    elif fence_failure is None:
++        worker_claim_state = WORKER_CLAIM_VERIFIED if declares_worker_claim(manifest) else WORKER_CLAIM_UNVERIFIED
 +    if fence_failure is not None:
 +        fence_code, fence_detail = fence_failure
 +        return refused(
@@ -277,13 +342,38 @@ index 87a6f99..97640f2 100644
 +                                       "THE_MANIFEST_WITH_A_VERIFIABLE_OR_ABSENT_WORKER_CLAIM"),
 +                          "awaits_an_external_machine": False},
 +            request_sha256=request["request_sha256"])
-+    worker_claim_state = (WORKER_CLAIM_VERIFIED if isinstance(manifest, Mapping)
-+                          and WORKER_CLAIM_FIELD in manifest else WORKER_CLAIM_UNVERIFIED)
++    # What the SDK's own derivation says about this route: whether the graph
++    # requires a WorkerCoordinator claim/fence. Reported beside the observed
++    # state; a required-but-undeclared claim is admitted as UNVERIFIED today,
++    # and turning that into a refusal is the route owner's call.
++    worker_claim_required = request.get("requires_workercoordinator_claim_fence") is True
 +
      try:
          crossing = crossing_module.cross(manifest, registry=dict(registry), standing=standing, packet_id=packet_id)
      except SystemExit as exc:
-@@ -1347,6 +1469,11 @@ def receive(manifest: Mapping[str, Any], *, registry: Mapping[str, Any], standin
+@@ -1281,7 +1450,9 @@ def receive(manifest: Mapping[str, Any], *, registry: Mapping[str, Any], standin
+         return {**role_conformance_result(
+             request, crossing, conformance, transition_id=transition_id,
+             repository_receipt=repository_receipt, organization_receipt=organization_receipt,
+-            rule_ref=rule_ref, replayed=replayed), "delivery_attempt": delivery}
++            rule_ref=rule_ref, replayed=replayed), "delivery_attempt": delivery,
++            "worker_claim_state": worker_claim_state,
++            "workercoordinator_claim_fence_required_by_route": worker_claim_required}
+ 
+     # Governance is decided by the organization that owns StegCore. The ingress
+     # transition above occurred here and is recorded; the request now leaves
+@@ -1293,7 +1464,9 @@ def receive(manifest: Mapping[str, Any], *, registry: Mapping[str, Any], standin
+             repository_receipt=repository_receipt, organization_receipt=organization_receipt,
+             standing=crossing_module.manifest_standing(manifest, standing),
+             mesh_root=mesh_root, hb_epoch=hb_epoch, rule_ref=rule_ref, replayed=replayed),
+-            "delivery_attempt": delivery}
++            "delivery_attempt": delivery,
++            "worker_claim_state": worker_claim_state,
++            "workercoordinator_claim_fence_required_by_route": worker_claim_required}
+ 
+     # The SDK decides whether this closes the transition. Its refusal is the
+     # answer, returned as it was given.
+@@ -1347,6 +1520,12 @@ def receive(manifest: Mapping[str, Any], *, registry: Mapping[str, Any], standin
          "organization_receipt_sha256": organization_receipt["receipt_sha256"],
          "organization_transition_id": transition_id,
          "transition_replayed": replayed,
@@ -292,26 +382,31 @@ index 87a6f99..97640f2 100644
 +        # when it declared none. A declared claim that did not verify never
 +        # reaches here.
 +        "worker_claim_state": worker_claim_state,
++        "workercoordinator_claim_fence_required_by_route": worker_claim_required,
          "recomputation_rule_ref": rule_ref,
          # Both levels, so a reader can see the organization consumed a receipt
          # from the level below rather than one it wrote itself.
 diff --git a/tests/test_organization_ingress_worker_claim.py b/tests/test_organization_ingress_worker_claim.py
 new file mode 100644
-index 0000000..1981b9b
+index 0000000..2ae540b
 --- /dev/null
 +++ b/tests/test_organization_ingress_worker_claim.py
-@@ -0,0 +1,330 @@
+@@ -0,0 +1,410 @@
 +"""Ingress observes a declared WorkerCoordinator claim against the committed registry.
 +
 +StegVerse-Labs/.github#3369 gap 2 (stale head / fence), option 2C of
 +`design/INGRESS_GAP_OPTIONS_3369.md`: when a manifest declares
-+`worker_claim: {"claim_id": "<id>-G<fence>", "fencing_token": <fence>}`,
++`extensions.stegverse_workercoordinator_claim: {"claim_id": "<id>-G<fence>",
++"fencing_token": <fence>}` (under `extensions`, the namespace the SDK's
++`validate_ingress_manifest` admits),
 +`receive()` checks -- before the crossing -- that an unreleased BOUND task in
 +`control/worker-registry.json` holds exactly that claim and fence. A malformed
 +declaration, an unreadable registry or an unheld claim is FAIL_CLOSED
 +`FENCE_DECLARED_NOT_VERIFIED`; a held claim that is released, terminal or at
 +another generation is DENY `FENCE_STALE_OR_RELEASED`. Ingress mints nothing. An
 +absent declaration is admitted and reported `worker_claim_state: UNVERIFIED`.
++A redelivery of an admission the ledger already records is answered as that
++admission even when the fence has moved since (I-10): no contradicting refusal.
 +
 +These cases drive the real `receive()`, the real crossing and the real
 +`process_boundary.py` subprocess on the boundary-local diagnostic service,
@@ -385,7 +480,7 @@ index 0000000..1981b9b
 +
 +def with_claim(claim) -> dict:
 +    manifest = copy.deepcopy(MANIFEST)
-+    manifest[ingress.WORKER_CLAIM_FIELD] = claim
++    manifest.setdefault("extensions", {})[ingress.WORKER_CLAIM_EXTENSION] = claim
 +    return manifest
 +
 +
@@ -434,6 +529,11 @@ index 0000000..1981b9b
 +        return ingress.receive(manifest, registry=REGISTRY, standing=dict(STANDING),
 +                               packet_id="worker-claim-1")
 +
++    def fresh(self) -> None:
++        """A clean case inside a subTest: tear the previous one down first."""
++        self.doCleanups()
++        self.setUp()
++
 +    def receipts(self, root: Path) -> list[dict]:
 +        directory = root / "receipts"
 +        return [json.loads(p.read_text()) for p in sorted(directory.glob("*.json"))] \
@@ -472,9 +572,15 @@ index 0000000..1981b9b
 +        result = self.receive(manifest)
 +        self.assertEqual(result["disposition"], "ALLOW", result.get("detail"))
 +        self.assertEqual(result["worker_claim_state"], state)
++        self.assertIs(result["workercoordinator_claim_fence_required_by_route"], False)
 +        self.assertEqual(len(self.crossings), 1)
 +        repository, = self.receipts(self.repo_root)
++        organization, = self.receipts(self.org_root)
 +        self.assertEqual(repository["transition_class"], ingress.OPERATION_ID)
++        # The state is reported on the result only; receipt bytes carry nothing of it.
++        for receipt in (repository, organization):
++            self.assertNotIn("worker_claim_state", json.dumps(receipt))
++            self.assertNotIn("workercoordinator_claim_fence_required_by_route", json.dumps(receipt))
 +        return result
 +
 +
@@ -518,7 +624,7 @@ index 0000000..1981b9b
 +                      {"claim_id": "TEST-WORKER-CLAIM-TASK-001", "fencing_token": 7},
 +                      {"claim_id": HELD_CLAIM, "fencing_token": 8}):
 +            with self.subTest(claim=claim):
-+                self.setUp()
++                self.fresh()
 +                self.refuse(claim)
 +
 +    def test_a_claim_no_task_holds_is_refused(self):
@@ -571,7 +677,7 @@ index 0000000..1981b9b
 +    def test_a_terminal_task_is_denied(self):
 +        for state in sorted(ingress.WORKER_CLAIM_TERMINAL_STATES):
 +            with self.subTest(state=state):
-+                self.setUp()
++                self.fresh()
 +                self.deny({"claim_id": HELD_CLAIM, "fencing_token": 7}, state=state)
 +
 +    def test_an_archived_task_is_denied(self):
@@ -579,6 +685,71 @@ index 0000000..1981b9b
 +
 +    def test_a_task_with_no_fence_is_denied(self):
 +        self.deny({"claim_id": HELD_CLAIM, "fencing_token": 7}, heartbeat_timing={})
++
++
++class ReplayTests(WorkerClaimCase):
++    """A recorded admission is the same transition on redelivery, whatever the fence did since."""
++
++    def test_a_redelivered_verified_manifest_is_the_recorded_transition(self):
++        manifest = with_claim({"claim_id": HELD_CLAIM, "fencing_token": 7})
++        first = self.assertAdmitted(manifest, ingress.WORKER_CLAIM_VERIFIED)
++        second = self.receive(copy.deepcopy(manifest))
++        self.assertEqual(second["disposition"], "ALLOW")
++        self.assertIs(second["transition_replayed"], True)
++        self.assertEqual(second["organization_receipt_sha256"], first["organization_receipt_sha256"])
++        self.assertEqual(second["worker_claim_state"], ingress.WORKER_CLAIM_VERIFIED)
++        self.assertEqual(len(self.receipts(self.repo_root)), 1)
++
++    def test_a_redelivery_after_the_fence_moved_is_still_the_recorded_admission(self):
++        manifest = with_claim({"claim_id": HELD_CLAIM, "fencing_token": 7})
++        first = self.assertAdmitted(manifest, ingress.WORKER_CLAIM_VERIFIED)
++        # The registry moves on to G8 after the admission was recorded.
++        self.install(worker_registry(claim_id="TEST-WORKER-CLAIM-TASK-001-G8",
++                                     heartbeat_timing={"fencing_token": 8}))
++        second = self.receive(copy.deepcopy(manifest))
++        self.assertEqual(second["disposition"], "ALLOW", second.get("detail"))
++        self.assertIs(second["transition_replayed"], True)
++        self.assertEqual(second["organization_receipt_sha256"], first["organization_receipt_sha256"])
++        self.assertEqual(second["worker_claim_state"], ingress.WORKER_CLAIM_REPLAYED)
++        # No refusal was minted beside the recorded admission.
++        self.assertEqual(len(self.receipts(self.repo_root)), 1)
++        self.assertEqual(len(self.receipts(self.org_root)), 1)
++
++    def test_a_never_admitted_stale_fence_is_still_refused(self):
++        # Something else was recorded; this request was not.
++        self.assertAdmitted(copy.deepcopy(MANIFEST), ingress.WORKER_CLAIM_UNVERIFIED)
++        self.crossings.clear()
++        self.install(worker_registry(heartbeat_timing={"fencing_token": 8}))
++        manifest = with_claim({"claim_id": HELD_CLAIM, "fencing_token": 7})
++        result = self.receive(manifest)
++        self.assertEqual(result["failure_code"], STALE)
++        self.assertEqual(result["disposition"], "DENY")
++        self.assertEqual(self.crossings, [])
++
++
++class SdkValidatorTests(unittest.TestCase):
++    """The declaration lives where the pinned SDK's validator admits it."""
++
++    def setUp(self):
++        import stegverse
++        from stegverse.manifest_contract import validate_ingress_manifest
++        self.validate = validate_ingress_manifest
++        example = (Path(stegverse.__file__).resolve().parents[1]
++                   / "inspection/examples/external-framework-generic-manifest.json")
++        self.example = json.loads(example.read_text(encoding="utf-8"))
++        self.validate(self.example)
++
++    def test_a_top_level_declaration_would_never_reach_receive(self):
++        with self.assertRaises(ValueError) as refused:
++            self.validate({**self.example, "worker_claim": {"claim_id": "X-G1", "fencing_token": 1}})
++        self.assertIn("unknown top-level manifest fields: worker_claim", str(refused.exception))
++
++    def test_the_extension_placement_passes_the_pinned_validator(self):
++        manifest = copy.deepcopy(self.example)
++        manifest["extensions"][ingress.WORKER_CLAIM_EXTENSION] = {"claim_id": "X-G1", "fencing_token": 1}
++        self.validate(manifest)
++        self.assertTrue(ingress.declares_worker_claim(manifest))
++        self.assertEqual(ingress.WORKER_CLAIM_FIELD, "extensions." + ingress.WORKER_CLAIM_EXTENSION)
 +
 +
 +class OrderingTests(WorkerClaimCase):

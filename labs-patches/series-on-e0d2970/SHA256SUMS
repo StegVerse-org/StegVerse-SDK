@@ -3,4 +3,4 @@ cc2a10107ceacd13038df336e16ca8734444b120239cc1ab931b95ee39a715d3  0001-Collision
 3b0b017e9bc266ae3846ad3e099ad9aa29b166b4f8c02ae27aacd91a4b682c62  0003-Drive-Protocol-v1-negatives-through-the-real-receive.patch
 e7d348aa724e930ed0a5a073cfe102af60ff28d45aa583313fa4efa7015ba094  0004-Conformance-fixtures-correct-the-replay-sender-ident.patch
 dd8aaababa794a71d4626248666e58fb4dac3600172c5caa61f6eb458d9fc6f5  0005-ingress-refuse-a-declared-authority-effect-other-tha.patch
-b6ad60ff6f3f4061937a04455cfa45b6b8f7f7d5f8aa4081bff3fcbbc42e1fb4  0006-ingress-observe-a-declared-WorkerCoordinator-claim-a.patch
+cf5d83e57c75843dd3cdd51c52198b3ecc69202ee64c44ff261bf33446d2d9a1  0006-ingress-observe-a-declared-WorkerCoordinator-claim-a.patch
