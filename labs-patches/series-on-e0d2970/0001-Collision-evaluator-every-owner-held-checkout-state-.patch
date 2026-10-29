@@ -1,0 +1,183 @@
+From 4c5168c2ffdb3680ec2d05ec7cb2c8e38e2647ce Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 28 Oct 2026 17:36:35 -0500
+Subject: [PATCH 1/5] Collision evaluator: every owner-held checkout state
+ guards, not only CLAIMED_INTEGRATION
+
+On top of #3372. #3372 adds CLAIMED_INTEGRATION to the owner-held states, but
+at main bb4f1ee five more ACTIVE shards omitted from the aggregate are still
+unguarded:
+- ELAN-INTR-BRIDGE-001 (CHECKED_OUT_CURRENT_SESSION; .github, StegVerse-SDK)
+- ELAN-PUBLICATION-STRUCTURAL-CLARITY-001 (CLAIMED_IMPLEMENTATION)
+- MYKV-HEALTHCARE-TRANSACTION-EVIDENCE-001 (CLAIMED_IMPLEMENTATION)
+- SS-SKAP-ACCOUNT-INVENTORY-PROJECTION-001 (CLAIMED_IMPLEMENTATION)
+- SS-SKAP-AUTHENTIC-ACCOUNT-METADATA-POPULATION-001 (CLAIMED_IMPLEMENTATION)
+
+OWNER_HELD_CHECKOUT_STATES now covers CHECKED_OUT, CHECKED_OUT_CURRENT_SESSION
+and every claimed member of scripts/cosv.py LIFECYCLE (CLAIMED_IMPLEMENTATION,
+CLAIMED_VALIDATION, CLAIMED_INTEGRATION, MACHINE_OWNED). #3372's is_owner_held
+gate is kept: apart from CHECKED_OUT, these states make a row eligible for a
+hard collision only while coordination is ACTIVE-ish. Guards remain collision
+evidence only; nothing is admitted or minted.
+
+Refs StegVerse-Labs/.github#3372, #3369, #3195
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_0143inaAUDHET9NXg3wZr3Y7
+(cherry picked from commit 615f01fcafb2785f9d24da3e2d654cc2ed96319c)
+---
+ .stegverse/test-sets.json                     | 16 +++++
+ ...valuate_task_registry_collision_checkin.py | 15 +++--
+ ...st_registry_collision_owner_held_states.py | 66 +++++++++++++++++++
+ 3 files changed, 91 insertions(+), 6 deletions(-)
+ create mode 100644 tests/test_registry_collision_owner_held_states.py
+
+diff --git a/.stegverse/test-sets.json b/.stegverse/test-sets.json
+index b9dfe0a..06f9d30 100644
+--- a/.stegverse/test-sets.json
++++ b/.stegverse/test-sets.json
+@@ -5856,6 +5856,18 @@
+     "tests/test_registry_collision_claimed_integration_guard.py"
+    ]
+   },
++  {
++   "always": false,
++   "exclude": [],
++   "id": "tests/test_registry_collision_owner_held_states.py",
++   "inputs": [],
++   "surfaces": [
++    "tests/test_registry_collision_owner_held_states.py"
++   ],
++   "tests": [
++    "tests/test_registry_collision_owner_held_states.py"
++   ]
++  },
+   {
+    "always": false,
+    "exclude": [],
+@@ -15351,6 +15363,10 @@
+    "data/canonical-task-registry.json",
+    "scripts/evaluate_task_registry_collision_checkin.py"
+   ],
++  "tests/test_registry_collision_owner_held_states.py": [
++   "scripts/cosv.py",
++   "scripts/evaluate_task_registry_collision_checkin.py"
++  ],
+   "tests/test_registry_gate_findings.py": [
+    "scripts/audit_execution_substrate_resolution.py",
+    "scripts/registry_gate_findings.py",
+diff --git a/scripts/evaluate_task_registry_collision_checkin.py b/scripts/evaluate_task_registry_collision_checkin.py
+index c078ebe..bc410ef 100644
+--- a/scripts/evaluate_task_registry_collision_checkin.py
++++ b/scripts/evaluate_task_registry_collision_checkin.py
+@@ -10,10 +10,13 @@ REGISTRY = ROOT / "data" / "canonical-task-registry.json"
+ GLOBAL_INVARIANTS = ROOT / "data" / "task-registry-global-invariants.json"
+ CALLER_POLICY = ROOT / "data" / "task-registry-general-checkin-caller-policy.json"
+ ACTIVEISH = {"ACTIVE", "CHECKED_OUT", "CLAIMED_INTEGRATION", "HANDOFF_READY_RUNTIME_PROOF_PENDING", "BLOCKED_RUNTIME_ACTIVATION"}
+-# Checkout states that hold an owner's claim on scope. An ACTIVE-ish shard in
+-# either state guards collisions even when omitted from the aggregate, and a
+-# component/lineage/action-surface overlap with it is a hard collision.
+-OWNER_HELD_CHECKOUT_STATES = {"CHECKED_OUT", "CLAIMED_INTEGRATION"}
++# Checkout states that hold an owner's claim on scope: the legacy CHECKED_OUT
++# marker, its CHECKED_OUT_CURRENT_SESSION variant, and every claimed member of
++# scripts/cosv.py LIFECYCLE. An ACTIVE-ish shard in any of these states guards
++# collisions even when omitted from the aggregate, and a component/lineage/
++# action-surface overlap with it is a hard collision.
++OWNER_HELD_CHECKOUT_STATES = {"CHECKED_OUT", "CHECKED_OUT_CURRENT_SESSION", "CLAIMED_IMPLEMENTATION",
++                              "CLAIMED_VALIDATION", "CLAIMED_INTEGRATION", "MACHINE_OWNED"}
+ PROGRESSION_CONTROLLER_TASK_ID = "ENTITY-AUTONOMOUS-GOVERNED-PROGRESSION-RUNTIME-ADOPTION-001"
+ sys.path.insert(0, str(ROOT / "scripts"))
+ from task_registry_checkin_event_history import (
+@@ -75,7 +78,7 @@ def load_missing_checked_out_shards(registered: dict) -> dict:
+     """Guard collision evaluation against owner-held shards omitted from aggregate.
+ 
+     Owner-held means an ACTIVE-ish coordination state with a checkout state in
+-    OWNER_HELD_CHECKOUT_STATES (CHECKED_OUT or CLAIMED_INTEGRATION). Inactive,
++    OWNER_HELD_CHECKOUT_STATES. Inactive,
+     retired, released and unclaimed shards are not guards.
+ 
+     An omitted shard is NEVER admitted as a task, minted a COSV, or silently
+@@ -141,7 +144,7 @@ def is_owner_held(row) -> bool:
+     """Whether a collision row's owner holds its scope (hard-collision eligible).
+ 
+     CHECKED_OUT keeps its historical meaning regardless of coordination state;
+-    CLAIMED_INTEGRATION holds scope only while coordination is ACTIVE-ish.
++    the other owner-held states hold scope only while coordination is ACTIVE-ish.
+     """
+     checkout = str(row.get("checkout_state") or "").upper()
+     if checkout == "CHECKED_OUT":
+diff --git a/tests/test_registry_collision_owner_held_states.py b/tests/test_registry_collision_owner_held_states.py
+new file mode 100644
+index 0000000..a91aada
+--- /dev/null
++++ b/tests/test_registry_collision_owner_held_states.py
+@@ -0,0 +1,66 @@
++"""Every owner-held checkout state guards collisions, not only CHECKED_OUT and CLAIMED_INTEGRATION.
++
++At main bb4f1ee four ACTIVE/CLAIMED_IMPLEMENTATION shards and one
++ACTIVE/CHECKED_OUT_CURRENT_SESSION shard are omitted from the aggregate and were
++unguarded (StegVerse-Labs/.github#3369, #3195, #3372).
++"""
++from __future__ import annotations
++import importlib.util
++import json
++from pathlib import Path
++import sys
++import tempfile
++import unittest
++from unittest import mock
++
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT / "scripts"))
++SPEC = importlib.util.spec_from_file_location("owner_held_states_collision", ROOT / "scripts/evaluate_task_registry_collision_checkin.py")
++gate = importlib.util.module_from_spec(SPEC)
++assert SPEC.loader is not None
++SPEC.loader.exec_module(gate)
++import cosv
++
++
++def shard(tid, checkout, state="ACTIVE"):
++    return {"task_id": tid, "correlation_id": tid, "root_correlation_id": tid,
++            "coordination_state": state, "checkout_state": checkout,
++            "targets": {"repositories": ["StegVerse-Labs/.github"], "components": ["shared-gate"]}}
++
++
++class OwnerHeldStateTests(unittest.TestCase):
++    def setUp(self):
++        temp = tempfile.TemporaryDirectory()
++        self.addCleanup(temp.cleanup)
++        self.root = Path(temp.name)
++        patch = mock.patch.object(gate, "RECORDS", self.root)
++        patch.start()
++        self.addCleanup(patch.stop)
++
++    def put(self, row):
++        (self.root / f"{row['task_id']}.json").write_text(json.dumps(row))
++
++    def test_owner_held_states_cover_every_claimed_lifecycle_state(self):
++        claimed = {k for k in cosv.LIFECYCLE if k.startswith("CLAIMED_") or k == "MACHINE_OWNED"}
++        self.assertLessEqual(claimed, gate.OWNER_HELD_CHECKOUT_STATES)
++
++    def test_every_owner_held_state_is_an_omitted_shard_guard(self):
++        for state in sorted(gate.OWNER_HELD_CHECKOUT_STATES):
++            self.put(shard(f"OWNER-{state}", state))
++        self.assertEqual(sorted(gate.load_missing_checked_out_shards({})),
++                         sorted(f"OWNER-{s}" for s in gate.OWNER_HELD_CHECKOUT_STATES))
++
++    def test_inactive_claimed_owner_is_not_hard_eligible(self):
++        for state in sorted(gate.OWNER_HELD_CHECKOUT_STATES - {"CHECKED_OUT"}):
++            with self.subTest(state=state):
++                self.assertTrue(gate.is_owner_held({"checkout_state": state, "coordination_state": "ACTIVE"}))
++                self.assertFalse(gate.is_owner_held({"checkout_state": state, "coordination_state": "RETIRED"}))
++
++    def test_unclaimed_and_handoff_ready_remain_excluded(self):
++        for state in ("UNCLAIMED", "NONE", "HANDOFF_READY", "CHECKED_IN"):
++            self.put(shard(f"FREE-{state}", state))
++        self.assertEqual(gate.load_missing_checked_out_shards({}), {})
++
++
++if __name__ == "__main__":
++    unittest.main()
+-- 
+2.43.0
+

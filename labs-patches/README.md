@@ -15,3 +15,15 @@ Verify with `sha256sum -c SHA256SUMS` before applying.
 ## Stacked series on Labs main `bbd84af` (recommended)
 
 `series-on-bbd84af/` contains 0003, 0004, 0006 and 0005, rebased in that order onto Labs main `bbd84af`, which already includes #3372, #3375 and #3304. `0005` targets the merged #3375 code. Apply the whole series with `git am series-on-bbd84af/*.patch`. Regenerating `.stegverse/test-sets.json` after the series produces no diff.
+
+## CURRENT: stacked series on Labs main `e0d2970` (supersedes earlier series and single patches)
+
+`0003` is no longer needed: StegVerse-Labs/.github#3384 merged the binding-owner fix (`c356fd81`), and SDK #574 pins it. Apply in order with `git am series-on-e0d2970/*.patch`:
+
+1. Collision evaluator: every owner-held checkout state guards.
+2. Ingress binds the crossing to the delivered manifest's exact payload.
+3. Protocol v1 negatives run through the real `receive()`; expectations are generated; adds n9 (non-gating).
+4. Conformance fixtures: corrected the replay (`REDELIVERY_REPROCESSED_BEFORE_DEDUPLICATION`), sender-identity (`SUBMITTER_KV_SKAP_VERIFICATION_NOT_BOUND_AT_INGRESS`) and stale-head spec_gaps, and their owners. No gap waits on device attestation, which the invariants prohibit.
+5. Ingress refuses a declared authority effect other than NONE before the crossing (`AUTHORITY_EFFECT_NOT_WARRANTED_AT_INGRESS`). No real manifest declares a non-NONE effect: 116 calls declare none and 20 declare NONE.
+
+Design input for the remaining gaps: `design/INGRESS_GAP_OPTIONS_3369.md`.

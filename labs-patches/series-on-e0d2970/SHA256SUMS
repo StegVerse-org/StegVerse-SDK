@@ -1,0 +1,5 @@
+cc2a10107ceacd13038df336e16ca8734444b120239cc1ab931b95ee39a715d3  0001-Collision-evaluator-every-owner-held-checkout-state-.patch
+86ed3f427efd5738cd4d9da47e9b1c5216417a8f8a009d85d85579911c97b161  0002-ingress-bind-the-crossing-to-the-delivered-manifest-.patch
+3b0b017e9bc266ae3846ad3e099ad9aa29b166b4f8c02ae27aacd91a4b682c62  0003-Drive-Protocol-v1-negatives-through-the-real-receive.patch
+e7d348aa724e930ed0a5a073cfe102af60ff28d45aa583313fa4efa7015ba094  0004-Conformance-fixtures-correct-the-replay-sender-ident.patch
+dd8aaababa794a71d4626248666e58fb4dac3600172c5caa61f6eb458d9fc6f5  0005-ingress-refuse-a-declared-authority-effect-other-tha.patch

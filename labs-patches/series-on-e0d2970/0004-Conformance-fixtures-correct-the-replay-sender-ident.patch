@@ -1,0 +1,258 @@
+From f0331decff2ffebe91907dfb168cd8d3853c2d14 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 28 Oct 2026 19:47:04 -0500
+Subject: [PATCH 4/5] Conformance fixtures: correct the replay, sender-identity
+ and stale-head spec_gaps
+
+StegVerse-Labs/.github#3369. Three spec_gap labels in the Protocol v1
+conformance fixtures named the wrong defect or the wrong owner.
+
+n2 (REPLAY): idempotent redelivery is the specified behaviour -- the I-10
+ruling in docs/STEGDB_ORGANIZATION_ROLE_VERSION_PROPAGATION_MIRROR_HANDOFF.md,
+partial-commit completion from the retained repository receipt, and
+consume_outbox's exact-retry redelivery all depend on it -- so a missing
+"replay refusal" is not a gap. n2 is now COVERED_WITH_SPEC_GAP: it covers
+"no duplicate effect" at both ledger levels, and its gap is
+REDELIVERY_REPROCESSED_BEFORE_DEDUPLICATION: receive() calls cross(), and so
+the endpoint, before the recorded-transition lookup.
+
+n3 (FORGED_IDENTITY): device or node attestation is prohibited as a gate
+(device_attestation_gate NONE_PROHIBITED,
+NO_DEVICE_ATTESTATION_OR_PHYSICAL_DEVICE_IDENTITY_GATE). The gap is now
+SUBMITTER_KV_SKAP_VERIFICATION_NOT_BOUND_AT_INGRESS, owned by
+SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001 with the KV/SKAP manifest
+binding field owned by STEGOS-DEVICE-KV-SKAP-ROUNDTRIP-001, and its next step
+binds workers/device_kv_skap_roundtrip_verifier.py receipts to the manifest.
+
+n4 (STALE_HEAD_OR_FENCE): owned by the Registry/WorkerCoordinator owner per
+the #3369 assignment, with organization ledger readback owned by
+ORGANIZATION-BATCH-CUSTODY-REPLAY-001. CANONICAL-NODE-INGRESS-CONTRACT-001 is
+a contract document, not a registered task.
+
+The fixture test now also checks that every registered task id an owner
+field names exists in data/canonical-task-records/, and that no gap waits on
+an attestation owner. Generated expectations are unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_0143inaAUDHET9NXg3wZr3Y7
+---
+ .stegverse/test-sets.json                     |  2 +
+ .../protocol-v1-conformance/README.md         | 21 ++++++---
+ .../cases/n2-replay.json                      | 12 ++---
+ .../cases/n3-wrong-receiving-operation.json   | 12 ++---
+ .../cases/n4-generation-not-successor.json    |  4 +-
+ .../test_protocol_v1_conformance_fixtures.py  | 45 ++++++++++++++++---
+ 6 files changed, 71 insertions(+), 25 deletions(-)
+
+diff --git a/.stegverse/test-sets.json b/.stegverse/test-sets.json
+index 42e3d35..b8708cc 100644
+--- a/.stegverse/test-sets.json
++++ b/.stegverse/test-sets.json
+@@ -15298,6 +15298,8 @@
+   ],
+   "tests/test_protocol_v1_conformance_fixtures.py": [
+    ".stegverse/transition-ledger/org-contract.json",
++   "data/canonical-task-records/**",
++   "data/task-registry-global-invariants.json",
+    "org-boundary/runtime/node_standing.py",
+    "org-kernel/organization-ledger/fixtures/protocol-v1-conformance/**",
+    "org-runtime/interlock-intr.json",
+diff --git a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/README.md b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/README.md
+index 1b56b81..1eb4371 100644
+--- a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/README.md
++++ b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/README.md
+@@ -13,7 +13,7 @@ positive case and one case per #3369 item. Each case names its mutation, what it
+ |---|---|---|---|
+ | `positive` | the positive packet crosses and echoes the bounded effect | POSITIVE | COVERED |
+ | `n1-tamper` | payload altered after the crossing, `payload_hash` recomputed from the altered bytes | TAMPER | COVERED_WITH_SPEC_GAP |
+-| `n2-replay` | redelivery under another packet id is idempotent acceptance | REPLAY | SPEC_GAP |
++| `n2-replay` | redelivery under another packet id is idempotent, with no duplicate ledger effect | REPLAY | COVERED_WITH_SPEC_GAP |
+ | `n3-wrong-receiving-operation` | the request names a receiving operation owned by another repository | FORGED_IDENTITY | SPEC_GAP |
+ | `n4-generation-not-successor` | VERIFY_EXISTING standing whose predecessor generation is not generation - 1 | STALE_HEAD_OR_FENCE | SPEC_GAP |
+ | `n5-wrong-route` | `completion.egress` declares a surface the registry does not expose | WRONG_ROUTE | COVERED |
+@@ -44,14 +44,25 @@ materialized mesh location (FAIL_CLOSED, `MESH_LOCATION_REQUIRED_FROM_MATERIALIZ
+ ledger levels are byte-identical afterwards and a redelivery replays the same transition --
+ `propagation_gates_organization_runtime_reality` is false in `.stegverse/transition-ledger/org-contract.json`.
+ 
++Replay is not a refusal the path lacks. Idempotent redelivery is specified (the I-10 ruling in
++`docs/STEGDB_ORGANIZATION_ROLE_VERSION_PROPAGATION_MIRROR_HANDOFF.md`), and partial-commit completion and
++`consume_outbox` redelivery depend on it, so n2 covers #3369's "no duplicate effect" at both ledger levels.
++
+ Items the real path cannot express are six-field `spec_gap` entries, each checked to name a code absent
+-from the ingress, crossing and standing sources:
++from the ingress, crossing and standing sources, and each registered task an owner field names is checked to
++exist in `data/canonical-task-records/`:
+ 
+-- `REPLAY_REFUSAL_NOT_IMPLEMENTED_BY_INGRESS` (n2)
++- `REDELIVERY_REPROCESSED_BEFORE_DEDUPLICATION` (n2): `receive()` calls `cross()`, and so the endpoint,
++  before it looks up the recorded transition; only the ledger append is deduplicated
++  (ORGANIZATION-BATCH-CUSTODY-REPLAY-001)
+ - `PAYLOAD_HASH_NOT_RECOMPUTED_FROM_MANIFEST_AT_INGRESS` (n1): an echo or manifest altered with
+   `payload_hash` unchanged is not detected at ingress
+-- `SENDER_IDENTITY_NOT_AUTHENTICATED_AT_INGRESS` (n3)
+-- `STALE_HEAD_OR_FENCE_NOT_COMPARED_AT_INGRESS` (n4)
++- `SUBMITTER_KV_SKAP_VERIFICATION_NOT_BOUND_AT_INGRESS` (n3): only the KV/SKAP Vault verifies a submitter;
++  device or node attestation is prohibited as a gate (`device_attestation_gate: NONE_PROHIBITED`), so the
++  next step is binding `workers/device_kv_skap_roundtrip_verifier.py` receipts to the manifest
++  (SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001; KV binding field: STEGOS-DEVICE-KV-SKAP-ROUNDTRIP-001)
++- `STALE_HEAD_OR_FENCE_NOT_COMPARED_AT_INGRESS` (n4): the Registry/WorkerCoordinator owner's claim/fence and
++  expected head (#3369 assignment), with organization ledger readback by ORGANIZATION-BATCH-CUSTODY-REPLAY-001
+ - `AUTHORITY_NOT_CHECKED_AT_INGRESS` (n6)
+ 
+ Nothing here admits a task, grants authority, appends to a real ledger or mints a live receipt. ALLOW on
+diff --git a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n2-replay.json b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n2-replay.json
+index 06953a3..1b692f5 100644
+--- a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n2-replay.json
++++ b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n2-replay.json
+@@ -1,6 +1,6 @@
+ {
+   "case_id": "n2-replay",
+-  "covers": "REDELIVERY_UNDER_ANOTHER_PACKET_ID_IS_IDEMPOTENT_ACCEPTANCE",
++  "covers": "REDELIVERY_UNDER_ANOTHER_PACKET_ID_IS_IDEMPOTENT_WITH_NO_DUPLICATE_LEDGER_EFFECT",
+   "evidence_class": "FIXTURE_ONLY_NOT_RUNTIME_RECEIPT",
+   "expected": {
+     "disposition": "IDEMPOTENT_REDELIVERY",
+@@ -10,7 +10,7 @@
+     "transition_replayed": true
+   },
+   "issue_3369_item": "REPLAY",
+-  "issue_3369_item_status": "SPEC_GAP",
++  "issue_3369_item_status": "COVERED_WITH_SPEC_GAP",
+   "mutation": {
+     "kind": "REPLAY_UNDER_NEW_PACKET_ID",
+     "packet_id": "protocol-v1-conformance-replay"
+@@ -18,12 +18,12 @@
+   "schema": "stegverse.protocol-v1-conformance-case/v1",
+   "spec_gap": {
+     "disposition": "GAP_NOT_IMPLEMENTED",
+-    "failed_predicate": "A_REPLAYED_PACKET_IS_REFUSED",
+-    "failure_code": "REPLAY_REFUSAL_NOT_IMPLEMENTED_BY_INGRESS",
++    "failed_predicate": "RECORDED_TRANSITION_IS_NOT_REPROCESSED",
++    "failure_code": "REDELIVERY_REPROCESSED_BEFORE_DEDUPLICATION",
+     "issue_3369_item": "REPLAY",
+-    "next_attempt": "the ingress lane decides whether a redelivery is refused; until then n2 asserts the idempotent acceptance receive() performs",
++    "next_attempt": "the recorded-transition lookup moves ahead of the crossing in receive(), answering an exact redelivery from the recorded receipts while partial-commit completion and outbox redelivery keep working; then n2 also asserts the endpoint is not run again on the redelivery",
+     "owning_existing_goal": "ORGANIZATION-BATCH-CUSTODY-REPLAY-001",
+-    "required_evidence_or_repair": "StegVerse-Labs/.github#3369 lists replay among the refusals, but organization_manifest_ingress.receive treats a redelivery as idempotent: the same transition id, the recorded receipts returned, no second append. A replay refusal needs an ingress-lane change to receive(), not a refusal invented in this harness",
++    "required_evidence_or_repair": "Idempotent redelivery is the specified behaviour, not a gap: the I-10 ruling in docs/STEGDB_ORGANIZATION_ROLE_VERSION_PROPAGATION_MIRROR_HANDOFF.md, partial-commit completion from the retained repository receipt, and consume_outbox's exact-retry redelivery all depend on it, and n2 covers #3369's 'no duplicate effect' at both ledger levels (same transition id, recorded receipts returned, no second append). The defect is the order: receive() calls sdk_manifest_crossing.cross -- and so process_boundary.py and the internal endpoint -- before it looks up the recorded transition, so a redelivery is processed again and only the ledger append is deduplicated",
+     "retry_entrypoint": "resident-runtime/organization_manifest_ingress.py::receive"
+   }
+ }
+diff --git a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n3-wrong-receiving-operation.json b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n3-wrong-receiving-operation.json
+index 30ce652..937d43e 100644
+--- a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n3-wrong-receiving-operation.json
++++ b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n3-wrong-receiving-operation.json
+@@ -27,12 +27,12 @@
+   "schema": "stegverse.protocol-v1-conformance-case/v1",
+   "spec_gap": {
+     "disposition": "GAP_NOT_IMPLEMENTED",
+-    "failed_predicate": "THE_SENDER_IDENTITY_IS_AUTHENTICATED_AT_INGRESS",
+-    "failure_code": "SENDER_IDENTITY_NOT_AUTHENTICATED_AT_INGRESS",
++    "failed_predicate": "SUBMITTER_VERIFICATION_IS_KV_SKAP_BOUND_TO_THE_MANIFEST",
++    "failure_code": "SUBMITTER_KV_SKAP_VERIFICATION_NOT_BOUND_AT_INGRESS",
+     "issue_3369_item": "FORGED_IDENTITY",
+-    "next_attempt": "the contract's attestation owner is established; then add a case presenting a forged sender and assert its refusal",
+-    "owning_existing_goal": "CANONICAL-NODE-INGRESS-CONTRACT-001",
+-    "required_evidence_or_repair": "receive() takes no sender identity: cross() builds the packet origin itself, and node_standing.require records caller_editable_origin_established_identity false, attestation_owner_state NOT_PROVEN and structural_standing_is_authenticated_standing false. standing.node_ref is checked for presence only. A forged sender is not expressible on this path; this case covers a wrong receiving operation instead",
+-    "retry_entrypoint": "org-boundary/runtime/node_standing.py::require"
++    "next_attempt": "STEGOS-DEVICE-KV-SKAP-ROUNDTRIP-001 gives the layer-1 KV-access / layer-2 SKAP-access receipt pair a field binding it to the submitted manifest's canonical digest; then receive() re-derives that pair with workers/device_kv_skap_roundtrip_verifier.py and a case presents a pair bound to another manifest and asserts its refusal. Device or node attestation is not the next step: it is prohibited as a gate (device_attestation_gate NONE_PROHIBITED, NO_DEVICE_ATTESTATION_OR_PHYSICAL_DEVICE_IDENTITY_GATE in data/task-registry-global-invariants.json)",
++    "owning_existing_goal": "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001 (ingress binding); STEGOS-DEVICE-KV-SKAP-ROUNDTRIP-001 (KV/SKAP manifest binding field)",
++    "required_evidence_or_repair": "receive() binds no submitter verification. cross() building the packet origin itself is the anti-forgery property on this intra-organization binding, not the defect, and standing.node_ref being checked for presence only is required, because node, device and transport identity may not verify a user (node_user_verifier_authority NONE). Only the KV/SKAP Vault verifies a submitter, and no KV/SKAP receipt reaches ingress: the existing layer-1/layer-2 receipts bind a DEVICE to KV hop, not a manifest. A forged sender is not expressible on this path; this case covers a wrong receiving operation instead",
++    "retry_entrypoint": "resident-runtime/organization_manifest_ingress.py::receive"
+   }
+ }
+diff --git a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n4-generation-not-successor.json b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n4-generation-not-successor.json
+index a0b395b..5544a9e 100644
+--- a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n4-generation-not-successor.json
++++ b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n4-generation-not-successor.json
+@@ -38,8 +38,8 @@
+     "failed_predicate": "THE_DECLARED_PREDECESSOR_IS_THE_CURRENT_HEAD_UNDER_A_VALID_FENCE",
+     "failure_code": "STALE_HEAD_OR_FENCE_NOT_COMPARED_AT_INGRESS",
+     "issue_3369_item": "STALE_HEAD_OR_FENCE",
+-    "next_attempt": "a head comparison or the WorkerCoordinator claim/fence reaches ingress; then add a case declaring a superseded predecessor and assert its refusal",
+-    "owning_existing_goal": "CANONICAL-NODE-INGRESS-CONTRACT-001",
++    "next_attempt": "the Registry/WorkerCoordinator owner's claim/fence and expected head reach ingress as state ingress observes and never mints -- a declared claim_ref/fence_ref checked against an unreleased BOUND WorkerCoordinator claim -- and the organization ledger readback (ORGANIZATION-BATCH-CUSTODY-REPLAY-001) confirms a VERIFY_EXISTING predecessor is recorded and unsuperseded; then add a case declaring a superseded predecessor or a released fence and assert its refusal",
++    "owning_existing_goal": "Registry/WorkerCoordinator owner per StegVerse-Labs/.github#3369 (claim/fence and expected head); organization ledger readback: ORGANIZATION-BATCH-CUSTODY-REPLAY-001",
+     "required_evidence_or_repair": "node_standing.require checks the predecessor's shape and generation-successor arithmetic only (declared_predecessor_lineage_recomputed false); nothing on the receive() path compares a declared predecessor with a current head or checks a claim/fence token. The ledgers chain each append to their own HEAD, which is not a sender's head. This case covers the successor arithmetic instead",
+     "retry_entrypoint": "org-boundary/runtime/node_standing.py::require"
+   }
+diff --git a/tests/test_protocol_v1_conformance_fixtures.py b/tests/test_protocol_v1_conformance_fixtures.py
+index 60ece75..636da37 100644
+--- a/tests/test_protocol_v1_conformance_fixtures.py
++++ b/tests/test_protocol_v1_conformance_fixtures.py
+@@ -40,11 +40,15 @@ refusal fields (`required_evidence_or_repair`, `retry_entrypoint`,
+ `owning_existing_goal`, `next_attempt`) are not emitted by `receive()` on these
+ paths, so no case claims them as observed.
+ 
+-Items the real path cannot express -- a stale head or fence, a forged sender
+-identity, missing authority, a replay refusal, a payload whose
+-`payload_hash` is left unchanged -- are recorded as six-field `spec_gap`
+-entries, each checked to name a code that exists nowhere in the ingress
+-source, rather than being invented here.
++Items the real path cannot express -- a stale head or fence, a submitter
++whose KV/SKAP verification is bound to the manifest, missing authority, a
++redelivery answered before its endpoint runs, a payload whose `payload_hash`
++is left unchanged -- are recorded as six-field `spec_gap` entries, each
++checked to name a code that exists nowhere in the ingress source, rather than
++being invented here. Replay itself is not one of them: idempotent redelivery
++is the specified behaviour (I-10), and n2 covers "no duplicate effect" at both
++ledger levels. Each registered task a gap names as its owner is checked to
++exist in `data/canonical-task-records/`.
+ 
+ Fixture evidence only. Nothing here is runtime ALLOW, no live receipt is
+ minted, and admission, claim/fence and protected runs stay with the Registry
+@@ -56,6 +60,7 @@ import copy
+ import importlib.util
+ import json
+ import os
++import re
+ import subprocess
+ import sys
+ import tempfile
+@@ -88,6 +93,9 @@ ISSUE_ITEMS = {"POSITIVE": "positive", "TAMPER": "n1-tamper", "REPLAY": REPLAY,
+ GAP_SOURCES = ("resident-runtime/organization_manifest_ingress.py",
+                "resident-runtime/sdk_manifest_crossing.py",
+                "org-boundary/runtime/node_standing.py")
++TASK_RECORDS = ROOT / "data/canonical-task-records"
++#: A registered task id named inside an owner field, e.g. ORGANIZATION-BATCH-CUSTODY-REPLAY-001.
++TASK_ID = re.compile(r"\b[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*-\d{3}\b")
+ MASTER_RECORDS_PROPAGATION = ROOT / "resident-runtime/submit_org_transition_to_master_records.py"
+ ORG_CONTRACT = ROOT / ".stegverse/transition-ledger/org-contract.json"
+ 
+@@ -417,7 +425,32 @@ class FixtureShapeTest(unittest.TestCase):
+     def test_replay_declares_idempotent_redelivery(self):
+         spec = case(REPLAY)
+         self.assertEqual(spec["expected"]["disposition"], "IDEMPOTENT_REDELIVERY")
+-        self.assertEqual(spec["spec_gap"]["failure_code"], "REPLAY_REFUSAL_NOT_IMPLEMENTED_BY_INGRESS")
++        # Redelivery is idempotent by specification (I-10); the gap is the order
++        # in which receive() processes a redelivery, not a missing refusal.
++        self.assertEqual(spec["issue_3369_item_status"], "COVERED_WITH_SPEC_GAP")
++        self.assertEqual(spec["spec_gap"]["failure_code"], "REDELIVERY_REPROCESSED_BEFORE_DEDUPLICATION")
++
++    def test_every_registered_owner_a_spec_gap_names_exists(self):
++        named = 0
++        for case_id in ALL_CASES:
++            gap = case(case_id).get("spec_gap")
++            if gap is None:
++                continue
++            for task_id in TASK_ID.findall(gap["owning_existing_goal"]):
++                named += 1
++                self.assertTrue((TASK_RECORDS / f"{task_id}.json").is_file(), f"{case_id}:{task_id}")
++        self.assertGreater(named, 0)
++
++    def test_no_spec_gap_waits_on_a_device_or_node_attestation_gate(self):
++        # Device attestation is prohibited as a gate by the global invariants;
++        # submitter verification belongs to the KV/SKAP Vault.
++        invariants = load(ROOT / "data/task-registry-global-invariants.json")
++        self.assertIn("NO_DEVICE_ATTESTATION_OR_PHYSICAL_DEVICE_IDENTITY_GATE", json.dumps(invariants))
++        for case_id in ALL_CASES:
++            gap = case(case_id).get("spec_gap") or {}
++            self.assertNotIn("attestation owner", gap.get("next_attempt", ""), case_id)
++        self.assertEqual(case("n3-wrong-receiving-operation")["spec_gap"]["failure_code"],
++                         "SUBMITTER_KV_SKAP_VERIFICATION_NOT_BOUND_AT_INGRESS")
+ 
+     def test_payload_binding_gap_is_recorded_on_tamper(self):
+         self.assertEqual(case("n1-tamper")["spec_gap"]["failure_code"],
+-- 
+2.43.0
+

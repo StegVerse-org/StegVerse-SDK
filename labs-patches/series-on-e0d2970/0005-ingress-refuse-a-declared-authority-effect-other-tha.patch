@@ -1,0 +1,596 @@
+From ee0b3b6ae938cf17ee8440ed5778fc9386d0b6a5 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 28 Oct 2026 19:50:59 -0500
+Subject: [PATCH 5/5] ingress: refuse a declared authority effect other than
+ NONE before the crossing
+
+StegVerse-Labs/.github#3369 ("missing authority"). The crossing copies
+manifest.transition.authority_effect onto the InTr envelope verbatim and
+process_boundary.py passes it through to its result, while the boundary
+document resolves effects as DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS and
+both ledger appends record "NONE". Nothing on the receive() path checked it.
+
+receive() now refuses any declared effect that is not NONE -- an absent
+transition or authority_effect is NONE, read exactly as the crossing reads
+it -- before cross() is called, so the endpoint never runs under it. The
+refusal is recorded at both ledger levels through _refused, with the six
+fields: AUTHORITY_EFFECT_NOT_WARRANTED_AT_INGRESS /
+DECLARED_AUTHORITY_EFFECT_IS_NONE_UNTIL_A_WARRANT_RECEIPT_BINDS, owned by
+SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001. Every manifest the
+ingress, crossing and role-conformance tests send, and the pinned SDK's
+builders, declare NONE or nothing.
+
+The conformance fixture n6 (MISSING_AUTHORITY) now exercises this refusal
+(n6-authority-effect-not-warranted, COVERED_WITH_SPEC_GAP); its remaining gap
+is a warranted effect, which waits on a landed TV/TVC warrant receipt
+(AUTHORITY_WARRANT_RECEIPT_NOT_VERIFIED_AT_INGRESS). The absent-resolution
+refusal n6 covered before is kept as an ordering test in the new
+tests/test_organization_ingress_authority_effect.py.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_0143inaAUDHET9NXg3wZr3Y7
+---
+ .stegverse/test-sets.json                     |  17 ++
+ .../protocol-v1-conformance/README.md         |   7 +-
+ .../n6-authority-effect-not-warranted.json    |  38 +++
+ .../cases/n6-ingress-resolution-absent.json   |  35 ---
+ .../organization_manifest_ingress.py          |  56 +++-
+ ...t_organization_ingress_authority_effect.py | 240 ++++++++++++++++++
+ .../test_protocol_v1_conformance_fixtures.py  |  26 +-
+ 7 files changed, 373 insertions(+), 46 deletions(-)
+ create mode 100644 org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n6-authority-effect-not-warranted.json
+ delete mode 100644 org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n6-ingress-resolution-absent.json
+ create mode 100644 tests/test_organization_ingress_authority_effect.py
+
+diff --git a/.stegverse/test-sets.json b/.stegverse/test-sets.json
+index b8708cc..35a6367 100644
+--- a/.stegverse/test-sets.json
++++ b/.stegverse/test-sets.json
+@@ -5178,6 +5178,18 @@
+     "tests/test_organization_governance_decision_authority.py"
+    ]
+   },
++  {
++   "always": false,
++   "exclude": [],
++   "id": "tests/test_organization_ingress_authority_effect.py",
++   "inputs": [],
++   "surfaces": [
++    "tests/test_organization_ingress_authority_effect.py"
++   ],
++   "tests": [
++    "tests/test_organization_ingress_authority_effect.py"
++   ]
++  },
+   {
+    "always": false,
+    "exclude": [],
+@@ -15059,6 +15071,11 @@
+    "resident-runtime/organization_governance_decision.py",
+    "tests/pytest.py"
+   ],
++  "tests/test_organization_ingress_authority_effect.py": [
++   "data/canonical-task-records/**",
++   "org-boundary/registry/services.json",
++   "resident-runtime/organization_manifest_ingress.py"
++  ],
+   "tests/test_organization_ingress_payload_binding.py": [
+    "org-boundary/registry/services.json",
+    "resident-runtime/organization_manifest_ingress.py"
+diff --git a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/README.md b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/README.md
+index 1eb4371..d09aae9 100644
+--- a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/README.md
++++ b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/README.md
+@@ -17,7 +17,7 @@ positive case and one case per #3369 item. Each case names its mutation, what it
+ | `n3-wrong-receiving-operation` | the request names a receiving operation owned by another repository | FORGED_IDENTITY | SPEC_GAP |
+ | `n4-generation-not-successor` | VERIFY_EXISTING standing whose predecessor generation is not generation - 1 | STALE_HEAD_OR_FENCE | SPEC_GAP |
+ | `n5-wrong-route` | `completion.egress` declares a surface the registry does not expose | WRONG_ROUTE | COVERED |
+-| `n6-ingress-resolution-absent` | the request carries no organization ingress resolution | MISSING_AUTHORITY | SPEC_GAP |
++| `n6-authority-effect-not-warranted` | a declared `transition.authority_effect` other than NONE is refused before the crossing | MISSING_AUTHORITY | COVERED_WITH_SPEC_GAP |
+ | `n7-missing-receipts` | the crossing returns no boundary receipt chain | MISSING_RECEIPTS | COVERED |
+ | `n8-reconstruction-failure` | the terminal boundary receipt is dropped; `receive()` refuses (gating) | RECONSTRUCTION_FAILURE_GATING | COVERED |
+ | `n9-non-gating-propagation-failure` | Master Records propagation fails closed; the transition stays recorded | RECONSTRUCTION_FAILURE_NON_GATING | COVERED |
+@@ -63,7 +63,10 @@ exist in `data/canonical-task-records/`:
+   (SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001; KV binding field: STEGOS-DEVICE-KV-SKAP-ROUNDTRIP-001)
+ - `STALE_HEAD_OR_FENCE_NOT_COMPARED_AT_INGRESS` (n4): the Registry/WorkerCoordinator owner's claim/fence and
+   expected head (#3369 assignment), with organization ledger readback by ORGANIZATION-BATCH-CUSTODY-REPLAY-001
+-- `AUTHORITY_NOT_CHECKED_AT_INGRESS` (n6)
++- `AUTHORITY_WARRANT_RECEIPT_NOT_VERIFIED_AT_INGRESS` (n6): `receive()` refuses any declared effect other than
++  NONE before `cross()` (`DECLARED_AUTHORITY_EFFECT_IS_NONE_UNTIL_A_WARRANT_RECEIPT_BINDS` /
++  `AUTHORITY_EFFECT_NOT_WARRANTED_AT_INGRESS`); a warranted effect waits on a landed TV/TVC warrant receipt
++  (SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001)
+ 
+ Nothing here admits a task, grants authority, appends to a real ledger or mints a live receipt. ALLOW on
+ these temporary roots is a fixture result, not runtime ALLOW. Admission, the WorkerCoordinator
+diff --git a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n6-authority-effect-not-warranted.json b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n6-authority-effect-not-warranted.json
+new file mode 100644
+index 0000000..e8fff79
+--- /dev/null
++++ b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n6-authority-effect-not-warranted.json
+@@ -0,0 +1,38 @@
++{
++  "case_id": "n6-authority-effect-not-warranted",
++  "covers": "A_DECLARED_AUTHORITY_EFFECT_OTHER_THAN_NONE_IS_REFUSED_BEFORE_THE_CROSSING",
++  "evidence_class": "FIXTURE_ONLY_NOT_RUNTIME_RECEIPT",
++  "expected": {
++    "authority_effect": "NONE_REFUSAL_ONLY",
++    "disposition": "FAIL_CLOSED",
++    "failed_predicate": "DECLARED_AUTHORITY_EFFECT_IS_NONE_UNTIL_A_WARRANT_RECEIPT_BINDS",
++    "failure_code": "AUTHORITY_EFFECT_NOT_WARRANTED_AT_INGRESS:declared transition.authority_effect \"GRANTS_EXECUTION_AUTHORITY\"",
++    "received": false,
++    "refusal_recorded": true
++  },
++  "expected_generator": "python3 -m tests.test_protocol_v1_conformance_fixtures --regenerate",
++  "expected_refusal_record": {
++    "disposition": "DENY",
++    "transition_class": "ORGANIZATION_SDK_MANIFEST_INGRESS_REFUSED"
++  },
++  "expected_source": "GENERATED_FROM_REAL_RECEIVE",
++  "issue_3369_item": "MISSING_AUTHORITY",
++  "issue_3369_item_status": "COVERED_WITH_SPEC_GAP",
++  "mutation": {
++    "kind": "PATCH_TRANSITION",
++    "patch": {
++      "authority_effect": "GRANTS_EXECUTION_AUTHORITY"
++    }
++  },
++  "schema": "stegverse.protocol-v1-conformance-case/v1",
++  "spec_gap": {
++    "disposition": "GAP_NOT_IMPLEMENTED",
++    "failed_predicate": "AUTHORITY_EFFECT_IS_WARRANTED_BY_A_LANDED_TV_TVC_RECEIPT",
++    "failure_code": "AUTHORITY_WARRANT_RECEIPT_NOT_VERIFIED_AT_INGRESS",
++    "issue_3369_item": "MISSING_AUTHORITY",
++    "next_attempt": "TV/TVC defines a landed warrant receipt bound to the manifest digest, scope and hb_epoch (StegVerse-Labs/TVC validate_warrant, TVC#488); then receive() verifies it from its landed bytes, as resident-runtime/intr_path_tvc_read.py verifies a TVC receipt, with no live call, and a case submits a warranted non-NONE effect and asserts it crosses while an unwarranted one is still refused",
++    "owning_existing_goal": "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001",
++    "required_evidence_or_repair": "receive() now refuses any declared transition.authority_effect other than NONE before cross() is called (DECLARED_AUTHORITY_EFFECT_IS_NONE_UNTIL_A_WARRANT_RECEIPT_BINDS / AUTHORITY_EFFECT_NOT_WARRANTED_AT_INGRESS), so a submission without the authority its effect requires produces no effect and the envelope never carries one. What remains is a warranted effect: no TV/TVC warrant receipt schema exists, so a non-NONE effect is refused even when it would be warranted. Admission and claim/fence stay with the Registry/WorkerCoordinator owner, whose ADMIT mints no execution authority",
++    "retry_entrypoint": "resident-runtime/organization_manifest_ingress.py::receive"
++  }
++}
+diff --git a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n6-ingress-resolution-absent.json b/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n6-ingress-resolution-absent.json
+deleted file mode 100644
+index 8174b1e..0000000
+--- a/org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/n6-ingress-resolution-absent.json
++++ /dev/null
+@@ -1,35 +0,0 @@
+-{
+-  "case_id": "n6-ingress-resolution-absent",
+-  "covers": "THE_REQUEST_CARRIES_NO_ORGANIZATION_INGRESS_RESOLUTION",
+-  "evidence_class": "FIXTURE_ONLY_NOT_RUNTIME_RECEIPT",
+-  "expected": {
+-    "authority_effect": "NONE_REFUSAL_ONLY",
+-    "disposition": "FAIL_CLOSED",
+-    "failed_predicate": "CAPABILITY_IS_BOUND_TO_THIS_RECEIVING_OPERATION",
+-    "failure_code": "ORGANIZATION_INGRESS_RESOLUTION_ABSENT_FROM_REQUEST",
+-    "received": false,
+-    "refusal_recorded": true
+-  },
+-  "expected_generator": "python3 -m tests.test_protocol_v1_conformance_fixtures --regenerate",
+-  "expected_refusal_record": {
+-    "disposition": "DENY",
+-    "transition_class": "ORGANIZATION_SDK_MANIFEST_INGRESS_REFUSED"
+-  },
+-  "expected_source": "GENERATED_FROM_REAL_RECEIVE",
+-  "issue_3369_item": "MISSING_AUTHORITY",
+-  "issue_3369_item_status": "SPEC_GAP",
+-  "mutation": {
+-    "kind": "DROP_RESOLUTION"
+-  },
+-  "schema": "stegverse.protocol-v1-conformance-case/v1",
+-  "spec_gap": {
+-    "disposition": "GAP_NOT_IMPLEMENTED",
+-    "failed_predicate": "THE_SUBMISSION_CARRIES_THE_AUTHORITY_ITS_TRANSITION_REQUIRES",
+-    "failure_code": "AUTHORITY_NOT_CHECKED_AT_INGRESS",
+-    "issue_3369_item": "MISSING_AUTHORITY",
+-    "next_attempt": "the Registry owner's admission reaches ingress; then add a case submitting without that authority and assert its refusal",
+-    "owning_existing_goal": "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001",
+-    "required_evidence_or_repair": "manifest.transition.authority_effect is carried onto the InTr envelope verbatim and checked nowhere on the receive() path; admission and claim/fence stay with the Registry owner. A missing authority is not expressible here; this case covers an absent ingress resolution instead",
+-    "retry_entrypoint": "resident-runtime/organization_manifest_ingress.py::receive"
+-  }
+-}
+diff --git a/resident-runtime/organization_manifest_ingress.py b/resident-runtime/organization_manifest_ingress.py
+index 475077e..87a6f99 100644
+--- a/resident-runtime/organization_manifest_ingress.py
++++ b/resident-runtime/organization_manifest_ingress.py
+@@ -49,8 +49,8 @@ A refusal is also recorded. A state transition is the disposition of an intended
+ action, not only a successful one: a submission that arrived and was refused is
+ a transition whose disposition is DENY, and `organization_scope_rule` makes no
+ exception for it. Every refusal path through `receive` -- an unresolvable
+-destination, a capability bound elsewhere, a crossing this manifest cannot
+-drive, a far side that refused, a boundary chain that does not reconstruct --
++destination, a capability bound elsewhere, a declared authority effect other
++than NONE, a crossing this manifest cannot drive, a far side that refused, a boundary chain that does not reconstruct --
+ appends a repository receipt and the organization receipt that consumes it,
+ under `ORGANIZATION_SDK_MANIFEST_INGRESS_REFUSED`. Before this they returned a
+ refusal and wrote nothing, which made a held or retried submission
+@@ -141,6 +141,19 @@ PARENT_MANIFEST_INVALID_PREDICATE = "MANIFEST_DECLARED_ORGANIZATION_BATCH_PARENT
+ PAYLOAD_NOT_BOUND = "CROSSING_PAYLOAD_NOT_BOUND_TO_THE_DELIVERED_MANIFEST"
+ PAYLOAD_NOT_BOUND_PREDICATE = "CROSSING_PAYLOAD_RECOMPUTES_FROM_THE_DELIVERED_MANIFEST"
+ PAYLOAD_BINDING_OWNING_GOAL = "StegVerse-Labs/.github#3369"
++#: A submission may not carry an authority effect into the crossing. The
++#: crossing copies `transition.authority_effect` onto the InTr envelope
++#: verbatim, the boundary passes it through to its result, and the boundary
++#: document says an effect is DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS, not
++#: taken from the caller. Both appends already record "NONE". Until a landed
++#: warrant receipt can be verified here, anything but NONE is refused before
++#: the crossing runs, so nothing downstream sees an unwarranted effect.
++AUTHORITY_NOT_WARRANTED = "AUTHORITY_EFFECT_NOT_WARRANTED_AT_INGRESS"
++AUTHORITY_NOT_WARRANTED_PREDICATE = "DECLARED_AUTHORITY_EFFECT_IS_NONE_UNTIL_A_WARRANT_RECEIPT_BINDS"
++AUTHORITY_OWNING_GOAL = "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001"
++#: The only declared effect this operation admits. An absent `transition`, or
++#: one with no `authority_effect`, is the same NONE the crossing reads it as.
++NONE_AUTHORITY_EFFECT = "NONE"
+ 
+ 
+ def recomputation_rule_ref(environ: Mapping[str, str] | None = None,
+@@ -636,6 +649,27 @@ def payload_binding_failure(manifest: Mapping[str, Any],
+     return None
+ 
+ 
++def declared_authority_effect_failure(manifest: Any) -> str | None:
++    """Why the submission's declared authority effect is not NONE, or None.
++
++    Read exactly as the crossing reads it --
++    `(manifest.get("transition") or {}).get("authority_effect", "NONE")` -- so
++    whatever the crossing would put on the envelope is what is checked. A
++    `transition` that is not an object, or an `authority_effect` that is
++    anything but the string NONE (null included), is refused.
++    """
++    if not isinstance(manifest, Mapping):
++        return None
++    transition = manifest.get("transition") or {}
++    if not isinstance(transition, Mapping):
++        return AUTHORITY_NOT_WARRANTED + ":transition is not an object"
++    effect = transition.get("authority_effect", NONE_AUTHORITY_EFFECT)
++    if effect == NONE_AUTHORITY_EFFECT:
++        return None
++    return (AUTHORITY_NOT_WARRANTED + ":declared transition.authority_effect "
++            + json.dumps(effect, sort_keys=True))
++
++
+ #: The fields of a crossing that name the packets carrying one delivery. They are
+ #: transport: a redelivery of the same manifest is carried by other packets, and
+ #: that does not make it another transition.
+@@ -1084,6 +1118,24 @@ def receive(manifest: Mapping[str, Any], *, registry: Mapping[str, Any], standin
+     refused = functools.partial(refused, parent_manifest=parent_manifest,
+                                 organization_evidence=organization_evidence)
+ 
++    # A declared authority effect other than NONE is refused before the
++    # crossing, so the endpoint never runs under it and the envelope never
++    # carries it. Nothing here can warrant one.
++    unwarranted = declared_authority_effect_failure(manifest)
++    if unwarranted is not None:
++        return refused(
++            AUTHORITY_NOT_WARRANTED_PREDICATE, unwarranted, failure_code=AUTHORITY_NOT_WARRANTED,
++            required_evidence_or_repair=(
++                "a manifest whose transition.authority_effect is absent or NONE; a non-NONE "
++                "effect needs a landed TV/TVC warrant receipt this operation can verify, and "
++                "none is defined yet"),
++            retry_entrypoint=RETRY_ENTRYPOINT,
++            owning_existing_goal=AUTHORITY_OWNING_GOAL,
++            next_attempt={"entrypoint": RETRY_ENTRYPOINT,
++                          "resubmit": "THE_MANIFEST_WITH_TRANSITION_AUTHORITY_EFFECT_NONE",
++                          "awaits_an_external_machine": False},
++            request_sha256=request["request_sha256"])
++
+     try:
+         crossing = crossing_module.cross(manifest, registry=dict(registry), standing=standing, packet_id=packet_id)
+     except SystemExit as exc:
+diff --git a/tests/test_organization_ingress_authority_effect.py b/tests/test_organization_ingress_authority_effect.py
+new file mode 100644
+index 0000000..5893a12
+--- /dev/null
++++ b/tests/test_organization_ingress_authority_effect.py
+@@ -0,0 +1,240 @@
++"""Ingress refuses a declared authority effect other than NONE before the crossing.
++
++`sdk_manifest_crossing.crossing_packet` copies `transition.authority_effect`
++onto the InTr envelope verbatim, and `process_boundary.py` passes it through to
++its result, while the boundary document says an effect is
++`DERIVED_FROM_APPLICABLE_TRANSITION_ELEMENTS` and both ledger appends record
++"NONE". Nothing on the `receive()` path checked it (StegVerse-Labs/.github#3369,
++"missing authority"). Until a landed warrant receipt can be verified at
++ingress, `receive()` refuses any declared effect that is not NONE -- an absent
++`transition` or `authority_effect` is NONE, as the crossing reads it -- under
++`DECLARED_AUTHORITY_EFFECT_IS_NONE_UNTIL_A_WARRANT_RECEIPT_BINDS`, before
++`cross()` is called, and records the refusal at both ledger levels.
++
++These cases drive the real `receive()`, the real crossing and the real
++`process_boundary.py` subprocess on the boundary-local diagnostic service,
++against temporary ledger roots. Only the SDK's request derivation, the binding
++resolution and result admission are stubbed. `cross` is wrapped to count its
++calls, so "before the crossing" is observed, not inferred.
++
++Source validation only. No authority effect is claimed.
++"""
++from __future__ import annotations
++
++import copy
++import importlib.util
++import json
++import os
++import tempfile
++import unittest
++from pathlib import Path
++from unittest import mock
++
++ROOT = Path(__file__).resolve().parents[1]
++REVISION = "0123456789abcdef0123456789abcdef01234567"
++
++_spec = importlib.util.spec_from_file_location(
++    "organization_ingress_authority_effect_subject",
++    ROOT / "resident-runtime/organization_manifest_ingress.py")
++ingress = importlib.util.module_from_spec(_spec)
++_spec.loader.exec_module(ingress)
++crossing_module = ingress.crossing_module
++
++PREDICATE = "DECLARED_AUTHORITY_EFFECT_IS_NONE_UNTIL_A_WARRANT_RECEIPT_BINDS"
++FAILURE_CODE = "AUTHORITY_EFFECT_NOT_WARRANTED_AT_INGRESS"
++OWNING_GOAL = "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001"
++SIX_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair",
++              "retry_entrypoint", "owning_existing_goal", "next_attempt")
++REGISTRY = json.loads((ROOT / "org-boundary/registry/services.json").read_text(encoding="utf-8"))
++
++MANIFEST = {
++    "processing": {"capability": "ecosystem_diagnostic",
++                   "route_id": "stegverse.route.ecosystem-diagnostic.v1"},
++    "completion": {"egress": {"final_stegverse_transition_surface": "boundary_diagnostic",
++                              "transport": "INTERLOCK_INTR",
++                              "far_side_transition_required": True}},
++    "transition": {"authority_effect": "NONE"},
++    "data": {"value": 1},
++}
++STANDING = {"mode": "ESTABLISH_GENESIS", "node_ref": "authority-effect-test",
++            "generation": 1, "predecessor": None}
++
++#: Declared effects the operation must refuse. Each is something a submitter
++#: could put on the envelope; none is the string NONE.
++REFUSED_EFFECTS = ("GRANTS_EXECUTION_AUTHORITY", "NONE_REQUEST_ONLY", "none", "", None, 0,
++                   ["NONE"], {"effect": "NONE"})
++
++
++def request(manifest) -> dict:
++    digest = ingress.sha(manifest)
++    return {"request_sha256": ingress.sha({"manifest": digest}), "wire_manifest_sha256": digest,
++            "canonical_manifest_sha256": digest, "graph_id": "graph-1",
++            "canonical_task_id": "task-1", "processing_capability": "ecosystem_diagnostic",
++            "route_id": "stegverse.route.ecosystem-diagnostic.v1",
++            "destination_resolution_source": "ORGANIZATION_BOUNDARY"}
++
++
++def with_transition(transition):
++    manifest = copy.deepcopy(MANIFEST)
++    manifest["transition"] = transition
++    return manifest
++
++
++def without_transition():
++    manifest = copy.deepcopy(MANIFEST)
++    manifest.pop("transition")
++    return manifest
++
++
++class AuthorityEffectCase(unittest.TestCase):
++    def setUp(self):
++        self._temp = tempfile.TemporaryDirectory()
++        self.addCleanup(self._temp.cleanup)
++        base = Path(self._temp.name)
++        self.repo_root, self.org_root = base / "repo", base / "org"
++        self.crossings = []
++        self.binding = lambda r: {"operation": "receive"}
++        real_cross = crossing_module.cross
++
++        def cross(*args, **kwargs):
++            self.crossings.append(args[0])
++            return real_cross(*args, **kwargs)
++
++        patches = [
++            mock.patch.dict(os.environ, {"GITHUB_SHA": REVISION,
++                                         "STEGVERSE_ORG_LEDGER_ROOT": str(self.org_root),
++                                         "STEGVERSE_REPO_LEDGER_ROOT": str(self.repo_root)}),
++            mock.patch.object(ingress, "derive_execution_request", lambda m, b: request(m)),
++            mock.patch.object(ingress, "bound_here", lambda r: self.binding(r)),
++            mock.patch.object(ingress, "admit_runtime_result", lambda *a: {"admitted": True}),
++            mock.patch.object(crossing_module, "cross", cross),
++        ]
++        for patch in patches:
++            patch.start()
++            self.addCleanup(patch.stop)
++
++    def receive(self, manifest):
++        return ingress.receive(manifest, registry=REGISTRY, standing=dict(STANDING),
++                               packet_id="authority-effect-1")
++
++    def receipts(self, root: Path) -> list[dict]:
++        directory = root / "receipts"
++        return [json.loads(p.read_text()) for p in sorted(directory.glob("*.json"))] \
++            if directory.is_dir() else []
++
++    def assertRefusedBeforeCrossing(self, result: dict, manifest) -> None:
++        self.assertEqual(result["disposition"], "FAIL_CLOSED", result)
++        self.assertEqual(result["failed_predicate"], PREDICATE, result)
++        self.assertEqual(result["failure_code"], FAILURE_CODE, result)
++        self.assertTrue(result["detail"].startswith(FAILURE_CODE + ":"), result["detail"])
++        for field in SIX_FIELDS:
++            self.assertTrue(result.get(field), field)
++        self.assertEqual(result["owning_existing_goal"], OWNING_GOAL)
++        self.assertEqual(result["retry_entrypoint"], ingress.RETRY_ENTRYPOINT)
++        self.assertIs(result["next_attempt"]["awaits_an_external_machine"], False)
++        self.assertIs(result["received"], False)
++        self.assertIs(result["refusal_recorded"], True)
++        self.assertIs(result["organization_receipt_observed"], False)
++        self.assertEqual(result["authority_effect"], "NONE_REFUSAL_ONLY")
++        self.assertEqual(result["request_sha256"], request(manifest)["request_sha256"])
++        # The crossing -- and so the boundary and its endpoint -- never ran.
++        self.assertEqual(self.crossings, [])
++        # Recorded at both levels as a refusal, and nothing else.
++        repository, = self.receipts(self.repo_root)
++        organization, = self.receipts(self.org_root)
++        self.assertEqual(repository["transition_class"], ingress.REFUSED_CLASS)
++        self.assertEqual(repository["receipt_sha256"], result["refusal_repository_receipt_sha256"])
++        self.assertEqual(repository["evidence"]["failed_predicate"], PREDICATE)
++        self.assertEqual(repository["evidence"]["detail"], result["detail"])
++        self.assertEqual(repository["evidence"]["disposition"], "DENY")
++        self.assertEqual(repository["authority_effect"], "NONE")
++        self.assertEqual(organization["receipt_sha256"], result["refusal_organization_receipt_sha256"])
++        self.assertEqual(organization["repo_receipt_sha256"], repository["receipt_sha256"])
++        self.assertEqual(organization["boundary_evidence"]["failed_predicate"], PREDICATE)
++        self.assertEqual(organization["authority_effect"], "NONE")
++
++
++class RefusedEffectTests(AuthorityEffectCase):
++    def test_each_non_none_declared_effect_is_refused_before_the_crossing(self):
++        for effect in REFUSED_EFFECTS:
++            with self.subTest(effect=effect):
++                self.setUp()
++                manifest = with_transition({"authority_effect": effect})
++                result = self.receive(manifest)
++                self.assertRefusedBeforeCrossing(result, manifest)
++                self.assertEqual(result["detail"], FAILURE_CODE + ":declared transition.authority_effect "
++                                 + json.dumps(effect, sort_keys=True))
++
++    def test_a_transition_that_is_not_an_object_is_refused(self):
++        manifest = with_transition("GRANTS_EXECUTION_AUTHORITY")
++        result = self.receive(manifest)
++        self.assertRefusedBeforeCrossing(result, manifest)
++        self.assertEqual(result["detail"], FAILURE_CODE + ":transition is not an object")
++
++    def test_a_redelivered_refusal_is_recorded_once(self):
++        manifest = with_transition({"authority_effect": "GRANTS_EXECUTION_AUTHORITY"})
++        first = self.receive(manifest)
++        second = self.receive(copy.deepcopy(manifest))
++        self.assertEqual(first["refusal_repository_receipt_sha256"],
++                         second["refusal_repository_receipt_sha256"])
++        self.assertEqual(len(self.receipts(self.repo_root)), 1)
++        self.assertEqual(len(self.receipts(self.org_root)), 1)
++        self.assertEqual(self.crossings, [])
++
++    def test_the_binding_check_still_runs_first(self):
++        """A request bound elsewhere is refused for its binding, whatever effect it declares."""
++        def elsewhere(request):
++            raise ValueError("ORGANIZATION_INGRESS_RESOLUTION_ABSENT_FROM_REQUEST")
++
++        self.binding = elsewhere
++        result = self.receive(with_transition({"authority_effect": "GRANTS_EXECUTION_AUTHORITY"}))
++        self.assertEqual(result["failed_predicate"], "CAPABILITY_IS_BOUND_TO_THIS_RECEIVING_OPERATION")
++        self.assertEqual(result["detail"], "ORGANIZATION_INGRESS_RESOLUTION_ABSENT_FROM_REQUEST")
++        self.assertEqual(self.crossings, [])
++
++
++class AdmittedEffectTests(AuthorityEffectCase):
++    """What legitimate submissions send -- NONE, or nothing -- still crosses."""
++
++    def assertAdmitted(self, manifest):
++        result = self.receive(manifest)
++        self.assertEqual(result["disposition"], "ALLOW", result.get("detail"))
++        self.assertEqual(len(self.crossings), 1)
++        repository, = self.receipts(self.repo_root)
++        self.assertEqual(repository["transition_class"], ingress.OPERATION_ID)
++        return result
++
++    def test_declared_none_crosses(self):
++        self.assertAdmitted(copy.deepcopy(MANIFEST))
++
++    def test_an_absent_transition_crosses(self):
++        self.assertAdmitted(without_transition())
++
++    def test_a_transition_without_an_authority_effect_crosses(self):
++        self.assertAdmitted(with_transition({}))
++
++    def test_a_null_transition_crosses_as_the_crossing_reads_it(self):
++        self.assertAdmitted(with_transition(None))
++
++
++class PredicateTests(unittest.TestCase):
++    def test_the_predicate_reads_the_effect_exactly_as_the_crossing_does(self):
++        """Whatever the crossing would put on the envelope is what is checked."""
++        for transition in (None, {}, {"authority_effect": "NONE"}, [], ""):
++            manifest = with_transition(transition)
++            envelope_effect = str((manifest.get("transition") or {}).get("authority_effect", "NONE"))
++            self.assertEqual(envelope_effect, "NONE")
++            self.assertIsNone(ingress.declared_authority_effect_failure(manifest), transition)
++        for effect in REFUSED_EFFECTS:
++            self.assertIsNotNone(ingress.declared_authority_effect_failure(
++                with_transition({"authority_effect": effect})), effect)
++
++    def test_the_failure_code_predicate_and_registered_owner_are_the_modules(self):
++        self.assertEqual(ingress.AUTHORITY_NOT_WARRANTED, FAILURE_CODE)
++        self.assertEqual(ingress.AUTHORITY_NOT_WARRANTED_PREDICATE, PREDICATE)
++        self.assertEqual(ingress.AUTHORITY_OWNING_GOAL, OWNING_GOAL)
++        self.assertTrue((ROOT / "data/canonical-task-records" / f"{OWNING_GOAL}.json").is_file())
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/test_protocol_v1_conformance_fixtures.py b/tests/test_protocol_v1_conformance_fixtures.py
+index 636da37..b59e533 100644
+--- a/tests/test_protocol_v1_conformance_fixtures.py
++++ b/tests/test_protocol_v1_conformance_fixtures.py
+@@ -41,9 +41,9 @@ refusal fields (`required_evidence_or_repair`, `retry_entrypoint`,
+ paths, so no case claims them as observed.
+ 
+ Items the real path cannot express -- a stale head or fence, a submitter
+-whose KV/SKAP verification is bound to the manifest, missing authority, a
+-redelivery answered before its endpoint runs, a payload whose `payload_hash`
+-is left unchanged -- are recorded as six-field `spec_gap` entries, each
++whose KV/SKAP verification is bound to the manifest, an authority effect a
++landed warrant receipt binds, a redelivery answered before its endpoint runs,
++a payload whose `payload_hash` is left unchanged -- are recorded as six-field `spec_gap` entries, each
+ checked to name a code that exists nowhere in the ingress source, rather than
+ being invented here. Replay itself is not one of them: idempotent redelivery
+ is the specified behaviour (I-10), and n2 covers "no duplicate effect" at both
+@@ -78,7 +78,7 @@ OBSERVED_FIELDS = ("disposition", "failed_predicate", "failure_code", "received"
+ REPLAY = "n2-replay"
+ NON_GATING = "n9-non-gating-propagation-failure"
+ NEGATIVES = ("n1-tamper", "n3-wrong-receiving-operation", "n4-generation-not-successor",
+-             "n5-wrong-route", "n6-ingress-resolution-absent", "n7-missing-receipts",
++             "n5-wrong-route", "n6-authority-effect-not-warranted", "n7-missing-receipts",
+              "n8-reconstruction-failure")
+ ALL_CASES = ("positive", REPLAY, NON_GATING) + NEGATIVES
+ #: Every #3369 item, and the one case it is filed under.
+@@ -86,7 +86,7 @@ ISSUE_ITEMS = {"POSITIVE": "positive", "TAMPER": "n1-tamper", "REPLAY": REPLAY,
+                "FORGED_IDENTITY": "n3-wrong-receiving-operation",
+                "STALE_HEAD_OR_FENCE": "n4-generation-not-successor",
+                "WRONG_ROUTE": "n5-wrong-route",
+-               "MISSING_AUTHORITY": "n6-ingress-resolution-absent",
++               "MISSING_AUTHORITY": "n6-authority-effect-not-warranted",
+                "MISSING_RECEIPTS": "n7-missing-receipts",
+                "RECONSTRUCTION_FAILURE_GATING": "n8-reconstruction-failure",
+                "RECONSTRUCTION_FAILURE_NON_GATING": NON_GATING}
+@@ -225,13 +225,13 @@ def drive(spec):
+     standing = copy.deepcopy(fixture["standing"])
+     if kind == "PATCH_EGRESS":
+         manifest["completion"]["egress"].update(mutation["patch"])
++    if kind == "PATCH_TRANSITION":
++        manifest["transition"].update(mutation["patch"])
+     if kind == "REPLACE_STANDING":
+         standing = copy.deepcopy(mutation["standing"])
+     request = ingress_request(fixture, manifest)
+     if kind == "PATCH_RECEIVING_OPERATION":
+         request["manifest_declared_destination"]["receiving_operation"].update(mutation["patch"])
+-    if kind == "DROP_RESOLUTION":
+-        request.pop("manifest_declared_destination")
+ 
+     real_cross = ingress.crossing_module.cross
+ 
+@@ -534,6 +534,18 @@ class NegativeCaseTest(unittest.TestCase):
+                 self.assertEqual(org_receipt["boundary_evidence"]["failed_predicate"],
+                                  spec["expected"]["failed_predicate"])
+ 
++    def test_an_unwarranted_authority_effect_is_refused_before_the_crossing_runs(self):
++        """n6 is answered without the crossing: a crossing that cannot run changes nothing."""
++        spec = case("n6-authority-effect-not-warranted")
++
++        def must_not_cross(*args, **kwargs):
++            raise AssertionError("the crossing ran for an unwarranted authority effect")
++
++        with mock.patch.object(ingress.crossing_module, "cross", must_not_cross):
++            fields, record = observed(*drive(spec))
++        assert_matches_expected(self, spec, fields, record)
++        self.assertEqual(fields["failure_code"].split(":", 1)[0], ingress.AUTHORITY_NOT_WARRANTED)
++
+     def test_generation_successor_refusal_code_is_the_standing_contracts_own(self):
+         result, _ = live("n4-generation-not-successor")
+         self.assertEqual(result["detail"],
+-- 
+2.43.0
+
