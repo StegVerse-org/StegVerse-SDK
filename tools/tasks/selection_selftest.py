@@ -85,5 +85,62 @@ class GroupSelectionTests(unittest.TestCase):
                 self.assertEqual(has, event in (group.get("path_filters") or {}), (gid, event))
 
 
+DISPATCHER = (ROOT / ".github/workflows/validation-dispatcher.yml").read_text(encoding="utf-8")
+CARRIED = CATALOG.get("carried_job_selection") or {}
+
+
+def job_block(job):
+    m = re.search(r"^  %s:\n((?:(?:    |\s*\n).*\n?)*)" % re.escape(job), DISPATCHER, re.M)
+    return m.group(1) if m else ""
+
+
+class CarriedJobTests(unittest.TestCase):
+    """Carried dispatcher jobs are selected by their original filters without a job-level `if` (that would
+    be a SKIPPED job): the job always runs, records SELECTED / NOT_SELECTED, and its other steps are gated."""
+
+    def test_plan_emits_the_selection(self):
+        self.assertIn("carried: ${{ steps.carried.outputs.carried }}", DISPATCHER)
+        self.assertIn("run_catalog.py carried --event", DISPATCHER)
+
+    def test_no_job_level_if_and_every_other_step_is_gated(self):
+        self.assertTrue(CARRIED)
+        for job in CARRIED:
+            block = job_block(job)
+            self.assertTrue(block, job)
+            self.assertIn("    needs: plan\n", block, job)
+            self.assertIsNone(re.search(r"^    if:", block, re.M), job)
+            gate = "fromJSON(needs.plan.outputs.carried)['%s']" % job
+            steps = re.split(r"^      - ", block, flags=re.M)[1:]
+            self.assertEqual(sum(1 for st in steps if "Record the original-path selection" in st), 1, job)
+            for st in steps:
+                if "Record the original-path selection" in st:
+                    self.assertNotRegex(st, r"(?m)^        if:", job)
+                else:
+                    self.assertIn(gate, st, (job, st.splitlines()[0]))
+
+    def test_selection_follows_the_original_events_and_paths(self):
+        for job, spec in CARRIED.items():
+            self.assertTrue((ROOT / spec["workflow"]).is_file(), job)
+            text = (ROOT / spec["workflow"]).read_text(encoding="utf-8")
+            on_block = re.split(r"^jobs:", text, maxsplit=1, flags=re.M)[0]
+            for event in ("pull_request", "push"):
+                present = bool(re.search(r"^  %s:" % event, on_block, re.M))
+                self.assertEqual(present, event in spec["events"], (job, event))
+                if event not in spec["events"]:
+                    self.assertFalse(rc.carried(event, ["README.md"])[job], (job, event))
+                    continue
+                m = re.search(r"^  %s:\s*\n((?:    .*\n|\s*\n)*)" % event, on_block, re.M)
+                has = bool(m and re.search(r"^    (paths|paths-ignore):", m.group(1), re.M))
+                self.assertEqual(has, event in spec["path_filters"], (job, event))
+                if event in spec["path_filters"]:
+                    self.assertFalse(rc.carried(event, ["zz-unrelated-selection-probe/none.txt"])[job], (job, event))
+                    self.assertTrue(rc.carried(event, None)[job], (job, event))
+                    for pattern in spec["path_filters"][event].get("paths", []):
+                        if not pattern.startswith("!") and not any(ch in pattern for ch in "*?+["):
+                            self.assertTrue(rc.carried(event, [pattern])[job], (job, event, pattern))
+                else:
+                    self.assertTrue(rc.carried(event, ["README.md"])[job], (job, event))
+
+
 if __name__ == "__main__":
     unittest.main()

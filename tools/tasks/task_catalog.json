@@ -4557,5 +4557,182 @@
     "python_version": "3.11"
    }
   }
- ]
+ ],
+ "carried_job_selection": {
+  "conformance": {
+   "workflow": "tools/tasks/folded/mir-leaf-v3-conformance.yml",
+   "events": [
+    "pull_request"
+   ],
+   "path_filters": {
+    "pull_request": {
+     "paths": [
+      "fixtures/mir_leaf_v3_conformance_fixture_v1.json",
+      "fixtures/mir_leaf_v3_conformance_expected_result_v1.json",
+      "stegverse/mir_leaf_v3.py",
+      "tools/mir_leaf_v3_neutral_reproducer.mjs",
+      "tools/compare_mir_leaf_v3_result.py",
+      "tests/test_mir_leaf_v3_conformance.py",
+      "tests/test_compare_mir_leaf_v3_result.py",
+      "docs/MIR_LEAF_V3_CONFORMANCE_FIXTURE_MIRROR_HANDOFF.md",
+      "tools/tasks/folded/mir-leaf-v3-conformance.yml",
+      ".github/workflows/validation-dispatcher.yml"
+     ]
+    }
+   }
+  },
+  "portable-package-source-validation": {
+   "workflow": "tools/tasks/folded/portable-package-source-validation.yml",
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "path_filters": {
+    "pull_request": {
+     "paths": [
+      "stegverse/portable_packages.py",
+      "tests/test_portable_packages.py",
+      "tests/test_portable_dual_archive.py",
+      "pyproject.toml",
+      "docs/SDK_PORTABLE_PACKAGE_CONSOLE_MIRROR_HANDOFF.md",
+      "docs/SDK_CONSOLE.md",
+      "tools/tasks/folded/portable-package-source-validation.yml",
+      ".github/workflows/validation-dispatcher.yml"
+     ]
+    },
+    "push": {
+     "paths": [
+      "stegverse/portable_packages.py",
+      "tests/test_portable_packages.py",
+      "tests/test_portable_dual_archive.py",
+      "pyproject.toml",
+      "docs/SDK_PORTABLE_PACKAGE_CONSOLE_MIRROR_HANDOFF.md",
+      "docs/SDK_CONSOLE.md",
+      "tools/tasks/folded/portable-package-source-validation.yml",
+      ".github/workflows/validation-dispatcher.yml"
+     ]
+    }
+   }
+  },
+  "release-index-validation": {
+   "workflow": "tools/tasks/folded/portable-release-index-validation.yml",
+   "events": [
+    "pull_request"
+   ],
+   "path_filters": {
+    "pull_request": {
+     "paths": [
+      "stegverse/release_index.py",
+      "tests/test_release_index.py",
+      "pyproject.toml",
+      "tools/tasks/folded/portable-release-index-validation.yml",
+      ".github/workflows/validation-dispatcher.yml"
+     ]
+    }
+   }
+  },
+  "review-only-export": {
+   "workflow": "tools/tasks/folded/deepwiki-readonly-review.yml",
+   "events": [
+    "pull_request"
+   ],
+   "path_filters": {
+    "pull_request": {
+     "paths": [
+      "scripts/export_deepwiki_review.py",
+      "tests/test_export_deepwiki_review.py",
+      "scripts/resolve_deepwiki_review_citations.py",
+      "tests/test_resolve_deepwiki_review_citations.py",
+      "scripts/build_deepwiki_claim_review.py",
+      "tests/test_build_deepwiki_claim_review.py",
+      "scripts/inspect_remaining_deepwiki_citations.py",
+      "tests/test_inspect_remaining_deepwiki_citations.py",
+      "scripts/triage_frozen_deepwiki_citations.py",
+      "tests/test_triage_frozen_deepwiki_citations.py",
+      "docs/deepwiki-review/FIRST_PARTY_SOURCE_GUIDE.md",
+      "tests/test_deepwiki_first_party_guide.py",
+      "scripts/curate_frozen_deepwiki_review.py",
+      "tests/test_curate_frozen_deepwiki_review.py",
+      "docs/deepwiki-review/CURRENT_SOURCE_DRIFT_CORRECTIONS.md",
+      "tests/test_deepwiki_source_drift.py",
+      "scripts/assess_deepwiki_atomic_claims.py",
+      "tests/test_assess_deepwiki_atomic_claims.py",
+      "docs/deepwiki-review/FIRST_PARTY_VERIFIED_CONTRACTS.md",
+      "tests/test_deepwiki_first_party_verified_contracts.py",
+      "scripts/reconcile_historical_deepwiki_literals.py",
+      "tests/test_reconcile_historical_deepwiki_literals.py",
+      "docs/deepwiki-review/OVERVIEW_13_CONTEXT_ADJUDICATION.md",
+      "tests/test_deepwiki_overview_13_context.py",
+      "scripts/locate_23_historical_deepwiki_sources.py",
+      "tests/test_locate_23_historical_deepwiki_sources.py",
+      "docs/deepwiki-review/GOVERNANCE_SIX_PRIORITY_DIAGRAM_CORRECTIONS.md",
+      "tests/test_deepwiki_governance_six_diagrams.py",
+      "docs/deepwiki-review/EIGHT_CROSS_BOUNDARY_PRIORITY_CORRECTIONS.md",
+      "tests/test_deepwiki_eight_crossboundary.py",
+      "docs/deepwiki-review/REMAINING_32_PRIORITY_SOURCE_DECISIONS.json",
+      "docs/deepwiki-review/REMAINING_32_PRIORITY_SOURCE_REVIEW.md",
+      "scripts/verify_remaining32_deepwiki_priority.py",
+      "tests/test_verify_remaining32_deepwiki_priority.py",
+      "docs/deepwiki-review/MANIFEST_30_ATOMIC_SOURCE_DECISIONS.json",
+      "scripts/verify_30_manifest_claims.py",
+      "tests/test_verify_30_manifest_claims.py",
+      "docs/deepwiki-review/FIRST_PARTY_MANIFEST_30_SOURCE_REFERENCE.md",
+      "tests/test_first_party_manifest30_reference.py",
+      "docs/deepwiki-review/NAV_EVALUATOR_CI_24_SOURCE_DECISIONS.json",
+      "docs/deepwiki-review/FIRST_PARTY_NAV_EVALUATOR_CI_24.md",
+      "scripts/verify_24_nav_evaluator_ci_claims.py",
+      "tests/test_deepwiki_nav_evaluator_ci24.py",
+      "docs/deepwiki-review/CROSS_FRAMEWORK_19_SOURCE_DECISIONS.json",
+      "docs/deepwiki-review/FIRST_PARTY_CROSS_FRAMEWORK_19.md",
+      "scripts/verify_19_cross_framework_claims.py",
+      "tests/test_deepwiki_cross_framework_19.py",
+      "docs/deepwiki-review/PURPOSE_WORKER_14_SOURCE_DECISIONS.json",
+      "docs/deepwiki-review/FIRST_PARTY_PURPOSE_WORKER_14.md",
+      "scripts/verify_14_purpose_worker_claims.py",
+      "tests/test_deepwiki_purpose_worker14.py",
+      "docs/deepwiki-review/ATOMIC_WORKER_10_SOURCE_DECISIONS.json",
+      "docs/deepwiki-review/FIRST_PARTY_ATOMIC_WORKER_10.md",
+      "scripts/verify_10_atomic_worker_claims.py",
+      "tests/test_deepwiki_atomic_worker10.py",
+      "docs/deepwiki-review/UNIVERSAL_INTERLOCK_16_SOURCE_DECISIONS.json",
+      "docs/deepwiki-review/FIRST_PARTY_UNIVERSAL_INTERLOCK_16.md",
+      "scripts/verify_16_universal_interlock_claims.py",
+      "tests/test_deepwiki_universal_interlock16.py",
+      "docs/deepwiki-review/GENERATED_DOCS_AND_DEPENDENCY_RIGHTS.md",
+      "tools/tasks/folded/deepwiki-readonly-review.yml",
+      ".github/workflows/validation-dispatcher.yml"
+     ]
+    }
+   }
+  },
+  "roundtrip": {
+   "workflow": "tools/tasks/folded/sv-llm-intr-roundtrip.yml",
+   "events": [
+    "pull_request",
+    "push"
+   ],
+   "path_filters": {
+    "pull_request": {
+     "paths": [
+      "stegverse/manifest_builder.py",
+      "stegverse/review_publisher_transfer.py",
+      "stegverse/publisher_return_binding.py",
+      "tests/test_sv_llm_intr_roundtrip.py",
+      "tools/tasks/folded/sv-llm-intr-roundtrip.yml",
+      ".github/workflows/validation-dispatcher.yml"
+     ]
+    },
+    "push": {
+     "paths": [
+      "stegverse/manifest_builder.py",
+      "stegverse/review_publisher_transfer.py",
+      "stegverse/publisher_return_binding.py",
+      "tests/test_sv_llm_intr_roundtrip.py",
+      "tools/tasks/folded/sv-llm-intr-roundtrip.yml",
+      ".github/workflows/validation-dispatcher.yml"
+     ]
+    }
+   }
+  }
+ }
 }

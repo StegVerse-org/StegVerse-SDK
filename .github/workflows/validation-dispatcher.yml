@@ -33,6 +33,7 @@ jobs:
       contents: read
     outputs:
       matrix: ${{ steps.select.outputs.matrix }}
+      carried: ${{ steps.carried.outputs.carried }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -48,6 +49,14 @@ jobs:
           CATALOG_PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           CATALOG_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: echo "matrix=$(python3 tools/tasks/run_catalog.py matrix --event "$GITHUB_EVENT_NAME")" >> "$GITHUB_OUTPUT"
+      - name: Select the carried dispatcher jobs by their original paths
+        id: carried
+        env:
+          CATALOG_EVENT_BEFORE: ${{ github.event.before }}
+          CATALOG_EVENT_AFTER: ${{ github.event.after }}
+          CATALOG_PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CATALOG_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: echo "carried=$(python3 tools/tasks/run_catalog.py carried --event "$GITHUB_EVENT_NAME")" >> "$GITHUB_OUTPUT"
 
   check:
     needs: plan
@@ -214,62 +223,93 @@ jobs:
 
   # ---- carried verbatim from tools/tasks/folded/deepwiki-readonly-review.yml (CARRIED_AS_DISPATCHER_JOB) ----
   review-only-export:
+    needs: plan
     permissions:
       contents: read
       actions: read
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
+      - name: "Record the original-path selection (NOT_SELECTED is a run, never a skip)"
+        env:
+          SELECTED: ${{ fromJSON(needs.plan.outputs.carried)['review-only-export'] }}
+        run: |
+          if [ "$SELECTED" = "true" ]; then echo "SELECTED: the original workflow's paths changed (or the event cannot be diffed)"; else echo "NOT_SELECTED: the original workflow would not have started on this event; the job runs and ends in success, nothing is skipped"; fi
       - uses: actions/checkout@v4
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Test fail-closed parser and review-only export
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_export_deepwiki_review -v
       - name: Test source-pinned citation candidate resolver
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_resolve_deepwiki_review_citations -v
       - name: Test non-authorizing claim-inspection packet
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_build_deepwiki_claim_review -v
       - name: Test unresolved-citation source probes
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_inspect_remaining_deepwiki_citations -v
       - name: Test frozen priority/defect review classification
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_triage_frozen_deepwiki_citations -v
       - name: Validate first-party guide exact source anchors
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_deepwiki_first_party_guide -v
       - name: Test complete conservative frozen-citation review
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_curate_frozen_deepwiki_review -v
       - name: Verify first-party current-source drift corrections
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_deepwiki_source_drift -v
       - name: Test atomic source-claim evidence and predecessor partition
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_assess_deepwiki_atomic_claims -v
       - name: Validate newly authored first-party SDK contract corrections
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_deepwiki_first_party_verified_contracts -v
       - name: Test predecessor-linked historical literal revalidation
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_reconcile_historical_deepwiki_literals -v
       - name: Validate independently reviewed Overview citation contexts
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_deepwiki_overview_13_context -v
       - name: Test exact-current 23-source locators and six governance diagram corrections
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_locate_23_historical_deepwiki_sources tests.test_deepwiki_governance_six_diagrams -v
       - name: Test eight source-level cross-boundary priority decisions
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_deepwiki_eight_crossboundary -v
       - name: Test all 32 remaining priority source witnesses without semantic authorization
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_verify_remaining32_deepwiki_priority -v
       - name: Validate 30 exact-source manifest candidate judgments
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_verify_30_manifest_claims -v
       - name: Verify first-party 30-case manifest technical guide
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_first_party_manifest30_reference -v
       - name: Test twenty-four independently authored navigation evaluator CI facts
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_deepwiki_nav_evaluator_ci24 -v
       - name: Validate nineteen current cross-framework witnesses without generated page import
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_deepwiki_cross_framework_19 -v
       - name: Test fourteen current purpose-worker source predicates without external page import
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_deepwiki_purpose_worker14 -v
       - name: Test ten current atomic-worker source witnesses
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_deepwiki_atomic_worker10 -v
       - name: Test sixteen universal-entry/interlock exact-source findings
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python -m unittest tests.test_deepwiki_universal_interlock16 -v
       - name: Capture public indexed wiki from official read-only MCP
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: python scripts/export_deepwiki_review.py --out deepwiki-review-export
       - name: Produce nonpublishing citation candidates against checked-out exact source
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/resolve_deepwiki_review_citations.py \
             --input deepwiki-review-export/read_wiki_contents.md \
@@ -277,6 +317,7 @@ jobs:
             --revision "$(git rev-parse HEAD)" \
             --out deepwiki-review-export
       - name: Assemble full source/claim review packet without semantic certification
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/build_deepwiki_claim_review.py \
             --input deepwiki-review-export/read_wiki_contents.md \
@@ -284,6 +325,7 @@ jobs:
             --root . \
             --out deepwiki-review-export
       - name: Verify unambiguous unresolved source suggestions; retain malformed cases
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/inspect_remaining_deepwiki_citations.py \
             --input deepwiki-review-export/read_wiki_contents.md \
@@ -291,6 +333,7 @@ jobs:
             --root . \
             --out deepwiki-review-export
       - name: Retrieve exact original 38-page source-review snapshot
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         uses: actions/download-artifact@v4
         with:
           run-id: 36175208212
@@ -298,9 +341,11 @@ jobs:
           github-token: ${{ github.token }}
           path: frozen-deepwiki-review
       - name: Verify original immutable capture before review
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           echo 'a729d9b0f487f785b0e8f92006f303e8520e3593b6eb6c4c5de43273daa72087  frozen-deepwiki-review/read_wiki_contents.md' | sha256sum -c -
       - name: Export 75 priority and 46 unresolved frozen review registers
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/triage_frozen_deepwiki_citations.py \
             --raw frozen-deepwiki-review/read_wiki_contents.md \
@@ -308,6 +353,7 @@ jobs:
             --unresolved frozen-deepwiki-review/remaining-citation-proposals-UNREVIEWED.json \
             --out deepwiki-review-export
       - name: Retrieve prior exact 75-case frozen and 613-case inspection packet
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         uses: actions/download-artifact@v4
         with:
           run-id: 36183020371
@@ -315,6 +361,7 @@ jobs:
           github-token: ${{ github.token }}
           path: frozen-adjudication-input
       - name: Produce quarantine-only review of all 659 citation targets
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/curate_frozen_deepwiki_review.py \
             --raw frozen-adjudication-input/read_wiki_contents.md \
@@ -324,6 +371,7 @@ jobs:
             --priority frozen-adjudication-input/priority-75-REVIEW-NOT-PUBLICATION.csv \
             --out deepwiki-review-export
       - name: Reassess 613 source candidates and original 75 priority references
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/assess_deepwiki_atomic_claims.py \
             --raw frozen-adjudication-input/read_wiki_contents.md \
@@ -333,6 +381,7 @@ jobs:
             --report frozen-adjudication-input/citation-review-report.json \
             --out deepwiki-review-export
       - name: Revalidate 27 priority literals at their exact earlier source revision
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/reconcile_historical_deepwiki_literals.py \
             --historical frozen-deepwiki-review/source-claim-inspection-UNREVIEWED.json \
@@ -340,12 +389,14 @@ jobs:
             --atomic deepwiki-review-export/613-ATOMIC-CLAIM-EVIDENCE-NONAUTHORITATIVE.json \
             --out deepwiki-review-export
       - name: Recheck 23 historical-only literals in exact checked-out SDK source
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/locate_23_historical_deepwiki_sources.py \
             --historical deepwiki-review-export/27-HISTORICAL_NARROW_RECONCILIATIONS.json \
             --root . \
             --out deepwiki-review-export
       - name: Verify all 32 remaining broader-priority contexts against frozen predecessor and current source
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/verify_remaining32_deepwiki_priority.py \
             --raw frozen-deepwiki-review/read_wiki_contents.md \
@@ -355,6 +406,7 @@ jobs:
             --root . \
             --out deepwiki-review-export
       - name: Reconcile 30 nonpriority manifested claim/source pairs against original 640 predecessor rows
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/verify_30_manifest_claims.py \
             --raw frozen-adjudication-input/read_wiki_contents.md \
@@ -364,6 +416,7 @@ jobs:
             --root . \
             --out deepwiki-review-export
       - name: Preserve 24 original citation predecessor identities against exact current code
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/verify_24_nav_evaluator_ci_claims.py \
             --raw frozen-adjudication-input/read_wiki_contents.md \
@@ -373,6 +426,7 @@ jobs:
             --root . \
             --out deepwiki-review-export
       - name: Reconcile nineteen original cross-framework citations to predecessor and current source
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/verify_19_cross_framework_claims.py \
             --raw frozen-adjudication-input/read_wiki_contents.md \
@@ -382,6 +436,7 @@ jobs:
             --root . \
             --out deepwiki-review-export
       - name: Preserve fourteen original worker citation predecessors and current-source witnesses
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/verify_14_purpose_worker_claims.py \
             --raw frozen-adjudication-input/read_wiki_contents.md \
@@ -391,6 +446,7 @@ jobs:
             --root . \
             --out deepwiki-review-export
       - name: Reconcile ten original atomic-worker citations against exact current source
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/verify_10_atomic_worker_claims.py \
             --raw frozen-adjudication-input/read_wiki_contents.md \
@@ -400,6 +456,7 @@ jobs:
             --root . \
             --out deepwiki-review-export
       - name: Reconcile sixteen original universal-entry and portable-interlock citations
+        if: fromJSON(needs.plan.outputs.carried)['review-only-export']
         run: |
           python scripts/verify_16_universal_interlock_claims.py \
             --raw frozen-adjudication-input/read_wiki_contents.md \
@@ -409,7 +466,7 @@ jobs:
             --root . \
             --out deepwiki-review-export
       - name: Upload unreviewed documentation evidence
-        if: always()
+        if: always() && fromJSON(needs.plan.outputs.carried)['review-only-export']
         uses: actions/upload-artifact@v4
         with:
           name: deepwiki-sdk-review-only-${{ github.sha }}
@@ -419,22 +476,35 @@ jobs:
 
   # ---- carried verbatim from tools/tasks/folded/mir-leaf-v3-conformance.yml (CARRIED_AS_DISPATCHER_JOB) ----
   conformance:
+    needs: plan
     runs-on: ubuntu-latest
     steps:
+      - name: "Record the original-path selection (NOT_SELECTED is a run, never a skip)"
+        env:
+          SELECTED: ${{ fromJSON(needs.plan.outputs.carried)['conformance'] }}
+        run: |
+          if [ "$SELECTED" = "true" ]; then echo "SELECTED: the original workflow's paths changed (or the event cannot be diffed)"; else echo "NOT_SELECTED: the original workflow would not have started on this event; the job runs and ends in success, nothing is skipped"; fi
       - uses: actions/checkout@v4
+        if: fromJSON(needs.plan.outputs.carried)['conformance']
       - uses: actions/setup-python@v5
+        if: fromJSON(needs.plan.outputs.carried)['conformance']
         with:
           python-version: '3.12'
       - uses: actions/setup-node@v4
+        if: fromJSON(needs.plan.outputs.carried)['conformance']
         with:
           node-version: '22'
       - name: Install SDK dependencies
+        if: fromJSON(needs.plan.outputs.carried)['conformance']
         run: python -m pip install -e .
       - name: Run conformance and counterpart-comparison tests
+        if: fromJSON(needs.plan.outputs.carried)['conformance']
         run: python -m unittest tests.test_mir_leaf_v3_conformance tests.test_compare_mir_leaf_v3_result
       - name: Emit neutral result
+        if: fromJSON(needs.plan.outputs.carried)['conformance']
         run: node tools/mir_leaf_v3_neutral_reproducer.mjs fixtures/mir_leaf_v3_conformance_fixture_v1.json > /tmp/neutral-result.json
       - name: Compare neutral result to frozen expected vector
+        if: fromJSON(needs.plan.outputs.carried)['conformance']
         run: python tools/compare_mir_leaf_v3_result.py /tmp/neutral-result.json
 
   # ---- carried verbatim from tools/tasks/folded/intr-destination-hop-lane.yml (CARRIED_AS_DISPATCHER_JOB) ----
@@ -548,14 +618,22 @@ jobs:
 
   # ---- carried verbatim from tools/tasks/folded/sv-llm-intr-roundtrip.yml (CARRIED_AS_DISPATCHER_JOB) ----
   roundtrip:
+    needs: plan
     env:
       STEGVERSE_ORG_DOTGITHUB_SHA: "893e921677cbed1a24e90c98771e77c9ed3cec16"
       SV_LLM_DOTGITHUB_SHA: "29227a4bab57a2a4453fa8b8a86ada953d6cc4cc"
       PUBLISHER_SHA: "1b3fc65c1bcab5c835985b878508e7b848d13025"
     runs-on: ubuntu-latest
     steps:
+      - name: "Record the original-path selection (NOT_SELECTED is a run, never a skip)"
+        env:
+          SELECTED: ${{ fromJSON(needs.plan.outputs.carried)['roundtrip'] }}
+        run: |
+          if [ "$SELECTED" = "true" ]; then echo "SELECTED: the original workflow's paths changed (or the event cannot be diffed)"; else echo "NOT_SELECTED: the original workflow would not have started on this event; the job runs and ends in success, nothing is skipped"; fi
       - uses: actions/checkout@v4
+        if: fromJSON(needs.plan.outputs.carried)['roundtrip']
       - name: Materialize StegVerse-org/.github at the pinned commit
+        if: fromJSON(needs.plan.outputs.carried)['roundtrip']
         uses: actions/checkout@v4
         with:
           repository: StegVerse-org/.github
@@ -563,6 +641,7 @@ jobs:
           path: _orgs/stegverse-org
           persist-credentials: false
       - name: Materialize SV-LLM/.github at the pinned commit
+        if: fromJSON(needs.plan.outputs.carried)['roundtrip']
         uses: actions/checkout@v4
         with:
           repository: SV-LLM/.github
@@ -570,6 +649,7 @@ jobs:
           path: _orgs/sv-llm
           persist-credentials: false
       - name: Materialize GCAT-BCAT-Engine/Publisher at the pinned commit
+        if: fromJSON(needs.plan.outputs.carried)['roundtrip']
         uses: actions/checkout@v4
         with:
           repository: GCAT-BCAT-Engine/Publisher
@@ -577,11 +657,14 @@ jobs:
           path: _orgs/publisher
           persist-credentials: false
       - uses: actions/setup-python@v5
+        if: fromJSON(needs.plan.outputs.carried)['roundtrip']
         with:
           python-version: '3.11'
       - name: Install the SDK and its declared dependencies
+        if: fromJSON(needs.plan.outputs.carried)['roundtrip']
         run: python -m pip install -q -e .
       - name: Round trip and boundary cases
+        if: fromJSON(needs.plan.outputs.carried)['roundtrip']
         env:
           STEGVERSE_ORG_DOTGITHUB_ROOT: ${{ github.workspace }}/_orgs/stegverse-org
           SV_LLM_DOTGITHUB_ROOT: ${{ github.workspace }}/_orgs/sv-llm
@@ -605,7 +688,7 @@ jobs:
           print("SV_LLM_INTR_ROUNDTRIP_CONFORMANCE_PASS legs=%d" % len(report["legs"]))
           PY
       - name: Publish run report
-        if: always()
+        if: always() && fromJSON(needs.plan.outputs.carried)['roundtrip']
         uses: actions/upload-artifact@v4
         with:
           name: sv-llm-intr-roundtrip-run
@@ -617,10 +700,17 @@ jobs:
 
   # ---- carried verbatim from tools/tasks/folded/portable-package-source-validation.yml (CARRIED_AS_DISPATCHER_JOB) ----
   portable-package-source-validation:
+    needs: plan
     permissions: {}
     runs-on: ubuntu-latest
     steps:
+      - name: "Record the original-path selection (NOT_SELECTED is a run, never a skip)"
+        env:
+          SELECTED: ${{ fromJSON(needs.plan.outputs.carried)['portable-package-source-validation'] }}
+        run: |
+          if [ "$SELECTED" = "true" ]; then echo "SELECTED: the original workflow's paths changed (or the event cannot be diffed)"; else echo "NOT_SELECTED: the original workflow would not have started on this event; the job runs and ends in success, nothing is skipped"; fi
       - name: Assert no runtime credential authority
+        if: fromJSON(needs.plan.outputs.carried)['portable-package-source-validation']
         shell: bash
         run: |
           set -euo pipefail
@@ -628,6 +718,7 @@ jobs:
           test -z "${GH_TOKEN:-}"
 
       - name: Materialize exact public source anonymously
+        if: fromJSON(needs.plan.outputs.carried)['portable-package-source-validation']
         shell: bash
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -645,18 +736,21 @@ jobs:
           test -z "$(git config --local --get-regexp 'extraheader|credential' || true)"
 
       - name: Install focused test dependency
+        if: fromJSON(needs.plan.outputs.carried)['portable-package-source-validation']
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install pytest
 
       - name: Run portable package tests
+        if: fromJSON(needs.plan.outputs.carried)['portable-package-source-validation']
         shell: bash
         run: |
           set -euo pipefail
           python -m pytest tests/test_portable_packages.py tests/test_portable_dual_archive.py -q
 
       - name: Prove console is non-authorizing and single-host sovereign
+        if: fromJSON(needs.plan.outputs.carried)['portable-package-source-validation']
         shell: bash
         run: |
           set -euo pipefail
@@ -688,16 +782,22 @@ jobs:
 
   # ---- carried verbatim from tools/tasks/folded/portable-release-index-validation.yml (CARRIED_AS_DISPATCHER_JOB) ----
   release-index-validation:
+    needs: plan
     permissions: {}
     runs-on: ubuntu-latest
     steps:
+      - name: "Record the original-path selection (NOT_SELECTED is a run, never a skip)"
+        env:
+          SELECTED: ${{ fromJSON(needs.plan.outputs.carried)['release-index-validation'] }}
+        run: |
+          if [ "$SELECTED" = "true" ]; then echo "SELECTED: the original workflow's paths changed (or the event cannot be diffed)"; else echo "NOT_SELECTED: the original workflow would not have started on this event; the job runs and ends in success, nothing is skipped"; fi
       - name: Event selection (G17 carried job; the original ran on pull_request only)
-        if: github.event_name != 'pull_request'
+        if: fromJSON(needs.plan.outputs.carried)['release-index-validation'] && (github.event_name != 'pull_request')
         shell: bash
         run: |
           echo "NOT_SELECTED: portable-release-index-validation materializes refs/pull/<n>/merge and ran only on pull_request; event=${{ github.event_name }}"
       - name: Assert no credential authority
-        if: github.event_name == 'pull_request'
+        if: fromJSON(needs.plan.outputs.carried)['release-index-validation'] && (github.event_name == 'pull_request')
         shell: bash
         run: |
           set -euo pipefail
@@ -705,7 +805,7 @@ jobs:
           test -z "${GH_TOKEN:-}"
 
       - name: Materialize exact public PR source anonymously
-        if: github.event_name == 'pull_request'
+        if: fromJSON(needs.plan.outputs.carried)['release-index-validation'] && (github.event_name == 'pull_request')
         shell: bash
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -718,17 +818,17 @@ jobs:
           git checkout --detach FETCH_HEAD
 
       - name: Install focused test dependency
-        if: github.event_name == 'pull_request'
+        if: fromJSON(needs.plan.outputs.carried)['release-index-validation'] && (github.event_name == 'pull_request')
         shell: bash
         run: python -m pip install pytest
 
       - name: Run release index tests
-        if: github.event_name == 'pull_request'
+        if: fromJSON(needs.plan.outputs.carried)['release-index-validation'] && (github.event_name == 'pull_request')
         shell: bash
         run: python -m pytest tests/test_release_index.py -q
 
       - name: Prove public release discovery carries no authority
-        if: github.event_name == 'pull_request'
+        if: fromJSON(needs.plan.outputs.carried)['release-index-validation'] && (github.event_name == 'pull_request')
         shell: bash
         run: |
           set -euo pipefail
