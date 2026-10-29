@@ -1,0 +1,83 @@
+From 60563d83cea75fc9114a8192a3f1b21d0988f2d9 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 28 Oct 2026 16:13:48 -0500
+Subject: [PATCH] fix(intr): bind sdk-manifest-ingress to
+ StegVerse-org/StegVerse-SDK
+
+org-runtime/interlock-intr.json declared the sdk-manifest-ingress
+capability_binding_owner as "StegVerse-Labs/StegVerse-SDK", the wrong
+organization prefix. The SDK lives at StegVerse-org/StegVerse-SDK, as
+the StegVerse-org and SV-LLM destination snapshots already declare.
+Refs StegVerse-org/StegVerse-SDK#566.
+
+- org-runtime/interlock-intr.json: correct the owner (line 19).
+- tests/fixtures/intr-protocol/destinations/StegVerse-Labs.interlock-intr.json:
+  byte copy of the corrected boundary document.
+- tests/fixtures/intr-protocol/destinations/manifest.json: re-pin the
+  StegVerse-Labs interlock sha256 (otherwise conform_mesh drops Labs, its
+  12 declared paths become INTR_PATH_UNDECLARED and the path-ledger tests
+  fail). source_commit is null with a source_ref note: the snapshot bytes
+  are introduced by this commit, which cannot be named inside its own
+  tree; re-pin it to the merge commit on main once this lands.
+
+tests/fixtures/intr-path-transfer/expected-real-state.json is unchanged:
+intr_path_transfer.real_state() at the pinned ledger tip regenerates it
+byte-equal (156/156 FAIL_CLOSED), and verified_transfer_commit still
+replays against the declared paths.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_0143inaAUDHET9NXg3wZr3Y7
+---
+ org-runtime/interlock-intr.json                              | 2 +-
+ .../destinations/StegVerse-Labs.interlock-intr.json          | 2 +-
+ tests/fixtures/intr-protocol/destinations/manifest.json      | 5 +++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/org-runtime/interlock-intr.json b/org-runtime/interlock-intr.json
+index 596087f..609707d 100644
+--- a/org-runtime/interlock-intr.json
++++ b/org-runtime/interlock-intr.json
+@@ -16,7 +16,7 @@
+         "operation": "SUBMIT_MANIFEST",
+         "payload_schema": "stegverse.ingress-manifest.v1",
+         "capability_declaration_owner": "StegVerse-Labs/StegOS",
+-        "capability_binding_owner": "StegVerse-Labs/StegVerse-SDK",
++        "capability_binding_owner": "StegVerse-org/StegVerse-SDK",
+         "receiving_operation": {
+           "owner_repository": "StegVerse-Labs/.github",
+           "operation_id": "ORGANIZATION_SDK_MANIFEST_INGRESS",
+diff --git a/tests/fixtures/intr-protocol/destinations/StegVerse-Labs.interlock-intr.json b/tests/fixtures/intr-protocol/destinations/StegVerse-Labs.interlock-intr.json
+index 596087f..609707d 100644
+--- a/tests/fixtures/intr-protocol/destinations/StegVerse-Labs.interlock-intr.json
++++ b/tests/fixtures/intr-protocol/destinations/StegVerse-Labs.interlock-intr.json
+@@ -16,7 +16,7 @@
+         "operation": "SUBMIT_MANIFEST",
+         "payload_schema": "stegverse.ingress-manifest.v1",
+         "capability_declaration_owner": "StegVerse-Labs/StegOS",
+-        "capability_binding_owner": "StegVerse-Labs/StegVerse-SDK",
++        "capability_binding_owner": "StegVerse-org/StegVerse-SDK",
+         "receiving_operation": {
+           "owner_repository": "StegVerse-Labs/.github",
+           "operation_id": "ORGANIZATION_SDK_MANIFEST_INGRESS",
+diff --git a/tests/fixtures/intr-protocol/destinations/manifest.json b/tests/fixtures/intr-protocol/destinations/manifest.json
+index eb9b8df..ea48821 100644
+--- a/tests/fixtures/intr-protocol/destinations/manifest.json
++++ b/tests/fixtures/intr-protocol/destinations/manifest.json
+@@ -22,11 +22,12 @@
+     {
+       "organization": "StegVerse-Labs",
+       "repository": "StegVerse-Labs/.github",
+-      "source_commit": "978b8880d238dc3e3a8b690c0675d8bb0e9d6985",
++      "source_commit": null,
++      "source_ref": "the commit that corrects ingress.capability_endpoint_bindings[sdk-manifest-ingress].capability_binding_owner to StegVerse-org/StegVerse-SDK (StegVerse-org/StegVerse-SDK#566) changes these bytes and this snapshot together; a commit cannot be named inside the tree it identifies, so source_commit is null until that change lands; re-pin source_commit to its merge commit on main (the interlock bytes there equal this file) and drop this note",
+       "interlock": {
+         "file": "StegVerse-Labs.interlock-intr.json",
+         "source_path": "org-runtime/interlock-intr.json",
+-        "sha256": "sha256:6c94383c34865dc92dee3a9e724223de3c434a95180b4a27e26ebc396026eca3"
++        "sha256": "sha256:2630666b69a1d70dca4ab999e9b96a897fc77978d02c50eed7db5034fc0dd933"
+       },
+       "services": {
+         "file": "StegVerse-Labs.services.json",
+-- 
+2.43.0
+

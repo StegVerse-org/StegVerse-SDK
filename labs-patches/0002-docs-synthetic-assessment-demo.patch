@@ -1,0 +1,105 @@
+From 75cddc6a9847dde9507cb9b23ee6c5759f5d62fa Mon Sep 17 00:00:00 2001
+From: Rige <rigel@stegverse.org>
+Date: Tue, 27 Oct 2026 23:51:38 -0500
+Subject: [PATCH] docs: synthetic governance assessment demonstration (#3370)
+
+Worked example of the share-packet template on a fictional customer with
+synthetic data. Labeled SIMULATED; no customer, price, receipt or revenue.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_0143inaAUDHET9NXg3wZr3Y7
+---
+ docs/GOVERNANCE_ASSESSMENT_SYNTHETIC_DEMO.md | 81 ++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
+ create mode 100644 docs/GOVERNANCE_ASSESSMENT_SYNTHETIC_DEMO.md
+
+diff --git a/docs/GOVERNANCE_ASSESSMENT_SYNTHETIC_DEMO.md b/docs/GOVERNANCE_ASSESSMENT_SYNTHETIC_DEMO.md
+new file mode 100644
+index 0000000..4c2199f
+--- /dev/null
++++ b/docs/GOVERNANCE_ASSESSMENT_SYNTHETIC_DEMO.md
+@@ -0,0 +1,81 @@
++# StegVerse AI Governance & Continuity Assessment — SYNTHETIC DEMONSTRATION
++
++Issue: https://github.com/StegVerse-Labs/.github/issues/3370
++Template: `docs/GOVERNANCE_ASSESSMENT_SHARE_PACKET.md`
++Status: **SIMULATED — fictional customer, synthetic data. Not an engagement, not a receipt, not revenue.**
++
++Every name, number and system below is invented to show what a finished deliverable looks like. No StegVerse runtime, ledger or Protocol v1.0 receipt was produced or is implied.
++
++---
++
++## 0. Engagement frame (fictional)
++
++| Field | Value |
++|---|---|
++| Customer | "Harbor Lane Bookkeeping" (fictional, 9 staff) |
++| Workflow in scope | AI-assisted vendor-invoice intake → categorization → payment-batch proposal |
++| Out of scope | Payroll, tax filing, bank integrations beyond read-only export |
++| Data handled in this demo | Synthetic invoices only; no customer data |
++| Assessor deliverables | Workflow map, authority/evidence inventory, 5-risk matrix, 30-day plan, review |
++
++## 1. Current-state workflow map
++
++```
++[Vendor email inbox]
++      │ (1) staff forwards PDF
++      ▼
++[AI extraction tool]  ── extracts vendor, amount, due date, GL code guess
++      │ (2) writes row
++      ▼
++[Shared spreadsheet "AP Queue"]
++      │ (3) senior bookkeeper reviews weekly (informal)
++      ▼
++[Payment batch proposal]  ── AI drafts batch from rows marked "OK"
++      │ (4) owner clicks "Approve" in accounting software
++      ▼
++[Bank payment release]  ← consequential, irreversible action
++```
++
++Consequential action: **step 4, payment release.** Every upstream step changes what step 4 does.
++
++## 2. Authority / evidence inventory
++
++| Step | Who may act | Authority recorded? | Evidence before | Evidence after | On DENY / failure |
++|---|---|---|---|---|---|
++| 1 Forward | Any staff | No | Email exists | Forwarded copy | Invoice silently missed |
++| 2 Extract | AI tool | No (tool runs on any input) | PDF | Spreadsheet row, no source hash | Wrong amount propagates |
++| 3 Review | Senior bookkeeper | Informal ("OK" cell) | Row | Cell edit, no reviewer identity | Unreviewed rows still eligible |
++| 4 Approve | Owner | Yes (software login) | Batch total only | Software audit log | No pre-release hold on mismatch |
++
++Gap summary: only step 4 has an authenticated actor, and it sees an aggregate, not the per-invoice evidence chain that produced it.
++
++## 3. Five prioritized risks
++
++| # | Risk | Evidence observed (synthetic) | Impact | Likelihood | Remedy | Owner |
++|---|---|---|---|---|---|---|
++| 1 | Extracted amount differs from source PDF and is paid | 2 of 40 sample rows had transposed digits | High | Medium | Bind each row to the source file's SHA-256 and extracted fields; block batch if re-extraction disagrees | Senior bookkeeper |
++| 2 | Duplicate invoice paid twice (replay) | Same invoice forwarded by two staff → 2 rows | High | Medium | Idempotency key = vendor + invoice no. + amount; reject second occurrence | Senior bookkeeper |
++| 3 | "OK" set by someone without review authority | Cell edits carry no identity | Medium | Medium | Named reviewer list; approval recorded with identity and timestamp | Owner |
++| 4 | Batch approved on stale queue (rows changed after review) | Rows edited after "OK" in sample | High | Low | Freeze queue snapshot at review; approval binds to snapshot hash | Owner |
++| 5 | AI tool outage stops intake with no fallback | No documented manual path | Medium | Low | Written manual-intake procedure; fail closed (hold) rather than auto-approve | Office manager |
++
++Risks 1, 2 and 4 map directly to the conformance negative cases being specified in #3369 (tamper, replay, stale head) — useful for the separately gated pilot conversation, but **this assessment does not require or claim any protocol runtime.**
++
++## 4. Thirty-day plan
++
++| Days | Action | Acceptance check |
++|---|---|---|
++| 1–7 | Inventory: list reviewers, approvers, data sources; add source-file hash column | Every queue row has a hash and named source |
++| 8–14 | Controls: idempotency key, named reviewer field, queue snapshot at review | Duplicate test invoice is rejected; review records identity |
++| 15–21 | Tests: run 10 synthetic invoices incl. tampered amount, duplicate, post-review edit | All three bad cases held, not paid |
++| 22–30 | Review: walk owner through results; decide on fallback procedure | Owner signs acceptance of findings |
++
++## 5. Findings review and handoff
++
++60-minute review covering the map, the five risks and the plan. Written handoff lists each remedy's owner and its acceptance check. Explicit exclusions: no production deployment, penetration test, certification, legal opinion or compliance guarantee.
++
++---
++
++## Evidence status
++
++`DEMO_COMPLETE_SYNTHETIC` · `CUSTOMER_FICTIONAL` · `PRICE_NOT_APPROVED` · `OUTREACH_NOT_SENT` · `ENGAGEMENT_NOT_SIGNED` · `SETTLEMENT_NOT_OBSERVED` · `NO_PROTOCOL_RECEIPT`
+-- 
+2.43.0
+
