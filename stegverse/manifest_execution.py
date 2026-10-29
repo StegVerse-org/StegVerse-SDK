@@ -22,8 +22,7 @@ _RESULT_LINEAGE_SCHEMA = "stegverse.sdk.run-manifest-lineage.v1"
 _RUN_MANIFEST_REQUEST_SCHEMA = "stegverse.sdk.run-manifest-request.v1"
 _CANONICAL_ORGANIZATION_BOUNDARY_REPOSITORY = "StegVerse-Labs/.github"
 _CANONICAL_ORGANIZATION_BOUNDARY_PATH = "org-runtime/interlock-intr.json"
-# Placeholder until StegVerse-Labs/.github merges the binding-owner fix (KV patch 0003); replace with its merge commit.
-_CANONICAL_ORGANIZATION_BOUNDARY_REF = "LABS_BINDING_OWNER_FIX_MERGE_COMMIT_PENDING"
+_CANONICAL_ORGANIZATION_BOUNDARY_REF = "c356fd819a7b08c8cb97f5993b3fb666c0d101d7"
 _CANONICAL_ORGANIZATION_BOUNDARY_SOURCE_ID = "stegverse-labs-organization-interlock-intr-boundary"
 
 _RESERVED_LINEAGE_FIELDS = {
