@@ -4,3 +4,4 @@ cc2a10107ceacd13038df336e16ca8734444b120239cc1ab931b95ee39a715d3  0001-Collision
 e7d348aa724e930ed0a5a073cfe102af60ff28d45aa583313fa4efa7015ba094  0004-Conformance-fixtures-correct-the-replay-sender-ident.patch
 dd8aaababa794a71d4626248666e58fb4dac3600172c5caa61f6eb458d9fc6f5  0005-ingress-refuse-a-declared-authority-effect-other-tha.patch
 cf5d83e57c75843dd3cdd51c52198b3ecc69202ee64c44ff261bf33446d2d9a1  0006-ingress-observe-a-declared-WorkerCoordinator-claim-a.patch
+b42f4f28e1a7edae1078dadc9ca72a870934500000c7e1890ff3a63f5975946d  0007-ingress-hold-a-declared-VERIFY_EXISTING-predecessor-.patch
