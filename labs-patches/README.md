@@ -25,6 +25,7 @@ Verify with `sha256sum -c SHA256SUMS` before applying.
 3. Protocol v1 negatives run through the real `receive()`; expectations are generated; adds n9 (non-gating).
 4. Conformance fixtures: corrected the replay (`REDELIVERY_REPROCESSED_BEFORE_DEDUPLICATION`), sender-identity (`SUBMITTER_KV_SKAP_VERIFICATION_NOT_BOUND_AT_INGRESS`) and stale-head spec_gaps, and their owners. No gap waits on device attestation, which the invariants prohibit.
 5. Ingress refuses a declared authority effect other than NONE before the crossing (`AUTHORITY_EFFECT_NOT_WARRANTED_AT_INGRESS`). No real manifest declares a non-NONE effect: 116 calls declare none and 20 declare NONE.
+6. Ingress observes a declared WorkerCoordinator claim (`worker_claim: {claim_id: <id>-G<fence>, fencing_token}`) against the committed `control/worker-registry.json` before the crossing (gap 2 option 2C): `FENCE_DECLARED_NOT_VERIFIED` fails closed, `FENCE_STALE_OR_RELEASED` denies, an absent declaration is admitted as `worker_claim_state: UNVERIFIED`; nothing is minted. n4's spec_gap now records the fence half as implemented; the head half (option 2A, ledger readback of the declared predecessor) remains.
 
 Design input for the remaining gaps: `design/INGRESS_GAP_OPTIONS_3369.md`.
 
