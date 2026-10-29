@@ -162,6 +162,10 @@ def action_cost(record: Any, rates: Mapping[str, Decimal]) -> dict[str, Any]:
 
 
 PRICE_BASES = ("FLAT", "STARTING_AT")
+# A comparable's role. Only governance anchors enter the median; an adjacent reference is kept
+# as context (its observation is preserved, its price is never a statistic).
+COMPARABLE_ROLES = ("GOVERNANCE_ANCHOR", "ADJACENT_REFERENCE")
+MARKET_CURRENCY = "USD"
 
 
 def market_median(market: Any) -> dict[str, Any] | None:
@@ -175,7 +179,7 @@ def market_median(market: Any) -> dict[str, Any] | None:
     comparables = _schema(market, MARKET_SCHEMA).get("comparables")
     if not isinstance(comparables, list):
         raise PricingInputError("comparables list required")
-    low, high = [], []
+    low, high, adjacent = [], [], 0
     for index, entry in enumerate(comparables):
         if not isinstance(entry, Mapping):
             raise PricingInputError(f"comparables[{index}]: object required")
@@ -184,13 +188,25 @@ def market_median(market: Any) -> dict[str, Any] | None:
         basis = entry.get("price_basis", "FLAT")
         if basis not in PRICE_BASES:
             raise PricingInputError(f"comparables[{index}].price_basis must be one of {list(PRICE_BASES)}")
+        # usd_per_action is a USD figure by name; a comparable declaring another currency, with
+        # no authorized conversion provenance in scope, cannot enter the statistic.
+        if entry.get("currency", MARKET_CURRENCY) != MARKET_CURRENCY:
+            raise PricingInputError(f"comparables[{index}].currency must be {MARKET_CURRENCY}")
+        role = entry.get("role", "GOVERNANCE_ANCHOR")
+        if role not in COMPARABLE_ROLES:
+            raise PricingInputError(f"comparables[{index}].role must be one of {list(COMPARABLE_ROLES)}")
+        if role == "ADJACENT_REFERENCE":
+            adjacent += 1
+            continue
         low.append(price)
         high.append(Decimal("Infinity") if basis == "STARTING_AT" else price)
     if not low:
-        return None
+        return {"at_least": None, "at_most": None, "exact": False, "anchors": 0,
+                "adjacent_references": adjacent, "anchor_range": None}
     at_least, at_most = statistics.median(low), statistics.median(high)
     return {"at_least": at_least, "at_most": None if at_most.is_infinite() else at_most,
-            "exact": at_least == at_most}
+            "exact": at_least == at_most, "anchors": len(low), "adjacent_references": adjacent,
+            "anchor_range": (min(low), max(low))}
 
 
 def _cents_up(value: Decimal) -> str:
@@ -220,6 +236,11 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
     margin = _decimal(policy.get("target_gross_margin"), "target_gross_margin")
     if margin >= 1:
         raise PricingInputError("target_gross_margin must be below 1")
+    # How many governance anchors a market median needs before it may set a price. Below it the
+    # anchors are context only, and the cost floor is the only figure the formula establishes.
+    minimum_anchors = policy.get("minimum_market_anchors", 1)
+    if not isinstance(minimum_anchors, int) or minimum_anchors < 1:
+        raise PricingInputError("minimum_market_anchors must be a positive integer")
     plans = policy.get("plans")
     if not isinstance(plans, list) or not plans:
         raise PricingInputError("plans list required")
@@ -260,7 +281,7 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
         if absent or unpriced:
             tier.update(status="UNKNOWN_RATE_NOT_SOURCED" if unpriced and not absent else "UNKNOWN_COST_BASIS",
                         absent_cost_basis=absent, unpriced_task_classes=unpriced,
-                        usd_per_action=None, usd_per_period=None, market_position="NOT_EVALUATED")
+                        usd_per_action=None, usd_per_period=None, market_position="NOT_EVALUATED", quote_ready=False)
             tiers.append(tier)
             continue
         # Conservative: price every included action at the costliest class the plan admits.
@@ -271,8 +292,10 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
         floor = unit_cost / (1 - margin)
         # A lower-bound median is never an exact match, and never caps the quote: the floor is
         # above the market only when it exceeds the median's upper bound.
-        if median is None:
+        if median is None or median["anchors"] == 0:
             price, position = floor, "NO_MARKET_EVIDENCE"
+        elif median["anchors"] < minimum_anchors:
+            price, position = floor, "MARKET_ANCHORS_INSUFFICIENT"
         elif median["at_least"] >= floor:
             price = median["at_least"]
             position = "AT_MARKET_MEDIAN" if median["exact"] else "AT_MARKET_MEDIAN_LOWER_BOUND"
@@ -285,6 +308,9 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
                     market_position=position,
                     cost_completeness="MACHINE_SUBTOTAL_ONLY" if unmodeled else "ALL_DECLARED_DIMENSIONS_MODELED",
                     unmodeled_cost_dimensions=unmodeled,
+                    # A figure is quote-ready only when the basis is complete and any market
+                    # statistic it rests on has enough governance anchors.
+                    quote_ready=bool(complete and position != "MARKET_ANCHORS_INSUFFICIENT"),
                     evidence="PROVISIONAL_ESTIMATE" if any(costs[c]["evidence"] != "SAMPLED_COST_BASIS" for c in classes)
                     else "SAMPLED_COST_BASIS")
         tiers.append(tier)
@@ -319,10 +345,15 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
         "compute_unit_definition": rate_card["compute_unit_definition"],
         "target_gross_margin": str(margin),
         "market_median_usd_per_action": str(median["at_least"]) if median and median["exact"] else None,
-        "market_median_range_usd_per_action": None if median is None else {
+        "market_median_range_usd_per_action": None if median is None or median["anchors"] == 0 else {
             "at_least": str(median["at_least"]),
             "at_most": None if median["at_most"] is None else str(median["at_most"]),
             "exact": median["exact"]},
+        "market_anchors": None if median is None else median["anchors"],
+        "market_adjacent_references": None if median is None else median["adjacent_references"],
+        "market_anchor_range_usd_per_action": None if median is None or median["anchor_range"] is None else
+            {"min": str(median["anchor_range"][0]), "max": str(median["anchor_range"][1])},
+        "minimum_market_anchors": minimum_anchors,
         "action_costs": [costs[k] for k in sorted(costs)],
         "tiers": tiers,
         "authority": {"final_price_approved": False, "entitlement_issued": False, "credential_issued": False,

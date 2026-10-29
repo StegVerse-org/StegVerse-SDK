@@ -1,9 +1,11 @@
 {
   "schema": "stegverse.market-comparables.v1",
-  "status": "CANDIDATE_PENDING_LLM_CONSENSUS (P4-A, SDK#484 comment 6473874825)",
+  "status": "CANDIDATE_PENDING_LLM_CONSENSUS (P4-A, SDK#484; selection rule v2: governance anchors vs adjacent references)",
   "unit": "one fixed-scope engagement = one action (candidate mapping)",
   "assessment_scope": "StegVerse governance starter: authority map, risk matrix, five prioritized remediations, 30-day plan (Labs #3370). scope_match records, per comparable, how each published deliverable list maps onto that scope; no comparable matches it exactly.",
-  "selection_rule": "A price published in USD on the vendor's own page for a fixed-scope AI governance, risk or readiness assessment of a small organization that delivers a written inventory or gap analysis plus a prioritized plan. Excluded: self-serve questionnaires and automated reports; single-workflow briefs and single sessions; prices shown only as a reference or 'typical' value; non-USD prices (no cited FX rate is in scope); enterprise programs at $12,500 or more.",
+  "selection_rule_version": "2026-10-29.v2",
+  "selection_rule": "GOVERNANCE_ANCHOR: a price published in USD on the vendor's own page for a fixed-scope AI governance or AI-management-system assessment of a small organization that delivers a written inventory or gap analysis plus a prioritized plan and carries explicit governance content (authority, policy, controls). ADJACENT_REFERENCE: a verified adjacent-market price (e.g. AI adoption readiness) kept as context; never enters the median. Excluded entirely: self-serve questionnaires and automated reports; single-workflow briefs and single sessions; reference or 'typical' values; non-USD prices; enterprise programs at $12,500 or more.",
+  "anchor_note": "Two governance anchors with different depth, environment and credit conditions are endpoints of a context range, not a validated willingness-to-pay band. policy.candidate.json sets minimum_market_anchors 3, so no point price is derived from them; the tier reports MARKET_ANCHORS_INSUFFICIENT and quote_ready false until a third verified anchor exists.",
   "price_basis_note": "The engine reads a STARTING_AT price p as a lower bound (the true price is at least p): the market median is reported as a range, a STARTING_AT figure never counts as an exact match, and it never caps a quote.",
   "citation_check": "Each source page was fetched and its price, scope and duration checked by hand on observed_at. The guard test checks only citation form.",
   "not_included_note": "northsecure.ai (a Microsoft 365 security assessment priced in CAD) and aidigitalhub.com (priced in INR) were never part of this set. The currency rule excludes them.",
@@ -30,7 +32,8 @@
         "prioritized_remediations": "YES (top 3 priorities)",
         "thirty_day_plan": "PARTIAL (90-day priorities)"
       },
-      "verified_on_vendor_page_at": "2026-10-29"
+      "verified_on_vendor_page_at": "2026-10-29",
+      "role": "GOVERNANCE_ANCHOR"
     },
     {
       "name": "BlueShore.AI \u2014 AI Readiness Assessment (risk & opportunity matrix, roadmap, readout; 2-3 days)",
@@ -54,7 +57,9 @@
         "prioritized_remediations": "PARTIAL (recommendations)",
         "thirty_day_plan": "PARTIAL (prioritized roadmap)"
       },
-      "verified_on_vendor_page_at": "2026-10-29"
+      "verified_on_vendor_page_at": "2026-10-29",
+      "role": "ADJACENT_REFERENCE",
+      "role_reason": "AI adoption readiness (process review, stack audit, risk/opportunity matrix, roadmap) with no governance content; the vendor sells governance separately as a policy workshop. Independent review 2 on SDK#572: SCOPE_MISMATCH."
     },
     {
       "name": "Certify Consulting \u2014 ISO/IEC 42001 gap assessment (AI system inventory, clause-by-clause gap report, prioritized plan; fixed fee; 2-3 weeks; one organization up to a few hundred people)",
@@ -77,7 +82,8 @@
         "prioritized_remediations": "YES (prioritized plan)",
         "thirty_day_plan": "NO (certification estimate)"
       },
-      "verified_on_vendor_page_at": "2026-10-29"
+      "verified_on_vendor_page_at": "2026-10-29",
+      "role": "GOVERNANCE_ANCHOR"
     }
   ],
   "excluded": [

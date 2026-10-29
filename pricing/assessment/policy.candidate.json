@@ -1,7 +1,8 @@
 {
   "schema": "stegverse.tier-pricing-policy.v1",
-  "status": "CANDIDATE_PENDING_LLM_CONSENSUS: one engagement = one action; margin 0.75 inherited from pricing/policy.candidate.json (SDK#484)",
+  "status": "CANDIDATE_PENDING_LLM_CONSENSUS: one engagement = one action; margin 0.75 inherited from pricing/policy.candidate.json (SDK#484); minimum_market_anchors 3 (two heterogeneous anchors cannot yield a quote-ready midpoint)",
   "target_gross_margin": "0.75",
+  "minimum_market_anchors": 3,
   "plans": [
     {
       "name": "Assessment (1 engagement = 1 action)",

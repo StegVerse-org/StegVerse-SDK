@@ -53,12 +53,19 @@
   },
   "compute_unit_definition": "CANDIDATE: one GitHub-hosted Linux 2-core (x64) runner-minute. The ecosystem cost basis does not define compute_units; this definition is pending owner decision on StegVerse-org/StegVerse-SDK#484.",
   "cost_basis_version": "SV-COST-COMPONENTS-2026-10-17",
-  "market_median_range_usd_per_action": {
-    "at_least": "1995",
-    "at_most": "9750",
-    "exact": false
+  "market_adjacent_references": 1,
+  "market_anchor_range_usd_per_action": {
+    "max": "9750",
+    "min": "1995"
   },
-  "market_median_usd_per_action": null,
+  "market_anchors": 2,
+  "market_median_range_usd_per_action": {
+    "at_least": "5872.5",
+    "at_most": "5872.5",
+    "exact": true
+  },
+  "market_median_usd_per_action": "5872.5",
+  "minimum_market_anchors": 3,
   "schema": "stegverse.tier-pricing-candidate.v1",
   "status": "PROVISIONAL",
   "target_gross_margin": "0.75",
@@ -68,8 +75,9 @@
       "cost_floor_usd_per_action": "3.7048576",
       "evidence": "PROVISIONAL_ESTIMATE",
       "included_actions": "1",
-      "market_position": "AT_MARKET_MEDIAN_LOWER_BOUND",
+      "market_position": "MARKET_ANCHORS_INSUFFICIENT",
       "name": "Assessment (1 engagement = 1 action)",
+      "quote_ready": false,
       "status": "PROVISIONAL_SCENARIO",
       "task_classes": [
         "governance_assessment_engagement"
@@ -79,8 +87,8 @@
         "operator_seconds",
         "token_units"
       ],
-      "usd_per_action": "1995",
-      "usd_per_period": "1995.00"
+      "usd_per_action": "3.7048576",
+      "usd_per_period": "3.71"
     }
   ]
 }
