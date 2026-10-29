@@ -27,3 +27,5 @@ Verify with `sha256sum -c SHA256SUMS` before applying.
 5. Ingress refuses a declared authority effect other than NONE before the crossing (`AUTHORITY_EFFECT_NOT_WARRANTED_AT_INGRESS`). No real manifest declares a non-NONE effect: 116 calls declare none and 20 declare NONE.
 
 Design input for the remaining gaps: `design/INGRESS_GAP_OPTIONS_3369.md`.
+
+Apply log (verified, not applied to Labs): applies cleanly with `git am` on Labs main `bbd84af`, `e0d2970`, `3d4c7c1` and `6b13c3a` (2026-10-29 13:05Z; touched test modules on `6b13c3a`: 136 passed, 90 subtests). Combined mbox sha256 `ce21e58b64d907666da3df53038b68addca5d525cfeb7c624b6b3e4ac40e7859`. Handoff for a Labs-write LLM: KV doc `1yMF4ldq6OQRBJtv5w5M2kwmW2CS1f0XP6ypxIU5Dahs`.
