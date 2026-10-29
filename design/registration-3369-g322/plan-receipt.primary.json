@@ -1,0 +1,23 @@
+{
+  "authority_effect": "NONE_REGISTRATION_ONLY",
+  "clock_read": false,
+  "consequence_committed": false,
+  "detail": "[{\"task_id\": \"PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001\", \"head_disposition\": \"STOP_COLLISION\", \"failure_code\": \"REGISTRY_COLLISION_CHECKIN_STOP_COLLISION\", \"evidence\": {\"new_collision_candidate_ids\": [], \"new_hard_collision_task_ids\": [], \"hard_collision_task_ids\": [\"CANONICAL-WORK-END-TO-END-CYCLE-CLOSURE-001\", \"CANONICAL-WORK-EXACT-INVOCATION-EVIDENCE-RECONCILIATION-001\", \"SDK-MANIFEST-COLLAB-INGRESS-CONFORMANCE-001\", \"SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001\", \"SDK-MANIFEST-IDENTITY-ROUTING-REGRESSION-GATE-001\"], \"collision_candidate_ids\": [\"CANONICAL-WORK-END-TO-END-CYCLE-CLOSURE-001\", \"CANONICAL-WORK-EXACT-INVOCATION-EVIDENCE-RECONCILIATION-001\", \"ORGANIZATION-BATCH-CUSTODY-REPLAY-001\", \"SDK-MANIFEST-COLLAB-INGRESS-CONFORMANCE-001\", \"SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001\", \"SDK-MANIFEST-IDENTITY-ROUTING-REGRESSION-GATE-001\"], \"session_action\": \"END_SESSION_AND",
+  "disposition": "FAIL_CLOSED",
+  "execution_authority_minted": false,
+  "failed_predicate": "REGISTRY_COLLISION_CHECKIN_NOT_CONTINUE",
+  "failure_code": "REGISTRY_COLLISION_CHECKIN_NOT_CONTINUE",
+  "intr_admission_minted": false,
+  "mode": "plan",
+  "next_attempt": "on the next registration request event after the repair is recorded",
+  "organization_ledger_appended": false,
+  "organization_ledger_entrypoint": ".stegverse/transition-ledger/emit.py via .github/workflows/organization-ledger-transition.yml",
+  "owning_existing_goal": "STEGVERSE-CANONICAL-WORK-COORDINATION-001",
+  "request_id": "protocol-v1-minimum-packet-conformance-001",
+  "request_sha256": "sha256:00c14b973f6e713d42ab4206df743ccfc33c19c789146a6c80ed46090ef13012",
+  "required_evidence_or_repair": "coordinate PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001 with ['CANONICAL-WORK-END-TO-END-CYCLE-CLOSURE-001', 'CANONICAL-WORK-EXACT-INVOCATION-EVIDENCE-RECONCILIATION-001', 'SDK-MANIFEST-COLLAB-INGRESS-CONFORMANCE-001', 'SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001', 'SDK-MANIFEST-IDENTITY-ROUTING-REGRESSION-GATE-001'] (END_SESSION_AND_CONTINUE_IN_RETURNED_COLLISION_OWNER) or narrow its targets before merge",
+  "retry_entrypoint": ".github/workflows/canonical-task-registration-transition.yml / python scripts/canonical_task_registration_transition.py plan",
+  "schema": "stegverse.canonical-task-registration-transition-receipt/v1",
+  "transition": "CANONICAL_TASK_REGISTRATION",
+  "workercoordinator_claim_or_fence_minted": false
+}

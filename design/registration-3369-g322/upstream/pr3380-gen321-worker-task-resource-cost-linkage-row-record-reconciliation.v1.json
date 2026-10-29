@@ -1,0 +1,50 @@
+{
+  "schema": "stegverse.registry-record-data-proposal/v1",
+  "registry_generation_base": 321,
+  "authority_effect": "NONE",
+  "operating_mode": "E1 (Claude-lane preparation; the transition itself is deterministic and runs at E0)",
+  "admission": "Prepared by Claude for the Registry owner. Claude does not admit, apply or bump the generation. Only the Registry owner's run of scripts/apply_task_record_data.py <this file> --apply --tip-ref origin/main changes Registry data (one apply = tip -> tip + 1).",
+  "note": "StegVerse-Labs/.github#3195, Option A of comment 6484539587: WORKER-TASK-RESOURCE-COST-LINKAGE-001's aggregate row diverges from its standalone record in blockers, expected_evidence_predicates and allowed_next_transitions; the record is correct. This request restores the row to the record and changes no record. It is the first of two: gen322-dependency-blocker-shape-normalization.v1.json applies after it (322 -> 323). The split exists because row_fields has no delete and every edit also runs against the standalone record, so reconciling and normalizing this row in one request cannot re-run as NO_CHANGE.",
+  "apply_before": "data/registry-record-data/gen322-dependency-blocker-shape-normalization.v1.json",
+  "row_fields": [
+    {
+      "task_id": "WORKER-TASK-RESOURCE-COST-LINKAGE-001",
+      "path": [
+        "blockers"
+      ],
+      "before": [
+        "AUTHENTIC_POST_REGISTRATION_EXACT_GENERATION_AI_SESSION_GATE_DISPOSITION_NOT_OBTAINED",
+        "COSV_DERIVATION_AFTER_AUTHENTIC_ADMISSION",
+        "EXISTING_SDK_OWNER_ADMISSION_REQUIRED_BEFORE_RUNTIME_ROUTE_MUTATION"
+      ],
+      "after": [
+        "AUTHENTIC_POST_REGISTRATION_EXACT_GENERATION_AI_SESSION_GATE_DISPOSITION_NOT_OBTAINED",
+        "EXISTING_SDK_OWNER_ADMISSION_REQUIRED_BEFORE_RUNTIME_ROUTE_MUTATION"
+      ],
+      "rationale": "Option A of #3195 (comment 6484539587): the standalone record is correct and the aggregate row is restored to it. 9c48a6e8 (#2679, gen 247->248) removed blocker COSV_DERIVATION_AFTER_AUTHENTIC_ADMISSION and replaced predicate COSV_DERIVED_FROM_ADMITTED_REGISTRY_STATE -> COSV_SOURCE_STATE_TRACKING_VERIFIED_IN_CANONICAL_INDEX and transition DERIVE_CANONICAL_COSV -> UPDATE_COSV_ON_AUTHENTIC_STATE_EVIDENCE in both row and record. 770af692 (gen 249->250) reverted only the row's three COSV fields with no authorizing transition (a rebase artifact); the record was never reverted, and control/task-vectors/WORKER-TASK-RESOURCE-COST-LINKAGE-001.json records blocker_count 2. This request restores the row to the record: ['blockers'] takes the record's two strings, expected_evidence_predicates[4] and allowed_next_transitions[3] take the record's values; each is a no-op on the record, which already equals after. Blocker shape normalization is left to the follow-up request."
+    },
+    {
+      "task_id": "WORKER-TASK-RESOURCE-COST-LINKAGE-001",
+      "path": [
+        "expected_evidence_predicates",
+        4
+      ],
+      "before": "COSV_DERIVED_FROM_ADMITTED_REGISTRY_STATE",
+      "after": "COSV_SOURCE_STATE_TRACKING_VERIFIED_IN_CANONICAL_INDEX",
+      "rationale": "Option A of #3195 (comment 6484539587): the standalone record is correct and the aggregate row is restored to it. 9c48a6e8 (#2679, gen 247->248) removed blocker COSV_DERIVATION_AFTER_AUTHENTIC_ADMISSION and replaced predicate COSV_DERIVED_FROM_ADMITTED_REGISTRY_STATE -> COSV_SOURCE_STATE_TRACKING_VERIFIED_IN_CANONICAL_INDEX and transition DERIVE_CANONICAL_COSV -> UPDATE_COSV_ON_AUTHENTIC_STATE_EVIDENCE in both row and record. 770af692 (gen 249->250) reverted only the row's three COSV fields with no authorizing transition (a rebase artifact); the record was never reverted, and control/task-vectors/WORKER-TASK-RESOURCE-COST-LINKAGE-001.json records blocker_count 2. This request restores the row to the record: ['blockers'] takes the record's two strings, expected_evidence_predicates[4] and allowed_next_transitions[3] take the record's values; each is a no-op on the record, which already equals after. Blocker shape normalization is left to the follow-up request."
+    },
+    {
+      "task_id": "WORKER-TASK-RESOURCE-COST-LINKAGE-001",
+      "path": [
+        "allowed_next_transitions",
+        3
+      ],
+      "before": "DERIVE_CANONICAL_COSV",
+      "after": "UPDATE_COSV_ON_AUTHENTIC_STATE_EVIDENCE",
+      "rationale": "Option A of #3195 (comment 6484539587): the standalone record is correct and the aggregate row is restored to it. 9c48a6e8 (#2679, gen 247->248) removed blocker COSV_DERIVATION_AFTER_AUTHENTIC_ADMISSION and replaced predicate COSV_DERIVED_FROM_ADMITTED_REGISTRY_STATE -> COSV_SOURCE_STATE_TRACKING_VERIFIED_IN_CANONICAL_INDEX and transition DERIVE_CANONICAL_COSV -> UPDATE_COSV_ON_AUTHENTIC_STATE_EVIDENCE in both row and record. 770af692 (gen 249->250) reverted only the row's three COSV fields with no authorizing transition (a rebase artifact); the record was never reverted, and control/task-vectors/WORKER-TASK-RESOURCE-COST-LINKAGE-001.json records blocker_count 2. This request restores the row to the record: ['blockers'] takes the record's two strings, expected_evidence_predicates[4] and allowed_next_transitions[3] take the record's values; each is a no-op on the record, which already equals after. Blocker shape normalization is left to the follow-up request."
+    }
+  ],
+  "rows": [
+    "WORKER-TASK-RESOURCE-COST-LINKAGE-001"
+  ]
+}

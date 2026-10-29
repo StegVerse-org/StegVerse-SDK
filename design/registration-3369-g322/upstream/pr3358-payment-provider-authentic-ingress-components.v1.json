@@ -1,0 +1,43 @@
+{
+  "schema": "stegverse.registry-record-data-proposal/v1",
+  "registry_generation_base": 321,
+  "authority_effect": "NONE",
+  "operating_mode": "E0 (deterministic record-data transition)",
+  "note": "Applied on StegVerse-Labs/.github#3358 at generation 321 -> 322 under Coordination's ruling on #3358's ADJACENCY_RULING_CANDIDATE_COMPONENTS_UNDECLARED: Lane D declares PAYMENT-PROVIDER-AUTHENTIC-INGRESS-001's components because their owner, Lane C, is stopped. The components come only from the code paths the record already names, through its implementation_pr StegVerse-Labs/TVC#438 (merged at c0a46b6b6c470b5a39499600678fc222822afc79) and read_profile_pr StegVerse-Labs/TVC#440 (merged at fc5808f74adb0022e584007b7280f646805c1ed2). Each component is the normalized file stem of a non-test, non-doc file those PRs changed, following the R2 rule of Lane D's draft StegVerse-Labs/.github#3328 (scripts/derive_candidate_components.py): .github/workflows/payment-provider-authentic-ingress.yml -> payment-provider-authentic-ingress; config/payment_provider_read_profiles.json -> payment-provider-read-profiles; scripts/tvc_payment_provider_observation.py -> tvc-payment-provider-observation; tvc_payment_provider_read_profile.py -> tvc-payment-provider-read-profile. Docs, READMEs and tests are excluded. The targets use the same format as data/canonical-task-records/TASK-REGISTRY-SOVEREIGN-KV-EVENT-CUSTODY-001.json:25-29 (organizations, repositories, components); repositories is the record's implementation_repository. The same apply (one generation, 321 -> 322, so the registry generation fence's tip + 1 holds) also declares STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001's components, which #3358's adjacency plan requires (FAIL_CLOSED ADJACENCY_RULING_CANDIDATE_COMPONENTS_UNDECLARED, predicate CANDIDATE_DECLARES_COMPONENTS). That row is the StegHealth row of Lane D's draft StegVerse-Labs/.github#3328 (fd849a8a, data/registry-record-data/adjacency-candidate-components.draft.json), derived by scripts/derive_candidate_components.py from StegVerse-Labs/StegHealth@8508a43c8cb74753123f11ca0d103f18a318ea2f only: R3_OWN_TASK_FILE_PATH (the paths the record's own task file names) and R1_SOURCE_REF (tools/consume_ecosystem_failure_map.py), in the same targets format (the draft's unread repository_components omitted). Only targets is added; the StegHealth record is otherwise unchanged. Coordination's ruling covers PAYMENT-PROVIDER-AUTHENTIC-INGRESS-001; no Coordination ruling is observed for the StegHealth declaration (UNKNOWN_NOT_AUTHENTICALLY_OBSERVED), so it stands as derived record data that the StegHealth owner confirms or corrects through its own Goal.",
+  "row_fields": [
+    {
+      "task_id": "PAYMENT-PROVIDER-AUTHENTIC-INGRESS-001",
+      "path": ["targets"],
+      "before": {"$absent": true},
+      "after": {
+        "organizations": ["StegVerse-Labs"],
+        "repositories": ["StegVerse-Labs/TVC"],
+        "components": [
+          "payment-provider-authentic-ingress",
+          "payment-provider-read-profiles",
+          "tvc-payment-provider-observation",
+          "tvc-payment-provider-read-profile"
+        ]
+      }
+    },
+    {
+      "task_id": "STEGHEALTH-ECOSYSTEM-FAILURE-REMEDIATION-001",
+      "path": ["targets"],
+      "before": {"$absent": true},
+      "after": {
+        "organizations": ["StegVerse-Labs"],
+        "repositories": ["StegVerse-Labs/StegHealth"],
+        "components": [
+          "cli-independent-review",
+          "cli-independent-review-routing",
+          "cli-independent-review-routing-packet",
+          "consume-ecosystem-failure-map",
+          "ecosystem-failure-registry",
+          "steghealth-ecosystem-failure-registry",
+          "validate-cli-independent-review-routing",
+          "validate-ecosystem-failure-registry"
+        ]
+      }
+    }
+  ]
+}

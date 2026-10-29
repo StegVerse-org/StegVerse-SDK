@@ -1,0 +1,38 @@
+{
+  "schema": "stegverse.registry-record-data-proposal/v1",
+  "registry_generation_base": 322,
+  "authority_effect": "NONE",
+  "operating_mode": "E1 (single-LLM degradation of a Claude-lane item; the transition itself is deterministic and runs at E0)",
+  "note": "Successor of StegVerse-Labs/.github#3257 scoped to ONE repair: check in CANONICAL-WORK-EXACT-INVOCATION-EVIDENCE-RECONCILIATION-001 to a terminal state (coordination_state and checkout_state SUPERSEDED, continuation_task_id CANONICAL-WORK-END-TO-END-CYCLE-CLOSURE-001). The task exists only as a standalone record (no aggregate row at gen 320), and apply_task_record_data refuses row_fields on a shard-only task (RECORD_DATA_TASK_NOT_IN_AGGREGATE_REGISTRY), so the record is first projected unchanged into the aggregate Registry (register_from_record) and the three exact before -> after edits then apply to the row and the record together. One apply = one generation bump (322 -> 323; re-based from 320 by StegVerse-Labs/.github#3352, which consumes generation 321 for the KV-SKAP component rename, and from 321 by StegVerse-Labs/.github#3358, which consumes generation 322 for the PAYMENT-PROVIDER-AUTHENTIC-INGRESS-001 component declaration), made only by the transition at admission, never on this branch. Why: the existing-identity registration of CANONICAL-WORK-END-TO-END-CYCLE-CLOSURE-001 (Labs#3311) is FAIL_CLOSED REGISTRY_COLLISION_CHECKIN_NOT_CONTINUE against this CHECKED_OUT record (same lineage STEGVERSE-CANONICAL-WORK-COORDINATION-001, no WorkerCoordinator claim; its remaining RETRY_SAME_EXACT_MANIFEST transition is the same act as CYCLE-CLOSURE's ATTEMPT_CURRENT_PARENT_CANONICAL_WORK_CYCLE).",
+  "register_from_record": [
+    "CANONICAL-WORK-EXACT-INVOCATION-EVIDENCE-RECONCILIATION-001"
+  ],
+  "row_fields": [
+    {
+      "task_id": "CANONICAL-WORK-EXACT-INVOCATION-EVIDENCE-RECONCILIATION-001",
+      "path": [
+        "coordination_state"
+      ],
+      "before": "ACTIVE",
+      "after": "SUPERSEDED"
+    },
+    {
+      "task_id": "CANONICAL-WORK-EXACT-INVOCATION-EVIDENCE-RECONCILIATION-001",
+      "path": [
+        "checkout_state"
+      ],
+      "before": "CHECKED_OUT",
+      "after": "SUPERSEDED"
+    },
+    {
+      "task_id": "CANONICAL-WORK-EXACT-INVOCATION-EVIDENCE-RECONCILIATION-001",
+      "path": [
+        "continuation_task_id"
+      ],
+      "before": {
+        "$absent": true
+      },
+      "after": "CANONICAL-WORK-END-TO-END-CYCLE-CLOSURE-001"
+    }
+  ]
+}

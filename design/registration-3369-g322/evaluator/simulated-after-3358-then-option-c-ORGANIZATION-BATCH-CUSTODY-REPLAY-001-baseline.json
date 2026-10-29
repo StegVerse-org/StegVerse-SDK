@@ -1,0 +1,1012 @@
+{
+ "disposition": {
+  "authority_effect": "NONE",
+  "caller_surface": "INTERNAL_CANONICAL_WORK_BOOTSTRAP",
+  "caller_surface_attestation_proven": false,
+  "checkin_context": {
+   "caller_surface": "INTERNAL_CANONICAL_WORK_BOOTSTRAP",
+   "caller_surface_attestation_proven": false,
+   "components_under_mutation": [
+    "organization-ledger-readback",
+    "protocol-v1-conformance-fixtures"
+   ],
+   "repositories_under_mutation": [
+    "StegVerse-Labs/.github"
+   ],
+   "repository": "StegVerse-Labs/.github"
+  },
+  "checkin_context_sha256": "sha256:231cf3cc3114499f5f26cc4dc86d4c20c5e6f9b33726d18deda4b6647f96bf40",
+  "checkin_disposition_sha256": "sha256:1db70d8e65defa5b33f3c1491ee43158fb84f595e8b312bc310a99c359edb0da",
+  "collision_candidates": [
+   {
+    "checkout_state": "HANDOFF_READY",
+    "coordination_state": "ACTIVE",
+    "handoff": null,
+    "overlap": {
+     "adjacent": true,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [],
+     "user_action_surface_conflicts": []
+    },
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "CANONICAL-MASTER-RECORDS-STATE-TRANSITION-CUSTODY-001"
+   },
+   {
+    "checkout_state": "HANDOFF_READY",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/SDK_MICRO_NODE_COMMIT_TIME_ADMISSIBILITY_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": true,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [],
+     "user_action_surface_conflicts": []
+    },
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "SDK-MICRO-NODE-COMMIT-TIME-ADMISSIBILITY-001"
+   },
+   {
+    "checkout_state": "HANDOFF_READY",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/SDK_UNTRUSTED_DEPENDENCY_EXECUTION_BOUNDARY_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": true,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [],
+     "user_action_surface_conflicts": []
+    },
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "SDK-UNTRUSTED-DEPENDENCY-EXECUTION-BOUNDARY-001"
+   },
+   {
+    "checkout_state": "UNCLAIMED",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/WORKER_TASK_RESOURCE_COST_LINKAGE_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": true,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "WORKER-TASK-RESOURCE-COST-LINKAGE-001"
+   },
+   {
+    "checkout_state": "UNCLAIMED",
+    "coordination_state": "ACTIVE",
+    "handoff": "StegVerse-Labs/.github:docs/SDK_COST_DERIVED_TIER_PRICING_TASK_REGISTRY_REGISTRATION_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": true,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [],
+     "user_action_surface_conflicts": []
+    },
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "SDK-COST-DERIVED-TIER-PRICING-001"
+   }
+  ],
+  "coordination_generation_current": true,
+  "current_registry_generation": 324,
+  "disposition": "COORDINATE_CONVERGENCE",
+  "excluded_progression_controller_task_ids": [],
+  "hard_collision_task_ids": [],
+  "observed_registry_generation": 324,
+  "recent_event_window_seconds": 1800,
+  "reconciliation_required_before_mutation": false,
+  "registry_global_invariants": {
+   "applies_to": "ALL_CANONICAL_TASKS_EXISTING_AND_NEW",
+   "authority_effect": "NONE_REGISTRY_INVARIANT_ONLY",
+   "invariant_set_id": "TASK-REGISTRY-KV-SKAP-VERIFIER-NODE-INVARIANT-001",
+   "invariants": {
+    "actions_by_manifest_required": true,
+    "always_on_receiver_required": false,
+    "completion_claim_requires_evidence_refs": true,
+    "completion_evidence_classes": [
+     "SOURCE_IMPLEMENTED",
+     "MERGED",
+     "CI_VALIDATED",
+     "SANDBOX_RUNTIME_OBSERVED",
+     "EXTERNAL_PROVIDER_OBSERVED",
+     "MASTER_RECORDS_RECONSTRUCTED",
+     "END_TO_END"
+    ],
+    "completion_evidence_contract_version": "v1",
+    "completion_evidence_strength_order": [
+     "SOURCE_IMPLEMENTED",
+     "MERGED",
+     "CI_VALIDATED",
+     "SANDBOX_RUNTIME_OBSERVED",
+     "EXTERNAL_PROVIDER_OBSERVED",
+     "MASTER_RECORDS_RECONSTRUCTED",
+     "END_TO_END"
+    ],
+    "completion_language_requires_evidence_class": true,
+    "connected_device_inventory_blocker_role": "NONE_PROHIBITED",
+    "connected_device_inventory_exception": "ONLY_WHEN_THE_TASK_EXPLICITLY_TARGETS_CONNECTOR_OR_DEVICE_INVENTORY_MANAGEMENT_ITSELF",
+    "connected_device_inventory_fallback_role": "NONE_PROHIBITED",
+    "connected_device_inventory_query_required_for_runtime_tasks": false,
+    "connected_device_inventory_runtime_dependency_role": "NONE_PROHIBITED",
+    "connected_device_inventory_task_progression_role": "NONE_PROHIBITED",
+    "credential_authority": "TV/TVC",
+    "destination_existence_sufficient_for_ingress_and_egress": true,
+    "destination_liveness_is_transition_predicate": false,
+    "device_attestation_gate": "NONE_PROHIBITED",
+    "device_user_verifier_authority": "NONE",
+    "device_verification_policy": "NONE_PROHIBITED",
+    "device_verification_process": "NONE_PROHIBITED",
+    "ephemeral_capacity_requires_intr_admission": true,
+    "ephemeral_capacity_runtime_class": "ADMITTED-EPHEMERAL-STEGOS-NODE",
+    "evidence_reachability_may_establish_substrate_unsuitable": false,
+    "execution_substrate_selection_authority_effect": "NONE",
+    "execution_surface_connectivity_authority": "NONE_OBSERVATION_ONLY",
+    "external_machine_awaiting_allowed": false,
+    "github_user_verifier_authority": "NONE",
+    "heartbeat_user_verifier_authority": "NONE",
+    "legacy_unqualified_completion_authority": "NONE_NON_AUTHORITATIVE_PROVENANCE_ONLY",
+    "legacy_unqualified_completion_may_satisfy_terminal_predicate": false,
+    "legacy_unqualified_completion_may_support_user_facing_complete": false,
+    "local_key_user_verifier_authority": "NONE",
+    "manifest_determines_destination": true,
+    "master_records_general_evidence_organization_record": false,
+    "master_records_general_transition_organization_record": false,
+    "master_records_may_gate_organization_runtime_reality": false,
+    "master_records_role": "ORGANIZATION_RECORDS_AND_RECONSTRUCTION_ONLY",
+    "master_records_runtime_reality_authority": "NONE",
+    "master_records_scope": "ORGANIZATION_RECORDS_AND_RECONSTRUCTION_ONLY",
+    "master_records_transition_authority": "NONE",
+    "model_user_verifier_authority": "NONE",
+    "new_or_reconciled_completion_requires_contract_version": true,
+    "node_user_verifier_authority": "NONE",
+    "non_conforming_surface_disposition": "DECLARED_EXEMPTION_REQUIRED",
+    "non_conforming_surface_failure_code": "ORGANIZATION_ROLE_CONFORMANCE_NOT_DECLARED",
+    "organization_receipt_scope_rule": "EVERY_STATE_TRANSITION_OCCURRING_WITHIN_THE_ORGANIZATION_EMITS_AN_ORGANIZATION_RECEIPT",
+    "organization_role_declaration": "data/organization-role-runtime-reality-deployment.json",
+    "organization_role_deployment_scope": "PER_ORGANIZATION_IN_ITS_OWN_DOT_GITHUB",
+    "organization_role_exemption_register": "data/organization-role-exemption-register.json",
+    "physical_device_identity_gate": "NONE_PROHIBITED",
+    "post_closure_authentic_observer_gate_allowed": false,
+    "receiver_unavailable_disposition": "DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION",
+    "released_organization_batch_requires_verified_organization_receipt_chain": true,
+    "remote_computer_inventory_semantics": "EVIDENCE_REACHABILITY_ONLY",
+    "remote_computer_is_completion_predicate": false,
+    "remote_computer_is_distinct_execution_substrate": false,
+    "remote_computer_is_machine_dependency": false,
+    "remote_computer_role": "TRANSPORT_DISCOVERY_ONLY",
+    "runtime_reality_authority": "Organization",
+    "runtime_reality_lock": "ORGANIZATION_LEDGER_LOCK",
+    "runtime_reality_locus": "ORGANIZATION_LEDGER_ROOT",
+    "runtime_reality_write_mode": "MANIFEST_DIRECTED_APPEND",
+    "runtime_substrate_review_order": [
+     "STEG-BROWSER-RETAINED-RESIDENT-NODE",
+     "STEGOS-CURRENT-DEVICE-NODE",
+     "STEG-BROWSER-EPHEMERAL-LEASE",
+     "SAME-DEVICE-SITE-SAFARI-SERVICE-WORKER",
+     "ADMITTED-EPHEMERAL-STEGOS-NODE",
+     "REMOTE-OR-EXTERNAL-DEVICE-LAST-RESORT"
+    ],
+    "second_user_operated_device_allowed": false,
+    "secure_enclave_user_verifier_authority": "NONE",
+    "stegos_device_role": "INTERCHANGEABLE_TRANSPORT_NODE",
+    "stronger_completion_class_inference_prohibited": true,
+    "terminal_complete_default_evidence_class": "END_TO_END",
+    "transition_authority": "Interlock/InTr",
+    "transport_user_verifier_authority": "NONE",
+    "unqualified_complete_or_completed_prohibited": true,
+    "user_verification_authority": "KV/SKAP Vault",
+    "user_verification_authority_exclusive": true,
+    "worker_claim_authority": "WorkerCoordinator",
+    "zero_connected_devices_may_be_reported_as_task_blocker": false,
+    "zero_connected_devices_may_be_used_to_stop_task_progression": false,
+    "zero_connected_devices_may_create_manual_work": false,
+    "zero_connected_devices_may_trigger_source_repair": false
+   },
+   "prohibitions": [
+    "NO_SECONDARY_USER_VERIFIER_OUTSIDE_KV_SKAP_VAULT",
+    "NO_DEVICE_VERIFICATION_POLICY_OR_PROCESS",
+    "NO_DEVICE_ATTESTATION_OR_PHYSICAL_DEVICE_IDENTITY_GATE",
+    "NO_DEVICE_OR_NODE_AS_USER_VERIFIER",
+    "NO_TRANSPORT_CHANNEL_AS_USER_VERIFIER",
+    "NO_LOCAL_KEY_POSSESSION_AS_USER_VERIFICATION",
+    "NO_SECURE_ENCLAVE_PRESENCE_AS_USER_VERIFICATION",
+    "NO_GITHUB_HEARTBEAT_OR_MODEL_AS_USER_VERIFIER",
+    "NO_DEVICE_PINNING_AS_USER_VERIFICATION_AUTHORITY",
+    "NO_CONNECTOR_DEVICE_LIST_AS_AUTHORIZATION_OR_VERIFICATION",
+    "NO_REMOTE_COMPUTER_AS_DISTINCT_EXECUTION_AUTHORITY",
+    "NO_REMOTE_COMPUTER_AVAILABILITY_AS_TASK_STATE",
+    "NO_REMOTE_COMPUTER_INVENTORY_AS_SUBSTRATE_UNSUITABILITY",
+    "NO_REMOTE_COMPUTER_AS_SECOND_MACHINE_REQUIREMENT",
+    "NO_EPHEMERAL_CAPACITY_EXECUTION_BEFORE_INTERLOCK_INTR_ADMISSION",
+    "NO_EVIDENCE_REACHABILITY_GAP_AS_EXTERNAL_DEVICE_REQUIREMENT",
+    "NO_UNQUALIFIED_COMPLETE_OR_COMPLETED_STATUS",
+    "NO_SOURCE_IMPLEMENTED_AS_RUNTIME_COMPLETE",
+    "NO_MERGED_AS_RUNTIME_COMPLETE",
+    "NO_CI_VALIDATED_AS_RUNTIME_COMPLETE",
+    "NO_RUNTIME_OBSERVED_AS_MASTER_RECORDS_RECONSTRUCTED",
+    "NO_PROVIDER_OBSERVED_AS_END_TO_END_COMPLETE",
+    "NO_STRONGER_COMPLETION_CLASS_WITHOUT_NATIVE_EVIDENCE",
+    "NO_LEGACY_UNQUALIFIED_COMPLETION_AS_CURRENT_TERMINAL_PROOF",
+    "NO_CONNECTED_DEVICE_INVENTORY_QUERY_FOR_ORDINARY_TASK_PROGRESSION",
+    "NO_CONNECTED_DEVICE_INVENTORY_AS_RUNTIME_PREREQUISITE",
+    "NO_ZERO_CONNECTED_DEVICES_AS_BLOCKER_OR_STOP_CONDITION",
+    "NO_ZERO_CONNECTED_DEVICES_AS_MANUAL_WORK_REQUIREMENT",
+    "NO_DEVICE_CONNECTOR_AVAILABILITY_CHECK_BEFORE_WORKERCOORDINATOR_INTR_OR_MASTER_RECORDS_PROGRESSION",
+    "NO_MASTER_RECORDS_AS_RUNTIME_REALITY_AUTHORITY",
+    "NO_MASTER_RECORDS_RECORDING_AS_ORGANIZATION_RUNTIME_REALITY_GATE",
+    "NO_ORGANIZATION_BATCH_RELEASE_WITHOUT_VERIFIED_ORGANIZATION_RECEIPT_CHAIN",
+    "NO_EXTERNAL_MACHINE_AWAITING_AS_TRANSITION_PREDICATE",
+    "NO_DESTINATION_LIVENESS_OR_ALWAYS_ON_RECEIVER_AS_TRANSITION_PREDICATE",
+    "NO_POST_CLOSURE_AUTHENTIC_OBSERVER_GATE",
+    "NO_SILENTLY_NON_CONFORMING_SURFACE_WITHOUT_REGISTERED_EXEMPTION",
+    "NO_EXEMPTION_AS_AUTHORITY_OR_TERMINAL_PROOF"
+   ],
+   "schema": "stegverse.task-registry-global-invariants/v1",
+   "semantics": {
+    "actions_by_manifest": "Every action is a manifest-bound attempted state transition. The manifest determines the destination; so long as the destination exists, the transition succeeds at ingress into the Interlock and at egress. Destination liveness, receiver availability, an always-on listener, an external machine, a second user-operated device and a post-closure authentic observer are all prohibited as transition predicates. An unavailable receiver is answered by DURABLE_QUEUE_OR_EVENT_EPHEMERAL_MATERIALIZATION, never by waiting. A surface that cannot yet satisfy this standard must hold a registered exemption carrying an actionable non-ALLOW disposition; silent non-conformance is prohibited.",
+    "completion_evidence_class": "Every affirmative completion statement must identify the exact evidence class proven. Source implementation, merge, CI validation, sandbox runtime observation, external/provider observation, Master Records reconstruction, and end-to-end completion are distinct states and may not be collapsed.",
+    "completion_promotion": "A stronger evidence class may be asserted only from evidence native to that class. Lower classes never imply higher classes. User-facing unqualified complete/completed is prohibited unless the declared terminal evidence class is satisfied.",
+    "connected_device_inventory": "Ordinary StegVerse task progression MUST NOT query, inspect, depend on, or report connected-device inventory. Connector/device inventory is outside the runtime dependency model and cannot be used as a blocker, completion gate, execution-surface prerequisite, fallback condition, manual-work requirement, or reason to stop progression. The only exception is a task whose explicit subject is connector/device-inventory management itself.",
+    "device_interchangeability": "Replacing one eligible StegOS device/node with another does not change the user's verifier. Only available local capability endpoints and resulting execution evidence may change.",
+    "ephemeral_substrate": "Temporary compute is not a separate authority or durable machine dependency. Presence or connectivity grants no execution, transition, WorkerCoordinator claim/fence, credential, custody, publication, or completion authority.",
+    "execution_surface_observation": "Connector or runtime observations such as reachable, connected, alive, local, or unavailable describe execution-surface availability only. They never mean authorized, verified, trusted, user-verified, authority-bearing, substrate-unsuitable, or external-device-required.",
+    "kv_skap_vault": "Maintains the verifier for the user and is the sole source of user-verification state.",
+    "legacy_completion": "Historical unqualified completion claims remain provenance only. Without contract v1, an explicit evidence class, and evidence references they cannot satisfy a current terminal predicate, promote task state, or support user-facing complete/completed language.",
+    "master_records_batch_recording": "Master Records records organization batches the organization has independently verified and released, for durable cross-organization custody and complex reconstruction. Its release predecessor is a verified organization receipt-chain segment. It holds no transition, execution, credential, routing or runtime-reality authority, is not a gate on an organization's runtime reality, and is never awaited by a transition. An unreleased or unrecorded batch is a value in the attempted transition's evidence state, not a blocker and not proof of non-occurrence.",
+    "node_local_capability": "A node may expose and invoke locally available capabilities after applicable KV/SKAP-backed user-verification state and Interlock/InTr admission are bound to the exact operation. Local execution does not make the node the user verifier.",
+    "organization_runtime_reality": "Runtime reality for an organization is the organization ledger root: the append-only hash-linked organization receipt chain written under the organization ledger lock by manifest-directed append. A transition within the organization is real when it is appended there. Shipping, releasing, recording or reconstructing it downstream preserves and verifies that reality; it does not constitute it.",
+    "remote_computer_transport": "Remote Computer is a transport/discovery surface only. Capacity discovered through it may execute only after materializing as the canonical StegBrowser/StegOS node class and being admitted as ADMITTED-EPHEMERAL-STEGOS-NODE through Interlock/InTr.",
+    "runtime_substrate_order": "Runtime-capable tasks must evaluate the canonical single-device-first substrate order before any remote/external-device last resort. EVIDENCE_REACHABILITY may remain pending but cannot establish UNSUITABLE or create an external-device requirement.",
+    "stegos_device": "An interchangeable StegOS transport node that may carry or execute bounded work. Device identity, node identity, transport channel identity, local key possession, and local hardware do not establish user-verifier authority and are not verification gates.",
+    "transport_integrity": "A transport may preserve integrity, freshness, routing, replay protection, and evidence bindings without becoming a user verifier or trust root for the user.",
+    "zero_connected_devices": "Zero connected devices has no StegVerse task-state meaning. It must not be checked for ordinary runtime tasks and, if incidentally known, must be ignored for task progression."
+   }
+  },
+  "registry_identity_source": "CANONICAL_TASK_REGISTRY",
+  "repository_only_overlap_policy": "NONBLOCKING_ONLY_WHEN_BOTH_TASKS_DECLARE_NONEMPTY_DISJOINT_COMPONENT_SCOPES_AND_NO_STRONGER_OVERLAP_SIGNAL",
+  "repository_only_scope_distinctions": [
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "StegVerse-Labs/StegSocials/docs/STEGSOCIALS_EVIDENCE_CONTEXT_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "SS-EVIDENCE-COMPARISON-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "UNCLAIMED",
+    "coordination_state": "ACTIVE",
+    "handoff": "StegVerse-002/.github:docs/SELF_CHARACTERIZATION_EXECUTION_SURFACE_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "STEGVERSE-002-EXPERIMENT-RERUN-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/MIR_AGENTENVELOPE_DERIVED_AUTHORITY_RECONCILIATION_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "MIR-AGENTENVELOPE-DERIVED-AUTHORITY-RECONCILIATION-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/ENTERPRISE_HOST_PROVIDER_ERADICATION_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "ENTERPRISE-HOST-PROVIDER-ERADICATION-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/CONVERSATION_EVIDENCE_INGESTION_CUSTODY_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "CONVERSATION-EVIDENCE-INGESTION-CUSTODY-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "StegVerse-Labs/Executive_Rhetoric_Ledger/docs/UK_JCHR_HUMAN_RIGHTS_AI_STEGVERSE_RECONCILIATION_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "ERL-UK-JCHR-HUMAN-RIGHTS-AI-RECONCILIATION-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/ECOSYSTEM_RECEIPT_HB_CREATION_RECORDING_STAMP_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "ECOSYSTEM-RECEIPT-HB-CREATION-RECORDING-STAMP-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/PUBLIC_REPOSITORY_CONSUMPTION_ATTRIBUTION_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "PUBLIC-REPOSITORY-CONSUMPTION-ATTRIBUTION-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "UNCLAIMED",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/ADMISSIBLE_EXISTENCE_MATHEMATICAL_PROCESSING_INTEGRATION_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "ADMISSIBLE-EXISTENCE-MATHEMATICAL-PROCESSING-INTEGRATION"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/TASK_REGISTRY_SOVEREIGN_KV_EVENT_CUSTODY_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "TASK-REGISTRY-SOVEREIGN-KV-EVENT-CUSTODY-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/TASK_REGISTRY_CHECKIN_EVENT_HISTORY_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "TASK-REGISTRY-CHECKIN-EVENT-HISTORY-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "UNCLAIMED",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/MIR_SV_CAPABILITY_BOUNDARY_EXPERIMENT_003_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "MIR-SV-CAPABILITY-BOUNDARY-EXPERIMENT-003"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/FEDERAL_HEALTH_PII_EXCEEDANCE_HARDENING_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "FEDERAL-HEALTH-PII-EXCEEDANCE-HARDENING-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "StegVerse-Labs/StegSocials/docs/STEGSOCIALS_NATIVE_STEGBROWSER_TRANSPORT_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "SS-KV-SKAP-SOCIAL-RELEASE-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/STEGBROWSER_RESIDENT_RECEIPT_TRANSPORT_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "STEG-BROWSER-RESIDENT-RECEIPT-TRANSPORT-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/STEGOS_AI_PREEXECUTION_RUNTIME_PROOF_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "STEGOS-AI-PREEXECUTION-RUNTIME-PROOF-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/DEVICE_KV_SKAP_ROUNDTRIP_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "STEGOS-DEVICE-KV-SKAP-ROUNDTRIP-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "StegVerse-Labs/StegOS/docs/STEGOS_NODE_MANIFOLD_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "STEGOS-NODE-MANIFOLD-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/STEGVERSE_TASK_REGISTRY_HEALTH_MONITOR_001_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "STEGVERSE-TASK-REGISTRY-HEALTH-MONITOR-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/TASK_REGISTRY_SESSION_RETURN_ORCHESTRATION_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "TASK-REGISTRY-SESSION-RETURN-ORCHESTRATION-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/MASTER_RECORDS_BULK_SEMANTIC_REMEDIATION_002_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "MASTER-RECORDS-BULK-SEMANTIC-REMEDIATION-002"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "StegVerse-Labs/.github:docs/SDK_MANIFEST_COLLAB_INGRESS_CONFORMANCE_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "SDK-MANIFEST-COLLAB-INGRESS-CONFORMANCE-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "StegVerse-Labs/.github:docs/SDK_MANIFEST_IDENTITY_ROUTING_REGRESSION_GATE_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "SDK-MANIFEST-IDENTITY-ROUTING-REGRESSION-GATE-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "StegVerse-Labs/.github:docs/SDK_MANIFEST_ECOSYSTEM_TRANSITION_DISPOSITION_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CANONICAL_TASK_REGISTRY",
+    "task_id": "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CHECKED_OUT",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/CANONICAL_WORK_END_TO_END_CYCLE_CLOSURE_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "CANONICAL-WORK-END-TO-END-CYCLE-CLOSURE-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/GADI_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "GADI-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/GADI_RUNTIME_CLOSURE_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "GADI-RUNTIME-CLOSURE-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/GLOBAL_RUNTIME_EVIDENCE_CLOSURE_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "GLOBAL-RUNTIME-EVIDENCE-CLOSURE-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/HF_PUBLIC_PRECURSOR_REPLAY_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "HF-PUBLIC-PRECURSOR-REPLAY-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/MYKV_PERSONAL_DATA_BACKUP_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "MYKV-PERSONAL-DATA-BACKUP-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/QUI_STEGVERSE_ARCHITECTURE_PARTNERSHIP_EVALUATION_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "QUI-STEGVERSE-ARCHITECTURE-PARTNERSHIP-EVALUATION-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "StegVerse-Labs/.github/docs/SITE_NODE_IDB_SCHEMA_MIGRATION_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "SITE-NODE-IDB-SCHEMA-MIGRATION-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/DATA_RECLAMATION_DISCLOSURE_INGESTION_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "SS-DATA-RECLAMATION-DISCLOSURE-INGESTION-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/SS_ERL_ACTIVE_RESEARCH_INTR_RUNTIME_BINDING_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "SS-ERL-ACTIVE-RESEARCH-INTR-RUNTIME-BINDING-001"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/SS_ERL_AUTHENTIC_INTR_EXECUTION_EVIDENCE_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "SS-ERL-AUTHENTIC-INTR-EXECUTION-EVIDENCE-002"
+   },
+   {
+    "blocking": false,
+    "checkout_state": "CLAIMED_INTEGRATION",
+    "coordination_state": "ACTIVE",
+    "handoff": "docs/STEGLEARN_YOUTUBE_EDUCATION_PARTNERSHIP_MIRROR_HANDOFF.md",
+    "overlap": {
+     "adjacent": false,
+     "components": [],
+     "execution_substrates": [],
+     "lineage": false,
+     "repositories": [
+      "StegVerse-Labs/.github"
+     ],
+     "user_action_surface_conflicts": []
+    },
+    "scope_disposition": "DISTINGUISHED_COMPONENT_SCOPE",
+    "source": "CHECKED_OUT_SHARD_OMITTED_FROM_AGGREGATE",
+    "task_id": "STEGLEARN-YOUTUBE-EDUCATION-PARTNERSHIP-001"
+   }
+  ],
+  "same_goal_progression_controller_collision_excluded": false,
+  "schema": "stegverse.task-registry-checkin-disposition/v1",
+  "selected_execution_substrate": null,
+  "session_action": "COORDINATE_BEFORE_MUTATION",
+  "shareable_user_action_surface_distinctions": [],
+  "stale_session_prohibited_mutations": [
+   "SOURCE_WRITE",
+   "PULL_REQUEST_CREATE_OR_UPDATE",
+   "PULL_REQUEST_MERGE",
+   "NEW_HANDOFF_CLAIM"
+  ],
+  "task_handoff": "docs/ORGANIZATION_BATCH_CUSTODY_REPLAY_MIRROR_HANDOFF.md",
+  "task_id": "ORGANIZATION-BATCH-CUSTODY-REPLAY-001",
+  "task_record_shards_are_optional_enrichment_only": true,
+  "unregistered_checked_out_shard_ids": [
+   "CANONICAL-WORK-END-TO-END-CYCLE-CLOSURE-001",
+   "ENTITY-ECONOMY-VOLUME-I-II-GOVERNED-RELEASE-001",
+   "ERL-MODEL-ELECTION-FRAMING-INFLUENCE-001",
+   "GADI-001",
+   "GADI-RUNTIME-CLOSURE-001",
+   "GLOBAL-RUNTIME-EVIDENCE-CLOSURE-001",
+   "HF-PUBLIC-PRECURSOR-REPLAY-001",
+   "MYKV-PERSONAL-DATA-BACKUP-001",
+   "PUBLISHER-GOVERNED-OUTBOUND-EXECUTION-EVIDENCE-001",
+   "QUI-STEGVERSE-ARCHITECTURE-PARTNERSHIP-EVALUATION-001",
+   "SITE-NODE-IDB-SCHEMA-MIGRATION-001",
+   "SS-DATA-RECLAMATION-DISCLOSURE-INGESTION-001",
+   "SS-ERL-ACTIVE-RESEARCH-INTR-RUNTIME-BINDING-001",
+   "SS-ERL-AUTHENTIC-INTR-EXECUTION-EVIDENCE-002",
+   "STEGLEARN-YOUTUBE-EDUCATION-PARTNERSHIP-001"
+  ],
+  "unregistered_shards_are_collision_guards_only": true,
+  "write_pr_merge_handoff_claim_admissible": true
+ },
+ "note": "SIMULATION in scratch worktree: #3358 exact-invocation supersede applied 322->323, then option C 323->324; reverted immediately; nothing committed anywhere real",
+ "request": {
+  "caller_surface": "INTERNAL_CANONICAL_WORK_BOOTSTRAP",
+  "checkin_context": {
+   "components_under_mutation": [
+    "organization-ledger-readback",
+    "protocol-v1-conformance-fixtures"
+   ],
+   "repositories_under_mutation": [
+    "StegVerse-Labs/.github"
+   ],
+   "repository": "StegVerse-Labs/.github"
+  },
+  "observed_registry_generation": 324,
+  "task_id": "ORGANIZATION-BATCH-CUSTODY-REPLAY-001"
+ }
+}
