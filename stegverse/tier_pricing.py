@@ -146,6 +146,23 @@ def action_cost(record: Any, rates: Mapping[str, Decimal]) -> dict[str, Any]:
             raise PricingInputError(f"{task_class}.cost_dimension_dispositions.{field}: one of {list(DIMENSION_DISPOSITIONS)}")
         if disposition == "UNKNOWN" and field not in unmodeled:
             unmodeled.append(field)
+        if disposition == "MODELED":
+            # MODELED is a claim with two parts: the rate card maps this field to a cost, and a
+            # quantity is present. A declared MODELED null, or MODELED on a field nothing prices,
+            # is a contradiction, not a complete dimension.
+            if field not in COMPONENTS and field != "external_cost_usd":
+                raise PricingInputError(
+                    f"{task_class}.cost_dimension_dispositions.{field}: MODELED but no cost mapping prices this field; "
+                    "declare it UNKNOWN, NOT_APPLICABLE or KNOWN_ZERO")
+            if estimate.get(field) is None:
+                raise PricingInputError(
+                    f"{task_class}.cost_dimension_dispositions.{field}: MODELED but the quantity is null; "
+                    "supply the quantity, or declare NOT_APPLICABLE or KNOWN_ZERO")
+        if disposition in ("KNOWN_ZERO", "NOT_APPLICABLE"):
+            value = estimate.get(field)
+            if value is not None and _decimal(value, f"{task_class}.{field}") != 0:
+                raise PricingInputError(
+                    f"{task_class}.cost_dimension_dispositions.{field}: declared {disposition} but the quantity is non-zero")
     samples = basis.get("sample_count")
     status = "UNKNOWN_RATE_NOT_SOURCED" if missing else "MACHINE_SUBTOTAL_ONLY" if unmodeled else "PRICED"
     return {

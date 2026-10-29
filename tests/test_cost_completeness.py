@@ -52,13 +52,22 @@ class CostCompletenessTests(unittest.TestCase):
         self.assertEqual(cost["status"], "MACHINE_SUBTOTAL_ONLY")
 
     def test_null_compute_lowers_the_subtotal_and_stays_unmodeled(self):
-        cost = self.cost(compute_units=None)
+        # An undeclared optional null is allowed; a null on a field declared MODELED is refused
+        # (see test_modeled_with_a_null_quantity_is_a_contradiction).
+        record = copy.deepcopy(self.record)
+        record["cost_estimate"]["compute_units"] = None
+        del record["cost_dimension_dispositions"]["compute_units"]
+        cost = tier_pricing.action_cost(record, self.rates)
         self.assertEqual(cost["machine_subtotal_usd_per_action"], "0.206214400")
         self.assertEqual(cost["status"], "MACHINE_SUBTOTAL_ONLY")
 
     def test_all_machine_quantities_null_gives_a_zero_subtotal_not_a_price(self):
-        cost = self.cost(compute_units=None, failure_recovery_units=None, recovery_actions=None,
-                         storage_bytes=None, network_bytes=None, external_cost_usd=None)
+        record = copy.deepcopy(self.record)
+        for field in ("compute_units", "failure_recovery_units", "recovery_actions", "storage_bytes",
+                      "network_bytes", "external_cost_usd"):
+            record["cost_estimate"][field] = None
+            record["cost_dimension_dispositions"].pop(field, None)
+        cost = tier_pricing.action_cost(record, self.rates)
         self.assertEqual(cost["machine_subtotal_usd_per_action"], "0")
         self.assertIsNone(cost["usd_per_action"])
         self.assertEqual(cost["status"], "MACHINE_SUBTOTAL_ONLY")
@@ -115,6 +124,42 @@ class CostCompletenessTests(unittest.TestCase):
         self.assertIn("unmodeled cost dimensions", report["actionable_disposition"]["failed_predicate"])
         self.assertIn("NOT_APPLICABLE or KNOWN_ZERO", report["actionable_disposition"]["required_evidence_or_repair"])
         self.assertFalse(report["authority"]["final_price_approved"])
+
+    # Residual cases from the second verification (comment 6486545783): MODELED must mean a
+    # present quantity on a field the rate card prices.
+    def test_modeled_with_a_null_quantity_is_a_contradiction(self):
+        record = copy.deepcopy(self.record)
+        record["cost_estimate"].update(operator_seconds=0, token_units=0, compute_units=None)
+        record["cost_dimension_dispositions"].update(operator_seconds="KNOWN_ZERO", token_units="KNOWN_ZERO",
+                                                     compute_units="MODELED")
+        with self.assertRaises(tier_pricing.PricingInputError):
+            tier_pricing.action_cost(record, self.rates)
+
+    def test_modeled_on_a_field_nothing_prices_is_a_contradiction(self):
+        record = copy.deepcopy(self.record)
+        record["cost_estimate"].update(operator_seconds=None, token_units=0)
+        record["cost_dimension_dispositions"].update(operator_seconds="MODELED", token_units="KNOWN_ZERO")
+        with self.assertRaises(tier_pricing.PricingInputError):
+            tier_pricing.action_cost(record, self.rates)
+
+    def test_modeled_on_a_field_nothing_prices_is_refused_even_with_a_quantity(self):
+        record = copy.deepcopy(self.record)
+        record["cost_dimension_dispositions"]["operator_seconds"] = "MODELED"  # quantity 72000 is present
+        with self.assertRaisesRegex(tier_pricing.PricingInputError, "no cost mapping"):
+            tier_pricing.action_cost(record, self.rates)
+
+    def test_known_zero_with_a_non_zero_quantity_is_a_contradiction(self):
+        record = copy.deepcopy(self.record)
+        record["cost_dimension_dispositions"]["token_units"] = "KNOWN_ZERO"
+        with self.assertRaises(tier_pricing.PricingInputError):
+            tier_pricing.action_cost(record, self.rates)
+
+    def test_modeled_with_a_present_quantity_on_a_priced_field_is_complete(self):
+        record = copy.deepcopy(self.record)
+        record["cost_estimate"].update(operator_seconds=0, token_units=0)
+        record["cost_dimension_dispositions"].update(operator_seconds="KNOWN_ZERO", token_units="NOT_APPLICABLE")
+        cost = tier_pricing.action_cost(record, self.rates)
+        self.assertEqual((cost["status"], cost["usd_per_action"]), ("PRICED", "0.926214400"))
 
 
 if __name__ == "__main__":
