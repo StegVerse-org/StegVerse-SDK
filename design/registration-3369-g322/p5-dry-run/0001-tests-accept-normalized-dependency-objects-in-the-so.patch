@@ -1,0 +1,39 @@
+From bcb1a9e446534b00b522006bfb0fe3bee14aa99a Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 29 Oct 2026 09:52:01 -0500
+Subject: [PATCH] tests: accept normalized dependency objects in the sovereign
+ KV custody test
+
+scripts/apply_task_record_data.py gen323-dependency-blocker-shape-normalization.v1.json
+(#3380, 323 -> 324 after #3403) rewrites record["dependencies"] entries from bare
+task ids to {"dependency_id", "kind", "state", "ref"} objects. The test at
+line 56 asserted the bare id and goes red at that apply; #3380 touches no tests.
+Read the id from either shape.
+
+Refs StegVerse-Labs/.github#3380, #3195
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_0143inaAUDHET9NXg3wZr3Y7
+---
+ tests/test_task_registry_sovereign_kv_event_custody.py | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/tests/test_task_registry_sovereign_kv_event_custody.py b/tests/test_task_registry_sovereign_kv_event_custody.py
+index 192ab2a..2c99721 100644
+--- a/tests/test_task_registry_sovereign_kv_event_custody.py
++++ b/tests/test_task_registry_sovereign_kv_event_custody.py
+@@ -53,7 +53,10 @@ def test_prompt_ceiling_successor_does_not_replace_canonical_runtime_owner():
+     transition = record["runtime_owner_transition_observation"]
+ 
+     assert "reset_prompt_count" in policy["component_split_rule"]["do_not_split_merely_to"]
+-    assert "STEGOS-DEVICE-KV-SKAP-ROUNDTRIP-001" in record["dependencies"]
++    # Dependencies may be bare task ids or, after the gen-323 -> 324 shape
++    # normalization (#3195 / #3380), {"dependency_id": ...} objects.
++    dependency_ids = [d["dependency_id"] if isinstance(d, dict) else d for d in record["dependencies"]]
++    assert "STEGOS-DEVICE-KV-SKAP-ROUNDTRIP-001" in dependency_ids
+     assert "STEGOS-DEVICE-KV-SKAP-AUTHENTIC-RUNTIME-002" not in record["adjacent_task_refs"]
+     assert transition["canonical_owner"] == "STEGOS-DEVICE-KV-SKAP-ROUNDTRIP-001"
+     assert transition["disposition"] == "SUPERSEDED_PROMPT_CEILING_ONLY_SUCCESSOR"
+-- 
+2.43.0
+

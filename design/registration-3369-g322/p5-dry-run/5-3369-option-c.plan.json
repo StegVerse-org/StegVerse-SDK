@@ -1,0 +1,9 @@
+{
+  "disposition": "ALLOW",
+  "generation": 328,
+  "tip_generation": 327,
+  "records_changed": [
+    "ORGANIZATION-BATCH-CUSTODY-REPLAY-001.json"
+  ],
+  "files_changed": false
+}

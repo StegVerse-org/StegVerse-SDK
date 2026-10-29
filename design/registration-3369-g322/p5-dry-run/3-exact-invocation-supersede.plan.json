@@ -1,0 +1,9 @@
+{
+  "disposition": "ALLOW",
+  "generation": 326,
+  "tip_generation": 325,
+  "records_changed": [
+    "CANONICAL-WORK-EXACT-INVOCATION-EVIDENCE-RECONCILIATION-001.json"
+  ],
+  "files_changed": false
+}
