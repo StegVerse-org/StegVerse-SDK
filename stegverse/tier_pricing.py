@@ -42,6 +42,11 @@ COMPONENTS = {
     "storage_bytes": ("storage_gb", GB),
     "network_bytes": ("network_gb", GB),
 }
+# cost_estimate fields that are not costs; they never make a basis incomplete.
+NON_COST_FIELDS = {"latency_ms"}
+# A record may declare how each cost dimension stands. UNKNOWN on a required dimension, like a
+# declared non-zero quantity the rate card does not model, keeps the basis a machine-only subtotal.
+DIMENSION_DISPOSITIONS = ("MODELED", "NOT_APPLICABLE", "KNOWN_ZERO", "UNKNOWN")
 
 
 class PricingInputError(ValueError):
@@ -112,7 +117,7 @@ def action_cost(record: Any, rates: Mapping[str, Decimal]) -> dict[str, Any]:
     estimate = basis.get("cost_estimate")
     if not isinstance(estimate, Mapping):
         raise PricingInputError(f"{task_class}: cost_estimate required")
-    total, missing = Decimal(0), set()
+    total, missing, unmodeled = Decimal(0), set(), []
     for field, (rate_key, divisor) in COMPONENTS.items():
         value = estimate.get(field)
         if value is None:
@@ -126,12 +131,31 @@ def action_cost(record: Any, rates: Mapping[str, Decimal]) -> dict[str, Any]:
         total += quantity / divisor * rates[rate_key]
     if estimate.get("external_cost_usd") is not None:
         total += _decimal(estimate["external_cost_usd"], f"{task_class}.external_cost_usd")
+    # A declared non-zero quantity the rate card does not model is cost the subtotal leaves out.
+    for field in sorted(estimate):
+        if field in COMPONENTS or field == "external_cost_usd" or field in NON_COST_FIELDS:
+            continue
+        value = estimate.get(field)
+        if value is not None and _decimal(value, f"{task_class}.{field}") != 0:
+            unmodeled.append(field)
+    dispositions = basis.get("cost_dimension_dispositions") or {}
+    if not isinstance(dispositions, Mapping):
+        raise PricingInputError(f"{task_class}: cost_dimension_dispositions must be an object")
+    for field, disposition in sorted(dispositions.items()):
+        if disposition not in DIMENSION_DISPOSITIONS:
+            raise PricingInputError(f"{task_class}.cost_dimension_dispositions.{field}: one of {list(DIMENSION_DISPOSITIONS)}")
+        if disposition == "UNKNOWN" and field not in unmodeled:
+            unmodeled.append(field)
     samples = basis.get("sample_count")
+    status = "UNKNOWN_RATE_NOT_SOURCED" if missing else "MACHINE_SUBTOTAL_ONLY" if unmodeled else "PRICED"
     return {
         "task_class": task_class,
-        "status": "UNKNOWN_RATE_NOT_SOURCED" if missing else "PRICED",
+        "status": status,
         "missing_rates": sorted(missing),
-        "usd_per_action": None if missing else str(total),
+        # The modeled machine cost, kept apart from any complete cost claim.
+        "machine_subtotal_usd_per_action": None if missing else str(total),
+        "unmodeled_cost_dimensions": sorted(unmodeled),
+        "usd_per_action": str(total) if status == "PRICED" else None,
         # A sample_count of 0 (or absent) is a source-declared estimate, not an observed measurement.
         "evidence": "SAMPLED_COST_BASIS" if isinstance(samples, int) and samples > 0 else "PROVISIONAL_ESTIMATE",
     }
@@ -212,7 +236,10 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
     costs = {c: action_cost(records[0], rates) for c, records in by_class.items()}
     for task_class, cost in costs.items():
         estimate = {"scope_id": task_class, "currency": "USD", "unit": "action", "cost_basis_version": version,
-                    "amount": cost["usd_per_action"] if cost["status"] == "PRICED" else "UNKNOWN"}
+                    # A machine-only subtotal is a lower bound on the estimate, never a complete cost.
+                    "amount": cost["usd_per_action"] if cost["status"] == "PRICED"
+                    else cost["machine_subtotal_usd_per_action"] if cost["status"] == "MACHINE_SUBTOTAL_ONLY"
+                    else "UNKNOWN"}
         try:
             cost["pricing_basis"] = registry.pricing_basis(authentic, estimate, observed_by_class.get(task_class))
         except registry.CostInputError as exc:
@@ -238,7 +265,9 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
             continue
         # Conservative: price every included action at the costliest class the plan admits.
         unit_cost = max(Decimal(costs[c]["pricing_basis"]["c_pricing"]) for c in classes)
-        complete = all(costs[c]["pricing_basis"]["status"] == "COMPLETE_BASIS" for c in classes)
+        unmodeled = sorted({d for c in classes for d in costs[c]["unmodeled_cost_dimensions"]})
+        # A basis with unmodeled cost dimensions is never complete, whatever was observed.
+        complete = not unmodeled and all(costs[c]["pricing_basis"]["status"] == "COMPLETE_BASIS" for c in classes)
         floor = unit_cost / (1 - margin)
         # A lower-bound median is never an exact match, and never caps the quote: the floor is
         # above the market only when it exceeds the median's upper bound.
@@ -254,6 +283,8 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
         tier.update(status="PRICED" if complete else "PROVISIONAL_SCENARIO", unit_cost_usd=str(unit_cost), cost_floor_usd_per_action=str(floor),
                     usd_per_action=str(price), usd_per_period=_cents_up(price * included),
                     market_position=position,
+                    cost_completeness="MACHINE_SUBTOTAL_ONLY" if unmodeled else "ALL_DECLARED_DIMENSIONS_MODELED",
+                    unmodeled_cost_dimensions=unmodeled,
                     evidence="PROVISIONAL_ESTIMATE" if any(costs[c]["evidence"] != "SAMPLED_COST_BASIS" for c in classes)
                     else "SAMPLED_COST_BASIS")
         tiers.append(tier)
@@ -263,11 +294,14 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
     extra = {}
     if status == "PROVISIONAL":
         unobserved = sorted(c for c, cost in costs.items() if cost["pricing_basis"]["status"] == "PROVISIONAL_SCENARIO")
+        unmodeled = {c: cost["unmodeled_cost_dimensions"] for c, cost in costs.items() if cost["unmodeled_cost_dimensions"]}
         extra["actionable_disposition"] = _actionable(
             "PRICING_BASIS_PROVISIONAL",
-            f"C_pricing = max(C_estimated, C_authentically_observed) has one operand UNKNOWN for {unobserved}",
+            f"C_pricing = max(C_estimated, C_authentically_observed) has one operand UNKNOWN for {unobserved}"
+            + (f"; the estimate is a machine-only subtotal, unmodeled cost dimensions {unmodeled}" if unmodeled else ""),
             "supply an authentically observed cost (receipt-backed, same scope, currency, unit and cost_basis_version) "
-            "and a complete estimate for each listed task class")
+            "and a complete estimate for each listed task class"
+            + ("; model or cite a rate for each unmodeled dimension, or declare it NOT_APPLICABLE or KNOWN_ZERO" if unmodeled else ""))
     elif status == "INCOMPLETE":
         unpriced = [t["name"] for t in tiers if t["status"] not in ("PRICED", "PROVISIONAL_SCENARIO")]
         missing = sorted({r for c in costs.values() for r in c["missing_rates"]})

@@ -2,6 +2,7 @@
   "action_costs": [
     {
       "evidence": "PROVISIONAL_ESTIMATE",
+      "machine_subtotal_usd_per_action": "0.926214400",
       "missing_rates": [],
       "pricing_basis": {
         "authority": {
@@ -27,17 +28,21 @@
         "selected_basis": "ESTIMATED_ONLY",
         "status": "PROVISIONAL_SCENARIO"
       },
-      "status": "PRICED",
+      "status": "MACHINE_SUBTOTAL_ONLY",
       "task_class": "governance_assessment_engagement",
-      "usd_per_action": "0.926214400"
+      "unmodeled_cost_dimensions": [
+        "operator_seconds",
+        "token_units"
+      ],
+      "usd_per_action": null
     }
   ],
   "actionable_disposition": {
-    "failed_predicate": "C_pricing = max(C_estimated, C_authentically_observed) has one operand UNKNOWN for ['governance_assessment_engagement']",
+    "failed_predicate": "C_pricing = max(C_estimated, C_authentically_observed) has one operand UNKNOWN for ['governance_assessment_engagement']; the estimate is a machine-only subtotal, unmodeled cost dimensions {'governance_assessment_engagement': ['operator_seconds', 'token_units']}",
     "failure_code": "PRICING_BASIS_PROVISIONAL",
     "next_attempt": "re-run with the corrected inputs; no price or tier is presumed until then",
     "owning_existing_goal": "SDK-COST-DERIVED-TIER-PRICING-001",
-    "required_evidence_or_repair": "supply an authentically observed cost (receipt-backed, same scope, currency, unit and cost_basis_version) and a complete estimate for each listed task class",
+    "required_evidence_or_repair": "supply an authentically observed cost (receipt-backed, same scope, currency, unit and cost_basis_version) and a complete estimate for each listed task class; model or cite a rate for each unmodeled dimension, or declare it NOT_APPLICABLE or KNOWN_ZERO",
     "retry_entrypoint": "stegverse/tier_pricing.py::main"
   },
   "authority": {
@@ -59,6 +64,7 @@
   "target_gross_margin": "0.75",
   "tiers": [
     {
+      "cost_completeness": "MACHINE_SUBTOTAL_ONLY",
       "cost_floor_usd_per_action": "3.7048576",
       "evidence": "PROVISIONAL_ESTIMATE",
       "included_actions": "1",
@@ -69,6 +75,10 @@
         "governance_assessment_engagement"
       ],
       "unit_cost_usd": "0.926214400",
+      "unmodeled_cost_dimensions": [
+        "operator_seconds",
+        "token_units"
+      ],
       "usd_per_action": "1995",
       "usd_per_period": "1995.00"
     }

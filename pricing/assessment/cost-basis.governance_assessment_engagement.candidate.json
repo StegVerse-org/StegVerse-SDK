@@ -18,6 +18,15 @@
     "latency_ms": null,
     "failure_recovery_units": 30
   },
+  "cost_dimension_dispositions": {
+    "compute_units": "MODELED",
+    "failure_recovery_units": "MODELED",
+    "storage_bytes": "MODELED",
+    "network_bytes": "NOT_APPLICABLE",
+    "external_cost_usd": "KNOWN_ZERO",
+    "token_units": "UNKNOWN",
+    "operator_seconds": "UNKNOWN"
+  },
   "evidence_refs": [
     "StegVerse-Labs/.github:docs/GOVERNANCE_ASSESSMENT_SHARE_PACKET.md",
     "StegVerse-Labs/.github:docs/GOVERNANCE_ASSESSMENT_PRICING_FORMULA_READBACK.md"
@@ -25,6 +34,6 @@
   "notes": [
     "CANDIDATE estimator-declared quantities for one engagement (intake, workflow map, authority/evidence inventory, 5-risk matrix, 30-day plan, review meeting).",
     "Canonical cost-basis home is StegVerse-Labs/.github:cost-basis/worker-runtime/; this is the candidate input until that lane adopts it.",
-    "token_units and operator_seconds are recorded but unpriced by stegverse/tier_pricing.py COMPONENTS; the market median carries labor and LLM cost (P4-A)."
+    "token_units and operator_seconds are declared UNKNOWN: the rate card models neither, so the estimate is a machine-only subtotal and the basis can never be complete until they are modeled or cited (P4-A: the market median carries labor and LLM cost meanwhile)."
   ]
 }
