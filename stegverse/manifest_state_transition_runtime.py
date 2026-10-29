@@ -8,12 +8,16 @@ StegAgents, or Master Records directly.
 
 The SDK's job is to *manifest*. Outbound organization routing is not selected by
 ``completion.egress``: that block describes requester-facing completion/return
-semantics. The canonical Universal InTr connector registry declares
-``sdk-manifest-ingress / SDK:ManifestIngress`` and its owning organization, but
-the current registry does not yet supply a concrete organization ``.github``
-ingress endpoint to this runtime. Until that canonical mapping is available,
-run-manifest fails closed rather than treating LLM-adapter, Publisher, or any
-caller-authored completion surface as the organization destination.
+semantics. The organization destination is resolved only from a supplied
+organization boundary. ``manifest_execution.execute_manifest`` supplies the
+installed, blob-pinned boundary (``stegverse/pinned_sources/interlock-intr.json``),
+whose ``sdk-manifest-ingress / SDK:ManifestIngress`` binding names the owning
+organization's ``.github`` receiving operation, and this runtime resolves it with
+``canonical_organization_destination``. When no boundary is supplied (for example
+the pinned source is missing, unreadable or fails its pin check, or a caller
+invokes this runtime directly without one), the handoff fails closed rather than
+treating LLM-adapter, Publisher, or any caller-authored completion surface as the
+organization destination. A supplied boundary that does not resolve raises.
 
 The return leg is ``admit_runtime_result``: results arrive after the receiving
 Interlock runtime has transported and admitted them, exactly as
@@ -89,12 +93,12 @@ def canonical_organization_destination(organization_boundary: Mapping[str, Any])
 
 
 def manifest_declared_destination(canonical: Mapping[str, Any]) -> None:
-    """Compatibility shim: completion.egress is not outbound organization routing.
+    """Fallback used only when no organization boundary is supplied.
 
-    The canonical connector registry now declares sdk-manifest-ingress /
-    SDK:ManifestIngress and its owner. A concrete organization .github ingress
-    endpoint is not yet represented in the SDK-consumable canonical mapping, so
-    no outbound destination may be synthesized from completion.egress.
+    The canonical destination comes from a supplied organization boundary via
+    ``canonical_organization_destination``. Without a boundary no outbound
+    destination may be synthesized from completion.egress (which is not outbound
+    organization routing), so this returns None and the request fails closed.
     """
     return None
 
@@ -653,7 +657,13 @@ def validate_runtime_result(result: Mapping[str, Any], request: Mapping[str, Any
 
 
 def _destination_not_declared(request: Mapping[str, Any]) -> dict[str, Any]:
-    """Capability is known, but its canonical organization ingress endpoint is not."""
+    """No organization boundary was supplied, so the ingress endpoint is unresolved.
+
+    Reached whenever a request was derived with no organization boundary: the
+    pinned source was missing, unreadable or failed its pin check, or the caller
+    invoked this runtime (or remediation/re-derivation) without one. A supplied
+    boundary that does not resolve raises instead of reaching this disposition.
+    """
     result = {
         "schema": "stegverse.sdk.manifest-handoff-disposition/v1",
         "state": "FAIL_CLOSED",

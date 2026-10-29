@@ -1231,6 +1231,21 @@
    "reason": "Jobs whose steps call an action other than checkout/setup-python/upload-artifact, or that are reusable-workflow calls, are carried verbatim as dispatcher jobs (CARRIED_AS_DISPATCHER_JOB): test-suite-ratchet (ratchet), governance-gate-selftest (self, self-default-sdk-ref), deepwiki-readonly-review (review-only-export, with its workflow-level permissions moved to job level), mir-leaf-v3-conformance (conformance); intr-destination-hop-lane (fabricated) and sv-llm-intr-roundtrip (roundtrip), which make several pinned cross-repository checkouts (sv-llm-intr-roundtrip's workflow-level env moves to job level); portable-package-source-validation and portable-release-index-validation, which deliberately make no actions/checkout and materialize the public source anonymously into an empty workspace (workflow-level permissions: {} moved to job level). Their path filters are dropped: they now run on every pull request and push to main.",
    "verbatim_record": "tools/tasks/folded/portable-release-index-validation.yml",
    "verbatim_sha256": "9a4dd0899c9149494d439cdbe0715ff50485af7e9e4cdc6e387c4cd0237984e9"
+  },
+  {
+   "workflow": ".github/workflows/governance-product-finish-point.yml",
+   "name": "Governance product finish point",
+   "triggers_before": [
+    "pull_request",
+    "push"
+   ],
+   "classification": "CONSOLIDATE_INTO_STABLE_DISPATCHER",
+   "status": "DONE",
+   "catalog_groups": [
+    "governance-product-finish-point.finish-point"
+   ],
+   "verbatim_record": "tools/tasks/folded/governance-product-finish-point.yml",
+   "verbatim_sha256": "055dc93aa40dfa48830f70f967cfafca1b12db9f97df0d4d741b65ad26e1eb93"
   }
  ],
  "g17_ceiling": {

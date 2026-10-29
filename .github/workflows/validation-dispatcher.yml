@@ -680,7 +680,13 @@ jobs:
     permissions: {}
     runs-on: ubuntu-latest
     steps:
+      - name: Event selection (G17 carried job; the original ran on pull_request only)
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          echo "NOT_SELECTED: portable-release-index-validation materializes refs/pull/<n>/merge and ran only on pull_request; event=${{ github.event_name }}"
       - name: Assert no credential authority
+        if: github.event_name == 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -688,6 +694,7 @@ jobs:
           test -z "${GH_TOKEN:-}"
 
       - name: Materialize exact public PR source anonymously
+        if: github.event_name == 'pull_request'
         shell: bash
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -700,14 +707,17 @@ jobs:
           git checkout --detach FETCH_HEAD
 
       - name: Install focused test dependency
+        if: github.event_name == 'pull_request'
         shell: bash
         run: python -m pip install pytest
 
       - name: Run release index tests
+        if: github.event_name == 'pull_request'
         shell: bash
         run: python -m pytest tests/test_release_index.py -q
 
       - name: Prove public release discovery carries no authority
+        if: github.event_name == 'pull_request'
         shell: bash
         run: |
           set -euo pipefail

@@ -62,11 +62,11 @@ class CompletionEgressIsNotDestinationTest(unittest.TestCase):
         self.assertIsNone(manifest_declared_destination(canonical))
 
 
-# Exact content of StegVerse-Labs/.github:org-runtime/interlock-intr.json at the
-# pinned canonical ref (aa2f89ac877e6a84bedb81a8b4efb30f4910d5f4).
-BOUNDARY_FIXTURE = Path(__file__).parent / "fixtures" / "stegverse-labs-interlock-intr-boundary.aa2f89ac.json"
+# Exact content of StegVerse-Labs/.github:org-runtime/interlock-intr.json after the
+# binding-owner fix, pinned canonical ref c356fd819a7b08c8cb97f5993b3fb666c0d101d7 (StegVerse-Labs/.github#3384).
+BOUNDARY_FIXTURE = Path(__file__).parent / "fixtures" / "stegverse-labs-interlock-intr-boundary.c356fd81.json"
 ORGANIZATION_BOUNDARY = json.loads(BOUNDARY_FIXTURE.read_text(encoding="utf-8"))
-PINNED_BOUNDARY_REF = "aa2f89ac877e6a84bedb81a8b4efb30f4910d5f4"
+PINNED_BOUNDARY_REF = "c356fd819a7b08c8cb97f5993b3fb666c0d101d7"
 
 
 class CanonicalOrganizationDestinationTest(unittest.TestCase):
