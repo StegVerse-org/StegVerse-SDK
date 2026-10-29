@@ -50,6 +50,23 @@ class AssessmentPricingCandidateTests(unittest.TestCase):
         # Labor (operator_seconds) and LLM tokens (token_units) carry no rate in the engine.
         self.assertLess(float(derived["tiers"][0]["usd_per_action"]), 10)
 
+    def test_every_comparable_states_vendor_currency_scope_and_basis(self):
+        scope_keys = {"authority_map", "risk_matrix", "prioritized_remediations", "thirty_day_plan"}
+        for entry in self.market["comparables"]:
+            self.assertEqual(entry["currency"], "USD", entry["source"])
+            self.assertIn(entry["price_basis"], tier_pricing.PRICE_BASES, entry["source"])
+            self.assertTrue(entry["vendor"] and entry["price_text"] and entry["deliverables"], entry["source"])
+            self.assertEqual(set(entry["scope_match"]), scope_keys, entry["source"])
+            for value in entry["scope_match"].values():
+                self.assertRegex(value, r"^(YES|NO|PARTIAL)( \(.+\))?$")
+            self.assertRegex(entry["verified_on_vendor_page_at"], r"^\d{4}-\d{2}-\d{2}$")
+
+    def test_a_non_usd_or_unknown_basis_comparable_is_refused_by_the_engine(self):
+        bad = json.loads(json.dumps(self.market))
+        bad["comparables"][0]["price_basis"] = "TYPICAL_VALUE"
+        with self.assertRaises(tier_pricing.PricingInputError):
+            tier_pricing.derive_pricing([self.record], self.rates, self.policy, bad)
+
 
 if __name__ == "__main__":
     unittest.main()
