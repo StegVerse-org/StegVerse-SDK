@@ -1,0 +1,547 @@
+From f97c67b9ad835f15c02965c8c0dd484d277a5e8c Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 28 Oct 2026 18:54:04 -0500
+Subject: [PATCH] ingress: bind the crossing to the delivered manifest's exact
+ payload
+
+`receive` reconstructed every boundary receipt against the crossing's own
+`payload_hash` but never recomputed that digest from the manifest it was
+handed. A crossing whose observed effect (`application_result.echo.manifest`)
+was changed and whose `manifest_sha256` was zeroed, with `payload_hash` kept,
+still reconstructed all five closures and was admitted (independent review of
+StegVerse-Labs/.github#3375; #3369 requires exact-byte payload identity and
+binding, and its test matrix requires payload tamper to be DENY/FAIL_CLOSED).
+
+The payload a crossing carries is now built by one function,
+`sdk_manifest_crossing.crossing_payload` (the existing definition, moved, not
+changed), and `payload_hash` stays `sha` of it: canonical JSON, sorted keys,
+no whitespace -- the same bytes `process_boundary.py` hashes into every
+receipt. After the chain reconstructs, `receive` recomputes that payload from
+the delivered manifest and its own declared destination and refuses, FAIL_CLOSED
+under CROSSING_PAYLOAD_RECOMPUTES_FROM_THE_DELIVERED_MANIFEST with failure code
+CROSSING_PAYLOAD_NOT_BOUND_TO_THE_DELIVERED_MANIFEST and the six non-ALLOW
+fields, when `manifest_sha256`, `payload_hash` or an echoed effect is not that
+payload. The refusal is recorded at both levels through `_refused`.
+
+Three existing test stubs modelled crossings bound to nothing (a placeholder
+`payload_hash`, no `manifest_sha256`, manifests declaring no egress). They now
+build their crossing from the delivered manifest with the crossing's own
+payload definition; no assertion changed. New regression tests drive the real
+crossing, boundary subprocess and closure reconstruction:
+tests/test_organization_ingress_payload_binding.py. .stegverse/test-sets.json
+regenerated.
+
+Refs StegVerse-Labs/.github#3369, StegVerse-Labs/.github#3375
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_0143inaAUDHET9NXg3wZr3Y7
+---
+ .stegverse/test-sets.json                     |  16 ++
+ .../organization_manifest_ingress.py          |  64 +++++
+ resident-runtime/sdk_manifest_crossing.py     |  19 +-
+ tests/test_manifest_ingress_idempotent.py     |  15 +-
+ ...st_organization_ingress_payload_binding.py | 221 ++++++++++++++++++
+ ...anization_manifest_ingress_append_owner.py |  17 +-
+ ...t_organization_role_conformance_ingress.py |   5 +
+ 7 files changed, 349 insertions(+), 8 deletions(-)
+ create mode 100644 tests/test_organization_ingress_payload_binding.py
+
+diff --git a/.stegverse/test-sets.json b/.stegverse/test-sets.json
+index f55154d..e4a2053 100644
+--- a/.stegverse/test-sets.json
++++ b/.stegverse/test-sets.json
+@@ -5154,6 +5154,18 @@
+     "tests/test_organization_governance_decision_authority.py"
+    ]
+   },
++  {
++   "always": false,
++   "exclude": [],
++   "id": "tests/test_organization_ingress_payload_binding.py",
++   "inputs": [],
++   "surfaces": [
++    "tests/test_organization_ingress_payload_binding.py"
++   ],
++   "tests": [
++    "tests/test_organization_ingress_payload_binding.py"
++   ]
++  },
+   {
+    "always": false,
+    "exclude": [],
+@@ -14935,6 +14947,10 @@
+    "resident-runtime/organization_governance_decision.py",
+    "tests/pytest.py"
+   ],
++  "tests/test_organization_ingress_payload_binding.py": [
++   "org-boundary/registry/services.json",
++   "resident-runtime/organization_manifest_ingress.py"
++  ],
+   "tests/test_organization_ledger_component_validation_trigger.py": [
+    ".github/workflows/organization-ledger-component-validation.yml",
+    "data/reusable-task-components/RTC-EVIDENCE-CUSTODY-004.json",
+diff --git a/resident-runtime/organization_manifest_ingress.py b/resident-runtime/organization_manifest_ingress.py
+index b26d245..475077e 100644
+--- a/resident-runtime/organization_manifest_ingress.py
++++ b/resident-runtime/organization_manifest_ingress.py
+@@ -133,6 +133,14 @@ APPEND_NOT_COMMITTED_PREDICATE = "ORGANIZATION_RECEIPT_APPENDED_UNDER_LOCK"
+ APPEND_OWNING_GOAL = "ORGANIZATION-BATCH-CUSTODY-REPLAY-001"
+ UNOBSERVED = "UNKNOWN_NOT_AUTHENTICALLY_OBSERVED"
+ PARENT_MANIFEST_INVALID_PREDICATE = "MANIFEST_DECLARED_ORGANIZATION_BATCH_PARENT_MANIFEST_IS_VALID"
++#: A crossing whose payload digest, manifest digest or echoed effect is not the
++#: payload this organization recomputes from the manifest it was delivered. The
++#: boundary receipt chain binds `payload_hash` and nothing else, so a chain that
++#: reconstructs proves only that the receipts agree with the crossing's own
++#: digest -- not that the digest is the delivered manifest's.
++PAYLOAD_NOT_BOUND = "CROSSING_PAYLOAD_NOT_BOUND_TO_THE_DELIVERED_MANIFEST"
++PAYLOAD_NOT_BOUND_PREDICATE = "CROSSING_PAYLOAD_RECOMPUTES_FROM_THE_DELIVERED_MANIFEST"
++PAYLOAD_BINDING_OWNING_GOAL = "StegVerse-Labs/.github#3369"
+ 
+ 
+ def recomputation_rule_ref(environ: Mapping[str, str] | None = None,
+@@ -589,6 +597,45 @@ def reconstruct_closures(crossing: Mapping[str, Any]) -> list[dict[str, Any]]:
+     return closures
+ 
+ 
++def payload_binding_failure(manifest: Mapping[str, Any],
++                            crossing: Mapping[str, Any]) -> str | None:
++    """Why the crossing is not the delivered manifest's exact payload, or None.
++
++    The payload is recomputed here from the manifest this operation was handed,
++    with the crossing's own definition (`crossing_payload` and `sha`): the
++    destination the manifest declares, its canonical digest, and the manifest
++    itself. Then each place the crossing names that payload must be it:
++
++    * `manifest_sha256` is the delivered manifest's digest;
++    * `payload_hash` -- the digest every boundary receipt is bound to -- is the
++      recomputed payload's digest;
++    * an echoed effect (`application_result.echo`, what the far side reports it
++      received) is the recomputed payload, byte for byte under canonical JSON.
++
++    Nothing is taken on the crossing's word: a crossing that names no digest
++    fails, as a mismatch does.
++    """
++    try:
++        destination = crossing_module.declared_destination(manifest)
++    except SystemExit as exc:
++        return "CROSSING_PAYLOAD_DESTINATION_NOT_DECLARED:" + str(exc)
++    payload = crossing_module.crossing_payload(manifest, destination)
++    payload_hash = crossing_module.sha(payload)
++    if crossing.get("manifest_sha256") != payload["manifest_sha256"]:
++        return ("CROSSING_MANIFEST_SHA256_MISMATCH:expected " + payload["manifest_sha256"]
++                + " observed " + str(crossing.get("manifest_sha256")))
++    if crossing.get("payload_hash") != payload_hash:
++        return ("CROSSING_PAYLOAD_HASH_MISMATCH:expected " + payload_hash
++                + " observed " + str(crossing.get("payload_hash")))
++    result = crossing.get("application_result")
++    if isinstance(result, Mapping) and "echo" in result:
++        echoed = result["echo"]
++        if crossing_module.sha(echoed) != payload_hash:
++            return ("CROSSING_ECHOED_PAYLOAD_MISMATCH:expected " + payload_hash
++                    + " observed " + crossing_module.sha(echoed))
++    return None
++
++
+ #: The fields of a crossing that name the packets carrying one delivery. They are
+ #: transport: a redelivery of the same manifest is carried by other packets, and
+ #: that does not make it another transition.
+@@ -1061,6 +1108,23 @@ def receive(manifest: Mapping[str, Any], *, registry: Mapping[str, Any], standin
+     except ValueError as exc:
+         return refused("BOUNDARY_RECEIPT_CHAIN_RECONSTRUCTS_INDEPENDENTLY", str(exc),
+                        request_sha256=request["request_sha256"])
++    # The chain reconstructs against the crossing's own `payload_hash`. That
++    # digest, the manifest digest and any echoed effect must also be the payload
++    # recomputed from the manifest delivered here, or a changed effect under an
++    # unchanged digest is admitted.
++    unbound = payload_binding_failure(manifest, crossing)
++    if unbound is not None:
++        return refused(
++            PAYLOAD_NOT_BOUND_PREDICATE, unbound, failure_code=PAYLOAD_NOT_BOUND,
++            required_evidence_or_repair=(
++                "a crossing whose manifest_sha256, payload_hash and echoed effect are the "
++                "payload recomputed from the delivered manifest"),
++            retry_entrypoint=RETRY_ENTRYPOINT,
++            owning_existing_goal=PAYLOAD_BINDING_OWNING_GOAL,
++            next_attempt={"entrypoint": RETRY_ENTRYPOINT,
++                          "resubmit": "THE_SAME_MANIFEST_OVER_AN_UNMODIFIED_CROSSING",
++                          "awaits_an_external_machine": False},
++            request_sha256=request["request_sha256"])
+ 
+     # The transition occurred in this repository, so the repository ledger
+     # records it first and the organization ledger consumes that receipt. The
+diff --git a/resident-runtime/sdk_manifest_crossing.py b/resident-runtime/sdk_manifest_crossing.py
+index 79718ec..4a1c664 100644
+--- a/resident-runtime/sdk_manifest_crossing.py
++++ b/resident-runtime/sdk_manifest_crossing.py
+@@ -128,15 +128,26 @@ def manifest_standing(manifest, declared=None):
+     return declared
+ 
+ 
++def crossing_payload(manifest, destination):
++    """The exact payload a crossing carries for this manifest and its declared destination.
++
++    `payload_hash` is `sha` of these bytes -- canonical JSON, sorted keys, no
++    whitespace -- and so is every boundary receipt's `payload_hash`. It is one
++    definition, here, so that a receiver recomputing it from the manifest it was
++    delivered computes exactly what the crossing hashed rather than a copy.
++    """
++    return {"schema": "stegverse.sdk-manifest-crossing-payload/v1",
++            "declared_transition_surface": destination["surface"],
++            "manifest_sha256": "sha256:" + sha(manifest),
++            "manifest": manifest}
++
++
+ def crossing_packet(manifest, destination, service, registry, origin, packet_id, standing):
+     """Build the InTr ingress packet that carries this manifest and its standing."""
+     envelope = intr_transport.build_ingress(
+         origin,
+         {"org": registry["organization"], "service": service["service_id"]},
+-        {"schema": "stegverse.sdk-manifest-crossing-payload/v1",
+-         "declared_transition_surface": destination["surface"],
+-         "manifest_sha256": "sha256:" + sha(manifest),
+-         "manifest": manifest},
++        crossing_payload(manifest, destination),
+         "canonical",
+         "intr:transition:" + packet_id,
+         authority_effect=str((manifest.get("transition") or {}).get("authority_effect", "NONE")),
+diff --git a/tests/test_manifest_ingress_idempotent.py b/tests/test_manifest_ingress_idempotent.py
+index f787404..965bbef 100644
+--- a/tests/test_manifest_ingress_idempotent.py
++++ b/tests/test_manifest_ingress_idempotent.py
+@@ -56,14 +56,27 @@ def request(manifest_sha256="a" * 64, request_sha256="b" * 64):
+             "destination_resolution_source": "ORGANIZATION_BOUNDARY"}
+ 
+ 
++#: The submitted manifest. It declares its egress, as every crossable manifest
++#: does, so the payload the crossing carries can be recomputed from it.
++MANIFEST = {"manifest": 1, "completion": {"egress": {
++    "final_stegverse_transition_surface": "sdk-manifest-ingress",
++    "transport": "INTERLOCK_INTR", "far_side_transition_required": True}}}
++
++
+ def crossing(manifest, *, registry, standing=None, packet_id):
+     """The crossing as the boundary drives it: each delivery is its own packet.
+ 
+     The packet id is the carrier's, so a redelivery under another packet id
+     names another ingress and egress packet, exactly as the real crossing does.
++    It is bound to the delivered manifest by the crossing's own payload
++    definition, as the real crossing is.
+     """
++    payload = ingress.crossing_module.crossing_payload(
++        manifest, ingress.crossing_module.declared_destination(manifest))
+     return {"crossing_completed": True, "resolved_service_id": "stegverse-labs.sdk-manifest-ingress",
+             "ingress_packet_id": packet_id, "egress_packet_id": packet_id + ":egress",
++            "manifest_sha256": payload["manifest_sha256"],
++            "payload_hash": ingress.crossing_module.sha(payload),
+             "application_result": {}}
+ 
+ 
+@@ -121,7 +134,7 @@ class IngressLedgerCase(unittest.TestCase):
+         return found
+ 
+     def receive(self, **options):
+-        return ingress.receive({"manifest": 1}, registry={}, **options)
++        return ingress.receive(dict(MANIFEST), registry={}, **options)
+ 
+     def receipt_bytes(self, root):
+         directory = root / "receipts"
+diff --git a/tests/test_organization_ingress_payload_binding.py b/tests/test_organization_ingress_payload_binding.py
+new file mode 100644
+index 0000000..bf62d9d
+--- /dev/null
++++ b/tests/test_organization_ingress_payload_binding.py
+@@ -0,0 +1,221 @@
++"""Ingress binds the crossing to the exact payload of the manifest it was delivered.
++
++`receive` reconstructs every boundary receipt and chains them, but each receipt
++is bound to the crossing's own `payload_hash`, and nothing recomputed that
++digest from the manifest `receive` was handed. A crossing whose observed effect
++(`application_result.echo.manifest`) was changed and whose `manifest_sha256`
++was zeroed, with `payload_hash` left as it was, still reconstructed all five
++closures and was admitted (review of StegVerse-Labs/.github#3375, issue #3369:
++"exact-byte payload identity and binding").
++
++These cases drive the real crossing -- `sdk_manifest_crossing.cross`, the real
++`process_boundary.py` subprocess and the real `reconstruct_closures` -- against
++this organization's own service registry, on the boundary-local diagnostic
++service, whose application result echoes the payload it received. Only the
++SDK's request derivation and result admission are stubbed, and the tamper is
++applied to what the crossing returns. They assert that an untampered crossing
++is admitted, and that each tamper is refused FAIL_CLOSED under
++`CROSSING_PAYLOAD_RECOMPUTES_FROM_THE_DELIVERED_MANIFEST`, recorded as a
++refusal, with nothing admitted on either ledger.
++
++Source validation only. No authority effect is claimed.
++"""
++from __future__ import annotations
++
++import copy
++import importlib.util
++import json
++import os
++import tempfile
++import unittest
++from pathlib import Path
++from unittest import mock
++
++ROOT = Path(__file__).resolve().parents[1]
++REVISION = "0123456789abcdef0123456789abcdef01234567"
++
++_spec = importlib.util.spec_from_file_location(
++    "organization_ingress_payload_binding_subject",
++    ROOT / "resident-runtime/organization_manifest_ingress.py")
++ingress = importlib.util.module_from_spec(_spec)
++_spec.loader.exec_module(ingress)
++crossing_module = ingress.crossing_module
++
++PREDICATE = "CROSSING_PAYLOAD_RECOMPUTES_FROM_THE_DELIVERED_MANIFEST"
++FAILURE_CODE = "CROSSING_PAYLOAD_NOT_BOUND_TO_THE_DELIVERED_MANIFEST"
++SIX_FIELDS = ("failure_code", "failed_predicate", "required_evidence_or_repair",
++              "retry_entrypoint", "owning_existing_goal", "next_attempt")
++ADMITTED_CLASS_PREFIX = "ORGANIZATION-SDK-MANIFEST-INGRESS-"
++REGISTRY = json.loads((ROOT / "org-boundary/registry/services.json").read_text(encoding="utf-8"))
++
++#: A manifest bound to the boundary-local diagnostic surface over InTr. Its far
++#: side echoes the payload it received, which is the observed effect tampered.
++MANIFEST = {
++    "processing": {"capability": "ecosystem_diagnostic",
++                   "route_id": "stegverse.route.ecosystem-diagnostic.v1"},
++    "completion": {"egress": {"final_stegverse_transition_surface": "boundary_diagnostic",
++                              "transport": "INTERLOCK_INTR",
++                              "far_side_transition_required": True}},
++    "transition": {"authority_effect": "NONE"},
++    "data": {"value": 1},
++}
++STANDING = {"mode": "ESTABLISH_GENESIS", "node_ref": "payload-binding-test",
++            "generation": 1, "predecessor": None}
++
++
++def request() -> dict:
++    digest = ingress.sha(MANIFEST)
++    return {"request_sha256": "b" * 64, "wire_manifest_sha256": digest,
++            "canonical_manifest_sha256": digest, "graph_id": "graph-1",
++            "canonical_task_id": "task-1", "processing_capability": "ecosystem_diagnostic",
++            "route_id": "stegverse.route.ecosystem-diagnostic.v1",
++            "destination_resolution_source": "ORGANIZATION_BOUNDARY"}
++
++
++def reseal_chain(crossing: dict, payload_hash: str) -> dict:
++    """The same crossing with its boundary receipts recomputed over another payload digest.
++
++    Every receipt is derivable from public fields, so a crossing can carry a
++    chain that reconstructs under any digest it names.
++    """
++    crossing = copy.deepcopy(crossing)
++    base = {"packet_id": crossing["ingress_packet_id"],
++            "service_id": crossing["resolved_service_id"], "payload_hash": payload_hash}
++    previous = None
++    for receipt in crossing["boundary_receipts"]:
++        digest = ingress.sha({**base, "kind": receipt["kind"], "previous_receipt_id": previous})
++        receipt.update({"previous_receipt_id": previous, "evidence_hash": digest,
++                        "receipt_id": receipt["kind"].lower() + "-" + digest[:24]})
++        previous = receipt["receipt_id"]
++    crossing["payload_hash"] = payload_hash
++    crossing["terminal_receipt_id"] = previous
++    return crossing
++
++
++class PayloadBindingCase(unittest.TestCase):
++    def setUp(self):
++        self._temp = tempfile.TemporaryDirectory()
++        self.addCleanup(self._temp.cleanup)
++        base = Path(self._temp.name)
++        self.repo_root, self.org_root = base / "repo", base / "org"
++        self.tamper = None
++        real_cross = crossing_module.cross
++
++        def cross(*args, **kwargs):
++            crossing = real_cross(*args, **kwargs)
++            self.crossed = copy.deepcopy(crossing)
++            return self.tamper(copy.deepcopy(crossing)) if self.tamper else crossing
++
++        patches = [
++            mock.patch.dict(os.environ, {"GITHUB_SHA": REVISION,
++                                         "STEGVERSE_ORG_LEDGER_ROOT": str(self.org_root),
++                                         "STEGVERSE_REPO_LEDGER_ROOT": str(self.repo_root)}),
++            mock.patch.object(ingress, "derive_execution_request", lambda m, b: request()),
++            mock.patch.object(ingress, "bound_here", lambda r: {"operation": "receive"}),
++            mock.patch.object(ingress, "admit_runtime_result", lambda *a: {"admitted": True}),
++            mock.patch.object(crossing_module, "cross", cross),
++        ]
++        for patch in patches:
++            patch.start()
++            self.addCleanup(patch.stop)
++
++    def receive(self):
++        return ingress.receive(copy.deepcopy(MANIFEST), registry=REGISTRY,
++                               standing=dict(STANDING), packet_id="payload-binding-1")
++
++    def receipts(self, root: Path) -> list[dict]:
++        directory = root / "receipts"
++        return [json.loads(p.read_text()) for p in sorted(directory.glob("*.json"))] \
++            if directory.is_dir() else []
++
++    def admitted_receipts(self) -> list[dict]:
++        return [r for r in self.receipts(self.repo_root)
++                if r.get("transition_class") != ingress.REFUSED_CLASS]
++
++    def assertRefusedUnbound(self, result: dict, detail_prefix: str) -> None:
++        self.assertEqual(result["disposition"], "FAIL_CLOSED", result)
++        self.assertEqual(result["failed_predicate"], PREDICATE, result)
++        self.assertEqual(result["failure_code"], FAILURE_CODE, result)
++        self.assertTrue(result["detail"].startswith(detail_prefix), result["detail"])
++        self.assertIs(result["received"], False)
++        self.assertIs(result["organization_receipt_observed"], False)
++        self.assertIs(result["refusal_recorded"], True)
++        self.assertEqual(result["authority_effect"], "NONE_REFUSAL_ONLY")
++        for field in SIX_FIELDS:
++            self.assertIn(field, result)
++        # Nothing admitted at the repository level; the refusal is what was recorded.
++        self.assertEqual(self.admitted_receipts(), [])
++        refusals = [r for r in self.receipts(self.repo_root)
++                    if r.get("transition_class") == ingress.REFUSED_CLASS]
++        self.assertEqual(len(refusals), 1)
++        self.assertEqual(refusals[0]["evidence"]["failed_predicate"], PREDICATE)
++
++
++class UntamperedCrossingTests(PayloadBindingCase):
++    def test_an_untampered_crossing_is_admitted(self):
++        result = self.receive()
++        self.assertEqual(result["disposition"], "ALLOW", result)
++        self.assertIs(result["organization_receipt_observed"], True)
++        self.assertEqual(len(self.admitted_receipts()), 1)
++
++    def test_the_far_side_echo_is_the_payload_the_crossing_hashed(self):
++        """The boundary echoes what it hashed, so the echo binds to `payload_hash`."""
++        self.receive()
++        echoed = self.crossed["application_result"]["echo"]
++        self.assertEqual(ingress.sha(echoed), self.crossed["payload_hash"])
++        self.assertEqual(echoed["manifest"], MANIFEST)
++        self.assertEqual(self.crossed["manifest_sha256"], "sha256:" + ingress.sha(MANIFEST))
++
++
++class TamperedCrossingTests(PayloadBindingCase):
++    def test_a_changed_echoed_effect_under_an_unchanged_payload_hash_is_refused(self):
++        def changed_effect(crossing):
++            crossing["application_result"]["echo"]["manifest"] = {**MANIFEST, "data": {"value": 2}}
++            return crossing
++
++        self.tamper = changed_effect
++        result = self.receive()
++        self.assertEqual(self.crossed["payload_hash"],
++                         ingress.sha(self.crossed["application_result"]["echo"]))
++        self.assertRefusedUnbound(result, "CROSSING_ECHOED_PAYLOAD_MISMATCH:")
++
++    def test_a_zeroed_manifest_sha256_is_refused(self):
++        def zeroed(crossing):
++            crossing["manifest_sha256"] = "sha256:" + "0" * 64
++            return crossing
++
++        self.tamper = zeroed
++        self.assertRefusedUnbound(self.receive(), "CROSSING_MANIFEST_SHA256_MISMATCH:")
++
++    def test_the_reviewed_tamper_changed_effect_and_zeroed_digest_is_refused(self):
++        """The #3375 review: effect changed, manifest_sha256 zeroed, payload_hash kept."""
++        def reviewed(crossing):
++            crossing["application_result"]["echo"]["manifest"] = {**MANIFEST, "data": {"value": 2}}
++            crossing["manifest_sha256"] = "sha256:" + "0" * 64
++            return crossing
++
++        self.tamper = reviewed
++        result = self.receive()
++        # The chain still reconstructs: the closures alone do not see this tamper.
++        self.assertEqual(len(ingress.reconstruct_closures(reviewed(copy.deepcopy(self.crossed)))), 5)
++        self.assertRefusedUnbound(result, "CROSSING_MANIFEST_SHA256_MISMATCH:")
++
++    def test_a_payload_hash_resealed_into_a_reconstructing_chain_is_refused(self):
++        """A chain that reconstructs under a digest other than the delivered payload's."""
++        other = ingress.sha({"another": "payload"})
++        self.tamper = lambda crossing: reseal_chain(crossing, other)
++        result = self.receive()
++        self.assertEqual(len(ingress.reconstruct_closures(reseal_chain(self.crossed, other))), 5)
++        self.assertRefusedUnbound(result, "CROSSING_PAYLOAD_HASH_MISMATCH:")
++
++    def test_a_crossing_naming_no_digests_is_refused(self):
++        def stripped(crossing):
++            crossing.pop("manifest_sha256")
++            return crossing
++
++        self.tamper = stripped
++        self.assertRefusedUnbound(self.receive(), "CROSSING_MANIFEST_SHA256_MISMATCH:")
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/test_organization_manifest_ingress_append_owner.py b/tests/test_organization_manifest_ingress_append_owner.py
+index 6513cc1..7007fe6 100644
+--- a/tests/test_organization_manifest_ingress_append_owner.py
++++ b/tests/test_organization_manifest_ingress_append_owner.py
+@@ -105,9 +105,19 @@ def _plain_request() -> dict:
+     return request
+ 
+ 
++#: The submitted manifest. It declares its egress, as every crossable manifest
++#: does, so the payload the crossing carries can be recomputed from it.
++MANIFEST = {"processing": {"capability": "records"}, "completion": {"egress": {
++    "final_stegverse_transition_surface": "sdk-manifest-ingress",
++    "transport": "INTERLOCK_INTR", "far_side_transition_required": True}}}
++
++
+ def _crossing(seed: str) -> dict:
++    # Bound to the delivered manifest by the crossing's own payload definition.
++    payload = ingress.crossing_module.crossing_payload(
++        MANIFEST, ingress.crossing_module.declared_destination(MANIFEST))
+     base = {"packet_id": "ingress-" + seed, "service_id": "records-service",
+-            "payload_hash": "sha256:" + "c" * 64}
++            "payload_hash": ingress.crossing_module.sha(payload)}
+     receipts, previous = [], None
+     for kind in ("INGRESS_ADMITTED", "PROCESSED"):
+         digest = ingress.sha({**base, "kind": kind, "previous_receipt_id": previous})
+@@ -118,6 +128,7 @@ def _crossing(seed: str) -> dict:
+     return {"crossing_completed": True, "ingress_packet_id": base["packet_id"],
+             "egress_packet_id": "egress-" + seed, "resolved_service_id": base["service_id"],
+             "payload_hash": base["payload_hash"], "boundary_receipts": receipts,
++            "manifest_sha256": payload["manifest_sha256"],
+             "terminal_receipt_id": previous, "application_result": None}
+ 
+ 
+@@ -145,7 +156,7 @@ class LedgerRoots(unittest.TestCase):
+         with mock.patch.object(ingress, "derive_execution_request", return_value=request), \
+              mock.patch.object(ingress.crossing_module, "cross", cross), \
+              mock.patch.object(ingress, "admit_runtime_result", return_value={"admitted": True}):
+-            result = ingress.receive({"processing": {"capability": "records"}}, registry={},
++            result = ingress.receive(copy.deepcopy(MANIFEST), registry={},
+                                      hb_epoch=hb_epoch)
+         return result, cross
+ 
+@@ -345,7 +356,7 @@ class PacketReleaseEquivalenceTest(unittest.TestCase):
+                                        return_value=_ingress_request(request)), \
+                      mock.patch.object(ingress.crossing_module, "cross",
+                                        return_value=_crossing(str(index))):
+-                    result = ingress.receive({"n": index}, registry={})
++                    result = ingress.receive(copy.deepcopy(MANIFEST), registry={})
+                 self.assertEqual(result["disposition"], "ALLOW", result)
+                 row = json.loads((root / "receipts" / (
+                     result["organization_receipt_sha256"].split(":", 1)[1] + ".json")).read_text())
+diff --git a/tests/test_organization_role_conformance_ingress.py b/tests/test_organization_role_conformance_ingress.py
+index f0bb8fb..80226a3 100644
+--- a/tests/test_organization_role_conformance_ingress.py
++++ b/tests/test_organization_role_conformance_ingress.py
+@@ -175,9 +175,14 @@ class ConformanceIngressCase(unittest.TestCase):
+         manifest_sha256 = "sha256:" + ingress.sha(manifest)
+         packet = {"packet_id": packet_id,
+                   "payload": {"manifest": manifest, "manifest_sha256": manifest_sha256}}
++        # Bound to the delivered manifest as the real crossing binds it: the
++        # payload its own `crossing_payload` builds, hashed with its own `sha`.
++        payload = ingress.crossing_module.crossing_payload(
++            manifest, ingress.crossing_module.declared_destination(manifest))
+         return {"crossing_completed": True, "resolved_service_id": conformance.SERVICE_ID,
+                 "ingress_packet_id": packet_id, "egress_packet_id": packet_id + "-egress",
+                 "manifest_sha256": manifest_sha256,
++                "payload_hash": ingress.crossing_module.sha(payload),
+                 "application_result": conformance.respond(packet, root=self.source)}
+ 
+     def receive(self, manifest=None, **options):
+-- 
+2.43.0
+
