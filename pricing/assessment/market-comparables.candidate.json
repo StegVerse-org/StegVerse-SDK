@@ -33,7 +33,8 @@
         "thirty_day_plan": "PARTIAL (90-day priorities)"
       },
       "verified_on_vendor_page_at": "2026-10-29",
-      "role": "GOVERNANCE_ANCHOR"
+      "role": "GOVERNANCE_ANCHOR",
+      "source_standing": "Re-fetched 2026-10-29T05:45Z: the offer page resolved and still shows 'AI Risk & Readiness Assessment', '$1,995', 'one-time, 1-2 weeks', 'All core deliverables included'; no 'Coming Soon'. A non-author check the same day could not retrieve the page and reported the vendor's Guides & Tools page listing an AI Governance Assessment as 'Coming Soon'; the Guides & Tools page read here lists only free HIPAA/CyberSCORE tools and does not mention either offer. Both observations are preserved. Eligibility (historical-only vs eligible anchor) is the #484 owner's decision; the report is rerun if it changes."
     },
     {
       "name": "BlueShore.AI \u2014 AI Readiness Assessment (risk & opportunity matrix, roadmap, readout; 2-3 days)",
