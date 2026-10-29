@@ -1,0 +1,200 @@
+{
+  "schema": "stegverse.canonical-task-registration-request/v1",
+  "request_id": "protocol-v1-minimum-packet-conformance-001",
+  "task_id": "PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001",
+  "observed_registry_generation": 321,
+  "registration_mode": "NEW_IDENTITY",
+  "issue": "StegVerse-Labs/.github#3369",
+  "allocation_request_ref": null,
+  "collision_analysis": [
+    "DRAFT_PENDING_OWNER_APPROVAL: this manifest proposes; the Registry owner has not approved it, and no COSV, claim, fence or receipt exists.",
+    "Candidate PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001 is STOP_NOT_REGISTERED at generation 321 (scripts/evaluate_task_registry_collision_checkin.py; tests/test_registry_collision_claimed_integration_guard.py::Issue3369RealRegistrationTests).",
+    "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001 (ACTIVE/CHECKED_OUT): real scope overlap. Row targets both candidate repositories and component allow-deny-fail-closed (data/canonical-task-registry.json:20552-20560); bounded extension I12 names resident-runtime/organization_manifest_ingress.py (registry:20653; shard:161); six of the eight committed #3369 refusal fixtures name it owning_existing_goal.",
+    "ORGANIZATION-BATCH-CUSTODY-REPLAY-001 (ACTIVE/HANDOFF_READY, not owner-held): real scope overlap on ledger readback only. Row declares no targets (no components), so the evaluator cannot see it; current_truth names organization_manifest_ingress.py::_organization_receipt_read_back (registry:10810); cases/n2-replay.json names it owner of the replay refusal gap.",
+    "STEGVERSE-CANONICAL-WORK-COORDINATION-001 (PROPOSED): name adjacency only. Its components (registry:88-115) do not include any candidate component; it is not ACTIVE-ish so it is never a collision candidate; its own STOP_COLLISION comes from its CHECKED_OUT children by lineage.",
+    "Omitted CHECKED_OUT shards (collision guards, not registered): CANONICAL-WORK-END-TO-END-CYCLE-CLOSURE-001 holds sdk-manifest-ingress, organization-transition-ledger, workercoordinator-claim-fence, universal-interlock-intr over both candidate repositories and source_ref org-runtime/interlock-intr.json (shard:28-40); CANONICAL-WORK-EXACT-INVOCATION-EVIDENCE-RECONCILIATION-001 holds organization-ledger-readback (shard:23-31). Both are lineage children of STEGVERSE-CANONICAL-WORK-COORDINATION-001.",
+    "GITHUB-UNIVERSAL-GOVERNANCE-PRODUCT-001: not registered (NO_SHARD_NO_ROW, tests/fixtures/canonical_task_registration/i1-goal-manifests/MANIFEST.json:109-137); no overlap to evaluate.",
+    "CANONICAL-NODE-INGRESS-CONTRACT-001 (named owner by cases/n4-stale-head.json) is not registered."
+  ],
+  "record": {
+    "schema": "stegverse.canonical-task-record/v1",
+    "task_id": "PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001",
+    "correlation_id": "PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001",
+    "root_correlation_id": "PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001",
+    "parent_task_id": null,
+    "goal": "Protocol v1.0 minimum packet conformance (StegVerse-Labs/.github#3369, parent #3368): hold one intra-organization packet on the existing SDK:ManifestIngress binding to a deterministic, exact-head conformance profile across the existing ingress path (resident-runtime/sdk_manifest_crossing.py, org-boundary/runtime/process_boundary.py, resident-runtime/organization_manifest_ingress.py) and the Organization Ledger readback (org-kernel/organization-ledger), where every non-ALLOW outcome returns the six-field fail-closed shape (failure_code, failed_predicate, required_evidence_or_repair, retry_entrypoint, owning_existing_goal, next_attempt) and no effect is committed. Positive ALLOW is fixture evidence only; no runtime ALLOW, ledger append, claim, fence or admission is asserted. DRAFT_PENDING_OWNER_APPROVAL.",
+    "coordination_state": "PROPOSED",
+    "source_refs": [
+      "StegVerse-Labs/.github#3369",
+      "StegVerse-Labs/.github#3368",
+      "docs/PROTOCOL_V1_CONFORMANCE_SHARE_PACKET.md",
+      "docs/PROTOCOL_V1_MINIMUM_PACKET_MIRROR_HANDOFF.md",
+      "docs/TASK_REGISTRATION_GUIDE.md",
+      "resident-runtime/sdk_manifest_crossing.py",
+      "org-boundary/runtime/process_boundary.py",
+      "resident-runtime/organization_manifest_ingress.py",
+      "org-kernel/organization-ledger/fixtures/protocol-v1-conformance/README.md",
+      "org-kernel/organization-ledger/fixtures/protocol-v1-conformance/packet.json",
+      "org-kernel/organization-ledger/fixtures/protocol-v1-conformance/cases/",
+      "tests/test_protocol_v1_conformance_fixtures.py",
+      "org-runtime/interlock-intr.json",
+      "StegVerse-org/StegVerse-SDK#566"
+    ],
+    "targets": {
+      "organizations": [
+        "StegVerse-Labs",
+        "StegVerse-org"
+      ],
+      "repositories": [
+        "StegVerse-Labs/.github",
+        "StegVerse-org/StegVerse-SDK"
+      ],
+      "components": [
+        "sdk-manifest-ingress",
+        "sdk-manifest-crossing",
+        "process-boundary",
+        "allow-deny-fail-closed",
+        "organization-ledger-readback",
+        "protocol-v1-conformance-fixtures"
+      ]
+    },
+    "dependencies": [
+      {
+        "dependency_id": "DEP-P1-OWNER-COLLISION-RULING",
+        "kind": "HUMAN_ACTION",
+        "state": "UNRESOLVED",
+        "ref": "Registry owner scoped collision ruling over SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001, ORGANIZATION-BATCH-CUSTODY-REPLAY-001 and the omitted CHECKED_OUT shards CANONICAL-WORK-END-TO-END-CYCLE-CLOSURE-001 / CANONICAL-WORK-EXACT-INVOCATION-EVIDENCE-RECONCILIATION-001 (DRAFT_PENDING_OWNER_APPROVAL)"
+      },
+      {
+        "dependency_id": "DEP-P1-SDK-INGRESS-BINDING",
+        "kind": "TASK",
+        "state": "UNRESOLVED",
+        "ref": "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001 (SDK:ManifestIngress binding, org-runtime/interlock-intr.json; SDK#566)"
+      },
+      {
+        "dependency_id": "DEP-P1-LEDGER-REPLAY-REFUSAL",
+        "kind": "TASK",
+        "state": "UNRESOLVED",
+        "ref": "ORGANIZATION-BATCH-CUSTODY-REPLAY-001 (replay refusal spec_gap recorded by cases/n2-replay.json)"
+      }
+    ],
+    "blockers": [],
+    "systemic_incident_ref": null,
+    "adjacent_task_refs": [
+      "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001",
+      "ORGANIZATION-BATCH-CUSTODY-REPLAY-001",
+      "STEGVERSE-CANONICAL-WORK-COORDINATION-001"
+    ],
+    "existing_evidence_refs": [
+      "org-kernel/organization-ledger/fixtures/protocol-v1-conformance/ (FIXTURE_ONLY_NOT_RUNTIME_RECEIPT)",
+      "tests/test_protocol_v1_conformance_fixtures.py",
+      "tests/test_registry_collision_claimed_integration_guard.py::Issue3369RealRegistrationTests"
+    ],
+    "expected_evidence_predicates": [
+      "PROTOCOL_V1_POSITIVE_PACKET_FIXTURE_ALLOW_WITH_NO_LEDGER_APPEND",
+      "PROTOCOL_V1_SEVEN_REFUSALS_OBSERVED_CODE_EQUALS_DECLARED_FAILURE_CODE",
+      "PROTOCOL_V1_REPLAY_REDELIVERY_IS_ONE_TRANSITION_ONE_RECEIPT_PER_LEVEL",
+      "PROTOCOL_V1_EVERY_NON_ALLOW_CARRIES_SIX_FIELDS",
+      "PROTOCOL_V1_EXACT_HEAD_CI_RUN_RETAINED",
+      "PROTOCOL_V1_ORGANIZATION_LEDGER_READBACK_INDEPENDENTLY_OBSERVED_OR_SIX_FIELD_NOT_ATTEMPTED"
+    ],
+    "worker_claim": {
+      "authority": "WORKERCOORDINATOR",
+      "claim_ref": null,
+      "fence_ref": null,
+      "projection_only": true
+    },
+    "completion": {
+      "claimed": false,
+      "validated": false,
+      "reconciliation_ref": null
+    },
+    "allowed_next_transitions": [
+      "INGRESS_ADMITTED",
+      "DEFERRED",
+      "SUPERSEDED"
+    ],
+    "handoff_projection_refs": [
+      "docs/PROTOCOL_V1_MINIMUM_PACKET_MIRROR_HANDOFF.md"
+    ],
+    "authority_model": {
+      "task_registry_mints_execution_authority": false,
+      "source_state_proves_execution": false,
+      "worker_claim_authority": "WORKERCOORDINATOR",
+      "master_records_reality_authority": false,
+      "interlock_intr_required_for_governed_ingress_egress": true
+    }
+  },
+  "sealed_scope": {
+    "schema": "stegverse.goal-scope-seal/v1",
+    "scope": {
+      "goal": "Protocol v1.0 minimum packet conformance (StegVerse-Labs/.github#3369, parent #3368): hold one intra-organization packet on the existing SDK:ManifestIngress binding to a deterministic, exact-head conformance profile across the existing ingress path (resident-runtime/sdk_manifest_crossing.py, org-boundary/runtime/process_boundary.py, resident-runtime/organization_manifest_ingress.py) and the Organization Ledger readback (org-kernel/organization-ledger), where every non-ALLOW outcome returns the six-field fail-closed shape (failure_code, failed_predicate, required_evidence_or_repair, retry_entrypoint, owning_existing_goal, next_attempt) and no effect is committed. Positive ALLOW is fixture evidence only; no runtime ALLOW, ledger append, claim, fence or admission is asserted. DRAFT_PENDING_OWNER_APPROVAL.",
+      "targets": {
+        "organizations": [
+          "StegVerse-Labs",
+          "StegVerse-org"
+        ],
+        "repositories": [
+          "StegVerse-Labs/.github",
+          "StegVerse-org/StegVerse-SDK"
+        ],
+        "components": [
+          "sdk-manifest-ingress",
+          "sdk-manifest-crossing",
+          "process-boundary",
+          "allow-deny-fail-closed",
+          "organization-ledger-readback",
+          "protocol-v1-conformance-fixtures"
+        ]
+      },
+      "expected_evidence_predicates": [
+        "PROTOCOL_V1_POSITIVE_PACKET_FIXTURE_ALLOW_WITH_NO_LEDGER_APPEND",
+        "PROTOCOL_V1_SEVEN_REFUSALS_OBSERVED_CODE_EQUALS_DECLARED_FAILURE_CODE",
+        "PROTOCOL_V1_REPLAY_REDELIVERY_IS_ONE_TRANSITION_ONE_RECEIPT_PER_LEVEL",
+        "PROTOCOL_V1_EVERY_NON_ALLOW_CARRIES_SIX_FIELDS",
+        "PROTOCOL_V1_EXACT_HEAD_CI_RUN_RETAINED",
+        "PROTOCOL_V1_ORGANIZATION_LEDGER_READBACK_INDEPENDENTLY_OBSERVED_OR_SIX_FIELD_NOT_ATTEMPTED"
+      ],
+      "finish_point": {
+        "acceptance_test": "python -m unittest tests.test_protocol_v1_conformance_fixtures passes at the exact head: PositiveCaseTest, NegativeCaseTest (seven refusals, observed code == declared failure_code, empty temp ledger root) and ReplayCaseTest (one receipt per level, same transition id)",
+        "predicate": "PROTOCOL_V1_MINIMUM_PACKET_CONFORMANCE_PROFILE_HELD_AT_EXACT_HEAD",
+        "verifier_entrypoint": "python -m unittest tests.test_protocol_v1_conformance_fixtures",
+        "lowest_supported_mode": "E0"
+      }
+    },
+    "scope_digest": "sha256:31a843e0f2a45434e626a450b5c0253f3ec5af6d7ee17d206e2c537ba180cc53",
+    "supersedes_scope_digest": null
+  },
+  "vector": {
+    "exact_metrics": {
+      "symbol_order": "LRUIVGOCMTBEAP",
+      "lifecycle": "UNCLAIMED",
+      "archive_ready": false,
+      "unassigned_work": 1,
+      "chat_owned_implementation": 0,
+      "chat_owned_validation": 0,
+      "chat_owned_integration": 0,
+      "chat_owned_observation": 0,
+      "chat_owned_credentials": 0,
+      "canonical_owner_installed": false,
+      "thread_required": true,
+      "blocker_count": 0,
+      "evidence_complete": false,
+      "activated": false,
+      "propagated": false
+    },
+    "metric_evidence": {
+      "lifecycle": "PROPOSED; no WorkerCoordinator claim; DRAFT_PENDING_OWNER_APPROVAL",
+      "unassigned_work": "owner collision ruling, exact-head CI run and independent ledger readback pending",
+      "canonical_owner_installed": "false until the Registry owner approves this request or binds the work to an existing owner",
+      "blocker_count": "no blocker recorded; dependencies UNRESOLVED"
+    },
+    "evidence_refs": [
+      "StegVerse-Labs/.github#3369",
+      "org-kernel/organization-ledger/fixtures/protocol-v1-conformance/README.md",
+      "tests/test_protocol_v1_conformance_fixtures.py"
+    ],
+    "observed_at": "2026-10-28T00:00:00Z"
+  },
+  "authority_effect": "NONE_REGISTRATION_ONLY"
+}

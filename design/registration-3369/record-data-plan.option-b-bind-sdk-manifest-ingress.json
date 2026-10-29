@@ -1,0 +1,27 @@
+{
+  "disposition": "FAIL_CLOSED",
+  "failure_code": "RECORD_DATA_ROW_FIELD_BEFORE_MISMATCH",
+  "failed_predicate": "standalone record SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001['targets'] == the declared before value",
+  "required_evidence_or_repair": "re-read the current value and restate the edit against it",
+  "retry_entrypoint": "python scripts/apply_task_record_data.py <data.json> --apply",
+  "owning_existing_goal": "STEGVERSE-CANONICAL-WORK-COORDINATION-001",
+  "next_attempt": "after the edit is restated",
+  "evidence": {
+    "task_id": "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001",
+    "path": [
+      "targets"
+    ],
+    "current": {
+      "repositories": [
+        "StegVerse-org/.github",
+        "StegVerse-org/StegVerse-SDK"
+      ],
+      "components": [
+        "manifest-driven-processing",
+        "actions-by-manifest",
+        "allow-deny-fail-closed"
+      ]
+    }
+  },
+  "files_changed": false
+}

@@ -1,0 +1,30 @@
+{
+  "schema": "stegverse.registry-record-data-proposal/v1",
+  "registry_generation_base": 321,
+  "authority_effect": "NONE",
+  "operating_mode": "E0 (deterministic record-data transition; plan-only here)",
+  "note": "DRAFT_PENDING_OWNER_APPROVAL. Option C: ORGANIZATION-BATCH-CUSTODY-REPLAY-001 declares no targets; add targets carrying the #3369 ledger-readback components so the evaluator can see the scope (absent-before top-level add). This proposal binds #3369 work to an existing owner goal instead of a new identity; it grants no admission, claim, fence, COSV or runtime authority. Lineage: StegVerse-Labs/.github#3369 (parent #3368).",
+  "row_fields": [
+    {
+      "task_id": "ORGANIZATION-BATCH-CUSTODY-REPLAY-001",
+      "path": [
+        "targets"
+      ],
+      "before": {
+        "$absent": true
+      },
+      "after": {
+        "organizations": [
+          "StegVerse-Labs"
+        ],
+        "repositories": [
+          "StegVerse-Labs/.github"
+        ],
+        "components": [
+          "organization-ledger-readback",
+          "protocol-v1-conformance-fixtures"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "authority_effect": "NONE_REGISTRATION_ONLY",
+  "clock_read": false,
+  "derived_files": {
+    "control/goal-scope-seals/PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001.json": "sha256:c4e3cc2ab1181892825052f196275d9d343da6d5088a39f777087ecfdd648b7b",
+    "control/task-vector-index.d/PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001.json": "sha256:6710919bf2b5a5d32a60fdc0ddf0ac94ab504ac11c8aee474f7cae7462c0d517",
+    "control/task-vectors/PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001.json": "sha256:ed1c0b4da453c23ef7ab3e41ac3bc0466f281c961aa0c9fcaa24fcb64b80db66",
+    "data/canonical-task-records/PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001.json": "sha256:4c1bb732521d4ff1e7fcd32765262637b245ad7ceb60fec75efc286784f3ebee",
+    "data/canonical-task-registry.json": "sha256:42a8961786d030af8a2f8cc719eef5c5b9bd3f0836d060fa02d3d077ce4930bb"
+  },
+  "disposition": "ALLOW",
+  "evidence": {
+    "allocation": null,
+    "collision_checkin": "ALLOW (scripts/check_registry_collision_checkin.py over predecessor -> derived successor)",
+    "cosv_derivation": "scripts/cosv.py encode_task(exact_metrics)",
+    "cosv_task_vector": "10100000010000",
+    "finish_point": {
+      "acceptance_test": "python -m unittest tests.test_protocol_v1_conformance_fixtures passes at the exact head: PositiveCaseTest, NegativeCaseTest (seven refusals, observed code == declared failure_code, empty temp ledger root) and ReplayCaseTest (one receipt per level, same transition id)",
+      "lowest_supported_mode": "E0",
+      "predicate": "PROTOCOL_V1_MINIMUM_PACKET_CONFORMANCE_PROFILE_HELD_AT_EXACT_HEAD",
+      "verifier_entrypoint": "python -m unittest tests.test_protocol_v1_conformance_fixtures"
+    },
+    "lowest_supported_mode": "E0",
+    "predecessor_registry_generation": 321,
+    "predecessor_registry_sha256": "sha256:a8fc5380e3c499e46c0b5e2eeb850ac72261bf52dece3df118451b793f0055c7",
+    "registration_mode": "NEW_IDENTITY",
+    "row_equals_record": true,
+    "scope_digest": "sha256:cf066d3b179b39c301d474184d911e2c343f0012b415fb797d30a8f2c0f5d710",
+    "successor_registry_generation": 322,
+    "task_id": "PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001",
+    "workercoordinator_claim_request": {
+      "allocator_remains_claim_authority": true,
+      "authority_effect": "NONE_REQUEST_ONLY",
+      "canonical_allocator": "scripts/allocate_claims.py",
+      "claim_ref": null,
+      "consumer_entrypoint": "scripts/consume_org_claim_allocator_request.py",
+      "fence_ref": null,
+      "registry_generation": 322,
+      "registry_row_sha256": "sha256:16509bcd55bd97dbd56e37094ccadf3e65441345f70bf669ac972934fd819915",
+      "request_grants_claim_authority": false,
+      "requested_of": "WORKERCOORDINATOR",
+      "schema": "stegverse.workercoordinator-claim-request/v1",
+      "state": "REQUESTED",
+      "task_id": "PROTOCOL-V1-MINIMUM-PACKET-CONFORMANCE-001"
+    }
+  },
+  "execution_authority_minted": false,
+  "intr_admission_minted": false,
+  "mode": "plan",
+  "organization_ledger_appended": false,
+  "organization_ledger_entrypoint": ".stegverse/transition-ledger/emit.py via .github/workflows/organization-ledger-transition.yml",
+  "request_id": "protocol-v1-minimum-packet-conformance-001-name-distinct",
+  "request_sha256": "sha256:7037412baefe614994bafc2571dd029238c0c3975514bf72cb6afcb2848d55b2",
+  "schema": "stegverse.canonical-task-registration-transition-receipt/v1",
+  "transition": "CANONICAL_TASK_REGISTRATION",
+  "workercoordinator_claim_or_fence_minted": false
+}

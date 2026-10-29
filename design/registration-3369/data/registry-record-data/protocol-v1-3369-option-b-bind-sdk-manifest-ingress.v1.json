@@ -1,0 +1,41 @@
+{
+  "schema": "stegverse.registry-record-data-proposal/v1",
+  "registry_generation_base": 321,
+  "authority_effect": "NONE",
+  "operating_mode": "E0 (deterministic record-data transition; plan-only here)",
+  "note": "DRAFT_PENDING_OWNER_APPROVAL. Option B: add the #3369 ingress-conformance components to SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001 targets (row and shard; the shard currently records StegVerse-org/.github where the row records StegVerse-Labs/.github, so the row-side before value is declared and the shard-side mismatch is expected to be refused until the owner reconciles it). This proposal binds #3369 work to an existing owner goal instead of a new identity; it grants no admission, claim, fence, COSV or runtime authority. Lineage: StegVerse-Labs/.github#3369 (parent #3368).",
+  "row_fields": [
+    {
+      "task_id": "SDK-MANIFEST-ECOSYSTEM-TRANSITION-DISPOSITION-001",
+      "path": [
+        "targets"
+      ],
+      "before": {
+        "repositories": [
+          "StegVerse-Labs/.github",
+          "StegVerse-org/StegVerse-SDK"
+        ],
+        "components": [
+          "manifest-driven-processing",
+          "actions-by-manifest",
+          "allow-deny-fail-closed"
+        ]
+      },
+      "after": {
+        "repositories": [
+          "StegVerse-Labs/.github",
+          "StegVerse-org/StegVerse-SDK"
+        ],
+        "components": [
+          "manifest-driven-processing",
+          "actions-by-manifest",
+          "allow-deny-fail-closed",
+          "sdk-manifest-ingress",
+          "sdk-manifest-crossing",
+          "process-boundary",
+          "protocol-v1-conformance-fixtures"
+        ]
+      }
+    }
+  ]
+}
