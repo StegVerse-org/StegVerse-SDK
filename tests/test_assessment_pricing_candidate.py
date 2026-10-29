@@ -58,7 +58,7 @@ class AssessmentPricingCandidateTests(unittest.TestCase):
             self.assertTrue(entry["vendor"] and entry["price_text"] and entry["deliverables"], entry["source"])
             self.assertEqual(set(entry["scope_match"]), scope_keys, entry["source"])
             for value in entry["scope_match"].values():
-                self.assertRegex(value, r"^(YES|NO|PARTIAL)( \(.+\))?$")
+                self.assertRegex(value, r"^(YES|NO|PARTIAL|UNKNOWN)( \(.+\))?$")
             self.assertRegex(entry["verified_on_vendor_page_at"], r"^\d{4}-\d{2}-\d{2}$")
 
     def test_a_non_usd_or_unknown_basis_comparable_is_refused_by_the_engine(self):

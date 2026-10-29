@@ -178,7 +178,9 @@ def action_cost(record: Any, rates: Mapping[str, Decimal]) -> dict[str, Any]:
     }
 
 
-PRICE_BASES = ("FLAT", "STARTING_AT")
+# FLAT: a point price. STARTING_AT: a lower bound (the true price is at least p). RANGE: a published
+# low and high (usd_per_action is the low, usd_per_action_high the high); the true price is within.
+PRICE_BASES = ("FLAT", "STARTING_AT", "RANGE")
 # A comparable's role. Only governance anchors enter the median; an adjacent reference is kept
 # as context (its observation is preserved, its price is never a statistic).
 COMPARABLE_ROLES = ("GOVERNANCE_ANCHOR", "ADJACENT_REFERENCE")
@@ -186,10 +188,9 @@ MARKET_CURRENCY = "USD"
 
 
 def market_median(market: Any) -> dict[str, Any] | None:
-    """Bounds on the market median. A STARTING_AT price p means the true price is at least p.
-
-    at_least is the median with every STARTING_AT price at its bound, at_most the median with
-    every bound unbounded above (None when that median is unbounded); exact only when they agree.
+    """Bounds on the market median. A STARTING_AT price p means the true price is at least p; a
+    RANGE [p, q] means it is within. at_least is the median with every bounded price at its low,
+    at_most the median at every high (None when unbounded); exact only when the two agree.
     """
     if market is None:
         return None
@@ -215,8 +216,12 @@ def market_median(market: Any) -> dict[str, Any] | None:
         if role == "ADJACENT_REFERENCE":
             adjacent += 1
             continue
+        if basis == "RANGE":
+            upper = _decimal(entry.get("usd_per_action_high"), f"comparables[{index}].usd_per_action_high")
+            if upper < price:
+                raise PricingInputError(f"comparables[{index}]: usd_per_action_high must be at least usd_per_action")
         low.append(price)
-        high.append(Decimal("Infinity") if basis == "STARTING_AT" else price)
+        high.append(Decimal("Infinity") if basis == "STARTING_AT" else upper if basis == "RANGE" else price)
     if not low:
         return {"at_least": None, "at_most": None, "exact": False, "anchors": 0,
                 "adjacent_references": adjacent, "anchor_range": None}

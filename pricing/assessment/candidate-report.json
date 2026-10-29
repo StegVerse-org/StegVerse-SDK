@@ -58,13 +58,13 @@
     "max": "9750",
     "min": "1995"
   },
-  "market_anchors": 2,
+  "market_anchors": 3,
   "market_median_range_usd_per_action": {
-    "at_least": "5872.5",
-    "at_most": "5872.5",
-    "exact": true
+    "at_least": "8000",
+    "at_most": "9750",
+    "exact": false
   },
-  "market_median_usd_per_action": "5872.5",
+  "market_median_usd_per_action": null,
   "minimum_market_anchors": 3,
   "schema": "stegverse.tier-pricing-candidate.v1",
   "status": "PROVISIONAL",
@@ -75,7 +75,7 @@
       "cost_floor_usd_per_action": "3.7048576",
       "evidence": "PROVISIONAL_ESTIMATE",
       "included_actions": "1",
-      "market_position": "MARKET_ANCHORS_INSUFFICIENT",
+      "market_position": "AT_MARKET_MEDIAN_LOWER_BOUND",
       "name": "Assessment (1 engagement = 1 action)",
       "quote_ready": false,
       "status": "PROVISIONAL_SCENARIO",
@@ -87,8 +87,8 @@
         "operator_seconds",
         "token_units"
       ],
-      "usd_per_action": "3.7048576",
-      "usd_per_period": "3.71"
+      "usd_per_action": "8000",
+      "usd_per_period": "8000.00"
     }
   ]
 }

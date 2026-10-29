@@ -45,12 +45,33 @@ class MarketComparableAcceptanceTests(unittest.TestCase):
         self.assertGreater(median["at_least"], Decimal("1499"))
 
     def test_2_starting_at_remains_a_lower_bound(self):
+        # Promote the STARTING_AT adjacent reference to an anchor: the median's at_least moves to
+        # its bound side and the median stops being exact, so the figure never acts as a point.
         market = copy.deepcopy(self.market)
+        anchors_only = tier_pricing.market_median(market)
         for c in market["comparables"]:
             c["role"] = "GOVERNANCE_ANCHOR"
         median = tier_pricing.market_median(market)
         self.assertFalse(median["exact"])
-        self.assertEqual(median["at_least"], Decimal("1995"))
+        self.assertEqual(median["anchors"], anchors_only["anchors"] + 1)
+        self.assertLessEqual(median["at_least"], anchors_only["at_least"])
+        single = {"schema": tier_pricing.MARKET_SCHEMA, "comparables": [
+            {"name": "x", "usd_per_action": "1499", "price_basis": "STARTING_AT", "source": "https://x", "observed_at": "2026-10-29"}]}
+        m = tier_pricing.market_median(single)
+        self.assertEqual((m["at_least"], m["at_most"], m["exact"]), (Decimal("1499"), None, False))
+
+    def test_2b_a_range_basis_bounds_the_median_on_both_sides(self):
+        both = {"schema": tier_pricing.MARKET_SCHEMA, "comparables": [
+            {"name": "r", "usd_per_action": "8000", "usd_per_action_high": "12000", "price_basis": "RANGE",
+             "source": "https://r", "observed_at": "2026-10-29"}]}
+        m = tier_pricing.market_median(both)
+        self.assertEqual((m["at_least"], m["at_most"], m["exact"]), (Decimal("8000"), Decimal("12000"), False))
+        both["comparables"][0]["usd_per_action_high"] = "7000"
+        with self.assertRaises(tier_pricing.PricingInputError):
+            tier_pricing.market_median(both)
+        del both["comparables"][0]["usd_per_action_high"]
+        with self.assertRaises(tier_pricing.PricingInputError):
+            tier_pricing.market_median(both)
 
     def test_3_mixed_currency_is_refused(self):
         market = copy.deepcopy(self.market)
@@ -72,24 +93,24 @@ class MarketComparableAcceptanceTests(unittest.TestCase):
         self.assertFalse(tier["quote_ready"])
 
     def test_6_two_heterogeneous_anchors_never_yield_a_quote_ready_midpoint(self):
-        report = self.derive()
+        # Drop one anchor to reproduce the two-anchor state: below the policy minimum the price is
+        # the cost floor and the midpoint is reported as context only.
+        market = copy.deepcopy(self.market)
+        anchors = [c for c in market["comparables"] if c["role"] == "GOVERNANCE_ANCHOR"]
+        market["comparables"].remove(anchors[-1])
+        report = self.derive(market=market)
         tier = report["tiers"][0]
         self.assertEqual(report["market_anchors"], 2)
         self.assertEqual(report["minimum_market_anchors"], 3)
         self.assertEqual(tier["market_position"], "MARKET_ANCHORS_INSUFFICIENT")
         self.assertEqual(Decimal(tier["usd_per_action"]), Decimal(tier["cost_floor_usd_per_action"]))
         self.assertFalse(tier["quote_ready"])
-        # The midpoint is reported as context only, never as the price.
-        self.assertEqual(report["market_median_range_usd_per_action"]["at_least"], "5872.5")
-        self.assertNotEqual(tier["usd_per_action"], "5872.5")
-        # A third anchor would let the median set the price, but still never make it quote-ready
-        # while the cost basis is a machine subtotal.
-        policy = copy.deepcopy(self.policy)
-        policy["minimum_market_anchors"] = 2
-        tier2 = self.derive(policy=policy)["tiers"][0]
-        self.assertEqual(tier2["market_position"], "AT_MARKET_MEDIAN")
-        self.assertEqual(tier2["usd_per_action"], "5872.5")
-        self.assertFalse(tier2["quote_ready"])
+        self.assertNotEqual(tier["usd_per_action"], report["market_median_range_usd_per_action"]["at_least"])
+        # With enough anchors the median may set the price, positioned at its lower bound when
+        # the median is a range; it is still never quote-ready while the basis is a subtotal.
+        full = self.derive()["tiers"][0]
+        self.assertEqual(full["market_position"], "AT_MARKET_MEDIAN_LOWER_BOUND")
+        self.assertFalse(full["quote_ready"])
 
     def test_7_margin_is_counted_once(self):
         report = self.derive()
@@ -97,7 +118,8 @@ class MarketComparableAcceptanceTests(unittest.TestCase):
         margin = Decimal(report["target_gross_margin"])
         floor = Decimal(tier["unit_cost_usd"]) / (1 - margin)
         self.assertEqual(Decimal(tier["cost_floor_usd_per_action"]), floor)
-        self.assertEqual(Decimal(tier["usd_per_action"]), floor)
+        # The market price is never marked up again: it is the median bound itself.
+        self.assertEqual(tier["usd_per_action"], report["market_median_range_usd_per_action"]["at_least"])
 
     def test_8_scenario_outputs_stay_provisional_with_no_approval_authority(self):
         report = self.derive()

@@ -5,7 +5,7 @@
   "assessment_scope": "StegVerse governance starter: authority map, risk matrix, five prioritized remediations, 30-day plan (Labs #3370). scope_match records, per comparable, how each published deliverable list maps onto that scope; no comparable matches it exactly.",
   "selection_rule_version": "2026-10-29.v2",
   "selection_rule": "GOVERNANCE_ANCHOR: a price published in USD on the vendor's own page for a fixed-scope AI governance or AI-management-system assessment of a small organization that delivers a written inventory or gap analysis plus a prioritized plan and carries explicit governance content (authority, policy, controls). ADJACENT_REFERENCE: a verified adjacent-market price (e.g. AI adoption readiness) kept as context; never enters the median. Excluded entirely: self-serve questionnaires and automated reports; single-workflow briefs and single sessions; reference or 'typical' values; non-USD prices; enterprise programs at $12,500 or more.",
-  "anchor_note": "Two governance anchors with different depth, environment and credit conditions are endpoints of a context range, not a validated willingness-to-pay band. policy.candidate.json sets minimum_market_anchors 3, so no point price is derived from them; the tier reports MARKET_ANCHORS_INSUFFICIENT and quote_ready false until a third verified anchor exists.",
+  "anchor_note": "Three governance anchors now exist (Continuous $1,995 flat; Veracity AI $8,000-$12,000 range; Certify $9,750 fixed), with different depth, environment and credit conditions, and Veracity's deliverables are not itemized. The engine reads the range as bounds: the median is a range, not a point, and the price is positioned at its lower bound. The tier stays PROVISIONAL_SCENARIO and quote_ready false while the cost basis is a machine-only subtotal.",
   "price_basis_note": "The engine reads a STARTING_AT price p as a lower bound (the true price is at least p): the market median is reported as a range, a STARTING_AT figure never counts as an exact match, and it never caps a quote.",
   "citation_check": "Each source page was fetched and its price, scope and duration checked by hand on observed_at. The guard test checks only citation form.",
   "not_included_note": "northsecure.ai (a Microsoft 365 security assessment priced in CAD) and aidigitalhub.com (priced in INR) were never part of this set. The currency rule excludes them.",
@@ -84,6 +84,30 @@
       },
       "verified_on_vendor_page_at": "2026-10-29",
       "role": "GOVERNANCE_ANCHOR"
+    },
+    {
+      "name": "Veracity AI LLC (ethicalveracity.ai) \u2014 Governance Readiness Assessment (fixed fee, published as a range; 2-3 weeks)",
+      "usd_per_action": "8000",
+      "usd_per_action_high": "12000",
+      "price_basis": "RANGE",
+      "source": "https://ethicalveracity.ai/",
+      "observed_at": "2026-10-29",
+      "role": "GOVERNANCE_ANCHOR",
+      "vendor": "Veracity AI LLC, ethicalveracity.ai",
+      "currency": "USD",
+      "price_text": "Governance Readiness Assessment: $8,000\u2013$12,000, listed as a fixed fee; 2 to 3 weeks",
+      "deliverables": [
+        "structured assessment of what the governance infrastructure can sustain under regulatory scrutiny",
+        "inventory and named owners (described by example, not itemized)"
+      ],
+      "scope_match": {
+        "authority_map": "PARTIAL (inventory with named owners is described by example)",
+        "risk_matrix": "UNKNOWN (deliverables are not itemized on the page)",
+        "prioritized_remediations": "UNKNOWN (deliverables are not itemized on the page)",
+        "thirty_day_plan": "NO"
+      },
+      "verified_on_vendor_page_at": "2026-10-29",
+      "provenance": "Proposed on Labs #3370 (comment 6486753091); vendor page fetched and read 2026-10-29. Target organization size, environment restrictions and credits are not stated on the page."
     }
   ],
   "excluded": [
