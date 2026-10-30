@@ -55,20 +55,29 @@ organization's own `source-receipts/` retention step.
 
 ## Recording an SDK push: `sv-push-receipt.v1`
 
-The sovereign ledger receives one `stegverse.sv_push_receipt.v1` per push range `(repository, ref, old_sha, new_sha)`.
-The producer and the writer operation live in StegVerse-Labs/.github, not here; the SDK has no copy of either, and nothing in this
-repository appends, dispatches or polls. What an SDK contributor does (the contract is
-StegVerse-Labs/.github `docs/SV_PUSH_RECEIPT_HANDOFF.md`):
+A push to this repository is recorded on the ledger of the organization that owns it. StegVerse-SDK is in StegVerse-org, so its
+`stegverse.sv_push_receipt.v1` belongs on the StegVerse-org ledger (StegVerse-org/.github `refs/stegverse/organization-ledger`), one per push
+range `(repository, ref, old_sha, new_sha)`. Each organization keeps its own ledger. The producer and the writer operation live in
+StegVerse-org/.github (`resident-runtime/sv_push_receipt.py` and the `sv_push_receipt` operation of its organization-ledger writer,
+declared in `.stegverse/organization-ledger-ingest/operations.json`); the SDK has no copy of either, and nothing in this repository appends,
+dispatches or polls. What an SDK contributor does:
 
 1. Before pushing a branch, read the ref value it will move from. For a new branch that is the fork base on `origin/main`
-   (`resident-runtime/sv_push_receipt.py read-ref --repository . --ref refs/remotes/origin/main`, run from a Labs checkout against this clone).
+   (`resident-runtime/sv_push_receipt.py read-ref --repository . --ref refs/remotes/origin/main`, run from a StegVerse-org/.github checkout
+   against this clone).
 2. Push with the session's own normal push.
 3. After the push, fetch the branch and run `sv_push_receipt.py emit --repository <this clone> --repository-name StegVerse-org/StegVerse-SDK
    --ref refs/heads/<branch> --after-ref refs/remotes/origin/<branch> --old-sha <step 1> --pusher-session <session> --hb-epoch <supplied> --out receipt.json`.
    `hb_epoch` is supplied (ASCII digits >= 32), never read from a clock. A force-push is refused, not receipted.
-4. The receipt is committed to StegVerse-Labs/.github as `.stegverse/organization-ledger-ingest/request.json` with operation `sv_push_receipt`.
-   The org-ledger writer appends it when that file changes on a push to Labs `main`. A second receipt for the same range is refused with the
-   six fields (`SV_PUSH_RECEIPT_RANGE_ALREADY_RECORDED`) and appends nothing.
+4. The receipt is committed to StegVerse-org/.github as `.stegverse/organization-ledger-ingest/request.json`
+   (`{"schema":"stegverse.organization-ledger-ingest-request/v1","operation":"sv_push_receipt","push_receipt":{...},"hb_epoch":<supplied>}`).
+   The organization-ledger writer appends it when that file changes on a push to StegVerse-org/.github `main`; one request holds one receipt.
+   A second receipt for the same range is refused with the six fields (`SV_PUSH_RECEIPT_RANGE_ALREADY_RECORDED`) and appends nothing.
+5. Read it back from a fresh fetch of `refs/stegverse/organization-ledger`: the repository receipt under
+   `repository-ledger/StegVerse-org/StegVerse-SDK` and the organization receipt that retains it.
+
+An SDK push receipt written to the StegVerse-Labs ledger is on the wrong ledger and is not authoritative for LC-GOV-07. It is left in place
+(deleting stored ledger data needs the owner) and is not repeated here.
 
 Past ranges are not reconstructed: SDK#567 (`6b3ccee2`) and the other merges that pre-date the operation have no push receipt and stay
 `BRANCH_WRITER_UNOBSERVED`. A receipt records the range its session declared; it grants no authority.
