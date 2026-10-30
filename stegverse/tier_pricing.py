@@ -42,6 +42,11 @@ COMPONENTS = {
     "storage_bytes": ("storage_gb", GB),
     "network_bytes": ("network_gb", GB),
 }
+# cost_estimate fields that are not costs; they never make a basis incomplete.
+NON_COST_FIELDS = {"latency_ms"}
+# A record may declare how each cost dimension stands. UNKNOWN on a required dimension, like a
+# declared non-zero quantity the rate card does not model, keeps the basis a machine-only subtotal.
+DIMENSION_DISPOSITIONS = ("MODELED", "NOT_APPLICABLE", "KNOWN_ZERO", "UNKNOWN")
 
 
 class PricingInputError(ValueError):
@@ -112,7 +117,7 @@ def action_cost(record: Any, rates: Mapping[str, Decimal]) -> dict[str, Any]:
     estimate = basis.get("cost_estimate")
     if not isinstance(estimate, Mapping):
         raise PricingInputError(f"{task_class}: cost_estimate required")
-    total, missing = Decimal(0), set()
+    total, missing, unmodeled = Decimal(0), set(), []
     for field, (rate_key, divisor) in COMPONENTS.items():
         value = estimate.get(field)
         if value is None:
@@ -126,30 +131,104 @@ def action_cost(record: Any, rates: Mapping[str, Decimal]) -> dict[str, Any]:
         total += quantity / divisor * rates[rate_key]
     if estimate.get("external_cost_usd") is not None:
         total += _decimal(estimate["external_cost_usd"], f"{task_class}.external_cost_usd")
+    # A declared non-zero quantity the rate card does not model is cost the subtotal leaves out.
+    for field in sorted(estimate):
+        if field in COMPONENTS or field == "external_cost_usd" or field in NON_COST_FIELDS:
+            continue
+        value = estimate.get(field)
+        if value is not None and _decimal(value, f"{task_class}.{field}") != 0:
+            unmodeled.append(field)
+    dispositions = basis.get("cost_dimension_dispositions") or {}
+    if not isinstance(dispositions, Mapping):
+        raise PricingInputError(f"{task_class}: cost_dimension_dispositions must be an object")
+    for field, disposition in sorted(dispositions.items()):
+        if disposition not in DIMENSION_DISPOSITIONS:
+            raise PricingInputError(f"{task_class}.cost_dimension_dispositions.{field}: one of {list(DIMENSION_DISPOSITIONS)}")
+        if disposition == "UNKNOWN" and field not in unmodeled:
+            unmodeled.append(field)
+        if disposition == "MODELED":
+            # MODELED is a claim with two parts: the rate card maps this field to a cost, and a
+            # quantity is present. A declared MODELED null, or MODELED on a field nothing prices,
+            # is a contradiction, not a complete dimension.
+            if field not in COMPONENTS and field != "external_cost_usd":
+                raise PricingInputError(
+                    f"{task_class}.cost_dimension_dispositions.{field}: MODELED but no cost mapping prices this field; "
+                    "declare it UNKNOWN, NOT_APPLICABLE or KNOWN_ZERO")
+            if estimate.get(field) is None:
+                raise PricingInputError(
+                    f"{task_class}.cost_dimension_dispositions.{field}: MODELED but the quantity is null; "
+                    "supply the quantity, or declare NOT_APPLICABLE or KNOWN_ZERO")
+        if disposition in ("KNOWN_ZERO", "NOT_APPLICABLE"):
+            value = estimate.get(field)
+            if value is not None and _decimal(value, f"{task_class}.{field}") != 0:
+                raise PricingInputError(
+                    f"{task_class}.cost_dimension_dispositions.{field}: declared {disposition} but the quantity is non-zero")
     samples = basis.get("sample_count")
+    status = "UNKNOWN_RATE_NOT_SOURCED" if missing else "MACHINE_SUBTOTAL_ONLY" if unmodeled else "PRICED"
     return {
         "task_class": task_class,
-        "status": "UNKNOWN_RATE_NOT_SOURCED" if missing else "PRICED",
+        "status": status,
         "missing_rates": sorted(missing),
-        "usd_per_action": None if missing else str(total),
+        # The modeled machine cost, kept apart from any complete cost claim.
+        "machine_subtotal_usd_per_action": None if missing else str(total),
+        "unmodeled_cost_dimensions": sorted(unmodeled),
+        "usd_per_action": str(total) if status == "PRICED" else None,
         # A sample_count of 0 (or absent) is a source-declared estimate, not an observed measurement.
         "evidence": "SAMPLED_COST_BASIS" if isinstance(samples, int) and samples > 0 else "PROVISIONAL_ESTIMATE",
     }
 
 
-def market_median(market: Any) -> Decimal | None:
+# FLAT: a point price. STARTING_AT: a lower bound (the true price is at least p). RANGE: a published
+# low and high (usd_per_action is the low, usd_per_action_high the high); the true price is within.
+PRICE_BASES = ("FLAT", "STARTING_AT", "RANGE")
+# A comparable's role. Only governance anchors enter the median; an adjacent reference is kept
+# as context (its observation is preserved, its price is never a statistic).
+COMPARABLE_ROLES = ("GOVERNANCE_ANCHOR", "ADJACENT_REFERENCE")
+MARKET_CURRENCY = "USD"
+
+
+def market_median(market: Any) -> dict[str, Any] | None:
+    """Bounds on the market median. A STARTING_AT price p means the true price is at least p; a
+    RANGE [p, q] means it is within. at_least is the median with every bounded price at its low,
+    at_most the median at every high (None when unbounded); exact only when the two agree.
+    """
     if market is None:
         return None
     comparables = _schema(market, MARKET_SCHEMA).get("comparables")
     if not isinstance(comparables, list):
         raise PricingInputError("comparables list required")
-    prices = []
+    low, high, adjacent = [], [], 0
     for index, entry in enumerate(comparables):
         if not isinstance(entry, Mapping):
             raise PricingInputError(f"comparables[{index}]: object required")
         _cited(entry, f"comparables[{index}]")
-        prices.append(_decimal(entry.get("usd_per_action"), f"comparables[{index}].usd_per_action"))
-    return statistics.median(prices) if prices else None
+        price = _decimal(entry.get("usd_per_action"), f"comparables[{index}].usd_per_action")
+        basis = entry.get("price_basis", "FLAT")
+        if basis not in PRICE_BASES:
+            raise PricingInputError(f"comparables[{index}].price_basis must be one of {list(PRICE_BASES)}")
+        # usd_per_action is a USD figure by name; a comparable declaring another currency, with
+        # no authorized conversion provenance in scope, cannot enter the statistic.
+        if entry.get("currency", MARKET_CURRENCY) != MARKET_CURRENCY:
+            raise PricingInputError(f"comparables[{index}].currency must be {MARKET_CURRENCY}")
+        role = entry.get("role", "GOVERNANCE_ANCHOR")
+        if role not in COMPARABLE_ROLES:
+            raise PricingInputError(f"comparables[{index}].role must be one of {list(COMPARABLE_ROLES)}")
+        if role == "ADJACENT_REFERENCE":
+            adjacent += 1
+            continue
+        if basis == "RANGE":
+            upper = _decimal(entry.get("usd_per_action_high"), f"comparables[{index}].usd_per_action_high")
+            if upper < price:
+                raise PricingInputError(f"comparables[{index}]: usd_per_action_high must be at least usd_per_action")
+        low.append(price)
+        high.append(Decimal("Infinity") if basis == "STARTING_AT" else upper if basis == "RANGE" else price)
+    if not low:
+        return {"at_least": None, "at_most": None, "exact": False, "anchors": 0,
+                "adjacent_references": adjacent, "anchor_range": None}
+    at_least, at_most = statistics.median(low), statistics.median(high)
+    return {"at_least": at_least, "at_most": None if at_most.is_infinite() else at_most,
+            "exact": at_least == at_most, "anchors": len(low), "adjacent_references": adjacent,
+            "anchor_range": (min(low), max(low))}
 
 
 def _cents_up(value: Decimal) -> str:
@@ -179,6 +258,11 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
     margin = _decimal(policy.get("target_gross_margin"), "target_gross_margin")
     if margin >= 1:
         raise PricingInputError("target_gross_margin must be below 1")
+    # How many governance anchors a market median needs before it may set a price. Below it the
+    # anchors are context only, and the cost floor is the only figure the formula establishes.
+    minimum_anchors = policy.get("minimum_market_anchors", 1)
+    if not isinstance(minimum_anchors, int) or minimum_anchors < 1:
+        raise PricingInputError("minimum_market_anchors must be a positive integer")
     plans = policy.get("plans")
     if not isinstance(plans, list) or not plans:
         raise PricingInputError("plans list required")
@@ -195,7 +279,10 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
     costs = {c: action_cost(records[0], rates) for c, records in by_class.items()}
     for task_class, cost in costs.items():
         estimate = {"scope_id": task_class, "currency": "USD", "unit": "action", "cost_basis_version": version,
-                    "amount": cost["usd_per_action"] if cost["status"] == "PRICED" else "UNKNOWN"}
+                    # A machine-only subtotal is a lower bound on the estimate, never a complete cost.
+                    "amount": cost["usd_per_action"] if cost["status"] == "PRICED"
+                    else cost["machine_subtotal_usd_per_action"] if cost["status"] == "MACHINE_SUBTOTAL_ONLY"
+                    else "UNKNOWN"}
         try:
             cost["pricing_basis"] = registry.pricing_basis(authentic, estimate, observed_by_class.get(task_class))
         except registry.CostInputError as exc:
@@ -216,22 +303,36 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
         if absent or unpriced:
             tier.update(status="UNKNOWN_RATE_NOT_SOURCED" if unpriced and not absent else "UNKNOWN_COST_BASIS",
                         absent_cost_basis=absent, unpriced_task_classes=unpriced,
-                        usd_per_action=None, usd_per_period=None, market_position="NOT_EVALUATED")
+                        usd_per_action=None, usd_per_period=None, market_position="NOT_EVALUATED", quote_ready=False)
             tiers.append(tier)
             continue
         # Conservative: price every included action at the costliest class the plan admits.
         unit_cost = max(Decimal(costs[c]["pricing_basis"]["c_pricing"]) for c in classes)
-        complete = all(costs[c]["pricing_basis"]["status"] == "COMPLETE_BASIS" for c in classes)
+        unmodeled = sorted({d for c in classes for d in costs[c]["unmodeled_cost_dimensions"]})
+        # A basis with unmodeled cost dimensions is never complete, whatever was observed.
+        complete = not unmodeled and all(costs[c]["pricing_basis"]["status"] == "COMPLETE_BASIS" for c in classes)
         floor = unit_cost / (1 - margin)
-        if median is None:
+        # A lower-bound median is never an exact match, and never caps the quote: the floor is
+        # above the market only when it exceeds the median's upper bound.
+        if median is None or median["anchors"] == 0:
             price, position = floor, "NO_MARKET_EVIDENCE"
-        elif median >= floor:
-            price, position = median, "AT_MARKET_MEDIAN"
-        else:
+        elif median["anchors"] < minimum_anchors:
+            price, position = floor, "MARKET_ANCHORS_INSUFFICIENT"
+        elif median["at_least"] >= floor:
+            price = median["at_least"]
+            position = "AT_MARKET_MEDIAN" if median["exact"] else "AT_MARKET_MEDIAN_LOWER_BOUND"
+        elif median["at_most"] is not None and median["at_most"] < floor:
             price, position = floor, "ABOVE_MARKET_COST_BOUND"
+        else:
+            price, position = floor, "WITHIN_MARKET_MEDIAN_RANGE"
         tier.update(status="PRICED" if complete else "PROVISIONAL_SCENARIO", unit_cost_usd=str(unit_cost), cost_floor_usd_per_action=str(floor),
                     usd_per_action=str(price), usd_per_period=_cents_up(price * included),
                     market_position=position,
+                    cost_completeness="MACHINE_SUBTOTAL_ONLY" if unmodeled else "ALL_DECLARED_DIMENSIONS_MODELED",
+                    unmodeled_cost_dimensions=unmodeled,
+                    # A figure is quote-ready only when the basis is complete and any market
+                    # statistic it rests on has enough governance anchors.
+                    quote_ready=bool(complete and position != "MARKET_ANCHORS_INSUFFICIENT"),
                     evidence="PROVISIONAL_ESTIMATE" if any(costs[c]["evidence"] != "SAMPLED_COST_BASIS" for c in classes)
                     else "SAMPLED_COST_BASIS")
         tiers.append(tier)
@@ -241,11 +342,14 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
     extra = {}
     if status == "PROVISIONAL":
         unobserved = sorted(c for c, cost in costs.items() if cost["pricing_basis"]["status"] == "PROVISIONAL_SCENARIO")
+        unmodeled = {c: cost["unmodeled_cost_dimensions"] for c, cost in costs.items() if cost["unmodeled_cost_dimensions"]}
         extra["actionable_disposition"] = _actionable(
             "PRICING_BASIS_PROVISIONAL",
-            f"C_pricing = max(C_estimated, C_authentically_observed) has one operand UNKNOWN for {unobserved}",
+            f"C_pricing = max(C_estimated, C_authentically_observed) has one operand UNKNOWN for {unobserved}"
+            + (f"; the estimate is a machine-only subtotal, unmodeled cost dimensions {unmodeled}" if unmodeled else ""),
             "supply an authentically observed cost (receipt-backed, same scope, currency, unit and cost_basis_version) "
-            "and a complete estimate for each listed task class")
+            "and a complete estimate for each listed task class"
+            + ("; model or cite a rate for each unmodeled dimension, or declare it NOT_APPLICABLE or KNOWN_ZERO" if unmodeled else ""))
     elif status == "INCOMPLETE":
         unpriced = [t["name"] for t in tiers if t["status"] not in ("PRICED", "PROVISIONAL_SCENARIO")]
         missing = sorted({r for c in costs.values() for r in c["missing_rates"]})
@@ -262,7 +366,16 @@ def derive_pricing(cost_basis: Sequence[Any], rate_card: Any, policy: Any, marke
         "cost_basis_version": version,
         "compute_unit_definition": rate_card["compute_unit_definition"],
         "target_gross_margin": str(margin),
-        "market_median_usd_per_action": None if median is None else str(median),
+        "market_median_usd_per_action": str(median["at_least"]) if median and median["exact"] else None,
+        "market_median_range_usd_per_action": None if median is None or median["anchors"] == 0 else {
+            "at_least": str(median["at_least"]),
+            "at_most": None if median["at_most"] is None else str(median["at_most"]),
+            "exact": median["exact"]},
+        "market_anchors": None if median is None else median["anchors"],
+        "market_adjacent_references": None if median is None else median["adjacent_references"],
+        "market_anchor_range_usd_per_action": None if median is None or median["anchor_range"] is None else
+            {"min": str(median["anchor_range"][0]), "max": str(median["anchor_range"][1])},
+        "minimum_market_anchors": minimum_anchors,
         "action_costs": [costs[k] for k in sorted(costs)],
         "tiers": tiers,
         "authority": {"final_price_approved": False, "entitlement_issued": False, "credential_issued": False,
