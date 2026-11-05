@@ -83,6 +83,10 @@ EVALUATOR_EXAMPLES: dict[str, dict[str, str]] = {
         "source": SHARED_SOURCE,
         "processor_request": "sdk-test2-atomic-task-worker.processor-request.json",
     },
+    "canonical_work": {
+        "source": SHARED_SOURCE,
+        "processor_request": "sdk-canonical-work.processor-request.json",
+    },
     "svg_governance_cycle": {
         "source": SHARED_SOURCE,
         "processor_request": "sdk-svg-governance-cycle.processor-request.json",

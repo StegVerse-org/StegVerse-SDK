@@ -49,6 +49,7 @@ from .route_resolution import (
     ATOMIC_TASK_WORKER_ROUTE_ID,
     SVG_GOVERNANCE_CYCLE_ROUTE_ID,
     STEGBROWSER_ROUTE_ID,
+    CANONICAL_WORK_ROUTE_ID,
     ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID,
     ECOSYSTEM_CHAT_ROUTE_ID,
     VA_SCOPED_CHAT_ROUTE_ID,
@@ -72,6 +73,7 @@ PROCESSOR_ROUTES = {
     "atomic_task_worker": ATOMIC_TASK_WORKER_ROUTE_ID,
     "svg_governance_cycle": SVG_GOVERNANCE_CYCLE_ROUTE_ID,
     "stegbrowser": STEGBROWSER_ROUTE_ID,
+    "canonical_work": CANONICAL_WORK_ROUTE_ID,
     "organization_role_conformance": ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID,
     # Collaborative ingress (SDK-MANIFEST-COLLAB-INGRESS-CONFORMANCE-001); all
     # dispatch through stegverse.manifest_execution.execute_manifest.
@@ -390,6 +392,12 @@ def build_manifest(
     elif normalized_process == "svg_governance_cycle":
         normalized_request = validate_svg_governance_cycle_request(processor_request)
         extensions[SVG_GOVERNANCE_CYCLE_REQUEST_EXTENSION] = normalized_request
+    elif normalized_process == "canonical_work":
+        from .manifest_state_transition_adapters import CANONICAL_WORK_REQUEST_FIELDS
+        for key, expected in CANONICAL_WORK_REQUEST_FIELDS.items():
+            if processor_request.get(key) != expected or type(processor_request.get(key)) is not type(expected):
+                raise ValueError("CANONICAL_WORK_ORIGINAL_REQUEST_MISMATCH:" + key)
+        extensions["stegverse_canonical_work_request"] = deepcopy(dict(processor_request))
     elif normalized_process == "stegbrowser":
         normalized_request = validate_stegbrowser_request(processor_request)
         extensions[STEGBROWSER_REQUEST_EXTENSION] = normalized_request

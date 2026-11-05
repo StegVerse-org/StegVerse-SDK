@@ -195,7 +195,7 @@ class OrganizationRoleConformanceRouteTests(unittest.TestCase):
     def test_every_pre_existing_route_resolves_unchanged(self):
         self.assertEqual(
             set(PRE_EXISTING_ROUTE_HASHES) | {ORGANIZATION_ROLE_CONFORMANCE_ROUTE_ID} | COLLAB_INGRESS_ROUTE_IDS
-            | REMEDIATION_FORK_ROUTE_IDS,
+            | REMEDIATION_FORK_ROUTE_IDS | {"stegverse.route.canonical-work.v1"},
             set(PUBLISHED_ROUTES),
         )
         before = {route_id: PUBLISHED_ROUTES[route_id] for route_id in PRE_EXISTING_ROUTE_HASHES}

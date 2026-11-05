@@ -144,7 +144,14 @@ class InstallationTests(Base):
         self.assertEqual(unpublished, rows)
         capabilities = {row.get("processor_capability") for row in PUBLISHED_ROUTES.values()}
         for consumer_id in unpublished:
-            self.assertNotIn(consumer_id, capabilities)
+            # Publication in the SDK is distinct from installing an edge-consumer
+            # binding. canonical_work is published, but its edge installer must
+            # continue to FAIL_CLOSED until EDGE_CONSUMERS binds the route.
+            if consumer_id == "canonical_work":
+                self.assertIn(consumer_id, capabilities)
+            else:
+                self.assertNotIn(consumer_id, capabilities)
+            self.assertIsNone(installer.EDGE_CONSUMERS[consumer_id]["route_id"])
             self.assertIn(installer.EDGE_CONSUMERS[consumer_id]["profile"], section)
         for field in ("failure_code", "failed_predicate", "required_evidence_or_repair",
                       "retry_entrypoint", "owning_existing_goal", "next_attempt"):
