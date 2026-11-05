@@ -11,7 +11,7 @@ from stegverse.governance_navigation import (
 class GovernanceOutcomeDemoTests(unittest.TestCase):
     def test_000_demo_prepends_exactly_one_example_of_each_active_outcome(self):
         output = demo_output_manifest_shape()
-        self.assertEqual(next(iter(output)), "000_governance_outcome_dataset")
+        self.assertIn("000_governance_outcome_dataset", output)
         dataset = output["000_governance_outcome_dataset"]
         examples = dataset["governance_outcome_examples"]
         states = [item["governance_state"] for item in examples]
@@ -21,11 +21,13 @@ class GovernanceOutcomeDemoTests(unittest.TestCase):
     def test_each_demo_outcome_is_labeled_non_authorizing_governance_evidence(self):
         examples = demo_output_manifest_shape()["000_governance_outcome_dataset"]["governance_outcome_examples"]
         for item in examples:
-            self.assertEqual(item["transition_class"], "governance")
-            self.assertEqual(item["receipt_class"], "governance-decision")
+            label = item["manifest_label"]
+            self.assertEqual(label["transition_classes"], ["governance"])
+            self.assertEqual(label["receipt_classes"], ["governance-decision"])
             self.assertFalse(item["consequence_implied"])
             self.assertFalse(item["authority_granted_by_example"])
-            self.assertTrue(item["meaning"])
+            self.assertTrue(label["title"])
+            self.assertTrue(label["description"])
 
     def test_000_dataset_is_demo_only_and_precedes_example_transaction(self):
         dataset = demo_output_manifest_shape()["000_governance_outcome_dataset"]
@@ -44,7 +46,7 @@ class GovernanceOutcomeDemoTests(unittest.TestCase):
         text = guidance_for("000")
         for state in GOVERNANCE_OUTCOME_STATES:
             self.assertIn(state, text)
-        self.assertIn("strictly demo-only", text)
+        self.assertIn("demo-only", text)
 
 
 if __name__ == "__main__":

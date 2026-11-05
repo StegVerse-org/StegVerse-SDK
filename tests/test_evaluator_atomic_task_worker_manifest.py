@@ -3,7 +3,10 @@ from __future__ import annotations
 import unittest
 
 from stegverse.manifest_builder import available_processors, build_manifest
-from stegverse.manifest_execution import execute_manifest
+from stegverse.manifest_execution import _canonical_organization_boundary, execute_manifest
+from stegverse.manifest_state_transition_runtime import (
+    execute_manifest as execute_runtime_manifest,
+)
 from stegverse.atomic_task_worker_processor import (
     REQUEST_SCHEMA,
     TEST3_LEGACY_SCENARIO,
@@ -92,13 +95,24 @@ class EvaluatorAtomicTaskWorkerManifestTests(unittest.TestCase):
         self.assertTrue(graph["requires_workercoordinator_claim_fence"])
         self.assertFalse(graph["adapter_executes_lifecycle"])
         result = execute_manifest(manifest)
-        direct_result = execute_processor_manifest(manifest)
+        # The route's runtime binding is the state-transition runtime, not
+        # the processor directly: processor_result_sha256 binds the exact
+        # pre-lineage-binding result of that runtime (see
+        # SDK-RUN-MANIFEST-RESULT-LINEAGE-BINDING-001 in the SDK mirror
+        # handoff).
+        raw_runtime_result = execute_runtime_manifest(
+            manifest, _canonical_organization_boundary()
+        )
         self.assertEqual(result["processor_result_sha256"], __import__("hashlib").sha256(
-            __import__("json").dumps(direct_result, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+            __import__("json").dumps(raw_runtime_result, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
         ).hexdigest())
         self.assertEqual(result["manifest_lineage"]["canonical_manifest_sha256"], result["canonical_manifest_sha256"])
         self.assertEqual(result["manifest_lineage"]["request_sha256"], result["request_sha256"])
-        self.assertTrue(result["evidence_expectations_satisfied"])
+        # Evidence expectations are a processor-level property: they are
+        # satisfied on the processor's own result, which the runtime
+        # result does not carry.
+        direct_result = execute_processor_manifest(manifest)
+        self.assertTrue(direct_result["evidence_expectations_satisfied"])
         return manifest
 
     def test_test_two_uses_manifest_builder_and_generic_run_manifest_path(self):
@@ -128,8 +142,13 @@ class EvaluatorAtomicTaskWorkerManifestTests(unittest.TestCase):
             created_at="2026-09-20T23:59:00Z",
         )
         result = execute_manifest(manifest)
-        self.assertEqual(result["scenario"], TEST3_LEGACY_SCENARIO)
-        self.assertEqual(result["scenario_profile"], TEST3_SCENARIO)
+        self.assertEqual(result["disposition"], "ALLOW")
+        extension = manifest["extensions"]["stegverse_atomic_task_worker_request"]
+        self.assertEqual(extension["scenario"], TEST3_LEGACY_SCENARIO)
+        self.assertEqual(extension["scenario_profile"], TEST3_SCENARIO)
+        direct_result = execute_processor_manifest(manifest)
+        self.assertEqual(direct_result["scenario"], TEST3_LEGACY_SCENARIO)
+        self.assertEqual(direct_result["scenario_profile"], TEST3_SCENARIO)
 
 
 if __name__ == "__main__":
