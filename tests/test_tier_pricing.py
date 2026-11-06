@@ -3,6 +3,7 @@ import ast
 import json
 import subprocess
 import sys
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -30,9 +31,14 @@ def _policy(*plans, margin=0.5, version=VERSION):
 
 
 def _market(*prices):
-    return {"schema": tp.MARKET_SCHEMA,
-            "comparables": [{"name": f"c{i}", "usd_per_action": p, "source": SRC, "observed_at": "2026-10-14"}
-                            for i, p in enumerate(prices)]}
+    """Each price is a value (no price_basis, read as FLAT) or a (value, price_basis) pair."""
+    comparables = []
+    for i, p in enumerate(prices):
+        entry = {"name": f"c{i}", "usd_per_action": p, "source": SRC, "observed_at": "2026-10-14"}
+        if isinstance(p, tuple):
+            entry.update(usd_per_action=p[0], price_basis=p[1])
+        comparables.append(entry)
+    return {"schema": tp.MARKET_SCHEMA, "comparables": comparables}
 
 
 def _observations(version=VERSION, **amounts):
@@ -108,6 +114,48 @@ def test_market_median_sets_price_only_above_the_cost_floor():
     assert (below["market_position"], below["usd_per_period"]) == ("ABOVE_MARKET_COST_BOUND", "5.36")
 
 
+def test_starting_at_is_a_lower_bound_never_an_exact_match():
+    card, policy = _card(**CARD), _policy(("team", 10, ["gate"]))
+    flat = tp.derive_pricing(BASIS, card, policy, _market(("1.0", "FLAT")))
+    starting = tp.derive_pricing(BASIS, card, policy, _market(("1.0", "STARTING_AT")))
+    assert flat["market_median_range_usd_per_action"] == {"at_least": "1.0", "at_most": "1.0", "exact": True}
+    assert (flat["market_median_usd_per_action"], flat["tiers"][0]["market_position"]) == ("1.0", "AT_MARKET_MEDIAN")
+    # "Starting at 1.0" means at least 1.0: the median has no upper bound and no point value.
+    assert starting["market_median_range_usd_per_action"] == {"at_least": "1.0", "at_most": None, "exact": False}
+    assert starting["market_median_usd_per_action"] is None
+    tier = starting["tiers"][0]
+    assert (tier["usd_per_action"], tier["market_position"]) == ("1.0", "AT_MARKET_MEDIAN_LOWER_BOUND")
+
+
+def test_starting_at_bounds_the_median_between_its_flat_neighbours():
+    market = _market(("1.0", "FLAT"), ("0.5", "STARTING_AT"), ("2.0", "FLAT"))
+    report = tp.derive_pricing(BASIS, _card(**CARD), _policy(("team", 10, ["gate"])), market)
+    assert report["market_median_range_usd_per_action"] == {"at_least": "1.0", "at_most": "2.0", "exact": False}
+    assert report["tiers"][0]["market_position"] == "AT_MARKET_MEDIAN_LOWER_BOUND"
+
+
+def test_starting_at_never_pulls_the_median_below_its_bound():
+    card, policy = _card(**CARD), _policy(("team", 10, ["gate"]))
+    for bound in ("0.2", "0.6", "1.5", "3.0"):
+        report = tp.derive_pricing(BASIS, card, policy, _market("1.0", (bound, "STARTING_AT")))
+        at_least = Decimal(report["market_median_range_usd_per_action"]["at_least"])
+        # The bound moves the median toward itself and never past it.
+        assert min(Decimal("1.0"), Decimal(bound)) <= at_least <= max(Decimal("1.0"), Decimal(bound))
+
+
+def test_starting_at_below_the_cost_floor_does_not_cap_the_quote():
+    card, policy = _card(**CARD), _policy(("team", 10, ["gate"]))
+    # Cost floor is 0.536. A FLAT 0.1 is a market price the floor exceeds; "starting at 0.1" is not.
+    flat = tp.derive_pricing(BASIS, card, policy, _market(("0.1", "FLAT")))["tiers"][0]
+    starting = tp.derive_pricing(BASIS, card, policy, _market(("0.1", "STARTING_AT")))["tiers"][0]
+    assert (flat["market_position"], flat["usd_per_period"]) == ("ABOVE_MARKET_COST_BOUND", "5.36")
+    assert (starting["market_position"], starting["usd_per_period"]) == ("WITHIN_MARKET_MEDIAN_RANGE", "5.36")
+    # Bounded above by FLAT prices the floor exceeds, the floor is above the market again.
+    capped = tp.derive_pricing(BASIS, card, policy,
+                               _market(("0.1", "FLAT"), ("0.2", "STARTING_AT"), ("0.3", "FLAT")))["tiers"][0]
+    assert capped["market_position"] == "ABOVE_MARKET_COST_BOUND"
+
+
 def test_unsourced_or_missing_rate_is_unknown_not_invented():
     report = tp.derive_pricing(BASIS, _card(compute_unit="0.006"),
                                _policy(("team", 10, ["gate"]), ("starter", 10, ["canary"]), ("ghost", 1, ["nope"])))
@@ -130,6 +178,7 @@ def test_unsourced_or_missing_rate_is_unknown_not_invented():
     lambda card, policy, market: policy.pop("cost_basis_version"),
     lambda card, policy, market: policy["plans"][0].update(task_classes=[]),
     lambda card, policy, market: market["comparables"][0].pop("source"),
+    lambda card, policy, market: market["comparables"][0].update(price_basis="TYPICAL"),
 ])
 def test_malformed_inputs_fail_closed(mutate):
     card, policy, market = _card(compute_unit="0.006"), _policy(("starter", 1, ["canary"])), _market("1")
