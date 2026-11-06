@@ -179,8 +179,13 @@ def validate_site_sdk_processing_handoff(packet: Mapping[str, Any]) -> dict[str,
         raise SiteSdkProcessingHandoffError("manifest_hash does not match supplied manifest")
 
     completion = _normalize_completion_block(canonical_manifest)
+    # The capsule binds the admitted manifest as supplied: manifest_hash is
+    # the packet identity (it is also the hash the return-exit receipt
+    # binds), and completion normalization is invariant across the raw and
+    # canonical forms. Passing the canonical form here would pair the raw
+    # hash with a different object and fail the capsule's own hash check.
     downstream_completion_capsule = _build_downstream_completion_capsule(
-        manifest=canonical_manifest,
+        manifest=manifest,
         manifest_hash=manifest_hash,
         response_to=response_to,
         retained_packet_sha256=retained_packet_sha256,
@@ -195,7 +200,11 @@ def validate_site_sdk_processing_handoff(packet: Mapping[str, Any]) -> dict[str,
 
     return {
         "schema": SITE_SDK_PROCESSING_HANDOFF_SCHEMA,
-        "manifest": canonical_manifest,
+        # The admitted manifest as supplied: manifest_hash binds this
+        # exact object, and downstream execution re-ingests it as an
+        # external manifest. The canonical form is a validation
+        # artifact and is not itself an ingestible external manifest.
+        "manifest": manifest,
         "manifest_hash": manifest_hash,
         "completion": completion,
         "downstream_completion_capsule": downstream_completion_capsule,

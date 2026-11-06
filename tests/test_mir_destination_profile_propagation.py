@@ -54,7 +54,7 @@ def test_destination_profile_survives_manifest_validation_and_sdk_return_binding
 
     binding = assemble_publisher_return(
         manifest=manifest,
-        manifest_receipt_id="MR-ABC123",
+        manifest_receipt_id="MR-0123456789ABCDEF",
         publisher_return_bytes=publisher_return_bytes(),
     )
     assert binding["egress"]["destination_profile"] == "MIR"
