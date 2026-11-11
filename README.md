@@ -8,6 +8,12 @@ Existing [issue #361](https://github.com/StegVerse-org/StegVerse-SDK/issues/361)
 
 # StegVerse SDK
 
+## System division
+
+StegGovernance governs the data carried by a manifest. The manifest states the route; InTr transfers it between Organizations. StegCore applies established governance rules and records the application. Each receiving Organization admits at ingress under its own established rules. Matched receipts in both Organizations evidence inter-Org continuity.
+
+Read the owner's complete [system-division statement](docs/SYSTEM_DIVISION.md) and the [release-identity operating check](docs/PRODUCTION_RELEASE_SETS.md#identifying-the-sdk-of-record). Tags and published releases identify the SDK of record. Branch recency and a pending release candidate do not establish a released SDK.
+
 ## Worker-cost evidence qualification (source-only candidate, 2026-09-26)
 
 `stegverse.worker_cost_evidence.qualify_worker_cost` validates a six-component cost evidence declaration: provider, sandbox, resident node, GitHub Actions, governance, and custody. Each component requires a nonnegative minor-unit amount, currency, MEASURED classification, and an original evidence SHA-256 reference. Missing or malformed components fail closed. Even a complete source declaration remains **not independently verified**, has no promoted measured total, and grants no benchmark or runtime authority. Independent retrieval and verification of original evidence must precede any economic claim. Focused adversarial tests live in `tests/test_worker_cost_evidence.py`. This candidate is separate from the existing four-case local cost/lifetime demonstration and from canonical task registration.
@@ -15,7 +21,7 @@ Existing [issue #361](https://github.com/StegVerse-org/StegVerse-SDK/issues/361)
 
 ## Generic evaluator source-observation preflight (SDK 1.4 development, NOT released)
 
-The optional provider-neutral `stegverse.source-observation.v1` profile distinguishes client-measured no-invocation intervals from actual provider-returned text, completed empty response, ellipsis, API error, timeout and unknown completion. Its local validator refuses an apparent model response during a no-request interval and preserves event ordering. The same generic Manifest Builder then admits the unchanged source packet under a separately chosen installed processing route; the validator does not authenticate the provider or grant governance authority.
+The optional provider-neutral `stegverse.source-observation.v1` profile distinguishes client-measured no-invocation intervals from actual provider-returned text, completed empty response, ellipsis, API error, timeout and unknown completion. Its local validator refuses an apparent model response during a no-request interval and preserves event ordering. The same generic Manifest Builder then validates and packages the unchanged source packet under a separately chosen installed processing route; the receiving Organization applies its ingress rules. The validator does not authenticate the provider or grant governance authority.
 
 ```bash
 python -m stegverse.source_observation --input inspection/examples/source-observation-synthetic-hold.json
@@ -51,7 +57,7 @@ For an external-framework path whose protocol translation is owned by `StegVerse
 
 New builder-generated manifests include a machine-readable `completion` block for this lifecycle. Legacy v1 manifests that omit `completion` remain structurally valid for backward compatibility, but they are explicitly **not** classified as complete communication manifests merely because processing returned a result.
 
-Publisher is therefore part of the complete manifest when the request requires presentation/evaluator evidence, just as the final egress transition is part of the complete manifest. Publisher renders authentic retained evidence; it does not become governance, transition, credential, processor-selection, or evidence authority. Interlock/InTr remains the governed ingress/egress transition seam, and TV/TVC remains credential authority where credentials are required.
+Publisher is therefore part of the complete manifest when the request requires presentation/evaluator evidence, just as the final egress transition is part of the complete manifest. Publisher renders authentic retained evidence; it does not become governance, transition, credential, processor-selection, or evidence authority. InTr is the transfer protocol between Organizations; Organizations admit at ingress under their own established rules. TV/TVC remains credential authority where credentials are required.
 
 ## Open testing and governed interoperability
 

@@ -2,6 +2,33 @@
 
 Production-lane evaluator evidence must identify the exact software state that participated in a governed run. A moving branch is not a sufficient historical identifier.
 
+## Identifying the SDK of record
+
+The SDK of record is identified from its tags and published releases, never from branch recency. A release candidate whose tag and package publication are pending is not a release. This is item 6 of the owner's [system-division statement](SYSTEM_DIVISION.md).
+
+Before identifying a release or describing a capability as released:
+
+1. State the component and product scope. An experiment snapshot in this repository is not automatically a release of the SDK package.
+2. Read the repository's tag refs and published release records. Resolve an annotated tag to its commit; record both the tag object and the peeled commit when applicable. A moving release target such as `main` is not the tag's immutable source identity.
+3. Retain the matching tag, immutable commit, published release URL, publication time and prerelease state. Report tag-only, release-only, missing and conflicting evidence explicitly. Package publication is a separate check; do not infer it from a tag or release page.
+4. When only a candidate or commit is established, use `RELEASE_CANDIDATE` or `COMMIT_OR_PACKAGE_ONLY` as applicable and state what publication evidence is missing. A newer branch or larger version string does not promote a candidate into a release.
+5. If an experiment intentionally uses a revised source commit, freeze and name that commit as the experiment's source identity while retaining the independently established release identity. Do not rewrite the original run's release basis during replay.
+6. Verify capability claims against the selected immutable release/source and its retained evidence. A validation run establishes its tested scope; it does not publish a release or establish runtime activation.
+
+Record the operating check where the lane files its outcome:
+
+| Field | Required evidence |
+|---|---|
+| Component / product scope | SDK package, experiment snapshot, or other named component |
+| Tag / tag object | Exact ref and immutable object, or an explicit absence |
+| Source commit | Peeled tag commit, independently distinguished from branch head |
+| Published release | Matching release URL, publication time and prerelease state, or explicit absence |
+| Package publication | Independently observed package identity, or unverified/pending |
+| Candidate / source identity | Exact candidate or experiment commit and its evidence class |
+| Capability basis | Selected immutable source and the validation/runtime evidence actually observed |
+
+This check records identity and provenance. The existing TV/TVC publication authority and repository integration requirements still apply.
+
 ## Evaluator inspection
 
 ```bash
